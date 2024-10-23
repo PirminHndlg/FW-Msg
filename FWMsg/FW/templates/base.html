@@ -13,52 +13,74 @@
 </head>
 <body>
 
-<div class="head_container">
-    <a href="{% url 'home' %}">
-        <div class="logo_container">
-            ♑
-        </div>
-    </a>
+<div class="wrapper">
 
-    <h1>
-        {% block headline %}
+
+    <div class="head_container">
+        <a href="{% url 'fwhome' %}">
+            <div class="logo_container">
+                ♑
+            </div>
+        </a>
+
+        <h1>
+            {% block headline %}
+            {% endblock %}
+        </h1>
+
+        <div class="menu_container_button"
+             onclick="document.querySelector('div.menu_container').style.display = 'flex'">
+            ≣
+        </div>
+
+    </div>
+
+    <div class="menu_container" onclick="this.style.display = 'none'">
+
+        <a href="{% url 'fwhome' %}">
+            Home
+        </a>
+        <a href="{% url 'aufgaben' %}">
+            Aufgaben
+        </a>
+        <a>
+            Logout
+        </a>
+
+    </div>
+
+    <div class="content">
+        {% block content %}
+
         {% endblock %}
-    </h1>
-
-    <div class="menu_container">
-        ≣
     </div>
 
-</div>
+    <footer>
+        <a href="{% url 'fwhome' %}">
+            <div class="bar_div">
+                🏠
+            </div>
+        </a>
 
-{% block content %}
-
-{% endblock %}
-
-<div class="footer_container">
-    <a href="{% url 'home' %}">
         <div class="bar_div">
-            🏠
+            📅
         </div>
-    </a>
 
-    <div class="bar_div">
-        📅
-    </div>
-
-    <div class="bar_div">
-        +
-    </div>
-
-    <div class="bar_div">
-        📄
-    </div>
-
-    <a href="{% url 'profil' %}">
         <div class="bar_div">
-            👤
+            +
         </div>
-    </a>
+
+        <div class="bar_div">
+            📄
+        </div>
+
+        <a href="{% url 'profil' %}">
+            <div class="bar_div">
+                👤
+            </div>
+        </a>
+    </footer>
+
 </div>
 
 </body>

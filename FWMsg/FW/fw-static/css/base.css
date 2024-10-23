@@ -22,21 +22,44 @@
     max-height: 200px;
 }
 
-.menu_container {
+.menu_container_button {
     background-color: white;
     height: 30px;
     padding: 10px;
+    cursor: pointer;
 
     font-size: 35px;
     display: flex;
     align-items: center;
 }
 
-.footer_container {
+.menu_container {
+    position: fixed;
+    height: 100%;
+    width: 200px;
+    background-color: yellow;
+    top: 0;
+    right: 0;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.content {
+    flex: 1;
+}
+
+footer {
     position: sticky;
-    bottom: 0;
-    left: 0;
-    width: 100vw;
+    text-align: center;
+    width: 100%;
     display: flex;
     justify-content: space-around;
     align-items: center;
