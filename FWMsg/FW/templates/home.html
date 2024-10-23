@@ -15,7 +15,9 @@
     <div class="container aufgaben_loader">
 
         <a href="{% url 'aufgaben' %}"><h3>Aufgaben ⟩</h3></a>
-        <p>50% erledigt</p>
+        <p><strong>Wow!</strong> Du hast schon {{ aufgaben.erledigt_prozent }}% erledigt</p>
+
+        {{ aufgaben }}
 
     </div>
 
@@ -28,6 +30,13 @@
     <div class="container neue_posts">
 
         <h3>Neue Posts ⟩</h3>
+
+        {{ posts }}
+        {% if posts %}
+
+        {% else %}
+            <p>Noch keine Posts</p>
+        {% endif %}
 
     </div>
 
