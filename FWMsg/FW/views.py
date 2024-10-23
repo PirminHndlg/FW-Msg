@@ -13,20 +13,26 @@ def home(request):
     #     .order_by('aufgabe__name')
     # )
 
-    aufgaben_erledigt = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=True).count()
-    aufgaben_offen = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=False,
-                                                         pending=False).count()
-    aufgaben_pending = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=False,
-                                                           pending=True).count()
-    gesamt = aufgaben_erledigt + aufgaben_offen
+    erledigte_aufgaben = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=True).order_by(
+        'faellig')
+    offene_aufgaben = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=False,
+                                                          pending=False).order_by('faellig')
+    pending_aufgaben = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=False,
+                                                           pending=True).order_by('faellig')
+
+    len_erledigt = erledigte_aufgaben.count()
+    len_offen = offene_aufgaben.count()
+    len_pending = pending_aufgaben.count()
+
+    gesamt = len_erledigt + len_offen + len_pending
 
     freiwilliger_aufgaben = {
-        'erledigt': aufgaben_erledigt,
-        'erledigt_prozent': round(aufgaben_erledigt / gesamt * 100),
-        'pending': aufgaben_pending,
-        'pending_prozent': round(aufgaben_pending / gesamt * 100),
-        'offen': aufgaben_offen,
-        'offen_prozent': round(aufgaben_offen / gesamt * 100),
+        'erledigt': erledigte_aufgaben,
+        'erledigt_prozent': round(len_erledigt / gesamt * 100),
+        'pending': pending_aufgaben,
+        'pending_prozent': round(len_pending / gesamt * 100),
+        'offen': offene_aufgaben,
+        'offen_prozent': round(len_offen / gesamt * 100),
     }
 
     last_three_posts = Post.objects.all().order_by('date')[:3]
@@ -48,4 +54,27 @@ def ampel(request):
 
 
 def aufgaben(request):
-    return render(request, 'aufgaben.html')
+    erledigte_aufgaben = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=True).order_by('faellig')
+    offene_aufgaben = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=False,
+                                                          pending=False).order_by('faellig')
+    pending_aufgaben = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=False,
+                                                           pending=True).order_by('faellig')
+
+    len_erledigt = erledigte_aufgaben.count()
+    len_offen = offene_aufgaben.count()
+    len_pending = pending_aufgaben.count()
+
+    gesamt = len_erledigt + len_offen + len_pending
+
+    context = {
+        'aufgaben_offen': offene_aufgaben,
+        'aufgaben_erledigt': erledigte_aufgaben,
+        'aufgaben_pending': pending_aufgaben,
+        'len_erledigt': len_erledigt,
+        'erledigt_prozent': round(len_erledigt / gesamt * 100),
+        'len_pending': len_pending,
+        'pending_prozent': round(len_pending / gesamt * 100),
+        'len_offen': len_offen,
+        'offen_prozent': round(len_offen / gesamt * 100),
+    }
+    return render(request, 'aufgaben.html', context=context)

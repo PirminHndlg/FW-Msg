@@ -17,7 +17,15 @@
         <a href="{% url 'aufgaben' %}"><h3>Aufgaben ⟩</h3></a>
         <p><strong>Wow!</strong> Du hast schon {{ aufgaben.erledigt_prozent }}% erledigt</p>
 
-        {{ aufgaben }}
+        // Grafik mit Prozentzahl
+
+        {% for aufgabe in aufgaben.offen|slice:":2" %}
+            <div class="aufgabe">
+                <h4>{{ aufgabe.aufgabe.name }}</h4>
+                <p>{{ aufgabe.beschreibung }}</p>
+                <p>Fällig: {{ aufgabe.faellig }}</p>
+            </div>
+        {% endfor %}
 
     </div>
 

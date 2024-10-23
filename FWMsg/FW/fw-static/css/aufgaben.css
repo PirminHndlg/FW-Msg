@@ -1,7 +1,14 @@
 .offene_aufgaben_div {
     margin: 10px;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .erledigte_aufgaben_div {
     margin: 10px;
+}
+
+.aufgabe_div {
+    width: 80%;
+    max-width: 300px;
 }

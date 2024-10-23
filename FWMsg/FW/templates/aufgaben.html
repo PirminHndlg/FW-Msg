@@ -13,16 +13,28 @@
 
     <div class="offene_aufgaben_div">
 
-    <h3>Offene Aufgaben</h3>
+        <h3>Offene Aufgaben: {{ len_offen }}</h3>
+
+        {{ aufgaben_offen }}
+
+    {% for aufgabe in aufgaben_offen %}
+        <div class="aufgabe_div">
+            <h4>{{ aufgabe.aufgabe.name }}</h4>
+            <p>{{ aufgabe.aufgabe.beschreibung }}</p>
+            <p>Fällig: {{ aufgabe.faellig }}</p>
+        <a href="{% url 'fwhome' %}">Jz erledigen</a>
+        </div>
+    {% endfor %}
 
     </div>
 
     <div class="erledigte_aufgaben_div">
 
-    <details>
-        <summary>Erledigte Aufgaben</summary>
-        <p>Bli Bla Blubb</p>
-    </details>
+        <details>
+            <summary>Erledigte Aufgaben: {{ len_erledigt }}</summary>
+            <p>Bli Bla Blubb</p>
+            {{ erledigte_aufgaben }}
+        </details>
 
     </div>
 
