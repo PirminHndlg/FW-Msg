@@ -28,12 +28,20 @@
 
     </div>
 
+    <div>
+        <details>
+            <summary>Pending Aufgaben: {{ len_pending }}</summary>
+            <p>Bli Bla Blubb</p>
+            {{ aufgaben_pending }}
+        </details>
+    </div>
+
     <div class="erledigte_aufgaben_div">
 
         <details>
             <summary>Erledigte Aufgaben: {{ len_erledigt }}</summary>
             <p>Bli Bla Blubb</p>
-            {{ erledigte_aufgaben }}
+            {{ aufgaben_erledigt }}
         </details>
 
     </div>
