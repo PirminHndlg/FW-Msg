@@ -62,6 +62,20 @@ class Einsatzstelle(models.Model):
         return self.name
 
 
+class Jahrgang(models.Model):
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50)
+    start = models.DateField(blank=True, null=True)
+    ende = models.DateField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Jahrgang'
+        verbose_name_plural = 'Jahrgänge'
+
+    def __str__(self):
+        return self.name
+
+
 # Create your models here.
 class Freiwilliger(models.Model):
     GESCHLECHT_CHOICES = [
@@ -78,6 +92,7 @@ class Freiwilliger(models.Model):
     ]
 
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    jahrgang = models.ForeignKey(Jahrgang, on_delete=models.SET_NULL, null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.DO_NOTHING, null=True, blank=True)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
