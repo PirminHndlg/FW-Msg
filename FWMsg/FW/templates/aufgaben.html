@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/aufgaben.css' %}">
+{% endblock %}
+
+{% block headline %}
+    Aufgaben
+{% endblock %}
+
+{% block content %}
+
+    <div class="offene_aufgaben_div">
+
+    <h3>Offene Aufgaben</h3>
+
+    </div>
+
+    <div class="erledigte_aufgaben_div">
+
+    <details>
+        <summary>Erledigte Aufgaben</summary>
+        <p>Bli Bla Blubb</p>
+    </details>
+
+    </div>
+
+{% endblock %}
