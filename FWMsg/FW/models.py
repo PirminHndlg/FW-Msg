@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from ORG.models import Organisation
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 
 
@@ -35,22 +35,6 @@ class Entsendeform(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class Notfallkontakt(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    phone = models.CharField(max_length=20)
-    email = models.EmailField(max_length=100, blank=True, null=True)
-    freiwilliger = models.ForeignKey('Freiwilliger', on_delete=models.CASCADE)
-
-    class Meta:
-        verbose_name = 'Notfallkontakt'
-        verbose_name_plural = 'Notfallkontakte'
-
-    def __str__(self):
-        return self.first_name + ' ' + self.last_name
 
 
 class Einsatzland(models.Model):
@@ -94,7 +78,7 @@ class Freiwilliger(models.Model):
     ]
 
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    user = models.OneToOneField(User, on_delete=models.DO_NOTHING)
+    user = models.OneToOneField(User, on_delete=models.DO_NOTHING, null=True, blank=True)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     geschlecht = models.CharField(max_length=1, blank=True, null=True, choices=GESCHLECHT_CHOICES)
@@ -151,6 +135,22 @@ def post_delete_handler(sender, instance, **kwargs):
     instance.user.delete()
 
 
+class Notfallkontakt(models.Model):
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    phone = models.CharField(max_length=20)
+    email = models.EmailField(max_length=100, blank=True, null=True)
+    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = 'Notfallkontakt'
+        verbose_name_plural = 'Notfallkontakte'
+
+    def __str__(self):
+        return self.first_name + ' ' + self.last_name
+
+
 class Ampel(models.Model):
     CHOICES = [
         ('G', 'Grün'),
@@ -179,6 +179,21 @@ class Aufgabenprofil(models.Model):
         return self.name
 
 
+class FreiwilligerAufgaben(models.Model):
+    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE)
+    aufgabe = models.ForeignKey('Aufgabe', on_delete=models.CASCADE)
+    erledigt = models.BooleanField(default=False)
+    pending = models.BooleanField(default=False)
+    datetime = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Freiwilliger Aufgabe'
+        verbose_name_plural = 'Freiwilliger Aufgaben'
+
+    def __str__(self):
+        return self.freiwilliger.first_name + ' ' + self.freiwilliger.last_name + ' - ' + self.aufgabe.name
+
+
 class FreiwilligerAufgabenprofil(models.Model):
     # org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE)
@@ -190,6 +205,20 @@ class FreiwilligerAufgabenprofil(models.Model):
 
     def __str__(self):
         return self.freiwilliger.first_name + ' ' + self.freiwilliger.last_name + ' - ' + self.aufgabenprofil.name
+
+
+@receiver(post_save, sender=FreiwilligerAufgabenprofil)
+def post_save_handler(sender, instance, **kwargs):
+    aufgaben = AufgabenprofilAufgabe.objects.filter(aufgabenprofil=instance.aufgabenprofil)
+    for aufgabe in aufgaben:
+        FreiwilligerAufgaben.objects.get_or_create(freiwilliger=instance.freiwilliger, aufgabe=aufgabe.aufgabe)
+
+
+@receiver(pre_delete, sender=FreiwilligerAufgabenprofil)
+def post_delete_handler(sender, instance, **kwargs):
+    aufgaben = AufgabenprofilAufgabe.objects.filter(aufgabenprofil=instance.aufgabenprofil)
+    for aufgabe in aufgaben:
+        FreiwilligerAufgaben.objects.filter(freiwilliger=instance.freiwilliger, aufgabe=aufgabe.aufgabe).delete()
 
 
 class Aufgabe(models.Model):
