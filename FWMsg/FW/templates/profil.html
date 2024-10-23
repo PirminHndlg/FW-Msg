@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/profil.css' %}">
+{% endblock %}
+
+{% block headline %}
+    Profil
+{% endblock %}
+
+
+{% block content %}
+    <div class="profil_container">
+        <div class="profil_img">
+            <img src="{% static 'img/default_img.png' %}" alt="Profilbild">
+        </div>
+
+        <div class="land_container">
+            <h3>Einsatzland</h3>
+            <img src="{% static 'img/de.png' %}" alt="Deutschland">
+            <p>Deutschland</p>
+        </div>
+    </div>
+
+    <div class="steckbrief_container">
+        <div>
+            <h3>Hobbies</h3>
+            <ul>
+                <li>Lesen</li>
+                <li>Reisen</li>
+                <li>Programmieren</li>
+            </ul>
+        </div>
+
+        <div>
+            <h3>3 Dinge</h3>
+            <ul>
+                <li>Ich bin sehr zuverlässig</li>
+                <li>Ich bin sehr pünktlich</li>
+                <li>Ich bin sehr ordentlich</li>
+            </ul>
+        </div>
+
+        <div>
+            <h3>Lieblingsessen:</h3>
+            <p>Sushi</p>
+        </div>
+
+    <div>
+        <h3>Spotify Liblingslied:</h3>
+        <p>Blinding Lights</p>
+    </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,41 @@
+.ampel_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 10px;
+}
+
+.ampel_element {
+    aspect-ratio: 1;
+    width: 30%;
+    max-width: 75px;
+    border-radius: 40%;
+    border: 4px solid black;
+}
+
+.ampel_rot {
+    background-color: red;
+}
+
+.ampel_gelb {
+    background-color: yellow;
+}
+
+.ampel_gruen {
+    background-color: green;
+}
+
+.ampel_comment {
+    margin: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.ampel_comment textarea {
+    width: 100%;
+    max-width: 400px;
+    margin: auto;
+}

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block headline %}
+    FW Msg
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="container aufgaben_loader">
+
+        <h3>Aufgaben ⟩</h3>
+        <p>50% erledigt</p>
+
+    </div>
+
+    <div class="container neue_bilder">
+
+        <h3>Neue Bilder ⟩</h3>
+
+    </div>
+
+    <div class="container neue_posts">
+
+        <h3>Neue Posts ⟩</h3>
+
+    </div>
+
+{% endblock %}

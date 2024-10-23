@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/ampel.css' %}">
+{% endblock %}
+
+{% block headline %}
+    Ampel
+{% endblock %}
+
+{% block content %}
+
+    <form>
+
+        <div class="ampel_container">
+            <div class="ampel_element ampel_rot"></div>
+            <div class="ampel_element ampel_gelb"></div>
+            <div class="ampel_element ampel_gruen"></div>
+        </div>
+
+        <div class="ampel_comment">
+            <h3>Anmerkungen</h3>
+            <textarea></textarea>
+        </div>
+
+        <button type="submit">Abschicken</button>
+
+    </form>
+
+{% endblock %}

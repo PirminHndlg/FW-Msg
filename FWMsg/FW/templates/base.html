@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FW Msg</title>
+
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    {% block head %}
+    {% endblock %}
+</head>
+<body>
+
+<div class="head_container">
+    <a href="{% url 'home' %}">
+        <div class="logo_container">
+            ♑
+        </div>
+    </a>
+
+    <h1>
+        {% block headline %}
+        {% endblock %}
+    </h1>
+
+    <div class="menu_container">
+        ≣
+    </div>
+
+</div>
+
+{% block content %}
+
+{% endblock %}
+
+<div class="footer_container">
+    <a href="{% url 'home' %}">
+        <div class="bar_div">
+            🏠
+        </div>
+    </a>
+
+    <div class="bar_div">
+        📅
+    </div>
+
+    <div class="bar_div">
+        +
+    </div>
+
+    <div class="bar_div">
+        📄
+    </div>
+
+    <a href="{% url 'profil' %}">
+        <div class="bar_div">
+            👤
+        </div>
+    </a>
+</div>
+
+</body>
+</html>
