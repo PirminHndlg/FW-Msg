@@ -21,7 +21,7 @@
         <div class="aufgabe_div">
             <h4>{{ aufgabe.aufgabe.name }}</h4>
             <p>{{ aufgabe.aufgabe.beschreibung }}</p>
-            <p>Fällig: {{ aufgabe.faellig }}</p>
+            <p>Fällig: {{ aufgabe.faellig|date:"d.m.Y" }}</p>
         <a href="{% url 'fwhome' %}">Jz erledigen</a>
         </div>
     {% endfor %}

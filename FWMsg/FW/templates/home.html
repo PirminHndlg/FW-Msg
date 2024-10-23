@@ -23,7 +23,7 @@
             <div class="aufgabe">
                 <h4>{{ aufgabe.aufgabe.name }}</h4>
                 <p>{{ aufgabe.beschreibung }}</p>
-                <p>Fällig: {{ aufgabe.faellig }}</p>
+                <p>Fällig: {{ aufgabe.faellig|date:"d.m.y" }}</p>
             </div>
         {% endfor %}
 
