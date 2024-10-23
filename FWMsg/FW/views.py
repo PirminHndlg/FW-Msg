@@ -10,3 +10,6 @@ def profil(request):
 
 def ampel(request):
     return render(request, 'ampel.html')
+
+def aufgaben(request):
+    return render(request, 'aufgaben.html')
