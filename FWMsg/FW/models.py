@@ -151,6 +151,19 @@ def post_delete_handler(sender, instance, **kwargs):
     instance.user.delete()
 
 
+class Ampel(models.Model):
+    CHOICES = [
+        ('G', 'Grün'),
+        ('Y', 'Gelb'),
+        ('R', 'Rot'),
+    ]
+
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE)
+    status = models.CharField(max_length=1, choices=CHOICES)
+    date = models.DateField(auto_now_add=True)
+
+
 class Aufgabenprofil(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
