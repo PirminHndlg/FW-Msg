@@ -200,6 +200,7 @@ class FreiwilligerAufgaben(models.Model):
     erledigt = models.BooleanField(default=False)
     pending = models.BooleanField(default=False)
     datetime = models.DateTimeField(auto_now_add=True)
+    faellig = models.DateField(blank=True, null=True)
 
     class Meta:
         verbose_name = 'Freiwilliger Aufgabe'
