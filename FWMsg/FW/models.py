@@ -248,6 +248,7 @@ class FreiwilligerAufgaben(models.Model):
     pending = models.BooleanField(default=False)
     datetime = models.DateTimeField(auto_now_add=True)
     faellig = models.DateField(blank=True, null=True)
+    erledigt_am = models.DateField(blank=True, null=True)
     wiederholung = models.CharField(max_length=1, choices=WIEDERHOLUNG_CHOICES)
     wiederholung_ende = models.DateField(blank=True, null=True)
 
