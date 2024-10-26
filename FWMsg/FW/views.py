@@ -1,6 +1,8 @@
+import os
+
 from django.shortcuts import render, redirect
 from .models import Aufgabe, FreiwilligerAufgabenprofil, FreiwilligerAufgaben, Post
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 
 
 # Create your views here.
@@ -81,3 +83,22 @@ def aufgaben(request):
         'offen_prozent': round(len_offen / gesamt * 100),
     }
     return render(request, 'aufgaben.html', context=context)
+
+
+def serve_image(request, image_name):
+    # Define the path to the image directory
+    image_path = os.path.join('logos', image_name)
+
+    print('image_path:', image_path)
+
+    # Check if the file exists
+    if not os.path.exists(image_path):
+        raise Http404("Image does not exist")
+
+    # Open the image file in binary mode
+    with open(image_path, 'rb') as img_file:
+        # Determine the content type (you might want to use a library to detect this)
+        content_type = 'image/jpeg'  # Change this if your images are in different formats
+        response = HttpResponse(img_file.read(), content_type=content_type)
+        response['Content-Disposition'] = f'inline; filename="{image_name}"'
+        return response
