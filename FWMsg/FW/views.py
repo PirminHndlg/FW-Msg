@@ -1,7 +1,7 @@
 import os
 
 from django.shortcuts import render, redirect
-from .models import Aufgabe, FreiwilligerAufgabenprofil, FreiwilligerAufgaben, Post
+from .models import Freiwilliger, Aufgabe, FreiwilligerAufgabenprofil, FreiwilligerAufgaben, Post
 from django.http import HttpResponse, Http404
 
 
@@ -83,6 +83,34 @@ def aufgaben(request):
         'offen_prozent': round(len_offen / gesamt * 100),
     }
     return render(request, 'aufgaben.html', context=context)
+
+def aufgabe(request, aufgabe_id):
+    if request.method == 'POST':
+        aufgabe = Aufgabe.objects.get(id=aufgabe_id)
+        freiwilliger = Freiwilliger.objects.get(user=request.user)
+        freiwilliger_aufgaben = FreiwilligerAufgaben.objects.filter(aufgabe=aufgabe, freiwilliger=freiwilliger)[0]
+        freiwilliger_aufgaben.pending = True
+        freiwilliger_aufgaben.save()
+        return redirect('aufgaben')
+
+    aufgabe_exists = Aufgabe.objects.filter(id=aufgabe_id).exists()
+    if not aufgabe_exists:
+        return redirect('aufgaben')
+    aufgabe = Aufgabe.objects.get(id=aufgabe_id)
+
+    freiwilliger = Freiwilliger.objects.get(user=request.user)
+    freiwilliger_aufgaben_exists = FreiwilligerAufgaben.objects.filter(aufgabe=aufgabe, freiwilliger=freiwilliger).exists()
+
+    if not freiwilliger_aufgaben_exists:
+        return redirect('aufgaben')
+
+    freiwilliger_aufgaben = FreiwilligerAufgaben.objects.filter(aufgabe=aufgabe, freiwilliger=freiwilliger)[0]
+
+    context = {
+        'aufgabe': aufgabe,
+        'freiwilliger_aufgaben': freiwilliger_aufgaben
+    }
+    return render(request, 'aufgabe.html', context=context)
 
 
 def serve_logo(request, image_name):

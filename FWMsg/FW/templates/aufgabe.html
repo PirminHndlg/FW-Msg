@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/aufgabe.css' %}">
+{% endblock %}
+
+{% block headline %}
+    Aufgabe
+{% endblock %}
+
+{% block content %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <h2>
+            {{ aufgabe }}
+        </h2>
+
+        {% if aufgabe.mitupload %}
+            <input type="file" name="file">
+        {% endif %}
+
+        <p>fällig: {{ freiwilliger_aufgaben.faellig|date:"d.m.Y" }}</p>
+
+        <p>erledigt: {{ freiwilliger_aufgaben.erledigt }}</p>
+        <p>pending: {{ freiwilliger_aufgaben.pending }}</p>
+
+        <a href="{% url 'aufgaben' %}">
+            <button type="button">Zurück</button>
+        </a>
+        <button type="submit">Erledigt</button>
+
+    </form>
+
+{% endblock %}
