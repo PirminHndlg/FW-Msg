@@ -17,22 +17,28 @@
 
         {{ aufgaben_offen }}
 
-    {% for aufgabe in aufgaben_offen %}
-        <div class="aufgabe_div">
-            <h4>{{ aufgabe.aufgabe.name }}</h4>
-            <p>{{ aufgabe.aufgabe.beschreibung }}</p>
-            <p>Fällig: {{ aufgabe.faellig|date:"d.m.Y" }}</p>
-        <a href="{% url 'fwhome' %}">Jz erledigen</a>
-        </div>
-    {% endfor %}
+        {% for aufgabe in aufgaben_offen %}
+            <div class="aufgabe_div">
+                <h4>{{ aufgabe.aufgabe.name }}</h4>
+                <p>{{ aufgabe.aufgabe.beschreibung }}</p>
+                <p>Fällig: {{ aufgabe.faellig|date:"d.m.Y" }}</p>
+                <a href="{% url 'aufgaben_detail' aufgabe.aufgabe.id %}">Jz erledigen</a>
+            </div>
+        {% endfor %}
 
     </div>
 
     <div>
         <details>
             <summary>Pending Aufgaben: {{ len_pending }}</summary>
-            <p>Bli Bla Blubb</p>
-            {{ aufgaben_pending }}
+            {% for aufgabe in aufgaben_pending %}
+                <div class="aufgabe_div">
+                    <h4>{{ aufgabe.aufgabe.name }}</h4>
+                    <p>{{ aufgabe.aufgabe.beschreibung }}</p>
+                    <p>Fällig: {{ aufgabe.faellig|date:"d.m.Y" }}</p>
+                    <a href="{% url 'aufgaben_detail' aufgabe.aufgabe.id %}">Bearbeiten</a>
+                </div>
+            {% endfor %}
         </details>
     </div>
 
@@ -40,8 +46,15 @@
 
         <details>
             <summary>Erledigte Aufgaben: {{ len_erledigt }}</summary>
-            <p>Bli Bla Blubb</p>
-            {{ aufgaben_erledigt }}
+
+            {% for aufgabe in aufgaben_erledigt %}
+                <div class="aufgabe_div">
+                    <h4>{{ aufgabe.aufgabe.name }}</h4>
+                    <p>{{ aufgabe.aufgabe.beschreibung }}</p>
+                    <p>Erledigt am: {{ aufgabe.erledigt_am|date:"d.m.Y" }}</p>
+                    <a href="{% url 'aufgaben_detail' aufgabe.aufgabe.id %}">Bearbeiten</a>
+                </div>
+            {% endfor %}
         </details>
 
     </div>
