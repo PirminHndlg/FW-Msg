@@ -340,6 +340,7 @@ class Aufgabe(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     beschreibung = models.TextField(null=True, blank=True)
+    mitupload = models.BooleanField(default=False)
     faellig = models.DateField(blank=True, null=True)
     faellig_tage_nach_start = models.IntegerField(blank=True, null=True)
     faellig_tage_vor_ende = models.IntegerField(blank=True, null=True)
