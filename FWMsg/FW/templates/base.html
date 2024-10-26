@@ -9,12 +9,14 @@
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
+    <script src="{% static 'js/base.js' %}"></script>
+
     {% block head %}
     {% endblock %}
 </head>
 <body>
 
-<div class="wrapper">
+<div id="wrapper" class="wrapper">
 
 
     <div class="head_container">
@@ -67,7 +69,7 @@
             📅
         </div>
 
-        <div class="bar_div">
+        <div class="bar_div" onclick="onPlusClicked()">
             +
         </div>
 
@@ -82,6 +84,14 @@
         </a>
     </footer>
 
+</div>
+
+<div id="dark_bg" class="dark_background" onclick="onDarkBgClicked()"></div>
+
+<div id="action_view" class="action_view">
+    <a href="{% url 'fwhome' %}">Bilder hochladen</a>
+    <a>Dokumente hochladen</a>
+    <a>Aufgabe erledigen</a>
 </div>
 
 </body>
