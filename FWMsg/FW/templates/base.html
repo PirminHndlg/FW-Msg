@@ -1,4 +1,5 @@
 {% load static %}
+{% load base_filter %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,6 +14,14 @@
 
     {% block head %}
     {% endblock %}
+
+    <style>
+        :root {
+            --color: {{ user|get_color }};
+            --secondary_color: {{ user|get_secondary_color }};
+        }
+    </style>
+
 </head>
 <body>
 
@@ -22,7 +31,7 @@
     <div class="head_container">
         <a href="{% url 'fwhome' %}">
             <div class="logo_container">
-                ♑
+                <img src="{% static user|get_logo %}" alt="BMW-Logo">
             </div>
         </a>
 
