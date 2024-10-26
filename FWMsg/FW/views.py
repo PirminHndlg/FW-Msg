@@ -85,7 +85,7 @@ def aufgaben(request):
     return render(request, 'aufgaben.html', context=context)
 
 
-def serve_image(request, image_name):
+def serve_logo(request, image_name):
     # Define the path to the image directory
     image_path = os.path.join('logos', image_name)
 

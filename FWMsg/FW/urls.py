@@ -6,6 +6,6 @@ urlpatterns = [
     path('profil/', views.profil, name='profil'),
     path('ampel/', views.ampel, name='ampel'),
     path('aufgaben/', views.aufgaben, name='aufgaben'),
-    path('logos/<str:image_name>', views.serve_image, name='serve_image'),
+    path('logos/<str:image_name>', views.serve_logo, name='serve_image'),
 
 ]
