@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import Aufgabe, FreiwilligerAufgabenprofil, FreiwilligerAufgaben, Post
 from django.http import HttpResponse
 
@@ -12,6 +12,9 @@ def home(request):
     #     .distinct()
     #     .order_by('aufgabe__name')
     # )
+
+    if not request.user.is_authenticated:
+        return redirect('login')
 
     erledigte_aufgaben = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=True).order_by(
         'faellig')
