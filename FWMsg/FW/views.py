@@ -86,9 +86,8 @@ def aufgaben(request):
 
 def aufgabe(request, aufgabe_id):
     if request.method == 'POST':
-        aufgabe = Aufgabe.objects.get(id=aufgabe_id)
-        freiwilliger = Freiwilliger.objects.get(user=request.user)
-        freiwilliger_aufgaben = FreiwilligerAufgaben.objects.filter(aufgabe=aufgabe, freiwilliger=freiwilliger)[0]
+        requested_aufgabe = Aufgabe.objects.get(id=aufgabe_id)
+        freiwilliger_aufgaben = FreiwilligerAufgaben.objects.filter(aufgabe=requested_aufgabe, freiwilliger__user=request.user)[0]
         freiwilliger_aufgaben.pending = True
         freiwilliger_aufgaben.save()
         return redirect('aufgaben')
@@ -96,18 +95,21 @@ def aufgabe(request, aufgabe_id):
     aufgabe_exists = Aufgabe.objects.filter(id=aufgabe_id).exists()
     if not aufgabe_exists:
         return redirect('aufgaben')
-    aufgabe = Aufgabe.objects.get(id=aufgabe_id)
 
-    freiwilliger = Freiwilliger.objects.get(user=request.user)
-    freiwilliger_aufgaben_exists = FreiwilligerAufgaben.objects.filter(aufgabe=aufgabe, freiwilliger=freiwilliger).exists()
+    requested_aufgabe = Aufgabe.objects.get(id=aufgabe_id)
+
+    print(requested_aufgabe)
+
+    freiwilliger_aufgaben_exists = FreiwilligerAufgaben.objects.filter(aufgabe=requested_aufgabe, freiwilliger__user=request.user).exists()
 
     if not freiwilliger_aufgaben_exists:
-        return redirect('aufgaben')
+        # return redirect('aufgaben')
+        pass
 
-    freiwilliger_aufgaben = FreiwilligerAufgaben.objects.filter(aufgabe=aufgabe, freiwilliger=freiwilliger)[0]
+    freiwilliger_aufgaben = FreiwilligerAufgaben.objects.filter(aufgabe=requested_aufgabe, freiwilliger__user=request.user)[0]
 
     context = {
-        'aufgabe': aufgabe,
+        'aufgabe': requested_aufgabe,
         'freiwilliger_aufgaben': freiwilliger_aufgaben
     }
     return render(request, 'aufgabe.html', context=context)
