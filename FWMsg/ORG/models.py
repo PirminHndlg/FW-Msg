@@ -17,3 +17,16 @@ class Organisation(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class MailBenachrichtigungen(models.Model):
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    betreff = models.CharField(max_length=100)
+    text = models.TextField()
+
+    class Meta:
+        verbose_name = 'Mail Benachrichtigung'
+        verbose_name_plural = 'Mail Benachrichtigungen'
+
+    def __str__(self):
+        return f'{self.organisation} - {self.betreff}'
