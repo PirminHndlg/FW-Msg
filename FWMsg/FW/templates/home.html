@@ -3,6 +3,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bilder.css' %}">
 {% endblock %}
 
 {% block headline %}
@@ -31,7 +32,25 @@
 
     <div class="container neue_bilder">
 
-        <h3>Neue Bilder ⟩</h3>
+        <a href="{% url 'bilder' %}"><h3>Neue Bilder ⟩</h3></a>
+        {% for bild in bilder %}
+            {% with bild_data=bild.bilder %}
+                <p>{{ bild_data.user }}</p>
+                <h4>{{ bild_data.titel }}</h4>
+                <div class="bilder_container">
+                    {% for img in bild.images %}
+                        <div class="bild_container">
+                            <img src="{{ img.image.url }}" alt="Bild">
+                        </div>
+                    {% endfor %}
+                </div>
+                <p>{{ bild_data.beschreibung }}</p>
+            {% endwith %}
+            {% if not forloop.last %}
+                <hr>
+            {% endif %}
+        {% endfor %}
+
 
     </div>
 
