@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/bilder.css' %}">
+{% endblock %}
+
+{% block headline %}
+    Bilder
+{% endblock %}
+
+{% block content %}
+
+    {% for bild_gallery in bilder_gallery %}
+        {% with bild=bild_gallery.bilder %}
+            {{ bild.titel }}
+            {{ bild.beschreibung }}
+            {{ bild.date_created }}
+            {{ bild.date_updated }}
+            {{ bild.user }}
+        {% endwith %}
+
+        <div class="bilder_container">
+            {% for img in bild_gallery.images %}
+                <div class="bild_container">
+                    <img src="{{ img.image.url }}" alt="Bild">
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+
+
+
+{% endblock %}
