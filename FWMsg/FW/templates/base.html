@@ -31,7 +31,9 @@
     <div class="head_container">
         <a href="{% url 'fwhome' %}">
             <div class="logo_container">
-                <img src="{% static user|get_logo %}" alt="BMW-Logo">
+                {% with org=user|get_org %}
+                    <img src="{{ org.logo.url }}" alt="BMW-Logo">
+                {% endwith %}
             </div>
         </a>
 
@@ -98,7 +100,7 @@
 <div id="dark_bg" class="dark_background" onclick="onDarkBgClicked()"></div>
 
 <div id="action_view" class="action_view">
-    <a href="{% url 'bilder' %}">Bilder hochladen</a>
+    <a href="{% url 'bild' %}">Bilder hochladen</a>
     <a>Dokumente hochladen</a>
     <a href="{% url 'aufgaben' %}">Aufgabe erledigen</a>
 </div>
