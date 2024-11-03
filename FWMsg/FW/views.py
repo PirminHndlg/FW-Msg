@@ -5,6 +5,7 @@ from django.db.models import Count
 from django.shortcuts import render, redirect
 from .models import Freiwilliger, Aufgabe, FreiwilligerAufgabenprofil, FreiwilligerAufgaben, Post, Bilder, CustomUser, \
     BilderGallery
+from ORG.models import Dokument, Ordner
 from django.http import HttpResponse, Http404
 
 from .forms import BilderForm, BilderGalleryForm
@@ -211,6 +212,38 @@ def bild(request):
     }
 
     return render(request, 'bild.html', context=context)
+
+
+def dokumente(request):
+    ordners = Ordner.objects.filter(org=getOrg(request), ober_ordner__isnull=True).order_by('ordner_name')
+    folder_structure = {}
+
+    def get_subfolder(ordner):
+        data = {}
+        subfolders = Ordner.objects.filter(org=getOrg(request), ober_ordner=ordner)
+        # if len(subfolders) == 0:
+        #    return ordner
+        if len(subfolders) > 0:
+            data['dirs'] = {}
+        for subfolder in subfolders:
+            data['dirs'][subfolder] = get_subfolder(subfolder)
+
+        files = Dokument.objects.filter(org=getOrg(request), ordner=ordner)
+        if len(files) > 0:
+            data['files'] = files
+        return data
+
+    for ordner in ordners:
+        folder_structure[ordner.ordner_name] = get_subfolder(ordner)
+
+    print(folder_structure)
+
+    context = {
+        'ordners': ordners,
+        'folder_structure': folder_structure
+    }
+
+    return render(request, 'dokumente.html', context=context)
 
 
 def serve_logo(request, image_name):

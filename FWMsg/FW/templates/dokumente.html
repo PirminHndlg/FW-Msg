@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/dokumente.css' %}">
+{% endblock %}
+
+{% block headline %}
+    Dokumente
+{% endblock %}
+
+{% block content %}
+
+    {% for k, v in folder_structure.items %}
+        <details>
+            <summary>{{ k }}</summary>
+            {% for k1, v1 in v.items %}
+                {% if k1 == 'files' %}
+                    {% for v in v1 %}
+                        <p style="margin-left: 20px">{{ v }}</p>
+                    {% endfor %}
+                    {{ continue }}
+                {% endif %}
+                {% for k2, v2 in v1.items %}
+                    <details style="margin-left: 20px">
+                        <summary>{{ k2 }} a</summary>
+                        {% if k2 == 'files' %}
+                            {% for v in v2 %}
+                                <p>{{ v }}</p>
+                                {{ continue }}
+                            {% endfor %}
+                        {% endif %}
+
+                        {% for k3, v3 in v2.items %}
+                            <details style="margin-left: 20px">
+                                <summary>{{ k3 }}</summary>
+                                {% if k3 == 'files' %}
+                                    {% for v in v3 %}
+                                        {{ v }}
+                                        {{ continue }}
+                                    {% endfor %}
+                                {% endif %}
+                            {{ v3 }}
+                            </details>
+                        {% endfor %}
+                    </details>
+                {% endfor %}
+            {% endfor %}
+        </details>
+    {% endfor %}
+
+{% endblock %}
