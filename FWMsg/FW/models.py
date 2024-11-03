@@ -1,7 +1,7 @@
 import os
 from datetime import timedelta
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AbstractUser
 from django.db import models
 from ORG.models import Organisation
 from django.db.models.signals import post_save, post_delete, pre_delete
@@ -19,6 +19,11 @@ from django.dispatch import receiver
 #
 #     def __str__(self):
 #         return self.name
+
+# @receiver(post_save, sender=User)
+# def post_save_user_handler(sender, instance, created, **kwargs):
+#     if created:
+#         CustomUser.objects.create(user=instance, org=sender.org)
 
 class CustomUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -38,6 +43,7 @@ class Entsendeform(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Kirchenzugehoerigkeit(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
@@ -386,3 +392,32 @@ class Post(models.Model):
 def post_save_handler(sender, instance, **kwargs):
     if instance.org:
         pass
+
+
+class Bilder(models.Model):
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    titel = models.CharField(max_length=50)
+    beschreibung = models.TextField(blank=True, null=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Bild'
+        verbose_name_plural = 'Bilder'
+
+    def __str__(self):
+        return self.titel
+
+
+class BilderGallery(models.Model):
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='bilder/')
+    bilder = models.ForeignKey(Bilder, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = 'Bilder Gallery'
+        verbose_name_plural = 'Bilder Galleries'
+
+    def __str__(self):
+        return self.org
