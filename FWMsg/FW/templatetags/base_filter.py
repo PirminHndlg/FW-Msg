@@ -1,32 +1,30 @@
 from django import template
 
-from ..models import Freiwilliger
+from ..models import CustomUser
 
 register = template.Library()
 
 @register.filter
 def get_color(user):
-    freiwilliger = Freiwilliger.objects.get(user=user)
-    if freiwilliger:
-        color = freiwilliger.org.farbe
+    org = get_org(user)
+    if org:
+        color = org.farbe
     else:
         color = 'green'
     return color
 
 @register.filter
 def get_secondary_color(user):
-    freiwilliger = Freiwilliger.objects.get(user=user)
-    if freiwilliger:
-        color = freiwilliger.org.farbe
+    org = get_org(user)
+    if org:
+        color = org.farbe
     else:
         color = 'green'
     return color
 
 @register.filter
-def get_logo(user):
-    freiwilliger = Freiwilliger.objects.get(user=user)
-    if freiwilliger:
-        logo = freiwilliger.org.logo
-    else:
-        logo = None
-    return logo
+def get_org(user):
+    if user.is_authenticated:
+        if CustomUser.objects.filter(user=user).exists():
+            return CustomUser.objects.get(user=user).org
+    return None
