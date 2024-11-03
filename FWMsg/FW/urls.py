@@ -11,4 +11,5 @@ urlpatterns = [
     path('bilder/', views.bilder, name='bilder'),
     path('bilder/<str:image_name>', views.serve_bilder, name='serve_bilder'),
     path('bild/', views.bild, name='bild'),
+    path('dokumente/', views.dokumente, name='dokumente'),
 ]
