@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+    <script src="{% static 'js/bild.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/bild.css' %}">
+{% endblock %}
+
+{% block headline %}
+    Bilder
+{% endblock %}
+
+{% block content %}
+
+    <form method="post" enctype="multipart/form-data">
+
+        {% if form_errors %}
+            {{ form_errors }}
+        {% endif %}
+
+        {% csrf_token %}
+        {{ bilder_form.as_p }}
+        {{ bilder_gallery_form.as_p }}
+        <div id="previewContainer"></div>
+        <button type="submit">Save Product</button>
+    </form>
+
+{% endblock %}
