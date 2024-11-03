@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Freiwilliger, Entsendeform, Einsatzland, Einsatzstelle, Notfallkontakt, Post, Aufgabe, \
-    Aufgabenprofil, AufgabenprofilAufgabe, FreiwilligerAufgabenprofil, Ampel, FreiwilligerAufgaben, Jahrgang
+    Aufgabenprofil, AufgabenprofilAufgabe, FreiwilligerAufgabenprofil, Ampel, FreiwilligerAufgaben, Jahrgang, CustomUser
 
 
 # Register your models here.
@@ -67,3 +67,7 @@ class FreiwilligerAufgabenAdmin(admin.ModelAdmin):
 @admin.register(Jahrgang)
 class JahrgangAdmin(admin.ModelAdmin):
     search_fields = ['name']
+
+@admin.register(CustomUser)
+class CustomUserAdmin(admin.ModelAdmin):
+    search_fields = ['user']
