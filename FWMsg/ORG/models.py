@@ -39,7 +39,6 @@ class MailBenachrichtigungen(models.Model):
 
 class Ordner(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    ober_ordner = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
     ordner_name = models.CharField(max_length=100)
 
     def __str__(self):
@@ -48,33 +47,22 @@ class Ordner(models.Model):
 
 @receiver(post_save, sender=Ordner)
 def create_folder(sender, instance, **kwargs):
-    order = instance.ober_ordner
     path = os.path.join(instance.ordner_name)
-    while order:
-        path = os.path.join(order.ordner_name, path)
-        order = order.ober_ordner
-    os.makedirs(os.path.join(instance.org.name, path), exist_ok=True)
+    os.makedirs(os.path.join('dokument', instance.org.name, path), exist_ok=True)
 
 
 @receiver(post_delete, sender=Ordner)
 def remove_folder(sender, instance, **kwargs):
-    order = instance.ober_ordner
     path = os.path.join(instance.ordner_name)
-    while order:
-        path = os.path.join(order.ordner_name, path)
-        order = order.ober_ordner
-    path = os.path.join(instance.org.name, path)
+    path = os.path.join('dokument', instance.org.name, path)
     if os.path.isdir(path):
         os.rmdir(path)
 
 
 def upload_to_folder(instance, filename):
     order = instance.ordner
-    path = os.path.join(filename)
-    while order:
-        path = os.path.join(order.ordner_name, path)
-        order = order.ober_ordner
-    return os.path.join(instance.org.name, path)
+    path = os.path.join(order.ordner_name, filename)
+    return os.path.join('dokument', instance.org.name, path)
 
 class Dokument(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)

@@ -215,28 +215,15 @@ def bild(request):
 
 
 def dokumente(request):
-    ordners = Ordner.objects.filter(org=getOrg(request), ober_ordner__isnull=True).order_by('ordner_name')
-    folder_structure = {}
+    ordners = Ordner.objects.filter(org=getOrg(request)).order_by('ordner_name')
 
-    def get_subfolder(ordner):
-        data = {}
-        subfolders = Ordner.objects.filter(org=getOrg(request), ober_ordner=ordner)
-        # if len(subfolders) == 0:
-        #    return ordner
-        if len(subfolders) > 0:
-            data['dirs'] = {}
-        for subfolder in subfolders:
-            data['dirs'][subfolder] = get_subfolder(subfolder)
-
-        files = Dokument.objects.filter(org=getOrg(request), ordner=ordner)
-        if len(files) > 0:
-            data['files'] = files
-        return data
+    folder_structure = []
 
     for ordner in ordners:
-        folder_structure[ordner.ordner_name] = get_subfolder(ordner)
-
-    print(folder_structure)
+        folder_structure.append({
+            'ordner': ordner,
+            'dokumente': Dokument.objects.filter(org=getOrg(request), ordner=ordner).order_by('date_created')
+        })
 
     context = {
         'ordners': ordners,

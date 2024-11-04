@@ -11,42 +11,20 @@
 
 {% block content %}
 
-    {% for k, v in folder_structure.items %}
-        <details>
-            <summary>{{ k }}</summary>
-            {% for k1, v1 in v.items %}
-                {% if k1 == 'files' %}
-                    {% for v in v1 %}
-                        <p style="margin-left: 20px">{{ v }}</p>
-                    {% endfor %}
-                    {{ continue }}
-                {% endif %}
-                {% for k2, v2 in v1.items %}
-                    <details style="margin-left: 20px">
-                        <summary>{{ k2 }} a</summary>
-                        {% if k2 == 'files' %}
-                            {% for v in v2 %}
-                                <p>{{ v }}</p>
-                                {{ continue }}
-                            {% endfor %}
-                        {% endif %}
-
-                        {% for k3, v3 in v2.items %}
-                            <details style="margin-left: 20px">
-                                <summary>{{ k3 }}</summary>
-                                {% if k3 == 'files' %}
-                                    {% for v in v3 %}
-                                        {{ v }}
-                                        {{ continue }}
-                                    {% endfor %}
-                                {% endif %}
-                            {{ v3 }}
-                            </details>
-                        {% endfor %}
-                    </details>
+    <div class="all_ordner_div">
+        {% for structure in folder_structure %}
+            <div class="ordner_div">
+                <h3>{{ structure.ordner }}</h3>
+                {% for dokument in structure.dokumente %}
+                    <div class="dokument_div" style="border: 1px solid black">
+                        <h4>{{ dokument.dokument }}</h4>
+                        <p>{{ dokument.date_created }}</p>
+                        <p>{{ dokument.beschreibung }}</p>
+                        <a href="{{ dokument.dokument.url }}">Download</a>
+                    </div>
                 {% endfor %}
-            {% endfor %}
-        </details>
-    {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
 
 {% endblock %}
