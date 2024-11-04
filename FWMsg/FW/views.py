@@ -53,7 +53,7 @@ def home(request):
         'offen_prozent': round(len_offen / gesamt * 100),
     }
 
-    bilder = Bilder.objects.filter(org=getOrg(request)).order_by('date_created')
+    bilder = Bilder.objects.filter(org=getOrg(request)).order_by('-date_created')
     bilder_data = [
         {
             'bilder': bilder_obj,
@@ -144,7 +144,7 @@ def aufgabe(request, aufgabe_id):
 
 
 def bilder(request):
-    bilder = Bilder.objects.filter(org=getOrg(request)).order_by('date_created')
+    bilder = Bilder.objects.filter(org=getOrg(request)).order_by('-date_created')
 
     data = [
         {
@@ -222,7 +222,7 @@ def dokumente(request):
     for ordner in ordners:
         folder_structure.append({
             'ordner': ordner,
-            'dokumente': Dokument.objects.filter(org=getOrg(request), ordner=ordner).order_by('date_created')
+            'dokumente': Dokument.objects.filter(org=getOrg(request), ordner=ordner).order_by('-date_created')
         })
 
     context = {
