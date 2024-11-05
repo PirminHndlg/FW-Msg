@@ -46,11 +46,11 @@ def home(request):
 
     freiwilliger_aufgaben = {
         'erledigt': erledigte_aufgaben,
-        'erledigt_prozent': round(len_erledigt / gesamt * 100),
+        'erledigt_prozent': round(len_erledigt / gesamt * 100) if gesamt > 0 else 0,
         'pending': pending_aufgaben,
-        'pending_prozent': round(len_pending / gesamt * 100),
+        'pending_prozent': round(len_pending / gesamt * 100) if gesamt > 0 else 0,
         'offen': offene_aufgaben,
-        'offen_prozent': round(len_offen / gesamt * 100),
+        'offen_prozent': round(len_offen / gesamt * 100) if gesamt > 0 else 0,
     }
 
     bilder = Bilder.objects.filter(org=getOrg(request)).order_by('-date_created')
@@ -100,11 +100,11 @@ def aufgaben(request):
         'aufgaben_erledigt': erledigte_aufgaben,
         'aufgaben_pending': pending_aufgaben,
         'len_erledigt': len_erledigt,
-        'erledigt_prozent': round(len_erledigt / gesamt * 100),
+        'erledigt_prozent': round(len_erledigt / gesamt * 100) if gesamt > 0 else 0,
         'len_pending': len_pending,
-        'pending_prozent': round(len_pending / gesamt * 100),
+        'pending_prozent': round(len_pending / gesamt * 100) if gesamt > 0 else 0,
         'len_offen': len_offen,
-        'offen_prozent': round(len_offen / gesamt * 100),
+        'offen_prozent': round(len_offen / gesamt * 100) if gesamt > 0 else 0,
     }
     return render(request, 'aufgaben.html', context=context)
 
@@ -166,6 +166,7 @@ def bild(request):
 
     if request.POST:
         org = getOrg(request)
+        print(org)
         bilder_form = BilderForm(request.POST)
         bilder_gallery_form = BilderGalleryForm(request.POST)
         images = request.FILES.getlist('image')
@@ -190,11 +191,27 @@ def bild(request):
                 bilder.date_updated = datetime.now()
                 bilder.save()
 
+            def get_smaller_image(image):
+                from PIL import Image
+                import io
+                from django.core.files.base import ContentFile
+
+                img = Image.open(image)
+                img.thumbnail((600, 600))
+
+                img_io = io.BytesIO()
+                format = img.format if img.format in ["JPEG", "PNG"] else "JPEG"
+                img.save(img_io, format=format)
+                extension = format.lower()
+                filename = f"{image.name.rsplit('.', 1)[0]}.{extension}"
+                return ContentFile(img_io.getvalue(), name=filename)
+
             # Save each image with a reference to the product
             for image in images:
                 BilderGallery.objects.create(
                     org=org,
                     bilder=bilder,
+                    small_image=get_smaller_image(image),
                     image=image
                 )
 
