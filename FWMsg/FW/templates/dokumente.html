@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load base_filter %}
+{% load dokument_filter %}
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/dokumente.css' %}">
@@ -17,10 +19,22 @@
                 <h3>{{ structure.ordner }}</h3>
                 {% for dokument in structure.dokumente %}
                     <div class="dokument_div" style="border: 1px solid black">
-                        <h4>{{ dokument.dokument }}</h4>
+                        {% if dokument.get_document_type|starts_with:'image' %}
+                            <div class="img_div">
+                                <img onclick="showImgLarge(this)" src="{{ dokument.dokument.url }}" alt="{{ dokument.dokument.url }}">
+                            </div>
+                        {% elif dokument.get_document_type|starts_with:'application/pdf' %}
+                            <a href="{{ dokument.dokument.url }}">
+                                <div class="img_div">
+                                    <img src="{{ dokument.dokument.url }}?img=True" alt="pdf_icon">
+                                </div>
+                            </a>
+                        {% else %}
+                            {{ dokument.get_document_type }}
+                            <a href="{{ dokument.dokument.url }}">Download</a>
+                        {% endif %}
                         <p>{{ dokument.date_created }}</p>
                         <p>{{ dokument.beschreibung }}</p>
-                        <a href="{{ dokument.dokument.url }}">Download</a>
                     </div>
                 {% endfor %}
             </div>
