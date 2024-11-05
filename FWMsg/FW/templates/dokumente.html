@@ -21,7 +21,8 @@
                     <div class="dokument_div" style="border: 1px solid black">
                         {% if dokument.get_document_type|starts_with:'image' %}
                             <div class="img_div">
-                                <img onclick="showImgLarge(this)" src="{{ dokument.dokument.url }}" alt="{{ dokument.dokument.url }}">
+                                <img onclick="showImgLarge(this)" src="{{ dokument.dokument.url }}"
+                                     alt="{{ dokument.dokument.url }}">
                             </div>
                         {% elif dokument.get_document_type|starts_with:'application/pdf' %}
                             <a href="{{ dokument.dokument.url }}">
@@ -29,6 +30,13 @@
                                     <img src="{{ dokument.dokument.url }}?img=True" alt="pdf_icon">
                                 </div>
                             </a>
+                        {% elif dokument.dokument.name|ends_with:'docx' %}
+                            <a href="{{ dokument.dokument.url }}">
+                                <div class="img_div">
+                                    <img src="{{ dokument.dokument.url }}?img=True" alt="pdf_icon">
+                                </div>
+                            </a>
+
                         {% else %}
                             {{ dokument.get_document_type }}
                             <a href="{{ dokument.dokument.url }}">Download</a>
