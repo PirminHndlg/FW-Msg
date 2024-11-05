@@ -166,14 +166,8 @@ def bild(request):
 
     if request.POST:
         org = getOrg(request)
-        print(org)
         bilder_form = BilderForm(request.POST)
-        bilder_gallery_form = BilderGalleryForm(request.POST)
         images = request.FILES.getlist('image')
-        print(len(images))
-        print(bilder_form.is_valid())
-        print(bilder_form.cleaned_data)
-        print(org)
 
         if bilder_form.is_valid() and len(images) > 0:
 
