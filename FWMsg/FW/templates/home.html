@@ -40,7 +40,7 @@
                 <div class="bilder_container">
                     {% for img in bild.images %}
                         <div class="bild_container">
-                            <img src="
+                            <img onclick="showImgLarge(this)" src="
                                 {% if img.small_image %}
                                 {{ img.small_image.url }}
                                 {% else %}
