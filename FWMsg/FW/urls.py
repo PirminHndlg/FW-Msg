@@ -10,6 +10,7 @@ urlpatterns = [
     path('logos/<str:image_name>', views.serve_logo, name='serve_image'),
     path('bilder/', views.bilder, name='bilder'),
     path('bilder/<str:image_name>', views.serve_bilder, name='serve_bilder'),
+    path('bilder/small/<str:image_name>', views.serve_small_bilder, name='serve_small_bilder'),
     path('bild/', views.bild, name='bild'),
     path('dokumente/', views.dokumente, name='dokumente'),
 ]
