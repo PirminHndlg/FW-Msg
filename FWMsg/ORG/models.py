@@ -74,6 +74,14 @@ class Dokument(models.Model):
     def __str__(self):
         return self.dokument.name
 
+    def get_document_type(self):
+        import mimetypes
+        file_path = self.dokument.path
+        # Guess the MIME type based on file extension
+        mime_type, _ = mimetypes.guess_type(file_path)
+
+        return mime_type or 'unknown'
+
 
 @receiver(post_delete, sender=Dokument)
 def remove_file(sender, instance, **kwargs):
