@@ -294,6 +294,16 @@ def get_mimetype(doc_path):
     return mime_type
 
 
+def pdf_to_image(doc_path):
+    from pdf2image import convert_from_path
+    image = convert_from_path(doc_path, first_page=1, last_page=1)[0]
+    img_path = os.path.join('dokument', 'temp.jpg')
+    image.save(img_path)
+    response = get_bild(img_path, img_path.split('/')[-1])
+    os.remove(img_path)
+    return response
+
+
 def serve_dokument(request, org_name, ordner_name, dokument_name):
     img = request.GET.get('img', None)
     # Define the path to the image directory
@@ -310,14 +320,18 @@ def serve_dokument(request, org_name, ordner_name, dokument_name):
     if mimetype and mimetype.startswith('image'):
         return get_bild(doc_path, dokument_name)
 
-    if mimetype and mimetype == 'application/pdf' and img:
-        from pdf2image import convert_from_path
-        image = convert_from_path(doc_path, first_page=1, last_page=1)[0]
-        img_path = os.path.join('dokument', 'temp.jpg')
-        image.save(img_path)
-        response = get_bild(img_path, img_path.split('/')[-1])
-        os.remove(img_path)
-        return response
+    if img:
+        if mimetype and mimetype == 'application/pdf':
+            return pdf_to_image(doc_path)
+
+        if dokument_name.endswith('.docx') or dokument_name.endswith('.doc'):
+            import docx2pdf
+            tmp_pdf_path = os.path.join('dokument', f'tmp_{dokument_name.replace(".", "_")}.pdf')
+            docx2pdf.convert(doc_path, tmp_pdf_path)
+            response = pdf_to_image(tmp_pdf_path)
+            os.remove(tmp_pdf_path)
+            return response
+            # return HttpResponse('Not supported yet')
 
     with open(doc_path, 'rb') as file:
         if mimetype:
