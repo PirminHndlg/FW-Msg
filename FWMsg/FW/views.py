@@ -191,7 +191,7 @@ def bild(request):
                 from django.core.files.base import ContentFile
 
                 img = Image.open(image)
-                img.thumbnail((600, 600))
+                img.thumbnail((1000, 1000))
 
                 img_io = io.BytesIO()
                 format = img.format if img.format in ["JPEG", "PNG"] else "JPEG"
@@ -263,13 +263,7 @@ def serve_logo(request, image_name):
         return response
 
 
-def serve_bilder(request, image_name):
-    # Define the path to the image directory
-    image_path = os.path.join('bilder', image_name)
-
-    print('image_path:', image_path)
-
-    # Check if the file exists
+def get_bild(image_path, image_name):
     if not os.path.exists(image_path):
         raise Http404("Image does not exist")
 
@@ -280,3 +274,14 @@ def serve_bilder(request, image_name):
         response = HttpResponse(img_file.read(), content_type=content_type)
         response['Content-Disposition'] = f'inline; filename="{image_name}"'
         return response
+
+def serve_bilder(request, image_name):
+    # Define the path to the image directory
+    image_path = os.path.join('bilder', image_name)
+    return get_bild(image_path, image_name)
+
+
+def serve_small_bilder(request, image_name):
+    # Define the path to the image directory
+    image_path = os.path.join('bilder/small', image_name)
+    return get_bild(image_path, image_name)
