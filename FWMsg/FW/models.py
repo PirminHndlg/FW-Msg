@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 
+from PIL import Image  # Make sure this is from PIL, not Django models
 from django.contrib.auth.models import User, AbstractUser
 from django.db import models
 from ORG.models import Organisation
@@ -174,6 +175,9 @@ def post_save_handler(sender, instance, created, **kwargs):
         # Link the created User to the Freiwilliger instance
         instance.user = user
         instance.save()
+
+        custom_user = CustomUser.objects.create(user=user, org=instance.org)
+        custom_user.save()
 
     else:
         if instance.has_field_changed('ende_real'):
@@ -413,6 +417,8 @@ class Bilder(models.Model):
 class BilderGallery(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='bilder/')
+
+    small_image = models.ImageField(upload_to='bilder/small/', blank=True, null=True)
     bilder = models.ForeignKey(Bilder, on_delete=models.CASCADE)
 
     class Meta:
@@ -420,4 +426,28 @@ class BilderGallery(models.Model):
         verbose_name_plural = 'Bilder Galleries'
 
     def __str__(self):
-        return self.org
+        return self.image.name
+
+
+# def get_smaller_image(image):
+#     print('get_smaller_image')
+#     from PIL import Image
+#     import io
+#     from django.core.files.base import ContentFile
+#
+#     img = Image.open(image)
+#     img.thumbnail((600, 600))
+#
+#     img_io = io.BytesIO()
+#     format = img.format if img.format in ["JPEG", "PNG"] else "JPEG"
+#     img.save(img_io, format=format)
+#     extension = format.lower()
+#     filename = f"{image.name.rsplit('.', 1)[0]}.{extension}"
+#     filename.replace('bilder/', '')
+#     print(filename)
+#     return ContentFile(img_io.getvalue(), name=image.name)
+#
+#
+# @receiver(post_save, sender=BilderGallery)
+# def post_save_handler(sender, instance, **kwargs):
+#     instance.small_image = get_smaller_image(instance.image)
