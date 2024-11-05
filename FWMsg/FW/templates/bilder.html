@@ -23,7 +23,13 @@
         <div class="bilder_container">
             {% for img in bild_gallery.images %}
                 <div class="bild_container">
-                    <img src="{{ img.image.url }}" alt="Bild">
+                    <img src="
+                        {% if img.small_image %}
+                        {{ img.small_image.url }}
+                        {% else %}
+                        {{ img.image.url }}
+                        {% endif %}
+                    " alt="Bild">
                 </div>
             {% endfor %}
         </div>
