@@ -5,6 +5,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/dokumente.css' %}">
+    <script src="{% static 'js/dokumente.js' %}"></script>
 {% endblock %}
 
 {% block headline %}
@@ -13,10 +14,13 @@
 
 {% block content %}
 
+    {% csrf_token %}
+
     <div class="all_ordner_div">
         {% for structure in folder_structure %}
             <div class="ordner_div">
                 <h3>{{ structure.ordner }}</h3>
+                <button onclick="addDokument({{ structure.ordner.id }})" data-token='{% csrf_token %}'>Neues Dokument</button>
                 {% for dokument in structure.dokumente %}
                     <div class="dokument_div" style="border: 1px solid black">
                         {% if dokument.get_document_type|starts_with:'image' %}
