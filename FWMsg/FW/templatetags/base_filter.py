@@ -23,8 +23,22 @@ def get_secondary_color(user):
     return color
 
 @register.filter
+def get_text_color(user):
+    org = get_org(user)
+    color = 'black'
+    # if org:
+    #     color = org.farbe
+    # else:
+    #     color = 'green'
+    return color
+
+@register.filter
 def get_org(user):
     if user.is_authenticated:
         if CustomUser.objects.filter(user=user).exists():
             return CustomUser.objects.get(user=user).org
     return None
+
+@register.filter
+def get_date(value):
+    return value.strftime('%d.%m.%Y')
