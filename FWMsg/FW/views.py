@@ -1,11 +1,13 @@
 import os
 from datetime import datetime
 import mimetypes
+import subprocess
 
+from django.contrib import messages
 from django.db.models import Count
 from django.shortcuts import render, redirect
 from .models import Freiwilliger, Aufgabe, FreiwilligerAufgabenprofil, FreiwilligerAufgaben, Post, Bilder, CustomUser, \
-    BilderGallery
+    BilderGallery, Ampel
 from ORG.models import Dokument, Ordner
 from django.http import HttpResponse, Http404
 
@@ -79,7 +81,23 @@ def profil(request):
 
 
 def ampel(request):
-    return render(request, 'ampel.html')
+    ampel = request.GET.get('ampel', None)
+    if ampel and ampel.upper() in ['R', 'G', 'Y']:
+        ampel = ampel.upper()
+        comment = request.GET.get('comment', None)
+        freiwilliger = Freiwilliger.objects.get(user=request.user)
+        ampel_object = Ampel.objects.create(freiwilliger=freiwilliger, status=ampel, org=getOrg(request), comment=comment)
+        ampel_object.save()
+
+
+        msg_text = 'Ampel erfolgreich auf ' + ('Grün' if ampel == 'G' else 'Rot' if ampel == 'R' else 'Gelb' if ampel == 'Y' else 'error') + ' gesetzt'
+
+        messages.success(request, msg_text)
+        return redirect('fwhome')
+
+    last_ampel = Ampel.objects.filter(freiwilliger__user=request.user).order_by('-date').first()
+
+    return render(request, 'ampel.html', context={'last_ampel': last_ampel})
 
 
 def aufgaben(request):
@@ -245,6 +263,25 @@ def dokumente(request):
     return render(request, 'dokumente.html', context=context)
 
 
+def add_dokument(request):
+    if request.method == 'POST':
+        org = getOrg(request)
+        ordner = Ordner.objects.get(id=request.POST.get('ordner'))
+        beschreibung = request.POST.get('beschreibung')
+        dokument = request.FILES.get('dokument')
+
+        if dokument:
+            Dokument.objects.create(
+                org=org,
+                ordner=ordner,
+                beschreibung=beschreibung,
+                dokument=dokument,
+                date_created=datetime.now()
+            )
+
+    return redirect('dokumente')
+
+
 def serve_logo(request, image_name):
     # Define the path to the image directory
     image_path = os.path.join('logos', image_name)
@@ -325,12 +362,17 @@ def serve_dokument(request, org_name, ordner_name, dokument_name):
             return pdf_to_image(doc_path)
 
         if dokument_name.endswith('.docx') or dokument_name.endswith('.doc'):
-            import docx2pdf
-            tmp_pdf_path = os.path.join('dokument', f'tmp_{dokument_name.replace(".", "_")}.pdf')
-            docx2pdf.convert(doc_path, tmp_pdf_path)
-            response = pdf_to_image(tmp_pdf_path)
-            os.remove(tmp_pdf_path)
-            return response
+            command = ["abiword", "--to=pdf", doc_path]
+            try:
+                subprocess.run(command)
+                if dokument_name.endswith('.docx'):
+                    doc_path = doc_path.replace('.docx', '.pdf')
+                else:
+                    doc_path = doc_path.replace('.doc', '.pdf')
+                return pdf_to_image(doc_path)
+            except Exception as e:
+                print(e)
+                return HttpResponse(e)
             # return HttpResponse('Not supported yet')
 
     with open(doc_path, 'rb') as file:
