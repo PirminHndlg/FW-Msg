@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load aufgaben_filter %}
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/aufgaben.css' %}">
@@ -11,52 +12,28 @@
 
 {% block content %}
 
-    <div class="offene_aufgaben_div">
-
+    <div class="aufgaben_container">
         <h3>Offene Aufgaben: {{ len_offen }}</h3>
 
-        {{ aufgaben_offen }}
-
-        {% for aufgabe in aufgaben_offen %}
-            <div class="aufgabe_div">
-                <h4>{{ aufgabe.aufgabe.name }}</h4>
-                <p>{{ aufgabe.aufgabe.beschreibung }}</p>
-                <p>Fällig: {{ aufgabe.faellig|date:"d.m.Y" }}</p>
-                <a href="{% url 'aufgaben_detail' aufgabe.aufgabe.id %}">Jz erledigen</a>
-            </div>
-        {% endfor %}
+        <div class="aufgaben_div">
+            {{ aufgaben_offen|generate_html_for_aufgaben }}
+        </div>
 
     </div>
+    <div class="aufgaben_container">
+        <h3>Pending Aufgaben: {{ len_pending }}</h3>
 
-    <div>
-        <details>
-            <summary>Pending Aufgaben: {{ len_pending }}</summary>
-            {% for aufgabe in aufgaben_pending %}
-                <div class="aufgabe_div">
-                    <h4>{{ aufgabe.aufgabe.name }}</h4>
-                    <p>{{ aufgabe.aufgabe.beschreibung }}</p>
-                    <p>Fällig: {{ aufgabe.faellig|date:"d.m.Y" }}</p>
-                    <a href="{% url 'aufgaben_detail' aufgabe.aufgabe.id %}">Bearbeiten</a>
-                </div>
-            {% endfor %}
-        </details>
+        <div class="aufgaben_div">
+            {{ aufgaben_pending|generate_html_for_aufgaben }}
+        </div>
+
     </div>
+    <div class="aufgaben_container">
+        <h3>Erledigte Aufgaben: {{ len_erledigt }}</h3>
 
-    <div class="erledigte_aufgaben_div">
-
-        <details>
-            <summary>Erledigte Aufgaben: {{ len_erledigt }}</summary>
-
-            {% for aufgabe in aufgaben_erledigt %}
-                <div class="aufgabe_div">
-                    <h4>{{ aufgabe.aufgabe.name }}</h4>
-                    <p>{{ aufgabe.aufgabe.beschreibung }}</p>
-                    <p>Erledigt am: {{ aufgabe.erledigt_am|date:"d.m.Y" }}</p>
-                    <a href="{% url 'aufgaben_detail' aufgabe.aufgabe.id %}">Bearbeiten</a>
-                </div>
-            {% endfor %}
-        </details>
-
+        <div class="aufgaben_div">
+            {{ aufgaben_erledigt|generate_html_for_aufgaben }}
+        </div>
     </div>
 
 {% endblock %}
