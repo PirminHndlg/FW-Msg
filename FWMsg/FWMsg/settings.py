@@ -108,6 +108,9 @@ LANGUAGES = [
 ]
 
 TIME_ZONE = 'UTC'
+TIME_INPUT_FORMATS = ['%H:%M', '%H:%M:%S']
+DATE_INPUT_FORMATS = ['%d.%m.%Y', '%Y-%m-%d']
+DATETIME_INPUT_FORMATS = ['%d.%m.%Y %H:%M', '%Y-%m-%d %H:%M']
 
 USE_I18N = True
 
