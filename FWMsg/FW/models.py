@@ -59,8 +59,8 @@ class Kirchenzugehoerigkeit(models.Model):
 
 
 class Einsatzland(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    name = models.CharField(max_length=50, verbose_name='Name')
 
     class Meta:
         verbose_name = 'Einsatzland'
@@ -225,7 +225,15 @@ class Ampel(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE)
     status = models.CharField(max_length=1, choices=CHOICES)
+    comment = models.TextField(blank=True, null=True)
     date = models.DateField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Ampel'
+        verbose_name_plural = 'Ampeln'
+
+    def __str__(self):
+        return self.freiwilliger.first_name + ' ' + self.freiwilliger.last_name + ' - ' + self.status
 
 
 class Aufgabenprofil(models.Model):
