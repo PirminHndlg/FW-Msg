@@ -13,6 +13,14 @@
 
 {% block content %}
 
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
     <div class="container aufgaben_loader">
 
         <a href="{% url 'aufgaben' %}"><h3>Aufgaben ⟩</h3></a>
