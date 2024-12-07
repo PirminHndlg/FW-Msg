@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        {% block title %}FWMsg{% endblock %}
+    </title>
+
+    <link rel="stylesheet" href="{% static 'css/baseOrg.css' %}">
+
+    {% block head %}
+    {% endblock %}
+</head>
+<body>
+
+<button class="nav-button" onclick="document.querySelector('nav').style.display='block'; this.style.display='none'">
+    Menü
+</button>
+
+<header>
+    logo
+    <h1>FWMsg</h1>
+</header>
+
+<nav>
+    <button class="nav-button"
+            onclick="document.querySelector('nav').style.display='none';document.querySelectorAll('.nav-button')[0].style.display='block';">
+        Schließen
+    </button>
+    <a href="{% url 'org_home' %}">Home</a>
+    <ul>
+        <a href="{% url 'list_object' 'freiwilliger' %}">
+            <li><h4>Freiwillige</h4></li>
+        </a>
+        <a href="/">
+            <li>Ampelmeldungen</li>
+        </a>
+        <a href="/">
+            <li>Bilder</li>
+        </a>
+        <a href="{% url 'list_object' 'aufgabe' %}">
+            <li>Aufgaben</li>
+        </a>
+        <a href="{% url 'list_object' 'aufgabenprofil' %}">
+            <li>Profile</li>
+        </a>
+        <a href="/">
+            <li>Aufgaben/Profile zuweisen</li>
+        </a>
+        <a href="/">
+            <li>Pinnwand</li>
+        </a>
+        <a href="{% url 'list_object' 'notfallkontakt' %}">
+            <li>Notfallkontakte</li>
+        </a>
+        <li>
+            <details>
+                <summary>Andere Einstellungen</summary>
+                <a href="{% url 'list_object' 'jahrgang' %}">
+                    <li>Jahrgänge</li>
+                </a>
+                <a href="{% url 'list_object' 'kirchenzugehoerigkeit' %}">
+                    <li>Kirchenzugehörigkeiten</li>
+                </a>
+                <a href="{% url 'list_object' 'entsendeform' %}">
+                    <li>Entsendeform</li>
+                </a>
+            </details>
+        </li>
+    </ul>
+
+    <ul>
+        <a href="/">
+            <li><h4>Dokumente</h4></li>
+        </a>
+    </ul>
+
+    <ul>
+        <a href="{% url 'list_object' 'einsatzland' %}">
+            <li><h4>Einsatzländer</h4></li>
+        </a>
+        <a href="{% url 'list_object' 'einsatzstelle' %}">
+            <li>Einsatzstellen</li>
+        </a>
+        <a href="/">
+            <li>Kommunikation</li>
+        </a>
+    </ul>
+</nav>
+
+<div class="content">
+    {% block content %}
+    {% endblock %}
+</div>
+
+{% block footer %}
+{% endblock %}
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        window.addEventListener('resize', function () {
+            if (window.innerWidth > 800) {
+                document.querySelector('nav').style.display = 'block';
+                document.querySelectorAll('.nav-button')[0].style.display = 'none';
+            } else {
+                document.querySelector('nav').style.display = 'none';
+                document.querySelectorAll('.nav-button')[0].style.display = 'block';
+            }
+        });
+    });
+
+    const nav = document.querySelector('nav');
+    const details = nav.querySelector('details');
+
+    details.addEventListener('mouseenter', () => {
+        details.setAttribute('open', '');
+    });
+
+    details.addEventListener('mouseleave', () => {
+        details.removeAttribute('open');
+    });
+</script>
+
+</body>
+</html>
