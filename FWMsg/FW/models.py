@@ -226,7 +226,7 @@ class Ampel(models.Model):
     freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE)
     status = models.CharField(max_length=1, choices=CHOICES)
     comment = models.TextField(blank=True, null=True)
-    date = models.DateField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = 'Ampel'
@@ -260,6 +260,7 @@ class FreiwilligerAufgaben(models.Model):
         ('N', 'Nicht wiederholen')
     ]
 
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE)
     aufgabe = models.ForeignKey('Aufgabe', on_delete=models.CASCADE)
     erledigt = models.BooleanField(default=False)
