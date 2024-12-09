@@ -4,6 +4,7 @@ from django.db.models import ForeignKey
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
+from django.db.models import Max, F
 
 from FW import models as FWmodels
 from FW.views import getOrg
@@ -133,3 +134,23 @@ def delete_object(request, model_name, id):
 
     instance.delete()
     return HttpResponseRedirect(f'/org/list/{model_name}/')
+
+
+def list_ampel(request):
+    org = getOrg(request)
+    ampel = [FWmodels.Ampel.objects.filter(freiwilliger=f).order_by('-date').first() for f in
+             FWmodels.Freiwilliger.objects.filter(org=org)]
+
+    return render(request, 'list_ampel.html', context={'ampel': ampel})
+
+
+def list_aufgaben(request):
+    org = getOrg(request)
+    aufgaben_unfinished = FWmodels.FreiwilligerAufgaben.objects.filter(org=org, erledigt=False, pending=False)
+    aufgaben_pending = FWmodels.FreiwilligerAufgaben.objects.filter(org=org, pending=True, erledigt=False)
+    aufgaben_finished = FWmodels.FreiwilligerAufgaben.objects.filter(org=org, erledigt=True)
+    return render(request, 'list_aufgaben.html', context={
+        'aufgaben_unfinished': aufgaben_unfinished,
+        'aufgaben_pending': aufgaben_pending,
+        'aufgaben_finished': aufgaben_finished
+    })
