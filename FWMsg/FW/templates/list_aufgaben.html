@@ -1,0 +1,107 @@
+{% extends "baseOrg.html" %}
+{% load static %}
+
+{% block title %}Ampelmeldungen{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/list_aufgaben.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="aufgaben_table_div">
+        <div>
+            <h3>Fällige Aufgaben</h3>
+            <table class="aufgaben_table">
+                <tr>
+                    <th>Freiwilliger</th>
+                    <th>Aufgabe</th>
+                    <th>Fällig</th>
+                    <th>Beschreibung</th>
+                </tr>
+                {% for aufgabe in aufgaben_unfinished %}
+                    <tr>
+                        <td>{{ aufgabe.freiwilliger }}</td>
+                        <td>{{ aufgabe.aufgabe }}</td>
+                        <td>{{ aufgabe.faellig|date:"d.m.y" }}</td>
+                        <td>{{ aufgabe.beschreibung }}</td>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
+                            <input type="hidden" name="reminder" value="False">
+                            <input type="submit" value="Erinnerung schicken">
+                        </form>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div>
+            <h3>Pending Aufgaben</h3>
+            <table class="aufgaben_table">
+                <tr>
+                    <th>Freiwilliger</th>
+                    <th>Aufgabe</th>
+                    <th>Fällig</th>
+                    <th>Beschreibung</th>
+                </tr>
+                {% for aufgabe in aufgaben_pending %}
+                    <tr>
+                        <td>{{ aufgabe.freiwilliger }}</td>
+                        <td>{{ aufgabe.aufgabe }}</td>
+                        <td>{{ aufgabe.faellig|date:"d.m.y" }}</td>
+                        <td>{{ aufgabe.beschreibung }}</td>
+                        <td>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
+                                <input type="hidden" name="pending" value="False">
+                                <input type="hidden" name="erledigt" value="True">
+
+                                <input type="submit" value="Erledigt">
+                            </form>
+                            <button>Einsicht</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div>
+            <h3>Erledigte Aufgaben</h3>
+            <table class="aufgaben_table">
+                <tr>
+                    <th>Freiwilliger</th>
+                    <th>Aufgabe</th>
+                    <th>Beschreibung</th>
+                    <th>Erledig am</th>
+                </tr>
+                {% for aufgabe in aufgaben_pending %}
+                    <tr>
+                        <td>{{ aufgabe.freiwilliger }}</td>
+                        <td>{{ aufgabe.aufgabe }}</td>
+                        <td>{{ aufgabe.beschreibung }}</td>
+                        <td>{{ aufgabe.erledigt_am|date:"d.m.y" }}</td>
+                        <td>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
+                                <input type="hidden" name="pending" value="False">
+                                <input type="hidden" name="erledigt" value="False">
+                                <input type="submit" value="Als unerledigt markieren">
+                            </form>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
+                                <input type="hidden" name="pending" value="True">
+                                <input type="hidden" name="erledigt" value="False">
+                                <input type="submit" value="Als pending markieren">
+                            </form>
+                            <button>Einsicht</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+{% endblock %}
