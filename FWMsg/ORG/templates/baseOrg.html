@@ -1,4 +1,5 @@
 {% load static %}
+{% load base_filter %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +8,19 @@
         {% block title %}FWMsg{% endblock %}
     </title>
 
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/baseOrg.css' %}">
+
+    <style>
+        :root {
+            --color: {{ user|get_color }};
+            --secondary_color: {{ user|get_secondary_color }};
+            --text_color: {{ user|get_text_color }};
+            --ampel_red: #FF0000;
+            --ampel_yellow: #FFFF00;
+            --ampel_green: #00FF00;
+        }
+    </style>
 
     {% block head %}
     {% endblock %}
@@ -19,8 +32,21 @@
 </button>
 
 <header>
-    logo
-    <h1>FWMsg</h1>
+    {% with org=user|get_org %}
+
+        <a href="{% url 'fwhome' %}">
+            <div class="logo_container">
+                <img src="{{ org.logo.url }}" alt="BMW-Logo">
+            </div>
+        </a>
+
+        <h1>
+            {% block headline %}
+                {{ org.name }}
+            {% endblock %}
+        </h1>
+    {% endwith %}
+
 </header>
 
 <nav>
@@ -33,7 +59,7 @@
         <a href="{% url 'list_object' 'freiwilliger' %}">
             <li><h4>Freiwillige</h4></li>
         </a>
-        <a href="/">
+        <a href="{% url 'list_ampel' %}">
             <li>Ampelmeldungen</li>
         </a>
         <a href="/">
