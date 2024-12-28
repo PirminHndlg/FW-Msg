@@ -24,32 +24,35 @@
     </div>
 
     <div class="steckbrief_container">
-        <div>
-            <h3>Hobbies</h3>
-            <ul>
-                <li>Lesen</li>
-                <li>Reisen</li>
-                <li>Programmieren</li>
-            </ul>
-        </div>
+        <h3>Steckbrief</h3>
+        <p>Name: {{ freiwilliger.first_name }} {{ freiwilliger.last_name }}</p>
+        <p>Geburtsdatum: {{ freiwilliger.geburtsdatum|date:"d.m.Y" }}</p>
+        <p>Telefon: {{ freiwilliger.phone|default:"" }}</p>
+        <p>Telefon Einsatzland: {{ freiwilliger.phone_einsatzland|default:"" }}</p>
+        <p>Email: {{ freiwilliger.email|default:"" }}</p>
+        {% for profil in profil_users %}
+            <a>{{ profil.attribut }}: {{ profil.value }}</a>
+            <a class="rm_btn" style="display: none" href="{% url 'remove_profil' profil.id %}">remove</a>
+            <br>
+        {% endfor %}
 
-        <div>
-            <h3>3 Dinge</h3>
-            <ul>
-                <li>Ich bin sehr zuverlässig</li>
-                <li>Ich bin sehr pünktlich</li>
-                <li>Ich bin sehr ordentlich</li>
-            </ul>
-        </div>
+        {% if this_user %}
+            <div id="form_div" style="display: none">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ profil_user_form.as_p }}
+                    <input type="submit" value="Speichern">
+                </form>
+            </div>
 
-        <div>
-            <h3>Lieblingsessen:</h3>
-            <p>Sushi</p>
-        </div>
+            <div class="button_container">
+                <button onclick="Array.from(document.getElementsByClassName('rm_btn')).forEach(e => e.style.display='block')">
+                    edit
+                </button>
+                <button onclick="document.getElementById('form_div').style.display='block'; this.style.display='none'">+
+                </button>
+            </div>
+        {% endif %}
 
-    <div>
-        <h3>Spotify Liblingslied:</h3>
-        <p>Blinding Lights</p>
-    </div>
     </div>
 {% endblock %}
