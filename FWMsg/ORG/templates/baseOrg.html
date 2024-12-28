@@ -1,16 +1,25 @@
+{# Base template that all other templates inherit from #}
 {% load static %}
 {% load base_filter %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {# Basic meta setup #}
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>
         {% block title %}FWMsg{% endblock %}
     </title>
 
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'css/baseOrg.css' %}">
+    {# Bootstrap 5.3.3 CSS #}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
+    {# Bootstrap Icons #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    {# Dynamic color scheme based on user settings #}
     <style>
         :root {
             --color: {{ user|get_color }};
@@ -19,135 +28,123 @@
             --ampel_red: #FF0000;
             --ampel_yellow: #FFFF00;
             --ampel_green: #00FF00;
+
+            --bs-primary-rgb: {{ user|get_color|hex_to_rgb }};
+            --bs-primary: {{ user|get_color }};
+            --bs-secondary-bg-rgb: {{ user|get_secondary_color|hex_to_rgb }};
+            --bs-secondary: {{ user|get_secondary_color }};
         }
     </style>
+
+    {# JavaScript dependencies #}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     {% block head %}
     {% endblock %}
 </head>
 <body>
 
-<button class="nav-button" onclick="document.querySelector('nav').style.display='block'; this.style.display='none'">
-    Menü
-</button>
+<div class="d-flex">
+    {# Main Navigation Bar #}
+    <div class="content w-100">
+        <nav class="navbar bg-primary navbar-expand-md">
+            <div class="container-fluid">
+                {# Organization Logo and Name #}
+                <a class="navbar-brand" href="{% url 'org_home' %}">
+                    {% with org=user|get_org %}
+                        <img src="{{ org.logo.url }}" alt="{{ org.kurzname }}-Logo" height="30"
+                             class="d-inline-block align-text-top">
+                        {{ org.name }}
+                    {% endwith %}
+                </a>
 
-<header>
-    {% with org=user|get_org %}
+                {# Mobile Navigation Toggle Button #}
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarResponsive" aria-controls="navbarResponsive"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-        <a href="{% url 'fwhome' %}">
-            <div class="logo_container">
-                <img src="{{ org.logo.url }}" alt="BMW-Logo">
+                {# Navigation Links #}
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                        <li class="nav-item">
+                            <a href="{% url 'org_home' %}" class="nav-link" aria-current="page">
+                                Home
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                Tabellen
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <a href="{% url 'list_object' 'freiwilliger' %}" class="dropdown-item">Freiwillige</a>
+                                <a href="{% url 'list_object' 'aufgabe' %}" class="dropdown-item">Aufgaben</a>
+                                <a href="{% url 'list_object' 'aufgabenprofil' %}"
+                                   class="dropdown-item">Profile</a>
+                                <a href="{% url 'list_object' 'notfallkontakt' %}"
+                                   class="dropdown-item">Notfallkontakte</a>
+                                <a href="{% url 'list_object' 'kirchenzugehoerigkeit' %}"
+                                   class="dropdown-item">Kirchenzugehörigkeiten</a>
+                                <a href="{% url 'list_object' 'entsendeform' %}" class="dropdown-item">Entsendeform</a>
+                                <a href="{% url 'list_object' 'jahrgang' %}"
+                                   class="dropdown-item">Jahrgänge</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'list_ampel' %}" class="nav-link">Ampelmeldungen</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'aufgaben_assign' %}" class="nav-link">Aufgaben zuweisen</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </a>
+        </nav>
 
-        <h1>
-            {% block headline %}
-                {{ org.name }}
+        {# Main Content Area #}
+        <div class="container mt-3">
+            {% block content %}
             {% endblock %}
-        </h1>
-    {% endwith %}
+        </div>
+    </div>
 
-</header>
+    {# Sidebar (currently disabled) #}
+    <div class="sidebar d-none bg-dark text-white">
+        <a href="{% url 'org_home' %}"
+           class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+            {% with org=user|get_org %}
+                <span class="jumbotron text-center">{{ org.name }}</span>
+            {% endwith %}
+        </a>
+        <hr>
+        <ul class="nav nav-pills flex-column mb-auto">
 
-<nav>
-    <button class="nav-button"
-            onclick="document.querySelector('nav').style.display='none';document.querySelectorAll('.nav-button')[0].style.display='block';">
-        Schließen
-    </button>
-    <a href="{% url 'org_home' %}">Home</a>
-    <ul>
-        <a href="{% url 'list_object' 'freiwilliger' %}">
-            <li><h4>Freiwillige</h4></li>
-        </a>
-        <a href="{% url 'list_ampel' %}">
-            <li>Ampelmeldungen</li>
-        </a>
-        <a href="/">
-            <li>Bilder</li>
-        </a>
-        <a href="{% url 'list_object' 'aufgabe' %}">
-            <li>Aufgaben</li>
-        </a>
-        <a href="{% url 'list_object' 'aufgabenprofil' %}">
-            <li>Profile</li>
-        </a>
-        <a href="/">
-            <li>Aufgaben/Profile zuweisen</li>
-        </a>
-        <a href="/">
-            <li>Pinnwand</li>
-        </a>
-        <a href="{% url 'list_object' 'notfallkontakt' %}">
-            <li>Notfallkontakte</li>
-        </a>
-        <li>
-            <details>
-                <summary>Andere Einstellungen</summary>
-                <a href="{% url 'list_object' 'jahrgang' %}">
-                    <li>Jahrgänge</li>
-                </a>
-                <a href="{% url 'list_object' 'kirchenzugehoerigkeit' %}">
-                    <li>Kirchenzugehörigkeiten</li>
-                </a>
-                <a href="{% url 'list_object' 'entsendeform' %}">
-                    <li>Entsendeform</li>
-                </a>
-            </details>
-        </li>
-    </ul>
-
-    <ul>
-        <a href="/">
-            <li><h4>Dokumente</h4></li>
-        </a>
-    </ul>
-
-    <ul>
-        <a href="{% url 'list_object' 'einsatzland' %}">
-            <li><h4>Einsatzländer</h4></li>
-        </a>
-        <a href="{% url 'list_object' 'einsatzstelle' %}">
-            <li>Einsatzstellen</li>
-        </a>
-        <a href="/">
-            <li>Kommunikation</li>
-        </a>
-    </ul>
-</nav>
-
-<div class="content">
-    {% block content %}
-    {% endblock %}
+        </ul>
+        <hr>
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+               data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
+                <strong>mdo</strong>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+                <li><a class="dropdown-item" href="#">Settings</a></li>
+                <li><a class="dropdown-item" href="#">Profile</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="#">Sign out</a></li>
+            </ul>
+        </div>
+    </div>
 </div>
 
 {% block footer %}
 {% endblock %}
-
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        window.addEventListener('resize', function () {
-            if (window.innerWidth > 800) {
-                document.querySelector('nav').style.display = 'block';
-                document.querySelectorAll('.nav-button')[0].style.display = 'none';
-            } else {
-                document.querySelector('nav').style.display = 'none';
-                document.querySelectorAll('.nav-button')[0].style.display = 'block';
-            }
-        });
-    });
-
-    const nav = document.querySelector('nav');
-    const details = nav.querySelector('details');
-
-    details.addEventListener('mouseenter', () => {
-        details.setAttribute('open', '');
-    });
-
-    details.addEventListener('mouseleave', () => {
-        details.removeAttribute('open');
-    });
-</script>
 
 </body>
 </html>
