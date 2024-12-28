@@ -28,15 +28,15 @@ from django.dispatch import receiver
 
 class CustomUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
 
     def __str__(self):
         return self.user.username
 
 
 class Entsendeform(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    name = models.CharField(max_length=50, verbose_name='Entsendeform-Name')
 
     class Meta:
         verbose_name = 'Entsendeform'
@@ -47,8 +47,8 @@ class Entsendeform(models.Model):
 
 
 class Kirchenzugehoerigkeit(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    name = models.CharField(max_length=50, verbose_name='Kirchenzugehoerigkeit-Name')
 
     class Meta:
         verbose_name = 'Kirchenzugehörigkeit'
@@ -60,7 +60,7 @@ class Kirchenzugehoerigkeit(models.Model):
 
 class Einsatzland(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
-    name = models.CharField(max_length=50, verbose_name='Name')
+    name = models.CharField(max_length=50, verbose_name='Einsatzland')
 
     class Meta:
         verbose_name = 'Einsatzland'
@@ -71,9 +71,9 @@ class Einsatzland(models.Model):
 
 
 class Einsatzstelle(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50)
-    land = models.ForeignKey(Einsatzland, on_delete=models.CASCADE)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    name = models.CharField(max_length=50, verbose_name='Einsatzstelle')
+    land = models.ForeignKey(Einsatzland, on_delete=models.CASCADE, verbose_name='Einsatzland')
 
     class Meta:
         verbose_name = 'Einsatzstelle'
@@ -84,10 +84,10 @@ class Einsatzstelle(models.Model):
 
 
 class Jahrgang(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50)
-    start = models.DateField(blank=True, null=True)
-    ende = models.DateField(blank=True, null=True)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    name = models.CharField(max_length=50, verbose_name='Jahrgang')
+    start = models.DateField(verbose_name='Startdatum')
+    ende = models.DateField(verbose_name='Enddatum')
 
     class Meta:
         verbose_name = 'Jahrgang'
@@ -105,32 +105,26 @@ class Freiwilliger(models.Model):
         ('D', 'Divers'),
         ('N', 'Keine Angabe')
     ]
-    KONFESSION_CHOICES = [
-        ('E', 'Evangelisch'),
-        ('K', 'Katholisch'),
-        ('A', 'Andere'),
-        ('N', 'Keine Angabe')
-    ]
 
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    jahrgang = models.ForeignKey(Jahrgang, on_delete=models.SET_NULL, null=True, blank=True)
-    user = models.OneToOneField(User, on_delete=models.DO_NOTHING, null=True, blank=True)
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    geschlecht = models.CharField(max_length=1, blank=True, null=True, choices=GESCHLECHT_CHOICES)
-    geburtsdatum = models.DateField(blank=True, null=True)
-    strasse = models.CharField(max_length=100, blank=True, null=True)
-    plz = models.CharField(max_length=10, blank=True, null=True)
-    ort = models.CharField(max_length=100, blank=True, null=True)
-    email = models.EmailField(max_length=100, blank=True, null=True)
-    phone = models.CharField(max_length=20, blank=True, null=True)
-    phone_einsatzland = models.CharField(max_length=20, blank=True, null=True)
-    entsendeform = models.ForeignKey(Entsendeform, on_delete=models.SET_NULL, null=True, blank=True)
-    kirchenzugehoerigkeit = models.ForeignKey(Kirchenzugehoerigkeit, on_delete=models.SET_NULL, null=True, blank=True)
-    start_geplant = models.DateField(blank=True, null=True)
-    start_real = models.DateField(blank=True, null=True)
-    ende_geplant = models.DateField(blank=True, null=True)
-    ende_real = models.DateField(blank=True, null=True)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    jahrgang = models.ForeignKey(Jahrgang, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Jahrgang')
+    user = models.OneToOneField(User, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name='Benutzer')
+    first_name = models.CharField(max_length=50, verbose_name='Vorname')
+    last_name = models.CharField(max_length=50, verbose_name='Nachname')
+    geschlecht = models.CharField(max_length=1, blank=True, null=True, choices=GESCHLECHT_CHOICES, verbose_name='Geschlecht')
+    geburtsdatum = models.DateField(blank=True, null=True, verbose_name='Geburtsdatum')
+    strasse = models.CharField(max_length=100, blank=True, null=True, verbose_name='Straße')
+    plz = models.CharField(max_length=10, blank=True, null=True, verbose_name='PLZ')
+    ort = models.CharField(max_length=100, blank=True, null=True, verbose_name='Ort')
+    email = models.EmailField(max_length=100, blank=True, null=True, verbose_name='E-Mail')
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon')
+    phone_einsatzland = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon Einsatzland')
+    entsendeform = models.ForeignKey(Entsendeform, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Entsendeform')
+    kirchenzugehoerigkeit = models.ForeignKey(Kirchenzugehoerigkeit, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Kirchenzugehörigkeit')
+    start_geplant = models.DateField(blank=True, null=True, verbose_name='Start geplant')
+    start_real = models.DateField(blank=True, null=True, verbose_name='Start real')
+    ende_geplant = models.DateField(blank=True, null=True, verbose_name='Ende geplant')
+    ende_real = models.DateField(blank=True, null=True, verbose_name='Ende real')
 
     class Meta:
         verbose_name = 'Freiwillige:r'
@@ -200,12 +194,12 @@ def post_delete_handler(sender, instance, **kwargs):
 
 
 class Notfallkontakt(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    phone = models.CharField(max_length=20)
-    email = models.EmailField(max_length=100, blank=True, null=True)
-    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    first_name = models.CharField(max_length=50, verbose_name='Vorname')
+    last_name = models.CharField(max_length=50, verbose_name='Nachname')
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon')
+    email = models.EmailField(max_length=100, blank=True, null=True, verbose_name='E-Mail')
+    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
 
     class Meta:
         verbose_name = 'Notfallkontakt'
@@ -222,11 +216,11 @@ class Ampel(models.Model):
         ('R', 'Rot'),
     ]
 
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE)
-    status = models.CharField(max_length=1, choices=CHOICES)
-    comment = models.TextField(blank=True, null=True)
-    date = models.DateTimeField(auto_now_add=True)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
+    status = models.CharField(max_length=1, choices=CHOICES, verbose_name='Ampelmeldung')
+    comment = models.TextField(blank=True, null=True, verbose_name='Kommentar')
+    date = models.DateTimeField(auto_now_add=True, verbose_name='Datum')
 
     class Meta:
         verbose_name = 'Ampel'
@@ -237,11 +231,11 @@ class Ampel(models.Model):
 
 
 class Aufgabenprofil(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50)
-    beschreibung = models.TextField(null=True, blank=True)
-    einsatzland = models.ForeignKey(Einsatzland, on_delete=models.CASCADE, null=True, blank=True)
-    einsatzstelle = models.ForeignKey(Einsatzstelle, on_delete=models.CASCADE, null=True, blank=True)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    name = models.CharField(max_length=50, verbose_name='Aufgabenprofil-Name')
+    beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung')
+    einsatzland = models.ForeignKey(Einsatzland, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Einsatzland')
+    einsatzstelle = models.ForeignKey(Einsatzstelle, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Einsatzstelle')
 
     class Meta:
         verbose_name = 'Aufgabenprofil'
@@ -260,16 +254,16 @@ class FreiwilligerAufgaben(models.Model):
         ('N', 'Nicht wiederholen')
     ]
 
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE)
-    aufgabe = models.ForeignKey('Aufgabe', on_delete=models.CASCADE)
-    erledigt = models.BooleanField(default=False)
-    pending = models.BooleanField(default=False)
-    datetime = models.DateTimeField(auto_now_add=True)
-    faellig = models.DateField(blank=True, null=True)
-    erledigt_am = models.DateField(blank=True, null=True)
-    wiederholung = models.CharField(max_length=1, choices=WIEDERHOLUNG_CHOICES)
-    wiederholung_ende = models.DateField(blank=True, null=True)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
+    aufgabe = models.ForeignKey('Aufgabe', on_delete=models.CASCADE, verbose_name='Aufgabe')
+    erledigt = models.BooleanField(default=False, verbose_name='Erledigt')
+    pending = models.BooleanField(default=False, verbose_name='Wird bearbeitet')
+    datetime = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
+    faellig = models.DateField(blank=True, null=True, verbose_name='Fällig am')
+    erledigt_am = models.DateField(blank=True, null=True, verbose_name='Erledigt am')
+    wiederholung = models.CharField(max_length=1, choices=WIEDERHOLUNG_CHOICES, default='N', verbose_name='Wiederholung')
+    wiederholung_ende = models.DateField(blank=True, null=True, verbose_name='Wiederholung bis')
 
     def save(self, *args, **kwargs):
         print(self.wiederholung, self.wiederholung_ende)
@@ -297,10 +291,10 @@ class FreiwilligerAufgaben(models.Model):
 
 
 class FreiwilligerUpload(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    freiwilligeraufgabe = models.ForeignKey(FreiwilligerAufgaben, on_delete=models.CASCADE)
-    file = models.FileField(upload_to='uploads/')
-    datetime = models.DateTimeField(auto_now_add=True)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    freiwilligeraufgabe = models.ForeignKey(FreiwilligerAufgaben, on_delete=models.CASCADE, verbose_name='Freiwillige:r Aufgabe')
+    file = models.FileField(upload_to='uploads/', verbose_name='Datei')
+    datetime = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
 
     class Meta:
         verbose_name = 'Freiwilliger Upload'
@@ -316,10 +310,10 @@ class FreiwilligerUpload(models.Model):
 #     os.remove(instance.file.path)
 
 class FreiwilligerFotos(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE)
-    file = models.ImageField(upload_to='fotos/')
-    datetime = models.DateTimeField(auto_now_add=True)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
+    file = models.ImageField(upload_to='fotos/', verbose_name='Foto')
+    datetime = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
 
     class Meta:
         verbose_name = 'Freiwilliger Foto'
@@ -331,8 +325,8 @@ class FreiwilligerFotos(models.Model):
 
 class FreiwilligerAufgabenprofil(models.Model):
     # org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE)
-    aufgabenprofil = models.ForeignKey(Aufgabenprofil, on_delete=models.CASCADE)
+    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
+    aufgabenprofil = models.ForeignKey(Aufgabenprofil, on_delete=models.CASCADE, verbose_name='Aufgabenprofil')
 
     class Meta:
         verbose_name = 'Freiwilliger Aufgabenprofil'
@@ -346,7 +340,14 @@ class FreiwilligerAufgabenprofil(models.Model):
 def post_save_handler(sender, instance, **kwargs):
     aufgaben = AufgabenprofilAufgabe.objects.filter(aufgabenprofil=instance.aufgabenprofil)
     for aufgabe in aufgaben:
-        FreiwilligerAufgaben.objects.get_or_create(freiwilliger=instance.freiwilliger, aufgabe=aufgabe.aufgabe)
+        aufg = FreiwilligerAufgaben.objects.get_or_create(freiwilliger=instance.freiwilliger, aufgabe=aufgabe.aufgabe)
+        if not aufg.faeillig:
+            if aufgabe.aufgabe.faellig_tage_nach_start:
+                aufg.faellig = instance.freiwilliger.start_geplant + timedelta(days=aufgabe.aufgabe.faellig_tage_nach_start)
+            elif aufgabe.aufgabe.faellig_tage_vor_ende:
+                aufg.faellig = instance.freiwilliger.ende_geplant - timedelta(days=aufgabe.aufgabe.faellig_tage_vor_ende)
+            else:
+                aufg.faellig = aufgabe.aufgabe.faellig
 
 
 @receiver(pre_delete, sender=FreiwilligerAufgabenprofil)
@@ -357,13 +358,13 @@ def post_delete_handler(sender, instance, **kwargs):
 
 
 class Aufgabe(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50)
-    beschreibung = models.TextField(null=True, blank=True)
-    mitupload = models.BooleanField(default=False)
-    faellig = models.DateField(blank=True, null=True)
-    faellig_tage_nach_start = models.IntegerField(blank=True, null=True)
-    faellig_tage_vor_ende = models.IntegerField(blank=True, null=True)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    name = models.CharField(max_length=50, verbose_name='Aufgabenname')
+    beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung')
+    mitupload = models.BooleanField(default=False, verbose_name='Upload möglich')
+    faellig = models.DateField(blank=True, null=True, verbose_name='Fällig am')
+    faellig_tage_nach_start = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage nach Einsatzstart')
+    faellig_tage_vor_ende = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage vor Einsatzende')
 
     class Meta:
         verbose_name = 'Aufgabe'
@@ -375,8 +376,8 @@ class Aufgabe(models.Model):
 
 class AufgabenprofilAufgabe(models.Model):
     # org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    aufgabenprofil = models.ForeignKey(Aufgabenprofil, on_delete=models.CASCADE)
-    aufgabe = models.ForeignKey(Aufgabe, on_delete=models.CASCADE)
+    aufgabenprofil = models.ForeignKey(Aufgabenprofil, on_delete=models.CASCADE, verbose_name='Aufgabenprofil')
+    aufgabe = models.ForeignKey(Aufgabe, on_delete=models.CASCADE, verbose_name='Aufgabe')
 
     class Meta:
         verbose_name = 'Aufgabenprofil Aufgabe'
@@ -387,11 +388,11 @@ class AufgabenprofilAufgabe(models.Model):
 
 
 class Post(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=50)
-    text = models.TextField()
-    date = models.DateTimeField(auto_now_add=True)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
+    title = models.CharField(max_length=50, verbose_name='Posttitel')
+    text = models.TextField(verbose_name='Text')
+    date = models.DateTimeField(auto_now_add=True, verbose_name='Datum')
 
     class Meta:
         verbose_name = 'Post'
@@ -408,12 +409,12 @@ def post_save_handler(sender, instance, **kwargs):
 
 
 class Bilder(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    titel = models.CharField(max_length=50)
-    beschreibung = models.TextField(blank=True, null=True)
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now=True)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
+    titel = models.CharField(max_length=50, verbose_name='Bildtitel')
+    beschreibung = models.TextField(blank=True, null=True, verbose_name='Beschreibung')
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
+    date_updated = models.DateTimeField(auto_now=True, verbose_name='Aktualisiert am')
 
     class Meta:
         verbose_name = 'Bild'
@@ -424,11 +425,11 @@ class Bilder(models.Model):
 
 
 class BilderGallery(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='bilder/')
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    image = models.ImageField(upload_to='bilder/', verbose_name='Bild')
 
-    small_image = models.ImageField(upload_to='bilder/small/', blank=True, null=True)
-    bilder = models.ForeignKey(Bilder, on_delete=models.CASCADE)
+    small_image = models.ImageField(upload_to='bilder/small/', blank=True, null=True, verbose_name='Kleines Bild')
+    bilder = models.ForeignKey(Bilder, on_delete=models.CASCADE, verbose_name='Bild')
 
     class Meta:
         verbose_name = 'Bilder Gallery'
@@ -460,3 +461,16 @@ class BilderGallery(models.Model):
 # @receiver(post_save, sender=BilderGallery)
 # def post_save_handler(sender, instance, **kwargs):
 #     instance.small_image = get_smaller_image(instance.image)
+
+
+class ProfilUser(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
+    attribut = models.CharField(max_length=50, verbose_name='Attribut')
+    value = models.TextField(verbose_name='Wert')
+
+    class Meta:
+        verbose_name = 'Profil User'
+        verbose_name_plural = 'Profil User'
+
+    def __str__(self):
+        return self.user + self.attribut
