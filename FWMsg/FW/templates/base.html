@@ -9,6 +9,9 @@
 
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
 
     <script src="{% static 'js/base.js' %}"></script>
 
@@ -20,94 +23,136 @@
             --color: {{ user|get_color }};
             --secondary_color: {{ user|get_secondary_color }};
             --text_color: {{ user|get_text_color }};
+
+            --bs-primary-rgb: {{ user|get_color|hex_to_rgb }};
+            --bs-primary: {{ user|get_color }};
+            --bs-secondary-bg-rgb: {{ user|get_secondary_color|hex_to_rgb }};
+            --bs-secondary: {{ user|get_secondary_color }};
         }
     </style>
 
 </head>
-<body>
 
-<div id="wrapper" class="wrapper">
+<nav class="navbar navbar-dark bg-primary d-lg-none">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'fwhome' %}">
+            {% with org=user|get_org %}
+                <img src="{{ org.logo.url }}" alt="BMW-Logo" style="height: 30px;">
+            {% endwith %}
+        </a>
+    </div>
+</nav>
 
 
-    <div class="head_container">
-        <a href="{% url 'fwhome' %}">
-            <div class="logo_container">
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar for large devices -->
+        <nav class="col-lg-2 bg-primary d-none d-lg-flex flex-column vh-100 p-3 position-sticky top-0">
+            <a class="navbar-brand mb-3 d-flex align-items-center flex-wrap link-underline link-underline-opacity-0 link-underline-opacity-0-hover"
+               href="{% url 'fwhome' %}">
                 {% with org=user|get_org %}
-                    <img src="{{ org.logo.url }}" alt="BMW-Logo">
+                    <img src="{{ org.logo.url }}" alt="BMW-Logo"
+                         style="height: 50px; margin-right: 10px; margin-bottom: 5px;">
+                    <h3 class="text-white mb-0">{{ org.kurzname }}</h3>
                 {% endwith %}
-            </div>
-        </a>
+            </a>
+            <ul class="nav flex-column text-white">
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'fwhome' %}">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'aufgaben' %}">
+                        <i class="bi bi-list-check"></i> Aufgaben
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'dokumente' %}">
+                        <i class="bi bi-file-earmark-text"></i> Dokumente
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'profil' %}">
+                        <i class="bi bi-person"></i> Profil
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white"
+                       id="addDropdown" role="button" data-bs-toggle="dropdown"
+                       aria-expanded="false">
+                        <i class="bi bi-plus-circle text-white"></i>
+                        <small class="text-white">Add</small>
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="addDropdown">
+                        <li><a class="dropdown-item" href="{% url 'bild' %}">Bilder hochladen</a></li>
+                        <li><a class="dropdown-item" href="#">Dokumente hochladen</a></li>
+                        <li><a class="dropdown-item" href="{% url 'aufgaben' %}">Aufgabe erledigen</a></li>
+                        <li><a class="dropdown-item" href="#">Ampelmeldung</a></li>
+                    </ul>
+            </ul>
+        </nav>
 
-        <h1>
-            {% block headline %}
+        <!-- Main content -->
+        <main class="col-lg-10 col-md-12 pt-3 pb-5 pb-lg-3 mb-4 mb-lg-0"
+              style="background-color: var(--background-color); margin-bottom: 70px;">
+            {% block content %}
             {% endblock %}
-        </h1>
 
-        <div class="menu_container_button"
-             onclick="document.querySelector('div.menu_container').style.display = 'flex'">
-            ≣
-        </div>
-
+        </main>
     </div>
-
-    <div class="menu_container" onclick="this.style.display = 'none'">
-
-        <a href="{% url 'fwhome' %}">
-            Home
-        </a>
-        <a href="{% url 'aufgaben' %}">
-            Aufgaben
-        </a>
-        <a>
-            Logout
-        </a>
-
-    </div>
-
-    <div class="content">
-        {% block content %}
-
-        {% endblock %}
-    </div>
-
-    <footer>
-        <a href="{% url 'fwhome' %}">
-            <div class="bar_div">
-                🏠
-            </div>
-        </a>
-
-        <div class="bar_div">
-            📅
-        </div>
-
-        <div class="bar_div" onclick="onPlusClicked()">
-            +
-        </div>
-
-        <a href="{% url 'dokumente' %}">
-            <div class="bar_div">
-                📄
-            </div>
-        </a>
-
-        <a href="{% url 'profil' %}">
-            <div class="bar_div">
-                👤
-            </div>
-        </a>
-    </footer>
-
 </div>
 
-<div id="dark_bg" class="dark_background" onclick="onDarkBgClicked()"></div>
 
-<div id="action_view" class="action_view">
-    <a href="{% url 'bild' %}">Bilder hochladen</a>
-    <a>Dokumente hochladen</a>
-    <a href="{% url 'aufgaben' %}">Aufgabe erledigen</a>
-    <a>Ampelmeldung</a>
-</div>
+<!-- Bottom Navbar for small devices -->
+<nav class="navbar navbar-dark bg-primary d-lg-none fixed-bottom p-0">
+    <div class="container-fluid">
+        <ul class="navbar-nav nav-justified w-100 d-flex flex-row">
+
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'fwhome' %}">
+                    <i class="bi bi-house"></i>
+                    <div>Home</div>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'aufgaben' %}">
+                    <i class="bi bi-list-check"></i>
+                    <div>Aufgaben</div>
+                </a>
+            </li>
+            <li class="nav-item text-center">
+                <a class="nav-link text-white" href="#" id="dropdownAdd" role="button"
+                   data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-plus-circle text-white"></i>
+                    <div>Add</div>
+                </a>
+                <ul class="dropdown-menu position-absolute" aria-labelledby="dropdownAdd"
+                    style="top: auto; bottom: 80%; left: 50%; transform: translateX(-50%);">
+                    <li><a class="dropdown-item" href="{% url 'bild' %}">Bilder hochladen</a></li>
+                    <li><a class="dropdown-item" href="#">Dokumente hochladen</a></li>
+                    <li><a class="dropdown-item" href="{% url 'aufgaben' %}">Aufgabe erledigen</a></li>
+                    <li><a class="dropdown-item" href="{% url 'ampel' %}">Ampelmeldung</a></li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'dokumente' %}">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <div>Dokumente</div>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'profil' %}">
+                    <i class="bi bi-person"></i>
+                    <div>Profil</div>
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
