@@ -26,6 +26,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -128,6 +129,10 @@ STATICFILES_DIRS = [
     BASE_DIR / 'ORG/org-static',
     BASE_DIR / 'logos',
 ]
+
+# Path to logos directory
+LOGOS_PATH = os.path.join(BASE_DIR, 'logos')
+BILDER_PATH = os.path.join(BASE_DIR, 'bilder')
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
