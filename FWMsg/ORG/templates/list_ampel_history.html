@@ -1,0 +1,31 @@
+{% extends "baseOrg.html" %}
+{% load static %}
+
+{% block title %}Ampelmeldungen{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/list_ampel.css' %}">
+    <style>
+        .ampel-green { background-color: var(--ampel_green); }
+        .ampel-yellow { background-color: var(--ampel_yellow); }
+        .ampel-red { background-color: var(--ampel_red); }
+    </style>
+{% endblock %}
+
+{% block content %}
+
+    <h3>{{ freiwilliger }}</h3>
+
+    <div class="row g-1">
+        {% for ampel_meldung in ampel %}
+            <div class="col-lg-3 col-md-4 col-sm-6 p-1 rounded-4 
+                {% if ampel_meldung.status == 'G' %}ampel-green
+                {% elif ampel_meldung.status == 'Y' %}ampel-yellow
+                {% else %}ampel-red{% endif %}">
+                <p>{{ ampel_meldung.comment }}</p>
+                <p>{{ ampel_meldung.date|date:"d.m.y H:i" }}</p>
+            </div>
+        {% endfor %}
+    </div>
+
+{% endblock %}
