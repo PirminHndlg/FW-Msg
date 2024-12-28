@@ -1,0 +1,204 @@
+{% extends "baseOrg.html" %}
+{% load list_objects_filters %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+    {# Task Assignment Form #}
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="row h-75 overflow-auto">
+            {# Section 1: Volunteers List #}
+            <div id="section1" class="col-lg-4 col-md-6 col-12">
+                <h3>Freiwillige:r</h3>
+
+                {# Search Box for Volunteers #}
+                <div class="input-group">
+                    <div class="input-group-btn d-flex">
+                        <input type="text" class="form-control" name="mySearch" placeholder="Suche"
+                               data-table="table_fw">
+                        <span class="input-group-append">
+                            <button class="btn btn-outline-primary" type="button"><i class="bi bi-search"></i></button>
+                        </span>
+                    </div>
+                </div>
+
+                {# Year Filter Dropdown #}
+                <div class="dropdown mt-1 mb-1 d-flex align-items-center">
+                    <label for="jahrgang">Jahrgang</label>
+                    <button class="btn btn-sm btn-secondary dropdown-toggle m-1" type="button"
+                            data-bs-toggle="dropdown">
+                        {{ jahr|default:"Alle" }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        {% if jahr %}
+                            <a class="link-underline link-underline-opacity-0 link-underline-opacity-50-hover"
+                               href="{% url 'aufgaben_assign' %}">
+                                <li class="dropdown-item">
+                                    Alle
+                                </li>
+                            </a>
+                        {% endif %}
+                        {% for jahrgang in jahrgaenge %}
+                            <a class="link-underline link-underline-opacity-0 link-underline-opacity-50-hover"
+                               href="{% url 'aufgaben_assign' jahrgang.id %}">
+                                <li class="dropdown-item {% if jahr.id == jahrgang.id %}active{% endif %}">
+                                    {{ jahrgang }}
+                                </li>
+                            </a>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                {# Select All Checkbox #}
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" class="form-check-input" name="check_all"
+                               onclick="checkAll(this)">
+                        Alle wählen
+                    </label>
+                </div>
+
+                {# Volunteers Table #}
+                <table id="table_fw" class="table table-responsive">
+                    {% for fw in freiwillige %}
+                        <tr>
+                            <td>
+                                <div class="checkbox">
+                                    <input class="form-check-input" type="checkbox" id="checkbox_fw_{{ fw.id }}"
+                                           name="freiwillige" value="{{ fw.id }}" onclick="checkedbox(this)">
+                                    <label class="form-check-label" for="checkbox_fw_{{ fw.id }}">
+                                        {{ fw }}
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+
+            <div id="section2" class="col-lg-4 col-md-6 col-12">
+                <h3>Profile</h3>
+
+                <div class="input-group">
+                    <div class="input-group-btn d-flex">
+                        <input type="text" class="form-control" name="mySearch" placeholder="Suche"
+                               data-table="table_profil">
+                        <span class="input-group-append">
+                            <button class="btn btn-outline-primary" type="button"><i class="bi bi-search"></i></button>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" class="form-check-input" name="check_all"
+                               onclick="checkAll(this)">
+                        Alle wählen
+                    </label>
+                </div>
+
+                <table id="table_profil" class="table">
+                    {% for profil in profile %}
+                        <tr>
+                            <td>
+                                <div class="checkbox">
+                                    <input class="form-check-input" type="checkbox"
+                                           id="checkbox_profil_{{ profil.id }}"
+                                           name="profile" value="{{ profil.id }}" onclick="checkedbox(this)">
+                                    <label class="form-check-label" for="checkbox_profil_{{ profil.id }}">
+                                        {{ profil }}
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+
+            <div id="section3" class="col-lg-4 col-md-6 col-12 overflow-auto" style="max-height: 75vh;">
+                <h3 class="sticky-top bg-body">Aufgaben</h3>
+
+                <div class="input-group">
+                    <div class="input-group-btn d-flex">
+                        <input type="text" class="form-control" name="mySearch" placeholder="Suche"
+                               data-table="table_aufgabe">
+                        <span class="input-group-append">
+                            <button class="btn btn-outline-primary" type="button"><i class="bi bi-search"></i></button>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" class="form-check-input" name="check_all"
+                               onclick="checkAll(this)">
+                        Alle wählen
+                    </label>
+                </div>
+
+                <table id="table_aufgabe" class="table">
+                    {% for aufgabe in aufgaben %}
+                        <tr>
+                            <td>
+                                <div class="checkbox">
+                                    <input class="form-check-input" type="checkbox"
+                                           id="checkbox_aufgabe_{{ aufgabe.id }}"
+                                           name="aufgaben" value="{{ aufgabe.id }}" onclick="checkedbox(this)">
+                                    <label class="form-check-label" for="checkbox_aufgabe_{{ aufgabe.id }}">
+                                        {{ aufgabe }}
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+        {# Submit Button #}
+        <div class="row">
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Zuweisen</button>
+            </div>
+        </div>
+    </form>
+
+    {# JavaScript for Search and Checkbox Functionality #}
+    <script>
+        // Search functionality
+        $(document).ready(function () {
+            let name = 'mySearch';
+            $("input[name='" + name + "']").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                var table = $(this).data('table');
+                $("#" + table + " tr").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+        });
+
+        // Select all checkboxes in a section
+        function checkAll(checkbox) {
+            let table = checkbox.parentElement.parentElement.parentElement;
+            var checkboxes = table.querySelectorAll('input[type="checkbox"]');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = checkbox.checked;
+            }
+        }
+
+        // Uncheck "select all" if an individual checkbox is unchecked
+        function checkedbox(checkbox) {
+            if (checkbox.checked === false) {
+                let div = checkbox.parentElement.parentElement
+                while (div.tagName !== 'DIV') {
+                    div = div.parentElement
+                }
+                let check_all = div.querySelector('input[name="check_all"]');
+                check_all.checked = false;
+            }
+        }
+    </script>
+{% endblock %}
