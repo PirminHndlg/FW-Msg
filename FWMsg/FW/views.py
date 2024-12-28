@@ -1,62 +1,65 @@
-import os
 from datetime import datetime
 import mimetypes
+import os
 import subprocess
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
 from django.db.models import Count
-from django.shortcuts import render, redirect
-from .models import Freiwilliger, Aufgabe, FreiwilligerAufgabenprofil, FreiwilligerAufgaben, Post, Bilder, CustomUser, \
-    BilderGallery, Ampel
-from ORG.models import Dokument, Ordner
 from django.http import HttpResponse, Http404
+from django.shortcuts import render, redirect
+from PIL import Image
+import io
+from django.conf import settings
 
-from .forms import BilderForm, BilderGalleryForm
+from .forms import BilderForm, BilderGalleryForm, ProfilUserForm
+from .models import (
+    Freiwilliger, Aufgabe, FreiwilligerAufgabenprofil, 
+    FreiwilligerAufgaben, Post, Bilder, CustomUser,
+    BilderGallery, Ampel, ProfilUser
+)
+from ORG.models import Dokument, Ordner
 
 
-def getOrg(request):
+def get_org(request):
+    """Get organization for authenticated user."""
     if request.user.is_authenticated:
-        if CustomUser.objects.filter(user=request.user).exists():
-            return CustomUser.objects.get(user=request.user).org
+        return CustomUser.objects.filter(user=request.user).first().org
     return None
 
-
-# Create your views here.
+@login_required
 def home(request):
-    # freiwilliger_aufgaben = (
-    #     FreiwilligerAufgaben.objects
-    #     .filter(freiwilliger__user=request.user)
-    #     .values('aufgabe__name', 'aufgabe__beschreibung', 'erledigt')
-    #     .distinct()
-    #     .order_by('aufgabe__name')
-    # )
-
-    if not request.user.is_authenticated:
-        return redirect('login')
-
-    erledigte_aufgaben = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=True).order_by(
-        'faellig')
-    offene_aufgaben = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=False,
-                                                          pending=False).order_by('faellig')
-    pending_aufgaben = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=False,
-                                                           pending=True).order_by('faellig')
+    """Dashboard view showing tasks, images and posts."""
+    # Get task statistics
+    task_queryset = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user)
+    
+    erledigte_aufgaben = task_queryset.filter(erledigt=True).order_by('faellig')
+    offene_aufgaben = task_queryset.filter(erledigt=False, pending=False).order_by('faellig')
+    pending_aufgaben = task_queryset.filter(erledigt=False, pending=True).order_by('faellig')
 
     len_erledigt = erledigte_aufgaben.count()
-    len_offen = offene_aufgaben.count()
+    len_offen = offene_aufgaben.count() 
     len_pending = pending_aufgaben.count()
-
     gesamt = len_erledigt + len_offen + len_pending
+
+    # Calculate percentages safely
+    def safe_percentage(part, total):
+        return round(part / total * 100) if total > 0 else 0
 
     freiwilliger_aufgaben = {
         'erledigt': erledigte_aufgaben,
-        'erledigt_prozent': round(len_erledigt / gesamt * 100) if gesamt > 0 else 0,
+        'erledigt_prozent': safe_percentage(len_erledigt, gesamt),
         'pending': pending_aufgaben,
-        'pending_prozent': round(len_pending / gesamt * 100) if gesamt > 0 else 0,
+        'pending_prozent': safe_percentage(len_pending, gesamt),
         'offen': offene_aufgaben,
-        'offen_prozent': round(len_offen / gesamt * 100) if gesamt > 0 else 0,
+        'offen_prozent': safe_percentage(len_offen, gesamt),
     }
 
-    bilder = Bilder.objects.filter(org=getOrg(request)).order_by('-date_created')
+    # Get recent images
+    org = get_org(request)
+    bilder = Bilder.objects.filter(org=org).order_by('-date_created')
     bilder_data = [
         {
             'bilder': bilder_obj,
@@ -65,20 +68,60 @@ def home(request):
         for bilder_obj in bilder[:2]
     ]
 
-    last_three_posts = Post.objects.all().order_by('date')[:3]
-
     context = {
         'aufgaben': freiwilliger_aufgaben,
         'bilder': bilder_data,
-        'posts': last_three_posts,
+        'posts': Post.objects.all().order_by('date')[:3],
     }
 
     return render(request, 'home.html', context=context)
 
-
 def profil(request):
-    return render(request, 'profil.html')
+    profil_users = ProfilUser.objects.filter(user=request.user)
+    context = {
+        'profil_users': profil_users
+    }
+    return render(request, 'profil.html', context=context)
 
+
+def remove_profil(request, profil_id):
+    profil_user = ProfilUser.objects.get(id=profil_id)
+    if profil_user.user == request.user:
+        profil_user.delete()
+    return redirect('profil')
+
+def view_profil(request, user_id=None):
+    org = get_org(request)
+    this_user = False
+    if not user_id:
+        user_id = request.user.id
+        this_user = True
+    user = User.objects.get(id=user_id)
+
+    if not CustomUser.objects.filter(user=user).exists() or not CustomUser.objects.get(user=user).org == org:
+        messages.error(request, 'Nicht erlaubt')
+        return redirect('fwhome')
+
+    if request.method == 'POST':
+        profil_user_form = ProfilUserForm(request.POST)
+        if profil_user_form.is_valid():
+            profil_user = profil_user_form.save(commit=False)
+            profil_user.user = user
+            profil_user.save()
+            return redirect('profil')
+
+    profil_users = ProfilUser.objects.filter(user=user)
+
+    profil_user_form = ProfilUserForm()
+    freiwilliger = Freiwilliger.objects.get(user=user)
+
+    context = {
+        'freiwilliger': freiwilliger,
+        'profil_users': profil_users,
+        'profil_user_form': profil_user_form,
+        'this_user': this_user
+    }
+    return render(request, 'profil.html', context=context)
 
 def ampel(request):
     ampel = request.GET.get('ampel', None)
@@ -86,11 +129,12 @@ def ampel(request):
         ampel = ampel.upper()
         comment = request.GET.get('comment', None)
         freiwilliger = Freiwilliger.objects.get(user=request.user)
-        ampel_object = Ampel.objects.create(freiwilliger=freiwilliger, status=ampel, org=getOrg(request), comment=comment)
+        ampel_object = Ampel.objects.create(freiwilliger=freiwilliger, status=ampel, org=get_org(request),
+                                            comment=comment)
         ampel_object.save()
 
-
-        msg_text = 'Ampel erfolgreich auf ' + ('Grün' if ampel == 'G' else 'Rot' if ampel == 'R' else 'Gelb' if ampel == 'Y' else 'error') + ' gesetzt'
+        msg_text = 'Ampel erfolgreich auf ' + (
+            'Grün' if ampel == 'G' else 'Rot' if ampel == 'R' else 'Gelb' if ampel == 'Y' else 'error') + ' gesetzt'
 
         messages.success(request, msg_text)
         return redirect('fwhome')
@@ -163,7 +207,7 @@ def aufgabe(request, aufgabe_id):
 
 
 def bilder(request):
-    bilder = Bilder.objects.filter(org=getOrg(request)).order_by('-date_created')
+    bilder = Bilder.objects.filter(org=get_org(request)).order_by('-date_created')
 
     data = [
         {
@@ -184,7 +228,7 @@ def bild(request):
     form_errors = None
 
     if request.POST:
-        org = getOrg(request)
+        org = get_org(request)
         bilder_form = BilderForm(request.POST)
         images = request.FILES.getlist('image')
 
@@ -199,6 +243,9 @@ def bild(request):
                 beschreibung=bilder_form_data['beschreibung'],
                 defaults={'date_created': datetime.now(), 'date_updated': datetime.now()}
             )
+
+            print('bilder:', bilder)
+            print('created:', created)
 
             if not created:
                 bilder.date_updated = datetime.now()
@@ -221,12 +268,19 @@ def bild(request):
 
             # Save each image with a reference to the product
             for image in images:
-                BilderGallery.objects.create(
-                    org=org,
-                    bilder=bilder,
-                    small_image=get_smaller_image(image),
-                    image=image
-                )
+                try:
+                    small_image = get_smaller_image(image)
+                    BilderGallery.objects.create(
+                        org=org,
+                        bilder=bilder,
+                        small_image=small_image,
+                        image=image
+                    )
+                    small_image.close()
+                    image.close()
+                except Exception as e:
+                    messages.error(request, f'Error saving image: {str(e)}')
+                    continue
 
             return redirect('fwhome')
         else:
@@ -245,14 +299,14 @@ def bild(request):
 
 
 def dokumente(request):
-    ordners = Ordner.objects.filter(org=getOrg(request)).order_by('ordner_name')
+    ordners = Ordner.objects.filter(org=get_org(request)).order_by('ordner_name')
 
     folder_structure = []
 
     for ordner in ordners:
         folder_structure.append({
             'ordner': ordner,
-            'dokumente': Dokument.objects.filter(org=getOrg(request), ordner=ordner).order_by('-date_created')
+            'dokumente': Dokument.objects.filter(org=get_org(request), ordner=ordner).order_by('-date_created')
         })
 
     context = {
@@ -265,7 +319,7 @@ def dokumente(request):
 
 def add_dokument(request):
     if request.method == 'POST':
-        org = getOrg(request)
+        org = get_org(request)
         ordner = Ordner.objects.get(id=request.POST.get('ordner'))
         beschreibung = request.POST.get('beschreibung')
         dokument = request.FILES.get('dokument')
@@ -284,7 +338,7 @@ def add_dokument(request):
 
 def serve_logo(request, image_name):
     # Define the path to the image directory
-    image_path = os.path.join('logos', image_name)
+    image_path = os.path.join(settings.LOGOS_PATH, image_name)
 
     print('image_path:', image_path)
 
@@ -316,13 +370,13 @@ def get_bild(image_path, image_name):
 
 def serve_bilder(request, image_name):
     # Define the path to the image directory
-    image_path = os.path.join('bilder', image_name)
+    image_path = os.path.join(settings.BILDER_PATH, image_name)
     return get_bild(image_path, image_name)
 
 
 def serve_small_bilder(request, image_name):
     # Define the path to the image directory
-    image_path = os.path.join('bilder/small', image_name)
+    image_path = os.path.join(settings.BILDER_PATH, 'small', image_name)
     return get_bild(image_path, image_name)
 
 
@@ -344,7 +398,7 @@ def pdf_to_image(doc_path):
 def serve_dokument(request, org_name, ordner_name, dokument_name):
     img = request.GET.get('img', None)
     # Define the path to the image directory
-    org = getOrg(request)
+    org = get_org(request)
     if not org or org.name != org_name:
         raise Http404("Dokument does not exist")
 
