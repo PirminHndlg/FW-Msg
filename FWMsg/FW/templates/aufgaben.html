@@ -12,27 +12,36 @@
 
 {% block content %}
 
-    <div class="aufgaben_container">
-        <h3>Offene Aufgaben: {{ len_offen }}</h3>
-
-        <div class="aufgaben_div">
-            {{ aufgaben_offen|generate_html_for_aufgaben }}
+    <div class="container-fluid mb-4">
+        <div class="card rounded-4">
+            <div class="card-header">
+                <h3 class="card-title mb-0">Offene Aufgaben: {{ len_offen }}</h3>
+            </div>
+            <div class="card-body">
+                {{ aufgaben_offen|generate_html_for_aufgaben }}
+            </div>
         </div>
-
     </div>
-    <div class="aufgaben_container">
-        <h3>Pending Aufgaben: {{ len_pending }}</h3>
 
-        <div class="aufgaben_div">
-            {{ aufgaben_pending|generate_html_for_aufgaben }}
+    <div class="container-fluid mb-4">
+        <div class="card rounded-4">
+            <div class="card-header">
+                <h3 class="card-title mb-0">Pending Aufgaben: {{ len_pending }}</h3>
+            </div>
+            <div class="card-body">
+                {{ aufgaben_pending|generate_html_for_aufgaben }}
+            </div>
         </div>
-
     </div>
-    <div class="aufgaben_container">
-        <h3>Erledigte Aufgaben: {{ len_erledigt }}</h3>
 
-        <div class="aufgaben_div">
-            {{ aufgaben_erledigt|generate_html_for_aufgaben }}
+    <div class="container-fluid mb-4">
+        <div class="card rounded-4">
+            <div class="card-header">
+                <h3 class="card-title mb-0">Erledigte Aufgaben: {{ len_erledigt }}</h3>
+            </div>
+            <div class="card-body">
+                {{ aufgaben_erledigt|generate_html_for_aufgaben }}
+            </div>
         </div>
     </div>
 
