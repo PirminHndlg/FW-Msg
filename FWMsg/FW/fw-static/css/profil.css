@@ -24,8 +24,6 @@
 
 
 .steckbrief_container {
-    display: flex;
-    flex-wrap: wrap;
 }
 
 .steckbrief_container div {
