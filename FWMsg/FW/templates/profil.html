@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load base_filter %}
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/profil.css' %}">
@@ -11,48 +12,245 @@
 
 
 {% block content %}
-    <div class="profil_container">
-        <div class="profil_img">
-            <img src="{% static 'img/default_img.png' %}" alt="Profilbild">
-        </div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="card rounded-4 mb-2 col-12">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Steckbrief</h3>
+                </div>
+                <div class="card-body d-flex flex-md-row flex-column">
+                    <div class="col-md-4 mb-2">
+                        <div class="card-body text-center">
+                            <div class="d-flex flex-column align-items-center">
+                                <img src="{% static 'img/default_img.png' %}" alt="Profilbild" class="img-fluid rounded-circle mb-3" style="max-width: 200px;">
+                                <img src="{% static 'img/de.png' %}" alt="Deutschland" class="img-fluid mb-2" style="max-width: 50px;">
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="col-md-8 mb-2">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <p class="mb-2"><strong>Name:</strong> {{ freiwilliger.first_name }} {{ freiwilliger.last_name }}</p>
+                                <p class="mb-2"><strong>Geburtsdatum:</strong> {{ freiwilliger.geburtsdatum|date:"d.m.Y" }}</p>
+                                {% if freiwilliger.user == user %}
+                                    <p class="mb-2"><strong>Telefon:</strong> {{ freiwilliger.phone|default:"" }}</p>
+                                    <p class="mb-2"><strong>Telefon Einsatzland:</strong> {{ freiwilliger.phone_einsatzland|default:"" }}</p>
+                                    <p class="mb-2"><strong>Email:</strong> {{ freiwilliger.email|default:"" }}</p>
+                                {% endif %}
+                            </div>
 
-        <div class="land_container">
-            <h3>Einsatzland</h3>
-            <img src="{% static 'img/de.png' %}" alt="Deutschland">
-            <p>Deutschland</p>
+                            <div class="mb-3">
+                                {% for profil in profil_users %}
+                                    <div class="d-flex align-items-center mb-2 profil-item" data-id="{{ profil.id }}">
+                                        <div class="view-mode" style="display: block">
+                                            <div class="d-flex align-items-center">
+                                                <span class="me-2"><strong>{{ profil.attribut }}</strong>: {{ profil.value }}</span>
+                                                <a class="rm_btn btn btn-sm btn-danger" style="display: none" href="{% url 'remove_profil' profil.id %}">Entfernen</a>
+                                            </div>
+                                        </div>
+                                        <div class="edit-mode" style="display: none">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" value="{{ profil.attribut }}" name="attribut_{{ profil.id }}">
+                                                <input type="text" class="form-control" value="{{ profil.value }}" name="value_{{ profil.id }}">
+                                                <button class="btn btn-primary save-btn" type="button">Speichern</button>
+                                                <a class="rm_btn btn btn-danger" href="{% url 'remove_profil' profil.id %}">Entfernen</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            {% if this_user %}
+                                <div id="form_div" class="mb-3" style="display: none">
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <div class="input-group mb-2">
+                                            {{ profil_user_form.attribut|add_class:"form-control me-2" }}
+                                            {{ profil_user_form.value|add_class:"form-control" }}
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Speichern</button>
+                                    </form>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button id="add_btn" class="btn btn-primary" onclick="document.getElementById('form_div').style.display='block'; document.getElementById('cancel_edit').style.display='block'; this.style.display='none'; document.getElementById('edit_btn').style.display='none'">
+                                        Hinzufügen
+                                    </button>
+                                    <button id="edit_btn" class="btn btn-secondary" onclick="Array.from(document.getElementsByClassName('rm_btn')).forEach(e => e.style.display='block'); document.getElementById('cancel_edit').style.display='block'; this.style.display='none'; document.getElementById('add_btn').style.display='none'">
+                                        Bearbeiten
+                                    </button>
+                                    <button id="cancel_edit" class="btn btn-danger" style="display:none" onclick="cancel_edit(this)">
+                                        Abbrechen
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="steckbrief_container">
-        <h3>Steckbrief</h3>
-        <p>Name: {{ freiwilliger.first_name }} {{ freiwilliger.last_name }}</p>
-        <p>Geburtsdatum: {{ freiwilliger.geburtsdatum|date:"d.m.Y" }}</p>
-        <p>Telefon: {{ freiwilliger.phone|default:"" }}</p>
-        <p>Telefon Einsatzland: {{ freiwilliger.phone_einsatzland|default:"" }}</p>
-        <p>Email: {{ freiwilliger.email|default:"" }}</p>
-        {% for profil in profil_users %}
-            <a>{{ profil.attribut }}: {{ profil.value }}</a>
-            <a class="rm_btn" style="display: none" href="{% url 'remove_profil' profil.id %}">remove</a>
-            <br>
-        {% endfor %}
+            <div class="col-12">
+                <div class="card rounded-4">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center gap-2">
+                            <h3 class="card-title mb-0">Bilder</h3>
+                            <a href="{% url 'bild' %}" class="link-primary">
+                                <i class="bi bi-plus-circle"></i>
+                                Hinzufügen
+                            </a>
+                        </div>
 
-        {% if this_user %}
-            <div id="form_div" style="display: none">
-                <form method="post">
-                    {% csrf_token %}
-                    {{ profil_user_form.as_p }}
-                    <input type="submit" value="Speichern">
-                </form>
+                        <div class="row">
+                            {% for bild in bilder_gallery_of_user %}
+                                <div class="col-lg-3 col-md-4 col-6">
+                                    <div class="mb-3">
+                                        <div class="position-relative">
+                                            <img src="{% if bild.small_image %}{{ bild.small_image.url }}{% else %}{{ bild.image.url }}{% endif %}" 
+                                                 alt="Bild"
+                                                 data-large="{{ bild.image.url }}"
+                                                 class="img-fluid rounded shadow-sm hover-zoom"
+                                                 style="object-fit: cover; height: 200px; width: 100%; cursor: pointer;"
+                                                 onclick="showFullscreen(this)">
+                                            <div class="dropdown position-absolute top-0 end-0 m-2">
+                                                <button type="button" 
+                                                        class="btn btn-light btn-sm"
+                                                        data-bs-toggle="dropdown"
+                                                        aria-expanded="false">
+                                                    <i class="bi bi-three-dots-vertical"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li>
+                                                        <button type="button" 
+                                                                class="dropdown-item text-danger"
+                                                                onclick="showDeleteConfirmation({{  bild.id }}, '{% if bild.small_image %}{{ bild.small_image.url }}{% else %}{{ bild.image.url }}{% endif %}', '{{ bild.bilder.titel }}')">
+                                                            <i class="bi bi-trash me-2"></i>Dieses Bild löschen
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger"
+                                                            onclick="showDeleteConfirmationAll({{ bild.bilder.id }})">
+                                                            <i class="bi bi-trash me-2"></i>Alle Bilder löschen
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div id="fullscreen-container" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; cursor: pointer;" onclick="hideFullscreen()">
+                                            <img id="fullscreen-image" src="" alt="Fullscreen" style="max-width: 90%; max-height: 90%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                        </div>
+                                        <script>
+                                            function showFullscreen(img) {
+                                                document.getElementById('fullscreen-image').src = img.getAttribute('data-large');
+                                                document.getElementById('fullscreen-container').style.display = 'block';
+                                                
+                                                // Add event listener for ESC key
+                                                document.addEventListener('keydown', handleEscKey);
+                                            }
+                                            
+                                            function hideFullscreen() {
+                                                document.getElementById('fullscreen-container').style.display = 'none';
+                                                // Remove event listener when fullscreen is closed
+                                                document.removeEventListener('keydown', handleEscKey);
+                                            }
+
+                                            function handleEscKey(event) {
+                                                if (event.key === 'Escape') {
+                                                    hideFullscreen();
+                                                }
+                                            }
+
+                                            function showDeleteConfirmation(bildId, imageUrl = null, titel = null) {
+                                                createModal('deleteModal', 'Bild löschen', 
+                                                    `<p>Möchten Sie dieses Bild wirklich löschen?</p>
+                                                    <div class="text-center">
+                                                        <img src="${imageUrl}" alt="${titel}" class="img-fluid rounded" style="max-height: 200px;">
+                                                    </div>`,
+                                                    `<a href="{% url 'remove_bild' %}?galleryImageId=${bildId}" class="btn btn-danger">Löschen</a>`
+                                                );
+                                            }
+
+                                            function showDeleteConfirmationAll(bildId) {
+                                                createModal('deleteAllModal', 'Alle Bilder löschen',
+                                                    '<p>Möchten Sie wirklich alle Bilder dieser Galerie löschen?</p>',
+                                                    `<a href="{% url 'remove_bild_all' %}?bild_id=${bildId}" class="btn btn-danger">Alle löschen</a>`
+                                                );
+                                            }
+
+                                            function createModal(id, title, body, actionButton) {
+                                                const modal = document.createElement('div');
+                                                modal.className = 'modal fade';
+                                                modal.id = id;
+                                                modal.innerHTML = `
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">${title}</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                            </div>
+                                                            <div class="modal-body">${body}</div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                                                                ${actionButton}
+                                                            </div>
+                                                        </div>
+                                                    </div>`;
+                                                document.body.appendChild(modal);
+                                                const bsModal = new bootstrap.Modal(modal);
+                                                bsModal.show();
+                                                modal.addEventListener('hidden.bs.modal', () => modal.remove());
+                                            }
+                                        </script>
+                                        <div class="mt-2">
+                                            <h5 class="mb-1">{{ bild.bilder.titel }}</h5>
+                                            <p class="small text-muted mb-1">{{ bild.bilder.date_created|date:"d.m.Y" }}</p>
+                                            <p class="small mb-0">
+                                                <span class="description-preview">{{ bild.bilder.beschreibung|truncatewords:10 }}</span>
+                                                <span class="description-full" style="display:none">{{ bild.bilder.beschreibung }}</span>
+                                                {% if bild.bilder.beschreibung|wordcount > 10 %}
+                                                    <a href="#" class="show-more" onclick="event.preventDefault(); toggleDescription(this);">mehr</a>
+                                                {% endif %}
+                                            </p>
+                                            <script>
+                                                function toggleDescription(link) {
+                                                    const parent = link.parentElement;
+                                                    const preview = parent.querySelector('.description-preview');
+                                                    const full = parent.querySelector('.description-full');
+                                                    
+                                                    if (preview.style.display !== 'none') {
+                                                        preview.style.display = 'none';
+                                                        full.style.display = 'inline';
+                                                        link.textContent = 'weniger';
+                                                    } else {
+                                                        preview.style.display = 'inline';
+                                                        full.style.display = 'none';
+                                                        link.textContent = 'mehr';
+                                                    }
+                                                }
+                                            </script>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <div class="button_container">
-                <button onclick="Array.from(document.getElementsByClassName('rm_btn')).forEach(e => e.style.display='block')">
-                    edit
-                </button>
-                <button onclick="document.getElementById('form_div').style.display='block'; this.style.display='none'">+
-                </button>
-            </div>
-        {% endif %}
-
+        </div>
     </div>
+
+    <script>
+        function cancel_edit(btn) {
+            Array.from(document.getElementsByClassName('rm_btn')).forEach(e => e.style.display='none');
+            
+            document.getElementById('edit_btn').style.display='block';
+            document.getElementById('add_btn').style.display='block';
+
+            document.getElementById('cancel_edit').style.display='none';
+
+            document.getElementById('form_div').style.display='none';
+        }
+    </script>
 {% endblock %}
