@@ -111,6 +111,9 @@ def view_profil(request, user_id=None):
             return redirect('profil')
 
     profil_users = ProfilUser.objects.filter(user=user)
+    bilder_of_user = Bilder.objects.filter(user=user)
+    bilder_gallery_of_user = BilderGallery.objects.filter(bilder__in=bilder_of_user).order_by('-bilder__date_created')
+    print(bilder_gallery_of_user)
 
     profil_user_form = ProfilUserForm()
     freiwilliger = Freiwilliger.objects.get(user=user)
@@ -119,7 +122,8 @@ def view_profil(request, user_id=None):
         'freiwilliger': freiwilliger,
         'profil_users': profil_users,
         'profil_user_form': profil_user_form,
-        'this_user': this_user
+        'this_user': this_user,
+        'bilder_gallery_of_user': bilder_gallery_of_user
     }
     return render(request, 'profil.html', context=context)
 
@@ -233,7 +237,6 @@ def bild(request):
         images = request.FILES.getlist('image')
 
         if bilder_form.is_valid() and len(images) > 0:
-
             bilder_form_data = bilder_form.cleaned_data
 
             bilder, created = Bilder.objects.get_or_create(
@@ -244,40 +247,18 @@ def bild(request):
                 defaults={'date_created': datetime.now(), 'date_updated': datetime.now()}
             )
 
-            print('bilder:', bilder)
-            print('created:', created)
-
             if not created:
                 bilder.date_updated = datetime.now()
                 bilder.save()
 
-            def get_smaller_image(image):
-                from PIL import Image
-                import io
-                from django.core.files.base import ContentFile
-
-                img = Image.open(image)
-                img.thumbnail((1000, 1000))
-
-                img_io = io.BytesIO()
-                format = img.format if img.format in ["JPEG", "PNG"] else "JPEG"
-                img.save(img_io, format=format)
-                extension = format.lower()
-                filename = f"{image.name.rsplit('.', 1)[0]}.{extension}"
-                return ContentFile(img_io.getvalue(), name=filename)
-
             # Save each image with a reference to the product
             for image in images:
                 try:
-                    small_image = get_smaller_image(image)
                     BilderGallery.objects.create(
                         org=org,
                         bilder=bilder,
-                        small_image=small_image,
                         image=image
                     )
-                    small_image.close()
-                    image.close()
                 except Exception as e:
                     messages.error(request, f'Error saving image: {str(e)}')
                     continue
@@ -288,14 +269,65 @@ def bild(request):
 
     bilder_form = BilderForm()
     bilder_gallery_form = BilderGalleryForm()
-
+    
     context = {
-        'form_errors': form_errors,
         'bilder_form': bilder_form,
-        'bilder_gallery_form': bilder_gallery_form
+        'bilder_gallery_form': bilder_gallery_form,
+        'form_errors': form_errors
     }
 
     return render(request, 'bild.html', context=context)
+
+
+def remove_bild(request):
+    gallery_image_id = request.GET.get('galleryImageId', None)
+    bild_id = request.GET.get('bildId', None)
+
+    if not gallery_image_id and not bild_id:
+        messages.error(request, 'Kein Bild gefunden')
+        return redirect('profil')
+
+    try:
+        gallery_image = BilderGallery.objects.get(id=gallery_image_id)
+        
+        if gallery_image.bilder.user != request.user:
+            messages.error(request, 'Nicht erlaubt')
+            return redirect('profil')
+
+        # Check if this is the last image in the gallery
+        related_gallery_images = BilderGallery.objects.filter(bilder=gallery_image.bilder)
+        if related_gallery_images.count() == 1:
+            # Delete the parent Bilder object if this is the last image
+            gallery_image.bilder.delete()
+        else:
+            # Otherwise just delete this specific image
+            gallery_image.delete()
+
+        messages.success(request, 'Bild erfolgreich gelöscht')
+        
+    except BilderGallery.DoesNotExist:
+        messages.error(request, 'Bild nicht gefunden')
+
+    return redirect('profil')
+
+
+def remove_bild_all(request):
+    bild_id = request.GET.get('bild_id', None)
+    if not bild_id:
+        messages.error(request, 'Kein Bild gefunden')
+        return redirect('profil')
+    
+    bild = Bilder.objects.get(id=bild_id)
+    if bild.user != request.user:
+        messages.error(request, 'Nicht erlaubt')
+        return redirect('profil')
+    
+    bilder_gallery = BilderGallery.objects.filter(bilder=bild)
+    for bild_gallery in bilder_gallery:
+        bild_gallery.delete()
+    bild.delete()
+    messages.success(request, 'Alle Bilder erfolgreich gelöscht')
+    return redirect('profil')
 
 
 def dokumente(request):
