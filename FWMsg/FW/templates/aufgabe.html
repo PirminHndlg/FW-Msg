@@ -10,27 +10,52 @@
 {% endblock %}
 
 {% block content %}
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
+    <div class="container-fluid">
+        <div class="card rounded-4">
+            <div class="card-header">
+                <h2 class="card-title mb-0">{{ aufgabe }}</h2>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
 
-        <h2>
-            {{ aufgabe }}
-        </h2>
+                    {% if aufgabe.mitupload %}
+                        <div class="mb-3">
+                            <label class="form-label">Datei hochladen</label>
+                            <input type="file" class="form-control" name="file">
+                        </div>
+                    {% endif %}
 
-        {% if aufgabe.mitupload %}
-            <input type="file" name="file">
-        {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label">Fällig:</label>
+                        <p class="form-text">{{ freiwilliger_aufgaben.faellig|date:"d.m.Y" }}</p>
+                    </div>
 
-        <p>fällig: {{ freiwilliger_aufgaben.faellig|date:"d.m.Y" }}</p>
+                    <div class="mb-3">
+                        <label class="form-label">Status:</label>
+                        <p class="form-text">
+                            Erledigt: {% if freiwilliger_aufgaben.erledigt %}
+                                <span class="badge bg-success">Ja</span>
+                            {% else %}
+                                <span class="badge bg-danger">Nein</span>
+                            {% endif %}
+                            <br>
+                            Pending: {% if freiwilliger_aufgaben.pending %}
+                                <span class="badge bg-warning">Ja</span>
+                            {% else %}
+                                <span class="badge bg-info">Nein</span>
+                            {% endif %}
+                        </p>
+                    </div>
 
-        <p>erledigt: {{ freiwilliger_aufgaben.erledigt }}</p>
-        <p>pending: {{ freiwilliger_aufgaben.pending }}</p>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'aufgaben' %}" class="btn btn-secondary">Zurück</a>
+                        <button type="submit" class="btn btn-primary">Erledigt</button>
+                    </div>
 
-        <a href="{% url 'aufgaben' %}">
-            <button type="button">Zurück</button>
-        </a>
-        <button type="submit">Erledigt</button>
-
-    </form>
+                </form>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
