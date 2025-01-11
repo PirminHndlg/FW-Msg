@@ -7,6 +7,8 @@ from django.db import models
 from ORG.models import Organisation
 from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
+from django.core.files.base import ContentFile
+import io
 
 
 # class Organisation(models.Model):
@@ -439,28 +441,74 @@ class BilderGallery(models.Model):
         return self.image.name
 
 
-# def get_smaller_image(image):
-#     print('get_smaller_image')
-#     from PIL import Image
-#     import io
-#     from django.core.files.base import ContentFile
-#
-#     img = Image.open(image)
-#     img.thumbnail((600, 600))
-#
-#     img_io = io.BytesIO()
-#     format = img.format if img.format in ["JPEG", "PNG"] else "JPEG"
-#     img.save(img_io, format=format)
-#     extension = format.lower()
-#     filename = f"{image.name.rsplit('.', 1)[0]}.{extension}"
-#     filename.replace('bilder/', '')
-#     print(filename)
-#     return ContentFile(img_io.getvalue(), name=image.name)
-#
-#
-# @receiver(post_save, sender=BilderGallery)
-# def post_save_handler(sender, instance, **kwargs):
-#     instance.small_image = get_smaller_image(instance.image)
+@receiver(post_save, sender=BilderGallery)
+def create_small_image(sender, instance, created, **kwargs):
+    """Create small version of uploaded image on save."""
+    print(instance.image.name)
+    if created and instance.image and not instance.small_image:
+        try:
+            # Open the image
+            img = Image.open(instance.image)
+            
+            # Check for EXIF orientation and rotate if needed
+            try:
+                exif = img._getexif()
+                if exif:
+                    orientation = exif.get(274)  # 274 is the orientation tag
+                    if orientation:
+                        rotate_values = {
+                            3: 180,
+                            6: 270,
+                            8: 90
+                        }
+                        if orientation in rotate_values:
+                            img = img.rotate(rotate_values[orientation], expand=True)
+            except (AttributeError, KeyError, IndexError):
+                # No EXIF data or no orientation info
+                pass
+
+            # Create thumbnail
+            img.thumbnail((1000, 1000))
+
+            # Save to buffer
+            img_io = io.BytesIO()
+            format = "JPEG"  # Always save as JPEG for consistency
+            img.save(img_io, format=format, quality=85)
+            
+            # Create filename
+            extension = format.lower()
+
+            filename = f"{os.path.basename(instance.image.name).rsplit('.', 1)[0]}.{extension}"
+
+            print(filename)
+            print('--------------------------------')
+            
+            # Save small image
+            instance.small_image = ContentFile(img_io.getvalue(), name=filename)
+            instance.save()
+
+            print(instance.small_image.path)
+            print('--------------------------------')
+            
+        except Exception as e:
+            print(f"Error creating small image: {str(e)}")
+
+@receiver(pre_delete, sender=BilderGallery)
+def delete_bilder_files(sender, instance, **kwargs):
+    """Delete image files when BilderGallery instance is deleted."""
+    try:
+        # Delete main image file if it exists
+        if instance.image:
+            if os.path.isfile(instance.image.path):
+                os.remove(instance.image.path)
+        
+        # Delete small image file if it exists
+        if instance.small_image:
+            if os.path.isfile(instance.small_image.path):
+                os.remove(instance.small_image.path)
+    except Exception as e:
+        print(f"Error deleting image files: {str(e)}")
+
 
 
 class ProfilUser(models.Model):
