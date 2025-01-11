@@ -1,13 +1,13 @@
 from datetime import datetime
 
 from django.db.models import ForeignKey
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.db.models import Max, F
 
 from FW import models as FWmodels
-from FW.views import getOrg
+from FW.views import get_org
 from . import models as ORGmodels
 from . import forms as ORGforms
 
@@ -37,7 +37,7 @@ def get_model(model_name):
 
 def save_form(request, form):
     obj = form.save(commit=False)
-    obj.org = getOrg(request)
+    obj.org = get_org(request)
     obj.save()
 
 
@@ -53,7 +53,7 @@ def edit_object(request, model_name, id):
 
     if not id == None:
         instance = get_object_or_404(model, id=id)
-        if not instance.org == getOrg(request):
+        if not instance.org == get_org(request):
             return HttpResponse('Nicht erlaubt')
 
         form = ORGforms.model_to_form_mapping[model](request.POST or None, instance=instance)
@@ -73,7 +73,7 @@ def list_object(request, model_name):
     if not model:
         return HttpResponse(f'Kein Model für {model_name} gefunden')
 
-    objects = model.objects.filter(org=getOrg(request))
+    objects = model.objects.filter(org=get_org(request))
     field_metadata = [
         {'name': field.name, 'verbose_name': field.verbose_name}
         for field in model._meta.fields if field.name != 'org' and field.name != 'id'
@@ -94,7 +94,7 @@ def update_object(request, model_name):
     value = request.POST.get('value')
 
     instance = get_object_or_404(model, id=id)
-    if not instance.org == getOrg(request):
+    if not instance.org == get_org(request):
         return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
 
     if field_name == 'id' or field_name == 'org':
@@ -129,7 +129,7 @@ def delete_object(request, model_name, id):
         return HttpResponse(f'Kein Model für {model_name} gefunden')
 
     instance = get_object_or_404(model, id=id)
-    if not instance.org == getOrg(request):
+    if not instance.org == get_org(request):
         return HttpResponse('Nicht erlaubt')
 
     instance.delete()
@@ -137,15 +137,22 @@ def delete_object(request, model_name, id):
 
 
 def list_ampel(request):
-    org = getOrg(request)
+    org = get_org(request)
     ampel = [FWmodels.Ampel.objects.filter(freiwilliger=f).order_by('-date').first() for f in
              FWmodels.Freiwilliger.objects.filter(org=org)]
 
     return render(request, 'list_ampel.html', context={'ampel': ampel})
 
+def list_ampel_history(request, fid):
+    freiwilliger = get_object_or_404(FWmodels.Freiwilliger, pk=fid)
+    if not freiwilliger.org == get_org(request):
+        return HttpResponse('Nicht erlaubt')
+    ampel = FWmodels.Ampel.objects.filter(freiwilliger=freiwilliger).order_by('-date')
+    return render(request, 'list_ampel_history.html', context={'ampel': ampel, 'freiwilliger': freiwilliger})
+
 
 def list_aufgaben(request):
-    org = getOrg(request)
+    org = get_org(request)
     aufgaben_unfinished = FWmodels.FreiwilligerAufgaben.objects.filter(org=org, erledigt=False, pending=False)
     aufgaben_pending = FWmodels.FreiwilligerAufgaben.objects.filter(org=org, pending=True, erledigt=False)
     aufgaben_finished = FWmodels.FreiwilligerAufgaben.objects.filter(org=org, erledigt=True)
@@ -154,3 +161,71 @@ def list_aufgaben(request):
         'aufgaben_pending': aufgaben_pending,
         'aufgaben_finished': aufgaben_finished
     })
+
+
+def aufgaben_assign(request, jahrgang=None):
+    org = get_org(request)
+    if request.method == 'POST':
+        freiwillige = request.POST.getlist('freiwillige')
+        profile = request.POST.getlist('profile')
+        aufgaben = request.POST.getlist('aufgaben')
+
+        print(freiwillige, profile, aufgaben)
+
+        for f in freiwillige:
+            freiwilliger = FWmodels.Freiwilliger.objects.get(pk=f)
+
+            if not freiwilliger.org == org:
+                continue
+
+            for p in profile:
+                profile = FWmodels.Aufgabenprofil.objects.get(pk=p)
+
+                if not freiwilliger.org == org:
+                    continue
+
+                FWmodels.FreiwilligerAufgabenprofil.objects.get_or_create(
+                    profil=profile,
+                    freiwilliger=freiwilliger
+                )
+
+            for a in aufgaben:
+                aufgabe = FWmodels.Aufgabe.objects.get(pk=a)
+
+                if not aufgabe.org == org or not freiwilliger.org == org:
+                    continue
+
+                FWmodels.FreiwilligerAufgaben.objects.get_or_create(
+                    org=org,
+                    aufgabe=aufgabe,
+                    freiwilliger=freiwilliger
+                )
+
+        return redirect('aufgaben_assign')
+
+    if jahrgang:
+        # check if jahrgang is existing and belongs to org
+        jahrgang_exists = FWmodels.Jahrgang.objects.filter(pk=jahrgang).exists()
+        if jahrgang_exists:
+            jahrgang = FWmodels.Jahrgang.objects.get(pk=jahrgang)
+            if not jahrgang.org == org:
+                return HttpResponse('Nicht erlaubt')
+            freiwillige = FWmodels.Freiwilliger.objects.filter(jahrgang=jahrgang)
+        else:
+            freiwillige = FWmodels.Freiwilliger.objects.filter(org=get_org(request))
+    else:
+        freiwillige = FWmodels.Freiwilliger.objects.filter(org=get_org(request))
+
+    jahrgaenge = FWmodels.Jahrgang.objects.filter(org=get_org(request))
+    aufgaben = FWmodels.Aufgabe.objects.filter(org=get_org(request))
+    profile = FWmodels.Aufgabenprofil.objects.filter(org=get_org(request))
+
+    context = {
+        'jahr': jahrgang,
+        'jahrgaenge': jahrgaenge,
+        'freiwillige': freiwillige,
+        'aufgaben': aufgaben,
+        'profile': profile
+    }
+
+    return render(request, 'aufgaben_assign.html', context=context)
