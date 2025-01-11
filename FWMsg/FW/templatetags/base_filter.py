@@ -44,3 +44,7 @@ def get_org(user):
 @register.filter
 def get_date(value):
     return value.strftime('%d.%m.%Y')
+
+@register.filter
+def add_class(field, class_name):
+    return field.as_widget(attrs={"class": class_name})
