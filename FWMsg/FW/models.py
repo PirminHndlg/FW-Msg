@@ -1,5 +1,5 @@
 import os
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from PIL import Image  # Make sure this is from PIL, not Django models
 from django.contrib.auth.models import User, AbstractUser
@@ -277,11 +277,35 @@ class FreiwilligerAufgaben(models.Model):
                 self.faellig = self.freiwilliger.start_geplant + timedelta(days=self.aufgabe.faellig_tage_nach_start)
             elif self.aufgabe.faellig_tage_vor_ende:
                 self.faellig = self.freiwilliger.ende_geplant - timedelta(days=self.aufgabe.faellig_tage_vor_ende)
-            else:
-                self.faellig = self.aufgabe.faellig
+            elif self.aufgabe.faellig_monat:
+                # self.faellig = self.aufgabe.faellig
+                month = self.aufgabe.faellig_monat or 1
+                day = self.aufgabe.faellig_tag or 1
+                
+                if self.aufgabe.faellig_art == 'V':
+                    start_date = self.freiwilliger.start_real or self.freiwilliger.start_geplant
+                    year = start_date.year
+                    if start_date.month > month or (start_date.month == month and start_date.day >= day):
+                        year -= 1
+                    self.faellig = datetime(year, month, day).date()
+                elif self.aufgabe.faellig_art == 'W':
+                    start_date = self.freiwilliger.start_real or self.freiwilliger.start_geplant
+                    year = start_date.year
+                    if start_date.month > month or (start_date.month == month and start_date.day >= day):
+                        year = self.freiwilliger.ende_geplant.year
+                    self.faellig = datetime(year, month, day).date()
+                elif self.aufgabe.faellig_art == 'N':
+                    end_date = self.freiwilliger.ende_geplant
+                    year = end_date.year
+                    if end_date.month > month or (end_date.month == month and end_date.day >= day):
+                        year -= 1
+                    self.faellig = datetime(year, month, day).date()
+                elif self.aufgabe.faellig_art == 'A':
+                    year = datetime.now().year
+                    if datetime.now().month > month or (datetime.now().month == month and datetime.now().day >= day):
+                        year -= 1
+                    self.faellig = datetime(year, month, day).date()
 
-            # if self.aufgabe.faellig:
-            #     self.faellig = self.aufgabe.faellig
         super(FreiwilligerAufgaben, self).save(*args, **kwargs)
 
     class Meta:
@@ -360,11 +384,21 @@ def post_delete_handler(sender, instance, **kwargs):
 
 
 class Aufgabe(models.Model):
+    FAELLIG_CHOICES = [
+        ('V', 'Vor Einsatzstart'),
+        ('W', 'Während Einsatz'),
+        ('N', 'Nach Einsatzende'),
+        ('A', 'Aktuelles Jahr'),
+    ]
+    
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
     name = models.CharField(max_length=50, verbose_name='Aufgabenname')
     beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung')
     mitupload = models.BooleanField(default=False, verbose_name='Upload möglich')
-    faellig = models.DateField(blank=True, null=True, verbose_name='Fällig am')
+    # faellig = models.DateField(blank=True, null=True, verbose_name='Fällig am')
+    faellig_art = models.CharField(max_length=1, choices=FAELLIG_CHOICES, default='W', verbose_name='Fällig Art')
+    faellig_tag = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tag')
+    faellig_monat = models.IntegerField(blank=True, null=True, verbose_name='Fällig Monat')
     faellig_tage_nach_start = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage nach Einsatzstart')
     faellig_tage_vor_ende = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage vor Einsatzende')
 
