@@ -13,44 +13,106 @@
 {% endblock %}
 
 {% block content %}
-
     {% csrf_token %}
-
-    <div class="all_ordner_div">
+    <div class="accordion mb-3" id="folderAccordion">
         {% for structure in folder_structure %}
-            <div class="ordner_div">
-                <h3>{{ structure.ordner }}</h3>
-                <button onclick="addDokument({{ structure.ordner.id }})" data-token='{% csrf_token %}'>Neues Dokument</button>
-                {% for dokument in structure.dokumente %}
-                    <div class="dokument_div" style="border: 1px solid black">
-                        {% if dokument.get_document_type|starts_with:'image' %}
-                            <div class="img_div">
-                                <img onclick="showImgLarge(this)" src="{{ dokument.dokument.url }}"
-                                     alt="{{ dokument.dokument.url }}">
-                            </div>
-                        {% elif dokument.get_document_type|starts_with:'application/pdf' %}
-                            <a href="{{ dokument.dokument.url }}">
-                                <div class="img_div">
-                                    <img src="{{ dokument.dokument.url }}?img=True" alt="pdf_icon">
+            <div class="card rounded-4 mb-3">
+                <div class="card-header">
+                    <button class="accordion-button collapsed rounded-4" 
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#collapse{{ structure.ordner.id }}" 
+                            aria-expanded="false" 
+                            aria-controls="collapse{{ structure.ordner.id }}">
+                        <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                            <span><i class="bi bi-folder me-2"></i>{{ structure.ordner }}</span>
+                            <span class="badge bg-secondary">{{ structure.dokumente|length }}</span>
+                        </div>
+                    </button>
+                </div>
+                <div id="collapse{{ structure.ordner.id }}" 
+                        class="accordion-collapse collapse" 
+                        aria-labelledby="heading{{ structure.ordner.id }}" 
+                        data-bs-parent="#folderAccordion">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <button class="btn btn-outline-danger btn-sm rounded-4" 
+                                    onclick="removeOrdner({{ structure.ordner.id }}, '{{ structure.ordner }}')"
+                                    {% if structure.dokumente|length > 0 %}
+                                    
+                                    data-bs-toggle="tooltip"
+                                    data-bs-title="Ordner nicht leer"
+                                    {% endif %}>
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <button class="btn btn-primary btn-sm rounded-4" 
+                                    onclick="addDokument({{ structure.ordner.id }})" 
+                                    data-token='{% csrf_token %}'>
+                                <i class="bi bi-plus-lg"></i> Neues Dokument
+                            </button>
+                        </div>
+                        <div class="row g-3">
+                            {% for dokument in structure.dokumente %}
+                                <div class="col-sm-6 col-md-4 col-lg-3">
+                                    <div class="card rounded-4 h-100 hover-shadow">
+                                        {% if dokument.get_document_type|starts_with:'image' %}
+                                            <img onclick="showImgLarge(this)" 
+                                                    src="{{ dokument.dokument.url }}"
+                                                    class="card-img-top img-fluid cursor-pointer rounded-top-4"
+                                                    alt="{{ dokument.titel }}">
+                                        {% elif dokument.get_document_type|starts_with:'application/pdf' %}
+                                            <a href="{{ dokument.dokument.url }}" class="text-decoration-none">
+                                                <img src="{{ dokument.dokument.url }}?img=True" 
+                                                        class="card-img-top img-fluid rounded-top-4"
+                                                        alt="PDF Vorschau">
+                                            </a>
+                                        {% elif dokument.dokument.name|ends_with:'docx' %}
+                                            <a href="{{ dokument.dokument.url }}" class="text-decoration-none">
+                                                <img src="{{ dokument.dokument.url }}?img=True" 
+                                                        class="card-img-top img-fluid rounded-top-4"
+                                                        alt="DOCX Vorschau">
+                                            </a>
+                                        {% else %}
+                                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light rounded-top-4" style="height: 120px;">
+                                                <i class="bi bi-file-earmark fa-3x text-secondary"></i>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="card-body">
+                                            <p class="card-text small text-muted mb-1">
+                                                {{ dokument.date_created|date:"d.m.Y" }}
+                                            </p>
+                                            {% with dokument_name=dokument|get_document_name %}
+                                                <h6 class="card-title fw-bold mb-1">{{ dokument.titel|default:dokument_name }}</h6>
+                                                <p class="card-text text-muted small">{{ dokument.beschreibung|default:'' }}</p>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <a href="{{ dokument.dokument.url }}?download=true" 
+                                                    class="btn btn-outline-primary btn-sm rounded-4"
+                                                    download>
+                                                        <i class="bi bi-download"></i> Download
+                                                    </a>
+                                                    <button onclick="removeDokument({{ dokument.id }}, '{{ dokument.titel|default:dokument_name }}')"
+                                                            class="btn btn-outline-danger btn-sm rounded-4">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            {% endwith %}
+                                        </div>
+                                    </div>
                                 </div>
-                            </a>
-                        {% elif dokument.dokument.name|ends_with:'docx' %}
-                            <a href="{{ dokument.dokument.url }}">
-                                <div class="img_div">
-                                    <img src="{{ dokument.dokument.url }}?img=True" alt="pdf_icon">
-                                </div>
-                            </a>
-
-                        {% else %}
-                            {{ dokument.get_document_type }}
-                            <a href="{{ dokument.dokument.url }}">Download</a>
-                        {% endif %}
-                        <p>{{ dokument.date_created }}</p>
-                        <p>{{ dokument.beschreibung }}</p>
+                            {% endfor %}
+                        </div>
                     </div>
-                {% endfor %}
+                </div>
             </div>
         {% endfor %}
     </div>
 
+    <div class="card rounded-4">
+        <div class="card-body">
+            <button class="btn btn-primary w-100 rounded-4" onclick="addOrdner()">
+                <i class="bi bi-folder-plus me-2"></i> Neuer Ordner
+            </button>
+        </div>
+    </div>
 {% endblock %}
