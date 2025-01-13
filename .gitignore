@@ -7,3 +7,43 @@ FWMsg/ORG/__pycache__/
 FWMsg/ORG/**/__pycache__/
 *.pyc
 
+# Django settings
+FWMsg/FWMsg/settings.py
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*.class
+
+# Django local development
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Django media and static files
+/media/
+/static/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment variables
+.env
+.env.local
+
+# Database backups
+*.dump
+*.sql
+
+# System files
+.DS_Store
+Thumbs.db
