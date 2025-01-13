@@ -29,12 +29,24 @@ import io
 #         CustomUser.objects.create(user=instance, org=sender.org)
 
 class CustomUser(models.Model):
+    ROLE_CHOICES = [
+        ('A', 'Admin'),
+        ('O', 'Organisation'),
+        ('T', 'Team'),
+        ('F', 'Freiwillige:r'),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    role = models.CharField(max_length=1, choices=ROLE_CHOICES, default='F', verbose_name='Rolle')
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True, verbose_name='Profilbild')
 
     def __str__(self):
         return self.user.username
 
+# Add property to User model to access org
+User.add_to_class('org', property(lambda self: self.customuser.org if hasattr(self, 'customuser') else None))
+User.add_to_class('role', property(lambda self: self.customuser.role if hasattr(self, 'customuser') else None))
 
 class Entsendeform(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
@@ -63,6 +75,7 @@ class Kirchenzugehoerigkeit(models.Model):
 class Einsatzland(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
     name = models.CharField(max_length=50, verbose_name='Einsatzland')
+    code = models.CharField(max_length=2, verbose_name='Einsatzland-Code')
 
     class Meta:
         verbose_name = 'Einsatzland'
@@ -122,6 +135,8 @@ class Freiwilliger(models.Model):
     phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon')
     phone_einsatzland = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon Einsatzland')
     entsendeform = models.ForeignKey(Entsendeform, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Entsendeform')
+    einsatzland = models.ForeignKey(Einsatzland, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzland')
+    einsatzstelle = models.ForeignKey(Einsatzstelle, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzstelle')
     kirchenzugehoerigkeit = models.ForeignKey(Kirchenzugehoerigkeit, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Kirchenzugehörigkeit')
     start_geplant = models.DateField(blank=True, null=True, verbose_name='Start geplant')
     start_real = models.DateField(blank=True, null=True, verbose_name='Start real')
@@ -238,6 +253,7 @@ class Aufgabenprofil(models.Model):
     beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung')
     einsatzland = models.ForeignKey(Einsatzland, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Einsatzland')
     einsatzstelle = models.ForeignKey(Einsatzstelle, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Einsatzstelle')
+    aufgaben = models.ManyToManyField('Aufgabe', blank=True, verbose_name='Aufgaben')
 
     class Meta:
         verbose_name = 'Aufgabenprofil'
@@ -309,8 +325,8 @@ class FreiwilligerAufgaben(models.Model):
         super(FreiwilligerAufgaben, self).save(*args, **kwargs)
 
     class Meta:
-        verbose_name = 'Freiwilliger Aufgabe'
-        verbose_name_plural = 'Freiwilliger Aufgaben'
+        verbose_name = 'Freiwillige:r Aufgabe'
+        verbose_name_plural = 'Freiwillige:r Aufgaben'
 
     def __str__(self):
         return self.freiwilliger.first_name + ' ' + self.freiwilliger.last_name + ' - ' + self.aufgabe.name
@@ -350,7 +366,7 @@ class FreiwilligerFotos(models.Model):
 
 
 class FreiwilligerAufgabenprofil(models.Model):
-    # org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
     aufgabenprofil = models.ForeignKey(Aufgabenprofil, on_delete=models.CASCADE, verbose_name='Aufgabenprofil')
 
@@ -364,17 +380,17 @@ class FreiwilligerAufgabenprofil(models.Model):
 
 @receiver(post_save, sender=FreiwilligerAufgabenprofil)
 def post_save_handler(sender, instance, **kwargs):
-    aufgaben = AufgabenprofilAufgabe.objects.filter(aufgabenprofil=instance.aufgabenprofil)
+    aufgaben = instance.aufgabenprofil.aufgaben.all()
     for aufgabe in aufgaben:
-        aufg = FreiwilligerAufgaben.objects.get_or_create(freiwilliger=instance.freiwilliger, aufgabe=aufgabe.aufgabe)
-        if not aufg.faeillig:
-            if aufgabe.aufgabe.faellig_tage_nach_start:
-                aufg.faellig = instance.freiwilliger.start_geplant + timedelta(days=aufgabe.aufgabe.faellig_tage_nach_start)
-            elif aufgabe.aufgabe.faellig_tage_vor_ende:
-                aufg.faellig = instance.freiwilliger.ende_geplant - timedelta(days=aufgabe.aufgabe.faellig_tage_vor_ende)
+        aufg, created = FreiwilligerAufgaben.objects.get_or_create(org=instance.org, freiwilliger=instance.freiwilliger, aufgabe=aufgabe)
+        if not aufg.faellig:
+            if aufgabe.faellig_tage_nach_start:
+                aufg.faellig = instance.freiwilliger.start_geplant + timedelta(days=aufgabe.faellig_tage_nach_start)
+            elif aufgabe.faellig_tage_vor_ende:
+                aufg.faellig = instance.freiwilliger.ende_geplant - timedelta(days=aufgabe.faellig_tage_vor_ende)
             else:
-                aufg.faellig = aufgabe.aufgabe.faellig
-
+                aufg.faellig = aufgabe.faellig
+            aufg.save()
 
 @receiver(pre_delete, sender=FreiwilligerAufgabenprofil)
 def post_delete_handler(sender, instance, **kwargs):
@@ -408,19 +424,6 @@ class Aufgabe(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class AufgabenprofilAufgabe(models.Model):
-    # org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    aufgabenprofil = models.ForeignKey(Aufgabenprofil, on_delete=models.CASCADE, verbose_name='Aufgabenprofil')
-    aufgabe = models.ForeignKey(Aufgabe, on_delete=models.CASCADE, verbose_name='Aufgabe')
-
-    class Meta:
-        verbose_name = 'Aufgabenprofil Aufgabe'
-        verbose_name_plural = 'Aufgabenprofil Aufgaben'
-
-    def __str__(self):
-        return self.aufgabenprofil.name + ' - ' + self.aufgabe.name
 
 
 class Post(models.Model):
