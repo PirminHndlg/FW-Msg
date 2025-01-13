@@ -5,6 +5,16 @@ from ..models import CustomUser
 register = template.Library()
 
 @register.filter
+def get_current_language(request):
+    return request.LANGUAGE_CODE
+
+@register.filter
+def split(value, separator):
+    print(value, separator)
+    print(value.split(separator))
+    return value.split(separator)
+
+@register.filter
 def hex_to_rgb(hex_code):
     hex_code = hex_code.lstrip('#')
     r, g, b = tuple(int(hex_code[i:i+2], 16) for i in (0, 2, 4))
