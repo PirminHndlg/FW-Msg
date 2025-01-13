@@ -383,6 +383,7 @@ def dokumente(request):
 def add_dokument(request):
     if request.method == 'POST':
         ordner = Ordner.objects.get(id=request.POST.get('ordner'))
+        titel = request.POST.get('titel')
         beschreibung = request.POST.get('beschreibung')
         dokument = request.FILES.get('dokument')
 
@@ -390,11 +391,20 @@ def add_dokument(request):
             Dokument.objects.create(
                 org=request.user.org,
                 ordner=ordner,
+                titel=titel,
                 beschreibung=beschreibung,
                 dokument=dokument,
                 date_created=datetime.now()
             )
 
+    return redirect('dokumente')
+
+
+@login_required
+def add_ordner(request):
+    if request.method == 'POST':
+        ordner_name = request.POST.get('ordner_name')
+        Ordner.objects.create(org=request.user.org, ordner_name=ordner_name)
     return redirect('dokumente')
 
 
@@ -464,6 +474,7 @@ def pdf_to_image(doc_path):
 @login_required
 def serve_dokument(request, org_name, ordner_name, dokument_name):
     img = request.GET.get('img', None)
+    download = request.GET.get('download', None)
     # Define the path to the image directory
     org = request.user.org
     if not org or org.name != org_name:
@@ -475,10 +486,10 @@ def serve_dokument(request, org_name, ordner_name, dokument_name):
         raise Http404("Dokument does not exist")
 
     mimetype = get_mimetype(doc_path)
-    if mimetype and mimetype.startswith('image'):
+    if mimetype and mimetype.startswith('image') and not download:
         return get_bild(doc_path, dokument_name)
 
-    if img:
+    if img and not download:
         if mimetype and mimetype == 'application/pdf':
             return pdf_to_image(doc_path)
 
@@ -494,12 +505,37 @@ def serve_dokument(request, org_name, ordner_name, dokument_name):
             except Exception as e:
                 print(e)
                 return HttpResponse(e)
-            # return HttpResponse('Not supported yet')
 
     with open(doc_path, 'rb') as file:
-        if mimetype:
-            response = HttpResponse(file.read(), content_type=mimetype)
-        else:
-            response = HttpResponse(file.read())
-            response['Content-Disposition'] = f'attachment; filename="{doc_path.split("/")[-1]}"'
+        response = HttpResponse(file.read(), content_type=mimetype or 'application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{doc_path.split("/")[-1]}"'
         return response
+
+
+@login_required
+def remove_dokument(request):
+    if request.method == 'POST':
+        dokument_id = request.POST.get('dokument_id')
+        try:
+            dokument = Dokument.objects.get(id=dokument_id, org=request.user.org)
+            dokument.delete()
+        except Dokument.DoesNotExist:
+            pass
+    return redirect('dokumente')
+
+
+@login_required
+def remove_ordner(request):
+    if request.method == 'POST':
+        ordner_id = request.POST.get('ordner_id')
+        try:
+            ordner = Ordner.objects.get(id=ordner_id, org=request.user.org)
+            # Only delete if folder is empty
+            if not Dokument.objects.filter(ordner=ordner).exists():
+                ordner.delete()
+                messages.success(request, 'Ordner wurde gelöscht.')
+            else:
+                messages.error(request, f'Ordner {ordner.ordner_name} konnte nicht gelöscht werden, da er nicht leer ist.')
+        except Ordner.DoesNotExist:
+            pass
+    return redirect('dokumente')
