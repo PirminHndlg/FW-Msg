@@ -1,5 +1,5 @@
 from . import views
-from django.urls import path
+from django.urls import path, include
 
 urlpatterns = [
     path('', views.home, name='fwhome'),
@@ -19,4 +19,6 @@ urlpatterns = [
     path('dokumente/', views.dokumente, name='dokumente'),
     path('dokumente/add/', views.add_dokument, name='add_dokument'),
     path('dokument/<str:org_name>/<str:ordner_name>/<str:dokument_name>', views.serve_dokument, name='serve_dokument'),
+
+    path('i18n/', include('django.conf.urls.i18n')),  # Language switcher URL
 ]
