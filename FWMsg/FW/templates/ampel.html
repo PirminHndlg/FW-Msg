@@ -10,81 +10,83 @@
 
 {% block content %}
 
-    <form class="container-fluid">
-        <div class="card rounded-4 mb-4">
-            <div class="card-header">
-                <h3 class="card-title mb-0">Ampelmeldung</h3>
+<form>
+    <div class="card rounded-4 mb-4">
+        <div class="card-header">
+            <h3 class="card-title mb-0">Ampelmeldung</h3>
+        </div>
+        <div class="card-body">
+            <p class="text-center mb-3">Bitte wähle eine Farbe aus, die deinen aktuellen Status am besten beschreibt:</p>
+            <div class="ampel_container d-flex justify-content-center gap-4 mb-4">
+                <div id="R" class="ampel_element ampel_rot rounded-circle shadow-sm" title="Rot - Dringender Handlungsbedarf"></div>
+                <div id="Y" class="ampel_element ampel_gelb rounded-circle shadow-sm" title="Gelb - Aufmerksamkeit erforderlich"></div>
+                <div id="G" class="ampel_element ampel_gruen rounded-circle shadow-sm" title="Grün - Alles in Ordnung"></div>
+                <input type="hidden" name="ampel" required>
             </div>
-            <div class="card-body">
-                <p class="text-center mb-3">Bitte wähle eine Farbe aus, die deinen aktuellen Status am besten beschreibt:</p>
-                <div class="ampel_container d-flex justify-content-center gap-4 mb-4">
-                    <div id="R" class="ampel_element ampel_rot rounded-circle shadow-sm" title="Rot - Dringender Handlungsbedarf"></div>
-                    <div id="Y" class="ampel_element ampel_gelb rounded-circle shadow-sm" title="Gelb - Aufmerksamkeit erforderlich"></div>
-                    <div id="G" class="ampel_element ampel_gruen rounded-circle shadow-sm" title="Grün - Alles in Ordnung"></div>
-                    <input type="hidden" name="ampel" required>
-                </div>
 
-                <div class="mb-4">
-                    <h4 class="mb-3">Anmerkungen</h4>
-                    <textarea class="form-control" rows="4" placeholder="Deine Anmerkungen hier..."></textarea>
-                </div>
+            <div class="mb-4">
+                <h4 class="mb-3">Anmerkungen</h4>
+                <textarea class="form-control" rows="4" placeholder="Deine Anmerkungen hier..."></textarea>
+            </div>
 
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <button type="button" class="btn btn-secondary me-2" onclick="window.location.href = '{% url 'fwhome' %}'">
-                            <i class="bi bi-arrow-left me-2"></i>Zurück
-                        </button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-send me-2"></i>Abschicken
-                        </button>
-                    </div>
-                    <small class="text-muted">
-                        Zuletzt {{ last_ampel.status }} am {{ last_ampel.date|date:"d.m.Y" }} abgegeben
-                    </small>
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted d-flex align-items-center gap-1">
+                    Zuletzt 
+                    <span class="badge rounded-circle {% if last_ampel.status == 'G' %}bg-success{% elif last_ampel.status == 'Y' %}bg-warning{% elif last_ampel.status == 'R' %}bg-danger{% endif %}" style="width: 15px; height: 15px; display: inline-block;"></span>
+                    am {{ last_ampel.date|date:"d.m.Y" }} abgegeben
+                </small>
+                <div>
+                    <button type="button" class="btn btn-secondary me-2" onclick="window.location.href = '{% url 'fwhome' %}'">
+                        <i class="bi bi-arrow-left me-2"></i>Zurück
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send me-2"></i>Abschicken
+                    </button>
                 </div>
             </div>
         </div>
-    </form>
+    </div>
+</form>
 
-    <script>
-        let ampelElements = document.querySelectorAll('.ampel_element');
-        let ampelInput = document.querySelector('input[name="ampel"]');
-        ampelElements.forEach(ampelElement => {
-            ampelElement.addEventListener('click', () => {
-                if (ampelElement.classList.contains('ampel_selected')) {
-                    ampelElements.forEach(ampelElement => {
-                        ampelElement.classList.remove('ampel_selected');
-                        ampelElement.classList.remove('ampel_disabled');
-                        ampelInput.value = '';
-                    });
-                    return;
-                }
+<script>
+    let ampelElements = document.querySelectorAll('.ampel_element');
+    let ampelInput = document.querySelector('input[name="ampel"]');
+    ampelElements.forEach(ampelElement => {
+        ampelElement.addEventListener('click', () => {
+            if (ampelElement.classList.contains('ampel_selected')) {
                 ampelElements.forEach(ampelElement => {
                     ampelElement.classList.remove('ampel_selected');
-                    ampelElement.classList.add('ampel_disabled');
+                    ampelElement.classList.remove('ampel_disabled');
+                    ampelInput.value = '';
                 });
-                ampelElement.classList.add('ampel_selected');
-                ampelElement.classList.remove('ampel_disabled');
-                ampelInput.value = ampelElement.id;
-            });
-        });
-
-        document.querySelector('form').addEventListener('submit', (event) => {
-            event.preventDefault();
-            if (!ampelInput.value) {
-                alert('Bitte wählen Sie eine Farbe aus');
                 return;
             }
-            let textarea = document.querySelector('textarea');
-            let comment = textarea.value;
-            let comment_input = document.createElement('input');
-            comment_input.type = 'hidden';
-            comment_input.name = 'comment';
-            comment_input.value = comment;
-            event.target.appendChild(comment_input);
-
-            event.target.submit();
+            ampelElements.forEach(ampelElement => {
+                ampelElement.classList.remove('ampel_selected');
+                ampelElement.classList.add('ampel_disabled');
+            });
+            ampelElement.classList.add('ampel_selected');
+            ampelElement.classList.remove('ampel_disabled');
+            ampelInput.value = ampelElement.id;
         });
-    </script>
+    });
+
+    document.querySelector('form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (!ampelInput.value) {
+            alert('Bitte wählen Sie eine Farbe aus');
+            return;
+        }
+        let textarea = document.querySelector('textarea');
+        let comment = textarea.value;
+        let comment_input = document.createElement('input');
+        comment_input.type = 'hidden';
+        comment_input.name = 'comment';
+        comment_input.value = comment;
+        event.target.appendChild(comment_input);
+
+        event.target.submit();
+    });
+</script>
 
 {% endblock %}
