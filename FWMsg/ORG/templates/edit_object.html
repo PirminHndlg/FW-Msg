@@ -1,9 +1,53 @@
 {% extends "baseOrg.html" %}
+{% load widget_tweaks %}
 
 {% block content %}
-    <form method="post">
+    <form method="post" class="needs-validation mb-3" novalidate>
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Speichern</button>
+        <div class="card">
+            <div class="card-body">
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {% if field.field.widget.input_type == 'checkbox' %}
+                            {{ field|add_class:"form-check-input" }}
+                        {% elif field.field.widget.input_type == 'datetime-local' %}
+                                {{ field|add_class:"form-control"|attr:"type:datetime-local" }}
+                        {% elif field.field.widget.input_type == 'date' %}
+                            {{ field|add_class:"form-control"|attr:"type:date" }}
+                        {% elif field.field.widget.input_type == 'select' or field.field.widget.input_type == 'select-multiple' %}
+                            {{ field|add_class:"form-select" }}
+                        {% else %}
+                            {{ field|add_class:"form-control" }}
+                        {% endif %}
+                        {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="card-footer d-flex flex-row-reverse justify-content-between">
+                <div class="btn-group" role="group">
+                    <a href="{% url 'list_object' object %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Abbrechen
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Speichern
+                    </button>
+                </div>
+                {% if form.instance.id %}
+                    <a href="{% url 'delete_object' object form.instance.id %}" 
+                       class="btn btn-danger" 
+                       onclick="return confirm('Wirklich löschen?')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
     </form>
 {% endblock %}
