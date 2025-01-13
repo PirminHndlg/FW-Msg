@@ -25,6 +25,7 @@ def generate_html_for_aufgaben(aufgaben):
 
         if aufgabe.erledigt:
             html_content += '<p class="card-text"><span class="badge bg-success">Erledigt</span></p>'
+            html_content += f'<a href="{detail_url}" class="btn btn-success text-white">Anzeigen</a>'
         elif aufgabe.pending:
             html_content += '<p class="card-text"><span class="badge bg-warning text-dark">Wird bearbeitet</span></p>'
             html_content += f'<a href="{detail_url}" class="btn btn-primary text-white">Bearbeiten</a>'
