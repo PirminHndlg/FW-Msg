@@ -4,7 +4,7 @@ import os
 import subprocess
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 from django.db.models import Count
@@ -13,6 +13,7 @@ from django.shortcuts import render, redirect
 from PIL import Image
 import io
 from django.conf import settings
+from functools import wraps
 
 from .forms import BilderForm, BilderGalleryForm, ProfilUserForm
 from .models import (
@@ -22,12 +23,6 @@ from .models import (
 )
 from ORG.models import Dokument, Ordner
 
-
-def get_org(request):
-    """Get organization for authenticated user."""
-    if request.user.is_authenticated:
-        return CustomUser.objects.filter(user=request.user).first().org
-    return None
 
 @login_required
 def home(request):
@@ -58,8 +53,7 @@ def home(request):
     }
 
     # Get recent images
-    org = get_org(request)
-    bilder = Bilder.objects.filter(org=org).order_by('-date_created')
+    bilder = Bilder.objects.filter(org=request.user.org).order_by('-date_created')
     bilder_data = [
         {
             'bilder': bilder_obj,
@@ -76,6 +70,8 @@ def home(request):
 
     return render(request, 'home.html', context=context)
 
+
+@login_required
 def profil(request):
     profil_users = ProfilUser.objects.filter(user=request.user)
     context = {
@@ -84,21 +80,23 @@ def profil(request):
     return render(request, 'profil.html', context=context)
 
 
+@login_required
 def remove_profil(request, profil_id):
     profil_user = ProfilUser.objects.get(id=profil_id)
     if profil_user.user == request.user:
         profil_user.delete()
     return redirect('profil')
 
+
+@login_required
 def view_profil(request, user_id=None):
-    org = get_org(request)
     this_user = False
-    if not user_id:
+    if not user_id or user_id == request.user.id:
         user_id = request.user.id
         this_user = True
     user = User.objects.get(id=user_id)
 
-    if not CustomUser.objects.filter(user=user).exists() or not CustomUser.objects.get(user=user).org == org:
+    if not CustomUser.objects.filter(user=user).exists() or not CustomUser.objects.get(user=user).org == request.user.org:
         messages.error(request, 'Nicht erlaubt')
         return redirect('fwhome')
 
@@ -115,6 +113,11 @@ def view_profil(request, user_id=None):
     bilder_gallery_of_user = BilderGallery.objects.filter(bilder__in=bilder_of_user).order_by('-bilder__date_created')
     print(bilder_gallery_of_user)
 
+    ampel_of_user = None
+    if this_user:
+        ampel_of_user = Ampel.objects.filter(freiwilliger__user=user).order_by('-date').first()
+
+
     profil_user_form = ProfilUserForm()
     freiwilliger = Freiwilliger.objects.get(user=user)
 
@@ -123,18 +126,25 @@ def view_profil(request, user_id=None):
         'profil_users': profil_users,
         'profil_user_form': profil_user_form,
         'this_user': this_user,
-        'bilder_gallery_of_user': bilder_gallery_of_user
+        'bilder_gallery_of_user': bilder_gallery_of_user,
+        'ampel_of_user': ampel_of_user
     }
     return render(request, 'profil.html', context=context)
 
+
+@login_required
 def ampel(request):
     ampel = request.GET.get('ampel', None)
     if ampel and ampel.upper() in ['R', 'G', 'Y']:
         ampel = ampel.upper()
         comment = request.GET.get('comment', None)
         freiwilliger = Freiwilliger.objects.get(user=request.user)
-        ampel_object = Ampel.objects.create(freiwilliger=freiwilliger, status=ampel, org=get_org(request),
-                                            comment=comment)
+        ampel_object = Ampel.objects.create(
+            freiwilliger=freiwilliger, 
+            status=ampel, 
+            org=request.user.org,
+            comment=comment
+        )
         ampel_object.save()
 
         msg_text = 'Ampel erfolgreich auf ' + (
@@ -148,6 +158,8 @@ def ampel(request):
     return render(request, 'ampel.html', context={'last_ampel': last_ampel})
 
 
+
+@login_required
 def aufgaben(request):
     erledigte_aufgaben = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=True).order_by(
         'faellig')
@@ -176,12 +188,23 @@ def aufgaben(request):
     return render(request, 'aufgaben.html', context=context)
 
 
+@login_required
 def aufgabe(request, aufgabe_id):
     if request.method == 'POST':
         requested_aufgabe = Aufgabe.objects.get(id=aufgabe_id)
         freiwilliger_aufgaben = \
             FreiwilligerAufgaben.objects.filter(aufgabe=requested_aufgabe, freiwilliger__user=request.user)[0]
-        freiwilliger_aufgaben.pending = True
+        
+        action = request.POST.get('action')
+        if action == 'unpend':
+            freiwilliger_aufgaben.pending = False
+            freiwilliger_aufgaben.erledigt = False
+            freiwilliger_aufgaben.erledigt_am = None
+        else:  # action == 'pending'
+            freiwilliger_aufgaben.pending = True
+            freiwilliger_aufgaben.erledigt = False
+            freiwilliger_aufgaben.erledigt_am = datetime.now()
+
         freiwilliger_aufgaben.save()
         return redirect('aufgaben')
 
@@ -200,8 +223,7 @@ def aufgabe(request, aufgabe_id):
         # return redirect('aufgaben')
         pass
 
-    freiwilliger_aufgaben = \
-        FreiwilligerAufgaben.objects.filter(aufgabe=requested_aufgabe, freiwilliger__user=request.user)[0]
+    freiwilliger_aufgaben = FreiwilligerAufgaben.objects.filter(aufgabe=requested_aufgabe, freiwilliger__user=request.user)[0]
 
     context = {
         'aufgabe': requested_aufgabe,
@@ -210,8 +232,10 @@ def aufgabe(request, aufgabe_id):
     return render(request, 'aufgabe.html', context=context)
 
 
+
+@login_required
 def bilder(request):
-    bilder = Bilder.objects.filter(org=get_org(request)).order_by('-date_created')
+    bilder = Bilder.objects.filter(org=request.user.org).order_by('-date_created')
 
     data = [
         {
@@ -228,11 +252,12 @@ def bilder(request):
     return render(request, 'bilder.html', context=context)
 
 
+
+@login_required
 def bild(request):
     form_errors = None
 
     if request.POST:
-        org = get_org(request)
         bilder_form = BilderForm(request.POST)
         images = request.FILES.getlist('image')
 
@@ -240,7 +265,7 @@ def bild(request):
             bilder_form_data = bilder_form.cleaned_data
 
             bilder, created = Bilder.objects.get_or_create(
-                org=org,
+                org=request.user.org,
                 user=request.user,
                 titel=bilder_form_data['titel'],
                 beschreibung=bilder_form_data['beschreibung'],
@@ -255,7 +280,7 @@ def bild(request):
             for image in images:
                 try:
                     BilderGallery.objects.create(
-                        org=org,
+                        org=request.user.org,
                         bilder=bilder,
                         image=image
                     )
@@ -279,6 +304,7 @@ def bild(request):
     return render(request, 'bild.html', context=context)
 
 
+@login_required
 def remove_bild(request):
     gallery_image_id = request.GET.get('galleryImageId', None)
     bild_id = request.GET.get('bildId', None)
@@ -311,6 +337,7 @@ def remove_bild(request):
     return redirect('profil')
 
 
+@login_required
 def remove_bild_all(request):
     bild_id = request.GET.get('bild_id', None)
     if not bild_id:
@@ -330,15 +357,17 @@ def remove_bild_all(request):
     return redirect('profil')
 
 
+
+@login_required
 def dokumente(request):
-    ordners = Ordner.objects.filter(org=get_org(request)).order_by('ordner_name')
+    ordners = Ordner.objects.filter(org=request.user.org).order_by('ordner_name')
 
     folder_structure = []
 
     for ordner in ordners:
         folder_structure.append({
             'ordner': ordner,
-            'dokumente': Dokument.objects.filter(org=get_org(request), ordner=ordner).order_by('-date_created')
+            'dokumente': Dokument.objects.filter(org=request.user.org, ordner=ordner).order_by('-date_created')
         })
 
     context = {
@@ -349,16 +378,17 @@ def dokumente(request):
     return render(request, 'dokumente.html', context=context)
 
 
+
+@login_required
 def add_dokument(request):
     if request.method == 'POST':
-        org = get_org(request)
         ordner = Ordner.objects.get(id=request.POST.get('ordner'))
         beschreibung = request.POST.get('beschreibung')
         dokument = request.FILES.get('dokument')
 
         if dokument:
             Dokument.objects.create(
-                org=org,
+                org=request.user.org,
                 ordner=ordner,
                 beschreibung=beschreibung,
                 dokument=dokument,
@@ -368,6 +398,7 @@ def add_dokument(request):
     return redirect('dokumente')
 
 
+@login_required
 def serve_logo(request, image_name):
     # Define the path to the image directory
     image_path = os.path.join(settings.LOGOS_PATH, image_name)
@@ -400,12 +431,14 @@ def get_bild(image_path, image_name):
         return response
 
 
+@login_required
 def serve_bilder(request, image_name):
     # Define the path to the image directory
     image_path = os.path.join(settings.BILDER_PATH, image_name)
     return get_bild(image_path, image_name)
 
 
+@login_required
 def serve_small_bilder(request, image_name):
     # Define the path to the image directory
     image_path = os.path.join(settings.BILDER_PATH, 'small', image_name)
@@ -427,10 +460,12 @@ def pdf_to_image(doc_path):
     return response
 
 
+
+@login_required
 def serve_dokument(request, org_name, ordner_name, dokument_name):
     img = request.GET.get('img', None)
     # Define the path to the image directory
-    org = get_org(request)
+    org = request.user.org
     if not org or org.name != org_name:
         raise Http404("Dokument does not exist")
 
