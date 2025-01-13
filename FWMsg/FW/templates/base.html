@@ -1,7 +1,9 @@
 {% load static %}
 {% load base_filter %}
+{% load i18n %}
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +13,7 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@6.11.0/css/flag-icons.min.css">
 
 
     <script src="{% static 'js/base.js' %}"></script>
@@ -35,11 +38,40 @@
 
 <nav class="navbar navbar-dark bg-primary d-lg-none">
     <div class="container-fluid">
+        <!-- Logo/Brand -->
         <a class="navbar-brand" href="{% url 'fwhome' %}">
             {% with org=user|get_org %}
-                <img src="{{ org.logo.url }}" alt="BMW-Logo" style="height: 30px;">
+                <img src="{{ org.logo.url }}" alt="{{ org.name }}-Logo" style="height: 30px;">
             {% endwith %}
         </a>
+
+        <!-- Language Selector -->
+        <div class="dropdown">
+            <button class="btn btn-link nav-link dropdown-toggle text-white p-0" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                {% get_current_language as CURRENT_LANGUAGE %}
+                <span class="fi fi-{% if CURRENT_LANGUAGE == 'de' %}de{% else %}gb{% endif %}"></span>
+                {% if CURRENT_LANGUAGE == 'de' %}{% trans "Deutsch" %}{% else %}{% trans "English" %}{% endif %}
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+                <form action="{% url 'set_language' %}" method="post" id="language-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    
+                    
+                    {% get_available_languages as LANGUAGES %}
+                    {% for lang_code, lang_name in LANGUAGES %}
+                        <li>
+                            <button type="submit" name="language" value="{{ lang_code }}" 
+                                    class="dropdown-item {% if CURRENT_LANGUAGE == lang_code %}active{% endif %}">
+                                <span class="fi fi-{% if lang_code == 'de' %}de{% else %}gb{% endif %}"></span>
+                                {% if lang_code == 'de' %}{% trans "Deutsch" %}{% else %}{% trans "English" %}{% endif %}
+                            </button>
+                        </li>
+                    {% endfor %}
+                </form>
+            </ul>
+        </div>
     </div>
 </nav>
 
@@ -48,6 +80,7 @@
     <div class="row">
         <!-- Sidebar for large devices -->
         <nav class="col-lg-2 bg-primary d-none d-lg-flex flex-column vh-100 p-3 position-sticky top-0">
+            <!-- Logo section -->
             <a class="navbar-brand mb-3 d-flex align-items-center flex-wrap link-underline link-underline-opacity-0 link-underline-opacity-0-hover"
                href="{% url 'fwhome' %}">
                 {% with org=user|get_org %}
@@ -56,41 +89,75 @@
                     <h3 class="text-white mb-0">{{ org.kurzname }}</h3>
                 {% endwith %}
             </a>
-            <ul class="nav flex-column text-white">
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'fwhome' %}">
-                        <i class="bi bi-house"></i> Home
+            <!-- Scrollable menu section -->
+            <div class="overflow-y-auto overflow-x-hidden flex-grow-1" style="min-height: 0;">
+                <ul class="nav flex-column text-white">
+                    <li class="nav-item">
+                        <a class="nav-link text-white px-0 py-1" href="{% url 'fwhome' %}">
+                            <i class="bi bi-house"></i> {% trans "Home" %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white px-0 py-1" href="{% url 'aufgaben' %}">
+                            <i class="bi bi-list-check"></i> {% trans "Aufgaben" %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white px-0 py-1" href="{% url 'dokumente' %}">
+                            <i class="bi bi-file-earmark-text"></i> {% trans "Dokumente" %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white px-0 py-1" href="{% url 'profil' %}">
+                            <i class="bi bi-person"></i> {% trans "Profil" %}
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white px-0 py-1"
+                           id="addDropdown" role="button" data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <i class="bi bi-plus-circle text-white"></i>
+                            <small class="text-white">{% trans "Add" %}</small>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="addDropdown">
+                            <li><a class="dropdown-item" href="{% url 'bild' %}">{% trans "Bilder hochladen" %}</a></li>
+                            <li><a class="dropdown-item" href="#">{% trans "Dokumente hochladen" %}</a></li>
+                            <li><a class="dropdown-item" href="{% url 'aufgaben' %}">{% trans "Aufgabe erledigen" %}</a></li>
+                            <li><a class="dropdown-item" href="{% url 'ampel' %}">{% trans "Ampelmeldung" %}</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <!-- Fixed language selector at bottom -->
+            <div class="mt-3">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        {% get_current_language as CURRENT_LANGUAGE %}
+                        {% if CURRENT_LANGUAGE == 'de' %}
+                            <span class="fi fi-de"></span> {% trans "Deutsch" %}
+                        {% else %}
+                            <span class="fi fi-gb"></span> {% trans "English" %}
+                        {% endif %}
                     </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'aufgaben' %}">
-                        <i class="bi bi-list-check"></i> Aufgaben
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'dokumente' %}">
-                        <i class="bi bi-file-earmark-text"></i> Dokumente
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'profil' %}">
-                        <i class="bi bi-person"></i> Profil
-                    </a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-white"
-                       id="addDropdown" role="button" data-bs-toggle="dropdown"
-                       aria-expanded="false">
-                        <i class="bi bi-plus-circle text-white"></i>
-                        <small class="text-white">Add</small>
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="addDropdown">
-                        <li><a class="dropdown-item" href="{% url 'bild' %}">Bilder hochladen</a></li>
-                        <li><a class="dropdown-item" href="#">Dokumente hochladen</a></li>
-                        <li><a class="dropdown-item" href="{% url 'aufgaben' %}">Aufgabe erledigen</a></li>
-                        <li><a class="dropdown-item" href="{% url 'ampel' %}">Ampelmeldung</a></li>
+                    <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+                        <form action="{% url 'set_language' %}" method="post" id="language-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            
+                            <li>
+                                <button type="submit" name="language" value="de" class="dropdown-item {% if CURRENT_LANGUAGE == 'de' %}active{% endif %}">
+                                    <span class="fi fi-de"></span> {% trans "Deutsch" %}
+                                </button>
+                            </li>
+                            <li>
+                                <button type="submit" name="language" value="en" class="dropdown-item {% if CURRENT_LANGUAGE == 'en' %}active{% endif %}">
+                                    <span class="fi fi-gb"></span> {% trans "English" %}
+                                </button>
+                            </li>
+                        </form>
                     </ul>
-            </ul>
+                </div>
+            </div>
         </nav>
 
         <!-- Main content -->
@@ -108,43 +175,42 @@
 <nav class="navbar navbar-dark bg-primary d-lg-none fixed-bottom p-0">
     <div class="container-fluid">
         <ul class="navbar-nav nav-justified w-100 d-flex flex-row">
-
             <li class="nav-item">
                 <a class="nav-link text-white" href="{% url 'fwhome' %}">
                     <i class="bi bi-house"></i>
-                    <div>Home</div>
+                    <div>{% trans "Home" %}</div>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="{% url 'aufgaben' %}">
                     <i class="bi bi-list-check"></i>
-                    <div>Aufgaben</div>
+                    <div>{% trans "Aufgaben" %}</div>
                 </a>
             </li>
             <li class="nav-item text-center">
                 <a class="nav-link text-white" href="#" id="dropdownAdd" role="button"
                    data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-plus-circle text-white"></i>
-                    <div>Add</div>
+                    <div>{% trans "Add" %}</div>
                 </a>
                 <ul class="dropdown-menu position-absolute" aria-labelledby="dropdownAdd"
                     style="top: auto; bottom: 80%; left: 50%; transform: translateX(-50%);">
-                    <li><a class="dropdown-item" href="{% url 'bild' %}">Bilder hochladen</a></li>
-                    <li><a class="dropdown-item" href="#">Dokumente hochladen</a></li>
-                    <li><a class="dropdown-item" href="{% url 'aufgaben' %}">Aufgabe erledigen</a></li>
-                    <li><a class="dropdown-item" href="{% url 'ampel' %}">Ampelmeldung</a></li>
+                    <li><a class="dropdown-item" href="{% url 'bild' %}">{% trans "Bilder hochladen" %}</a></li>
+                    <li><a class="dropdown-item" href="#">{% trans "Dokumente hochladen" %}</a></li>
+                    <li><a class="dropdown-item" href="{% url 'aufgaben' %}">{% trans "Aufgabe erledigen" %}</a></li>
+                    <li><a class="dropdown-item" href="{% url 'ampel' %}">{% trans "Ampelmeldung" %}</a></li>
                 </ul>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="{% url 'dokumente' %}">
                     <i class="bi bi-file-earmark-text"></i>
-                    <div>Dokumente</div>
+                    <div>{% trans "Dokumente" %}</div>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="{% url 'profil' %}">
                     <i class="bi bi-person"></i>
-                    <div>Profil</div>
+                    <div>{% trans "Profil" %}</div>
                 </a>
             </li>
         </ul>
