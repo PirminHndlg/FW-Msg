@@ -40,7 +40,6 @@ class MailBenachrichtigungen(models.Model):
 class Ordner(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     ordner_name = models.CharField(max_length=100)
-
     def __str__(self):
         return self.ordner_name
 
@@ -69,6 +68,8 @@ class Dokument(models.Model):
     ordner = models.ForeignKey(Ordner, on_delete=models.CASCADE)
     dokument = models.FileField(upload_to=upload_to_folder)
     date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+    titel = models.CharField(max_length=100, null=True, blank=True)
     beschreibung = models.TextField(null=True, blank=True)
 
     def __str__(self):
