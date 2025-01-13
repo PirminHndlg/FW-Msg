@@ -5,11 +5,28 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.db.models import Max, F
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.conf import settings
+from functools import wraps
 
 from FW import models as FWmodels
-from FW.views import get_org
 from . import models as ORGmodels
 from . import forms as ORGforms
+
+
+def org_required(view_func):
+    """Decorator to check if user has an associated organization."""
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect(settings.LOGIN_URL)
+        if request.user.role != 'O':
+            messages.error(request, 'Kein Zugriff - Sie sind keine Organisation')
+            print(request.user.role)
+            return redirect(settings.LOGIN_URL)
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
 
 allowed_models_to_edit = {
     'einsatzland': FWmodels.Einsatzland,
@@ -20,11 +37,14 @@ allowed_models_to_edit = {
     'jahrgang': FWmodels.Jahrgang,
     'kirchenzugehoerigkeit': FWmodels.Kirchenzugehoerigkeit,
     'notfallkontakt': FWmodels.Notfallkontakt,
-    'entsendeform': FWmodels.Entsendeform
+    'entsendeform': FWmodels.Entsendeform,
+    'freiwilligeraufgaben': FWmodels.FreiwilligerAufgaben
 }
 
 
 # Create your views here.
+@org_required
+@login_required
 def home(request):
     return render(request, 'homeOrg.html')
 
@@ -35,17 +55,24 @@ def get_model(model_name):
     return None
 
 
+@org_required
+@login_required
 def save_form(request, form):
     obj = form.save(commit=False)
-    obj.org = get_org(request)
+    obj.org = request.user.org
     obj.save()
+    form.save_m2m()
 
 
+@org_required
+@login_required
 def add_object(request, model_name):
     return edit_object(request, model_name, None)
     # return render(request, 'add_object.html', {'form': form, 'object': model_name})
 
 
+@org_required
+@login_required
 def edit_object(request, model_name, id):
     model = get_model(model_name.lower())
     if not model or not model in ORGforms.model_to_form_mapping:
@@ -53,12 +80,19 @@ def edit_object(request, model_name, id):
 
     if not id == None:
         instance = get_object_or_404(model, id=id)
-        if not instance.org == get_org(request):
+        if not instance.org == request.user.org:
             return HttpResponse('Nicht erlaubt')
 
-        form = ORGforms.model_to_form_mapping[model](request.POST or None, instance=instance)
+        form = ORGforms.model_to_form_mapping[model](
+            request.POST or None,
+            request.FILES or None,
+            instance=instance
+        )
     else:
-        form = ORGforms.model_to_form_mapping[model](request.POST or None)
+        form = ORGforms.model_to_form_mapping[model](
+            request.POST or None,
+            request.FILES or None
+        )
 
     if form.is_valid():
         save_form(request, form)
@@ -67,22 +101,82 @@ def edit_object(request, model_name, id):
     return render(request, 'edit_object.html', {'form': form, 'object': model_name})
 
 
+@org_required
+@login_required
 def list_object(request, model_name):
     model = get_model(model_name)
 
     if not model:
         return HttpResponse(f'Kein Model für {model_name} gefunden')
 
-    objects = model.objects.filter(org=get_org(request))
+    # Initialize the filter form
+    filter_form = ORGforms.FilterForm(model, request.GET or None)
+    
+    # Start with all objects for this organization
+    objects = model.objects.filter(org=request.user.org)
+    
+    # Apply filters if form is valid
+    if filter_form.is_valid():
+        # Handle search across all text fields
+        search_query = filter_form.cleaned_data.get('search')
+        if search_query:
+            search_filters = FWmodels.models.Q()
+            for field in model._meta.fields:
+                if isinstance(field, (FWmodels.models.CharField, FWmodels.models.TextField)):
+                    search_filters |= FWmodels.models.Q(**{f'{field.name}__icontains': search_query})
+            objects = objects.filter(search_filters)
+        
+        # Apply specific field filters
+        for field in model._meta.fields:
+            if field.name in ['org', 'id']:
+                continue
+                
+            if isinstance(field, (FWmodels.models.CharField, FWmodels.models.TextField)):
+                value = filter_form.cleaned_data.get(f'filter_{field.name}')
+                if value:
+                    objects = objects.filter(**{f'{field.name}__icontains': value})
+                    
+            elif isinstance(field, (FWmodels.models.BooleanField)):
+                value = filter_form.cleaned_data.get(f'filter_{field.name}')
+                if value:  # Only apply filter if a value is selected
+                    objects = objects.filter(**{field.name: value == 'true'})
+                    
+            elif isinstance(field, FWmodels.models.DateField):
+                date_from = filter_form.cleaned_data.get(f'filter_{field.name}_from')
+                date_to = filter_form.cleaned_data.get(f'filter_{field.name}_to')
+                if date_from:
+                    objects = objects.filter(**{f'{field.name}__gte': date_from})
+                if date_to:
+                    objects = objects.filter(**{f'{field.name}__lte': date_to})
+                    
+            elif isinstance(field, FWmodels.models.ForeignKey):
+                value = filter_form.cleaned_data.get(f'filter_{field.name}')
+                if value:
+                    objects = objects.filter(**{field.name: value})
+    
+    # Get both regular fields and many-to-many fields
     field_metadata = [
         {'name': field.name, 'verbose_name': field.verbose_name}
         for field in model._meta.fields if field.name != 'org' and field.name != 'id'
     ]
+    
+    # Add many-to-many fields
+    m2m_fields = [
+        {'name': field.name, 'verbose_name': field.verbose_name}
+        for field in model._meta.many_to_many
+    ]
+    field_metadata.extend(m2m_fields)
+    
     return render(request, 'list_objects.html',
-                  {'objects': objects, 'field_metadata': field_metadata, 'model_name': model_name,
-                   'verbose_name': model._meta.verbose_name_plural})
+                 {'objects': objects, 
+                  'field_metadata': field_metadata, 
+                  'model_name': model_name,
+                  'verbose_name': model._meta.verbose_name_plural,
+                  'filter_form': filter_form})
 
 
+@org_required
+@login_required
 def update_object(request, model_name):
     model = get_model(model_name)
 
@@ -94,7 +188,7 @@ def update_object(request, model_name):
     value = request.POST.get('value')
 
     instance = get_object_or_404(model, id=id)
-    if not instance.org == get_org(request):
+    if not instance.org == request.user.org:
         return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
 
     if field_name == 'id' or field_name == 'org':
@@ -123,39 +217,45 @@ def update_object(request, model_name):
         return JsonResponse({'success': False, 'error': e}, status=400)
 
 
+@org_required
+@login_required
 def delete_object(request, model_name, id):
     model = get_model(model_name)
     if not model:
         return HttpResponse(f'Kein Model für {model_name} gefunden')
 
     instance = get_object_or_404(model, id=id)
-    if not instance.org == get_org(request):
+    if not instance.org == request.user.org:
         return HttpResponse('Nicht erlaubt')
 
     instance.delete()
     return HttpResponseRedirect(f'/org/list/{model_name}/')
 
 
+@org_required
+@login_required
 def list_ampel(request):
-    org = get_org(request)
     ampel = [FWmodels.Ampel.objects.filter(freiwilliger=f).order_by('-date').first() for f in
-             FWmodels.Freiwilliger.objects.filter(org=org)]
+             FWmodels.Freiwilliger.objects.filter(org=request.user.org)]
 
     return render(request, 'list_ampel.html', context={'ampel': ampel})
 
+@org_required
+@login_required
 def list_ampel_history(request, fid):
     freiwilliger = get_object_or_404(FWmodels.Freiwilliger, pk=fid)
-    if not freiwilliger.org == get_org(request):
+    if not freiwilliger.org == request.user.org:
         return HttpResponse('Nicht erlaubt')
     ampel = FWmodels.Ampel.objects.filter(freiwilliger=freiwilliger).order_by('-date')
     return render(request, 'list_ampel_history.html', context={'ampel': ampel, 'freiwilliger': freiwilliger})
 
 
+@org_required
+@login_required
 def list_aufgaben(request):
-    org = get_org(request)
-    aufgaben_unfinished = FWmodels.FreiwilligerAufgaben.objects.filter(org=org, erledigt=False, pending=False)
-    aufgaben_pending = FWmodels.FreiwilligerAufgaben.objects.filter(org=org, pending=True, erledigt=False)
-    aufgaben_finished = FWmodels.FreiwilligerAufgaben.objects.filter(org=org, erledigt=True)
+    aufgaben_unfinished = FWmodels.FreiwilligerAufgaben.objects.filter(org=request.user.org, erledigt=False, pending=False)
+    aufgaben_pending = FWmodels.FreiwilligerAufgaben.objects.filter(org=request.user.org, pending=True, erledigt=False)
+    aufgaben_finished = FWmodels.FreiwilligerAufgaben.objects.filter(org=request.user.org, erledigt=True)
     return render(request, 'list_aufgaben.html', context={
         'aufgaben_unfinished': aufgaben_unfinished,
         'aufgaben_pending': aufgaben_pending,
@@ -163,8 +263,9 @@ def list_aufgaben(request):
     })
 
 
+@org_required
+@login_required
 def aufgaben_assign(request, jahrgang=None):
-    org = get_org(request)
     if request.method == 'POST':
         freiwillige = request.POST.getlist('freiwillige')
         profile = request.POST.getlist('profile')
@@ -175,28 +276,29 @@ def aufgaben_assign(request, jahrgang=None):
         for f in freiwillige:
             freiwilliger = FWmodels.Freiwilliger.objects.get(pk=f)
 
-            if not freiwilliger.org == org:
+            if not freiwilliger.org == request.user.org:
                 continue
 
             for p in profile:
                 profile = FWmodels.Aufgabenprofil.objects.get(pk=p)
 
-                if not freiwilliger.org == org:
+                if not freiwilliger.org == request.user.org:
                     continue
 
                 FWmodels.FreiwilligerAufgabenprofil.objects.get_or_create(
-                    profil=profile,
+                    org=request.user.org,
+                    aufgabenprofil=profile,
                     freiwilliger=freiwilliger
                 )
 
             for a in aufgaben:
                 aufgabe = FWmodels.Aufgabe.objects.get(pk=a)
 
-                if not aufgabe.org == org or not freiwilliger.org == org:
+                if not aufgabe.org == request.user.org or not freiwilliger.org == request.user.org:
                     continue
 
                 FWmodels.FreiwilligerAufgaben.objects.get_or_create(
-                    org=org,
+                    org=request.user.org,
                     aufgabe=aufgabe,
                     freiwilliger=freiwilliger
                 )
@@ -208,17 +310,17 @@ def aufgaben_assign(request, jahrgang=None):
         jahrgang_exists = FWmodels.Jahrgang.objects.filter(pk=jahrgang).exists()
         if jahrgang_exists:
             jahrgang = FWmodels.Jahrgang.objects.get(pk=jahrgang)
-            if not jahrgang.org == org:
+            if not jahrgang.org == request.user.org:
                 return HttpResponse('Nicht erlaubt')
             freiwillige = FWmodels.Freiwilliger.objects.filter(jahrgang=jahrgang)
         else:
-            freiwillige = FWmodels.Freiwilliger.objects.filter(org=get_org(request))
+            freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
     else:
-        freiwillige = FWmodels.Freiwilliger.objects.filter(org=get_org(request))
+        freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
 
-    jahrgaenge = FWmodels.Jahrgang.objects.filter(org=get_org(request))
-    aufgaben = FWmodels.Aufgabe.objects.filter(org=get_org(request))
-    profile = FWmodels.Aufgabenprofil.objects.filter(org=get_org(request))
+    jahrgaenge = FWmodels.Jahrgang.objects.filter(org=request.user.org)
+    aufgaben = FWmodels.Aufgabe.objects.filter(org=request.user.org)
+    profile = FWmodels.Aufgabenprofil.objects.filter(org=request.user.org)
 
     context = {
         'jahr': jahrgang,
@@ -227,5 +329,4 @@ def aufgaben_assign(request, jahrgang=None):
         'aufgaben': aufgaben,
         'profile': profile
     }
-
     return render(request, 'aufgaben_assign.html', context=context)
