@@ -12,15 +12,6 @@
 
 
 {% block content %}
-
-    {% if messages %}
-        <ul>
-            {% for message in messages %}
-                <li class="{{ message.tags }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-
     <div class="card rounded-4 mb-4">
         <div class="card-header">
             <a href="{% url 'aufgaben' %}" class="text-decoration-none text-body">
