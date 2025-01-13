@@ -86,7 +86,7 @@
                 {% with org=user|get_org %}
                     <img src="{{ org.logo.url }}" alt="BMW-Logo"
                          style="height: 50px; margin-right: 10px; margin-bottom: 5px;">
-                    <h3 class="text-white mb-0">{{ org.kurzname }}</h3>
+                    <h3 class="text-white mb-0">{{ org.kurzname|default:org.name }}</h3>
                 {% endwith %}
             </a>
             <!-- Scrollable menu section -->

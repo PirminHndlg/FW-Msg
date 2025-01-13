@@ -31,9 +31,13 @@
 
             <div class="d-flex justify-content-between align-items-center">
                 <small class="text-muted d-flex align-items-center gap-1">
+                    {% if last_ampel %}
                     Zuletzt 
                     <span class="badge rounded-circle {% if last_ampel.status == 'G' %}bg-success{% elif last_ampel.status == 'Y' %}bg-warning{% elif last_ampel.status == 'R' %}bg-danger{% endif %}" style="width: 15px; height: 15px; display: inline-block;"></span>
                     am {{ last_ampel.date|date:"d.m.Y" }} abgegeben
+                    {% else %}
+                    Keine Ampelmeldung vorhanden
+                    {% endif %}
                 </small>
                 <div>
                     <button type="button" class="btn btn-secondary me-2" onclick="window.location.href = '{% url 'fwhome' %}'">
