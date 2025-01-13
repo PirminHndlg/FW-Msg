@@ -1,57 +1,160 @@
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+});
+
+function addOrdner() {
+    // Create modal structure
+    const modalHtml = `
+        <div class="modal fade" id="addOrdnerModal" tabindex="-1" aria-labelledby="addOrdnerModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addOrdnerModalLabel">Neuer Ordner</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="ordnerForm" method="post" action="/dokumente/add_ordner/">
+                            ${document.getElementsByName('csrfmiddlewaretoken')[0].outerHTML}
+                            
+                            <div class="mb-3">
+                                <label for="ordner_name" class="form-label">Ordnername</label>
+                                <input type="text" class="form-control rounded-4" id="ordner_name" name="ordner_name" required>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-outline-secondary rounded-4" data-bs-dismiss="modal">Abbrechen</button>
+                                <button type="submit" class="btn btn-primary rounded-4">Speichern</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    // Initialize and show modal
+    const modal = new bootstrap.Modal(document.getElementById('addOrdnerModal'));
+    modal.show();
+
+    // Remove modal from DOM after it's hidden
+    document.getElementById('addOrdnerModal').addEventListener('hidden.bs.modal', function () {
+        this.remove();
+    });
+}
+
 function addDokument(ordner_id) {
-    console.log(ordner_id)
-    let dialog = document.createElement('dialog');
-    let form = document.createElement('form');
-    form.id = 'form';
-    form.method = 'post';
-    form.enctype = 'multipart/form-data';
-    form.action = '/dokumente/add/';
-    form.style.display = 'flex';
-    form.style.flexDirection = 'column';
-    form.style.alignItems = 'center';
+    // Get folder name from the DOM
+    const folderName = document.querySelector(`button[data-bs-target="#collapse${ordner_id}"] span:first-child`).textContent.trim();
+    
+    // Create modal structure
+    const modalHtml = `
+        <div class="modal fade" id="addDokumentModal" tabindex="-1" aria-labelledby="addDokumentModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4">
+                    <div class="modal-header">
+                        <div>
+                            <h5 class="modal-title mb-1" id="addDokumentModalLabel">Neues Dokument hinzufügen</h5>
+                            <small class="text-muted"><i class="bi bi-folder me-1"></i>${folderName}</small>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="dokumentForm" method="post" enctype="multipart/form-data" action="/dokumente/add/">
+                            ${document.getElementsByName('csrfmiddlewaretoken')[0].outerHTML}
+                            <input type="hidden" name="ordner" value="${ordner_id}">
 
-    form.innerHTML = document.getElementsByName('csrfmiddlewaretoken')[0].outerHTML;
+                            <div class="mb-3">
+                                <label for="titel" class="form-label">Titel</label>
+                                <input type="text" class="form-control rounded-4" id="titel" name="titel">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="beschreibung" class="form-label">Beschreibung</label>
+                                <input type="text" class="form-control rounded-4" id="beschreibung" name="beschreibung">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="dokument" class="form-label">Dokument</label>
+                                <input type="file" class="form-control rounded-4" id="dokument" name="dokument" required>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-outline-secondary rounded-4" data-bs-dismiss="modal">Abbrechen</button>
+                                <button type="submit" class="btn btn-primary rounded-4">Speichern</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
 
-    let ordner = document.createElement('input');
-    ordner.type = 'hidden';
-    ordner.name = 'ordner';
-    ordner.value = ordner_id;
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-    let label = document.createElement('label');
-    label.for = 'dokument';
-    label.innerHTML = 'Dokument';
+    // Initialize and show modal
+    const modal = new bootstrap.Modal(document.getElementById('addDokumentModal'));
+    modal.show();
 
-    let input_bschreibung = document.createElement('input');
-    input_bschreibung.type = 'text';
-    input_bschreibung.name = 'beschreibung';
-    input_bschreibung.placeholder = 'Beschreibung';
+    // Remove modal from DOM after it's hidden
+    document.getElementById('addDokumentModal').addEventListener('hidden.bs.modal', function () {
+        this.remove();
+    });
+}
 
-    let input = document.createElement('input');
-    input.type = 'file';
-    input.name = 'dokument';
-    input.id = 'dokument';
-
-    let cancel = document.createElement('input');
-    cancel.type = 'button';
-    cancel.value = 'Cancel';
-    cancel.onclick = function () {
-        dialog.close();
-        dialog.remove();
+function removeDokument(dokument_id, dokument_name) {
+    if (confirm(`Möchten Sie das Dokument "${dokument_name}" wirklich löschen?`)) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/dokumente/remove/';
+        
+        // Add CSRF token
+        const csrfToken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        // Add document ID
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'dokument_id';
+        idInput.value = dokument_id;
+        form.appendChild(idInput);
+        
+        document.body.appendChild(form);
+        form.submit();
     }
+}
 
-    let submit = document.createElement('input');
-    submit.type = 'submit';
-    submit.value = 'Submit';
-
-    form.appendChild(ordner);
-    form.appendChild(label);
-    form.appendChild(input_bschreibung)
-    form.appendChild(input);
-    form.appendChild(cancel);
-    form.appendChild(submit);
-
-    dialog.appendChild(form);
-
-    document.body.appendChild(dialog);
-    dialog.showModal();
+function removeOrdner(ordner_id, ordner_name) {
+    if (confirm(`Möchten Sie den Ordner "${ordner_name}" wirklich löschen?`)) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/dokumente/remove_ordner/';
+        
+        // Add CSRF token
+        const csrfToken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        // Add folder ID
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'ordner_id';
+        idInput.value = ordner_id;
+        form.appendChild(idInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
 }
