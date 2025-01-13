@@ -11,38 +11,82 @@
 {% endblock %}
 
 {% block content %}
-
-    <div class="container-fluid mb-4">
-        <div class="card rounded-4">
-            <div class="card-header">
-                <h3 class="card-title mb-0">Offene Aufgaben: {{ len_offen }}</h3>
+<div class="card rounded-4 mb-2">
+    <div class="card-body">
+        <div class="progress" style="height: 25px;">
+            <div class="progress-bar bg-primary" role="progressbar" 
+                style="width: {{ offen_prozent }}%" 
+                aria-valuenow="{{ offen_prozent }}" 
+                aria-valuemin="0" 
+                aria-valuemax="100"
+                data-bs-toggle="tooltip"
+                title="Offen: {{ offen_prozent }}%">
+                {{ offen_prozent }}%
             </div>
-            <div class="card-body">
-                {{ aufgaben_offen|generate_html_for_aufgaben }}
+            <div class="progress-bar bg-warning" role="progressbar" 
+                style="width: {{ pending_prozent }}%" 
+                aria-valuenow="{{ pending_prozent }}" 
+                aria-valuemin="0" 
+                aria-valuemax="100"
+                data-bs-toggle="tooltip"
+                title="Pending: {{ pending_prozent }}%">
+                {{ pending_prozent }}%
+            </div>
+            <div class="progress-bar bg-success" role="progressbar" 
+                style="width: {{ erledigt_prozent }}%" 
+                aria-valuenow="{{ erledigt_prozent }}" 
+                aria-valuemin="0" 
+                aria-valuemax="100"
+                data-bs-toggle="tooltip"
+                title="Erledigt: {{ erledigt_prozent }}%">
+                {{ erledigt_prozent }}%
             </div>
         </div>
-    </div>
-
-    <div class="container-fluid mb-4">
-        <div class="card rounded-4">
-            <div class="card-header">
-                <h3 class="card-title mb-0">Pending Aufgaben: {{ len_pending }}</h3>
-            </div>
-            <div class="card-body">
-                {{ aufgaben_pending|generate_html_for_aufgaben }}
-            </div>
+        <div class="d-flex justify-content-between mt-2 small text-muted">
+            <span><i class="bi bi-square-fill text-primary me-1"></i>Offen ({{ len_offen }})</span>
+            <span><i class="bi bi-square-fill text-warning me-1"></i>Pending ({{ len_pending }})</span>
+            <span><i class="bi bi-square-fill text-success me-1"></i>Erledigt ({{ len_erledigt }})</span>
         </div>
     </div>
+</div>
 
-    <div class="container-fluid mb-4">
-        <div class="card rounded-4">
-            <div class="card-header">
-                <h3 class="card-title mb-0">Erledigte Aufgaben: {{ len_erledigt }}</h3>
-            </div>
-            <div class="card-body">
-                {{ aufgaben_erledigt|generate_html_for_aufgaben }}
-            </div>
-        </div>
+<div class="card rounded-4 mb-2">
+    <div class="card-header sticky-top bg-light rounded-4">
+        <h3 class="card-title mb-0">Offene Aufgaben: {{ len_offen }}</h3>
     </div>
+    <div class="card-body">
+        {{ aufgaben_offen|generate_html_for_aufgaben }}
+    </div>
+    <div class="alert mb-0 pt-0 small text-muted">
+        <i class="bi bi-info-circle me-1"></i>
+        Offene Aufgaben sind Aufgaben, die noch nicht abgeschlossen sind.
+    </div>
+</div>
+
+<div class="card rounded-4 mb-2">
+    <div class="card-header sticky-top bg-light rounded-4">
+        <h3 class="card-title mb-0">Pending Aufgaben: {{ len_pending }}</h3>
+    </div>
+    <div class="card-body">
+        {{ aufgaben_pending|generate_html_for_aufgaben }}
+    </div>
+    <div class="alert mb-0 pt-0 small text-muted">
+        <i class="bi bi-info-circle me-1"></i>
+        Pending Aufgaben sind abgeschlossene Aufgaben, die zur Überprüfung eingereicht wurden und auf Bestätigung warten.
+    </div>
+</div>
+
+<div class="card rounded-4 mb-2">
+    <div class="card-header sticky-top bg-light rounded-4">
+        <h3 class="card-title mb-0">Erledigte Aufgaben: {{ len_erledigt }}</h3>
+    </div>
+    <div class="card-body">
+        {{ aufgaben_erledigt|generate_html_for_aufgaben }}
+    </div>
+    <div class="alert mb-0 pt-0 small text-muted">
+        <i class="bi bi-info-circle me-1"></i>
+        Erledigte Aufgaben sind Aufgaben, die abgeschlossen wurden.
+    </div>
+</div>
 
 {% endblock %}
