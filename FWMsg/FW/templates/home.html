@@ -10,8 +10,10 @@
     FW Msg
 {% endblock %}
 
-
 {% block content %}
+
+    {% include 'confetti.html' %}
+
     <div class="card rounded-4 mb-4">
         <div class="card-header">
             <a href="{% url 'aufgaben' %}" class="text-decoration-none text-body">
@@ -80,6 +82,13 @@
                 <div class="alert alert-success mb-0">
                     <i class="bi bi-check-circle me-2"></i>Keine offenen Aufgaben!
                 </div>
+                <script>
+                    // Check if this is a new page load or a result of completing a task
+                    if (!sessionStorage.getItem('confettiShown')) {
+                        triggerConfetti();
+                        sessionStorage.setItem('confettiShown', 'true');
+                    }
+                </script>
             {% endif %}
         </div>
     </div>
@@ -97,7 +106,7 @@
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
                                 <a href="{% url 'profil' bild_data.user.id %}" class="text-decoration-none">
-                                    <img src="{{ bild_data.user.profile_picture.url }}" alt="Profilbild" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                    <img src="{% if bild_data.user.customuser.profil_picture %}{{ bild_data.user.customuser.profil_picture.url }}{% else %}{% static 'img/default_img.png' %}{% endif %}" alt="Profilbild" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
                                 </a>
                                 <div>
                                     <h4 class="mb-0">{{ bild_data.titel }}</h4>
