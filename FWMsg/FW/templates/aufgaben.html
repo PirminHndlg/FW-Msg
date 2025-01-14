@@ -6,11 +6,55 @@
     <link rel="stylesheet" href="{% static 'css/aufgaben.css' %}">
 {% endblock %}
 
+{% block scripts %}
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <script>
+        window.calendarEvents = [
+            {% for aufgabe in aufgaben_offen %}
+                {
+                    title: '{{ aufgabe.aufgabe.name }}',
+                    start: '{{ aufgabe.faellig|date:"Y-m-d" }}',
+                    url: '{% url "aufgaben_detail" aufgabe.aufgabe.id %}',
+                    backgroundColor: '#0d6efd',  // primary color for open tasks
+                    borderColor: '#0d6efd'
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+            {% if aufgaben_pending %},{% endif %}
+            {% for aufgabe in aufgaben_pending %}
+                {
+                    title: '{{ aufgabe.aufgabe.name }}',
+                    start: '{{ aufgabe.faellig|date:"Y-m-d" }}',
+                    url: '{% url "aufgaben_detail" aufgabe.aufgabe.id %}',
+                    backgroundColor: '#ffc107',  // warning color for pending tasks
+                    borderColor: '#ffc107',
+                    textColor: '#000'
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+            {% if aufgaben_erledigt %},{% endif %}
+            {% for aufgabe in aufgaben_erledigt %}
+                {
+                    title: '{{ aufgabe.aufgabe.name }}',
+                    start: '{{ aufgabe.faellig|date:"Y-m-d" }}',
+                    url: '{% url "aufgaben_detail" aufgabe.aufgabe.id %}',
+                    backgroundColor: '#198754',  // success color for completed tasks
+                    borderColor: '#198754'
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+    </script>
+    <script src="{% static 'js/aufgaben.js' %}"></script>
+{% endblock %}
+
 {% block headline %}
     Aufgaben
 {% endblock %}
 
 {% block content %}
+
+    {% if show_confetti %}
+        {% include 'confetti.html' %}
+    {% endif %}
+
 <div class="card rounded-4 mb-2">
     <div class="card-body">
         <div class="progress" style="height: 25px;">
@@ -47,6 +91,16 @@
             <span><i class="bi bi-square-fill text-warning me-1"></i>Pending ({{ len_pending }})</span>
             <span><i class="bi bi-square-fill text-success me-1"></i>Erledigt ({{ len_erledigt }})</span>
         </div>
+    </div>
+</div>
+
+{# Calendar Card #}
+<div class="card rounded-4 mb-2">
+    <div class="card-header sticky-top bg-light rounded-4">
+        <h3 class="card-title mb-0">Kalender</h3>
+    </div>
+    <div class="card-body">
+        <div id="calendar"></div>
     </div>
 </div>
 
@@ -88,5 +142,4 @@
         Erledigte Aufgaben sind Aufgaben, die abgeschlossen wurden.
     </div>
 </div>
-
 {% endblock %}
