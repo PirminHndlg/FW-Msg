@@ -1,0 +1,9 @@
+:root {
+    --background-color: #e1e1e1;
+    --secondary-background-color: white;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+}

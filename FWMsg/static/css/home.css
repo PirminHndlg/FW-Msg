@@ -1,0 +1,25 @@
+.container {
+    background-color: var(--secondary-background-color);
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.aufgaben_loader {
+
+}
+
+.aufgabe {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.neue_bilder {
+
+}
+
+.neue_posts {
+
+}

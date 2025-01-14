@@ -4,11 +4,13 @@ from django.db.models import ForeignKey
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
-from django.db.models import Max, F
+from django.db.models import Max, F, Min
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings
 from functools import wraps
+from dateutil.relativedelta import relativedelta
+from django.utils import timezone
 
 from FW import models as FWmodels
 from . import models as ORGmodels
@@ -235,10 +237,60 @@ def delete_object(request, model_name, id):
 @org_required
 @login_required
 def list_ampel(request):
-    ampel = [FWmodels.Ampel.objects.filter(freiwilliger=f).order_by('-date').first() for f in
-             FWmodels.Freiwilliger.objects.filter(org=request.user.org)]
-
-    return render(request, 'list_ampel.html', context={'ampel': ampel})
+    # Get all freiwillige for this org
+    freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
+    
+    # Get the date range from Freiwillige start and end dates
+    start_date = freiwillige.aggregate(Min('start_real'))['start_real__min'] or freiwillige.aggregate(Min('start_geplant'))['start_geplant__min']
+    end_date = freiwillige.aggregate(Max('ende_real'))['ende_real__max'] or freiwillige.aggregate(Max('ende_geplant'))['ende_geplant__max']
+    
+    # If no dates found, use last 12 months as fallback
+    if not start_date or not end_date:
+        end_date = timezone.now()
+        start_date = end_date - relativedelta(months=12)
+    
+    # Get all ampel entries between start and end date
+    ampel_entries = FWmodels.Ampel.objects.filter(
+        freiwilliger__in=freiwillige,
+        date__gte=start_date,
+        date__lte=end_date
+    ).order_by('freiwilliger', '-date')
+    
+    # Create month labels
+    months = []
+    current = start_date
+    while current <= end_date:
+        months.append(current.strftime("%b %y"))
+        current += relativedelta(months=1)
+    
+    # Create a dictionary to store the status for each freiwilliger/month combination
+    ampel_matrix = {}
+    for fw in freiwillige:
+        ampel_matrix[fw] = {}
+        for month in months:
+            ampel_matrix[fw][month] = []
+            
+    # Fill the matrix with actual values
+    for entry in ampel_entries:
+        month_key = entry.date.strftime("%b %y")
+        if month_key in months:  # Only include if within our date range
+            ampel_matrix[entry.freiwilliger][month_key].append({
+                'status': entry.status,
+                'comment': entry.comment,
+                'date': entry.date.strftime("%d.%m.%y %H:%M")
+            })
+    
+    # Add current_month to the context
+    current_month = timezone.now().strftime("%b %y")
+    
+    context = {
+        'months': months,
+        'ampel_matrix': ampel_matrix,
+        'latest_ampel': [FWmodels.Ampel.objects.filter(freiwilliger=f).order_by('-date').first() 
+                        for f in freiwillige],
+        'current_month': current_month
+    }
+    return render(request, 'list_ampel.html', context=context)
 
 @org_required
 @login_required

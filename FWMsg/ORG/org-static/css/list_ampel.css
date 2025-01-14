@@ -6,3 +6,78 @@
     border-radius: 10px;
     border: 1px solid black;
 }
+
+/* Table styles */
+.ampel-table {
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.ampel-table th, 
+.ampel-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+/* Dot styles */
+.ampel-dot-container {
+    display: flex;
+    gap: 2px;
+    justify-content: center;
+    flex-wrap: wrap;
+    min-height: 20px;
+    padding: 2px;
+}
+
+.ampel-dot {
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+    cursor: help;
+}
+
+.ampel-G { background-color: var(--ampel_green); }
+.ampel-Y { background-color: var(--ampel_yellow); }
+.ampel-R { background-color: var(--ampel_red); }
+
+/* Tooltip styles */
+.ampel-tooltip {
+    visibility: hidden;
+    position: absolute;
+    z-index: 1;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    width: 200px;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    white-space: normal;
+    text-align: left;
+    pointer-events: none;
+}
+
+.ampel-dot:hover .ampel-tooltip {
+    visibility: visible;
+}
+
+/* Current month highlight */
+.ampel-table th.current-month,
+.ampel-table td.current-month {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-left: 2px solid #666;
+    border-right: 2px solid #666;
+}
+
+.ampel-table th.current-month {
+    border-top: 2px solid #666;
+}
+
+.ampel-table tr:last-child td.current-month {
+    border-bottom: 2px solid #666;
+}
