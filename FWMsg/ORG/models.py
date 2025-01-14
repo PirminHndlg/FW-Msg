@@ -66,22 +66,26 @@ def upload_to_folder(instance, filename):
 class Dokument(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     ordner = models.ForeignKey(Ordner, on_delete=models.CASCADE)
-    dokument = models.FileField(upload_to=upload_to_folder)
+    dokument = models.FileField(upload_to=upload_to_folder, null=True, blank=True)
+    link = models.URLField(null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     titel = models.CharField(max_length=100, null=True, blank=True)
     beschreibung = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return self.dokument.name
+        return self.titel or self.dokument.name or self.link
 
     def get_document_type(self):
-        import mimetypes
-        file_path = self.dokument.path
-        # Guess the MIME type based on file extension
-        mime_type, _ = mimetypes.guess_type(file_path)
+        if self.dokument:
+            import mimetypes
+            file_path = self.dokument.path
+            # Guess the MIME type based on file extension
+            mime_type, _ = mimetypes.guess_type(file_path)
 
-        return mime_type or 'unknown'
+            return mime_type or 'unknown'
+        else:
+            return 'unknown'
 
 
 @receiver(post_delete, sender=Dokument)
