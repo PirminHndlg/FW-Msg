@@ -1,0 +1,163 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-11 21:42+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: FW/templates/base.html:65 FW/templates/base.html:144
+msgid "Home"
+msgstr "Home"
+
+#: FW/templates/base.html:70 FW/templates/base.html:150
+msgid "Aufgaben"
+msgstr "Tasks"
+
+#: FW/templates/base.html:75 FW/templates/base.html:170
+msgid "Dokumente"
+msgstr "Documents"
+
+#: FW/templates/base.html:80 FW/templates/base.html:176
+#: FW/templates/profil.html:12
+msgid "Profil"
+msgstr "Profile"
+
+#: FW/templates/base.html:88 FW/templates/base.html:157
+msgid "Add"
+msgstr "Add"
+
+#: FW/templates/base.html:91 FW/templates/base.html:161
+msgid "Bilder hochladen"
+msgstr "Upload images"
+
+#: FW/templates/base.html:92 FW/templates/base.html:162
+msgid "Dokumente hochladen"
+msgstr "Upload documents"
+
+#: FW/templates/base.html:93 FW/templates/base.html:163
+msgid "Aufgabe erledigen"
+msgstr "Complete task"
+
+#: FW/templates/base.html:94 FW/templates/base.html:164
+msgid "Ampelmeldung"
+msgstr "Status report"
+
+#: FW/templates/bilder.html:10 FW/templates/profil.html:124
+msgid "Bilder"
+msgstr "Images"
+
+#: FW/templates/bilder.html:21 FW/templates/profil.html:38
+msgid "Profilbild"
+msgstr "Profile picture"
+
+#: FW/templates/bilder.html:42 FW/templates/profil.html:142
+msgid "Bild"
+msgstr "Image"
+
+#: FW/templates/bilder.html:51
+msgid "Vorheriges"
+msgstr ""
+
+#: FW/templates/bilder.html:55
+msgid "Nächstes"
+msgstr ""
+
+#: FW/templates/bilder.html:64
+#, python-format
+msgid "Slide %(slide_number)s"
+msgstr ""
+
+#: FW/templates/bilder.html:83
+#, fuzzy
+#| msgid "Profilbild"
+msgid "Vollbild"
+msgstr "Profile picture"
+
+#: FW/templates/profil.html:25
+msgid "Ampel"
+msgstr "Status"
+
+#: FW/templates/profil.html:57 FW/templates/profil.html:64
+msgid "Geburtsdatum"
+msgstr "Date of birth"
+
+#: FW/templates/profil.html:58
+msgid "Änderungen melden"
+msgstr "Report changes"
+
+#: FW/templates/profil.html:60
+msgid "Telefon"
+msgstr "Phone"
+
+#: FW/templates/profil.html:61
+msgid "Telefon Einsatzland"
+msgstr "Phone deployment country"
+
+#: FW/templates/profil.html:62
+msgid "Email"
+msgstr "Email"
+
+#: FW/templates/profil.html:76 FW/templates/profil.html:84
+msgid "Entfernen"
+msgstr "Remove"
+
+#: FW/templates/profil.html:83 FW/templates/profil.html:100
+msgid "Speichern"
+msgstr "Save"
+
+#: FW/templates/profil.html:106 FW/templates/profil.html:128
+msgid "Hinzufügen"
+msgstr "Add"
+
+#: FW/templates/profil.html:109
+msgid "Bearbeiten"
+msgstr "Edit"
+
+#: FW/templates/profil.html:112 FW/templates/profil.html:282
+msgid "Abbrechen"
+msgstr "Cancel"
+
+#: FW/templates/profil.html:162
+msgid "Dieses Bild löschen"
+msgstr "Delete this image"
+
+#: FW/templates/profil.html:168 FW/templates/profil.html:263
+msgid "Alle Bilder löschen"
+msgstr "Delete all images"
+
+#: FW/templates/profil.html:189
+msgid "mehr"
+msgstr "more"
+
+#: FW/templates/profil.html:252
+msgid "Bild löschen"
+msgstr "Delete image"
+
+#: FW/templates/profil.html:253
+msgid "Möchten Sie dieses Bild wirklich löschen?"
+msgstr "Do you really want to delete this image?"
+
+#: FW/templates/profil.html:257
+msgid "Löschen"
+msgstr "Delete"
+
+#: FW/templates/profil.html:264
+msgid "Möchten Sie wirklich alle Bilder dieser Galerie löschen?"
+msgstr "Do you really want to delete all images in this gallery?"
+
+#: FW/templates/profil.html:265
+msgid "Alle löschen"
+msgstr "Delete all"
