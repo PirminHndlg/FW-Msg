@@ -11,60 +11,53 @@
 {% block content %}
     <h2>Ampel Übersicht</h2>
     
-    <!-- Timeline Table -->
-    <div class="table-responsive">
-        <table class="ampel-table">
-            <thead>
-                <tr>
-                    <th>Freiwilliger</th>
-                    {% for month in months %}
-                        <th {% if month == current_month %}class="current-month"{% endif %}>
-                            {{ month }}
-                        </th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for freiwilliger, months_data in ampel_matrix.items %}
-                    <tr>
-                        <td>{{ freiwilliger }}</td>
-                        {% for month in months %}
-                            <td {% if month == current_month %}class="current-month"{% endif %}>
-                                <div class="ampel-dot-container">
-                                    {% for entry in months_data|get_item:month %}
-                                        <span class="ampel-dot ampel-{{ entry.status }}">
-                                            <div class="ampel-tooltip">
-                                                <strong>{{ entry.date }}</strong><br>
-                                                {{ entry.comment }}
+    {% for jahrgang, fw_matrix in ampel_matrix.items %}
+        <div class="jahrgang-section">
+            <button class="btn btn-secondary w-100 mb-2" type="button" 
+                    data-bs-toggle="collapse" 
+                    data-bs-target="#jahrgang-{{ jahrgang.id }}" 
+                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" 
+                    aria-controls="jahrgang-{{ jahrgang.id }}">
+                {{ jahrgang }}
+            </button>
+            
+            <div class="collapse {% if forloop.first %}show{% endif %}" id="jahrgang-{{ jahrgang.id }}">
+                <div class="table-responsive mb-4">
+                    <table class="ampel-table">
+                        <thead>
+                            <tr>
+                                <th>Freiwilliger</th>
+                                {% for month in months %}
+                                    <th {% if month == current_month %}class="current-month"{% endif %}>
+                                        {{ month }}
+                                    </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for freiwilliger, months_data in fw_matrix.items %}
+                                <tr>
+                                    <td>{{ freiwilliger }}</td>
+                                    {% for month in months %}
+                                        <td {% if month == current_month %}class="current-month"{% endif %}>
+                                            <div class="ampel-dot-container">
+                                                {% for entry in months_data|get_item:month %}
+                                                    <span class="ampel-dot ampel-{{ entry.status }}">
+                                                        <div class="ampel-tooltip">
+                                                            <strong>{{ entry.date }}</strong><br>
+                                                            {{ entry.comment }}
+                                                        </div>
+                                                    </span>
+                                                {% endfor %}
                                             </div>
-                                        </span>
+                                        </td>
                                     {% endfor %}
-                                </div>
-                            </td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Original cards view -->
-    <h2>Aktuelle Ampelmeldungen</h2>
-    {% for ampel_meldung in latest_ampel %}
-        {% if ampel_meldung %}
-            <div class="ampel_div"
-                 style="background-color:
-                         {% if ampel_meldung.status == 'G' %}
-                             var(--ampel_green)
-                         {% elif ampel_meldung.status == 'Y' %}
-                             var(--ampel_yellow)
-                         {% else %}
-                             var(--ampel_red)
-                         {% endif %};">
-                <h3>{{ ampel_meldung.freiwilliger }}</h3>
-                <p>{{ ampel_meldung.comment }}</p>
-                <p>{{ ampel_meldung.date|date:"d.m.y H:i" }}</p>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        {% endif %}
+        </div>
     {% endfor %}
 {% endblock %}

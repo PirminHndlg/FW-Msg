@@ -81,3 +81,35 @@
 .ampel-table tr:last-child td.current-month {
     border-bottom: 2px solid #666;
 }
+
+/* Jahrgang section styles */
+.jahrgang-section {
+    margin-bottom: 1rem;
+}
+
+.jahrgang-section .btn {
+    text-align: left;
+    position: relative;
+}
+
+.jahrgang-section .btn::after {
+    content: '';
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid currentColor;
+    transition: transform 0.2s ease-in-out;
+}
+
+.jahrgang-section .btn[aria-expanded="true"]::after {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.jahrgang-section .collapse {
+    transition: all 0.2s ease-in-out;
+}

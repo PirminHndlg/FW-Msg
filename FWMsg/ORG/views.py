@@ -237,12 +237,30 @@ def delete_object(request, model_name, id):
 @org_required
 @login_required
 def list_ampel(request):
-    # Get all freiwillige for this org
-    freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
+    # Get all freiwillige for this org, ordered by jahrgang in reverse order
+    freiwillige_by_jahrgang = {}
+    for fw in FWmodels.Freiwilliger.objects.filter(org=request.user.org).order_by('-jahrgang', 'last_name', 'first_name'):
+        if fw.jahrgang not in freiwillige_by_jahrgang:
+            freiwillige_by_jahrgang[fw.jahrgang] = []
+        freiwillige_by_jahrgang[fw.jahrgang].append(fw)
+    
+    # Sort jahrgänge in reverse order (most recent first)
+    freiwillige_by_jahrgang = dict(sorted(freiwillige_by_jahrgang.items(), key=lambda x: x[0].start, reverse=True))
     
     # Get the date range from Freiwillige start and end dates
-    start_date = freiwillige.aggregate(Min('start_real'))['start_real__min'] or freiwillige.aggregate(Min('start_geplant'))['start_geplant__min']
-    end_date = freiwillige.aggregate(Max('ende_real'))['ende_real__max'] or freiwillige.aggregate(Max('ende_geplant'))['ende_geplant__max']
+    # Get earliest start date from either real or planned start dates
+    start_dates = FWmodels.Freiwilliger.objects.filter(org=request.user.org).aggregate(
+        real_start=Min('start_real'),
+        planned_start=Min('start_geplant')
+    )
+    start_date = start_dates['real_start'] or start_dates['planned_start']
+
+    # Get latest end date from either real or planned end dates 
+    end_dates = FWmodels.Freiwilliger.objects.filter(org=request.user.org).aggregate(
+        real_end=Max('ende_real'),
+        planned_end=Max('ende_geplant')
+    )
+    end_date = end_dates['real_end'] or end_dates['planned_end']
     
     # If no dates found, use last 12 months as fallback
     if not start_date or not end_date:
@@ -251,7 +269,7 @@ def list_ampel(request):
     
     # Get all ampel entries between start and end date
     ampel_entries = FWmodels.Ampel.objects.filter(
-        freiwilliger__in=freiwillige,
+        freiwilliger__in=[fw for fws in freiwillige_by_jahrgang.values() for fw in fws],
         date__gte=start_date,
         date__lte=end_date
     ).order_by('freiwilliger', '-date')
@@ -265,16 +283,19 @@ def list_ampel(request):
     
     # Create a dictionary to store the status for each freiwilliger/month combination
     ampel_matrix = {}
-    for fw in freiwillige:
-        ampel_matrix[fw] = {}
-        for month in months:
-            ampel_matrix[fw][month] = []
+    for jahrgang, freiwillige in freiwillige_by_jahrgang.items():
+        ampel_matrix[jahrgang] = {}
+        for fw in freiwillige:
+            ampel_matrix[jahrgang][fw] = {}
+            for month in months:
+                ampel_matrix[jahrgang][fw][month] = []
             
     # Fill the matrix with actual values
     for entry in ampel_entries:
         month_key = entry.date.strftime("%b %y")
         if month_key in months:  # Only include if within our date range
-            ampel_matrix[entry.freiwilliger][month_key].append({
+            jahrgang = entry.freiwilliger.jahrgang
+            ampel_matrix[jahrgang][entry.freiwilliger][month_key].append({
                 'status': entry.status,
                 'comment': entry.comment,
                 'date': entry.date.strftime("%d.%m.%y %H:%M")
@@ -286,8 +307,6 @@ def list_ampel(request):
     context = {
         'months': months,
         'ampel_matrix': ampel_matrix,
-        'latest_ampel': [FWmodels.Ampel.objects.filter(freiwilliger=f).order_by('-date').first() 
-                        for f in freiwillige],
         'current_month': current_month
     }
     return render(request, 'list_ampel.html', context=context)
