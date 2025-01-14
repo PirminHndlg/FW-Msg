@@ -16,3 +16,16 @@ def get_document_name(value):
     if hasattr(value, 'dokument'):
         return value.dokument.name.split('/')[-1]
     return value
+
+@register.filter
+def get_short_link(value):
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(value)
+        return parsed.netloc
+    except:
+        return value
+    
+@register.filter
+def get_favicon_url(value):
+    return f"https://{get_short_link(value)}/favicon.ico"

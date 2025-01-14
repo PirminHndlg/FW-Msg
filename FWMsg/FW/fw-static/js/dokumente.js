@@ -75,12 +75,17 @@ function addDokument(ordner_id) {
                             
                             <div class="mb-3">
                                 <label for="beschreibung" class="form-label">Beschreibung</label>
-                                <input type="text" class="form-control rounded-4" id="beschreibung" name="beschreibung">
+                                <textarea class="form-control rounded-4" id="beschreibung" name="beschreibung" rows="3"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="link" class="form-label">Link (optional)</label>
+                                <input type="text" class="form-control rounded-4" id="link" name="link">
                             </div>
                             
                             <div class="mb-3">
                                 <label for="dokument" class="form-label">Dokument</label>
-                                <input type="file" class="form-control rounded-4" id="dokument" name="dokument" required>
+                                <input type="file" class="form-control rounded-4" id="dokument" name="dokument">
                             </div>
                             
                             <div class="d-flex justify-content-end gap-2">

@@ -72,6 +72,14 @@
                                                         class="card-img-top img-fluid rounded-top-4"
                                                         alt="DOCX Vorschau">
                                             </a>
+                                        {% elif dokument.link %}
+                                            <a href="{{ dokument.link }}" target="_blank" class="text-decoration-none">
+                                                <div class="card-img-top d-flex flex-column align-items-center justify-content-center bg-light rounded-top-4" 
+                                                     style="height: 120px; background-image: url('{{ dokument.link|get_favicon_url }}'); background-size: contain; background-position: center; background-repeat: no-repeat;">
+                                                    <i class="bi bi-link fa-3x text-secondary"></i>
+                                                    <p class="text-muted small">{{ dokument.link|get_short_link }}</p>
+                                                </div>
+                                            </a>
                                         {% else %}
                                             <div class="card-img-top d-flex align-items-center justify-content-center bg-light rounded-top-4" style="height: 120px;">
                                                 <i class="bi bi-file-earmark fa-3x text-secondary"></i>
@@ -84,7 +92,20 @@
                                             </p>
                                             {% with dokument_name=dokument|get_document_name %}
                                                 <h6 class="card-title fw-bold mb-1">{{ dokument.titel|default:dokument_name }}</h6>
-                                                <p class="card-text text-muted small">{{ dokument.beschreibung|default:'' }}</p>
+
+                                                <span class="description-preview">{{ dokument.beschreibung|truncatewords:10 }}</span>
+                                                <span class="description-full" style="display:none">{{ dokument.beschreibung }}</span>
+                                                {% if dokument.beschreibung|wordcount > 10 %}
+                                                    <a href="#" class="show-more" onclick="event.preventDefault(); toggleDescription(this);">mehr</a>
+                                                {% endif %}
+
+                                                {% if dokument.link %}
+                                                    <p class="card-text text-muted small">
+                                                        <a href="{{ dokument.link }}" target="_blank">{{ dokument.link }}</a>
+                                                    </p>
+                                                {% endif %}
+
+                                                {% if dokument.dokument %}
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <a href="{{ dokument.dokument.url }}?download=true" 
                                                     class="btn btn-outline-primary btn-sm rounded-4"
@@ -96,6 +117,7 @@
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </div>
+                                                {% endif %}
                                             {% endwith %}
                                         </div>
                                     </div>
