@@ -22,6 +22,8 @@ urlpatterns = [
     path('dokument/<str:org_name>/<str:ordner_name>/<str:dokument_name>', views.serve_dokument, name='serve_dokument'),
     path('dokumente/remove_ordner/', views.remove_ordner, name='remove_ordner'),
     path('dokumente/add_ordner/', views.add_ordner, name='add_ordner'),
+    path('profil_picture/', views.update_profile_picture, name='update_profile_picture'),
+    path('profil_picture/<str:image_name>', views.serve_profile_picture, name='serve_profile_picture'),
 
     path('i18n/', include('django.conf.urls.i18n')),  # Language switcher URL
 ]
