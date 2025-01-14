@@ -39,7 +39,7 @@ class CustomUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
     role = models.CharField(max_length=1, choices=ROLE_CHOICES, default='F', verbose_name='Rolle')
-    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True, verbose_name='Profilbild')
+    profil_picture = models.ImageField(upload_to='profil_picture/', blank=True, null=True, verbose_name='Profilbild')
 
     def __str__(self):
         return self.user.username
