@@ -14,6 +14,7 @@ from PIL import Image
 import io
 from django.conf import settings
 from functools import wraps
+from django.urls import reverse
 
 from .forms import BilderForm, BilderGalleryForm, ProfilUserForm
 from .models import (
@@ -184,6 +185,7 @@ def aufgaben(request):
         'pending_prozent': round(len_pending / gesamt * 100) if gesamt > 0 else 0,
         'len_offen': len_offen,
         'offen_prozent': round(len_offen / gesamt * 100) if gesamt > 0 else 0,
+        'show_confetti': request.GET.get('show_confetti') == 'true'
     }
     return render(request, 'aufgaben.html', context=context)
 
@@ -206,7 +208,10 @@ def aufgabe(request, aufgabe_id):
             freiwilliger_aufgaben.erledigt_am = datetime.now()
 
         freiwilliger_aufgaben.save()
-        return redirect('aufgaben')
+        base_url = reverse('aufgaben')
+        if action == 'pending':
+            return redirect(f'{base_url}?show_confetti=true')
+        return redirect(base_url)
 
     aufgabe_exists = Aufgabe.objects.filter(id=aufgabe_id).exists()
     if not aufgabe_exists:
@@ -385,17 +390,18 @@ def add_dokument(request):
         ordner = Ordner.objects.get(id=request.POST.get('ordner'))
         titel = request.POST.get('titel')
         beschreibung = request.POST.get('beschreibung')
+        link = request.POST.get('link')
         dokument = request.FILES.get('dokument')
 
-        if dokument:
-            Dokument.objects.create(
-                org=request.user.org,
-                ordner=ordner,
-                titel=titel,
-                beschreibung=beschreibung,
-                dokument=dokument,
-                date_created=datetime.now()
-            )
+        Dokument.objects.create(
+            org=request.user.org,
+            ordner=ordner,
+            titel=titel,
+            beschreibung=beschreibung,
+            dokument=dokument,
+            link=link,
+            date_created=datetime.now()
+        )
 
     return redirect('dokumente')
 
@@ -539,3 +545,26 @@ def remove_ordner(request):
         except Ordner.DoesNotExist:
             pass
     return redirect('dokumente')
+
+
+@login_required
+def update_profile_picture(request):
+    if request.method == 'POST' and request.FILES.get('profile_picture'):
+        try:
+            custom_user = request.user.customuser
+            # Delete old profile picture if it exists
+            if custom_user.profil_picture:
+                custom_user.profil_picture.delete()
+            
+            custom_user.profil_picture = request.FILES['profile_picture']
+            custom_user.save()
+            messages.success(request, 'Profilbild wurde erfolgreich aktualisiert.')
+        except Exception as e:
+            messages.error(request, f'Fehler beim Aktualisieren des Profilbildes: {str(e)}')
+    
+    return redirect('profil')
+
+@login_required
+def serve_profile_picture(request, image_name):
+    image_path = os.path.join(settings.PROFILE_PICTURES_PATH, image_name)
+    return get_bild(image_path, image_name)
