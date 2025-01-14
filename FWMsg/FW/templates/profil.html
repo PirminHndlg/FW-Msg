@@ -34,10 +34,19 @@
             <div class="col-sm-4 mb-2">
                 <div class="text-center">
                     <div class="d-flex flex-column align-items-center">
-                        <img src="{% static 'img/default_img.png' %}" 
-                                alt="{% trans 'Profilbild' %}" 
-                                class="img-fluid rounded-circle mb-3" 
-                                style="max-width: 250px; max-height: 250px;">
+                        <div class="position-relative">
+                            <img src="{% if freiwilliger.user.customuser.profil_picture %}{{ freiwilliger.user.customuser.profil_picture.url }}{% else %}{% static 'img/default_img.png' %}{% endif %}" 
+                                    alt="{% trans 'Profilbild' %}" 
+                                    class="img-fluid rounded-circle mb-3" 
+                                    style="max-width: 250px; max-height: 250px;">
+                            {% if this_user %}
+                            <div class="position-absolute bottom-0 end-0 mb-3 me-2">
+                                <button type="button" class="btn btn-light btn-sm rounded-circle" data-bs-toggle="modal" data-bs-target="#profilePictureModal">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
                         {% if freiwilliger.einsatzland %}
                             <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }} mb-2" style="width: 100px; height: 50px;"></span>
                             <span class="small text-muted">{{ freiwilliger.einsatzland.name }}</span>
@@ -236,17 +245,6 @@
             }
         }
 
-        function toggleDescription(link) {
-            const parent = link.parentElement;
-            const preview = parent.querySelector('.description-preview');
-            const full = parent.querySelector('.description-full');
-            const isExpanded = preview.style.display === 'none';
-            
-            preview.style.display = isExpanded ? 'inline' : 'none';
-            full.style.display = isExpanded ? 'none' : 'inline';
-            link.textContent = isExpanded ? 'mehr' : 'weniger';
-        }
-
         function showDeleteConfirmation(bildId, imageUrl, titel) {
             createModal('deleteModal', 
                 '{% trans "Bild löschen" %}', 
@@ -290,4 +288,31 @@
             modal.addEventListener('hidden.bs.modal', () => modal.remove());
         }
     </script>
+
+    {% if this_user %}
+    <!-- Profile Picture Upload Modal -->
+    <div class="modal fade" id="profilePictureModal" tabindex="-1" aria-labelledby="profilePictureModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="profilePictureModalLabel">{% trans "Profilbild ändern" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" enctype="multipart/form-data" action="{% url 'update_profile_picture' %}">
+                    <div class="modal-body">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="profile_picture" class="form-label">{% trans "Neues Profilbild auswählen" %}</label>
+                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
+                        <button type="submit" class="btn btn-primary">{% trans "Speichern" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 {% endblock %}
