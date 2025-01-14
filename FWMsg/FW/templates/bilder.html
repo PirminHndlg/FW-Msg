@@ -17,7 +17,7 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <a href="{% url 'profil' bild.user.id %}" class="text-decoration-none">
-                            <img src="{{ bild.user.profile_picture.url }}" 
+                            <img src="{% if bild.user.customuser.profil_picture %}{{ bild.user.customuser.profil_picture.url }}{% else %}{% static 'img/default_img.png' %}{% endif %}" 
                                  alt="{% trans 'Profilbild' %}" 
                                  class="rounded-circle me-3" 
                                  style="width: 50px; height: 50px; object-fit: cover;">
