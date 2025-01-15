@@ -21,6 +21,9 @@
     {% block head %}
     {% endblock %}
 
+    {% block scripts %}
+    {% endblock %}
+
     <style>
         :root {
             --color: {{ user|get_color }};
@@ -35,6 +38,8 @@
     </style>
 
 </head>
+
+<body>
 
 <nav class="navbar navbar-dark bg-primary d-lg-none">
     <div class="container-fluid">

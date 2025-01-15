@@ -2,6 +2,7 @@ from datetime import datetime
 import mimetypes
 import os
 import subprocess
+import json
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -175,6 +176,40 @@ def aufgaben(request):
 
     gesamt = len_erledigt + len_offen + len_pending
 
+    # Create calendar events
+    calendar_events = []
+    
+    # Add open tasks (blue)
+    for aufgabe in offene_aufgaben:
+        calendar_events.append({
+            'title': aufgabe.aufgabe.name,
+            'start': aufgabe.faellig.strftime('%Y-%m-%d'),
+            'url': reverse('aufgaben_detail', args=[aufgabe.aufgabe.id]),
+            'backgroundColor': '#0d6efd',
+            'borderColor': '#0d6efd'
+        })
+    
+    # Add pending tasks (yellow)
+    for aufgabe in pending_aufgaben:
+        calendar_events.append({
+            'title': aufgabe.aufgabe.name,
+            'start': aufgabe.faellig.strftime('%Y-%m-%d'),
+            'url': reverse('aufgaben_detail', args=[aufgabe.aufgabe.id]),
+            'backgroundColor': '#ffc107',
+            'borderColor': '#ffc107',
+            'textColor': '#000'
+        })
+    
+    # Add completed tasks (green)
+    for aufgabe in erledigte_aufgaben:
+        calendar_events.append({
+            'title': aufgabe.aufgabe.name,
+            'start': aufgabe.faellig.strftime('%Y-%m-%d'),
+            'url': reverse('aufgaben_detail', args=[aufgabe.aufgabe.id]),
+            'backgroundColor': '#198754',
+            'borderColor': '#198754'
+        })
+
     context = {
         'aufgaben_offen': offene_aufgaben,
         'aufgaben_erledigt': erledigte_aufgaben,
@@ -185,7 +220,8 @@ def aufgaben(request):
         'pending_prozent': round(len_pending / gesamt * 100) if gesamt > 0 else 0,
         'len_offen': len_offen,
         'offen_prozent': round(len_offen / gesamt * 100) if gesamt > 0 else 0,
-        'show_confetti': request.GET.get('show_confetti') == 'true'
+        'show_confetti': request.GET.get('show_confetti') == 'true',
+        'calendar_events': json.dumps(calendar_events)
     }
     return render(request, 'aufgaben.html', context=context)
 

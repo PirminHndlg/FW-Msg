@@ -9,38 +9,7 @@
 {% block scripts %}
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <script>
-        window.calendarEvents = [
-            {% for aufgabe in aufgaben_offen %}
-                {
-                    title: '{{ aufgabe.aufgabe.name }}',
-                    start: '{{ aufgabe.faellig|date:"Y-m-d" }}',
-                    url: '{% url "aufgaben_detail" aufgabe.aufgabe.id %}',
-                    backgroundColor: '#0d6efd',  // primary color for open tasks
-                    borderColor: '#0d6efd'
-                }{% if not forloop.last %},{% endif %}
-            {% endfor %}
-            {% if aufgaben_pending %},{% endif %}
-            {% for aufgabe in aufgaben_pending %}
-                {
-                    title: '{{ aufgabe.aufgabe.name }}',
-                    start: '{{ aufgabe.faellig|date:"Y-m-d" }}',
-                    url: '{% url "aufgaben_detail" aufgabe.aufgabe.id %}',
-                    backgroundColor: '#ffc107',  // warning color for pending tasks
-                    borderColor: '#ffc107',
-                    textColor: '#000'
-                }{% if not forloop.last %},{% endif %}
-            {% endfor %}
-            {% if aufgaben_erledigt %},{% endif %}
-            {% for aufgabe in aufgaben_erledigt %}
-                {
-                    title: '{{ aufgabe.aufgabe.name }}',
-                    start: '{{ aufgabe.faellig|date:"Y-m-d" }}',
-                    url: '{% url "aufgaben_detail" aufgabe.aufgabe.id %}',
-                    backgroundColor: '#198754',  // success color for completed tasks
-                    borderColor: '#198754'
-                }{% if not forloop.last %},{% endif %}
-            {% endfor %}
-        ];
+        window.calendarEvents = JSON.parse('{{ calendar_events|escapejs }}');
     </script>
     <script src="{% static 'js/aufgaben.js' %}"></script>
 {% endblock %}
