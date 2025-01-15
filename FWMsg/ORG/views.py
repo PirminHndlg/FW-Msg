@@ -1,4 +1,7 @@
 from datetime import datetime, timedelta
+import io
+import os
+import zipfile
 
 from django.db.models import ForeignKey
 from django.shortcuts import render, redirect
@@ -434,3 +437,32 @@ def aufgaben_assign(request, jahrgang=None):
         'profile': profile
     }
     return render(request, 'aufgaben_assign.html', context=context)
+
+
+@org_required
+@login_required
+def list_bilder(request):
+    bilder = FWmodels.Bilder.objects.filter(org=request.user.org)
+
+    gallery_images = {}
+
+    for bild in bilder:
+        gallery_images[bild] = FWmodels.BilderGallery.objects.filter(bilder=bild)
+
+    return render(request, 'list_bilder.html', context={'gallery_images': gallery_images})
+
+
+@org_required
+@login_required
+def download_bild_as_zip(request, id):
+    bild = FWmodels.Bilder.objects.get(pk=id)
+    if not bild.org == request.user.org:
+        return HttpResponse('Nicht erlaubt')
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w') as zipf:
+        for i, bild_gallery in enumerate(FWmodels.BilderGallery.objects.filter(bilder=bild)):
+            zipf.write(bild_gallery.image.path, f"{bild.user.username}-{bild.titel.replace(' ', '_')}-{bild.date_created.strftime('%Y-%m-%d')}_{i}{os.path.splitext(bild_gallery.image.path)[1]}")
+    zip_buffer.seek(0)
+    response = HttpResponse(zip_buffer, content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename="{bild.user.username}_{bild.titel}_{bild.date_created.strftime("%Y-%m-%d")}.zip"'
+    return response
