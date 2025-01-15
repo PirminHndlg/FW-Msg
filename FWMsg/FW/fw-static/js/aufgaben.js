@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     console.log('window.calendarEvents', window.calendarEvents);
+    console.log('document.getElementById', document.getElementById('calendar'));
 
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
