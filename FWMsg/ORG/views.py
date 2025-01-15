@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.db.models import ForeignKey
 from django.shortcuts import render, redirect
@@ -48,7 +48,40 @@ allowed_models_to_edit = {
 @org_required
 @login_required
 def home(request):
-    return render(request, 'homeOrg.html')
+    # Get latest images
+    latest_images = FWmodels.Bilder.objects.filter(
+        org=request.user.org
+    )[:6]  # Show last 6 images
+
+    # Get all gallery images and group by bilder
+    gallery_images = {}
+    for gallery_image in FWmodels.BilderGallery.objects.filter(bilder__in=latest_images):
+        if gallery_image.bilder not in gallery_images:
+            gallery_images[gallery_image.bilder] = []
+        gallery_images[gallery_image.bilder].append(gallery_image)
+
+    # Get pending tasks
+    now = timezone.now().date()
+    pending_tasks = FWmodels.FreiwilligerAufgaben.objects.filter(
+        org=request.user.org,
+        erledigt=False,
+        faellig__lte=now + timedelta(days=7)  # Only tasks due within a week or past due
+    ).order_by('faellig')  # Order by deadline
+
+    # Add is_overdue flag to tasks
+    for task in pending_tasks:
+        if task.faellig:
+            if task.faellig <= now:
+                task.is_overdue = 2  # In past
+            else:
+                task.is_overdue = 1  # Within one week
+
+    context = {
+        'gallery_images': gallery_images,
+        'pending_tasks': pending_tasks,
+    }
+    
+    return render(request, 'homeOrg.html', context)
 
 
 def get_model(model_name):
