@@ -1,0 +1,428 @@
+from datetime import datetime
+import mimetypes
+import os
+import subprocess
+from django.contrib import messages
+from django.contrib.auth import logout
+from django.http import HttpResponseRedirect, HttpResponse, Http404
+
+from django.contrib.auth.decorators import login_required
+from django.conf import settings
+from django.shortcuts import redirect, render
+
+from django.contrib.auth.models import User
+from FW.forms import BilderForm, BilderGalleryForm, ProfilUserForm
+from FW.models import Ampel, Bilder, BilderGallery, CustomUser, Freiwilliger, ProfilUser
+from ORG.models import Dokument, Ordner
+
+from ORG.views import base_template
+
+
+def checkForOrg(request, context):
+    if request.user.customuser.role == 'O':
+        context['extends_base'] = base_template
+        context['is_org'] = True
+    return context
+
+@login_required
+def serve_logo(request, image_name):
+    # Define the path to the image directory
+    image_path = os.path.join(settings.LOGOS_PATH, image_name)
+
+    print('image_path:', image_path)
+
+    # Check if the file exists
+    if not os.path.exists(image_path):
+        raise Http404("Image does not exist")
+
+    # Open the image file in binary mode
+    with open(image_path, 'rb') as img_file:
+        # Determine the content type (you might want to use a library to detect this)
+        content_type = 'image/jpeg'  # Change this if your images are in different formats
+        response = HttpResponse(img_file.read(), content_type=content_type)
+        response['Content-Disposition'] = f'inline; filename="{image_name}"'
+
+    return response
+
+@login_required
+def serve_bilder(request, image_id):
+    # Define the path to the image directory
+    bild = BilderGallery.objects.get(id=image_id)
+    if not bild.org == request.user.org:
+        return 'not allowed'
+    
+    return get_bild(bild.image.path, bild.bilder.titel)
+
+
+@login_required
+def serve_small_bilder(request, image_id):
+    # Define the path to the image directory
+    bild = BilderGallery.objects.get(id=image_id)
+
+    if not bild.org == request.user.org:
+        return 'not allowed'
+
+    if not bild.small_image:
+        return serve_bilder(request, image_id)
+
+    return get_bild(bild.small_image.path, bild.bilder.titel)
+
+
+def get_mimetype(doc_path):
+    mime_type, _ = mimetypes.guess_type(doc_path)
+    return mime_type
+
+
+def pdf_to_image(doc_path):
+    from pdf2image import convert_from_path
+    image = convert_from_path(doc_path, first_page=1, last_page=1)[0]
+    img_path = os.path.join('dokument', 'temp.jpg')
+    image.save(img_path)
+    response = get_bild(img_path, img_path.split('/')[-1])
+    os.remove(img_path)
+    return response
+
+
+
+@login_required
+def serve_dokument(request, dokument_id):
+    img = request.GET.get('img', None)
+    download = request.GET.get('download', None)
+    # Define the path to the image directory
+    dokument = Dokument.objects.get(id=dokument_id)
+    if not dokument.org == request.user.org:
+        return 'not allowed'
+
+    doc_path = dokument.dokument.path
+
+    if not os.path.exists(doc_path):
+        raise Http404("Dokument does not exist")
+
+    mimetype = get_mimetype(doc_path)
+    if mimetype and mimetype.startswith('image') and not download:
+        return get_bild(doc_path, dokument.dokument.name)
+
+    if img and not download:
+        if mimetype and mimetype == 'application/pdf':
+            return pdf_to_image(doc_path)
+
+        if dokument.dokument.name.endswith('.docx') or dokument.dokument.name.endswith('.doc'):
+            command = ["abiword", "--to=pdf", doc_path]
+            try:
+                subprocess.run(command)
+                if dokument.dokument.name.endswith('.docx'):
+                    doc_path = doc_path.replace('.docx', '.pdf')
+                else:
+                    doc_path = doc_path.replace('.doc', '.pdf')
+                return pdf_to_image(doc_path)
+            except Exception as e:
+                print(e)
+                return HttpResponse(e)
+
+    with open(doc_path, 'rb') as file:
+        response = HttpResponse(file.read(), content_type=mimetype or 'application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{dokument.dokument.name}"'
+        return response
+    
+@login_required
+def bilder(request):
+    bilder = Bilder.objects.filter(org=request.user.org)
+
+    gallery_images = {}
+
+    for bild in bilder:
+        gallery_images[bild] = BilderGallery.objects.filter(bilder=bild)
+
+    context={'gallery_images': gallery_images}
+
+    context = checkForOrg(request, context)
+
+    return render(request, 'bilder.html', context=context)
+
+
+
+@login_required
+def bild(request):
+    form_errors = None
+
+    if request.POST:
+        bilder_form = BilderForm(request.POST)
+        images = request.FILES.getlist('image')
+
+        if bilder_form.is_valid() and len(images) > 0:
+            bilder_form_data = bilder_form.cleaned_data
+
+            bilder, created = Bilder.objects.get_or_create(
+                org=request.user.org,
+                user=request.user,
+                titel=bilder_form_data['titel'],
+                beschreibung=bilder_form_data['beschreibung'],
+                defaults={'date_created': datetime.now(), 'date_updated': datetime.now()}
+            )
+
+            if not created:
+                bilder.date_updated = datetime.now()
+                bilder.save()
+
+            # Save each image with a reference to the product
+            for image in images:
+                try:
+                    BilderGallery.objects.create(
+                        org=request.user.org,
+                        bilder=bilder,
+                        image=image
+                    )
+                except Exception as e:
+                    messages.error(request, f'Error saving image: {str(e)}')
+                    continue
+
+            return redirect('fw_home')
+        else:
+            form_errors = bilder_form.errors
+
+    bilder_form = BilderForm()
+    bilder_gallery_form = BilderGalleryForm()
+    
+    context = {
+        'bilder_form': bilder_form,
+        'bilder_gallery_form': bilder_gallery_form,
+        'form_errors': form_errors
+    }
+
+    context = checkForOrg(request, context)
+
+    return render(request, 'bild.html', context=context)
+
+
+@login_required
+def remove_bild(request):
+    gallery_image_id = request.GET.get('galleryImageId', None)
+    bild_id = request.GET.get('bildId', None)
+
+    if not gallery_image_id and not bild_id:
+        messages.error(request, 'Kein Bild gefunden')
+        return redirect('profil')
+
+    try:
+        gallery_image = BilderGallery.objects.get(id=gallery_image_id)
+        
+        if gallery_image.bilder.user != request.user:
+            messages.error(request, 'Nicht erlaubt')
+            return redirect('profil')
+
+        # Check if this is the last image in the gallery
+        related_gallery_images = BilderGallery.objects.filter(bilder=gallery_image.bilder)
+        if related_gallery_images.count() == 1:
+            # Delete the parent Bilder object if this is the last image
+            gallery_image.bilder.delete()
+        else:
+            # Otherwise just delete this specific image
+            gallery_image.delete()
+
+        messages.success(request, 'Bild erfolgreich gelöscht')
+        
+    except BilderGallery.DoesNotExist:
+        messages.error(request, 'Bild nicht gefunden')
+
+    return redirect('profil')
+
+
+@login_required
+def remove_bild_all(request):
+    bild_id = request.GET.get('bild_id', None)
+    if not bild_id:
+        messages.error(request, 'Kein Bild gefunden')
+        return redirect('profil')
+    
+    bild = Bilder.objects.get(id=bild_id)
+    if bild.user != request.user:
+        messages.error(request, 'Nicht erlaubt')
+        return redirect('profil')
+    
+    bilder_gallery = BilderGallery.objects.filter(bilder=bild)
+    for bild_gallery in bilder_gallery:
+        bild_gallery.delete()
+    bild.delete()
+    messages.success(request, 'Alle Bilder erfolgreich gelöscht')
+    return redirect('profil')
+
+
+
+@login_required
+def dokumente(request):
+    ordners = Ordner.objects.filter(org=request.user.org).order_by('ordner_name')
+
+    folder_structure = []
+
+    for ordner in ordners:
+        folder_structure.append({
+            'ordner': ordner,
+            'dokumente': Dokument.objects.filter(org=request.user.org, ordner=ordner).order_by('-date_created')
+        })
+
+    context = {
+        'ordners': ordners,
+        'folder_structure': folder_structure
+    }
+
+    context = checkForOrg(request, context)
+
+    return render(request, 'dokumente.html', context=context)
+
+
+
+@login_required
+def add_dokument(request):
+    if request.method == 'POST':
+        ordner = Ordner.objects.get(id=request.POST.get('ordner'))
+        titel = request.POST.get('titel')
+        beschreibung = request.POST.get('beschreibung')
+        link = request.POST.get('link')
+        dokument = request.FILES.get('dokument')
+        fw_darf_bearbeiten = request.POST.get('fw_darf_bearbeiten') == 'on'
+
+        Dokument.objects.create(
+            org=request.user.org,
+            ordner=ordner,
+            titel=titel,
+            beschreibung=beschreibung,
+            dokument=dokument,
+            link=link,
+            fw_darf_bearbeiten=fw_darf_bearbeiten,
+            date_created=datetime.now()
+        )
+
+    return redirect('dokumente')
+
+
+@login_required
+def add_ordner(request):
+    if request.method == 'POST':
+        ordner_name = request.POST.get('ordner_name')
+        Ordner.objects.create(org=request.user.org, ordner_name=ordner_name)
+
+    return redirect('dokumente')
+
+
+def get_bild(image_path, image_name):
+    if not os.path.exists(image_path):
+        raise Http404("Image does not exist")
+
+    # Open the image file in binary mode
+    with open(image_path, 'rb') as img_file:
+        # Determine the content type (you might want to use a library to detect this)
+        content_type = 'image/jpeg'  # Change this if your images are in different formats
+        response = HttpResponse(img_file.read(), content_type=content_type)
+        response['Content-Disposition'] = f'inline; filename="{image_name}"'
+        return response
+
+
+@login_required
+def remove_dokument(request):
+    if request.method == 'POST':
+        dokument_id = request.POST.get('dokument_id')
+        try:
+            dokument = Dokument.objects.get(id=dokument_id, org=request.user.org)
+            if dokument.fw_darf_bearbeiten or request.user.customuser.role == 'O':
+                dokument.delete()
+            else:
+                messages.error(request, 'Dokument kann nicht gelöscht werden, da es von einem FW bearbeitet wird.')
+        except Dokument.DoesNotExist:
+            pass
+
+    return redirect('dokumente')
+
+
+@login_required
+def remove_ordner(request):
+    if request.method == 'POST':
+        ordner_id = request.POST.get('ordner_id')
+        try:
+            ordner = Ordner.objects.get(id=ordner_id, org=request.user.org)
+            # Only delete if folder is empty
+            if not Dokument.objects.filter(ordner=ordner).exists():
+                ordner.delete()
+                messages.success(request, 'Ordner wurde gelöscht.')
+            else:
+                messages.error(request, f'Ordner {ordner.ordner_name} konnte nicht gelöscht werden, da er nicht leer ist.')
+        except Ordner.DoesNotExist:
+            pass
+
+    return redirect('dokumente')
+
+
+
+@login_required
+def update_profil_picture(request):
+    if request.method == 'POST' and request.FILES.get('profil_picture'):
+        try:
+            custom_user = request.user.customuser
+            # Delete old profil picture if it exists
+            if custom_user.profil_picture:
+                custom_user.profil_picture.delete()
+            
+            custom_user.profil_picture = request.FILES['profil_picture']
+            custom_user.save()
+            messages.success(request, 'Profilbild wurde erfolgreich aktualisiert.')
+        except Exception as e:
+            messages.error(request, f'Fehler beim Aktualisieren des Profilbildes: {str(e)}')
+    
+    return redirect('profil')
+
+@login_required
+def serve_profil_picture(request, user_id):
+    requested_user = User.objects.get(id=user_id)
+
+    if not requested_user.customuser.org == request.user.org:
+        return 'not allowed'
+    
+    if not requested_user.customuser.profil_picture:
+        return get_bild(os.path.join(settings.STATIC_ROOT, 'img/default_img.png'), 'default_img.png')
+
+    return get_bild(requested_user.customuser.profil_picture.path, requested_user.customuser.profil_picture.name)
+
+@login_required
+def view_profil(request, user_id=None):
+    this_user = False
+    if not user_id or user_id == request.user.id:
+        user_id = request.user.id
+        this_user = True
+    user = User.objects.get(id=user_id)
+
+    if not CustomUser.objects.filter(user=user).exists() or not CustomUser.objects.get(user=user).org == request.user.org:
+        messages.error(request, 'Nicht erlaubt')
+        return redirect('fw_home')
+
+    if request.method == 'POST':
+        profil_user_form = ProfilUserForm(request.POST)
+        if profil_user_form.is_valid():
+            profil_user = profil_user_form.save(commit=False)
+            profil_user.user = user
+            profil_user.save()
+            return redirect('profil')
+
+    profil_users = ProfilUser.objects.filter(user=user)
+    bilder_of_user = Bilder.objects.filter(user=user)
+    bilder_gallery_of_user = BilderGallery.objects.filter(bilder__in=bilder_of_user).order_by('-bilder__date_created')
+    print(bilder_gallery_of_user)
+
+    ampel_of_user = None
+    if this_user:
+        ampel_of_user = Ampel.objects.filter(freiwilliger__user=user).order_by('-date').first()
+
+
+    profil_user_form = ProfilUserForm()
+    freiwilliger = Freiwilliger.objects.get(user=user)
+
+    context = {
+        'freiwilliger': freiwilliger,
+        'profil_users': profil_users,
+        'profil_user_form': profil_user_form,
+        'this_user': this_user,
+        'bilder_gallery_of_user': bilder_gallery_of_user,
+        'ampel_of_user': ampel_of_user
+    }
+
+    context = checkForOrg(request, context)
+
+    return render(request, 'profil.html', context=context)
