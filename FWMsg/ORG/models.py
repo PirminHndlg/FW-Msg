@@ -72,6 +72,7 @@ class Dokument(models.Model):
     date_modified = models.DateTimeField(auto_now=True)
     titel = models.CharField(max_length=100, null=True, blank=True)
     beschreibung = models.TextField(null=True, blank=True)
+    fw_darf_bearbeiten = models.BooleanField(default=True)
 
     def __str__(self):
         return self.titel or self.dokument.name or self.link
