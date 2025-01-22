@@ -16,7 +16,7 @@
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Neueste Bilder</h5>
-                <a href="{% url 'list_bilder' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
+                <a href="{% url 'bilder' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
             </div>
             <div class="card-body">
                 {% if gallery_images %}
@@ -25,17 +25,10 @@
                         <div class="col-12 mb-4">
                             <div class="d-flex align-items-center mb-3 justify-content-between">
                                 <a href="{% url 'profil' bilder.user.id %}" class="text-decoration-none text-dark d-flex align-items-center">
-                                    {% if bilder.user.customuser.profil_picture %}
-                                        <img src="{{ bilder.user.customuser.profil_picture.url }}" 
+                                    <img src="{% url 'serve_profil_picture' bilder.user.id %}" 
                                                 class="rounded-circle me-2 border" 
                                                 style="width: 40px; height: 40px; object-fit: cover;" 
                                                 alt="Profile Picture">
-                                    {% else %}
-                                        <img src="{% static 'img/default-profile.png' %}" 
-                                                class="rounded-circle me-2 border" 
-                                                style="width: 40px; height: 40px; object-fit: cover;" 
-                                                alt="Default Profile">
-                                    {% endif %}
                                     <div>
                                         <h6 class="mb-0">{{ bilder.user.get_full_name|default:bilder.user.username }}</h6>
                                         <small class="text-muted">{{ bilder.date_created|date:"d.m.Y H:i" }}</small>
@@ -49,7 +42,7 @@
                                     {% for img in bilder_gallery %}
                                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
                                             <div class="position-relative" style="aspect-ratio: 4/3;">
-                                                <img src="{{ img.small_image.url|default:img.image.url }}"
+                                                <img src="{% url 'serve_small_bilder' img.id %}"
                                                         class="d-block w-100 h-100 object-fit-cover rounded"
                                                         alt="{{ img.bilder.titel }}"
                                                         data-bs-toggle="tooltip"
