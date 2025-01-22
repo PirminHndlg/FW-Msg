@@ -290,28 +290,28 @@ class FreiwilligerAufgaben(models.Model):
         if not self.faellig:
 
             if self.aufgabe.faellig_tage_nach_start:
-                self.faellig = self.freiwilliger.start_geplant + timedelta(days=self.aufgabe.faellig_tage_nach_start)
+                self.faellig = (self.freiwilliger.start_geplant or self.freiwilliger.jahrgang.start) + timedelta(days=self.aufgabe.faellig_tage_nach_start)
             elif self.aufgabe.faellig_tage_vor_ende:
-                self.faellig = self.freiwilliger.ende_geplant - timedelta(days=self.aufgabe.faellig_tage_vor_ende)
+                self.faellig = (self.freiwilliger.ende_geplant or self.freiwilliger.jahrgang.ende) - timedelta(days=self.aufgabe.faellig_tage_vor_ende)
             elif self.aufgabe.faellig_monat:
                 # self.faellig = self.aufgabe.faellig
                 month = self.aufgabe.faellig_monat or 1
                 day = self.aufgabe.faellig_tag or 1
                 
                 if self.aufgabe.faellig_art == 'V':
-                    start_date = self.freiwilliger.start_real or self.freiwilliger.start_geplant
+                    start_date = self.freiwilliger.start_real or self.freiwilliger.start_geplant or self.freiwilliger.jahrgang.start
                     year = start_date.year
                     if start_date.month > month or (start_date.month == month and start_date.day >= day):
                         year -= 1
                     self.faellig = datetime(year, month, day).date()
                 elif self.aufgabe.faellig_art == 'W':
-                    start_date = self.freiwilliger.start_real or self.freiwilliger.start_geplant
+                    start_date = self.freiwilliger.start_real or self.freiwilliger.start_geplant or self.freiwilliger.jahrgang.start
                     year = start_date.year
                     if start_date.month > month or (start_date.month == month and start_date.day >= day):
-                        year = self.freiwilliger.ende_geplant.year
+                        year = (self.freiwilliger.ende_geplant or self.freiwilliger.jahrgang.ende).year
                     self.faellig = datetime(year, month, day).date()
                 elif self.aufgabe.faellig_art == 'N':
-                    end_date = self.freiwilliger.ende_geplant
+                    end_date = self.freiwilliger.ende_geplant or self.freiwilliger.jahrgang.ende
                     year = end_date.year
                     if end_date.month > month or (end_date.month == month and end_date.day >= day):
                         year -= 1
