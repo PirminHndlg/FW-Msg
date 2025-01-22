@@ -22,7 +22,7 @@ function addOrdner() {
                                 <label for="ordner_name" class="form-label">Ordnername</label>
                                 <input type="text" class="form-control rounded-4" id="ordner_name" name="ordner_name" required>
                             </div>
-                            
+
                             <div class="d-flex justify-content-end gap-2">
                                 <button type="button" class="btn btn-outline-secondary rounded-4" data-bs-dismiss="modal">Abbrechen</button>
                                 <button type="submit" class="btn btn-primary rounded-4">Speichern</button>
@@ -82,6 +82,11 @@ function addDokument(ordner_id) {
                                 <label for="link" class="form-label">Link (optional)</label>
                                 <input type="text" class="form-control rounded-4" id="link" name="link">
                             </div>
+
+                            <div id="fw_darf_bearbeiten_container" class="mb-3">
+                                <label for="fw_darf_bearbeiten" class="form-label">Freiwillige können Dokumente bearbeiten/löschen</label>
+                                <input type="checkbox" class="form-check-input" id="fw_darf_bearbeiten" name="fw_darf_bearbeiten" checked>
+                            </div>
                             
                             <div class="mb-3">
                                 <label for="dokument" class="form-label">Dokument</label>
@@ -110,6 +115,10 @@ function addDokument(ordner_id) {
     document.getElementById('addDokumentModal').addEventListener('hidden.bs.modal', function () {
         this.remove();
     });
+
+    if (!is_org) {
+        document.getElementById('fw_darf_bearbeiten_container').style.display = 'none';
+    }
 }
 
 function removeDokument(dokument_id, dokument_name) {
