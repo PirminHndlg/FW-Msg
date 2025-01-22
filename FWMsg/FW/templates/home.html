@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load aufgaben_filter %}
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
@@ -12,7 +13,7 @@
 
 {% block content %}
 
-    <div class="card rounded-4 mb-4">
+    <div class="card rounded-4 mb-2">
         <div class="card-header">
             <a href="{% url 'aufgaben' %}" class="text-decoration-none text-body">
                 <h3 class="mb-0">Aufgaben ⟩</h3>
@@ -55,106 +56,101 @@
                     <span><i class="bi bi-square-fill text-success me-1"></i>Erledigt</span>
                 </div>
             </a>
+            {{ aufgaben.offen|generate_html_for_aufgaben }}
 
-            {% for aufgabe in aufgaben.offen %}
-                <a href="{% url 'aufgaben_detail' aufgabe.aufgabe.id %}" class="text-decoration-none text-body">
-                    <div class="card rounded-4 mb-2 hover-shadow">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <h5 class="card-title mb-0">{{ aufgabe.aufgabe.name }}</h5>
-                                <small class="text-muted">Fällig: {{ aufgabe.faellig|date:"d.m.y" }}</small>
-                            </div>
-                            {% if aufgabe.aufgabe.beschreibung %}
-                                <p class="card-text mt-2 mb-0">{{ aufgabe.aufgabe.beschreibung }}</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </a>
-            {% endfor %}
-
-            {% if aufgaben.offen %}
-                <div class="text-center mt-3">
-                    <a href="{% url 'aufgaben' %}" class="btn btn-secondary btn-sm text-white">Alle Aufgaben anzeigen</a>
-                </div>
-            {% else %}
+            {% if not aufgaben.offen %}
                 <div class="alert alert-success mb-0">
                     <i class="bi bi-check-circle me-2"></i>Keine offenen Aufgaben!
                 </div>
-                <script>
-                    // Check if this is a new page load or a result of completing a task
-                    if (!sessionStorage.getItem('confettiShown')) {
-                        triggerConfetti();
-                        sessionStorage.setItem('confettiShown', 'true');
-                    }
-                </script>
             {% endif %}
+            <div class="text-center mt-3">
+                <a href="{% url 'aufgaben' %}" class="btn btn-secondary btn-sm text-white">Alle Aufgaben anzeigen</a>
+            </div>
         </div>
     </div>
 
-    <div class="card rounded-4 mb-4">
+    <div class="card rounded-4 mb-2">
         <div class="card-header">
             <a href="{% url 'bilder' %}" class="text-decoration-none text-body">
                 <h3 class="mb-0">Neue Bilder ⟩</h3>
             </a>
         </div>
         <div class="card-body">
-            {% for bild in bilder %}
-                {% with bild_data=bild.bilder %}
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-3">
-                                <a href="{% url 'profil' bild_data.user.id %}" class="text-decoration-none">
-                                    <img src="{% url 'serve_profil_picture' bild_data.user.id %}" alt="Profilbild" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
-                                </a>
-                                <div>
-                                    <h4 class="mb-0">{{ bild_data.titel }}</h4>
-                                    <small class="text-muted">{{ bild_data.user }}</small>
-                                    <small class="text-muted">{{ bild_data.date_created|date:"d.m.y" }}</small>
-                                </div>
-                            </div>
-                            <div class="row g-2">
-                                <div id="carousel-{{ bild.bilder.id }}" class="carousel slide" data-bs-ride="carousel">
-                                    <div class="carousel-inner">
-                                        {% for img in bild.images %}
-                                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                                <img onclick="showImgLarge(this)" 
-                                                     src="{% url 'serve_small_bilder' img.id %}"
-                                                     alt="Bild"
-                                                     class="img-fluid rounded"
-                                                     style="max-height: 70vh; width: 100%; aspect-ratio: 1/1; object-fit: cover;">
+            <div class="row g-4">
+                {% for bild in bilder %}
+                    {% with bild_data=bild.bilder %}
+                        <div class="col-lg-4 col-md-6">
+                            <div class="card rounded-4 h-100">
+                                <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-between align-items-center gap-2">
+                                    <div class="d-flex align-items-center">
+                                        <a href="{% url 'profil' bild_data.user.id %}" class="text-decoration-none">
+                                            <img src="{% url 'serve_profil_picture' bild_data.user.id %}" 
+                                                 alt="Profilbild" 
+                                                 class="rounded-circle me-3" 
+                                                 style="width: 50px; height: 50px; object-fit: cover;">
+                                        </a>
+                                        <div>
+                                            <h5 class="mb-0">{{ bild_data.titel }}</h5>
+                                            <div class="small text-muted">
+                                                <span>{{ bild_data.user.get_full_name|default:bild_data.user.username }}</span>
+                                                <span class="mx-1">•</span>
+                                                <span>{{ bild_data.date_created|date:"d.m.Y" }}</span>
                                             </div>
-                                        {% endfor %}
+                                        </div>
                                     </div>
-                                    {% if bild.images|length > 1 %}
-                                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ bild.bilder.id }}" data-bs-slide="prev" style="width: 25%">
-                                            <span class="carousel-control-prev-icon" aria-hidden="true" style="width: 3rem; height: 3rem"></span>
-                                            <span class="visually-hidden">Previous</span>
-                                        </button>
-                                        <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ bild.bilder.id }}" data-bs-slide="next" style="width: 25%">
-                                            <span class="carousel-control-next-icon" aria-hidden="true" style="width: 3rem; height: 3rem"></span>
-                                            <span class="visually-hidden">Next</span>
-                                        </button>
-                                        <div class="carousel-indicators">
+                                </div>
+                                <div class="card-body p-0">
+                                    <div id="carousel-{{ bild.bilder.id }}" class="carousel slide" data-bs-ride="carousel">
+                                        <div class="carousel-inner {% if not bild_data.beschreibung %}rounded-bottom-4{% endif %}">
                                             {% for img in bild.images %}
-                                                <button type="button" 
-                                                        data-bs-target="#carousel-{{ bild.id }}"
-                                                        data-bs-slide-to="{{ forloop.counter0 }}"
-                                                        {% if forloop.first %}class="active"{% endif %}
-                                                        aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
-                                                        aria-label="Slide {{ forloop.counter }}">
-                                                </button>
+                                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                                    <div style="aspect-ratio: 1/1;">
+                                                        <img src="{% url 'serve_small_bilder' img.id %}"
+                                                             alt="Bild"
+                                                             class="w-100 h-100"
+                                                             style="object-fit: cover;"
+                                                             onclick="showImgLarge(this)">
+                                                    </div>
+                                                </div>
                                             {% endfor %}
                                         </div>
+                                        {% if bild.images|length > 1 %}
+                                            <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ bild.bilder.id }}" data-bs-slide="prev">
+                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Vorheriges</span>
+                                            </button>
+                                            <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ bild.bilder.id }}" data-bs-slide="next">
+                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Nächstes</span>
+                                            </button>
+                                            <div class="carousel-indicators">
+                                                {% for img in bild.images %}
+                                                    <button type="button" 
+                                                            data-bs-target="#carousel-{{ bild.bilder.id }}"
+                                                            data-bs-slide-to="{{ forloop.counter0 }}"
+                                                            {% if forloop.first %}class="active"{% endif %}
+                                                            aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
+                                                            aria-label="Slide {{ forloop.counter }}">
+                                                    </button>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    {% if bild_data.beschreibung %}
+                                        <p class="small m-2 mt-0">
+                                            <span class="description-preview">{{ bild_data.beschreibung|truncatewords:10 }}</span>
+                                            <span class="description-full" style="display:none">{{ bild_data.beschreibung }}</span>
+                                            {% if bild_data.beschreibung|wordcount > 10 %}
+                                                <a href="#" class="show-more" onclick="event.preventDefault(); toggleDescription(this);">mehr</a>
+                                            {% endif %}
+                                        </p>
                                     {% endif %}
                                 </div>
                             </div>
-                            <div class="mt-3">
-                                <p class="card-text">{{ bild_data.beschreibung }}</p>
-                            </div>
                         </div>
-                    </div>
-                {% endwith %}
-            {% endfor %}
+                    {% endwith %}
+                {% endfor %}
+            </div>
 
             {% if bilder %}
                 <div class="text-center mt-3">
@@ -164,7 +160,7 @@
         </div>
     </div>
 
-    <div class="card rounded-4 mb-4">
+    <div class="card rounded-4 mb-2">
         <div class="card-header">
             <h3 class="mb-0">Neue Posts ⟩</h3>
         </div>
