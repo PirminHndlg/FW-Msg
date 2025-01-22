@@ -57,7 +57,7 @@ def home(request):
             'bilder': bilder_obj,
             'images': BilderGallery.objects.filter(bilder=bilder_obj)
         }
-        for bilder_obj in bilder[:2]
+        for bilder_obj in bilder[:6]
     ]
 
     context = {
