@@ -104,7 +104,7 @@
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
                                 <a href="{% url 'profil' bild_data.user.id %}" class="text-decoration-none">
-                                    <img src="{% if bild_data.user.customuser.profil_picture %}{{ bild_data.user.customuser.profil_picture.url }}{% else %}{% static 'img/default_img.png' %}{% endif %}" alt="Profilbild" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                    <img src="{% url 'serve_profil_picture' bild_data.user.id %}" alt="Profilbild" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
                                 </a>
                                 <div>
                                     <h4 class="mb-0">{{ bild_data.titel }}</h4>
@@ -118,7 +118,7 @@
                                         {% for img in bild.images %}
                                             <div class="carousel-item {% if forloop.first %}active{% endif %}">
                                                 <img onclick="showImgLarge(this)" 
-                                                     src="{% if img.small_image %}{{ img.small_image.url }}{% else %}{{ img.image.url }}{% endif %}"
+                                                     src="{% url 'serve_small_bilder' img.id %}"
                                                      alt="Bild"
                                                      class="img-fluid rounded"
                                                      style="max-height: 70vh; width: 100%; aspect-ratio: 1/1; object-fit: cover;">
@@ -137,7 +137,7 @@
                                         <div class="carousel-indicators">
                                             {% for img in bild.images %}
                                                 <button type="button" 
-                                                        data-bs-target="#carousel-{{ bild.bilder.id }}"
+                                                        data-bs-target="#carousel-{{ bild.id }}"
                                                         data-bs-slide-to="{{ forloop.counter0 }}"
                                                         {% if forloop.first %}class="active"{% endif %}
                                                         aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
