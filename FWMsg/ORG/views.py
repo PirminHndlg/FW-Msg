@@ -14,10 +14,13 @@ from django.conf import settings
 from functools import wraps
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
+from django.template.context_processors import request
 
 from FW import models as FWmodels
 from . import models as ORGmodels
 from . import forms as ORGforms
+
+base_template = 'baseOrg.html'
 
 
 def org_required(view_func):
@@ -32,6 +35,15 @@ def org_required(view_func):
             return redirect(settings.LOGIN_URL)
         return view_func(request, *args, **kwargs)
     return _wrapped_view
+
+
+def org_context_processor(request):
+    """Context processor to add jahrgaenge to all templates."""
+    if hasattr(request, 'user') and request.user.is_authenticated and request.user.role == 'O':
+        return {
+            'jahrgaenge': FWmodels.Jahrgang.objects.filter(org=request.user.org)
+        }
+    return {}
 
 allowed_models_to_edit = {
     'einsatzland': FWmodels.Einsatzland,
@@ -273,79 +285,99 @@ def delete_object(request, model_name, id):
 @org_required
 @login_required
 def list_ampel(request):
-    # Get all freiwillige for this org, ordered by jahrgang in reverse order
-    freiwillige_by_jahrgang = {}
-    for fw in FWmodels.Freiwilliger.objects.filter(org=request.user.org).order_by('-jahrgang', 'last_name', 'first_name'):
-        if fw.jahrgang not in freiwillige_by_jahrgang:
-            freiwillige_by_jahrgang[fw.jahrgang] = []
-        freiwillige_by_jahrgang[fw.jahrgang].append(fw)
+    # Get jahrgang filter from cookie
+    jahrgang_id = request.COOKIES.get('selectedJahrgang')
     
-    # Sort jahrgänge in reverse order (most recent first)
-    freiwillige_by_jahrgang = dict(sorted(freiwillige_by_jahrgang.items(), key=lambda x: x[0].start, reverse=True))
+    # Base queryset for freiwillige
+    freiwillige_qs = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
     
-    # Get the date range from Freiwillige start and end dates
-    # Get earliest start date from either real or planned start dates
-    start_dates = FWmodels.Freiwilliger.objects.filter(org=request.user.org).aggregate(
+    # Apply jahrgang filter if specified
+    if jahrgang_id:
+        freiwillige_qs = freiwillige_qs.filter(jahrgang=jahrgang_id)
+    
+    # Order by jahrgang and name
+    freiwillige = freiwillige_qs.order_by('-jahrgang', 'last_name', 'first_name')
+    
+    # Get date range for ampel entries
+    date_range = get_ampel_date_range(request.user.org)
+    start_date, end_date = date_range['start_date'], date_range['end_date']
+    
+    # Get ampel entries within date range
+    ampel_entries = FWmodels.Ampel.objects.filter(
+        freiwilliger__in=freiwillige,
+        date__gte=start_date,
+        date__lte=end_date
+    ).order_by('freiwilliger', '-date')
+    
+    # Generate month labels
+    months = generate_month_labels(start_date, end_date)
+    
+    # Create and fill ampel matrix
+    ampel_matrix = create_ampel_matrix(freiwillige, months, ampel_entries)
+    
+    # Group freiwillige by jahrgang for template
+    grouped_matrix = {}
+    for fw in freiwillige:
+        if fw.jahrgang not in grouped_matrix:
+            grouped_matrix[fw.jahrgang] = {}
+        grouped_matrix[fw.jahrgang][fw] = ampel_matrix[fw]
+    
+    context = {
+        'months': months,
+        'ampel_matrix': grouped_matrix,
+        'current_month': timezone.now().strftime("%b %y"),
+        'jahrgang': jahrgang_id
+    }
+    return render(request, 'list_ampel.html', context=context)
+
+def get_ampel_date_range(org):
+    """Helper function to determine the date range for ampel entries."""
+    # Get earliest start date
+    start_dates = FWmodels.Freiwilliger.objects.filter(org=org).aggregate(
         real_start=Min('start_real'),
         planned_start=Min('start_geplant')
     )
     start_date = start_dates['real_start'] or start_dates['planned_start']
 
-    # Get latest end date from either real or planned end dates 
-    end_dates = FWmodels.Freiwilliger.objects.filter(org=request.user.org).aggregate(
+    # Get latest end date
+    end_dates = FWmodels.Freiwilliger.objects.filter(org=org).aggregate(
         real_end=Max('ende_real'),
         planned_end=Max('ende_geplant')
     )
     end_date = end_dates['real_end'] or end_dates['planned_end']
     
-    # If no dates found, use last 12 months as fallback
+    # Fallback to last 12 months if no dates found
     if not start_date or not end_date:
         end_date = timezone.now()
         start_date = end_date - relativedelta(months=12)
-    
-    # Get all ampel entries between start and end date
-    ampel_entries = FWmodels.Ampel.objects.filter(
-        freiwilliger__in=[fw for fws in freiwillige_by_jahrgang.values() for fw in fws],
-        date__gte=start_date,
-        date__lte=end_date
-    ).order_by('freiwilliger', '-date')
-    
-    # Create month labels
+        
+    return {'start_date': start_date, 'end_date': end_date}
+
+def generate_month_labels(start_date, end_date):
+    """Helper function to generate month labels between two dates."""
     months = []
     current = start_date
     while current <= end_date:
         months.append(current.strftime("%b %y"))
         current += relativedelta(months=1)
+    return months
+
+def create_ampel_matrix(freiwillige, months, ampel_entries):
+    """Helper function to create and fill the ampel matrix."""
+    # Initialize empty matrix
+    matrix = {fw: {month: [] for month in months} for fw in freiwillige}
     
-    # Create a dictionary to store the status for each freiwilliger/month combination
-    ampel_matrix = {}
-    for jahrgang, freiwillige in freiwillige_by_jahrgang.items():
-        ampel_matrix[jahrgang] = {}
-        for fw in freiwillige:
-            ampel_matrix[jahrgang][fw] = {}
-            for month in months:
-                ampel_matrix[jahrgang][fw][month] = []
-            
-    # Fill the matrix with actual values
+    # Fill matrix with ampel entries
     for entry in ampel_entries:
         month_key = entry.date.strftime("%b %y")
-        if month_key in months:  # Only include if within our date range
-            jahrgang = entry.freiwilliger.jahrgang
-            ampel_matrix[jahrgang][entry.freiwilliger][month_key].append({
+        if month_key in months:
+            matrix[entry.freiwilliger][month_key].append({
                 'status': entry.status,
                 'comment': entry.comment,
                 'date': entry.date.strftime("%d.%m.%y %H:%M")
             })
-    
-    # Add current_month to the context
-    current_month = timezone.now().strftime("%b %y")
-    
-    context = {
-        'months': months,
-        'ampel_matrix': ampel_matrix,
-        'current_month': current_month
-    }
-    return render(request, 'list_ampel.html', context=context)
+            
+    return matrix
 
 @org_required
 @login_required
@@ -375,10 +407,10 @@ def list_aufgaben(request):
 def aufgaben_assign(request, jahrgang=None):
     if request.method == 'POST':
         freiwillige = request.POST.getlist('freiwillige')
-        profile = request.POST.getlist('profile')
+        profil = request.POST.getlist('profil')
         aufgaben = request.POST.getlist('aufgaben')
 
-        print(freiwillige, profile, aufgaben)
+        print(freiwillige, profil, aufgaben)
 
         for f in freiwillige:
             freiwilliger = FWmodels.Freiwilliger.objects.get(pk=f)
@@ -386,15 +418,15 @@ def aufgaben_assign(request, jahrgang=None):
             if not freiwilliger.org == request.user.org:
                 continue
 
-            for p in profile:
-                profile = FWmodels.Aufgabenprofil.objects.get(pk=p)
+            for p in profil:
+                profil = FWmodels.Aufgabenprofil.objects.get(pk=p)
 
                 if not freiwilliger.org == request.user.org:
                     continue
 
                 FWmodels.FreiwilligerAufgabenprofil.objects.get_or_create(
                     org=request.user.org,
-                    aufgabenprofil=profile,
+                    aufgabenprofil=profil,
                     freiwilliger=freiwilliger
                 )
 
@@ -427,14 +459,14 @@ def aufgaben_assign(request, jahrgang=None):
 
     jahrgaenge = FWmodels.Jahrgang.objects.filter(org=request.user.org)
     aufgaben = FWmodels.Aufgabe.objects.filter(org=request.user.org)
-    profile = FWmodels.Aufgabenprofil.objects.filter(org=request.user.org)
+    profil = FWmodels.Aufgabenprofil.objects.filter(org=request.user.org)
 
     context = {
         'jahr': jahrgang,
         'jahrgaenge': jahrgaenge,
         'freiwillige': freiwillige,
         'aufgaben': aufgaben,
-        'profile': profile
+        'profil': profil
     }
     return render(request, 'aufgaben_assign.html', context=context)
 
@@ -466,3 +498,9 @@ def download_bild_as_zip(request, id):
     response = HttpResponse(zip_buffer, content_type='application/zip')
     response['Content-Disposition'] = f'attachment; filename="{bild.user.username}_{bild.titel}_{bild.date_created.strftime("%Y-%m-%d")}.zip"'
     return response
+
+
+@org_required
+@login_required
+def dokumente(request):
+    return render(request, 'dokumente.html', context={'extends_base': base_template})
