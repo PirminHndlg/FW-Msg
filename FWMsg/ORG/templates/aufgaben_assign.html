@@ -1,204 +1,262 @@
 {% extends "baseOrg.html" %}
 {% load list_objects_filters %}
+{% load i18n %}
 
-{% block head %}
-{% endblock %}
+{% block title %}{% trans "Aufgaben zuweisen" %}{% endblock %}
 
 {% block content %}
-    {# Task Assignment Form #}
-    <form method="post">
-        {% csrf_token %}
+<div class="container-fluid px-4">
+    <div class="card rounded-4">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center py-3">
+            <h4 class="mb-0">{% trans "Aufgaben zuweisen" %}</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <!-- Left Column: Freiwillige Selection -->
+                    <div class="col-lg-4">
+                        <div class="card rounded-4">
+                            <div class="card-header bg-transparent border-0 py-3">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-people me-1"></i>{% trans "Freiwillige" %}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Search and Filter Bar -->
+                                <div class="d-flex gap-2 mb-3 align-items-center">
+                                    <div class="flex-grow-1">
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-transparent border-end-0">
+                                                <i class="bi bi-search"></i>
+                                            </span>
+                                            <input type="text" class="form-control border-start-0" 
+                                                   name="mySearch" placeholder="{% trans 'Freiwillige suchen...' %}"
+                                                   data-table="table_fw">
+                                        </div>
+                                    </div>
+                                </div>
 
-        <div class="row h-75 overflow-auto">
-            {# Section 1: Volunteers List #}
-            <div id="section1" class="col-lg-4 col-md-6 col-12">
-                <h3>Freiwillige:r</h3>
+                                <!-- Year Filter -->
+                                <div class="dropdown mb-3">
+                                    <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button"
+                                            data-bs-toggle="dropdown">
+                                        <i class="bi bi-calendar-event me-1"></i>
+                                        {{ jahr|default:"Alle Jahrgänge" }}
+                                    </button>
+                                    <ul class="dropdown-menu w-100">
+                                        {% if jahr %}
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'aufgaben_assign' %}">
+                                                    {% trans "Alle Jahrgänge" %}
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                        {% endif %}
+                                        {% for jahrgang in jahrgaenge %}
+                                            <li>
+                                                <a class="dropdown-item {% if jahr.id == jahrgang.id %}active{% endif %}"
+                                                   href="{% url 'aufgaben_assign' jahrgang.id %}">
+                                                    {{ jahrgang }}
+                                                </a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
 
-                {# Search Box for Volunteers #}
-                <div class="input-group">
-                    <div class="input-group-btn d-flex">
-                        <input type="text" class="form-control" name="mySearch" placeholder="Suche"
-                               data-table="table_fw">
-                        <span class="input-group-append">
-                            <button class="btn btn-outline-primary" type="button"><i class="bi bi-search"></i></button>
-                        </span>
+                                <!-- Select All -->
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" class="form-check-input" name="check_all"
+                                           onclick="checkAll(this)" id="checkAllFw">
+                                    <label class="form-check-label" for="checkAllFw">
+                                        {% trans "Alle Freiwillige auswählen" %}
+                                    </label>
+                                </div>
+
+                                <!-- Freiwillige List -->
+                                <div class="table-responsive" style="max-height: 400px;">
+                                    <table id="table_fw" class="table table-hover align-middle mb-0">
+                                        <tbody>
+                                            {% for fw in freiwillige %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" 
+                                                                   id="checkbox_fw_{{ fw.id }}"
+                                                                   name="freiwillige" value="{{ fw.id }}" 
+                                                                   onclick="checkedbox(this)">
+                                                            <label class="form-check-label" for="checkbox_fw_{{ fw.id }}">
+                                                                {{ fw }}
+                                                            </label>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Aufgaben & Profile Selection -->
+                    <div class="col-lg-8">
+                        <div class="card rounded-4">
+                            <div class="card-body">
+                                <!-- Tabs Navigation -->
+                                <ul class="nav nav-tabs mb-3" id="assignTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="aufgaben-tab" data-bs-toggle="tab"
+                                                data-bs-target="#aufgaben" type="button" role="tab">
+                                            <i class="bi bi-list-check me-1"></i>{% trans "Aufgaben" %}
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="profile-tab" data-bs-toggle="tab"
+                                                data-bs-target="#profile" type="button" role="tab">
+                                            <i class="bi bi-person-badge me-1"></i>{% trans "Profile" %}
+                                        </button>
+                                    </li>
+                                </ul>
+
+                                <!-- Tabs Content -->
+                                <div class="tab-content" id="assignTabsContent">
+                                    <!-- Aufgaben Tab -->
+                                    <div class="tab-pane fade show active" id="aufgaben" role="tabpanel">
+                                        <!-- Search Bar -->
+                                        <div class="mb-3">
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-transparent border-end-0">
+                                                    <i class="bi bi-search"></i>
+                                                </span>
+                                                <input type="text" class="form-control border-start-0" 
+                                                       name="mySearch" placeholder="{% trans 'Aufgaben suchen...' %}"
+                                                       data-table="table_aufgabe">
+                                            </div>
+                                        </div>
+
+                                        <!-- Select All -->
+                                        <div class="form-check mb-3">
+                                            <input type="checkbox" class="form-check-input" name="check_all"
+                                                   onclick="checkAll(this)" id="checkAllAufgaben">
+                                            <label class="form-check-label" for="checkAllAufgaben">
+                                                {% trans "Alle Aufgaben auswählen" %}
+                                            </label>
+                                        </div>
+
+                                        <!-- Aufgaben List -->
+                                        <div class="table-responsive" style="max-height: 400px;">
+                                            <table id="table_aufgabe" class="table table-hover align-middle mb-0">
+                                                <tbody>
+                                                    {% for aufgabe in aufgaben %}
+                                                        <tr>
+                                                            <td>
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox"
+                                                                           id="checkbox_aufgabe_{{ aufgabe.id }}"
+                                                                           name="aufgaben" value="{{ aufgabe.id }}" 
+                                                                           onclick="checkedbox(this)">
+                                                                    <label class="form-check-label" for="checkbox_aufgabe_{{ aufgabe.id }}">
+                                                                        {{ aufgabe }}
+                                                                    </label>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- Profile Tab -->
+                                    <div class="tab-pane fade" id="profile" role="tabpanel">
+                                        <!-- Search Bar -->
+                                        <div class="mb-3">
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-transparent border-end-0">
+                                                    <i class="bi bi-search"></i>
+                                                </span>
+                                                <input type="text" class="form-control border-start-0" 
+                                                       name="mySearch" placeholder="{% trans 'Profile suchen...' %}"
+                                                       data-table="table_profil">
+                                            </div>
+                                        </div>
+
+                                        <!-- Select All -->
+                                        <div class="form-check mb-3">
+                                            <input type="checkbox" class="form-check-input" name="check_all"
+                                                   onclick="checkAll(this)" id="checkAllProfile">
+                                            <label class="form-check-label" for="checkAllProfile">
+                                                {% trans "Alle Profile auswählen" %}
+                                            </label>
+                                        </div>
+
+                                        <!-- Profile List -->
+                                        <div class="table-responsive" style="max-height: 400px;">
+                                            <table id="table_profil" class="table table-hover align-middle mb-0">
+                                                <tbody>
+                                                    {% for profil in profil %}
+                                                        <tr>
+                                                            <td>
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox"
+                                                                           id="checkbox_profil_{{ profil.id }}"
+                                                                           name="profil" value="{{ profil.id }}" 
+                                                                           onclick="checkedbox(this)">
+                                                                    <label class="form-check-label" for="checkbox_profil_{{ profil.id }}">
+                                                                        {{ profil }}
+                                                                    </label>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {# Year Filter Dropdown #}
-                <div class="dropdown mt-1 mb-1 d-flex align-items-center">
-                    <label for="jahrgang">Jahrgang</label>
-                    <button class="btn btn-sm btn-secondary dropdown-toggle m-1" type="button"
-                            data-bs-toggle="dropdown">
-                        {{ jahr|default:"Alle" }}
+                <!-- Submit Button -->
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>{% trans "Aufgaben zuweisen" %}
                     </button>
-                    <ul class="dropdown-menu">
-                        {% if jahr %}
-                            <a class="link-underline link-underline-opacity-0 link-underline-opacity-50-hover"
-                               href="{% url 'aufgaben_assign' %}">
-                                <li class="dropdown-item">
-                                    Alle
-                                </li>
-                            </a>
-                        {% endif %}
-                        {% for jahrgang in jahrgaenge %}
-                            <a class="link-underline link-underline-opacity-0 link-underline-opacity-50-hover"
-                               href="{% url 'aufgaben_assign' jahrgang.id %}">
-                                <li class="dropdown-item {% if jahr.id == jahrgang.id %}active{% endif %}">
-                                    {{ jahrgang }}
-                                </li>
-                            </a>
-                        {% endfor %}
-                    </ul>
                 </div>
-
-                {# Select All Checkbox #}
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" class="form-check-input" name="check_all"
-                               onclick="checkAll(this)">
-                        Alle wählen
-                    </label>
-                </div>
-
-                {# Volunteers Table #}
-                <table id="table_fw" class="table table-responsive">
-                    {% for fw in freiwillige %}
-                        <tr>
-                            <td>
-                                <div class="checkbox">
-                                    <input class="form-check-input" type="checkbox" id="checkbox_fw_{{ fw.id }}"
-                                           name="freiwillige" value="{{ fw.id }}" onclick="checkedbox(this)">
-                                    <label class="form-check-label" for="checkbox_fw_{{ fw.id }}">
-                                        {{ fw }}
-                                    </label>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </table>
-            </div>
-
-            <div id="section2" class="col-lg-4 col-md-6 col-12">
-                <h3>Profile</h3>
-
-                <div class="input-group">
-                    <div class="input-group-btn d-flex">
-                        <input type="text" class="form-control" name="mySearch" placeholder="Suche"
-                               data-table="table_profil">
-                        <span class="input-group-append">
-                            <button class="btn btn-outline-primary" type="button"><i class="bi bi-search"></i></button>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" class="form-check-input" name="check_all"
-                               onclick="checkAll(this)">
-                        Alle wählen
-                    </label>
-                </div>
-
-                <table id="table_profil" class="table">
-                    {% for profil in profile %}
-                        <tr>
-                            <td>
-                                <div class="checkbox">
-                                    <input class="form-check-input" type="checkbox"
-                                           id="checkbox_profil_{{ profil.id }}"
-                                           name="profile" value="{{ profil.id }}" onclick="checkedbox(this)">
-                                    <label class="form-check-label" for="checkbox_profil_{{ profil.id }}">
-                                        {{ profil }}
-                                    </label>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </table>
-            </div>
-
-            <div id="section3" class="col-lg-4 col-md-6 col-12 overflow-auto" style="max-height: 75vh;">
-                <h3 class="sticky-top bg-body">Aufgaben</h3>
-
-                <div class="input-group">
-                    <div class="input-group-btn d-flex">
-                        <input type="text" class="form-control" name="mySearch" placeholder="Suche"
-                               data-table="table_aufgabe">
-                        <span class="input-group-append">
-                            <button class="btn btn-outline-primary" type="button"><i class="bi bi-search"></i></button>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" class="form-check-input" name="check_all"
-                               onclick="checkAll(this)">
-                        Alle wählen
-                    </label>
-                </div>
-
-                <table id="table_aufgabe" class="table">
-                    {% for aufgabe in aufgaben %}
-                        <tr>
-                            <td>
-                                <div class="checkbox">
-                                    <input class="form-check-input" type="checkbox"
-                                           id="checkbox_aufgabe_{{ aufgabe.id }}"
-                                           name="aufgaben" value="{{ aufgabe.id }}" onclick="checkedbox(this)">
-                                    <label class="form-check-label" for="checkbox_aufgabe_{{ aufgabe.id }}">
-                                        {{ aufgabe }}
-                                    </label>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </table>
-            </div>
+            </form>
         </div>
+    </div>
+</div>
 
-        {# Submit Button #}
-        <div class="row">
-            <div class="col-12">
-                <button type="submit" class="btn btn-primary">Zuweisen</button>
-            </div>
-        </div>
-    </form>
-
-    {# JavaScript for Search and Checkbox Functionality #}
-    <script>
-        // Search functionality
-        $(document).ready(function () {
-            let name = 'mySearch';
-            $("input[name='" + name + "']").on("keyup", function () {
-                var value = $(this).val().toLowerCase();
-                var table = $(this).data('table');
-                $("#" + table + " tr").filter(function () {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-                });
+{% block scripts %}
+<script>
+    // Search functionality
+    $(document).ready(function () {
+        $("input[name='mySearch']").on("keyup", function () {
+            var value = $(this).val().toLowerCase();
+            var table = $(this).data('table');
+            $("#" + table + " tr").filter(function () {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
             });
         });
+    });
 
-        // Select all checkboxes in a section
-        function checkAll(checkbox) {
-            let table = checkbox.parentElement.parentElement.parentElement;
-            var checkboxes = table.querySelectorAll('input[type="checkbox"]');
-            for (var i = 0; i < checkboxes.length; i++) {
-                checkboxes[i].checked = checkbox.checked;
-            }
-        }
+    // Select all checkboxes in a section
+    function checkAll(checkbox) {
+        let table = $(checkbox).closest('.card-body').find('table');
+        table.find('input[type="checkbox"]').prop('checked', checkbox.checked);
+    }
 
-        // Uncheck "select all" if an individual checkbox is unchecked
-        function checkedbox(checkbox) {
-            if (checkbox.checked === false) {
-                let div = checkbox.parentElement.parentElement
-                while (div.tagName !== 'DIV') {
-                    div = div.parentElement
-                }
-                let check_all = div.querySelector('input[name="check_all"]');
-                check_all.checked = false;
-            }
+    // Uncheck "select all" if an individual checkbox is unchecked
+    function checkedbox(checkbox) {
+        if (!checkbox.checked) {
+            $(checkbox).closest('.card-body').find('input[name="check_all"]').prop('checked', false);
         }
-    </script>
+    }
+</script>
+{% endblock %}
 {% endblock %}
