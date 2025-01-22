@@ -18,6 +18,10 @@ from ORG.models import Dokument, Ordner
 from ORG.views import base_template
 
 
+def datenschutz(request):
+    return render(request, 'datenschutz.html')
+
+
 def checkForOrg(request, context):
     if request.user.customuser.role == 'O':
         context['extends_base'] = base_template
