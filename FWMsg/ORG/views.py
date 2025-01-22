@@ -15,6 +15,7 @@ from functools import wraps
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.template.context_processors import request
+from django.db.models import QuerySet
 
 from FW import models as FWmodels
 from . import models as ORGmodels
@@ -22,9 +23,29 @@ from . import forms as ORGforms
 
 base_template = 'baseOrg.html'
 
+class JahrgangFilteredQuerySet(QuerySet):
+    """Custom QuerySet that automatically filters by jahrgang from cookie."""
+    def __init__(self, *args, **kwargs):
+        self._jahrgang_id = None
+        super().__init__(*args, **kwargs)
+
+    def set_jahrgang_id(self, jahrgang_id):
+        self._jahrgang_id = jahrgang_id
+        return self
+
+    def _clone(self):
+        clone = super()._clone()
+        clone._jahrgang_id = self._jahrgang_id
+        return clone
+
+    def filter(self, *args, **kwargs):
+        queryset = super().filter(*args, **kwargs)
+        if self._jahrgang_id and self.model == FWmodels.Freiwilliger:
+            queryset = queryset.filter(jahrgang=self._jahrgang_id)
+        return queryset
 
 def org_required(view_func):
-    """Decorator to check if user has an associated organization."""
+    """Decorator to check if user has an associated organization and apply jahrgang filter."""
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -33,9 +54,30 @@ def org_required(view_func):
             messages.error(request, 'Kein Zugriff - Sie sind keine Organisation')
             print(request.user.role)
             return redirect(settings.LOGIN_URL)
-        return view_func(request, *args, **kwargs)
-    return _wrapped_view
 
+        # Get jahrgang from cookie
+        jahrgang_id = request.COOKIES.get('selectedJahrgang')
+
+        # Store original queryset method
+        original_get_queryset = FWmodels.Freiwilliger.objects.get_queryset
+
+        # Define new queryset method
+        def get_filtered_queryset(manager):
+            base_qs = original_get_queryset()
+            if jahrgang_id:
+                return base_qs.filter(jahrgang=jahrgang_id)
+            return base_qs
+
+        # Apply the patch
+        FWmodels.Freiwilliger.objects.get_queryset = get_filtered_queryset.__get__(FWmodels.Freiwilliger.objects)
+        
+        try:
+            return view_func(request, *args, **kwargs)
+        finally:
+            # Restore original method
+            FWmodels.Freiwilliger.objects.get_queryset = original_get_queryset
+
+    return _wrapped_view
 
 def org_context_processor(request):
     """Context processor to add jahrgaenge to all templates."""
@@ -392,9 +434,32 @@ def list_ampel_history(request, fid):
 @org_required
 @login_required
 def list_aufgaben(request):
-    aufgaben_unfinished = FWmodels.FreiwilligerAufgaben.objects.filter(org=request.user.org, erledigt=False, pending=False)
-    aufgaben_pending = FWmodels.FreiwilligerAufgaben.objects.filter(org=request.user.org, pending=True, erledigt=False)
-    aufgaben_finished = FWmodels.FreiwilligerAufgaben.objects.filter(org=request.user.org, erledigt=True)
+    # Get jahrgang filter from cookie
+    jahrgang_id = request.COOKIES.get('selectedJahrgang')
+    
+    # Base queryset filters
+    base_filter = {'org': request.user.org}
+    if jahrgang_id:
+        base_filter['freiwilliger__jahrgang'] = jahrgang_id
+
+    # Get filtered tasks for each category
+    aufgaben_unfinished = FWmodels.FreiwilligerAufgaben.objects.filter(
+        **base_filter,
+        erledigt=False,
+        pending=False
+    )
+    
+    aufgaben_pending = FWmodels.FreiwilligerAufgaben.objects.filter(
+        **base_filter,
+        pending=True,
+        erledigt=False
+    )
+    
+    aufgaben_finished = FWmodels.FreiwilligerAufgaben.objects.filter(
+        **base_filter,
+        erledigt=True
+    )
+    
     return render(request, 'list_aufgaben.html', context={
         'aufgaben_unfinished': aufgaben_unfinished,
         'aufgaben_pending': aufgaben_pending,
