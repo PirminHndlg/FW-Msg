@@ -1,63 +1,89 @@
 {% extends "baseOrg.html" %}
 {% load static %}
 {% load ampel_tags %}
+{% load i18n %}
 
-{% block title %}Ampelmeldungen{% endblock %}
+{% block title %}{% trans "Ampelmeldungen" %}{% endblock %}
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/list_ampel.css' %}">
 {% endblock %}
 
 {% block content %}
-    <h2>Ampel Übersicht</h2>
-    
-    {% for jahrgang, fw_matrix in ampel_matrix.items %}
-        <div class="jahrgang-section">
-            <button class="btn btn-secondary w-100 mb-2" type="button" 
-                    data-bs-toggle="collapse" 
-                    data-bs-target="#jahrgang-{{ jahrgang.id }}" 
-                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" 
-                    aria-controls="jahrgang-{{ jahrgang.id }}">
-                {{ jahrgang }}
-            </button>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>{% trans "Ampel Übersicht" %}</h2>
             
-            <div class="collapse {% if forloop.first %}show{% endif %}" id="jahrgang-{{ jahrgang.id }}">
-                <div class="table-responsive mb-4">
-                    <table class="ampel-table">
-                        <thead>
+            <!-- Legend -->
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center">
+                    <span class="ampel-dot ampel-green me-2"></span>
+                    <span>{% trans "Grün" %}</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="ampel-dot ampel-yellow me-2"></span>
+                    <span>{% trans "Gelb" %}</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="ampel-dot ampel-red me-2"></span>
+                    <span>{% trans "Rot" %}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
                             <tr>
-                                <th>Freiwilliger</th>
+                                <th class="border-end sticky-col">{% trans "Freiwilliger" %}</th>
                                 {% for month in months %}
-                                    <th {% if month == current_month %}class="current-month"{% endif %}>
+                                    <th class="text-center {% if month == current_month %}table-active{% endif %}" 
+                                        style="min-width: 100px;">
                                         {{ month }}
                                     </th>
                                 {% endfor %}
                             </tr>
                         </thead>
                         <tbody>
-                            {% for freiwilliger, months_data in fw_matrix.items %}
-                                <tr>
-                                    <td>{{ freiwilliger }}</td>
-                                    {% for month in months %}
-                                        <td {% if month == current_month %}class="current-month"{% endif %}>
-                                            <div class="ampel-dot-container">
-                                                {% for entry in months_data|get_item:month %}
-                                                    <span class="ampel-dot ampel-{{ entry.status }}">
-                                                        <div class="ampel-tooltip">
-                                                            <strong>{{ entry.date }}</strong><br>
-                                                            {{ entry.comment }}
-                                                        </div>
-                                                    </span>
-                                                {% endfor %}
-                                            </div>
+                            {% for jahrgang, fw_matrix in ampel_matrix.items %}
+                                {% for freiwilliger, months_data in fw_matrix.items %}
+                                    <tr>
+                                        <td class="border-end sticky-col">
+                                            <a href="{% url 'list_ampel_history' freiwilliger.id %}" 
+                                               class="text-decoration-none"
+                                               data-bs-toggle="tooltip"
+                                               title="{% trans 'Historie anzeigen' %}">
+                                                {{ freiwilliger }}
+                                            </a>
                                         </td>
-                                    {% endfor %}
-                                </tr>
+                                        {% for month in months %}
+                                            <td class="text-center {% if month == current_month %}table-active{% endif %}">
+                                                <div class="ampel-dot-container">
+                                                    {% for entry in months_data|get_item:month %}
+                                                        <span class="ampel-dot ampel-{{ entry.status }}"
+                                                              data-bs-toggle="tooltip"
+                                                              data-bs-html="true"
+                                                              title="<strong>{{ entry.date }}</strong><br>{{ entry.comment }}">
+                                                        </span>
+                                                    {% endfor %}
+                                                </div>
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-    {% endfor %}
+
+        {% if not ampel_matrix %}
+            <div class="alert alert-info mt-4">
+                {% trans "Keine Ampelmeldungen gefunden." %}
+            </div>
+        {% endif %}
+    </div>
 {% endblock %}
