@@ -44,7 +44,7 @@
 <nav class="navbar navbar-dark bg-primary d-lg-none">
     <div class="container-fluid">
         <!-- Logo/Brand -->
-        <a class="navbar-brand" href="{% url 'fwhome' %}">
+        <a class="navbar-brand" href="{% url 'fw_home' %}">
             {% with org=user|get_org %}
                 <img src="{{ org.logo.url }}" alt="{{ org.name }}-Logo" style="height: 30px;">
             {% endwith %}
@@ -55,7 +55,7 @@
             <button class="btn btn-link nav-link dropdown-toggle text-white p-0" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 {% get_current_language as CURRENT_LANGUAGE %}
                 <span class="fi fi-{% if CURRENT_LANGUAGE == 'de' %}de{% else %}gb{% endif %}"></span>
-                {% if CURRENT_LANGUAGE == 'de' %}{% trans "Deutsch" %}{% else %}{% trans "English" %}{% endif %}
+                {% if CURRENT_LANGUAGE == 'de' %}{% trans "Deutsch" %}{% else %}{% trans "English" %} (Beta){% endif %}
             </button>
 
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
@@ -70,7 +70,7 @@
                             <button type="submit" name="language" value="{{ lang_code }}" 
                                     class="dropdown-item {% if CURRENT_LANGUAGE == lang_code %}active{% endif %}">
                                 <span class="fi fi-{% if lang_code == 'de' %}de{% else %}gb{% endif %}"></span>
-                                {% if lang_code == 'de' %}{% trans "Deutsch" %}{% else %}{% trans "English" %}{% endif %}
+                                {% if lang_code == 'de' %}{% trans "Deutsch" %}{% else %}{% trans "English" %} (Beta){% endif %}
                             </button>
                         </li>
                     {% endfor %}
@@ -87,7 +87,7 @@
         <nav class="col-lg-2 bg-primary d-none d-lg-flex flex-column vh-100 p-3 position-sticky top-0">
             <!-- Logo section -->
             <a class="navbar-brand mb-3 d-flex align-items-center flex-wrap link-underline link-underline-opacity-0 link-underline-opacity-0-hover"
-               href="{% url 'fwhome' %}">
+               href="{% url 'fw_home' %}">
                 {% with org=user|get_org %}
                     <img src="{{ org.logo.url }}" alt="BMW-Logo"
                          style="height: 50px; margin-right: 10px; margin-bottom: 5px;">
@@ -98,7 +98,7 @@
             <div class="overflow-y-auto overflow-x-hidden flex-grow-1" style="min-height: 0;">
                 <ul class="nav flex-column text-white">
                     <li class="nav-item">
-                        <a class="nav-link text-white px-0 py-1" href="{% url 'fwhome' %}">
+                        <a class="nav-link text-white px-0 py-1" href="{% url 'fw_home' %}">
                             <i class="bi bi-house"></i> {% trans "Home" %}
                         </a>
                     </li>
@@ -141,7 +141,7 @@
                         {% if CURRENT_LANGUAGE == 'de' %}
                             <span class="fi fi-de"></span> {% trans "Deutsch" %}
                         {% else %}
-                            <span class="fi fi-gb"></span> {% trans "English" %}
+                            <span class="fi fi-gb"></span> {% trans "English" %} (Beta)
                         {% endif %}
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="languageDropdown">
@@ -156,7 +156,7 @@
                             </li>
                             <li>
                                 <button type="submit" name="language" value="en" class="dropdown-item {% if CURRENT_LANGUAGE == 'en' %}active{% endif %}">
-                                    <span class="fi fi-gb"></span> {% trans "English" %}
+                                    <span class="fi fi-gb"></span> {% trans "English" %} (Beta)
                                 </button>
                             </li>
                         </form>
@@ -182,7 +182,7 @@
     <div class="container-fluid">
         <ul class="navbar-nav nav-justified w-100 d-flex flex-row">
             <li class="nav-item">
-                <a class="nav-link text-white" href="{% url 'fwhome' %}">
+                <a class="nav-link text-white" href="{% url 'fw_home' %}">
                     <i class="bi bi-house"></i>
                     <div>{% trans "Home" %}</div>
                 </a>
