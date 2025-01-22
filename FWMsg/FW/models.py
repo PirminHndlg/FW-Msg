@@ -257,7 +257,7 @@ class Aufgabenprofil(models.Model):
 
     class Meta:
         verbose_name = 'Aufgabenprofil'
-        verbose_name_plural = 'Aufgabenprofile'
+        verbose_name_plural = 'Aufgabenprofil'
 
     def __str__(self):
         return self.name
@@ -372,7 +372,7 @@ class FreiwilligerAufgabenprofil(models.Model):
 
     class Meta:
         verbose_name = 'Freiwilliger Aufgabenprofil'
-        verbose_name_plural = 'Freiwilliger Aufgabenprofile'
+        verbose_name_plural = 'Freiwilliger Aufgabenprofil'
 
     def __str__(self):
         return self.freiwilliger.first_name + ' ' + self.freiwilliger.last_name + ' - ' + self.aufgabenprofil.name
