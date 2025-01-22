@@ -47,3 +47,12 @@ ENV/
 # System files
 .DS_Store
 Thumbs.db
+# Document and file directories
+FWMsg/Berliner Missionswerk/
+FWMsg/dokument/
+*.gcode
+
+# Specific directories to ignore
+FWMsg/dokument/Berliner Missionswerk/Freundeskreis/
+FWMsg/dokument/Berliner Missionswerk/LÜV/
+
