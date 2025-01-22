@@ -20,4 +20,6 @@ urlpatterns = [
 
     path('profil/', views.view_profil, name='profil'),
     path('profil/<int:user_id>', views.view_profil, name='profil'),
+
+    path('datenschutz/', views.datenschutz, name='datenschutz'),
 ]
