@@ -28,6 +28,36 @@ import io
 #     if created:
 #         CustomUser.objects.create(user=instance, org=sender.org)
 
+
+def calculate_small_image(image):
+    # Open the image
+    img = Image.open(image)
+            
+    # Check for EXIF orientation and rotate if needed
+    try:
+        exif = img._getexif()
+        if exif:
+            orientation = exif.get(274)  # 274 is the orientation tag
+            if orientation:
+                rotate_values = {
+                    3: 180,
+                    6: 270,
+                    8: 90
+                }
+                if orientation in rotate_values:
+                    img = img.rotate(rotate_values[orientation], expand=True)
+    except (AttributeError, KeyError, IndexError):
+        # No EXIF data or no orientation info
+        pass
+
+    img.thumbnail((1000, 1000))
+
+    img_io = io.BytesIO()
+    format = "JPEG"
+    img.save(img_io, format=format, quality=85)
+    return ContentFile(img_io.getvalue(), name=image.name.split('/')[-1])
+
+
 class CustomUser(models.Model):
     ROLE_CHOICES = [
         ('A', 'Admin'),
@@ -43,6 +73,14 @@ class CustomUser(models.Model):
 
     def __str__(self):
         return self.user.username
+    
+@receiver(post_save, sender=CustomUser)
+def post_save_handler(sender, instance, created, **kwargs):
+    if instance.profil_picture and not hasattr(instance, '_processing_profil_picture'):
+        instance._processing_profil_picture = True
+        instance.profil_picture = calculate_small_image(instance.profil_picture)
+        instance.save()
+        delattr(instance, '_processing_profil_picture')
 
 # Add property to User model to access org
 User.add_to_class('org', property(lambda self: self.customuser.org if hasattr(self, 'customuser') else None))
@@ -282,6 +320,7 @@ class FreiwilligerAufgaben(models.Model):
     erledigt_am = models.DateField(blank=True, null=True, verbose_name='Erledigt am')
     wiederholung = models.CharField(max_length=1, choices=WIEDERHOLUNG_CHOICES, default='N', verbose_name='Wiederholung')
     wiederholung_ende = models.DateField(blank=True, null=True, verbose_name='Wiederholung bis')
+    file = models.FileField(upload_to='uploads/', blank=True, null=True, verbose_name='Datei')
 
     def save(self, *args, **kwargs):
         print(self.wiederholung, self.wiederholung_ende)
@@ -411,7 +450,7 @@ class Aufgabe(models.Model):
     name = models.CharField(max_length=50, verbose_name='Aufgabenname')
     beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung')
     mitupload = models.BooleanField(default=False, verbose_name='Upload möglich')
-    # faellig = models.DateField(blank=True, null=True, verbose_name='Fällig am')
+    requires_submission = models.BooleanField(default=True, verbose_name='Bestätigung erforderlich')
     faellig_art = models.CharField(max_length=1, choices=FAELLIG_CHOICES, default='W', verbose_name='Fällig Art')
     faellig_tag = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tag')
     faellig_monat = models.IntegerField(blank=True, null=True, verbose_name='Fällig Monat')
