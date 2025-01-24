@@ -434,6 +434,17 @@ def list_ampel_history(request, fid):
 @org_required
 @login_required
 def list_aufgaben(request):
+
+    if request.method == 'POST':
+        aufgabe_id = request.POST.get('aufgabe_id')
+        aufgabe = FWmodels.FreiwilligerAufgaben.objects.get(pk=aufgabe_id)
+
+        if aufgabe.org == request.user.org:
+            aufgabe.erledigt = request.POST.get('erledigt') == 'True'
+            aufgabe.pending = request.POST.get('pending') == 'True'
+            aufgabe.save()
+        return redirect('list_aufgaben')
+
     # Get jahrgang filter from cookie
     jahrgang_id = request.COOKIES.get('selectedJahrgang')
     
@@ -460,16 +471,19 @@ def list_aufgaben(request):
         erledigt=True
     )
     
+    from datetime import date
+    
     return render(request, 'list_aufgaben.html', context={
         'aufgaben_unfinished': aufgaben_unfinished,
         'aufgaben_pending': aufgaben_pending,
-        'aufgaben_finished': aufgaben_finished
+        'aufgaben_finished': aufgaben_finished,
+        'today': date.today()
     })
 
 
 @org_required
 @login_required
-def aufgaben_assign(request, jahrgang=None):
+def aufgaben_assign(request):
     if request.method == 'POST':
         freiwillige = request.POST.getlist('freiwillige')
         profil = request.POST.getlist('profil')
@@ -509,26 +523,11 @@ def aufgaben_assign(request, jahrgang=None):
 
         return redirect('aufgaben_assign')
 
-    if jahrgang:
-        # check if jahrgang is existing and belongs to org
-        jahrgang_exists = FWmodels.Jahrgang.objects.filter(pk=jahrgang).exists()
-        if jahrgang_exists:
-            jahrgang = FWmodels.Jahrgang.objects.get(pk=jahrgang)
-            if not jahrgang.org == request.user.org:
-                return HttpResponse('Nicht erlaubt')
-            freiwillige = FWmodels.Freiwilliger.objects.filter(jahrgang=jahrgang)
-        else:
-            freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
-    else:
-        freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
-
-    jahrgaenge = FWmodels.Jahrgang.objects.filter(org=request.user.org)
+    freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
     aufgaben = FWmodels.Aufgabe.objects.filter(org=request.user.org)
     profil = FWmodels.Aufgabenprofil.objects.filter(org=request.user.org)
 
     context = {
-        'jahr': jahrgang,
-        'jahrgaenge': jahrgaenge,
         'freiwillige': freiwillige,
         'aufgaben': aufgaben,
         'profil': profil
