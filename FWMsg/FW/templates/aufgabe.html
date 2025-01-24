@@ -21,10 +21,21 @@
                     {% csrf_token %}
 
                     {% if aufgabe.mitupload %}
-                        <div class="mb-3">
-                            <label class="form-label">Datei hochladen</label>
-                            <input type="file" class="form-control" name="file">
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Datei hochladen</label>
+                        {% if freiwilliger_aufgaben.file %}
+                            <div id="file-name" class="form-control bg-light">
+                                <i class="bi bi-file-earmark me-2"></i>{{ freiwilliger_aufgaben.file.name|cut:"uploads/" }}
+                            </div>
+                        {% endif %}
+                        {% if not freiwilliger_aufgaben.pending and not freiwilliger_aufgaben.erledigt %}
+                            <input type="file" class="form-control" name="file" 
+                            {% if not freiwilliger_aufgaben.file %}
+                                required
+                            {% endif %}
+                            onchange="document.getElementById('file-name').style.display = 'none';">
+                        {% endif %}
+                    </div>
                     {% endif %}
 
                     <div class="mb-3">
