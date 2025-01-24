@@ -13,7 +13,6 @@ urlpatterns = [
     path('list-ampel/<int:fid>', views.list_ampel_history, name='list_ampel_history'),
     path('list-aufgaben/', views.list_aufgaben, name='list_aufgaben'),
     path('aufgaben-assign/', views.aufgaben_assign, name='aufgaben_assign'),
-    path('aufgaben-assign/<str:jahrgang>', views.aufgaben_assign, name='aufgaben_assign'),
     path('download-bild/<int:id>', views.download_bild_as_zip, name='download_bild_as_zip'),
     path('list-bilder/', views.list_bilder, name='list_bilder'),
 ]
