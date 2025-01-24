@@ -173,8 +173,12 @@ def aufgaben(request):
 def aufgabe(request, aufgabe_id):
     if request.method == 'POST':
         requested_aufgabe = Aufgabe.objects.get(id=aufgabe_id)
+        file = request.FILES.get('file')
         freiwilliger_aufgaben = \
             FreiwilligerAufgaben.objects.filter(aufgabe=requested_aufgabe, freiwilliger__user=request.user)[0]
+        
+        if file and freiwilliger_aufgaben.aufgabe.mitupload:
+            freiwilliger_aufgaben.file = file
         
         action = request.POST.get('action')
         if action == 'unpend':
@@ -182,9 +186,15 @@ def aufgabe(request, aufgabe_id):
             freiwilliger_aufgaben.erledigt = False
             freiwilliger_aufgaben.erledigt_am = None
         else:  # action == 'pending'
-            freiwilliger_aufgaben.pending = True
-            freiwilliger_aufgaben.erledigt = False
+            if requested_aufgabe.requires_submission:
+                freiwilliger_aufgaben.pending = True
+                freiwilliger_aufgaben.erledigt = False
+            else:
+                freiwilliger_aufgaben.pending = False
+                freiwilliger_aufgaben.erledigt = True
+
             freiwilliger_aufgaben.erledigt_am = datetime.now()
+
 
         freiwilliger_aufgaben.save()
         base_url = reverse('aufgaben')
