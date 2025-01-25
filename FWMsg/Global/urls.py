@@ -22,4 +22,6 @@ urlpatterns = [
     path('profil/<int:user_id>', views.view_profil, name='profil'),
 
     path('datenschutz/', views.datenschutz, name='datenschutz'),
+
+    path('send_aufgaben_email/', views.send_aufgaben_email, name='send_aufgaben_email'),
 ]
