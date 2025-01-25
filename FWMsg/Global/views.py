@@ -17,6 +17,12 @@ from ORG.models import Dokument, Ordner
 
 from ORG.views import base_template
 
+from FW.tasks import send_aufgaben_email_task
+
+def send_aufgaben_email(request):
+    print('send_aufgaben_email')
+    send_aufgaben_email_task.delay()
+    return HttpResponse({"success": True, "message": "Email sent"}, content_type="application/json")
 
 def datenschutz(request):
     return render(request, 'datenschutz.html')
