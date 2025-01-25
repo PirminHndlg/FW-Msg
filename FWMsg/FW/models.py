@@ -317,6 +317,7 @@ class FreiwilligerAufgaben(models.Model):
     pending = models.BooleanField(default=False, verbose_name='Wird bearbeitet')
     datetime = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
     faellig = models.DateField(blank=True, null=True, verbose_name='Fällig am')
+    last_reminder = models.DateField(blank=True, null=True, verbose_name='Letzte Erinnerung')
     erledigt_am = models.DateField(blank=True, null=True, verbose_name='Erledigt am')
     wiederholung = models.CharField(max_length=1, choices=WIEDERHOLUNG_CHOICES, default='N', verbose_name='Wiederholung')
     wiederholung_ende = models.DateField(blank=True, null=True, verbose_name='Wiederholung bis')
