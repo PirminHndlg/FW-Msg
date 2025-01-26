@@ -150,65 +150,7 @@
 
         <div class="card-body">
             <div class="row">
-                {% for bild in bilder_gallery_of_user %}
-                    <div class="col-lg-3 col-md-4 col-6">
-                        <div class="mb-3">
-                            <div class="position-relative">
-                                <img src="{% url 'serve_small_bilder' bild.id %}" 
-                                        alt="{% trans 'Bild' %}"
-                                        data-large="{% url 'serve_bilder' bild.id %}"
-                                        class="img-fluid rounded shadow-sm hover-zoom"
-                                        style="object-fit: cover; height: 200px; width: 100%; cursor: pointer;"
-                                        onclick="showFullscreen(this)">
-                                
-                                {# Image Actions Dropdown #}
-                                {% if this_user %}
-                                <div class="dropdown position-absolute top-0 end-0 m-2">
-                                    <button type="button" 
-                                            class="btn btn-light btn-sm"
-                                            data-bs-toggle="dropdown"
-                                            aria-expanded="false">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li>
-                                            <button type="button" 
-                                                    class="dropdown-item text-danger"
-                                                    onclick="showDeleteConfirmation({{ bild.id }}, '{% if bild.small_image %}{{ bild.small_image.url }}{% else %}{{ bild.image.url }}{% endif %}', '{{ bild.bilder.titel }}')">
-                                                <i class="bi bi-trash me-2"></i>{% trans "Dieses Bild löschen" %}
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item text-danger"
-                                                onclick="showDeleteConfirmationAll({{ bild.bilder.id }})">
-                                                <i class="bi bi-trash me-2"></i>{% trans "Alle Bilder löschen" %}
-                                            </a>
-                                        </li>
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            {# Fullscreen Image Container - Moved to overlay position #}
-                            <div id="fullscreen-container" class="fullscreen-overlay position-fixed d-none" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); z-index: 1050; display: flex; justify-content: center; align-items: center;" onclick="hideFullscreen()">
-                                <img id="fullscreen-image" src="" alt="Fullscreen" class="fullscreen-image" style="max-height: 90vh; max-width: 90vw; object-fit: contain;">
-                            </div>
-
-                            {# Image Details #}
-                            <div class="mt-2">
-                                <h5 class="mb-1">{{ bild.bilder.titel }}</h5>
-                                <p class="small text-muted mb-1">{{ bild.bilder.date_created|date:"d.m.Y" }}</p>
-                                <p class="small mb-0">
-                                    <span class="description-preview">{{ bild.bilder.beschreibung|truncatewords:10 }}</span>
-                                    <span class="description-full" style="display:none">{{ bild.bilder.beschreibung }}</span>
-                                    {% if bild.bilder.beschreibung|wordcount > 10 %}
-                                        <a href="#" class="show-more" onclick="event.preventDefault(); toggleDescription(this);">{% trans "mehr" %}</a>
-                                    {% endif %}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
+                {% include 'bilder_show.html' with gallery_images=gallery_images %}
             </div>
         </div>
     </div>
