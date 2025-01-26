@@ -6,16 +6,13 @@
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/dokumente.css' %}">
     <script src="{% static 'js/dokumente.js' %}"></script>
+    <script>
+        let is_org = '{{ user.role|lower }}' == 'o';
+    </script>
 {% endblock %}
 
 {% block headline %}
     Dokumente
-{% endblock %}
-
-{% block script %}
-    <script>
-        var is_org = {{ is_org|yesno:"true,false" }};
-    </script>
 {% endblock %}
 
 {% block content %}
@@ -23,7 +20,7 @@
     <div class="accordion mb-3" id="folderAccordion">
         {% for structure in folder_structure %}
             <div class="card rounded-4 mb-3">
-                <div class="card-header">
+                <div class="card-header p-0 rounded-4">
                     <button class="accordion-button collapsed rounded-4" 
                             type="button" 
                             data-bs-toggle="collapse" 
@@ -107,14 +104,14 @@
 
                                                 {% if dokument.link %}
                                                     <p class="card-text text-muted small">
-                                                        <a href="{% url 'serve_dokument' dokument.id %}" target="_blank">{{ dokument.link }}</a>
+                                                        <a href="{% url 'serve_dokument' dokument.id %}" target="_blank" class="text-decoration-none">{{ dokument.link }}</a>
                                                     </p>
                                                 {% endif %}
 
                                                 {% if dokument.dokument %}
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <a href="{% url 'serve_dokument' dokument.id %}?download=true" 
-                                                    class="btn btn-outline-primary btn-sm rounded-4"
+                                                    class="btn btn-outline-primary btn-sm rounded-4 text-decoration-none"
                                                     download>
                                                         <i class="bi bi-download"></i> Download
                                                     </a>
