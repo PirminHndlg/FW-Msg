@@ -35,15 +35,12 @@ def index(request):
 
 def first_login(request):
     if request.method == 'POST':
-        print(request.POST)
         user_name = request.POST['username']
         password = request.POST['password']
         password_repeat = request.POST['password_repeat']
         einmalpasswort = request.POST['einmalpasswort']
 
         user = User.objects.get(username=user_name)
-
-        print(password, password_repeat, einmalpasswort)
 
         if password != password_repeat:
             messages.error(request, _('Passwörter stimmen nicht überein.'))
