@@ -7,6 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="{{ user|get_color }}">
     <title>FW Msg</title>
 
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
@@ -96,7 +97,7 @@
             </a>
             <!-- Scrollable menu section -->
             <div class="overflow-y-auto overflow-x-hidden flex-grow-1" style="min-height: 0;">
-                <ul class="nav flex-column text-white">
+                <ul class="nav flex-column text-white gap-2">
                     <li class="nav-item">
                         <a class="nav-link text-white px-0 py-1" href="{% url 'fw_home' %}">
                             <i class="bi bi-house"></i> {% trans "Home" %}
@@ -105,6 +106,16 @@
                     <li class="nav-item">
                         <a class="nav-link text-white px-0 py-1" href="{% url 'aufgaben' %}">
                             <i class="bi bi-list-check"></i> {% trans "Aufgaben" %}
+                        </a>
+                    </li>
+                    <li class="nav-item"></li>
+                        <a class="nav-link text-white px-0 py-1" href="{% url 'bild' %}">
+                            <i class="bi bi-image"></i> {% trans "Bilder hochladen" %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white px-0 py-1" href="{% url 'ampel' %}">
+                            <i class="bi bi-plus-circle"></i> {% trans "Ampelmeldung" %}
                         </a>
                     </li>
                     <li class="nav-item">
@@ -116,20 +127,6 @@
                         <a class="nav-link text-white px-0 py-1" href="{% url 'profil' %}">
                             <i class="bi bi-person"></i> {% trans "Profil" %}
                         </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white px-0 py-1"
-                           id="addDropdown" role="button" data-bs-toggle="dropdown"
-                           aria-expanded="false">
-                            <i class="bi bi-plus-circle text-white"></i>
-                            <small class="text-white">{% trans "Add" %}</small>
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="addDropdown">
-                            <li><a class="dropdown-item" href="{% url 'bild' %}">{% trans "Bilder hochladen" %}</a></li>
-                            <li><a class="dropdown-item" href="#">{% trans "Dokumente hochladen" %}</a></li>
-                            <li><a class="dropdown-item" href="{% url 'aufgaben' %}">{% trans "Aufgabe erledigen" %}</a></li>
-                            <li><a class="dropdown-item" href="{% url 'ampel' %}">{% trans "Ampelmeldung" %}</a></li>
-                        </ul>
                     </li>
                 </ul>
             </div>
@@ -166,8 +163,8 @@
         </nav>
 
         <!-- Main content -->
-        <main class="col-lg-10 col-md-12 pt-3 pb-5 pb-lg-3 mb-4 mb-lg-0"
-              style="background-color: var(--background-color); margin-bottom: 70px;">
+        <main class="col-lg-10 col-md-12 pt-3 pb-5 pb-lg-3 mb-4 mb-lg-0 h-100"
+              style="background-color: var(--background-color); margin-bottom: 70px; min-height: 100vh;">
             {% include 'error_message.html' %}
             {% block content %}
             {% endblock %}
@@ -202,7 +199,6 @@
                 <ul class="dropdown-menu position-absolute" aria-labelledby="dropdownAdd"
                     style="top: auto; bottom: 80%; left: 50%; transform: translateX(-50%);">
                     <li><a class="dropdown-item" href="{% url 'bild' %}">{% trans "Bilder hochladen" %}</a></li>
-                    <li><a class="dropdown-item" href="#">{% trans "Dokumente hochladen" %}</a></li>
                     <li><a class="dropdown-item" href="{% url 'aufgaben' %}">{% trans "Aufgabe erledigen" %}</a></li>
                     <li><a class="dropdown-item" href="{% url 'ampel' %}">{% trans "Ampelmeldung" %}</a></li>
                 </ul>
