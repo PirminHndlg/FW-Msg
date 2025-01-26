@@ -2,20 +2,22 @@
 {% load static %}
 
 {% block title %}
-    Bilder
+Bilder
 {% endblock %}
 
 {% block content %}
-<div class="row g-4 mb-4">
-    <!-- Add Images Button -->
-    <div class="col-12">
-        <div class="d-flex flex-row-reverse justify-content-between align-items-center mb-1">
-            <a href="{% url 'bild' %}" class="btn btn-primary text-white">
-                <i class="bi bi-plus-circle me-2"></i>Bilder hinzufügen
-            </a>
-        </div>
+<div class="card rounded-4 mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="mb-0">Bilder</h3>
+        <a href="{% url 'bild' %}" class="btn btn-sm btn-primary text-white">
+            <i class="bi bi-plus-circle me-2"></i>Bilder hinzufügen
+        </a>
     </div>
 
-    {% include 'bilder_show.html' with gallery_images=gallery_images %}
+    <div class="card-body">
+        <div class="row g-4">
+            {% include 'bilder_show.html' with gallery_images=gallery_images %}
+        </div>
+    </div>
 </div>
 {% endblock %}
