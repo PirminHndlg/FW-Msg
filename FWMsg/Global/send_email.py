@@ -80,7 +80,7 @@ aufgaben_email_template = """
 </html>
 """
 
-register_email_template = """
+register_email_fw_template = """
 <html>
 <body>
     <a>- English version below -</a>
@@ -114,6 +114,20 @@ register_email_template = """
 </html>
 """
 
+register_email_org_template = """
+<html>
+<body>
+    <a>- English version below -</a>
+    <p>An {org_name}</p>
+    <p>Es wurde ein neuer Account auf Volunteer.Solutions erstellt.</p>
+    <p>Bitte nutze für den Login die folgenden Daten:<br>Benutzername: {username}<br>Einmalpasswort: {einmalpasswort}</p>
+    <p>Alternativ kannst Du dich auch über die folgende URL einloggen: <a href="{action_url}">{action_url}</a></p>
+    <br>
+    <small>Falls diese E-Mail in Ihrem Spam-Ordner gelandet ist, ist es empfehlenswert, diese E-Mail in den Posteingang zu verschieben und eine leere E-Mail an <a href="mailto:admin@volunteer.solutions">admin@volunteer.solutions</a> zu schreiben.</small>
+</body>
+</html>
+"""
+
 def format_aufgaben_email(aufgabe_name, aufgabe_deadline, base64_image, org_name, freiwilliger_name, action_url):
     return aufgaben_email_template.format(
         aufgabe_name=aufgabe_name,
@@ -124,11 +138,20 @@ def format_aufgaben_email(aufgabe_name, aufgabe_deadline, base64_image, org_name
         action_url=action_url
     )
 
-def format_register_email(einmalpasswort, action_url, base64_image, org_name, freiwilliger_name, username):
-    return register_email_template.format(
+def format_register_email_fw(einmalpasswort, action_url, base64_image, org_name, freiwilliger_name, username):
+    return register_email_fw_template.format(
         einmalpasswort=einmalpasswort,
         action_url=action_url,
         base64_image=base64_image,
+        org_name=org_name,
+        freiwilliger_name=freiwilliger_name,
+        username=username
+    )
+
+def format_register_email_org(einmalpasswort, action_url, org_name, freiwilliger_name, username):
+    return register_email_org_template.format(
+        einmalpasswort=einmalpasswort,
+        action_url=action_url,
         org_name=org_name,
         freiwilliger_name=freiwilliger_name,
         username=username
