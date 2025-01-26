@@ -1,6 +1,6 @@
 from django import template
 
-from ..models import CustomUser
+from Global.models import CustomUser
 
 register = template.Library()
 
