@@ -5,7 +5,7 @@ from celery import shared_task
 
 from FW.models import FreiwilligerAufgaben
 
-from Global.send_email import send_mail_smtp, format_register_email
+from Global.send_email import send_mail_smtp, format_register_email_fw
 
 
 @shared_task
@@ -47,7 +47,7 @@ def send_register_email_task(freiwilliger_id):
     freiwilliger_name = f"{freiwilliger.first_name} {freiwilliger.last_name}"
     username = freiwilliger.user.username
     
-    email_content = format_register_email(einmalpasswort, action_url, base64_image, org_name, freiwilliger_name, username)
+    email_content = format_register_email_fw(einmalpasswort, action_url, base64_image, org_name, freiwilliger_name, username)
     subject = f'Account erstellt: {freiwilliger_name}'
     if send_mail_smtp(freiwilliger.email, subject, email_content, reply_to=org.email):
         return True
