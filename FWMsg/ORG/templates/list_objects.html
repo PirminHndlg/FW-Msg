@@ -39,66 +39,68 @@
 
     {% include "filter_form.html" %}
 
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    {% for field in field_metadata %}
-                        <th>{{ field.verbose_name }}</th>
-                    {% endfor %}
-                    <th class="position-sticky" style="right: 0; background: white;"></th>
-                </tr>
-            </thead>
-            <tbody id="myTable">
-                {% for object in objects %}
-                    <tr data-pk="{{ object.pk }}">
-                        {% for field in field_metadata %}
-                            <td data-default="{{ object|get_attribute:field.name|default:'' }}"
-                                data-field="{{ field.name }}">
-                                {% if object|is_many_to_many:field.name %}
-                                    {% with items=object|get_attribute:field.name %}
-                                        {{ items.all|join:", " }}
-                                    {% endwith %}
-                                {% else %}
-                                    {% if object|get_field_type:field.name == 'BooleanField' %}
-                                        <div class="text-center">
-                                            {% if object|get_attribute:field.name %}
-                                                <i class="bi bi-check text-white bg-success rounded"></i>
-                                            {% endif %}
-                                        </div>
-                                    {% elif object|get_field_type:field.name == 'CharField' and object|get_attribute:field.name|length == 1 %}
-                                        <div class="text-center">
-                                            {{ object|get_attribute:field.name|default:'' }}
-                                        </div>
-                                    {% elif object|get_field_type:field.name == 'DateField' or object|get_field_type:field.name == 'DateTimeField' %}
-                                        {{ object|get_attribute:field.name|date:"d.m.Y"|default:'' }}
-                                    {% else %}
-                                        {{ object|get_attribute:field.name|default:'' }}
-                                    {% endif %}
-                                {% endif %}
-                            </td>
-                        {% endfor %}
-                        <td class="position-sticky" style="right: 0">
-                            <div class="btn-group">
-                                <a class="btn btn-sm btn-outline-primary" href="{% url 'edit_object' model_name object.pk %}">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a class="btn btn-sm btn-outline-danger" href="{% url 'delete_object' model_name object.pk %}"
-                                   onclick="return confirm('{% trans 'Are you sure you want to delete this item?' %}')">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                {% empty %}
+    <div class="card rounded-4 p-1">
+        <div class="table-responsive rounded-4">
+            <table class="table table-hover mb-0 align-middle">
+                <thead>
                     <tr>
-                        <td colspan="{{ field_metadata|length|add:1 }}" class="text-center">
-                            {% trans "No items found" %}
-                        </td>
+                        {% for field in field_metadata %}
+                            <th>{{ field.verbose_name }}</th>
+                        {% endfor %}
+                        <th class="position-sticky" style="right: 0; background: white;"></th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody id="myTable">
+                    {% for object in objects %}
+                        <tr data-pk="{{ object.pk }}">
+                            {% for field in field_metadata %}
+                                <td data-default="{{ object|get_attribute:field.name|default:'' }}"
+                                    data-field="{{ field.name }}">
+                                    {% if object|is_many_to_many:field.name %}
+                                        {% with items=object|get_attribute:field.name %}
+                                            {{ items.all|join:", " }}
+                                        {% endwith %}
+                                    {% else %}
+                                        {% if object|get_field_type:field.name == 'BooleanField' %}
+                                            <div class="text-center">
+                                                {% if object|get_attribute:field.name %}
+                                                    <i class="bi bi-check text-white bg-success rounded"></i>
+                                                {% endif %}
+                                            </div>
+                                        {% elif object|get_field_type:field.name == 'CharField' and object|get_attribute:field.name|length == 1 %}
+                                            <div class="text-center">
+                                                {{ object|get_attribute:field.name|default:'' }}
+                                            </div>
+                                        {% elif object|get_field_type:field.name == 'DateField' or object|get_field_type:field.name == 'DateTimeField' %}
+                                            {{ object|get_attribute:field.name|date:"d.m.Y"|default:'' }}
+                                        {% else %}
+                                            {{ object|get_attribute:field.name|default:'' }}
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                            <td class="position-sticky" style="right: 0">
+                                <div class="btn-group">
+                                    <a class="btn btn-sm btn-outline-primary" href="{% url 'edit_object' model_name object.pk %}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a class="btn btn-sm btn-outline-danger" href="{% url 'delete_object' model_name object.pk %}"
+                                    onclick="return confirm('{% trans 'Are you sure you want to delete this item?' %}')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="{{ field_metadata|length|add:1 }}" class="text-center">
+                                {% trans "No items found" %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
