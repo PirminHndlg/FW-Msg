@@ -70,6 +70,12 @@
                             </button>
                         </form>
 
+                        <div class="mt-4 text-center">
+                            <a href="{% url 'first_login' %}" class="btn btn-link">
+                                {% trans "Anmelden mit Einmalpasswort" %}
+                            </a>
+                        </div>
+
                         <!-- Language Selector -->
                         <div class="mt-4 text-center">
                             <form action="{% url 'set_language' %}" method="post" class="d-inline">
