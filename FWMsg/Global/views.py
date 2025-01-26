@@ -201,7 +201,7 @@ def bild(request):
                     messages.error(request, f'Error saving image: {str(e)}')
                     continue
 
-            return redirect('fw_home')
+            return redirect('bilder')
         else:
             form_errors = bilder_form.errors
 
@@ -445,7 +445,10 @@ def view_profil(request, user_id=None):
 
 
     profil_user_form = ProfilUserForm()
-    freiwilliger = Freiwilliger.objects.get(user=user)
+    if Freiwilliger.objects.filter(user=user).exists():
+        freiwilliger = Freiwilliger.objects.get(user=user)
+    else:
+        freiwilliger = None
 
     context = {
         'freiwilliger': freiwilliger,
