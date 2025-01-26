@@ -19,9 +19,13 @@ from ORG.views import base_template
 
 from FW.tasks import send_aufgaben_email_task
 
+from FWMsg.celery import send_email_aufgaben_daily
+
+from FWMsg.decorators import required_role
+
 def send_aufgaben_email(request):
     print('send_aufgaben_email')
-    send_aufgaben_email_task.delay()
+    send_email_aufgaben_daily.delay()
     return HttpResponse({"success": True, "message": "Email sent"}, content_type="application/json")
 
 def datenschutz(request):
@@ -29,12 +33,15 @@ def datenschutz(request):
 
 
 def checkForOrg(request, context):
+    if not request.user.is_authenticated or not hasattr(request.user, 'customuser'):
+        return context
     if request.user.customuser.role == 'O':
         context['extends_base'] = base_template
         context['is_org'] = True
     return context
 
 @login_required
+@required_role('')
 def serve_logo(request, image_name):
     # Define the path to the image directory
     image_path = os.path.join(settings.LOGOS_PATH, image_name)
@@ -55,6 +62,7 @@ def serve_logo(request, image_name):
     return response
 
 @login_required
+@required_role('')
 def serve_bilder(request, image_id):
     # Define the path to the image directory
     bild = BilderGallery.objects.get(id=image_id)
@@ -65,6 +73,7 @@ def serve_bilder(request, image_id):
 
 
 @login_required
+@required_role('')
 def serve_small_bilder(request, image_id):
     # Define the path to the image directory
     bild = BilderGallery.objects.get(id=image_id)
@@ -95,6 +104,7 @@ def pdf_to_image(doc_path):
 
 
 @login_required
+@required_role('')
 def serve_dokument(request, dokument_id):
     img = request.GET.get('img', None)
     download = request.GET.get('download', None)
@@ -133,15 +143,19 @@ def serve_dokument(request, dokument_id):
         response = HttpResponse(file.read(), content_type=mimetype or 'application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{dokument.dokument.name}"'
         return response
-    
-@login_required
-def bilder(request):
+
+def get_bilder(request, filter_user=None):
     bilder = Bilder.objects.filter(org=request.user.org)
-
+    if filter_user:
+        bilder = bilder.filter(user=filter_user)
     gallery_images = {}
-
     for bild in bilder:
         gallery_images[bild] = BilderGallery.objects.filter(bilder=bild)
+    return gallery_images
+
+@login_required
+def bilder(request):
+    gallery_images = get_bilder(request)
 
     context={'gallery_images': gallery_images}
 
@@ -152,6 +166,7 @@ def bilder(request):
 
 
 @login_required
+@required_role('')
 def bild(request):
     form_errors = None
 
@@ -205,6 +220,7 @@ def bild(request):
 
 
 @login_required
+@required_role('')
 def remove_bild(request):
     gallery_image_id = request.GET.get('galleryImageId', None)
     bild_id = request.GET.get('bildId', None)
@@ -238,6 +254,7 @@ def remove_bild(request):
 
 
 @login_required
+@required_role('')
 def remove_bild_all(request):
     bild_id = request.GET.get('bild_id', None)
     if not bild_id:
@@ -259,6 +276,7 @@ def remove_bild_all(request):
 
 
 @login_required
+@required_role('')
 def dokumente(request):
     ordners = Ordner.objects.filter(org=request.user.org).order_by('ordner_name')
 
@@ -282,6 +300,7 @@ def dokumente(request):
 
 
 @login_required
+@required_role('')
 def add_dokument(request):
     if request.method == 'POST':
         ordner = Ordner.objects.get(id=request.POST.get('ordner'))
@@ -306,6 +325,7 @@ def add_dokument(request):
 
 
 @login_required
+@required_role('')
 def add_ordner(request):
     if request.method == 'POST':
         ordner_name = request.POST.get('ordner_name')
@@ -328,6 +348,7 @@ def get_bild(image_path, image_name):
 
 
 @login_required
+@required_role('')
 def remove_dokument(request):
     if request.method == 'POST':
         dokument_id = request.POST.get('dokument_id')
@@ -344,6 +365,7 @@ def remove_dokument(request):
 
 
 @login_required
+@required_role('')
 def remove_ordner(request):
     if request.method == 'POST':
         ordner_id = request.POST.get('ordner_id')
@@ -363,6 +385,7 @@ def remove_ordner(request):
 
 
 @login_required
+@required_role('')
 def update_profil_picture(request):
     if request.method == 'POST' and request.FILES.get('profil_picture'):
         try:
@@ -380,6 +403,7 @@ def update_profil_picture(request):
     return redirect('profil')
 
 @login_required
+@required_role('')
 def serve_profil_picture(request, user_id):
     requested_user = User.objects.get(id=user_id)
 
@@ -392,6 +416,7 @@ def serve_profil_picture(request, user_id):
     return get_bild(requested_user.customuser.profil_picture.path, requested_user.customuser.profil_picture.name)
 
 @login_required
+@required_role('')
 def view_profil(request, user_id=None):
     this_user = False
     if not user_id or user_id == request.user.id:
@@ -412,9 +437,7 @@ def view_profil(request, user_id=None):
             return redirect('profil')
 
     profil_users = ProfilUser.objects.filter(user=user)
-    bilder_of_user = Bilder.objects.filter(user=user)
-    bilder_gallery_of_user = BilderGallery.objects.filter(bilder__in=bilder_of_user).order_by('-bilder__date_created')
-    print(bilder_gallery_of_user)
+    gallery_images = get_bilder(request, user)
 
     ampel_of_user = None
     if this_user:
@@ -429,8 +452,8 @@ def view_profil(request, user_id=None):
         'profil_users': profil_users,
         'profil_user_form': profil_user_form,
         'this_user': this_user,
-        'bilder_gallery_of_user': bilder_gallery_of_user,
-        'ampel_of_user': ampel_of_user
+        'ampel_of_user': ampel_of_user,
+        'gallery_images': gallery_images
     }
 
     context = checkForOrg(request, context)
