@@ -78,10 +78,10 @@ def remove_profil_attribut(request, profil_id):
 @login_required
 @required_role('F')
 def ampel(request):
-    ampel = request.GET.get('ampel', None)
+    ampel = request.POST.get('ampel', None)
     if ampel and ampel.upper() in ['R', 'G', 'Y']:
         ampel = ampel.upper()
-        comment = request.GET.get('comment', None)
+        comment = request.POST.get('ampel_comment', None)
         freiwilliger = Freiwilliger.objects.get(user=request.user)
         ampel_object = Ampel.objects.create(
             freiwilliger=freiwilliger, 
