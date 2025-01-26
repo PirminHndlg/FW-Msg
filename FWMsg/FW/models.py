@@ -9,7 +9,24 @@ from Global.models import CustomUser
 from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 from django.core.files.base import ContentFile
+from FWMsg.middleware import get_current_request
 import io
+
+
+class OrgManager(models.Manager):
+    def get_queryset(self):
+        request = get_current_request()
+        if request and hasattr(request, 'user') and hasattr(request.user, 'org'):
+            return super().get_queryset().filter(org=request.user.org)
+        return super().get_queryset()
+
+
+class OrgModel(models.Model):
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    objects = OrgManager()
+
+    class Meta:
+        abstract = True
 
 
 # class Organisation(models.Model):
@@ -59,8 +76,7 @@ def calculate_small_image(image):
     return ContentFile(img_io.getvalue(), name=image.name.split('/')[-1])
 
 
-class Entsendeform(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+class Entsendeform(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Entsendeform-Name')
 
     class Meta:
@@ -71,8 +87,7 @@ class Entsendeform(models.Model):
         return self.name
 
 
-class Kirchenzugehoerigkeit(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+class Kirchenzugehoerigkeit(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Kirchenzugehoerigkeit-Name')
 
     class Meta:
@@ -83,8 +98,7 @@ class Kirchenzugehoerigkeit(models.Model):
         return self.name
 
 
-class Einsatzland(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+class Einsatzland(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Einsatzland')
     code = models.CharField(max_length=2, verbose_name='Einsatzland-Code')
 
@@ -96,8 +110,7 @@ class Einsatzland(models.Model):
         return self.name
 
 
-class Einsatzstelle(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+class Einsatzstelle(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Einsatzstelle')
     land = models.ForeignKey(Einsatzland, on_delete=models.CASCADE, verbose_name='Einsatzland')
 
@@ -109,8 +122,7 @@ class Einsatzstelle(models.Model):
         return self.name
 
 
-class Jahrgang(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+class Jahrgang(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Jahrgang')
     start = models.DateField(verbose_name='Startdatum')
     ende = models.DateField(verbose_name='Enddatum')
@@ -121,6 +133,12 @@ class Jahrgang(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def get_queryset(self):
+        if self.request.user.org == self.org:
+            return super().get_queryset()
+        else:
+            return super().get_queryset().filter(org=self.request.user.org)
 
 
 # Create your models here.
@@ -181,7 +199,7 @@ class Freiwilliger(models.Model):
 def post_save_handler(sender, instance, created, **kwargs):
     if created:
         import random
-        
+
         # Create username by combining first and last names
         default_username = f"{instance.first_name.replace(' ', '')[:4].lower()}{instance.last_name.split(' ')[-1][:4].lower()}"
         username = default_username
@@ -229,8 +247,7 @@ def post_delete_handler(sender, instance, **kwargs):
     instance.user.delete()
 
 
-class Notfallkontakt(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+class Notfallkontakt(OrgModel):
     first_name = models.CharField(max_length=50, verbose_name='Vorname')
     last_name = models.CharField(max_length=50, verbose_name='Nachname')
     phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon')
@@ -245,14 +262,13 @@ class Notfallkontakt(models.Model):
         return self.first_name + ' ' + self.last_name
 
 
-class Ampel(models.Model):
+class Ampel(OrgModel):
     CHOICES = [
         ('G', 'Grün'),
         ('Y', 'Gelb'),
         ('R', 'Rot'),
     ]
 
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
     freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
     status = models.CharField(max_length=1, choices=CHOICES, verbose_name='Ampelmeldung')
     comment = models.TextField(blank=True, null=True, verbose_name='Kommentar')
@@ -266,8 +282,7 @@ class Ampel(models.Model):
         return self.freiwilliger.first_name + ' ' + self.freiwilliger.last_name + ' - ' + self.status
 
 
-class Aufgabenprofil(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+class Aufgabenprofil(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Aufgabenprofil-Name')
     beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung')
     einsatzland = models.ForeignKey(Einsatzland, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Einsatzland')
@@ -282,7 +297,7 @@ class Aufgabenprofil(models.Model):
         return self.name
 
 
-class FreiwilligerAufgaben(models.Model):
+class FreiwilligerAufgaben(OrgModel):
     WIEDERHOLUNG_CHOICES = [
         ('T', 'Täglich'),
         ('W', 'Wöchentlich'),
@@ -291,7 +306,6 @@ class FreiwilligerAufgaben(models.Model):
         ('N', 'Nicht wiederholen')
     ]
 
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
     freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
     aufgabe = models.ForeignKey('Aufgabe', on_delete=models.CASCADE, verbose_name='Aufgabe')
     erledigt = models.BooleanField(default=False, verbose_name='Erledigt')
@@ -353,8 +367,7 @@ class FreiwilligerAufgaben(models.Model):
         return self.freiwilliger.first_name + ' ' + self.freiwilliger.last_name + ' - ' + self.aufgabe.name
 
 
-class FreiwilligerUpload(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+class FreiwilligerUpload(OrgModel):
     freiwilligeraufgabe = models.ForeignKey(FreiwilligerAufgaben, on_delete=models.CASCADE, verbose_name='Freiwillige:r Aufgabe')
     file = models.FileField(upload_to='uploads/', verbose_name='Datei')
     datetime = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
@@ -372,8 +385,7 @@ class FreiwilligerUpload(models.Model):
 #     instance.file.delete(False)
 #     os.remove(instance.file.path)
 
-class FreiwilligerFotos(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+class FreiwilligerFotos(OrgModel):
     freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
     file = models.ImageField(upload_to='fotos/', verbose_name='Foto')
     datetime = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
@@ -386,8 +398,7 @@ class FreiwilligerFotos(models.Model):
         return self.file.name
 
 
-class FreiwilligerAufgabenprofil(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+class FreiwilligerAufgabenprofil(OrgModel):
     freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
     aufgabenprofil = models.ForeignKey(Aufgabenprofil, on_delete=models.CASCADE, verbose_name='Aufgabenprofil')
 
@@ -420,7 +431,7 @@ def post_delete_handler(sender, instance, **kwargs):
         FreiwilligerAufgaben.objects.filter(freiwilliger=instance.freiwilliger, aufgabe=aufgabe.aufgabe).delete()
 
 
-class Aufgabe(models.Model):
+class Aufgabe(OrgModel):
     FAELLIG_CHOICES = [
         ('V', 'Vor Einsatzstart'),
         ('W', 'Während Einsatz'),
@@ -428,7 +439,6 @@ class Aufgabe(models.Model):
         ('A', 'Aktuelles Jahr'),
     ]
     
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
     name = models.CharField(max_length=50, verbose_name='Aufgabenname')
     beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung')
     mitupload = models.BooleanField(default=False, verbose_name='Upload möglich')
@@ -447,8 +457,7 @@ class Aufgabe(models.Model):
         return self.name
 
 
-class Post(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+class Post(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
     title = models.CharField(max_length=50, verbose_name='Posttitel')
     text = models.TextField(verbose_name='Text')
@@ -468,8 +477,7 @@ def post_save_handler(sender, instance, **kwargs):
         pass
 
 
-class Bilder(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+class Bilder(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
     titel = models.CharField(max_length=50, verbose_name='Bildtitel')
     beschreibung = models.TextField(blank=True, null=True, verbose_name='Beschreibung')
@@ -484,8 +492,7 @@ class Bilder(models.Model):
         return self.titel
 
 
-class BilderGallery(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+class BilderGallery(OrgModel):
     image = models.ImageField(upload_to='bilder/', verbose_name='Bild')
 
     small_image = models.ImageField(upload_to='bilder/small/', blank=True, null=True, verbose_name='Kleines Bild')
@@ -569,7 +576,7 @@ def delete_bilder_files(sender, instance, **kwargs):
 
 
 
-class ProfilUser(models.Model):
+class ProfilUser(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
     attribut = models.CharField(max_length=50, verbose_name='Attribut')
     value = models.TextField(verbose_name='Wert')
