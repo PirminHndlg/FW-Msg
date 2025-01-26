@@ -1,0 +1,24 @@
+from celery import shared_task
+import base64
+
+from Global.send_email import send_mail_smtp, format_register_email_org
+
+
+@shared_task
+def send_register_email_task(customuser_id):
+    from Global.models import CustomUser
+    customuser = CustomUser.objects.get(id=customuser_id)
+    user = customuser.user
+    org = customuser.org
+
+    action_url = 'https://volunteer.solutions'
+    org_name = org.name
+    einmalpasswort = customuser.einmalpasswort
+    freiwilliger_name = f"{user.first_name} {user.last_name}"
+    username = user.username
+    
+    email_content = format_register_email_org(einmalpasswort, action_url, org_name, freiwilliger_name, username)
+    subject = f'Account erstellt: {freiwilliger_name}'
+    if send_mail_smtp(user.email, subject, email_content, reply_to=org.email):
+        return True
+    return False
