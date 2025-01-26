@@ -42,7 +42,7 @@
                 <div class="text-center">
                     <div class="d-flex flex-column align-items-center">
                         <div class="position-relative">
-                            <img src="{% url 'serve_profil_picture' freiwilliger.user.id %}" 
+                            <img src="{% url 'serve_profil_picture' user.id %}" 
                                     alt="{% trans 'Profilbild' %}" 
                                     class="img-fluid rounded-circle mb-3" 
                                     style="max-width: 250px; max-height: 250px;">
@@ -68,6 +68,7 @@
             <div class="col-sm-8 mb-2">
                 {# Basic Info #}
                 <div class="mb-3">
+                    {% if freiwilliger %}
                     {% if this_user %}
                         <div class="d-flex justify-content-between gap-2 mb-2 align-items-center">
                             <p class="mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ freiwilliger.geburtsdatum|date:"d.m.Y" }}</p>
@@ -78,6 +79,7 @@
                         <p class="mb-2"><strong>{% trans "Email" %}:</strong> {{ freiwilliger.email|default:"" }}</p>
                     {% else %}
                         <p class="mb-2 mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ freiwilliger.geburtsdatum|date:"d.m.Y" }}</p>
+                    {% endif %}
                     {% endif %}
 
                 </div>
