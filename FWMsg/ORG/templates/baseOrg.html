@@ -59,9 +59,8 @@
                 {# Organization Logo and Name #}
                 <a class="navbar-brand" href="{% url 'org_home' %}">
                     {% with org=user|get_org %}
-                        <img src="{{ org.logo.url }}" alt="{{ org.kurzname }}-Logo" height="30"
+                        <img src="{% if org.logo %}{{ org.logo.url }}{% else %}{% static 'img/logo.png' %}{% endif %}" alt="{% if org.kurzname %}{{ org.kurzname }}{% else %}{{ org.name }}{% endif %}-Logo" height="30"
                              class="d-inline-block align-text-top">
-                        {{ org.name }}
                     {% endwith %}
                 </a>
 
