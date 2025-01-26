@@ -21,8 +21,12 @@ from .models import (
 )
 from ORG.models import Dokument, Ordner
 
+from FWMsg.decorators import required_role
+
+from Global.views import get_bilder
 
 @login_required
+@required_role('F')
 def home(request):
     """Dashboard view showing tasks, images and posts."""
     # Get task statistics
@@ -51,18 +55,11 @@ def home(request):
     }
 
     # Get recent images
-    bilder = Bilder.objects.filter(org=request.user.org).order_by('-date_created')
-    bilder_data = [
-        {
-            'bilder': bilder_obj,
-            'images': BilderGallery.objects.filter(bilder=bilder_obj)
-        }
-        for bilder_obj in bilder[:6]
-    ]
+    gallery_images = get_bilder(request)
 
     context = {
         'aufgaben': freiwilliger_aufgaben,
-        'bilder': bilder_data,
+        'gallery_images': gallery_images,
         'posts': Post.objects.all().order_by('date')[:3],
     }
 
@@ -70,6 +67,7 @@ def home(request):
 
 
 @login_required
+@required_role('F')
 def remove_profil_attribut(request, profil_id):
     profil_user = ProfilUser.objects.get(id=profil_id)
     if profil_user.user == request.user:
@@ -78,6 +76,7 @@ def remove_profil_attribut(request, profil_id):
 
 
 @login_required
+@required_role('F')
 def ampel(request):
     ampel = request.GET.get('ampel', None)
     if ampel and ampel.upper() in ['R', 'G', 'Y']:
@@ -105,6 +104,7 @@ def ampel(request):
 
 
 @login_required
+@required_role('F')
 def aufgaben(request):
     erledigte_aufgaben = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=True).order_by(
         'faellig')
@@ -170,6 +170,7 @@ def aufgaben(request):
 
 
 @login_required
+@required_role('F')
 def aufgabe(request, aufgabe_id):
     if request.method == 'POST':
         requested_aufgabe = Aufgabe.objects.get(id=aufgabe_id)
