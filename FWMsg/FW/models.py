@@ -195,6 +195,10 @@ class Freiwilliger(models.Model):
         original_value = getattr(self, f"_original_{field_name}")
         current_value = getattr(self, field_name)
         return original_value != current_value
+    
+    def send_register_email(self):
+        from FW.tasks import send_register_email_task
+        send_register_email_task.delay(self)
 
     def __str__(self):
         return self.first_name + ' ' + self.last_name
