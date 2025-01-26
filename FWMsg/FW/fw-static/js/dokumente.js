@@ -68,29 +68,34 @@ function addDokument(ordner_id) {
                             ${document.getElementsByName('csrfmiddlewaretoken')[0].outerHTML}
                             <input type="hidden" name="ordner" value="${ordner_id}">
 
+                            <div class="mb-2 text-center d-flex justify-content-center align-items-center gap-1">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <small class="text-muted">Alle Felder sind optional und können weggelassen werden.</small>
+                            </div>
+
                             <div class="mb-3">
                                 <label for="titel" class="form-label">Titel</label>
-                                <input type="text" class="form-control rounded-4" id="titel" name="titel">
+                                <input type="text" class="form-control rounded-4" id="titel" name="titel" placeholder="...">
                             </div>
                             
                             <div class="mb-3">
                                 <label for="beschreibung" class="form-label">Beschreibung</label>
-                                <textarea class="form-control rounded-4" id="beschreibung" name="beschreibung" rows="3"></textarea>
+                                <textarea class="form-control rounded-4" id="beschreibung" name="beschreibung" rows="3" placeholder="..."></textarea>
                             </div>
 
                             <div class="mb-3">
-                                <label for="link" class="form-label">Link (optional)</label>
-                                <input type="text" class="form-control rounded-4" id="link" name="link">
+                                <label for="link" class="form-label">Link</label>
+                                <input type="text" class="form-control rounded-4" id="link" name="link" placeholder="https://www.example.com">
                             </div>
 
-                            <div id="fw_darf_bearbeiten_container" class="mb-3">
-                                <label for="fw_darf_bearbeiten" class="form-label">Freiwillige können Dokumente bearbeiten/löschen</label>
-                                <input type="checkbox" class="form-check-input" id="fw_darf_bearbeiten" name="fw_darf_bearbeiten" checked>
-                            </div>
-                            
                             <div class="mb-3">
                                 <label for="dokument" class="form-label">Dokument</label>
                                 <input type="file" class="form-control rounded-4" id="dokument" name="dokument">
+                            </div>
+
+                            <div id="fw_darf_bearbeiten_container" class="mb-3">
+                                <label for="fw_darf_bearbeiten" class="form-label">Freiwillige dürfen dieses Dokument bearbeiten/löschen</label>
+                                <input type="checkbox" class="form-check-input" id="fw_darf_bearbeiten" name="fw_darf_bearbeiten" checked>
                             </div>
                             
                             <div class="d-flex justify-content-end gap-2">
