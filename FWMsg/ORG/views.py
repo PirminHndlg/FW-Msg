@@ -20,6 +20,7 @@ from django.db.models import QuerySet
 from FW import models as FWmodels
 from . import models as ORGmodels
 from . import forms as ORGforms
+from FWMsg.decorators import required_role
 
 base_template = 'baseOrg.html'
 
@@ -43,38 +44,26 @@ class JahrgangFilteredQuerySet(QuerySet):
         if self._jahrgang_id and self.model == FWmodels.Freiwilliger:
             queryset = queryset.filter(jahrgang=self._jahrgang_id)
         return queryset
+    
 
-def org_required(view_func):
-    """Decorator to check if user has an associated organization and apply jahrgang filter."""
+def filter_jahrgang(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect(settings.LOGIN_URL)
-        if request.user.role != 'O':
-            messages.error(request, 'Kein Zugriff - Sie sind keine Organisation')
-            print(request.user.role)
-            return redirect(settings.LOGIN_URL)
-
-        # Get jahrgang from cookie
         jahrgang_id = request.COOKIES.get('selectedJahrgang')
 
-        # Store original queryset method
         original_get_queryset = FWmodels.Freiwilliger.objects.get_queryset
 
-        # Define new queryset method
-        def get_filtered_queryset(manager):
+        def get_jahrgang_queryset(manager):
             base_qs = original_get_queryset()
             if jahrgang_id:
                 return base_qs.filter(jahrgang=jahrgang_id)
             return base_qs
 
-        # Apply the patch
-        FWmodels.Freiwilliger.objects.get_queryset = get_filtered_queryset.__get__(FWmodels.Freiwilliger.objects)
-        
+        FWmodels.Freiwilliger.objects.get_queryset = get_jahrgang_queryset.__get__(FWmodels.Freiwilliger.objects)
+
         try:
             return view_func(request, *args, **kwargs)
         finally:
-            # Restore original method
             FWmodels.Freiwilliger.objects.get_queryset = original_get_queryset
 
     return _wrapped_view
@@ -102,8 +91,9 @@ allowed_models_to_edit = {
 
 
 # Create your views here.
-@org_required
 @login_required
+@required_role('O')
+@filter_jahrgang
 def home(request):
     # Get latest images
     latest_images = FWmodels.Bilder.objects.filter(
@@ -147,8 +137,9 @@ def get_model(model_name):
     return None
 
 
-@org_required
 @login_required
+@required_role('O')
+@filter_jahrgang
 def save_form(request, form):
     obj = form.save(commit=False)
     obj.org = request.user.org
@@ -156,15 +147,17 @@ def save_form(request, form):
     form.save_m2m()
 
 
-@org_required
 @login_required
+@required_role('O')
+@filter_jahrgang
 def add_object(request, model_name):
     return edit_object(request, model_name, None)
     # return render(request, 'add_object.html', {'form': form, 'object': model_name})
 
 
-@org_required
 @login_required
+@required_role('O')
+@filter_jahrgang
 def edit_object(request, model_name, id):
     model = get_model(model_name.lower())
     if not model or not model in ORGforms.model_to_form_mapping:
@@ -193,8 +186,9 @@ def edit_object(request, model_name, id):
     return render(request, 'edit_object.html', {'form': form, 'object': model_name})
 
 
-@org_required
 @login_required
+@required_role('O')
+@filter_jahrgang
 def list_object(request, model_name):
     model = get_model(model_name)
 
@@ -267,8 +261,9 @@ def list_object(request, model_name):
                   'filter_form': filter_form})
 
 
-@org_required
 @login_required
+@required_role('O')
+@filter_jahrgang
 def update_object(request, model_name):
     model = get_model(model_name)
 
@@ -309,8 +304,9 @@ def update_object(request, model_name):
         return JsonResponse({'success': False, 'error': e}, status=400)
 
 
-@org_required
 @login_required
+@required_role('O')
+@filter_jahrgang
 def delete_object(request, model_name, id):
     model = get_model(model_name)
     if not model:
@@ -324,8 +320,9 @@ def delete_object(request, model_name, id):
     return HttpResponseRedirect(f'/org/list/{model_name}/')
 
 
-@org_required
 @login_required
+@required_role('O')
+@filter_jahrgang
 def list_ampel(request):
     # Get jahrgang filter from cookie
     jahrgang_id = request.COOKIES.get('selectedJahrgang')
@@ -421,8 +418,9 @@ def create_ampel_matrix(freiwillige, months, ampel_entries):
             
     return matrix
 
-@org_required
 @login_required
+@required_role('O')
+@filter_jahrgang
 def list_ampel_history(request, fid):
     freiwilliger = get_object_or_404(FWmodels.Freiwilliger, pk=fid)
     if not freiwilliger.org == request.user.org:
@@ -431,8 +429,9 @@ def list_ampel_history(request, fid):
     return render(request, 'list_ampel_history.html', context={'ampel': ampel, 'freiwilliger': freiwilliger})
 
 
-@org_required
 @login_required
+@required_role('O')
+@filter_jahrgang
 def list_aufgaben(request):
 
     if request.method == 'POST':
@@ -481,8 +480,9 @@ def list_aufgaben(request):
     })
 
 
-@org_required
 @login_required
+@required_role('O')
+@filter_jahrgang
 def aufgaben_assign(request):
     if request.method == 'POST':
         freiwillige = request.POST.getlist('freiwillige')
@@ -535,8 +535,9 @@ def aufgaben_assign(request):
     return render(request, 'aufgaben_assign.html', context=context)
 
 
-@org_required
 @login_required
+@required_role('O')
+@filter_jahrgang
 def list_bilder(request):
     bilder = FWmodels.Bilder.objects.filter(org=request.user.org)
 
@@ -548,8 +549,9 @@ def list_bilder(request):
     return render(request, 'list_bilder.html', context={'gallery_images': gallery_images})
 
 
-@org_required
 @login_required
+@required_role('O')
+@filter_jahrgang
 def download_bild_as_zip(request, id):
     bild = FWmodels.Bilder.objects.get(pk=id)
     if not bild.org == request.user.org:
@@ -564,7 +566,8 @@ def download_bild_as_zip(request, id):
     return response
 
 
-@org_required
 @login_required
+@required_role('O')
+@filter_jahrgang
 def dokumente(request):
     return render(request, 'dokumente.html', context={'extends_base': base_template})
