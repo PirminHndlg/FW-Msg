@@ -180,6 +180,8 @@ class Freiwilliger(models.Model):
 @receiver(post_save, sender=Freiwilliger)
 def post_save_handler(sender, instance, created, **kwargs):
     if created:
+        import random
+        
         # Create username by combining first and last names
         default_username = f"{instance.first_name.replace(' ', '')[:4].lower()}{instance.last_name.split(' ')[-1][:4].lower()}"
         username = default_username
@@ -202,7 +204,9 @@ def post_save_handler(sender, instance, created, **kwargs):
         instance.user = user
         instance.save()
 
-        custom_user = CustomUser.objects.create(user=user, org=instance.org)
+        einmalpasswort = random.randint(100000, 999999)
+
+        custom_user = CustomUser.objects.create(user=user, org=instance.org, einmalpasswort=einmalpasswort)
         custom_user.save()
 
     else:
