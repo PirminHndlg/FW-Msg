@@ -50,7 +50,15 @@ def filter_jahrgang(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         jahrgang_id = request.COOKIES.get('selectedJahrgang')
-
+        if jahrgang_id and not FWmodels.Jahrgang.objects.filter(id=jahrgang_id, org=request.user.org).exists():
+            jahrgang_id = None
+            response = HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+            if 'selectedJahrgang' in request.COOKIES:
+                response.delete_cookie('selectedJahrgang')
+            if 'selectedJahrgangName' in request.COOKIES:
+                response.delete_cookie('selectedJahrgangName')
+            return response
+    
         original_get_queryset = FWmodels.Freiwilliger.objects.get_queryset
 
         def get_jahrgang_queryset(manager):
