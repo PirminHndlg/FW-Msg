@@ -4,104 +4,87 @@ from django.db import models
 from FW import models as FWmodels
 from . import models as ORGmodels
 
-class AddFreiwilligerForm(forms.ModelForm):
+class OrgFormMixin:
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+        if self.request and self.request.user.org:
+            # Filter all ForeignKey fields by organization
+            for field_name, field in self.fields.items():
+                if isinstance(field, forms.ModelChoiceField):
+                    related_model = field.queryset.model
+                    if hasattr(related_model, 'org'):
+                        field.queryset = field.queryset.filter(org=self.request.user.org)
+
+
+class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
     class Meta:
         model = FWmodels.Freiwilliger
         fields = '__all__'
         exclude = ['user', 'org']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
-
-class AddAufgabeForm(forms.ModelForm):
+class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
     class Meta:
         model = FWmodels.Aufgabe
         fields = '__all__'
         exclude = ['org']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
-class AddAufgabenprofilForm(forms.ModelForm):
+class AddAufgabenprofilForm(OrgFormMixin, forms.ModelForm):
     class Meta:
         model = FWmodels.Aufgabenprofil
         fields = '__all__'
         exclude = ['org']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
-
-class AddFreiwilligerAufgabenForm(forms.ModelForm):
+class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
     class Meta:
         model = FWmodels.FreiwilligerAufgaben
         fields = '__all__'
         exclude = ['org']
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if 'freiwilliger' in self.fields:
-            self.fields['freiwilliger'].disabled = True
-        if 'aufgabe' in self.fields:
-            self.fields['aufgabe'].disabled = True
 
 
-class AddKirchenzugehoerigkeitForm(forms.ModelForm):
+class AddKirchenzugehoerigkeitForm(OrgFormMixin, forms.ModelForm):
     class Meta:
         model = FWmodels.Kirchenzugehoerigkeit
         fields = '__all__'
         exclude = ['org']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
-class AddEntsendeformForm(forms.ModelForm):
+class AddEntsendeformForm(OrgFormMixin, forms.ModelForm):
     class Meta:
         model = FWmodels.Entsendeform
         fields = '__all__'
         exclude = ['org']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
-
-class AddEinsatzlandForm(forms.ModelForm):
+class AddEinsatzlandForm(OrgFormMixin, forms.ModelForm):
     class Meta:
         model = FWmodels.Einsatzland
         fields = '__all__'
         exclude = ['org']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
-class AddEinsatzstelleForm(forms.ModelForm):
+class AddEinsatzstelleForm(OrgFormMixin, forms.ModelForm):
     class Meta:
         model = FWmodels.Einsatzstelle
         fields = '__all__'
         exclude = ['org']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
-
-class AddJahrgangForm(forms.ModelForm):
+class AddJahrgangForm(OrgFormMixin, forms.ModelForm):
     class Meta:
         model = FWmodels.Jahrgang
         fields = '__all__'
         exclude = ['org']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
-
-class AddNotfallkontaktForm(forms.ModelForm):
+class AddNotfallkontaktForm(OrgFormMixin, forms.ModelForm):
     class Meta:
         model = FWmodels.Notfallkontakt
         fields = '__all__'
         exclude = ['org']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
 
 # Define which fields should be filterable for each model
@@ -116,6 +99,7 @@ filterable_fields = {
 
 class FilterForm(forms.Form):    
     def __init__(self, model_class, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
         
         # Get the list of filterable fields for this model
@@ -151,9 +135,13 @@ class FilterForm(forms.Form):
                     widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
                 )
             elif isinstance(field, models.ForeignKey):
+                queryset = field.related_model.objects.all()
+                # Filter by organization if model has org field
+                if self.request and hasattr(field.related_model, 'org'):
+                    queryset = queryset.filter(org=self.request.user.org)
                 self.fields[f'filter_{field.name}'] = forms.ModelChoiceField(
                     required=False,
-                    queryset=field.related_model.objects.all(),
+                    queryset=queryset,
                     label=field.verbose_name,
                     widget=forms.Select(attrs={'class': 'form-control'})
                 )

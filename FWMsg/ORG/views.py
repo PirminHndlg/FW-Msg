@@ -171,12 +171,14 @@ def edit_object(request, model_name, id):
         form = ORGforms.model_to_form_mapping[model](
             request.POST or None,
             request.FILES or None,
-            instance=instance
+            instance=instance,
+            request=request  # Pass request to form
         )
     else:
         form = ORGforms.model_to_form_mapping[model](
             request.POST or None,
-            request.FILES or None
+            request.FILES or None,
+            request=request  # Pass request to form
         )
 
     if form.is_valid():
@@ -196,7 +198,7 @@ def list_object(request, model_name):
         return HttpResponse(f'Kein Model für {model_name} gefunden')
 
     # Initialize the filter form
-    filter_form = ORGforms.FilterForm(model, request.GET or None)
+    filter_form = ORGforms.FilterForm(model, request=request, **request.GET)
     
     # Start with all objects for this organization
     objects = model.objects.filter(org=request.user.org)
