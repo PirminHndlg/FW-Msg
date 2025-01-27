@@ -480,6 +480,26 @@ def list_aufgaben(request):
     })
 
 def list_aufgaben_table(request):
+
+    if request.method == 'POST':
+        aufgabe_id = request.POST.get('aufgabe_id')
+
+        if request.POST.get('reminder') == 'True':
+            pass
+        else:
+            aufgabe = FWmodels.FreiwilligerAufgaben.objects.get(pk=aufgabe_id)
+            if aufgabe.org == request.user.org:
+                aufgabe.pending = request.POST.get('pending') == 'True'
+                aufgabe.erledigt = request.POST.get('erledigt') == 'True'
+
+                if aufgabe.erledigt:
+                    aufgabe.erledigt_am = timezone.now()
+                else:
+                    aufgabe.erledigt_am = None
+
+                aufgabe.save()
+        return redirect('list_aufgaben_table')
+
     freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
     aufgaben = FWmodels.Aufgabe.objects.filter(org=request.user.org)
 
