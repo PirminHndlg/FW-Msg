@@ -159,9 +159,22 @@ def save_form(request, form):
 @required_role('O')
 @filter_jahrgang
 def add_object(request, model_name):
-    return edit_object(request, model_name, None)
-    # return render(request, 'add_object.html', {'form': form, 'object': model_name})
+    freiwilliger_id = request.GET.get('freiwilliger')
+    aufgabe_id = request.GET.get('aufgabe')
+    if freiwilliger_id and aufgabe_id:
+        freiwilliger = FWmodels.Freiwilliger.objects.get(pk=freiwilliger_id)
+        aufgabe = FWmodels.Aufgabe.objects.get(pk=aufgabe_id)
 
+        if not freiwilliger.org == request.user.org or not aufgabe.org == request.user.org:
+            return HttpResponse('Nicht erlaubt')
+
+        obj, created = FWmodels.FreiwilligerAufgaben.objects.get_or_create(
+            org=request.user.org,
+            freiwilliger=freiwilliger,
+            aufgabe=aufgabe
+        )
+        return edit_object(request, model_name, obj.id)
+    return edit_object(request, model_name, None)
 
 @login_required
 @required_role('O')
@@ -481,6 +494,17 @@ def list_aufgaben(request):
 
 def list_aufgaben_table(request):
 
+    if request.method == 'GET' and request.GET.get('fw') and request.GET.get('a'):
+        freiwilliger = FWmodels.Freiwilliger.objects.get(pk=request.GET.get('fw'))
+        aufgabe = FWmodels.Aufgabe.objects.get(pk=request.GET.get('a'))
+        if not freiwilliger.org == request.user.org or not aufgabe.org == request.user.org:
+            return HttpResponse('Nicht erlaubt')
+        FWmodels.FreiwilligerAufgaben.objects.get_or_create(
+            org=request.user.org,
+            freiwilliger=freiwilliger,
+            aufgabe=aufgabe
+        )
+        return redirect('list_aufgaben_table')
     if request.method == 'POST':
         aufgabe_id = request.POST.get('aufgabe_id')
 
@@ -512,7 +536,7 @@ def list_aufgaben_table(request):
             if freiwilliger_aufgaben:
                 freiwilliger_aufgaben_matrix[freiwilliger].append(freiwilliger_aufgaben.first())
             else:
-                freiwilliger_aufgaben_matrix[freiwilliger].append(None)
+                freiwilliger_aufgaben_matrix[freiwilliger].append(aufgabe.id)
 
     context = {
         'freiwillige': freiwillige,
