@@ -479,6 +479,29 @@ def list_aufgaben(request):
         'today': date.today()
     })
 
+def list_aufgaben_table(request):
+    freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
+    aufgaben = FWmodels.Aufgabe.objects.filter(org=request.user.org)
+
+    freiwilliger_aufgaben_matrix = {}
+
+    for freiwilliger in freiwillige:
+        freiwilliger_aufgaben_matrix[freiwilliger] = []
+        for aufgabe in aufgaben:
+            freiwilliger_aufgaben = FWmodels.FreiwilligerAufgaben.objects.filter(freiwilliger=freiwilliger, aufgabe=aufgabe)
+            if freiwilliger_aufgaben:
+                freiwilliger_aufgaben_matrix[freiwilliger].append(freiwilliger_aufgaben)
+            else:
+                freiwilliger_aufgaben_matrix[freiwilliger].append(None)
+
+    context = {
+        'freiwillige': freiwillige,
+        'aufgaben': aufgaben,
+        'freiwilliger_aufgaben_matrix': freiwilliger_aufgaben_matrix
+    }
+
+    return render(request, 'list_aufgaben_table.html', context=context)
+
 
 @login_required
 @required_role('O')

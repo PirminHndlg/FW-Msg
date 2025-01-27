@@ -1,0 +1,31 @@
+{% extends "baseOrg.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Aufgaben" %}{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/list_aufgaben.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="card rounded-4">
+    <div class="card-body p-0">
+        <div class="table-responsive p-2">
+            <table class="table table-hover mb-0">
+                {% for freiwilliger, aufgaben in freiwilliger_aufgaben_matrix.items %}
+                <tr>
+                    <td>{{ freiwilliger.name }}</td>
+                    {% for aufgabe in aufgaben %}
+                    <td>{{ aufgabe.name }}</td>
+                    {% endfor %}
+                    {% for aufgabe in aufgaben %}
+                    <td>{{ aufgabe }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
