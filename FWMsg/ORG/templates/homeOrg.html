@@ -101,7 +101,7 @@
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Offene Aufgaben Freiwillige - {{ pending_tasks.count }}</h5>
-                <a href="{% url 'list_aufgaben' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
+                <a href="{% url 'list_aufgaben_table' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
             </div>
             <div class="card-body">
                 {% if pending_tasks %}
