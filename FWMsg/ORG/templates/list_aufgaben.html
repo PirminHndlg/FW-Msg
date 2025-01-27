@@ -67,19 +67,19 @@
                                 <td>{{ aufgabe.beschreibung }}</td>
                                 <td>
                                     {% if aufgabe.file %}
-                                    <button class="btn btn-outline-primary btn-sm">
+                                    <a href="{% url 'download_aufgabe' aufgabe.id %}" class="btn btn-outline-primary btn-sm">
                                         <i class="bi bi-download me-1"></i>{{ aufgabe.file.name }}
-                                    </button>
+                                    </a>
                                     {% elif aufgabe.aufgabe.mitupload %}
                                     <i class="bi bi-x-circle-fill text-danger fs-5 me-1"></i>
                                     {% endif %}
                                 </td>
-                                <td>
+                                <td class="d-flex gap-2">
                                     <form method="post" class="d-inline">
                                         {% csrf_token %}
                                         <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
                                         <input type="hidden" name="reminder" value="False">
-                                        <button type="submit" class="btn btn-outline-primary btn-sm">
+                                        <button type="submit" class="btn btn-outline-primary btn-sm d-flex align-items-center">
                                             <i class="bi bi-bell me-1"></i>{% trans "Erinnerung" %}
                                         </button>
                                     </form>
@@ -87,7 +87,7 @@
                                         {% csrf_token %}
                                         <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
                                         <input type="hidden" name="erledigt" value="True">
-                                        <button type="submit" class="btn btn-success btn-sm">
+                                        <button type="submit" class="btn btn-success btn-sm d-flex align-items-center">
                                             <i class="bi bi-check-lg me-1"></i>{% trans "Erledigt" %}
                                         </button>
                                     </form>
@@ -109,7 +109,7 @@
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>{% trans "Freiwilliger" %}</th>
+                                <th>{% trans "Freiwillige" %}</th>
                                 <th>{% trans "Aufgabe" %}</th>
                                 <th>{% trans "Fällig" %}</th>
                                 <th>{% trans "Beschreibung" %}</th>
@@ -122,23 +122,24 @@
                             <tr>
                                 <td>{{ aufgabe.freiwilliger }}</td>
                                 <td>{{ aufgabe.aufgabe }}</td>
-                                <td {% if aufgabe.faellig < today %}class="date-past" {% endif %}>{{
-                                    aufgabe.faellig|date:"d.m.y" }}</td>
+                                <td {% if aufgabe.faellig < today %}class="date-past" {% endif %}>
+                                    {{ aufgabe.faellig|date:"d.m.y" }}
+                                </td>
                                 <td>{{ aufgabe.beschreibung }}</td>
                                 <td>
                                     {% if aufgabe.file %}
-                                    <button class="btn btn-outline-primary btn-sm">
+                                    <a href="{% url 'download_aufgabe' aufgabe.id %}" class="btn btn-outline-primary btn-sm d-flex align-items-center">
                                         <i class="bi bi-download me-1"></i>{{ aufgabe.file.name }}
-                                    </button>
+                                    </a>
                                     {% elif aufgabe.aufgabe.required_file %}
                                     <i class="bi bi-x-circle-fill text-danger fs-5 me-1"></i>
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if aufgabe.file %}
-                                    <button class="btn btn-outline-primary btn-sm">
+                                    <a href="{% url 'download_aufgabe' aufgabe.id %}" class="btn btn-outline-primary btn-sm d-flex align-items-center">
                                         <i class="bi bi-download me-1"></i>{% trans "Herunterladen" %}
-                                    </button>
+                                    </a>
                                     {% endif %}
                                     <form method="post" class="d-inline">
                                         {% csrf_token %}
@@ -184,23 +185,23 @@
                                 <td>{{ aufgabe.erledigt_am|date:"d.m.y" }}</td>
                                 <td>
                                     {% if aufgabe.file %}
-                                    <button class="btn btn-outline-primary btn-sm">
+                                    <a href="{% url 'download_aufgabe' aufgabe.id %}" class="btn btn-outline-primary btn-sm d-flex align-items-center">
                                         <i class="bi bi-download me-1"></i>{{ aufgabe.file.name }}
-                                    </button>
+                                    </a>
                                     {% elif aufgabe.aufgabe.mitupload %}
                                     <i class="bi bi-x-circle-fill text-danger fs-5 me-1"></i>
                                     {% endif %}
                                 </td>
-                                <td>
+                                <td class="d-flex gap-2">
                                     <div class="btn-group gap-2">
                                         <form method="post">
                                             {% csrf_token %}
                                             <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
                                             <input type="hidden" name="pending" value="False">
                                             <input type="hidden" name="erledigt" value="False">
-                                            <button type="submit" class="btn btn-outline-primary btn-sm">
-                                                <i class="bi bi-arrow-counterclockwise me-1"></i>{% trans "Als
-                                                unerledigt markieren" %}
+                                            <button type="submit" class="btn btn-outline-primary btn-sm d-flex align-items-center">
+                                                <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                                {% trans "Als unerledigt markieren" %}
                                             </button>
                                         </form>
 
@@ -209,17 +210,11 @@
                                             <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
                                             <input type="hidden" name="pending" value="True">
                                             <input type="hidden" name="erledigt" value="False">
-                                            <button type="submit" class="btn btn-outline-primary btn-sm">
-                                                <i class="bi bi-hourglass-split me-1"></i>{% trans "Als pending
-                                                markieren" %}
+                                            <button type="submit" class="btn btn-outline-primary btn-sm d-flex align-items-center">
+                                                <i class="bi bi-hourglass-split me-1"></i>
+                                                {% trans "Als pending markieren" %}
                                             </button>
                                         </form>
-
-                                        {% if aufgabe.file %}
-                                        <button class="btn btn-outline-primary btn-sm">
-                                            <i class="bi bi-download me-1"></i>{% trans "Herunterladen" %}
-                                        </button>
-                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>

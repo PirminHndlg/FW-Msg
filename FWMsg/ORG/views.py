@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import io
 import os
 import zipfile
@@ -490,13 +490,14 @@ def list_aufgaben_table(request):
         for aufgabe in aufgaben:
             freiwilliger_aufgaben = FWmodels.FreiwilligerAufgaben.objects.filter(freiwilliger=freiwilliger, aufgabe=aufgabe)
             if freiwilliger_aufgaben:
-                freiwilliger_aufgaben_matrix[freiwilliger].append(freiwilliger_aufgaben)
+                freiwilliger_aufgaben_matrix[freiwilliger].append(freiwilliger_aufgaben.first())
             else:
                 freiwilliger_aufgaben_matrix[freiwilliger].append(None)
 
     context = {
         'freiwillige': freiwillige,
         'aufgaben': aufgaben,
+        'today': date.today(),
         'freiwilliger_aufgaben_matrix': freiwilliger_aufgaben_matrix
     }
 
@@ -556,6 +557,26 @@ def aufgaben_assign(request):
         'profil': profil
     }
     return render(request, 'aufgaben_assign.html', context=context)
+
+
+@login_required
+@required_role('O')
+@filter_jahrgang
+def download_aufgabe(request, id):
+    aufgabe = FWmodels.FreiwilligerAufgaben.objects.get(pk=id)
+    if not aufgabe.org == request.user.org:
+        return HttpResponse('Nicht erlaubt')
+    if not aufgabe.file:
+        return HttpResponse('Keine Datei gefunden')
+    if not aufgabe.file.path:
+        return HttpResponse('Datei nicht gefunden')
+    if not os.path.exists(aufgabe.file.path):
+        return HttpResponse('Datei nicht gefunden')
+    
+    response = HttpResponse(aufgabe.file.read(), content_type='application/octet-stream')
+    response['Content-Disposition'] = f'attachment; filename="{aufgabe.file.name.replace(" ", "_")}"'
+
+    return response
 
 
 @login_required
