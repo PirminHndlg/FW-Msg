@@ -6,7 +6,7 @@
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/list_aufgaben.css' %}">
 <style>
-    /* Table container styles */
+    /* Essential styles that Bootstrap doesn't cover */
     .table-responsive {
         max-height: calc(100vh - 200px);
         overflow: auto;
@@ -17,76 +17,24 @@
     .table td:first-child {
         position: sticky;
         left: 0;
-        background: white;
+        background-color: var(--bs-body-bg);
         z-index: 2;
-        border-right: 1px solid #dee2e6;
-    }
-
-    /* Add shadow effect for better visual separation */
-    .table th:first-child::after,
-    .table td:first-child::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        width: 4px;
-        pointer-events: none;
-        background: linear-gradient(to right, rgba(0,0,0,0.05), rgba(0,0,0,0));
     }
 
     /* Sticky header */
     .table thead th {
         position: sticky;
         top: 0;
-        background: white;
+        background-color: var(--bs-body-bg);
         z-index: 1;
-        border-bottom: 2px solid #dee2e6;
     }
 
-    /* Extra z-index for the corner cell (intersection of sticky header and column) */
+    /* Extra z-index for the corner cell */
     .table thead th:first-child {
         z-index: 3;
     }
 
-    /* Add shadow under sticky header */
-    .table thead th::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        height: 2px;
-        background: #dee2e6;
-    }
-    
-    .status-cell {
-        min-width: 150px;
-        transition: all 0.2s ease-in-out;
-        position: relative;
-        padding-top: 2.5rem !important;
-    }
-    
-    .status-cell:hover {
-        transform: scale(1.02);
-    }
-
-    .download-btn {
-        opacity: 0.9;
-        transition: opacity 0.2s ease-in-out;
-    }
-
-    .download-btn:hover {
-        opacity: 1;
-    }
-
-    .action-dropdown {
-        position: absolute;
-        top: 0.5rem;
-        right: 0.5rem;
-    }
-
-    /* Delayed tooltip styles */
+    /* Simplified tooltip styles */
     [data-tooltip] {
         position: relative;
     }
@@ -97,16 +45,15 @@
         bottom: 100%;
         left: 50%;
         transform: translateX(-50%);
-        padding: 4px 8px;
-        background-color: rgba(0, 0, 0, 0.8);
-        color: white;
-        font-size: 12px;
-        white-space: nowrap;
-        border-radius: 4px;
+        padding: 0.25rem 0.5rem;
+        background-color: var(--bs-dark);
+        color: var(--bs-white);
+        font-size: 0.875rem;
+        border-radius: var(--bs-border-radius-sm);
         z-index: 1000;
         opacity: 0;
         visibility: hidden;
-        transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+        transition: opacity 0.2s, visibility 0.2s;
         transition-delay: 0.4s;
     }
 
@@ -141,7 +88,7 @@
 
     <div class="card-body p-2">
         <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle" style="min-height: 80vh;">
+            <table class="table mb-0 align-middle" style="min-height: 80vh;">
                 <thead>
                     <tr>
                         <th class="border-end">{% trans "Freiwillige" %}</th>
