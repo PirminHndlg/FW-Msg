@@ -5,203 +5,198 @@
 {% block title %}{% trans "Aufgaben zuweisen" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4">
-    <div class="card rounded-4">
-        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center py-3">
-            <h4 class="mb-0">{% trans "Aufgaben zuweisen" %}</h4>
-        </div>
-        <div class="card-body">
-            <form method="post">
-                {% csrf_token %}
-                
-                <div class="row">
-                    <!-- Left Column: Freiwillige Selection -->
-                    <div class="col-lg-4">
-                        <div class="card rounded-4">
-                            <div class="card-header bg-transparent border-0 py-3">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-people me-1"></i>{% trans "Freiwillige" %}
-                                </h5>
+<div class="card rounded-4">
+    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center py-3">
+        <h4 class="mb-0">{% trans "Aufgaben zuweisen" %}</h4>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row">
+                <!-- Left Column: Freiwillige Selection -->
+                <div class="col-lg-4">
+                    <div class="card rounded-4">
+                        <div class="card-header bg-transparent border-0 py-3">
+                            <h5 class="mb-0">
+                                <i class="bi bi-people me-1"></i>{% trans "Freiwillige" %}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Search and Filter Bar -->
+                            <div class="d-flex gap-2 mb-3 align-items-center">
+                                <div class="flex-grow-1">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-transparent border-end-0">
+                                            <i class="bi bi-search"></i>
+                                        </span>
+                                        <input type="text" class="form-control border-start-0" name="mySearch"
+                                            placeholder="{% trans 'Freiwillige suchen...' %}" data-table="table_fw">
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <!-- Search and Filter Bar -->
-                                <div class="d-flex gap-2 mb-3 align-items-center">
-                                    <div class="flex-grow-1">
+
+                            <!-- Select All -->
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" name="check_all"
+                                    onclick="checkAll(this)" id="checkAllFw">
+                                <label class="form-check-label" for="checkAllFw">
+                                    {% trans "Alle Freiwillige auswählen" %}
+                                </label>
+                            </div>
+
+                            <!-- Freiwillige List -->
+                            <div class="table-responsive" style="max-height: 400px;">
+                                <table id="table_fw" class="table table-hover align-middle mb-0">
+                                    <tbody>
+                                        {% for fw in freiwillige %}
+                                        <tr>
+                                            <td>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        id="checkbox_fw_{{ fw.id }}" name="freiwillige"
+                                                        value="{{ fw.id }}" onclick="checkedbox(this)">
+                                                    <label class="form-check-label" for="checkbox_fw_{{ fw.id }}">
+                                                        {{ fw }}
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Aufgaben & Profile Selection -->
+                <div class="col-lg-8">
+                    <div class="card rounded-4">
+                        <div class="card-body">
+                            <!-- Tabs Navigation -->
+                            <ul class="nav nav-tabs mb-3" id="assignTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="aufgaben-tab" data-bs-toggle="tab"
+                                        data-bs-target="#aufgaben" type="button" role="tab">
+                                        <i class="bi bi-list-check me-1"></i>{% trans "Aufgaben" %}
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="profile-tab" data-bs-toggle="tab"
+                                        data-bs-target="#profile" type="button" role="tab">
+                                        <i class="bi bi-person-badge me-1"></i>{% trans "Profile" %}
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <!-- Tabs Content -->
+                            <div class="tab-content" id="assignTabsContent">
+                                <!-- Aufgaben Tab -->
+                                <div class="tab-pane fade show active" id="aufgaben" role="tabpanel">
+                                    <!-- Search Bar -->
+                                    <div class="mb-3">
                                         <div class="input-group">
                                             <span class="input-group-text bg-transparent border-end-0">
                                                 <i class="bi bi-search"></i>
                                             </span>
-                                            <input type="text" class="form-control border-start-0" 
-                                                   name="mySearch" placeholder="{% trans 'Freiwillige suchen...' %}"
-                                                   data-table="table_fw">
+                                            <input type="text" class="form-control border-start-0" name="mySearch"
+                                                placeholder="{% trans 'Aufgaben suchen...' %}"
+                                                data-table="table_aufgabe">
                                         </div>
                                     </div>
-                                </div>
 
-                                <!-- Select All -->
-                                <div class="form-check mb-3">
-                                    <input type="checkbox" class="form-check-input" name="check_all"
-                                           onclick="checkAll(this)" id="checkAllFw">
-                                    <label class="form-check-label" for="checkAllFw">
-                                        {% trans "Alle Freiwillige auswählen" %}
-                                    </label>
-                                </div>
+                                    <!-- Select All -->
+                                    <div class="form-check mb-3">
+                                        <input type="checkbox" class="form-check-input" name="check_all"
+                                            onclick="checkAll(this)" id="checkAllAufgaben">
+                                        <label class="form-check-label" for="checkAllAufgaben">
+                                            {% trans "Alle Aufgaben auswählen" %}
+                                        </label>
+                                    </div>
 
-                                <!-- Freiwillige List -->
-                                <div class="table-responsive" style="max-height: 400px;">
-                                    <table id="table_fw" class="table table-hover align-middle mb-0">
-                                        <tbody>
-                                            {% for fw in freiwillige %}
+                                    <!-- Aufgaben List -->
+                                    <div class="table-responsive" style="max-height: 400px;">
+                                        <table id="table_aufgabe" class="table table-hover align-middle mb-0">
+                                            <tbody>
+                                                {% for aufgabe in aufgaben %}
                                                 <tr>
                                                     <td>
                                                         <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" 
-                                                                   id="checkbox_fw_{{ fw.id }}"
-                                                                   name="freiwillige" value="{{ fw.id }}" 
-                                                                   onclick="checkedbox(this)">
-                                                            <label class="form-check-label" for="checkbox_fw_{{ fw.id }}">
-                                                                {{ fw }}
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="checkbox_aufgabe_{{ aufgabe.id }}" name="aufgaben"
+                                                                value="{{ aufgabe.id }}" onclick="checkedbox(this)">
+                                                            <label class="form-check-label"
+                                                                for="checkbox_aufgabe_{{ aufgabe.id }}">
+                                                                {{ aufgabe }}
                                                             </label>
                                                         </div>
                                                     </td>
                                                 </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Right Column: Aufgaben & Profile Selection -->
-                    <div class="col-lg-8">
-                        <div class="card rounded-4">
-                            <div class="card-body">
-                                <!-- Tabs Navigation -->
-                                <ul class="nav nav-tabs mb-3" id="assignTabs" role="tablist">
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link active" id="aufgaben-tab" data-bs-toggle="tab"
-                                                data-bs-target="#aufgaben" type="button" role="tab">
-                                            <i class="bi bi-list-check me-1"></i>{% trans "Aufgaben" %}
-                                        </button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="profile-tab" data-bs-toggle="tab"
-                                                data-bs-target="#profile" type="button" role="tab">
-                                            <i class="bi bi-person-badge me-1"></i>{% trans "Profile" %}
-                                        </button>
-                                    </li>
-                                </ul>
-
-                                <!-- Tabs Content -->
-                                <div class="tab-content" id="assignTabsContent">
-                                    <!-- Aufgaben Tab -->
-                                    <div class="tab-pane fade show active" id="aufgaben" role="tabpanel">
-                                        <!-- Search Bar -->
-                                        <div class="mb-3">
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-transparent border-end-0">
-                                                    <i class="bi bi-search"></i>
-                                                </span>
-                                                <input type="text" class="form-control border-start-0" 
-                                                       name="mySearch" placeholder="{% trans 'Aufgaben suchen...' %}"
-                                                       data-table="table_aufgabe">
-                                            </div>
-                                        </div>
-
-                                        <!-- Select All -->
-                                        <div class="form-check mb-3">
-                                            <input type="checkbox" class="form-check-input" name="check_all"
-                                                   onclick="checkAll(this)" id="checkAllAufgaben">
-                                            <label class="form-check-label" for="checkAllAufgaben">
-                                                {% trans "Alle Aufgaben auswählen" %}
-                                            </label>
-                                        </div>
-
-                                        <!-- Aufgaben List -->
-                                        <div class="table-responsive" style="max-height: 400px;">
-                                            <table id="table_aufgabe" class="table table-hover align-middle mb-0">
-                                                <tbody>
-                                                    {% for aufgabe in aufgaben %}
-                                                        <tr>
-                                                            <td>
-                                                                <div class="form-check">
-                                                                    <input class="form-check-input" type="checkbox"
-                                                                           id="checkbox_aufgabe_{{ aufgabe.id }}"
-                                                                           name="aufgaben" value="{{ aufgabe.id }}" 
-                                                                           onclick="checkedbox(this)">
-                                                                    <label class="form-check-label" for="checkbox_aufgabe_{{ aufgabe.id }}">
-                                                                        {{ aufgabe }}
-                                                                    </label>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    {% endfor %}
-                                                </tbody>
-                                            </table>
+                                <!-- Profile Tab -->
+                                <div class="tab-pane fade" id="profile" role="tabpanel">
+                                    <!-- Search Bar -->
+                                    <div class="mb-3">
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-transparent border-end-0">
+                                                <i class="bi bi-search"></i>
+                                            </span>
+                                            <input type="text" class="form-control border-start-0" name="mySearch"
+                                                placeholder="{% trans 'Profile suchen...' %}" data-table="table_profil">
                                         </div>
                                     </div>
 
-                                    <!-- Profile Tab -->
-                                    <div class="tab-pane fade" id="profile" role="tabpanel">
-                                        <!-- Search Bar -->
-                                        <div class="mb-3">
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-transparent border-end-0">
-                                                    <i class="bi bi-search"></i>
-                                                </span>
-                                                <input type="text" class="form-control border-start-0" 
-                                                       name="mySearch" placeholder="{% trans 'Profile suchen...' %}"
-                                                       data-table="table_profil">
-                                            </div>
-                                        </div>
+                                    <!-- Select All -->
+                                    <div class="form-check mb-3">
+                                        <input type="checkbox" class="form-check-input" name="check_all"
+                                            onclick="checkAll(this)" id="checkAllProfile">
+                                        <label class="form-check-label" for="checkAllProfile">
+                                            {% trans "Alle Profile auswählen" %}
+                                        </label>
+                                    </div>
 
-                                        <!-- Select All -->
-                                        <div class="form-check mb-3">
-                                            <input type="checkbox" class="form-check-input" name="check_all"
-                                                   onclick="checkAll(this)" id="checkAllProfile">
-                                            <label class="form-check-label" for="checkAllProfile">
-                                                {% trans "Alle Profile auswählen" %}
-                                            </label>
-                                        </div>
-
-                                        <!-- Profile List -->
-                                        <div class="table-responsive" style="max-height: 400px;">
-                                            <table id="table_profil" class="table table-hover align-middle mb-0">
-                                                <tbody>
-                                                    {% for profil in profil %}
-                                                        <tr>
-                                                            <td>
-                                                                <div class="form-check">
-                                                                    <input class="form-check-input" type="checkbox"
-                                                                           id="checkbox_profil_{{ profil.id }}"
-                                                                           name="profil" value="{{ profil.id }}" 
-                                                                           onclick="checkedbox(this)">
-                                                                    <label class="form-check-label" for="checkbox_profil_{{ profil.id }}">
-                                                                        {{ profil }}
-                                                                    </label>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    {% endfor %}
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                    <!-- Profile List -->
+                                    <div class="table-responsive" style="max-height: 400px;">
+                                        <table id="table_profil" class="table table-hover align-middle mb-0">
+                                            <tbody>
+                                                {% for profil in profil %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="checkbox_profil_{{ profil.id }}" name="profil"
+                                                                value="{{ profil.id }}" onclick="checkedbox(this)">
+                                                            <label class="form-check-label"
+                                                                for="checkbox_profil_{{ profil.id }}">
+                                                                {{ profil }}
+                                                            </label>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Submit Button -->
-                <div class="d-flex justify-content-end mt-4">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-lg me-1"></i>{% trans "Aufgaben zuweisen" %}
-                    </button>
-                </div>
-            </form>
-        </div>
+            <!-- Submit Button -->
+            <div class="d-flex justify-content-end mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i>{% trans "Aufgaben zuweisen" %}
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 

@@ -3,85 +3,81 @@
 {% load base_filter %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/aufgabe.css' %}">
+<link rel="stylesheet" href="{% static 'css/aufgabe.css' %}">
 {% endblock %}
 
 {% block headline %}
-    Aufgabe
+Aufgabe
 {% endblock %}
 
 {% block content %}
-    <div class="container-fluid">
-        <div class="card rounded-4">
-            <div class="card-header">
-                <h2 class="card-title mb-0">{{ aufgabe }}</h2>
-            </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-
-                    {% if aufgabe.mitupload %}
-                    <div class="mb-3">
-                        <label class="form-label">Datei hochladen</label>
-                        {% if freiwilliger_aufgaben.file %}
-                            <div id="file-name" class="form-control bg-light">
-                                <i class="bi bi-file-earmark me-2"></i>{{ freiwilliger_aufgaben.file.name|cut:"uploads/" }}
-                            </div>
-                        {% endif %}
-                        {% if not freiwilliger_aufgaben.pending and not freiwilliger_aufgaben.erledigt %}
-                            <input type="file" class="form-control" name="file" 
-                            {% if not freiwilliger_aufgaben.file %}
-                                required
-                            {% endif %}
-                            onchange="document.getElementById('file-name').style.display = 'none';">
-                        {% endif %}
-                    </div>
-                    {% endif %}
-
-                    <div class="mb-3">
-                        <label class="form-label">Fällig:</label>
-                        <p class="form-text">{{ freiwilliger_aufgaben.faellig|date:"d.m.Y" }}</p>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Status:</label>
-                        <p class="form-text">
-                            Erledigt: {% if freiwilliger_aufgaben.erledigt %}
-                                <span class="badge bg-success">Ja</span>
-                            {% else %}
-                                <span class="badge bg-danger">Nein</span>
-                            {% endif %}
-                            <br>
-                            Pending: {% if freiwilliger_aufgaben.pending %}
-                                <span class="badge bg-warning">Ja</span>
-                            {% else %}
-                                <span class="badge bg-info">Nein</span>
-                            {% endif %}
-                        </p>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <a href="{% url 'aufgaben' %}" class="btn text-black border border-2">Zurück</a>
-                        {% if freiwilliger_aufgaben.pending %}
-                            <button type="submit" name="action" value="unpend" class="btn btn-warning">
-                                Als nicht erledigt markieren
-                            </button>
-                        {% elif freiwilliger_aufgaben.erledigt %}
-                        {% with org=user|get_org %}
-                            <a href="mailto:{{ org.email }}?subject=Problem mit Aufgabe: {{ aufgabe }}&body=Ich habe ein Problem mit der Aufgabe '{{ aufgabe }}' vom {{ freiwilliger_aufgaben.faellig|date:'d.m.Y' }}.%0D%0A%0D%0AAufgabendetails:%0D%0A%0D%0ABeschreibung: {{ aufgabe.beschreibung }}%0D%0AFällig am: {{ freiwilliger_aufgaben.faellig|date:'d.m.Y' }}%0D%0AErledigt am: {{ freiwilliger_aufgaben.erledigt_am|date:'d.m.Y' }}%0D%0AAufgabenprofil: {{ aufgabe.aufgabenprofil }}%0D%0AUpload erforderlich: {% if aufgabe.mitupload %}Ja{% else %}Nein{% endif %}" class="btn btn-danger text-black">
-                                <i class="bi bi-exclamation-triangle me-1"></i>Problem melden
-                            </a>
-                        {% endwith %}
-                        {% else %}
-                            <button type="submit" name="action" value="pending" class="btn btn-primary">
-                                Erledigt
-                            </button>
-                        {% endif %}
-                    </div>
-
-                </form>
-            </div>
-        </div>
+<div class="card rounded-4">
+    <div class="card-header">
+        <h2 class="card-title mb-0">{{ aufgabe }}</h2>
     </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% if aufgabe.mitupload %}
+            <div class="mb-3">
+                <label class="form-label">Datei hochladen</label>
+                {% if freiwilliger_aufgaben.file %}
+                <div id="file-name" class="form-control bg-light">
+                    <i class="bi bi-file-earmark me-2"></i>{{ freiwilliger_aufgaben.file.name|cut:"uploads/" }}
+                </div>
+                {% endif %}
+                {% if not freiwilliger_aufgaben.pending and not freiwilliger_aufgaben.erledigt %}
+                <input type="file" class="form-control" name="file" {% if not freiwilliger_aufgaben.file %} required {%
+                    endif %} onchange="document.getElementById('file-name').style.display = 'none';">
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <label class="form-label">Fällig:</label>
+                <p class="form-text">{{ freiwilliger_aufgaben.faellig|date:"d.m.Y" }}</p>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Status:</label>
+                <p class="form-text">
+                    Erledigt: {% if freiwilliger_aufgaben.erledigt %}
+                    <span class="badge bg-success">Ja</span>
+                    {% else %}
+                    <span class="badge bg-danger">Nein</span>
+                    {% endif %}
+                    <br>
+                    Pending: {% if freiwilliger_aufgaben.pending %}
+                    <span class="badge bg-warning">Ja</span>
+                    {% else %}
+                    <span class="badge bg-info">Nein</span>
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="d-flex gap-2">
+                <a href="{% url 'aufgaben' %}" class="btn text-black border border-2">Zurück</a>
+                {% if freiwilliger_aufgaben.pending %}
+                <button type="submit" name="action" value="unpend" class="btn btn-warning">
+                    Als nicht erledigt markieren
+                </button>
+                {% elif freiwilliger_aufgaben.erledigt %}
+                {% with org=user|get_org %}
+                <a href="mailto:{{ org.email }}?subject=Problem mit Aufgabe: {{ aufgabe }}&body=Ich habe ein Problem mit der Aufgabe '{{ aufgabe }}' vom {{ freiwilliger_aufgaben.faellig|date:'d.m.Y' }}.%0D%0A%0D%0AAufgabendetails:%0D%0A%0D%0ABeschreibung: {{ aufgabe.beschreibung }}%0D%0AFällig am: {{ freiwilliger_aufgaben.faellig|date:'d.m.Y' }}%0D%0AErledigt am: {{ freiwilliger_aufgaben.erledigt_am|date:'d.m.Y' }}%0D%0AAufgabenprofil: {{ aufgabe.aufgabenprofil }}%0D%0AUpload erforderlich: {% if aufgabe.mitupload %}Ja{% else %}Nein{% endif %}"
+                    class="btn btn-danger text-black">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Problem melden
+                </a>
+                {% endwith %}
+                {% else %}
+                <button type="submit" name="action" value="pending" class="btn btn-primary">
+                    Erledigt
+                </button>
+                {% endif %}
+            </div>
+
+        </form>
+    </div>
+</div>
 
 {% endblock %}

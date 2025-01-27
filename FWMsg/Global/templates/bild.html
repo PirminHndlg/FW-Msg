@@ -3,76 +3,74 @@
 {% load widget_tweaks %}
 
 {% block head %}
-    <script src="{% static 'js/bild.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/bild.css' %}">
+<script src="{% static 'js/bild.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/bild.css' %}">
 {% endblock %}
 
 {% block headline %}
-    Bilder
+Bilder
 {% endblock %}
 
 {% block content %}
-    <div class="container-fluid">
-        <div class="card rounded-4">
-            <div class="card-header">
-                <h3 class="card-title mb-0">Bilder hochladen</h3>
-            </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
-                    {% if form_errors %}
-                        <div class="alert alert-danger">
-                            {{ form_errors }}
-                        </div>
-                    {% endif %}
-
-                    {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        {% for field in bilder_form %}
-                            <div class="form-group mb-3">
-                                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                {{ field|add_class:"form-control" }}
-                                {% if field.help_text %}
-                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                {% endif %}
-                                {% if field.errors %}
-                                    {% for error in field.errors %}
-                                        <div class="invalid-feedback d-block">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                    </div>
-
-                    <div class="mb-3">
-                        {% for field in bilder_gallery_form %}
-                            <div class="form-group mb-3">
-                                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                {{ field|add_class:"form-control" }}
-                                {% if field.help_text %}
-                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                {% endif %}
-                                {% if field.errors %}
-                                    {% for error in field.errors %}
-                                        <div class="invalid-feedback d-block">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                    </div>
-
-                    <div id="previewContainer" class="mb-3"></div>
-
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-2"></i>Speichern
-                    </button>
-                </form>
-            </div>
-        </div>
+<div class="card rounded-4">
+    <div class="card-header">
+        <h3 class="card-title mb-0">Bilder hochladen</h3>
     </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% if form_errors %}
+            <div class="alert alert-danger">
+                {{ form_errors }}
+            </div>
+            {% endif %}
+
+            {% csrf_token %}
+
+            <div class="mb-3">
+                {% for field in bilder_form %}
+                <div class="form-group mb-3">
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field|add_class:"form-control" }}
+                    {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% if field.errors %}
+                    {% for error in field.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-3">
+                {% for field in bilder_gallery_form %}
+                <div class="form-group mb-3">
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field|add_class:"form-control" }}
+                    {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% if field.errors %}
+                    {% for error in field.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div id="previewContainer" class="mb-3"></div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-2"></i>Speichern
+            </button>
+        </form>
+    </div>
+</div>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('id_image').addEventListener('change', function(event) {
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('id_image').addEventListener('change', function (event) {
             const previewContainer = document.getElementById('previewContainer');
             previewContainer.innerHTML = ''; // Clear existing previews
 
@@ -86,7 +84,7 @@
             fileList.forEach((file, index) => {
                 const reader = new FileReader();
 
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     const col = document.createElement('div');
                     col.className = 'col';
 
@@ -117,18 +115,18 @@
                     removeBtn.style.backgroundColor = '#dc3545';
                     removeBtn.style.opacity = '0.8';
                     removeBtn.type = 'button'; // Prevent form submission
-                    removeBtn.onclick = function() {
+                    removeBtn.onclick = function () {
                         // Remove the file from FileList
                         const dt = new DataTransfer();
                         const input = document.getElementById('id_image');
                         const { files } = input;
-                        
-                        for(let i = 0; i < files.length; i++) {
-                            if(i !== index) {
+
+                        for (let i = 0; i < files.length; i++) {
+                            if (i !== index) {
                                 dt.items.add(files[i]);
                             }
                         }
-                        
+
                         input.files = dt.files;
                         col.remove();
                     };
