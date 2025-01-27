@@ -6,17 +6,65 @@
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/list_aufgaben.css' %}">
 <style>
+    /* Table container styles */
+    .table-responsive {
+        max-height: calc(100vh - 200px);
+        overflow: auto;
+    }
+
+    /* Sticky first column */
     .table th:first-child,
     .table td:first-child {
         position: sticky;
         left: 0;
         background: white;
+        z-index: 2;
+        border-right: 1px solid #dee2e6;
+    }
+
+    /* Add shadow effect for better visual separation */
+    .table th:first-child::after,
+    .table td:first-child::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 4px;
+        pointer-events: none;
+        background: linear-gradient(to right, rgba(0,0,0,0.05), rgba(0,0,0,0));
+    }
+
+    /* Sticky header */
+    .table thead th {
+        position: sticky;
+        top: 0;
+        background: white;
         z-index: 1;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    /* Extra z-index for the corner cell (intersection of sticky header and column) */
+    .table thead th:first-child {
+        z-index: 3;
+    }
+
+    /* Add shadow under sticky header */
+    .table thead th::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 2px;
+        background: #dee2e6;
     }
     
     .status-cell {
         min-width: 150px;
         transition: all 0.2s ease-in-out;
+        position: relative;
+        padding-top: 2.5rem !important;
     }
     
     .status-cell:hover {
@@ -30,6 +78,12 @@
 
     .download-btn:hover {
         opacity: 1;
+    }
+
+    .action-dropdown {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
     }
 
     /* Delayed tooltip styles */
