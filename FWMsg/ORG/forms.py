@@ -41,7 +41,7 @@ class AddAufgabenprofilForm(OrgFormMixin, forms.ModelForm):
 class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
     class Meta:
         model = FWmodels.FreiwilligerAufgaben
-        fields = '__all__'
+        fields = ['freiwilliger', 'aufgabe', 'faellig', 'wiederholung', 'wiederholung_ende']
         exclude = ['org']
 
 
