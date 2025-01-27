@@ -31,11 +31,31 @@
     .download-btn:hover {
         opacity: 1;
     }
+
+    /* Instant tooltip styles */
+    [data-tooltip] {
+        position: relative;
+    }
+
+    [data-tooltip]:hover::before {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 4px 8px;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        font-size: 12px;
+        white-space: nowrap;
+        border-radius: 4px;
+        z-index: 1000;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="card rounded-4 p-2">
+<div class="card rounded-4">
     <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-between align-items-center">
         <h4 class="mb-0">{% trans "Aufgaben Übersicht" %}</h4>
         
@@ -58,18 +78,13 @@
 
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table mb-0 align-middle">
+            <table class="table table-hover mb-0 align-middle">
                 <thead>
                     <tr>
                         <th class="border-end">{% trans "Freiwillige" %}</th>
                         {% for aufgabe in aufgaben %}
                         <th class="text-center">{{ aufgabe.name }}</th>
                         {% endfor %}
-                        <th>
-                            <a href="{% url 'add_object' 'Aufgabe' %}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-plus-lg"></i>
-                            </a>
-                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -92,20 +107,19 @@
                             {% if aufgabe.id %}
                                 {% if aufgabe.erledigt %}
                                     <div class="mb-2">
-                                        <div class="mb-2" title="{% trans 'Erledigt am' %} {{ aufgabe.erledigt_am|date:"d.m.Y" }}">
-                                            <span class="badge bg-success">{% trans "Erledigt" %}</span>
-                                        </div>
+                                        <span data-tooltip="{% trans 'Erledigt am' %} {{ aufgabe.erledigt_am|date:'d.m.Y' }}"
+                                            class="badge bg-success">{% trans "Erledigt" %}</span>
                                     </div>
                                     {% if aufgabe.file %}
                                     <a href="{% url 'download_aufgabe' aufgabe.id %}" 
                                         class="btn btn-sm btn-outline-primary download-btn"
-                                        title="{% trans 'Datei herunterladen' %}">
+                                        data-tooltip="{% trans 'Datei herunterladen' %}">
                                         <i class="bi bi-download me-1"></i>{% trans "Download" %}
                                     </a>
                                     {% endif %}
                                     <a href="{% url 'edit_object' 'freiwilligeraufgaben' aufgabe.id %}"
                                         class="btn btn-outline-primary rounded-circle btn-sm"
-                                        title="{% trans 'Bearbeiten' %}">
+                                        data-tooltip="{% trans 'Bearbeiten' %}">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <form method="post" class="d-inline">
@@ -114,7 +128,7 @@
                                         <input type="hidden" name="pending" value="True">
                                         <input type="hidden" name="erledigt" value="False">
                                         <button type="submit" class="btn btn-warning btn-sm" 
-                                        title="{% trans 'Als pending markieren' %}">
+                                            data-tooltip="{% trans 'Als pending markieren' %}">
                                             <i class="bi bi-arrow-counterclockwise"></i>
                                         </button>
                                     </form>
@@ -126,14 +140,14 @@
                                     <div class="mb-2">
                                         <a href="{% url 'download_aufgabe' aufgabe.id %}"
                                             class="btn btn-sm btn-outline-primary download-btn" 
-                                            title="{% trans 'Datei herunterladen' %}">
+                                            data-tooltip="{% trans 'Datei herunterladen' %}">
                                             <i class="bi bi-download me-1"></i>{% trans "Download" %}
                                         </a>
                                     </div>
                                     {% endif %}
                                     <a href="{% url 'edit_object' 'freiwilligeraufgaben' aufgabe.id %}"
                                         class="btn btn-outline-primary rounded-circle btn-sm"
-                                        title="{% trans 'Bearbeiten' %}">
+                                        data-tooltip="{% trans 'Bearbeiten' %}">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <form method="post" class="d-inline">
@@ -142,7 +156,7 @@
                                         <input type="hidden" name="pending" value="False">
                                         <input type="hidden" name="erledigt" value="False">
                                         <button type="submit" class="btn btn-danger btn-sm" 
-                                        title="{% trans 'Als nicht erledigt markieren' %}">
+                                            data-tooltip="{% trans 'Als nicht erledigt markieren' %}">
                                             <i class="bi bi-x-lg"></i>
                                         </button>
                                     </form>
@@ -151,7 +165,8 @@
                                         <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
                                         <input type="hidden" name="pending" value="False">
                                         <input type="hidden" name="erledigt" value="True">
-                                        <button type="submit" class="btn btn-success btn-sm" title="{% trans 'Als erledigt markieren' %}">
+                                        <button type="submit" class="btn btn-success btn-sm" 
+                                            data-tooltip="{% trans 'Als erledigt markieren' %}">
                                             <i class="bi bi-check-lg"></i>
                                         </button>
                                     </form>
@@ -161,14 +176,16 @@
                                         {{ aufgabe.faellig|date:"d.m.Y" }}
                                     </div>
                                     <a href="{% url 'edit_object' 'freiwilligeraufgaben' aufgabe.id %}"
-                                        class="btn btn-outline-primary rounded-circle btn-sm">
+                                        class="btn btn-outline-primary rounded-circle btn-sm"
+                                        data-tooltip="{% trans 'Bearbeiten' %}">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <form method="post" class="d-inline">
                                         {% csrf_token %}
                                         <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
                                         <input type="hidden" name="reminder" value="True">
-                                        <button type="submit" class="btn btn-primary btn-sm disabled">
+                                        <button type="submit" class="btn btn-primary btn-sm disabled"
+                                            data-tooltip="{% trans 'Erinnerung senden' %}">
                                             <i class="bi bi-bell-fill"></i>
                                         </button>
                                     </form>
@@ -177,13 +194,16 @@
                                         <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
                                         <input type="hidden" name="pending" value="False">
                                         <input type="hidden" name="erledigt" value="True">
-                                        <button type="submit" class="btn btn-success btn-sm">
+                                        <button type="submit" class="btn btn-success btn-sm"
+                                            data-tooltip="{% trans 'Als erledigt markieren' %}">
                                             <i class="bi bi-check-lg"></i>
                                         </button>
                                     </form>
                                 {% endif %}
                             {% else %}
-                                <a class="btn btn-sm" href="{% url 'list_aufgaben_table' %}?fw={{freiwilliger.id}}&a={{aufgabe}}">
+                                <a class="btn btn-sm btn-outline-primary" 
+                                    href="{% url 'list_aufgaben_table' %}?fw={{freiwilliger.id}}&a={{aufgabe}}"
+                                    data-tooltip="{% trans 'Aufgabe zuweisen' %}">
                                     <i class="bi bi-plus-circle"></i>
                                 </a>
                             {% endif %}
