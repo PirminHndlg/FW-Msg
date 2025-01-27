@@ -66,13 +66,11 @@
                             <i class="bi bi-check text-white bg-success rounded"></i>
                             {% endif %}
                         </div>
-                        {% elif object|get_field_type:field.name == 'CharField' and
-                        object|get_attribute:field.name|length == 1 %}
+                        {% elif object|get_field_type:field.name == 'CharField' and object|get_attribute:field.name|length == 1 %}
                         <div class="text-center">
                             {{ object|get_attribute:field.name|default:'' }}
                         </div>
-                        {% elif object|get_field_type:field.name == 'DateField' or object|get_field_type:field.name ==
-                        'DateTimeField' %}
+                        {% elif object|get_field_type:field.name == 'DateField' or object|get_field_type:field.name == 'DateTimeField' %}
                         {{ object|get_attribute:field.name|date:"d.m.Y"|default:'' }}
                         {% else %}
                         {{ object|get_attribute:field.name|default:'' }}
