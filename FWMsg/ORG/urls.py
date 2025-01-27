@@ -11,6 +11,7 @@ urlpatterns = [
     path('delete/<str:model_name>/<int:id>', views.delete_object, name='delete_object'),
     path('list-ampel/', views.list_ampel, name='list_ampel'),
     path('list-aufgaben/', views.list_aufgaben, name='list_aufgaben'),
+    path('list-aufgaben-table/', views.list_aufgaben_table, name='list_aufgaben_table'),
     path('aufgaben-assign/', views.aufgaben_assign, name='aufgaben_assign'),
     path('download-bild/<int:id>', views.download_bild_as_zip, name='download_bild_as_zip'),
     path('list-bilder/', views.list_bilder, name='list_bilder'),
