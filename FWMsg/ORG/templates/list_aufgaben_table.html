@@ -32,12 +32,12 @@
         opacity: 1;
     }
 
-    /* Instant tooltip styles */
+    /* Delayed tooltip styles */
     [data-tooltip] {
         position: relative;
     }
 
-    [data-tooltip]:hover::before {
+    [data-tooltip]::before {
         content: attr(data-tooltip);
         position: absolute;
         bottom: 100%;
@@ -50,6 +50,15 @@
         white-space: nowrap;
         border-radius: 4px;
         z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+        transition-delay: 0.4s;
+    }
+
+    [data-tooltip]:hover::before {
+        opacity: 1;
+        visibility: visible;
     }
 </style>
 {% endblock %}
