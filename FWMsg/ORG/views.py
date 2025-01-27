@@ -58,7 +58,7 @@ def filter_jahrgang(view_func):
             if 'selectedJahrgangName' in request.COOKIES:
                 response.delete_cookie('selectedJahrgangName')
             return response
-    
+
         original_get_queryset = FWmodels.Freiwilliger.objects.get_queryset
 
         def get_jahrgang_queryset(manager):
@@ -356,7 +356,7 @@ def list_ampel(request):
         freiwilliger__in=freiwillige,
         date__gte=start_date,
         date__lte=end_date
-    ).order_by('freiwilliger', '-date')
+    ).order_by('freiwilliger', 'date')
     
     # Generate month labels
     months = generate_month_labels(start_date, end_date)
