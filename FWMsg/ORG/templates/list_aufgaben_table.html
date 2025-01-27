@@ -85,7 +85,7 @@
         </div>
     </div>
 
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
                 <thead>
@@ -126,88 +126,112 @@
                                         <i class="bi bi-download me-1"></i>{% trans "Download" %}
                                     </a>
                                     {% endif %}
-                                    <a href="{% url 'edit_object' 'freiwilligeraufgaben' aufgabe.id %}"
-                                        class="btn btn-outline-primary rounded-circle btn-sm"
-                                        data-tooltip="{% trans 'Bearbeiten' %}">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form method="post" class="d-inline">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
-                                        <input type="hidden" name="pending" value="True">
-                                        <input type="hidden" name="erledigt" value="False">
-                                        <button type="submit" class="btn btn-warning btn-sm" 
-                                            data-tooltip="{% trans 'Als pending markieren' %}">
-                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                    <div class="dropdown d-inline">
+                                        <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots"></i>
                                         </button>
-                                    </form>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'edit_object' 'freiwilligeraufgaben' aufgabe.id %}">
+                                                    <i class="bi bi-pencil me-2"></i>{% trans "Bearbeiten" %}
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <form method="post" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
+                                                    <input type="hidden" name="pending" value="True">
+                                                    <input type="hidden" name="erledigt" value="False">
+                                                    <button type="submit" class="dropdown-item text-warning">
+                                                        <i class="bi bi-arrow-counterclockwise me-2"></i>{% trans "Als pending markieren" %}
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 {% elif aufgabe.pending %}
                                     <div class="mb-2">
                                         <span class="badge bg-warning">{% trans "Pending" %}</span>
                                     </div>
                                     {% if aufgabe.file %}
-                                    <div class="mb-2">
-                                        <a href="{% url 'download_aufgabe' aufgabe.id %}"
-                                            class="btn btn-sm btn-outline-primary download-btn" 
-                                            data-tooltip="{% trans 'Datei herunterladen' %}">
-                                            <i class="bi bi-download me-1"></i>{% trans "Download" %}
-                                        </a>
-                                    </div>
-                                    {% endif %}
-                                    <a href="{% url 'edit_object' 'freiwilligeraufgaben' aufgabe.id %}"
-                                        class="btn btn-outline-primary rounded-circle btn-sm"
-                                        data-tooltip="{% trans 'Bearbeiten' %}">
-                                        <i class="bi bi-pencil"></i>
+                                    <a href="{% url 'download_aufgabe' aufgabe.id %}"
+                                        class="btn btn-sm btn-outline-primary download-btn" 
+                                        data-tooltip="{% trans 'Datei herunterladen' %}">
+                                        <i class="bi bi-download me-1"></i>{% trans "Download" %}
                                     </a>
-                                    <form method="post" class="d-inline">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
-                                        <input type="hidden" name="pending" value="False">
-                                        <input type="hidden" name="erledigt" value="False">
-                                        <button type="submit" class="btn btn-danger btn-sm" 
-                                            data-tooltip="{% trans 'Als nicht erledigt markieren' %}">
-                                            <i class="bi bi-x-lg"></i>
+                                    {% endif %}
+                                    <div class="dropdown d-inline">
+                                        <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots"></i>
                                         </button>
-                                    </form>
-                                    <form method="post" class="d-inline">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
-                                        <input type="hidden" name="pending" value="False">
-                                        <input type="hidden" name="erledigt" value="True">
-                                        <button type="submit" class="btn btn-success btn-sm" 
-                                            data-tooltip="{% trans 'Als erledigt markieren' %}">
-                                            <i class="bi bi-check-lg"></i>
-                                        </button>
-                                    </form>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'edit_object' 'freiwilligeraufgaben' aufgabe.id %}">
+                                                    <i class="bi bi-pencil me-2"></i>{% trans "Bearbeiten" %}
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <form method="post">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
+                                                    <input type="hidden" name="pending" value="False">
+                                                    <input type="hidden" name="erledigt" value="False">
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="bi bi-x-lg me-2"></i>{% trans "Als nicht erledigt markieren" %}
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form method="post">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
+                                                    <input type="hidden" name="pending" value="False">
+                                                    <input type="hidden" name="erledigt" value="True">
+                                                    <button type="submit" class="dropdown-item text-success">
+                                                        <i class="bi bi-check-lg me-2"></i>{% trans "Als erledigt markieren" %}
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 {% else %}
                                     <div>
                                         <small class="text-muted">{% trans "Fällig am" %}:</small><br>
                                         {{ aufgabe.faellig|date:"d.m.Y" }}
                                     </div>
-                                    <a href="{% url 'edit_object' 'freiwilligeraufgaben' aufgabe.id %}"
-                                        class="btn btn-outline-primary rounded-circle btn-sm"
-                                        data-tooltip="{% trans 'Bearbeiten' %}">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form method="post" class="d-inline">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
-                                        <input type="hidden" name="reminder" value="True">
-                                        <button type="submit" class="btn btn-primary btn-sm disabled"
-                                            data-tooltip="{% trans 'Erinnerung senden' %}">
-                                            <i class="bi bi-bell-fill"></i>
+                                    <div class="dropdown d-inline">
+                                        <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots"></i>
                                         </button>
-                                    </form>
-                                    <form method="post" class="d-inline">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
-                                        <input type="hidden" name="pending" value="False">
-                                        <input type="hidden" name="erledigt" value="True">
-                                        <button type="submit" class="btn btn-success btn-sm"
-                                            data-tooltip="{% trans 'Als erledigt markieren' %}">
-                                            <i class="bi bi-check-lg"></i>
-                                        </button>
-                                    </form>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'edit_object' 'freiwilligeraufgaben' aufgabe.id %}">
+                                                    <i class="bi bi-pencil me-2"></i>{% trans "Bearbeiten" %}
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <form method="post">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
+                                                    <input type="hidden" name="reminder" value="True">
+                                                    <button type="submit" class="dropdown-item" disabled>
+                                                        <i class="bi bi-bell-fill me-2"></i>{% trans "Erinnerung senden" %}
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form method="post">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
+                                                    <input type="hidden" name="pending" value="False">
+                                                    <input type="hidden" name="erledigt" value="True">
+                                                    <button type="submit" class="dropdown-item text-success">
+                                                        <i class="bi bi-check-lg me-2"></i>{% trans "Als erledigt markieren" %}
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 {% endif %}
                             {% else %}
                                 <a class="btn btn-sm btn-outline-primary" 
