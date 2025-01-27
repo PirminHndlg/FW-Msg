@@ -60,9 +60,9 @@
                             <div class="ampel-dot-container">
                                 {% for entry in months_data|get_item:month %}
                                 <span class="ampel-dot ampel-{{ entry.status }}"
-                                    onclick="showAmpelComment('{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|escapejs }}')"
+                                    onclick="showAmpelComment('{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}')"
                                     data-bs-toggle="tooltip" data-bs-html="true"
-                                    title="<strong>{{ entry.date }}</strong><br>{{ entry.comment }}">
+                                    title="<strong>{{ entry.date }}</strong><br>{{ entry.comment|default:'' }}">
                                 </span>
                                 {% endfor %}
                             </div>
@@ -95,7 +95,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="d-flex align-items-center mb-3">
+                <div class="d-flex align-items-center mb-3 gap-1">
                     <div id="modalStatus" class="ampel-dot me-3"></div>
                     <h6 class="mb-0">{% trans "Status" %}</h6>
                 </div>
