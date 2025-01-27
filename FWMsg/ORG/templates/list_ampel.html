@@ -49,8 +49,7 @@
                     {% for freiwilliger, months_data in fw_matrix.items %}
                     <tr>
                         <td class="border-end sticky-col">
-                            <a href="{% url 'list_ampel_history' freiwilliger.id %}"
-                                class="text-decoration-none text-body" data-bs-toggle="tooltip"
+                            <a class="text-decoration-none text-body" data-bs-toggle="tooltip"
                                 title="{% trans 'Historie anzeigen' %}">
                                 {{ freiwilliger }}
                             </a>

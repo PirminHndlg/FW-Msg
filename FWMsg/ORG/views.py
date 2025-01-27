@@ -428,16 +428,6 @@ def create_ampel_matrix(freiwillige, months, ampel_entries):
             
     return matrix
 
-@login_required
-@required_role('O')
-@filter_jahrgang
-def list_ampel_history(request, fid):
-    freiwilliger = get_object_or_404(FWmodels.Freiwilliger, pk=fid)
-    if not freiwilliger.org == request.user.org:
-        return HttpResponse('Nicht erlaubt')
-    ampel = FWmodels.Ampel.objects.filter(freiwilliger=freiwilliger).order_by('-date')
-    return render(request, 'list_ampel_history.html', context={'ampel': ampel, 'freiwilliger': freiwilliger})
-
 
 @login_required
 @required_role('O')
