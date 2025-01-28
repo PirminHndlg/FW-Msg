@@ -204,6 +204,10 @@ def edit_object(request, model_name, id):
 
     if form.is_valid():
         save_form(request, form)
+
+        if model_name == 'freiwilligeraufgaben':
+            return redirect('list_aufgaben_table')
+        
         return redirect('list_object', model_name=model_name)
 
     return render(request, 'edit_object.html', {'form': form, 'object': model_name})
