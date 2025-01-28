@@ -68,15 +68,6 @@ def home(request):
 
 @login_required
 @required_role('F')
-def remove_profil_attribut(request, profil_id):
-    profil_user = ProfilUser.objects.get(id=profil_id)
-    if profil_user.user == request.user:
-        profil_user.delete()
-    return redirect('profil')
-
-
-@login_required
-@required_role('F')
 def ampel(request):
     ampel = request.POST.get('ampel', None)
     if ampel and ampel.upper() in ['R', 'G', 'Y']:

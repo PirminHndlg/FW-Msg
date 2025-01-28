@@ -20,6 +20,7 @@ urlpatterns = [
 
     path('profil/', views.view_profil, name='profil'),
     path('profil/<int:user_id>', views.view_profil, name='profil'),
+    path('profil/remove/<int:profil_id>', views.remove_profil_attribut, name='remove_profil_attribut'),
 
     path('datenschutz/', views.datenschutz, name='datenschutz'),
 

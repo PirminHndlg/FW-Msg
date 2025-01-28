@@ -54,11 +54,13 @@
                             </div>
                             {% endif %}
                         </div>
-                        {% if freiwilliger.einsatzland %}
-                            <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }} mb-2" style="width: 100px; height: 50px;"></span>
-                            <span class="small text-muted">{{ freiwilliger.einsatzland.name }}</span>
-                        {% else %}
-                            <i class="bi bi-globe mb-2" style="font-size: 3rem; color: var(--bs-primary);"></i>
+                        {% if freiwilliger %}
+                            {% if freiwilliger.einsatzland %}
+                                <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }} mb-2" style="width: 100px; height: 50px;"></span>
+                                <span class="small text-muted">{{ freiwilliger.einsatzland.name }}</span>
+                            {% else %}
+                                <i class="bi bi-globe mb-2" style="font-size: 3rem; color: var(--bs-primary);"></i>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>
@@ -69,17 +71,17 @@
                 {# Basic Info #}
                 <div class="mb-3">
                     {% if freiwilliger %}
-                    {% if this_user %}
-                        <div class="d-flex justify-content-between gap-2 mb-2 align-items-center">
-                            <p class="mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ freiwilliger.geburtsdatum|date:"d.m.Y" }}</p>
-                            <a href="mailto:{{ user.org.email|default:'' }}" class="btn btn-sm"><i class="bi bi-envelope-fill me-1"></i>{% trans "Änderungen melden" %}</a>
-                        </div>
-                        <p class="mb-2"><strong>{% trans "Telefon" %}:</strong> {{ freiwilliger.phone|default:"" }}</p>
-                        <p class="mb-2"><strong>{% trans "Telefon Einsatzland" %}:</strong> {{ freiwilliger.phone_einsatzland|default:"" }}</p>
-                        <p class="mb-2"><strong>{% trans "Email" %}:</strong> {{ freiwilliger.email|default:"" }}</p>
-                    {% else %}
-                        <p class="mb-2 mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ freiwilliger.geburtsdatum|date:"d.m.Y" }}</p>
-                    {% endif %}
+                        {% if this_user %}
+                            <div class="d-flex justify-content-between gap-2 mb-2 align-items-center">
+                                <p class="mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ freiwilliger.geburtsdatum|date:"d.m.Y" }}</p>
+                                <a href="mailto:{{ user.org.email|default:'' }}" class="btn btn-sm"><i class="bi bi-envelope-fill me-1"></i>{% trans "Änderungen melden" %}</a>
+                            </div>
+                            <p class="mb-2"><strong>{% trans "Telefon" %}:</strong> {{ freiwilliger.phone|default:"" }}</p>
+                            <p class="mb-2"><strong>{% trans "Telefon Einsatzland" %}:</strong> {{ freiwilliger.phone_einsatzland|default:"" }}</p>
+                            <p class="mb-2"><strong>{% trans "Email" %}:</strong> {{ freiwilliger.email|default:"" }}</p>
+                        {% else %}
+                            <p class="mb-2 mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ freiwilliger.geburtsdatum|date:"d.m.Y" }}</p>
+                        {% endif %}
                     {% endif %}
 
                 </div>
