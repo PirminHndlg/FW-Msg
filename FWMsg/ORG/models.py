@@ -13,7 +13,7 @@ class Organisation(models.Model):
     adress = models.TextField(null=True, blank=True)
     telefon = models.CharField(max_length=20, null=True, blank=True)
     website = models.URLField(null=True, blank=True)
-    logo = models.ImageField(upload_to='logos/', blank=True, null=True)
+    logo = models.ImageField(upload_to='logos/')
     farbe = models.CharField(max_length=7, default='#007bff')
 
     class Meta:
