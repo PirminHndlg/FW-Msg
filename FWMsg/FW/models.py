@@ -160,7 +160,7 @@ class Freiwilliger(models.Model):
     strasse = models.CharField(max_length=100, blank=True, null=True, verbose_name='Straße')
     plz = models.CharField(max_length=10, blank=True, null=True, verbose_name='PLZ')
     ort = models.CharField(max_length=100, blank=True, null=True, verbose_name='Ort')
-    email = models.EmailField(max_length=100, blank=True, null=True, verbose_name='E-Mail')
+    email = models.EmailField(max_length=100, verbose_name='E-Mail')
     phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon')
     phone_einsatzland = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon Einsatzland')
     entsendeform = models.ForeignKey(Entsendeform, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Entsendeform')
