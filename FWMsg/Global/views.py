@@ -432,7 +432,8 @@ def view_profil(request, user_id=None):
         profil_user_form = ProfilUserForm(request.POST)
         if profil_user_form.is_valid():
             profil_user = profil_user_form.save(commit=False)
-            profil_user.user = user
+            profil_user.user = request.user
+            profil_user.org = request.user.org
             profil_user.save()
             return redirect('profil')
 
@@ -462,3 +463,12 @@ def view_profil(request, user_id=None):
     context = checkForOrg(request, context)
 
     return render(request, 'profil.html', context=context)
+
+
+@login_required
+@required_role('')
+def remove_profil_attribut(request, profil_id):
+    profil_user = ProfilUser.objects.get(id=profil_id)
+    if profil_user.user == request.user:
+        profil_user.delete()
+    return redirect('profil')
