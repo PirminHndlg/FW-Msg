@@ -11,7 +11,7 @@ def send_register_email_task(customuser_id):
     user = customuser.user
     org = customuser.org
 
-    action_url = 'https://volunteer.solutions'
+    action_url = 'https://volunteer.solutions/first_login'
     org_name = org.name
     einmalpasswort = customuser.einmalpasswort
     freiwilliger_name = f"{user.first_name} {user.last_name}"

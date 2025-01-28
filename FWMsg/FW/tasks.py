@@ -41,9 +41,9 @@ def send_register_email_task(freiwilliger_id):
 
     with open(org.logo.path, "rb") as org_logo:
         base64_image = base64.b64encode(org_logo.read()).decode('utf-8')
-    action_url = 'https://volunteer.solutions'
+    action_url = 'https://volunteer.solutions/first_login'
     org_name = org.name
-    einmalpasswort = '123456'
+    einmalpasswort = freiwilliger.user.customuser.einmalpasswort
     freiwilliger_name = f"{freiwilliger.first_name} {freiwilliger.last_name}"
     username = freiwilliger.user.username
     
