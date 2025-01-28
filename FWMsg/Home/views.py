@@ -15,10 +15,10 @@ def index(request):
     # Handle login form
     form = AuthenticationForm()
     if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
+        form_login = AuthenticationForm(request, data=request.POST)
+        if form_login.is_valid():
+            username = form_login.cleaned_data.get('username')
+            password = form_login.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
@@ -28,8 +28,6 @@ def index(request):
                 return redirect('fw_home')
             else:
                 messages.error(request, _('Ungültiger Benutzername oder Passwort.'))
-        else:
-            messages.error(request, _('Ungültiger Benutzername oder Passwort.'))
 
     return render(request, 'index.html', {'form': form})
 
