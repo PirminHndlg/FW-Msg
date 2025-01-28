@@ -40,29 +40,43 @@ def first_login(request):
         password_repeat = request.POST['password_repeat']
         einmalpasswort = request.POST['einmalpasswort']
 
-        user = User.objects.get(username=user_name)
+        user_exists = User.objects.filter(username=user_name).exists()
 
+        if not user_exists:
+            messages.error(request, _('Benutzername nicht gefunden.'))
+            return redirect('first_login')
+        else:
+            user = User.objects.get(username=user_name)
+        
+        if not user.customuser:
+            messages.error(request, _('Interner Fehler: Benutzer nicht gefunden. Kontaktiere den Administrator.'))
+            return redirect('first_login')
+        
         if password != password_repeat:
             messages.error(request, _('Passwörter stimmen nicht überein.'))
             return redirect('first_login')
         
-        if user.customuser.einmalpasswort == einmalpasswort:
-            user.customuser.einmalpasswort = None
-            user.customuser.save()
-
-            user.set_password(password)
-            user.save()
-
-            # Re-authenticate with new password
-            user = authenticate(username=user_name, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('index_home')
-            else:
-                messages.error(request, _('Fehler beim Login. Bitte versuchen Sie es erneut.'))
-                return redirect('first_login')
-        else:
+        if not user.customuser.einmalpasswort:
+            messages.error(request, _('Einmalpasswort bereits verwendet.'))
+            return redirect('first_login')
+        
+        if user.customuser.einmalpasswort != einmalpasswort:
             messages.error(request, _('Ungültiges Einmalpasswort.'))
+            return redirect('first_login')
+        
+        user.customuser.einmalpasswort = None
+        user.customuser.save()
+
+        user.set_password(password)
+        user.save()
+
+        # Re-authenticate with new password
+        user = authenticate(username=user_name, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('index_home')
+        else:
+            messages.error(request, _('Fehler beim Login. Bitte versuchen Sie es erneut.'))
             return redirect('first_login')
 
     return render(request, 'first_login.html')
