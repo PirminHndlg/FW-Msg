@@ -241,6 +241,11 @@ def post_save_handler(sender, instance, created, **kwargs):
                 task.faellig = instance.start_real + timedelta(days=task.aufgabe.faellig_tage_nach_start)
                 task.save()
 
+    if not instance.user.first_name or not instance.user.last_name:
+        instance.user.first_name = instance.first_name
+        instance.user.last_name = instance.last_name
+        instance.user.save()
+
 
 @receiver(post_delete, sender=Freiwilliger)
 def post_delete_handler(sender, instance, **kwargs):

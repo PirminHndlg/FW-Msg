@@ -8,12 +8,18 @@ from .models import Freiwilliger, Entsendeform, Einsatzland, Einsatzstelle, Notf
 @admin.register(Freiwilliger)
 class FreiwilligerAdmin(admin.ModelAdmin):
     search_fields = ['first_name', 'last_name']
-    actions = ['send_register_email']
+    actions = ['send_register_email', 'give_user_name']
 
     def send_register_email(self, request, queryset):
         for freiwilliger in queryset:
             from FW.tasks import send_register_email_task
             send_register_email_task.delay(freiwilliger.id)
+
+    def give_user_name(self, request, queryset):
+        for freiwilliger in queryset:
+            freiwilliger.user.first_name = freiwilliger.first_name
+            freiwilliger.user.last_name = freiwilliger.last_name
+            freiwilliger.user.save()
 
 
 @admin.register(Entsendeform)
