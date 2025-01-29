@@ -120,5 +120,5 @@ class Dokument(models.Model):
 
 @receiver(post_delete, sender=Dokument)
 def remove_file(sender, instance, **kwargs):
-    if os.path.isfile(instance.dokument.path):
+    if instance.dokument and os.path.isfile(instance.dokument.path):
         os.remove(instance.dokument.path)
