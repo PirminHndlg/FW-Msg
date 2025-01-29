@@ -5,6 +5,7 @@ urlpatterns = [
     path('', views.home, name='org_home'),
 
     path('add/<str:model_name>/', views.add_object, name='add_object'),
+    path('add/<str:model_name>/excel/', views.add_objects_from_excel, name='add_objects_from_excel'),
     path('edit/<str:model_name>/<int:id>', views.edit_object, name='edit_object'),
     path('list/<str:model_name>/', views.list_object, name='list_object'),
     path('update/<str:model_name>/', views.update_object, name='update_object'),
