@@ -4,12 +4,20 @@
 
 {% block head %}
 <style>
-    .table td:last-child {
-        background: white;
-        z-index: 1;
+    .table-responsive {
+        scroll-behavior: smooth;
+    }
+
+    .table td {
+        transition: background-color 0.2s ease;
+    }
+
+    .table-primary {
+        transition: background-color 0.2s ease;
     }
 </style>
 {% endblock %}
+
 
 {% block content %}
 <div class="row justify-content-between mb-3 align-items-center">
@@ -54,9 +62,9 @@
             </thead>
             <tbody id="myTable">
                 {% for object in objects %}
-                <tr data-pk="{{ object.pk }}">
+                <tr data-pk="{{ object.pk }}" {% if object.pk == highlight_id %}id="highlight-row"{% endif %}>
                     {% for field in field_metadata %}
-                    <td data-default="{{ object|get_attribute:field.name|default:'' }}" data-field="{{ field.name }}">
+                    <td data-default="{{ object|get_attribute:field.name|default:'' }}" data-field="{{ field.name }}" {% if object.pk == highlight_id %}class="table-primary"{% endif %}>
                         {% if object|is_many_to_many:field.name %}
                         {% with items=object|get_attribute:field.name %}
                         {{ items.all|join:", " }}
@@ -116,5 +124,34 @@
             });
         });
     });
+
+    {% if highlight_id %}
+    document.addEventListener('DOMContentLoaded', function() {
+        const highlightedRow = document.getElementById('highlight-row');
+        if (highlightedRow) {
+            // Wait a tiny bit to ensure the table is fully rendered
+            setTimeout(() => {
+                highlightedRow.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }, 100);
+
+            // Fade out the highlight after 2 seconds
+            setTimeout(() => {
+                const tds = highlightedRow.querySelectorAll('td');
+                tds.forEach(td => {
+                    // First ensure the transition is visible by forcing a reflow
+                    td.style.backgroundColor = window.getComputedStyle(td).backgroundColor;
+                    // Then set the new background color
+                    requestAnimationFrame(() => {
+                        td.style.backgroundColor = 'var(--bs-body-bg)';
+                        td.classList.remove('table-primary');
+                    });
+                });
+            }, 3000);
+        }
+    });
+    {% endif %}
 </script>
 {% endblock %}

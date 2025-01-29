@@ -247,11 +247,13 @@ def edit_object(request, model_name, id):
 
     if form.is_valid():
         save_form(request, form)
+        obj = form.instance.id
+        highlight_id = obj
 
         if model_name == 'freiwilligeraufgaben':
             return redirect('list_aufgaben_table')
         
-        return redirect('list_object', model_name=model_name)
+        return redirect('list_object_highlight', model_name=model_name, highlight_id=highlight_id)
 
     return render(request, 'edit_object.html', {'form': form, 'object': model_name})
 
@@ -259,7 +261,7 @@ def edit_object(request, model_name, id):
 @login_required
 @required_role('O')
 @filter_jahrgang
-def list_object(request, model_name):
+def list_object(request, model_name, highlight_id=None):
     model = get_model(model_name)
 
     if not model:
@@ -328,7 +330,8 @@ def list_object(request, model_name):
                   'field_metadata': field_metadata, 
                   'model_name': model_name,
                   'verbose_name': model._meta.verbose_name_plural,
-                  'filter_form': filter_form})
+                  'filter_form': filter_form,
+                  'highlight_id': highlight_id})
 
 
 @login_required
