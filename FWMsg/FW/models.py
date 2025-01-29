@@ -152,7 +152,7 @@ class Freiwilliger(models.Model):
 
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
     jahrgang = models.ForeignKey(Jahrgang, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Jahrgang')
-    user = models.OneToOneField(User, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name='Benutzer')
+    user = models.OneToOneField(User, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name='Benutzer:in')
     first_name = models.CharField(max_length=50, verbose_name='Vorname')
     last_name = models.CharField(max_length=50, verbose_name='Nachname')
     geschlecht = models.CharField(max_length=1, blank=True, null=True, choices=GESCHLECHT_CHOICES, verbose_name='Geschlecht')

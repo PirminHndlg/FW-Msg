@@ -315,7 +315,7 @@ def list_object(request, model_name, highlight_id=None):
     # Get both regular fields and many-to-many fields
     field_metadata = [
         {'name': field.name, 'verbose_name': field.verbose_name}
-        for field in model._meta.fields if field.name != 'org' and field.name != 'id'
+        for field in model._meta.fields if field.name != 'org' and field.name != 'id' and field.name != 'user'
     ]
 
     if 'first_name' in [field.name for field in model._meta.fields]:
