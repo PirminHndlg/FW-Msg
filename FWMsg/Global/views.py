@@ -303,23 +303,40 @@ def dokumente(request):
 @required_role('')
 def add_dokument(request):
     if request.method == 'POST':
-        ordner = Ordner.objects.get(id=request.POST.get('ordner'))
+        dokument_id = request.POST.get('dokument_id')
         titel = request.POST.get('titel')
         beschreibung = request.POST.get('beschreibung')
         link = request.POST.get('link')
-        dokument = request.FILES.get('dokument')
         fw_darf_bearbeiten = request.POST.get('fw_darf_bearbeiten') == 'on'
 
-        Dokument.objects.create(
-            org=request.user.org,
-            ordner=ordner,
-            titel=titel,
-            beschreibung=beschreibung,
-            dokument=dokument,
-            link=link,
-            fw_darf_bearbeiten=fw_darf_bearbeiten,
-            date_created=datetime.now()
-        )
+        file = request.FILES.get('dokument')
+
+        if dokument_id and Dokument.objects.filter(id=dokument_id).exists():
+            dokument = Dokument.objects.get(id=dokument_id)
+            if dokument.org != request.user.org:
+                messages.error(request, 'Nicht erlaubt')
+                return redirect('dokumente')
+
+            if file:
+                dokument.dokument = file
+
+            dokument.titel = titel
+            dokument.beschreibung = beschreibung
+            dokument.link = link
+            dokument.fw_darf_bearbeiten = fw_darf_bearbeiten
+            dokument.save()
+        else:
+            ordner = Ordner.objects.get(id=request.POST.get('ordner'))
+            Dokument.objects.create(
+                org=request.user.org,
+                ordner=ordner,
+                titel=titel,
+                beschreibung=beschreibung,
+                dokument=file,
+                link=link,
+                fw_darf_bearbeiten=fw_darf_bearbeiten,
+                date_created=datetime.now()
+            )
 
     return redirect('dokumente')
 

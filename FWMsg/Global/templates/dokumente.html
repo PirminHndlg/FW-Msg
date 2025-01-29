@@ -56,7 +56,18 @@
                         </div>
                         <div class="row g-3">
                             {% for dokument in structure.dokumente %}
-                                <div class="col-sm-6 col-md-4 col-lg-3">
+                                <div class="col-sm-6 col-md-4 col-lg-3" id="dokument-{{ dokument.id }}"
+                                data-id="{{ dokument.id }}"
+                                data-titel="{{ dokument.titel|default:'' }}"
+                                data-beschreibung="{{ dokument.beschreibung|default:'' }}"
+                                data-date_created="{{ dokument.date_created }}"
+                                data-link="{{ dokument.link|default:'' }}"
+                                data-dokument="{{ dokument|get_document_name|default:'' }}"
+                                data-folder_id="{{ structure.ordner.id }}"
+                                data-folder_name="{{ structure.ordner }}"
+
+
+                                data-fw_darf_bearbeiten="{{ dokument.fw_darf_bearbeiten }}">
                                     <div class="card rounded-4 h-100 hover-shadow">
                                         {% if dokument.get_document_type|starts_with:'image' %}
                                             <img onclick="showImgLarge(this)" 
@@ -83,7 +94,7 @@
                                                     <p class="text-muted small">{{ dokument.link|get_short_link }}</p>
                                                 </div>
                                             </a>
-                                        {% else %}
+                                        {% elif dokument.dokument %}
                                             <div class="card-img-top d-flex align-items-center justify-content-center bg-light rounded-top-4" style="height: 120px;">
                                                 <i class="bi bi-file-earmark fa-3x text-secondary"></i>
                                             </div>
@@ -115,15 +126,23 @@
                                                     download>
                                                         <i class="bi bi-download"></i> Download
                                                     </a>
-                                                    {% if dokument.fw_darf_bearbeiten or is_org %}
-                                                    <button onclick="removeDokument({{ dokument.id }}, '{{ dokument.titel|default:dokument_name }}')"
-                                                            class="btn btn-outline-danger btn-sm rounded-4">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                    {% endif %}
                                                 </div>
                                                 {% endif %}
+                                            </div>
+
+                                            <div class="card-footer">
+
+                                                {% if dokument.fw_darf_bearbeiten or is_org %}
+                                                <button onclick="removeDokument({{ dokument.id }}, '{{ dokument.titel|default:dokument_name }}', '{% url 'remove_dokument' %}')"
+                                                        class="btn btn-outline-danger btn-sm rounded-4">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                {% endif %}
                                             {% endwith %}
+
+                                            <button class="btn btn-sm rounded-4" onclick="editDokument({{ dokument.id }})">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
