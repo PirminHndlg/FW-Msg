@@ -34,7 +34,7 @@
                     </button>
                 </div>
                 <div id="collapse{{ structure.ordner.id }}" 
-                        class="accordion-collapse collapse" 
+                        class="accordion-collapse collapse {% if ordner_id == structure.ordner.id %}show{% endif %}" 
                         aria-labelledby="heading{{ structure.ordner.id }}" 
                         data-bs-parent="#folderAccordion">
                     <div class="card-body">

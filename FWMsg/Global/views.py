@@ -277,7 +277,7 @@ def remove_bild_all(request):
 
 @login_required
 @required_role('')
-def dokumente(request):
+def dokumente(request, ordner_id=None):
     ordners = Ordner.objects.filter(org=request.user.org).order_by('ordner_name')
 
     folder_structure = []
@@ -290,7 +290,8 @@ def dokumente(request):
 
     context = {
         'ordners': ordners,
-        'folder_structure': folder_structure
+        'folder_structure': folder_structure,
+        'ordner_id': ordner_id
     }
 
     context = checkForOrg(request, context)
@@ -327,7 +328,7 @@ def add_dokument(request):
             dokument.save()
         else:
             ordner = Ordner.objects.get(id=request.POST.get('ordner'))
-            Dokument.objects.create(
+            dokument = Dokument.objects.create(
                 org=request.user.org,
                 ordner=ordner,
                 titel=titel,
@@ -338,7 +339,7 @@ def add_dokument(request):
                 date_created=datetime.now()
             )
 
-    return redirect('dokumente')
+    return redirect('dokumente', ordner_id=dokument.ordner.id)
 
 
 @login_required
