@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from ORG.models import Organisation
 from django.dispatch import receiver
 from django.db.models.signals import post_save
-
+import random
 # Create your models here.
 class CustomUser(models.Model):
     ROLE_CHOICES = [
@@ -19,6 +19,20 @@ class CustomUser(models.Model):
     profil_picture = models.ImageField(upload_to='profil_picture/', blank=True, null=True, verbose_name='Profilbild')
 
     einmalpasswort = models.CharField(max_length=20, blank=True, null=True, verbose_name='Einmalpasswort')
+
+    def send_registration_email(self):
+        if not self.einmalpasswort:
+            self.einmalpasswort = random.randint(100000, 999999)
+            self.save()
+
+        if self.role == 'F':
+            from FW.tasks import send_register_email_task
+            from FW.models import Freiwilliger
+            freiwilliger = Freiwilliger.objects.get(user=self.user)
+            send_register_email_task.s(freiwilliger.id).apply_async(countdown=10)
+        elif self.role == 'O':
+            from ORG.tasks import send_register_email_task
+            send_register_email_task.s(self.id).apply_async(countdown=10)
     
     def __str__(self):
         return self.user.username

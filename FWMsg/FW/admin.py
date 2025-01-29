@@ -71,11 +71,6 @@ class JahrgangAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
 
-@admin.register(CustomUser)
-class CustomUserAdmin(admin.ModelAdmin):
-    search_fields = ['user']
-
-
 @admin.register(Bilder)
 class BilderAdmin(admin.ModelAdmin):
     search_fields = ['name']

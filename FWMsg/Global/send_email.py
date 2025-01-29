@@ -91,7 +91,7 @@ register_email_fw_template = """
     </div>
 
     <a>Hallo {freiwilliger_name},</a><br>
-    <a>Es wurde ein Account für Dich bei <a href="https://volunteer.solutions">Volunteer.Solutions</a> von der Organisation {org_name} erstellt.</a><br>
+    <a>Es wurde ein Account für Dich bei <a href="{action_url}">Volunteer.Solutions</a> von der Organisation {org_name} erstellt.</a><br>
     <a>Volunteer.Solutions ist eine Plattform zur Organisation von Freiwilligenarbeit.</a><br>
     <br>
     <a>Bitte nutze für den Login die folgenden Daten:<br>Benutzername: {username}<br>Einmalpasswort: {einmalpasswort}</a>
@@ -101,10 +101,10 @@ register_email_fw_template = """
 
     <br><br>
 
-    <strong>- English version -</strong>
-    <a>Hello {freiwilliger_name},</a>
-    <a>An account has been created for you at <a href="https://volunteer.solutions">Volunteer.Solutions</a> by the organisation {org_name}.</a>
-    <a>Volunteer.Solutions is a platform for organising volunteer work.</a>
+    <strong>- English version -</strong><br>
+    <a>Hello {freiwilliger_name},</a><br>
+    <a>An account has been created for you at <a href="{action_url}">Volunteer.Solutions</a> by the organisation {org_name}.</a><br>
+    <a>Volunteer.Solutions is a platform for organising volunteer work.</a><br>
     <br>
     <a>Please use the following data for the login:<br>Username: {username}<br>One-time password: {einmalpasswort}</a>
     <p>Alternatively, you can log in via the following URL: <a href="{action_url}">{action_url}</a></p>
@@ -117,7 +117,6 @@ register_email_fw_template = """
 register_email_org_template = """
 <html>
 <body>
-    <a>- English version below -</a>
     <p>An {org_name}</p>
     <p>Es wurde ein neuer Account auf Volunteer.Solutions erstellt.</p>
     <p>Bitte nutze für den Login die folgenden Daten:<br>Benutzername: {username}<br>Einmalpasswort: {einmalpasswort}</p>
