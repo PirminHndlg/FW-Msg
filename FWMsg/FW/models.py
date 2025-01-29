@@ -112,7 +112,7 @@ class Einsatzland(OrgModel):
 
 class Einsatzstelle(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Einsatzstelle')
-    land = models.ForeignKey(Einsatzland, on_delete=models.CASCADE, verbose_name='Einsatzland')
+    land = models.ForeignKey(Einsatzland, on_delete=models.CASCADE, verbose_name='Einsatzland', null=True, blank=True)
 
     class Meta:
         verbose_name = 'Einsatzstelle'
@@ -201,7 +201,7 @@ def post_save_handler(sender, instance, created, **kwargs):
         import random
 
         # Create username by combining first and last names
-        default_username = f"{instance.first_name.replace(' ', '')[:4].lower()}{instance.last_name.split(' ')[-1][:4].lower()}"
+        default_username = f"{instance.first_name.replace(' ', '-').lower()}"
         username = default_username
         c = 0
         user = True

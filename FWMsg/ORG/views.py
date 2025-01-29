@@ -2,6 +2,7 @@ from datetime import date, datetime, timedelta
 import io
 import os
 import zipfile
+import pandas as pd
 
 from django.db.models import ForeignKey
 from django.shortcuts import render, redirect
@@ -175,6 +176,48 @@ def add_object(request, model_name):
         )
         return edit_object(request, model_name, obj.id)
     return edit_object(request, model_name, None)
+
+@login_required
+@required_role('O')
+@filter_jahrgang
+def add_objects_from_excel(request, model_name):
+    if request.method == 'POST':
+        excel_file = request.FILES['excel_file']
+        df = pd.read_excel(excel_file)
+        model = get_model(model_name)
+
+        jahrgang_id = request.COOKIES.get('selectedJahrgang')
+        if FWmodels.Jahrgang.objects.filter(id=jahrgang_id).exists():
+            jahrgang = FWmodels.Jahrgang.objects.get(id=jahrgang_id)
+            if jahrgang.org != request.user.org:
+                return HttpResponse('Nicht erlaubt')
+        else:
+            jahrgang = None
+
+        for index, row in df.iterrows():
+            required_fields = []
+            for field in model._meta.fields:
+                if field.name in row:
+                    required_fields.append(field.name)
+            print(required_fields)
+            try:
+                obj = model.objects.create(
+                    org=request.user.org,
+                    **{field: row[field] for field in required_fields}
+                )
+                if 'jahrgang' in model._meta.fields and jahrgang:
+                    obj.jahrgang = jahrgang
+                for field in model._meta.fields:
+                    if field.name in row:
+                        setattr(obj, field.name, row[field.name])
+                obj.save()
+            except Exception as e:
+                print(e)
+                continue
+
+        return redirect('list_object', model_name=model_name)
+    return render(request, 'add_objects_from_excel.html')
+
 
 @login_required
 @required_role('O')
