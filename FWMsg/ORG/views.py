@@ -272,7 +272,7 @@ def list_object(request, model_name, highlight_id=None):
     
     # Start with all objects for this organization
     objects = model.objects.filter(org=request.user.org)
-    
+
     # Apply filters if form is valid
     if filter_form.is_valid():
         # Handle search across all text fields
@@ -317,6 +317,13 @@ def list_object(request, model_name, highlight_id=None):
         {'name': field.name, 'verbose_name': field.verbose_name}
         for field in model._meta.fields if field.name != 'org' and field.name != 'id'
     ]
+
+    if 'first_name' in [field.name for field in model._meta.fields]:
+        objects = objects.order_by('first_name')
+    elif 'name' in [field.name for field in model._meta.fields]:
+        objects = objects.order_by('name')
+    else:
+        objects = objects.order_by('id')
     
     # Add many-to-many fields
     m2m_fields = [
