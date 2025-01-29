@@ -10,6 +10,7 @@ urlpatterns = [
     path('bild/remove/', views.remove_bild, name='remove_bild'),
     path('bild/remove/all/', views.remove_bild_all, name='remove_bild_all'),
     path('dokumente/', views.dokumente, name='dokumente'),
+    path('dokumente/<int:ordner_id>/', views.dokumente, name='dokumente'),
     path('dokumente/add/', views.add_dokument, name='add_dokument'),
     path('dokumente/remove/', views.remove_dokument, name='remove_dokument'),
     path('dokument/<int:dokument_id>/', views.serve_dokument, name='serve_dokument'),
