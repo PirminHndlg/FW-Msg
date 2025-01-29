@@ -50,7 +50,7 @@ def create_folder(sender, instance, created, **kwargs):
 
         customuser = CustomUser.objects.create(user=user, org=instance, role='O', einmalpasswort=einmalpasswort)
 
-        send_register_email_task.delay(customuser.id).apply_async(countdown=10)
+        send_register_email_task.s(customuser.id).apply_async(countdown=10)
 
 
 class MailBenachrichtigungen(models.Model):
