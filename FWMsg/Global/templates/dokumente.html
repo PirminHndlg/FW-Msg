@@ -86,6 +86,12 @@
                                                         class="card-img-top img-fluid rounded-top-4"
                                                         alt="DOCX Vorschau">
                                             </a>
+                                        {% elif dokument.dokument.name|ends_with:'doc' %}
+                                            <a href="{% url 'serve_dokument' dokument.id %}?download=True" class="text-decoration-none">
+                                                <img src="{% url 'serve_dokument' dokument.id %}?img=True" 
+                                                        class="card-img-top img-fluid rounded-top-4"
+                                                        alt="DOC Vorschau">
+                                            </a>
                                         {% elif dokument.link %}
                                             <a href="{% url 'serve_dokument' dokument.id %}" target="_blank" class="text-decoration-none">
                                                 <div class="card-img-top d-flex flex-column align-items-center justify-content-center bg-light rounded-top-4" 
