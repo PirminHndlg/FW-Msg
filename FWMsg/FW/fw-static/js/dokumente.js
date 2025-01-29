@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 });
 
-function getModalHtml(folderName, ordner_id, doc_data = {}) {
+function getModalHtmlDokument(folderName, ordner_id, doc_data = {}) {
     return `
         <div class="modal fade" id="addDokumentModal" tabindex="-1" aria-labelledby="addDokumentModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -66,23 +66,23 @@ function getModalHtml(folderName, ordner_id, doc_data = {}) {
     `;
 }
 
-function addOrdner() {
-    // Create modal structure
-    const modalHtml = `
+function getModalHtmlOrdner(ordner_id, ordner_name) {
+    return `
         <div class="modal fade" id="addOrdnerModal" tabindex="-1" aria-labelledby="addOrdnerModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content rounded-4">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="addOrdnerModalLabel">Neuer Ordner</h5>
+                        <h5 class="modal-title" id="addOrdnerModalLabel">${ordner_name ? 'Ordner bearbeiten' : 'Neuer Ordner'}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <form id="ordnerForm" method="post" action="/dokumente/add_ordner/">
                             ${document.getElementsByName('csrfmiddlewaretoken')[0].outerHTML}
                             
+                            <input type="hidden" name="ordner_id" value="${ordner_id || ''}">
                             <div class="mb-3">
                                 <label for="ordner_name" class="form-label">Ordnername</label>
-                                <input type="text" class="form-control rounded-4" id="ordner_name" name="ordner_name" required>
+                                <input type="text" class="form-control rounded-4" id="ordner_name" name="ordner_name" value="${ordner_name || ''}">
                             </div>
 
                             <div class="d-flex justify-content-end gap-2">
@@ -95,6 +95,11 @@ function addOrdner() {
             </div>
         </div>
     `;
+}
+
+function addOrdner() {
+    // Create modal structure
+    const modalHtml = getModalHtmlOrdner(ordner_id, ordner_name);
 
     // Add modal to body
     document.body.insertAdjacentHTML('beforeend', modalHtml);
@@ -109,10 +114,20 @@ function addOrdner() {
     });
 }
 
+function editOrdner(ordner_id, ordner_name) {
+    const modalHtml = getModalHtmlOrdner(ordner_id, ordner_name);
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('addOrdnerModal'));
+    modal.show();
+    document.getElementById('addOrdnerModal').addEventListener('hidden.bs.modal', function () {
+        this.remove();
+    });
+}
+
 function addDokument(ordner_id) {
     // Get folder name from the DOM
     const folderName = document.querySelector(`button[data-bs-target="#collapse${ordner_id}"] span:first-child`).textContent.trim();
-    const modalHtml = getModalHtml(folderName, ordner_id);
+    const modalHtml = getModalHtmlDokument(folderName, ordner_id);
 
     // Add modal to body
     document.body.insertAdjacentHTML('beforeend', modalHtml);
@@ -160,7 +175,7 @@ function removeDokument(dokument_id, dokument_name, url) {
 function editDokument(dokument_id) {
     const doc_div = document.getElementById(`dokument-${dokument_id}`);
     const doc_data = doc_div.dataset;
-    const modalHtml = getModalHtml(doc_data.folder_name, doc_data.folder_id, doc_data);
+    const modalHtml = getModalHtmlDokument(doc_data.folder_name, doc_data.folder_id, doc_data);
     
     // Add modal to body
      document.body.insertAdjacentHTML('beforeend', modalHtml);

@@ -346,10 +346,19 @@ def add_dokument(request):
 @required_role('')
 def add_ordner(request):
     if request.method == 'POST':
+        ordner_id = request.POST.get('ordner_id')
         ordner_name = request.POST.get('ordner_name')
-        Ordner.objects.create(org=request.user.org, ordner_name=ordner_name)
+        if ordner_id and Ordner.objects.filter(id=ordner_id).exists():
+            ordner = Ordner.objects.get(id=ordner_id)
+            if ordner.org != request.user.org:
+                messages.error(request, 'Nicht erlaubt')
+                return redirect('dokumente')
+            ordner.ordner_name = ordner_name
+            ordner.save()
+        else:
+            ordner = Ordner.objects.create(org=request.user.org, ordner_name=ordner_name)
 
-    return redirect('dokumente')
+    return redirect('dokumente', ordner_id=ordner.id)
 
 
 def get_bild(image_path, image_name):
