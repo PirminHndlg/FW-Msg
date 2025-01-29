@@ -8,6 +8,7 @@ urlpatterns = [
     path('add/<str:model_name>/excel/', views.add_objects_from_excel, name='add_objects_from_excel'),
     path('edit/<str:model_name>/<int:id>', views.edit_object, name='edit_object'),
     path('list/<str:model_name>/', views.list_object, name='list_object'),
+    path('list/<str:model_name>/<int:highlight_id>', views.list_object, name='list_object_highlight'),
     path('update/<str:model_name>/', views.update_object, name='update_object'),
     path('delete/<str:model_name>/<int:id>', views.delete_object, name='delete_object'),
     path('list-ampel/', views.list_ampel, name='list_ampel'),
