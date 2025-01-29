@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function getModalHtml(folderName, ordner_id, doc_data = {}) {
-    console.log(doc_data.id);
     return `
         <div class="modal fade" id="addDokumentModal" tabindex="-1" aria-labelledby="addDokumentModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -23,7 +22,6 @@ function getModalHtml(folderName, ordner_id, doc_data = {}) {
                             <input type="hidden" name="ordner" value="${ordner_id}">
                             <input type="hidden" name="dokument_id" value="${doc_data.id || ''}">
                         
-                            <input type="hidden" name="is_edit" value="${doc_data.id ? 'true' : 'false'}">
                             <div class="mb-2 text-center d-flex justify-content-center align-items-center gap-1">
                                 <i class="bi bi-info-circle me-1"></i>
                                 <small class="text-muted">Alle Felder sind optional und können weggelassen werden.</small>
@@ -53,7 +51,7 @@ function getModalHtml(folderName, ordner_id, doc_data = {}) {
 
                             <div id="fw_darf_bearbeiten_container" class="mb-3">
                                 <label for="fw_darf_bearbeiten" class="form-label">Freiwillige dürfen dieses Dokument bearbeiten/löschen</label>
-                                <input type="checkbox" class="form-check-input" id="fw_darf_bearbeiten" name="fw_darf_bearbeiten" ${doc_data.fw_darf_bearbeiten ? 'checked' : ''}>
+                                <input type="checkbox" class="form-check-input" id="fw_darf_bearbeiten" name="fw_darf_bearbeiten" ${doc_data.fw_darf_bearbeiten == 'True' ? 'checked' : ''}>
                             </div>
                             
                             <div class="d-flex justify-content-end gap-2">
