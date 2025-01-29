@@ -49,8 +49,8 @@ def send_email_aufgaben_daily():
 
 # cronjob, every day at 10:00 PM
 app.conf.beat_schedule = {
-    'send_email_aufgaben_daily': {
-        'task': 'send_email_aufgaben_daily',
-        'schedule': crontab(hour=22, minute=21),
-    },
+    # 'send_email_aufgaben_daily': {
+    #     'task': 'send_email_aufgaben_daily',
+    #     'schedule': crontab(hour=22, minute=21),
+    # },
 }
