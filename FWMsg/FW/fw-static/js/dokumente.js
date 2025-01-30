@@ -66,7 +66,7 @@ function getModalHtmlDokument(folderName, ordner_id, doc_data = {}) {
     `;
 }
 
-function getModalHtmlOrdner(ordner_id, ordner_name) {
+function getModalHtmlOrdner(ordner_id = '', ordner_name = '') {
     return `
         <div class="modal fade" id="addOrdnerModal" tabindex="-1" aria-labelledby="addOrdnerModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -99,7 +99,7 @@ function getModalHtmlOrdner(ordner_id, ordner_name) {
 
 function addOrdner() {
     // Create modal structure
-    const modalHtml = getModalHtmlOrdner(ordner_id, ordner_name);
+    const modalHtml = getModalHtmlOrdner();
 
     // Add modal to body
     document.body.insertAdjacentHTML('beforeend', modalHtml);
