@@ -18,7 +18,7 @@
     <div class="card rounded-4 mb-2">
         <div class="card-header d-flex align-items-center gap-2 justify-content-between">
             <div class="d-flex align-items-center gap-2">
-                <h3 class="card-title mb-0">{{ freiwilliger.first_name }} {{ freiwilliger.last_name }}</h3>
+                <h3 class="card-title mb-0">{% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</h3>
                 {% if this_user %}
                     {% if ampel_of_user %}
                     <a href="{% url 'ampel' %}" class="text-decoration-none">
