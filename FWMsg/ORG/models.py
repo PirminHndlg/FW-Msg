@@ -131,7 +131,7 @@ class Dokument(models.Model):
         import subprocess
 
         if self.preview_image:
-            return self.preview_image.url
+            return self.preview_image.path
         else:
 
             def pdf_to_image(doc_path, img_path):

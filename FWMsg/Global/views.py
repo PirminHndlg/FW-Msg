@@ -116,7 +116,7 @@ def serve_dokument(request, dokument_id):
         img_path = dokument.get_preview_image()
         print('img_path:', img_path)
         if img_path:
-            return get_bild(img_path, dokument.dokument.name)
+            return get_bild(img_path, img_path.split('/')[-1])
 
     with open(doc_path, 'rb') as file:
         response = HttpResponse(file.read(), content_type=mimetype or 'application/octet-stream')
@@ -341,6 +341,7 @@ def add_ordner(request):
 
 
 def get_bild(image_path, image_name):
+    print('image_path:', image_path)
     if not os.path.exists(image_path):
         raise Http404("Image does not exist")
 
