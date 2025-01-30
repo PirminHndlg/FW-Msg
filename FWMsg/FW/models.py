@@ -324,7 +324,6 @@ class FreiwilligerAufgaben(OrgModel):
     file = models.FileField(upload_to='uploads/', blank=True, null=True, verbose_name='Datei')
 
     def save(self, *args, **kwargs):
-        print(self.wiederholung, self.wiederholung_ende)
         if self.wiederholung != 'N' and not self.wiederholung_ende:
             self.wiederholung_ende = self.freiwilliger.ende_geplant
         if not self.faellig:
@@ -337,31 +336,34 @@ class FreiwilligerAufgaben(OrgModel):
                 # self.faellig = self.aufgabe.faellig
                 month = self.aufgabe.faellig_monat or 1
                 day = self.aufgabe.faellig_tag or 1
-                
-                if self.aufgabe.faellig_art == 'V':
-                    start_date = self.freiwilliger.start_real or self.freiwilliger.start_geplant or self.freiwilliger.jahrgang.start
-                    year = start_date.year
-                    if start_date.month > month or (start_date.month == month and start_date.day >= day):
-                        year -= 1
-                    self.faellig = datetime(year, month, day).date()
-                elif self.aufgabe.faellig_art == 'W':
-                    start_date = self.freiwilliger.start_real or self.freiwilliger.start_geplant or self.freiwilliger.jahrgang.start
-                    year = start_date.year
-                    if start_date.month > month or (start_date.month == month and start_date.day >= day):
-                        year = (self.freiwilliger.ende_geplant or self.freiwilliger.jahrgang.ende).year
-                    self.faellig = datetime(year, month, day).date()
-                elif self.aufgabe.faellig_art == 'N':
-                    end_date = self.freiwilliger.ende_geplant or self.freiwilliger.jahrgang.ende
-                    year = end_date.year
-                    if end_date.month > month or (end_date.month == month and end_date.day >= day):
-                        year -= 1
-                    self.faellig = datetime(year, month, day).date()
-                elif self.aufgabe.faellig_art == 'A':
-                    year = datetime.now().year
-                    if datetime.now().month > month or (datetime.now().month == month and datetime.now().day >= day):
-                        year -= 1
+
+                try:
+                    if self.aufgabe.faellig_art == 'V':
+                        start_date = self.freiwilliger.start_real or self.freiwilliger.start_geplant or self.freiwilliger.jahrgang.start
+                        year = start_date.year
+                        if start_date.month < month or (start_date.month == month and start_date.day <= day):
+                            year -= 1
+                    elif self.aufgabe.faellig_art == 'W':
+                        start_date = self.freiwilliger.start_real or self.freiwilliger.start_geplant or self.freiwilliger.jahrgang.start
+                        year = start_date.year
+                        if start_date.month > month or (start_date.month == month and start_date.day >= day):
+                            year = (self.freiwilliger.ende_geplant or self.freiwilliger.jahrgang.ende).year
+                    elif self.aufgabe.faellig_art == 'N':
+                        end_date = self.freiwilliger.ende_geplant or self.freiwilliger.jahrgang.ende
+                        year = end_date.year
+                        if end_date.month > month or (end_date.month == month and end_date.day >= day):
+                            year += 1
+                    elif self.aufgabe.faellig_art == 'A':
+                        year = datetime.now().year
+                        if datetime.now().month > month or (datetime.now().month == month and datetime.now().day >= day):
+                            year -= 1
+                    
                     self.faellig = datetime(year, month, day).date()
 
+                except Exception as e:
+                    print(e)
+                    pass
+        
         super(FreiwilligerAufgaben, self).save(*args, **kwargs)
 
     class Meta:
