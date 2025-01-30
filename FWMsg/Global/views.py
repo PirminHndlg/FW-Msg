@@ -92,16 +92,6 @@ def get_mimetype(doc_path):
     return mime_type
 
 
-def pdf_to_image(doc_path):
-    from pdf2image import convert_from_path
-    image = convert_from_path(doc_path, first_page=1, last_page=1)[0]
-    img_path = os.path.join('dokument', 'temp.jpg')
-    image.save(img_path)
-    response = get_bild(img_path, img_path.split('/')[-1])
-    os.remove(img_path)
-    return response
-
-
 
 @login_required
 @required_role('')
@@ -123,21 +113,10 @@ def serve_dokument(request, dokument_id):
         return get_bild(doc_path, dokument.dokument.name)
 
     if img and not download:
-        if mimetype and mimetype == 'application/pdf':
-            return pdf_to_image(doc_path)
-
-        if dokument.dokument.name.endswith('.docx') or dokument.dokument.name.endswith('.doc'):
-            command = ["abiword", "--to=pdf", doc_path]
-            try:
-                subprocess.run(command)
-                if dokument.dokument.name.endswith('.docx'):
-                    doc_path = doc_path.replace('.docx', '.pdf')
-                else:
-                    doc_path = doc_path.replace('.doc', '.pdf')
-                return pdf_to_image(doc_path)
-            except Exception as e:
-                print(e)
-                return HttpResponse(e)
+        img_path = dokument.get_preview_image()
+        print('img_path:', img_path)
+        if img_path:
+            return get_bild(img_path, dokument.dokument.name)
 
     with open(doc_path, 'rb') as file:
         response = HttpResponse(file.read(), content_type=mimetype or 'application/octet-stream')

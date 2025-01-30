@@ -92,6 +92,15 @@ def upload_to_folder(instance, filename):
     path = os.path.join(order.ordner_name, filename)
     return os.path.join('dokument', instance.org.name, path)
 
+
+def upload_to_preview_image(instance, filename):
+    filename = filename.split('/')[-1]
+    filename = filename.split('.')[0]
+    folder = os.path.join('dokument', instance.org.name, 'preview_image')
+    os.makedirs(folder, exist_ok=True)
+    return os.path.join(folder, filename + '.jpg')
+
+
 class Dokument(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     ordner = models.ForeignKey(Ordner, on_delete=models.CASCADE)
@@ -102,6 +111,7 @@ class Dokument(models.Model):
     titel = models.CharField(max_length=100, null=True, blank=True)
     beschreibung = models.TextField(null=True, blank=True)
     fw_darf_bearbeiten = models.BooleanField(default=True)
+    preview_image = models.ImageField(upload_to=upload_to_preview_image, null=True, blank=True)
 
     def __str__(self):
         return self.titel or self.dokument.name or self.link
@@ -116,7 +126,49 @@ class Dokument(models.Model):
             return mime_type or 'unknown'
         else:
             return 'unknown'
+        
+    def get_preview_image(self):
+        import subprocess
 
+        if self.preview_image:
+            return self.preview_image.url
+        else:
+
+            def pdf_to_image(doc_path, img_path):
+                from pdf2image import convert_from_path
+                image = convert_from_path(doc_path, first_page=1, last_page=1)[0]
+                image.save(img_path)
+                return img_path
+            
+            mimetype = self.get_document_type()
+            preview_image_path = upload_to_preview_image(self, self.dokument.name + '.jpg')
+
+            if mimetype and mimetype.startswith('image'):
+                return self.dokument.path
+
+            if mimetype and mimetype == 'application/pdf':
+                return pdf_to_image(self.dokument.path, preview_image_path)
+
+            elif self.dokument.name.endswith('.docx') or self.dokument.name.endswith('.doc'):
+                command = ["abiword", "--to=pdf", self.dokument.path]
+                try:
+                    subprocess.run(command)
+                    if self.dokument.name.endswith('.docx'):
+                        doc_path = self.dokument.path.replace('.docx', '.pdf')
+                    else:
+                        doc_path = self.dokument.path.replace('.doc', '.pdf')
+                    pdf_to_image(doc_path, preview_image_path)
+                except Exception as e:
+                    print(e)
+                    return None
+                
+            if os.path.exists(preview_image_path):
+                if not self.preview_image:
+                    self.preview_image = preview_image_path
+                    self.save()
+                return preview_image_path
+            else:
+                return None
 
 @receiver(post_delete, sender=Dokument)
 def remove_file(sender, instance, **kwargs):
