@@ -429,11 +429,23 @@ def view_profil(request, user_id=None):
     if not user_id or user_id == request.user.id:
         user_id = request.user.id
         this_user = True
+
+    user_exists = User.objects.filter(id=user_id).exists()
+    if not user_exists:
+        messages.error(request, 'Nicht gefunden')
+        return redirect('profil')
+    
     user = User.objects.get(id=user_id)
 
-    if not CustomUser.objects.filter(user=user).exists() or not CustomUser.objects.get(user=user).org == request.user.org:
+    custom_user_exists = CustomUser.objects.filter(user=user).exists()
+    if not custom_user_exists:
+        messages.error(request, 'Nicht gefunden')
+        return redirect('profil')
+    
+    custom_user = CustomUser.objects.get(user=user)
+    if not custom_user.org == request.user.org:
         messages.error(request, 'Nicht erlaubt')
-        return redirect('fw_home')
+        return redirect('profil')
 
     if request.method == 'POST':
         profil_user_form = ProfilUserForm(request.POST)
@@ -460,6 +472,7 @@ def view_profil(request, user_id=None):
 
     context = {
         'freiwilliger': freiwilliger,
+        'user': user,
         'profil_users': profil_users,
         'profil_user_form': profil_user_form,
         'this_user': this_user,
