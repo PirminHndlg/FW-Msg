@@ -128,50 +128,73 @@ class Dokument(models.Model):
             return 'unknown'
         
     def get_preview_image(self):
-        import subprocess
-
         if self.preview_image:
             return self.preview_image.path
         else:
+            return self.get_preview_converted()
+            
+    
+    def get_preview_converted(self):
+        import subprocess
 
-            def pdf_to_image(doc_path, img_path):
+        def pdf_to_image(doc_path, img_path):
                 from pdf2image import convert_from_path
                 image = convert_from_path(doc_path, first_page=1, last_page=1)[0]
                 image.save(img_path)
                 return img_path
             
-            mimetype = self.get_document_type()
-            preview_image_path = upload_to_preview_image(self, self.dokument.name + '.jpg')
+        mimetype = self.get_document_type()
+        preview_image_path = upload_to_preview_image(self, self.dokument.name + '.jpg')
 
-            if mimetype and mimetype.startswith('image'):
-                return self.dokument.path
+        if mimetype and mimetype.startswith('image'):
+            return self.dokument.path
 
-            if mimetype and mimetype == 'application/pdf':
-                return pdf_to_image(self.dokument.path, preview_image_path)
+        if mimetype and mimetype == 'application/pdf':
+            return pdf_to_image(self.dokument.path, preview_image_path)
 
-            elif self.dokument.name.endswith('.docx') or self.dokument.name.endswith('.doc'):
-                command = ["abiword", "--to=pdf", self.dokument.path]
-                try:
-                    subprocess.run(command)
-                    doc_path = str(self.dokument.path)  # Create string copy
-                    if self.dokument.name.endswith('.docx'):
-                        doc_path = doc_path.replace('.docx', '.pdf')
-                    else:
-                        doc_path = doc_path.replace('.doc', '.pdf')
-                    pdf_to_image(doc_path, preview_image_path)
-                except Exception as e:
-                    print(e)
-                    return None
-                
-            if os.path.exists(preview_image_path):
-                if not self.preview_image:
-                    self.preview_image = preview_image_path
-                    self.save()
-                return preview_image_path
-            else:
+        elif self.dokument.name.endswith('.docx') or self.dokument.name.endswith('.doc'):
+            command = ["abiword", "--to=pdf", self.dokument.path]
+            try:
+                subprocess.run(command)
+                doc_path = str(self.dokument.path)  # Create string copy
+                if self.dokument.name.endswith('.docx'):
+                    doc_path = doc_path.replace('.docx', '.pdf')
+                else:
+                    doc_path = doc_path.replace('.doc', '.pdf')
+                pdf_to_image(doc_path, preview_image_path)
+            except Exception as e:
+                print(e)
                 return None
+            
+        if os.path.exists(preview_image_path):
+            if not self.preview_image:
+                self.preview_image = preview_image_path
+                self.save()
+            return preview_image_path
+        else:
+            return None
+        
+@receiver(post_save, sender=Dokument)
+def create_preview_image(sender, instance, **kwargs):
+    # Skip if we're already processing the preview image
+    if hasattr(instance, '_creating_preview'):
+        return
+    
+    img_path = instance.get_preview_converted()
+    if img_path:
+        try:
+            # Set flag to prevent recursive save
+            instance._creating_preview = True
+            instance.preview_image = img_path
+            instance.save()
+        finally:
+            # Always remove the flag, even if an error occurs
+            delattr(instance, '_creating_preview')
 
 @receiver(post_delete, sender=Dokument)
 def remove_file(sender, instance, **kwargs):
     if instance.dokument and os.path.isfile(instance.dokument.path):
         os.remove(instance.dokument.path)
+
+    if instance.preview_image and os.path.isfile(instance.preview_image.path):
+        os.remove(instance.preview_image.path)
