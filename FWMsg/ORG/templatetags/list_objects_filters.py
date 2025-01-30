@@ -39,4 +39,10 @@ def get_field_type(obj, field_name):
         return field.get_internal_type()
     except:
         return ''
-        
+
+@register.filter
+def include(value, substring):
+    """Check if a string contains a substring."""
+    if isinstance(value, str) and isinstance(substring, str) and value and substring:
+        return substring in value
+    return False
