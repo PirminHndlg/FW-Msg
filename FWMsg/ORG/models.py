@@ -153,10 +153,11 @@ class Dokument(models.Model):
                 command = ["abiword", "--to=pdf", self.dokument.path]
                 try:
                     subprocess.run(command)
+                    doc_path = str(self.dokument.path)  # Create string copy
                     if self.dokument.name.endswith('.docx'):
-                        doc_path = self.dokument.path.replace('.docx', '.pdf')
+                        doc_path = doc_path.replace('.docx', '.pdf')
                     else:
-                        doc_path = self.dokument.path.replace('.doc', '.pdf')
+                        doc_path = doc_path.replace('.doc', '.pdf')
                     pdf_to_image(doc_path, preview_image_path)
                 except Exception as e:
                     print(e)
