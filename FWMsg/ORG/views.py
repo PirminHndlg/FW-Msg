@@ -17,6 +17,7 @@ from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.template.context_processors import request
 from django.db.models import QuerySet
+from django.db.models import Case, When, Value
 
 from FW import models as FWmodels
 from . import models as ORGmodels
@@ -550,7 +551,6 @@ def list_aufgaben(request):
     })
 
 def list_aufgaben_table(request):
-
     if request.method == 'GET' and request.GET.get('fw') and request.GET.get('a'):
         freiwilliger = FWmodels.Freiwilliger.objects.get(pk=request.GET.get('fw'))
         aufgabe = FWmodels.Aufgabe.objects.get(pk=request.GET.get('a'))
@@ -562,6 +562,7 @@ def list_aufgaben_table(request):
             aufgabe=aufgabe
         )
         return redirect('list_aufgaben_table')
+    
     if request.method == 'POST':
         aufgabe_id = request.POST.get('aufgabe_id')
 
@@ -583,9 +584,36 @@ def list_aufgaben_table(request):
 
     freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
     aufgaben = FWmodels.Aufgabe.objects.filter(org=request.user.org)
+    faellig_art_choices = FWmodels.Aufgabe.FAELLIG_CHOICES
+
+    # Order by faellig_art priority (weekly -> vorher -> nachher)
+    faellig_art_order = Case(
+        When(faellig_art=faellig_art_choices[0][0], then=0),  # Weekly tasks first
+        When(faellig_art=faellig_art_choices[1][0], then=1),  # 'Vorher' tasks second
+        When(faellig_art=faellig_art_choices[2][0], then=2),  # 'Nachher' tasks third
+        default=3
+    )
+    
+    # Apply ordering
+    aufgaben = aufgaben.order_by(
+        faellig_art_order,
+        'faellig_tag',
+        'faellig_monat'
+    )
+
+    # Get filter type from request or cookie
+    filter_type = request.GET.get('f')
+    if not filter_type:
+        filter_type = request.COOKIES.get('filter_aufgaben_table') or 'None'
+
+    # Apply filter if provided
+    if filter_type and filter_type != 'None':
+        for choice in faellig_art_choices:
+            if choice[0] == filter_type:
+                aufgaben = aufgaben.filter(faellig_art=choice[0])
+                break
 
     freiwilliger_aufgaben_matrix = {}
-
     for freiwilliger in freiwillige:
         freiwilliger_aufgaben_matrix[freiwilliger] = []
         for aufgabe in aufgaben:
@@ -599,10 +627,22 @@ def list_aufgaben_table(request):
         'freiwillige': freiwillige,
         'aufgaben': aufgaben,
         'today': date.today(),
-        'freiwilliger_aufgaben_matrix': freiwilliger_aufgaben_matrix
+        'freiwilliger_aufgaben_matrix': freiwilliger_aufgaben_matrix,
+        'faellig_art_choices': faellig_art_choices,
+        'filter': filter_type
     }
 
-    return render(request, 'list_aufgaben_table.html', context=context)
+    # Create response with rendered template
+    response = render(request, 'list_aufgaben_table.html', context=context)
+    
+    # Set cookie if filter_type is provided in request
+    if request.GET.get('f'):
+        if request.GET.get('f') == 'None':
+            response.delete_cookie('filter_aufgaben_table')
+        else:
+            response.set_cookie('filter_aufgaben_table', request.GET.get('f'))
+
+    return response
 
 
 @login_required

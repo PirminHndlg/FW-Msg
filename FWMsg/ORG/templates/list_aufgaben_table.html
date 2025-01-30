@@ -87,6 +87,19 @@
     </div>
 
     <div class="card-body p-2">
+        <div class="d-flex gap-2 mb-2 justify-content-center align-items-center">
+            <h6>{% trans "Filter" %}</h6>
+            <a class="btn btn-sm btn-outline-primary {% if filter == 'None' %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f=None">
+                {% trans "Alle" %}
+            </a>
+            {% for faellig_art in faellig_art_choices %}
+            <!-- Section Header -->
+            <a class="btn btn-sm btn-outline-primary {% if filter == faellig_art.0 %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f={{ faellig_art.0 }}">
+                {{ faellig_art.1 }}
+            </a>
+            {% endfor %}
+        </div>
+
         <div class="table-responsive">
             <table class="table mb-0 align-middle" style="min-height: 80vh;">
                 <thead>
