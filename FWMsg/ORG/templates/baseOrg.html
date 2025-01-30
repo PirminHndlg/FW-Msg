@@ -120,12 +120,12 @@
                     </ul>
 
                     <!-- Jahrgang Selector -->
-                    <div class="d-flex align-items-center me-3">
+                    <div class="d-flex align-items-center me-3 gap-2">
                         <div class="dropdown">
                             <button class="btn btn-light dropdown-toggle" type="button" id="jahrgangDropdown" 
                                     data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-calendar-event me-1"></i>
-                                <span id="selectedJahrgang">{% trans "Jahrgang wählen" %}</span>
+                                <span id="selectedJahrgang">{% trans "Alle Jahrgänge" %}</span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="jahrgangDropdown">
                                 <li>
@@ -143,13 +143,12 @@
                                 {% endfor %}
                             </ul>
                         </div>
-                    </div>
-
-                    <!-- Logout Button -->
-                    <div class="d-flex">
-                        <a href="{% url 'profil' %}" class="btn btn-light">
-                            <i class="bi bi-person me-1"></i>
-                        </a>
+                        <!-- Profil Button -->
+                        <div class="d-flex">
+                            <a href="{% url 'profil' %}" class="btn btn-light">
+                                <i class="bi bi-person me-1"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
