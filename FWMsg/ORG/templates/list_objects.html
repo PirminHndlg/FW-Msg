@@ -66,25 +66,27 @@
                     {% for field in field_metadata %}
                     <td data-default="{{ object|get_attribute:field.name|default:'' }}" data-field="{{ field.name }}" {% if object.pk == highlight_id %}class="table-primary"{% endif %}>
                         {% if object|is_many_to_many:field.name %}
-                        {% with items=object|get_attribute:field.name %}
-                        {{ items.all|join:", " }}
-                        {% endwith %}
+                            {% with items=object|get_attribute:field.name %}
+                            {{ items.all|join:", " }}
+                            {% endwith %}
                         {% else %}
-                        {% if object|get_field_type:field.name == 'BooleanField' %}
-                        <div class="text-center">
-                            {% if object|get_attribute:field.name %}
-                            <i class="bi bi-check text-white bg-success rounded"></i>
+                            {% if object|get_field_type:field.name == 'BooleanField' %}
+                            <div class="text-center">
+                                {% if object|get_attribute:field.name %}
+                                <i class="bi bi-check text-white bg-success rounded"></i>
+                                {% endif %}
+                            </div>
+                            {% elif object|get_field_type:field.name == 'CharField' and object|get_attribute:field.name|length == 1 %}
+                            <div class="text-center">
+                                {{ object|get_attribute:field.name|default:'' }}
+                            </div>
+                            {% elif object|get_field_type:field.name == 'DateField' or object|get_field_type:field.name == 'DateTimeField' %}
+                                {{ object|get_attribute:field.name|date:"d.m.Y"|default:'' }}
+                            {% elif object|get_attribute:field.name|include:'@' %}
+                                <a href="mailto:{{ object|get_attribute:field.name|default:'' }}">{{ object|get_attribute:field.name|default:'' }}</a>
+                            {% else %}
+                                {{ object|get_attribute:field.name|default:'' }}
                             {% endif %}
-                        </div>
-                        {% elif object|get_field_type:field.name == 'CharField' and object|get_attribute:field.name|length == 1 %}
-                        <div class="text-center">
-                            {{ object|get_attribute:field.name|default:'' }}
-                        </div>
-                        {% elif object|get_field_type:field.name == 'DateField' or object|get_field_type:field.name == 'DateTimeField' %}
-                        {{ object|get_attribute:field.name|date:"d.m.Y"|default:'' }}
-                        {% else %}
-                        {{ object|get_attribute:field.name|default:'' }}
-                        {% endif %}
                         {% endif %}
                     </td>
                     {% endfor %}
