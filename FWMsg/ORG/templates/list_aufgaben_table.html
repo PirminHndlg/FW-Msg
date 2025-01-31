@@ -103,7 +103,7 @@
         </div>
 
         <div class="table-responsive">
-            <table class="table mb-0 align-middle" style="min-height: 80vh;">
+            <table class="table mb-0 align-middle table-borderless" style="min-height: 80vh;">
                 <thead>
                     <tr>
                         <th class="border-end">{% trans "Freiwillige" %}</th>
@@ -114,10 +114,10 @@
                 </thead>
                 <tbody>
                     {% for freiwilliger, aufgaben in freiwilliger_aufgaben_matrix.items %}
-                    <tr>
+                    <tr class="border-bottom">
                         <th class="border-end">{{ freiwilliger.first_name }} {{ freiwilliger.last_name }}</th>
                         {% for aufgabe in aufgaben %}
-                        <td class="text-center p-0
+                        <td class="text-center p-0 rounded-4
                             {% if aufgabe.id %}
                                 {% if aufgabe.erledigt %}
                                     bg-success bg-opacity-25
