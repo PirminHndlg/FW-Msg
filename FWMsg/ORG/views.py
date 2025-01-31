@@ -552,15 +552,22 @@ def list_aufgaben(request):
 
 def list_aufgaben_table(request, scroll_to=None):
     if request.method == 'GET' and request.GET.get('fw') and request.GET.get('a'):
-        freiwilliger = FWmodels.Freiwilliger.objects.get(pk=request.GET.get('fw'))
+        fw_all = request.GET.get('fw') == 'all'
+        if fw_all:
+            freiwilliger = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
+        else:
+            freiwilliger = FWmodels.Freiwilliger.objects.filter(pk=request.GET.get('fw'))
         aufgabe = FWmodels.Aufgabe.objects.get(pk=request.GET.get('a'))
-        if not freiwilliger.org == request.user.org or not aufgabe.org == request.user.org:
-            return HttpResponse('Nicht erlaubt')
-        fw_aufg, created = FWmodels.FreiwilligerAufgaben.objects.get_or_create(
-            org=request.user.org,
-            freiwilliger=freiwilliger,
-            aufgabe=aufgabe
-        )
+        
+        for fw in freiwilliger:
+            if not fw.org == request.user.org or not aufgabe.org == request.user.org:
+                continue
+
+            fw_aufg, created = FWmodels.FreiwilligerAufgaben.objects.get_or_create(
+                org=request.user.org,
+                freiwilliger=fw,
+                aufgabe=aufgabe
+            )
         return redirect('list_aufgaben_table_scroll', scroll_to=fw_aufg.id)
     
     if request.method == 'POST':
