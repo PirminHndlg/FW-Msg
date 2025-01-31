@@ -4,6 +4,8 @@ from django.db import models
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.contrib.auth.models import User
+import random
+import string
 
 # Create your models here.
 class Organisation(models.Model):
@@ -198,3 +200,36 @@ def remove_file(sender, instance, **kwargs):
 
     if instance.preview_image and os.path.isfile(instance.preview_image.path):
         os.remove(instance.preview_image.path)
+
+class Referenten(models.Model):
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, blank=True, null=True)
+    first_name = models.CharField(max_length=50, verbose_name='Vorname', null=True, blank=True)
+    last_name = models.CharField(max_length=50, verbose_name='Nachname')
+    email = models.EmailField(verbose_name='E-Mail')
+    phone = models.CharField(max_length=20, verbose_name='Telefon (optional)', null=True, blank=True)
+    land = models.ManyToManyField('FW.Einsatzland', verbose_name='Einsatzland')
+
+    class Meta:
+        verbose_name = 'Referent:in'
+        verbose_name_plural = 'Referent:innen'
+
+    def __str__(self):
+        return f'{self.first_name} {self.last_name}'
+
+@receiver(post_save, sender=Referenten)
+def create_user(sender, instance, **kwargs):
+    if not instance.user:
+        from Global.models import CustomUser
+
+        default_username = instance.last_name.lower().replace(' ', '_')
+        user = User.objects.create(username=default_username, email=instance.email)
+        random_password = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
+        user.set_password(random_password)
+        user.save()
+    
+        einmalpasswort = random.randint(10000000, 99999999)
+        customuser = CustomUser.objects.create(user=user, org=instance.org, role='R', einmalpasswort=einmalpasswort)
+        
+        instance.user = user
+        instance.save()

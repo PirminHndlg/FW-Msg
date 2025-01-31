@@ -9,8 +9,10 @@ class CustomUser(models.Model):
     ROLE_CHOICES = [
         ('A', 'Admin'),
         ('O', 'Organisation'),
-        ('T', 'Team'),
         ('F', 'Freiwillige:r'),
+        ('R', 'Referent:in'),
+        ('E', 'Ehemalige:r'),
+        ('T', 'Team')
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)

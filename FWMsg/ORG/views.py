@@ -96,7 +96,8 @@ allowed_models_to_edit = {
     'kirchenzugehoerigkeit': FWmodels.Kirchenzugehoerigkeit,
     'notfallkontakt': FWmodels.Notfallkontakt,
     'entsendeform': FWmodels.Entsendeform,
-    'freiwilligeraufgaben': FWmodels.FreiwilligerAufgaben
+    'freiwilligeraufgaben': FWmodels.FreiwilligerAufgaben,
+    'referenten': ORGmodels.Referenten
 }
 
 
