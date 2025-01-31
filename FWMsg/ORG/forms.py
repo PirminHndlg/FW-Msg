@@ -146,6 +146,13 @@ class FilterForm(forms.Form):
                     widget=forms.Select(attrs={'class': 'form-control'})
                 )
 
+
+class AddReferentenForm(OrgFormMixin, forms.ModelForm):
+    class Meta:
+        model = ORGmodels.Referenten
+        fields = '__all__'
+        exclude = ['org', 'user']
+
 model_to_form_mapping = {
     FWmodels.Einsatzland: AddEinsatzlandForm,
     FWmodels.Einsatzstelle: AddEinsatzstelleForm,
@@ -156,5 +163,6 @@ model_to_form_mapping = {
     FWmodels.Kirchenzugehoerigkeit: AddKirchenzugehoerigkeitForm,
     FWmodels.Notfallkontakt: AddNotfallkontaktForm,
     FWmodels.Entsendeform: AddEntsendeformForm,
-    FWmodels.FreiwilligerAufgaben: AddFreiwilligerAufgabenForm
+    FWmodels.FreiwilligerAufgaben: AddFreiwilligerAufgabenForm,
+    ORGmodels.Referenten: AddReferentenForm
 }
