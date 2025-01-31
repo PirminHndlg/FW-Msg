@@ -57,6 +57,13 @@
         transition-delay: 0.4s;
     }
 
+    /* Special tooltip positioning for add-all button */
+    .add-all-btn[data-tooltip]::before {
+        bottom: auto;
+        top: 100%;
+        margin-top: 5px;
+    }
+
     [data-tooltip]:hover::before {
         opacity: 1;
         visibility: visible;
@@ -105,17 +112,24 @@
         <div class="table-responsive">
             <table class="table mb-0 align-middle table-borderless" style="min-height: 80vh;">
                 <thead>
-                    <tr>
-                        <th class="border-end">{% trans "Freiwillige" %}</th>
+                    <tr class="border-bottom border-dark">
+                        <th class="border-end border-dark">{% trans "Freiwillige" %}</th>
                         {% for aufgabe in aufgaben %}
-                        <th class="text-center">{{ aufgabe.name }}</th>
+                        <th class="text-center">
+                            {{ aufgabe.name }}
+                            <a href="{% url 'list_aufgaben_table' %}?a={{aufgabe.id}}&fw=all" 
+                               class="btn btn-sm btn-outline-primary add-all-btn" 
+                               data-tooltip="{% trans 'Allen Freiwilligen zuweisen' %}">
+                                <i class="bi bi-people-fill"></i>
+                            </a>
+                        </th>
                         {% endfor %}
                     </tr>
                 </thead>
                 <tbody>
                     {% for freiwilliger, aufgaben in freiwilliger_aufgaben_matrix.items %}
                     <tr class="border-bottom">
-                        <th class="border-end text-nowrap">{{ freiwilliger.first_name }} {{ freiwilliger.last_name }}</th>
+                        <th class="border-end border-dark text-nowrap">{{ freiwilliger.first_name }} {{ freiwilliger.last_name }}</th>
                         {% for aufgabe in aufgaben %}
                         <td class="text-center p-0 rounded-4
                             {% if aufgabe.id %}
