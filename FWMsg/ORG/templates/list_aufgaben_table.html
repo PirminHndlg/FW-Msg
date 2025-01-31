@@ -115,7 +115,7 @@
                 <tbody>
                     {% for freiwilliger, aufgaben in freiwilliger_aufgaben_matrix.items %}
                     <tr class="border-bottom">
-                        <th class="border-end">{{ freiwilliger.first_name }} {{ freiwilliger.last_name }}</th>
+                        <th class="border-end text-nowrap">{{ freiwilliger.first_name }} {{ freiwilliger.last_name }}</th>
                         {% for aufgabe in aufgaben %}
                         <td class="text-center p-0 rounded-4
                             {% if aufgabe.id %}
@@ -125,19 +125,19 @@
                                     bg-warning bg-opacity-25
                                 {% elif aufgabe.faellig < today %}
                                     bg-danger bg-opacity-25
+                                {% else %}
+                                    bg-dark bg-opacity-10
                                 {% endif %}
-                            {% else %}
-                                bg-dark bg-opacity-10
                             {% endif %}">
                             {% if aufgabe.id %}
                                 {% if aufgabe.erledigt %}
-                                    <div class="mb-2">
+                                    <div class="d-flex flex-column gap-0 align-items-center mt-1">
                                         <span data-tooltip="{% trans 'Erledigt am' %} {{ aufgabe.erledigt_am|date:'d.m.Y' }}"
                                             class="badge bg-success">{% trans "Erledigt" %}</span>
                                     </div>
                                     {% if aufgabe.file %}
                                     <a href="{% url 'download_aufgabe' aufgabe.id %}" 
-                                        class="btn btn-sm btn-outline-primary download-btn"
+                                        class="btn btn-sm btn-outline-primary download-btn mt-1"
                                         data-tooltip="{% trans 'Datei herunterladen' %}">
                                         <i class="bi bi-download me-1"></i>
                                     </a>
@@ -166,7 +166,7 @@
                                         </ul>
                                     </div>
                                 {% elif aufgabe.pending %}
-                                    <div class="mb-2">
+                                    <div class="d-flex flex-column gap-0 align-items-center mt-1">
                                         <span class="badge bg-warning">{% trans "Pending" %}</span>
                                     </div>
                                     {% if aufgabe.file %}
@@ -211,9 +211,9 @@
                                         </ul>
                                     </div>
                                 {% else %}
-                                    <div>
-                                        <small class="text-muted">{% trans "Fällig am" %}:</small><br>
-                                        {{ aufgabe.faellig|date:"d.m.Y" }}
+                                    <div class="d-flex flex-column gap-0 align-items-center mt-1">
+                                        <span data-tooltip="{% trans 'Fällig am' %} {{ aufgabe.faellig|date:'d.m.Y' }}"
+                                            class="badge {% if aufgabe.faellig < today %}bg-danger{% else %}bg-dark{% endif %}">{{ aufgabe.faellig|date:"d.m.y" }}</span>
                                     </div>
                                     <div class="dropdown d-inline">
                                         <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
