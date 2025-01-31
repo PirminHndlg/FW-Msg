@@ -550,18 +550,18 @@ def list_aufgaben(request):
         'today': date.today()
     })
 
-def list_aufgaben_table(request):
+def list_aufgaben_table(request, scroll_to=None):
     if request.method == 'GET' and request.GET.get('fw') and request.GET.get('a'):
         freiwilliger = FWmodels.Freiwilliger.objects.get(pk=request.GET.get('fw'))
         aufgabe = FWmodels.Aufgabe.objects.get(pk=request.GET.get('a'))
         if not freiwilliger.org == request.user.org or not aufgabe.org == request.user.org:
             return HttpResponse('Nicht erlaubt')
-        FWmodels.FreiwilligerAufgaben.objects.get_or_create(
+        fw_aufg, created = FWmodels.FreiwilligerAufgaben.objects.get_or_create(
             org=request.user.org,
             freiwilliger=freiwilliger,
             aufgabe=aufgabe
         )
-        return redirect('list_aufgaben_table')
+        return redirect('list_aufgaben_table_scroll', scroll_to=fw_aufg.id)
     
     if request.method == 'POST':
         aufgabe_id = request.POST.get('aufgabe_id')
@@ -569,18 +569,18 @@ def list_aufgaben_table(request):
         if request.POST.get('reminder') == 'True':
             pass
         else:
-            aufgabe = FWmodels.FreiwilligerAufgaben.objects.get(pk=aufgabe_id)
-            if aufgabe.org == request.user.org:
-                aufgabe.pending = request.POST.get('pending') == 'True'
-                aufgabe.erledigt = request.POST.get('erledigt') == 'True'
+            fw_aufg = FWmodels.FreiwilligerAufgaben.objects.get(pk=aufgabe_id)
+            if fw_aufg.org == request.user.org:
+                fw_aufg.pending = request.POST.get('pending') == 'True'
+                fw_aufg.erledigt = request.POST.get('erledigt') == 'True'
 
-                if aufgabe.erledigt:
-                    aufgabe.erledigt_am = timezone.now()
+                if fw_aufg.erledigt:
+                    fw_aufg.erledigt_am = timezone.now()
                 else:
-                    aufgabe.erledigt_am = None
+                    fw_aufg.erledigt_am = None
 
-                aufgabe.save()
-        return redirect('list_aufgaben_table')
+                fw_aufg.save()
+        return redirect('list_aufgaben_table_scroll', scroll_to=fw_aufg.id)
 
     freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
     aufgaben = FWmodels.Aufgabe.objects.filter(org=request.user.org)
@@ -629,7 +629,8 @@ def list_aufgaben_table(request):
         'today': date.today(),
         'freiwilliger_aufgaben_matrix': freiwilliger_aufgaben_matrix,
         'faellig_art_choices': faellig_art_choices,
-        'filter': filter_type
+        'filter': filter_type,
+        'scroll_to': scroll_to
     }
 
     # Create response with rendered template

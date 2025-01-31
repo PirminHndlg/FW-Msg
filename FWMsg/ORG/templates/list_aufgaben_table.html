@@ -128,7 +128,12 @@
                                 {% else %}
                                     bg-dark bg-opacity-10
                                 {% endif %}
-                            {% endif %}">
+                            {% endif %}"
+                            {% if scroll_to %}
+                                {% if scroll_to == aufgabe.id %}
+                                    id="scroll-to"
+                                {% endif %}>
+                            {% endif %}
                             {% if aufgabe.id %}
                                 {% if aufgabe.erledigt %}
                                     <div class="d-flex flex-column gap-0 align-items-center mt-1">
@@ -250,11 +255,13 @@
                                     </div>
                                 {% endif %}
                             {% else %}
+                            <div class="p-0 m-0">
                                 <a class="btn btn-sm" 
                                     href="{% url 'list_aufgaben_table' %}?fw={{freiwilliger.id}}&a={{aufgabe}}"
                                     data-tooltip="{% trans 'Aufgabe zuweisen' %}">
                                     <i class="bi bi-plus-circle"></i>
                                 </a>
+                            </div>
                             {% endif %}
                         </td>
                         {% endfor %}
@@ -266,4 +273,13 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const scrollToElement = document.getElementById('scroll-to');
+        if (scrollToElement) {
+            scrollToElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+</script>
 {% endblock %}
