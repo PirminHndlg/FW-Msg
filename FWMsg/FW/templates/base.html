@@ -63,13 +63,8 @@
     <div class="container-fluid py-3">
         <ul class="nav flex-column text-white">
             <li class="nav-item">
-                <a class="nav-link text-white" href="{% url 'referenten' %}">
-                    <i class="bi bi-people me-1"></i>Länderreferent:in
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="{% url 'notfallkontakte' %}">
-                    <i class="bi bi-person-rolodex me-1"></i>Notfallkontakte
+                <a class="nav-link text-white" href="{% url 'ampel' %}">
+                    <i class="bi bi-circle-fill me-1"></i>Ampelmeldung
                 </a>
             </li>
             <li class="nav-item">
@@ -78,8 +73,13 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-white" href="{% url 'ampel' %}">
-                    <i class="bi bi-circle-fill me-1"></i>Ampelmeldung
+                <a class="nav-link text-white" href="{% url 'referenten' %}">
+                    <i class="bi bi-people me-1"></i>Länderreferent:in
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'notfallkontakte' %}">
+                    <i class="bi bi-person-rolodex me-1"></i>Notfallkontakte
                 </a>
             </li>
         </ul>
@@ -166,17 +166,17 @@
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
                             <li>
                                 <a href="#" class="dropdown-item">
-                                        <i class="bi bi-calendar-date"></i> {% trans "Kalender" %}
+                                    <i class="bi bi-calendar-date"></i> {% trans "Kalender" %}
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'referenten' %}" class="dropdown-item">
+                                    <i class="bi bi-people me-1"></i> {% trans "Länderreferent:in" %}
                                 </a>
                             </li>
                             <li>
                                 <a href="{% url 'notfallkontakte' %}" class="dropdown-item">
                                         <i class="bi bi-person-rolodex"></i> {% trans "Notfallkontakte" %}
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{% url 'referenten' %}" class="dropdown-item">
-                                        <i class="bi bi-plus-circle"></i> {% trans "Länderreferent:in" %}
                                 </a>
                             </li>
                         </ul>
