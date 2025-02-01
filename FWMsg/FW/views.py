@@ -17,9 +17,10 @@ from .forms import BilderForm, BilderGalleryForm, ProfilUserForm
 from .models import (
     Freiwilliger, Aufgabe, FreiwilligerAufgabenprofil, 
     FreiwilligerAufgaben, Post, Bilder, CustomUser,
-    BilderGallery, Ampel, ProfilUser
+    BilderGallery, Ampel, ProfilUser, Notfallkontakt
 )
-from ORG.models import Dokument, Ordner
+from ORG.models import Dokument, Ordner, Referenten
+from ORG.forms import AddNotfallkontaktForm
 
 from FWMsg.decorators import required_role
 
@@ -216,3 +217,31 @@ def aufgabe(request, aufgabe_id):
         'freiwilliger_aufgaben': freiwilliger_aufgaben
     }
     return render(request, 'aufgabe.html', context=context)
+
+
+@login_required
+@required_role('F')
+def referenten(request):
+    user = request.user
+    org = user.org
+    freiwilliger = Freiwilliger.objects.get(user=user)
+    land = freiwilliger.einsatzland
+    referenten = Referenten.objects.filter(org=org, land=land)
+    return render(request, 'referenten.html', context={'referenten': referenten})
+
+@login_required
+@required_role('F')
+def notfallkontakte(request):
+    if request.method == 'POST':
+        form = AddNotfallkontaktForm(request.POST)
+        if form.is_valid():
+            form.instance.org = request.user.org
+            form.instance.freiwilliger = Freiwilliger.objects.get(user=request.user)
+            form.save()
+            return redirect('notfallkontakte')
+        else:
+            messages.error(request, 'Fehler beim Hinzufügen des Notfallkontakts')
+    form = AddNotfallkontaktForm()
+    form.fields['freiwilliger'].widget = form.fields['freiwilliger'].hidden_widget()
+    notfallkontakte = Notfallkontakt.objects.filter(freiwilliger__user=request.user)
+    return render(request, 'notfallkontakte.html', context={'form': form, 'notfallkontakte': notfallkontakte})
