@@ -46,3 +46,8 @@ def include(value, substring):
     if isinstance(value, str) and isinstance(substring, str) and value and substring:
         return substring in value
     return False
+
+@register.filter
+def class_name(value):
+    """Return the class name of an object."""
+    return value.__class__.__name__

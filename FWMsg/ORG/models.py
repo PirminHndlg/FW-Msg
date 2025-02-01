@@ -208,7 +208,7 @@ class Referenten(models.Model):
     last_name = models.CharField(max_length=50, verbose_name='Nachname')
     email = models.EmailField(verbose_name='E-Mail')
     phone = models.CharField(max_length=20, verbose_name='Telefon (optional)', null=True, blank=True)
-    land = models.ManyToManyField('FW.Einsatzland', verbose_name='Einsatzland')
+    land = models.ManyToManyField('FW.Einsatzland', verbose_name='Einsatzland', blank=True, null=True)
 
     class Meta:
         verbose_name = 'Referent:in'

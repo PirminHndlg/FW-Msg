@@ -86,18 +86,22 @@
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 <a href="{% url 'list_object' 'freiwilliger' %}" class="dropdown-item">Freiwillige</a>
-                                <a href="{% url 'list_object' 'aufgabe' %}" class="dropdown-item">Aufgaben</a>
-                                <a href="{% url 'list_object' 'aufgabenprofil' %}"
-                                   class="dropdown-item">Profile</a>
                                 <a href="{% url 'list_object' 'notfallkontakt' %}"
                                    class="dropdown-item">Notfallkontakte</a>
                                 <a href="{% url 'list_object' 'kirchenzugehoerigkeit' %}"
-                                   class="dropdown-item">Kirchenzugehörigkeiten</a>
-                                <a href="{% url 'list_object' 'entsendeform' %}" class="dropdown-item">Entsendeform</a>
+                                      class="dropdown-item">Kirchenzugehörigkeiten</a>
                                 <a href="{% url 'list_object' 'jahrgang' %}"
-                                   class="dropdown-item">Jahrgänge</a>
+                                         class="dropdown-item">Jahrgänge</a>
+                                <a href="{% url 'list_object' 'entsendeform' %}" class="dropdown-item">Entsendeform</a>
+                                <hr class="dropdown-divider">
+                                <a href="{% url 'list_object' 'aufgabe' %}" class="dropdown-item">Aufgaben</a>
+                                <a href="{% url 'list_object' 'aufgabenprofil' %}"
+                                   class="dropdown-item">Aufgabenprofile</a>
                                 <a href="{% url 'list_object' 'freiwilligeraufgaben' %}"
                                    class="dropdown-item">Freiwillige:r Aufgaben</a>
+                                <hr class="dropdown-divider">
+                                <a href="{% url 'list_object' 'referenten' %}"
+                                   class="dropdown-item">Referent:innen</a>
                                 <hr class="dropdown-divider">
                                 <a href="{% url 'list_object' 'einsatzland' %}"
                                    class="dropdown-item">Einsatzländer</a>
