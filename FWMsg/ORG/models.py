@@ -211,11 +211,11 @@ class Referenten(models.Model):
     land = models.ManyToManyField('FW.Einsatzland', verbose_name='Einsatzland', blank=True, null=True)
 
     class Meta:
-        verbose_name = 'Referent:in'
-        verbose_name_plural = 'Referent:innen'
+        verbose_name = 'Länderreferent:in'
+        verbose_name_plural = 'Länderreferent:innen'
 
     def __str__(self):
-        return f'{self.first_name} {self.last_name}'
+        return f'{self.last_name}, {self.first_name}'
 
 @receiver(post_save, sender=Referenten)
 def create_user(sender, instance, **kwargs):
