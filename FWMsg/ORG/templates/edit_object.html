@@ -1,5 +1,6 @@
 {% extends "baseOrg.html" %}
 {% load widget_tweaks %}
+{% load list_objects_filters %}
 
 {% block content %}
     <form method="post" class="needs-validation mb-3" novalidate>
@@ -12,10 +13,32 @@
                         {% if field.field.widget.input_type == 'checkbox' %}
                             {{ field|add_class:"form-check-input" }}
                         {% elif field.field.widget.input_type == 'datetime-local' %}
-                                {{ field|add_class:"form-control"|attr:"type:datetime-local" }}
+                            {{ field|add_class:"form-control"|attr:"type:datetime-local" }}
                         {% elif field.field.widget.input_type == 'date' %}
                             {{ field|add_class:"form-control"|attr:"type:date" }}
-                        {% elif field.field.widget.input_type == 'select' or field.field.widget.input_type == 'select-multiple' %}
+                        {% elif field.field.widget|class_name == 'SelectMultiple' %}
+                            <div class="card">
+                                <div class="card-body py-2" style="max-height: 200px; overflow-y: auto;">
+                                    <div class="row g-3">
+                                        {% for value, label in field.field.choices %}
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input type="checkbox" 
+                                                           name="{{ field.name }}" 
+                                                           value="{{ value }}" 
+                                                           id="id_{{ field.name }}_{{ forloop.counter }}"
+                                                           class="form-check-input"
+                                                           {% if value|stringformat:"s" in field.value|stringformat:"s" %}checked{% endif %}>
+                                                    <label class="form-check-label" for="id_{{ field.name }}_{{ forloop.counter }}">
+                                                        {{ label }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% elif field.field.widget.input_type == 'select' %}
                             {{ field|add_class:"form-select" }}
                         {% else %}
                             {{ field|add_class:"form-control" }}
@@ -50,4 +73,16 @@
             </div>
         </div>
     </form>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-check {
+    padding-left: 1.5rem;
+}
+.card-body .row {
+    margin-right: 0;
+    margin-left: 0;
+}
+</style>
 {% endblock %}
