@@ -118,7 +118,7 @@ def aufgaben(request):
     for aufgabe in offene_aufgaben:
         calendar_events.append({
             'title': aufgabe.aufgabe.name,
-            'start': aufgabe.faellig.strftime('%Y-%m-%d'),
+            'start': aufgabe.faellig.strftime('%Y-%m-%d') if aufgabe.faellig else '',
             'url': reverse('aufgaben_detail', args=[aufgabe.aufgabe.id]),
             'backgroundColor': '#0d6efd',
             'borderColor': '#0d6efd'
@@ -128,7 +128,7 @@ def aufgaben(request):
     for aufgabe in pending_aufgaben:
         calendar_events.append({
             'title': aufgabe.aufgabe.name,
-            'start': aufgabe.faellig.strftime('%Y-%m-%d'),
+            'start': aufgabe.faellig.strftime('%Y-%m-%d') if aufgabe.faellig else '',
             'url': reverse('aufgaben_detail', args=[aufgabe.aufgabe.id]),
             'backgroundColor': '#ffc107',
             'borderColor': '#ffc107',
@@ -139,7 +139,7 @@ def aufgaben(request):
     for aufgabe in erledigte_aufgaben:
         calendar_events.append({
             'title': aufgabe.aufgabe.name,
-            'start': aufgabe.faellig.strftime('%Y-%m-%d'),
+            'start': aufgabe.faellig.strftime('%Y-%m-%d') if aufgabe.faellig else '',
             'url': reverse('aufgaben_detail', args=[aufgabe.aufgabe.id]),
             'backgroundColor': '#198754',
             'borderColor': '#198754'
