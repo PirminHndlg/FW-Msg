@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+<style>
+    .card-hover {
+        transition: transform 0.2s;
+    }
+    .card-hover:hover {
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card rounded-4">
+    <div class="card-header py-3">
+        <h3 class="card-title mb-0">Länderreferent:in</h3>
+    </div>
+    <div class="card-body">
+        <div class="row g-4">
+            {% for referent in referenten %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm card-hover">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">{{ referent.first_name|default:'' }} {{ referent.last_name|default:'' }}</h5>
+                        {% if referent.phone %}
+                        <div class="d-flex align-items-center text-body-secondary mb-2">
+                            <i class="bi bi-telephone-fill me-2 text-primary"></i>
+                            {{ referent.phone }}
+                        </div>
+                        {% endif %}
+                        {% if referent.email %}
+                        <div class="d-flex align-items-center text-body-secondary mb-2">
+                            <i class="bi bi-envelope-fill me-2 text-primary"></i>
+                            <a href="mailto:{{ referent.email }}" class="text-decoration-none text-body-secondary">{{ referent.email }}</a>
+                        </div>
+                        {% endif %}
+                        {% if referent.land.all %}
+                        <div class="d-flex align-items-center text-body-secondary">
+                            <i class="bi bi-globe me-2 text-primary"></i>
+                            <div>
+                                {% for land in referent.land.all %}
+                                    {% if not forloop.first %}, {% endif %}
+                                    {{ land.name }}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    Keine Länderreferent:innen gefunden
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

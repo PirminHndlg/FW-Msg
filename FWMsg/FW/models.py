@@ -257,7 +257,7 @@ class Notfallkontakt(OrgModel):
     last_name = models.CharField(max_length=50, verbose_name='Nachname')
     phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon')
     email = models.EmailField(max_length=100, blank=True, null=True, verbose_name='E-Mail')
-    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
+    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r', null=True, blank=True)
 
     class Meta:
         verbose_name = 'Notfallkontakt'
