@@ -179,6 +179,11 @@
                                         <i class="bi bi-person-rolodex"></i> {% trans "Notfallkontakte" %}
                                 </a>
                             </li>
+                            <li>
+                                <a href="{% url 'feedback' %}" class="dropdown-item">
+                                    <i class="bi bi-chat-dots"></i> {% trans "Feedback" %}
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 </ul>
@@ -266,6 +271,7 @@
                     <li><a class="dropdown-item" href="{% url 'bild' %}">{% trans "Bilder hochladen" %}</a></li>
                     <li><a class="dropdown-item" href="{% url 'aufgaben' %}">{% trans "Aufgabe erledigen" %}</a></li>
                     <li><a class="dropdown-item" href="{% url 'ampel' %}">{% trans "Ampelmeldung" %}</a></li>
+                    <li><a class="dropdown-item" href="{% url 'feedback' %}">{% trans "Feedback" %}</a></li>
                 </ul>
             </li>
             <li class="nav-item">
