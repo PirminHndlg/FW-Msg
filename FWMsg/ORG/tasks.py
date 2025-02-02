@@ -22,3 +22,17 @@ def send_register_email_task(customuser_id):
     if send_mail_smtp(user.email, subject, email_content, reply_to=org.email):
         return True
     return False
+
+@shared_task
+def send_feedback_email_task(feedback_id):
+    from Global.models import Feedback
+    import json
+
+    with open('FWMsg/.secrets.json', 'r') as f:
+        secrets = json.load(f)
+
+    feedback = Feedback.objects.get(id=feedback_id)
+    subject = f'Feedback von {feedback.user.username}' if not feedback.anonymous else 'Anonymes Feedback'
+    if send_mail_smtp(secrets['feedback_email'], subject, feedback.text):
+        return True
+    return False

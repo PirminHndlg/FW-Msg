@@ -508,8 +508,16 @@ def feedback(request):
             messages.success(request, 'Feedback erfolgreich gesendet')
             return redirect('index_home')
     feedback_form = FeedbackForm()
+
+    import json
+
+    with open('FWMsg/.secrets.json', 'r') as f:
+        secrets = json.load(f)
+    feedback_email = secrets['feedback_email']
+
     context = {
-        'form': feedback_form
+        'form': feedback_form,
+        'feedback_email': feedback_email
     }
     context = checkForOrg(request, context)
     return render(request, 'feedback.html', context=context)
