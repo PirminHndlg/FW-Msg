@@ -1,0 +1,129 @@
+{% extends extends_base|default:'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block head %}
+<style>
+    .card-hover {
+        transition: transform 0.2s;
+    }
+    .card-hover:hover {
+        transform: translateY(-2px);
+    }
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    .form-text {
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card rounded-4">
+    <!-- Header -->
+    <div class="card-header">
+        <h3 class="mb-0">Feedback</h3>
+    </div>
+
+    <!-- Form Content -->
+    <div class="card-body">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                    <div class="mb-4">
+                        <label for="{{ field.id_for_label }}" class="form-label">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                                <span class="text-danger">*</span>
+                            {% endif %}
+                        </label>
+                        
+                        {% if field.field.widget.input_type == 'textarea' %}
+                            {% render_field field class="form-control" rows="5" placeholder=field.help_text %}
+                        {% elif field.field.widget.input_type == 'checkbox' %}
+                            {% render_field field class="form-check-input ms-2" %}
+                        {% else %}
+                            {% render_field field class="form-control" placeholder=field.help_text %}
+                        {% endif %}
+                        
+                        {% if field.help_text %}
+                            <div class="form-text text-muted">
+                                {{ field.help_text }}
+                            </div>
+                        {% endif %}
+                        
+                        {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in field.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{% url 'fw_home' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-2"></i>Abbrechen
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send me-2"></i>Feedback senden
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if messages %}
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    {% for message in messages %}
+    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header {% if message.tags %}bg-{{ message.tags }}{% endif %} text-white">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong class="me-auto">Hinweis</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            {{ message }}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Form validation
+    (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+    })()
+
+    // Auto-dismiss toasts
+    var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+    var toastList = toastElList.map(function (toastEl) {
+        return new bootstrap.Toast(toastEl, {
+            autohide: true,
+            delay: 3000
+        })
+    })
+</script>
+{% endblock %}
