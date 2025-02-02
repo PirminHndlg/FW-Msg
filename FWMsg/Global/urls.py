@@ -23,6 +23,8 @@ urlpatterns = [
     path('profil/<int:user_id>', views.view_profil, name='profil'),
     path('profil/remove/<int:profil_id>', views.remove_profil_attribut, name='remove_profil_attribut'),
 
+    path('feedback/', views.feedback, name='feedback'),
+
     path('datenschutz/', views.datenschutz, name='datenschutz'),
 
     path('send_aufgaben_email/', views.send_aufgaben_email, name='send_aufgaben_email'),

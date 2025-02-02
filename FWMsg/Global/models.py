@@ -4,6 +4,7 @@ from ORG.models import Organisation
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 import random
+from django.db import models
 # Create your models here.
 class CustomUser(models.Model):
     ROLE_CHOICES = [
@@ -52,3 +53,11 @@ def post_save_handler(sender, instance, created, **kwargs):
 # Add property to User model to access org
 User.add_to_class('org', property(lambda self: self.customuser.org if hasattr(self, 'customuser') else None))
 User.add_to_class('role', property(lambda self: self.customuser.role if hasattr(self, 'customuser') else None))
+
+class Feedback(models.Model):
+    text = models.TextField(verbose_name='Feedback')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='User', null=True, blank=True)
+    anonymous = models.BooleanField(default=False, verbose_name='Anonym')
+
+    def __str__(self):
+        return f'Feedback von {self.user.username}' if not self.anonymous and self.user else 'Anonymes Feedback'

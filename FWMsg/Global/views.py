@@ -23,6 +23,8 @@ from FWMsg.celery import send_email_aufgaben_daily
 
 from FWMsg.decorators import required_role
 
+from .forms import FeedbackForm
+
 def send_aufgaben_email(request):
     print('send_aufgaben_email')
     send_email_aufgaben_daily.delay()
@@ -492,3 +494,22 @@ def remove_profil_attribut(request, profil_id):
     if profil_user.user == request.user:
         profil_user.delete()
     return redirect('profil')
+
+@login_required
+@required_role('')
+def feedback(request):
+    if request.method == 'POST':
+        feedback_form = FeedbackForm(request.POST)
+        if feedback_form.is_valid():
+            feedback = feedback_form.save(commit=False)
+            if not feedback_form.cleaned_data['anonymous']:
+                feedback.user = request.user
+                feedback.save()
+            messages.success(request, 'Feedback erfolgreich gesendet')
+            return redirect('index_home')
+    feedback_form = FeedbackForm()
+    context = {
+        'form': feedback_form
+    }
+    context = checkForOrg(request, context)
+    return render(request, 'feedback.html', context=context)
