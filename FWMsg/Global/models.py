@@ -61,3 +61,13 @@ class Feedback(models.Model):
 
     def __str__(self):
         return f'Feedback von {self.user.username}' if not self.anonymous and self.user else 'Anonymes Feedback'
+
+@receiver(post_save, sender=Feedback)
+def post_save_handler(sender, instance, created, **kwargs):
+    if instance.anonymous and instance.user:
+        instance.user = None
+        instance.save()
+    
+    if created:
+        from ORG.tasks import send_feedback_email_task
+        send_feedback_email_task.s(instance.id).apply_async(countdown=10)
