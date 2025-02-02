@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% load static %}
+{% load base_filter %}
+
+{% block head %}
+<style>
+    .card-hover {
+        transition: transform 0.2s;
+    }
+    .card-hover:hover {
+        transform: translateY(-2px);
+    }
+    .info-icon {
+        font-size: 1.2rem;
+        margin-right: 0.5rem;
+    }
+    .contact-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+    .contact-info:last-child {
+        margin-bottom: 0;
+    }
+    .contact-info i {
+        min-width: 1.5rem;
+    }
+    .section-title {
+        margin: 1.5rem 0 1rem;
+    }
+    .section-title:first-child {
+        margin-top: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Card -->
+<div class="card rounded-4">
+    <!-- Country Header -->
+    <div class="card-header p-3 d-flex align-items-center flex-wrap gap-3">
+        <h3 class="card-title mb-0 me-auto">Länderinfo</h3>
+        {% if freiwilliger.einsatzland %}
+            <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }}" style="width: 80px; height: 30px;"></span>
+            <div class="d-flex gap-2 text-muted small">
+                <span>{{ freiwilliger.einsatzland.name|default:"" }}</span>
+                <span>{{ freiwilliger.einsatzstelle|default:"" }}</span>
+                <span>{{ freiwilliger.jahrgang|default:"" }}</span>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="card-body">
+        <div class="row g-4">
+            <!-- Sending Organization Section -->
+            <div class="col-12">
+                <h4 class="fw-bold section-title">Entsendende Organisation</h4>
+                <div class="row g-4">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm card-hover">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">{{ freiwilliger.org.name }}</h5>
+                                {% if freiwilliger.org.telefon %}
+                                <div class="contact-info">
+                                    <i class="bi bi-telephone-fill text-primary"></i>
+                                    {{ freiwilliger.org.telefon }}
+                                </div>
+                                {% endif %}
+                                {% if freiwilliger.org.website %}
+                                <div class="contact-info">
+                                    <i class="bi bi-globe text-primary"></i>
+                                    <a href="{{ freiwilliger.org.website }}" target="_blank" class="text-decoration-none text-body-secondary">{{ freiwilliger.org.website }}</a>
+                                </div>
+                                {% endif %}
+                                {% if freiwilliger.org.email %}
+                                <div class="contact-info">
+                                    <i class="bi bi-envelope-fill text-primary"></i>
+                                    <a href="mailto:{{ freiwilliger.org.email }}" class="text-decoration-none text-body-secondary">{{ freiwilliger.org.email }}</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% for referent in referenten %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm card-hover">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Referent:in {{ referent.first_name|default:'' }} {{ referent.last_name|default:'' }}</h5>
+                                {% if referent.phone_work %}
+                                <div class="contact-info">
+                                    <i class="bi bi-telephone-fill text-primary"></i>
+                                    {{ referent.phone_work }} (Arbeit)
+                                </div>
+                                {% endif %}
+                                {% if referent.phone_mobil %}
+                                <div class="contact-info">
+                                    <i class="bi bi-telephone-fill text-primary"></i>
+                                    {{ referent.phone_mobil }} (Mobil)
+                                </div>
+                                {% endif %}
+                                {% if referent.email %}
+                                <div class="contact-info">
+                                    <i class="bi bi-envelope-fill text-primary"></i>
+                                    <a href="mailto:{{ referent.email }}" class="text-decoration-none text-body-secondary">{{ referent.email }}</a>
+                                </div>
+                                {% endif %}
+                                {% if referent.land.all %}
+                                <div class="contact-info">
+                                    <i class="bi bi-globe text-primary"></i>
+                                    <div>
+                                        {% for land in referent.land.all %}
+                                            {% if not forloop.first %}, {% endif %}
+                                            {{ land.name }}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Country Information Section -->
+            {% if freiwilliger.einsatzland %}
+            <div class="col-12">
+                <h4 class="fw-bold section-title">Länderinformationen {{ freiwilliger.einsatzland.name }}</h4>
+                <div class="row g-4">
+                    <!-- Travel Information -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm card-hover">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Reisehinweise</h5>
+                                <a href="{{ freiwilliger.einsatzland.name|get_auswaeriges_amt_link }}" 
+                                   target="_blank" 
+                                   class="btn btn-outline-primary d-inline-flex align-items-center gap-2">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                    <span>Auswärtiges Amt</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Emergency Numbers -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm card-hover">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Notfallnummern</h5>
+                                {{ freiwilliger.einsatzland.notfallnummern|format_text_with_link|safe|default:"" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if freiwilliger.einsatzstelle %}
+                    <!-- Botschaft Information -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm card-hover">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Botschaft</h5>
+                                {{ freiwilliger.einsatzstelle.botschaft|format_text_with_link|safe|default:"" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Konsulat Information -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm card-hover">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Konsulat</h5>
+                                {{ freiwilliger.einsatzstelle.konsulat|format_text_with_link|safe|default:"" }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Medical Practices -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm card-hover">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Arztpraxen</h5>
+                                {{ freiwilliger.einsatzland.arztpraxen|format_text_with_link|safe|default:"" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pharmacies -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm card-hover">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Apotheken</h5>
+                                {{ freiwilliger.einsatzland.apotheken|format_text_with_link|safe|default:"" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Information -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm card-hover">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Weitere Informationen</h5>
+                                {{ freiwilliger.einsatzland.informationen|format_text_with_link|safe|default:"" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Assignment Location Information -->
+            {% if freiwilliger.einsatzstelle %}
+            <div class="col-12">
+                <h4 class="fw-bold section-title">Informationen Einsatzstelle {{ freiwilliger.einsatzstelle }}</h4>
+                <div class="row g-4">
+                    <!-- Work Supervisor -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm card-hover">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Arbeitsvorgesetzte:r</h5>
+                                {{ freiwilliger.einsatzstelle.arbeitsvorgesetzter|format_text_with_link|safe|default:"" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Partner Organization -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm card-hover">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Partnerorganisation</h5>
+                                {{ freiwilliger.einsatzstelle.partnerorganisation|format_text_with_link|safe|default:"" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mentor -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm card-hover">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Mentor:in</h5>
+                                {{ freiwilliger.einsatzstelle.mentor|format_text_with_link|safe|default:"" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

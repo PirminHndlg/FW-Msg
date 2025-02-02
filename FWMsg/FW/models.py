@@ -102,6 +102,12 @@ class Einsatzland(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Einsatzland')
     code = models.CharField(max_length=2, verbose_name='Einsatzland-Code')
 
+    notfallnummern = models.TextField(verbose_name='Notfallnummern', null=True, blank=True)
+    arztpraxen = models.TextField(verbose_name='Arztpraxen', null=True, blank=True)
+    apotheken = models.TextField(verbose_name='Apotheken', null=True, blank=True)
+    informationen = models.TextField(verbose_name='Weitere Informationen', null=True, blank=True)
+
+
     class Meta:
         verbose_name = 'Einsatzland'
         verbose_name_plural = 'Einsatzländer'
@@ -113,6 +119,13 @@ class Einsatzland(OrgModel):
 class Einsatzstelle(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Einsatzstelle')
     land = models.ForeignKey(Einsatzland, on_delete=models.CASCADE, verbose_name='Einsatzland', null=True, blank=True)
+
+    partnerorganisation = models.TextField(verbose_name='Partnerorganisation', null=True, blank=True)
+    arbeitsvorgesetzter = models.TextField(verbose_name='Arbeitsvorgesetzte:r', null=True, blank=True)
+    mentor = models.TextField(verbose_name='Mentor:in', null=True, blank=True)
+    botschaft = models.TextField(verbose_name='Botschaft', null=True, blank=True)
+    konsulat = models.TextField(verbose_name='Konsulat', null=True, blank=True)
+    informationen = models.TextField(verbose_name='Weitere Informationen', null=True, blank=True)
 
     class Meta:
         verbose_name = 'Einsatzstelle'
