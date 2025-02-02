@@ -6,6 +6,7 @@ from .models import CustomUser, Feedback
 class CustomUserAdmin(admin.ModelAdmin):
     search_fields = ['user']
     actions = ['send_registration_email']
+    list_filter = [('einmalpasswort', admin.EmptyFieldListFilter)]
 
     def send_registration_email(self, request, queryset):
         for customuser in queryset:
