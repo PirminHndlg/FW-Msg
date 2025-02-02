@@ -221,13 +221,13 @@ def aufgabe(request, aufgabe_id):
 
 @login_required
 @required_role('F')
-def referenten(request):
+def laenderinfo(request):
     user = request.user
     org = user.org
     freiwilliger = Freiwilliger.objects.get(user=user)
     land = freiwilliger.einsatzland
     referenten = Referenten.objects.filter(org=org, land=land)
-    return render(request, 'referenten.html', context={'referenten': referenten})
+    return render(request, 'laenderinfo.html', context={'referenten': referenten, 'freiwilliger': freiwilliger})
 
 @login_required
 @required_role('F')

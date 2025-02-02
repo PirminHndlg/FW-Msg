@@ -56,9 +56,11 @@
                         </div>
                         {% if freiwilliger %}
                             {% if freiwilliger.einsatzland %}
+                            <a href="{% url 'laenderinfo' %}" class="text-decoration-none d-flex flex-column align-items-center">
                                 <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }} mb-2" style="width: 100px; height: 50px;"></span>
                                 <span class="small text-muted">{{ freiwilliger.einsatzland.name|default:"" }}</span>
-                                <span class="small text-muted">{{ freiwilliger.einsatzstelle|default:" }}</span>
+                                <span class="small text-muted">{{ freiwilliger.einsatzstelle|default:"" }}</span>
+                            </a>
                             {% else %}
                                 <i class="bi bi-globe mb-2" style="font-size: 3rem; color: var(--bs-primary);"></i>
                             {% endif %}
