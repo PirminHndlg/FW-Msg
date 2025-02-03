@@ -28,8 +28,7 @@ Aufgabe
                 </div>
                 {% endif %}
                 {% if not freiwilliger_aufgaben.pending and not freiwilliger_aufgaben.erledigt %}
-                <input type="file" class="form-control" name="file" {% if not freiwilliger_aufgaben.file %} required {%
-                    endif %} onchange="document.getElementById('file-name').style.display = 'none';">
+                <input type="file" class="form-control" name="file" {% if not freiwilliger_aufgaben.file %} required {% endif %} onchange="document.getElementById('file-name').style.display = 'none';">
                 {% endif %}
             </div>
             {% endif %}
