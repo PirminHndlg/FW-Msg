@@ -4,7 +4,7 @@ import os
 import subprocess
 from django.contrib import messages
 from django.contrib.auth import logout
-from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.http import HttpResponseRedirect, HttpResponse, Http404, HttpResponseNotAllowed, HttpResponseNotFound
 
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
@@ -52,7 +52,7 @@ def serve_logo(request, image_name):
 
     # Check if the file exists
     if not os.path.exists(image_path):
-        raise Http404("Image does not exist")
+        return HttpResponseNotFound('Bild nicht gefunden')
 
     # Open the image file in binary mode
     with open(image_path, 'rb') as img_file:
@@ -67,9 +67,13 @@ def serve_logo(request, image_name):
 @required_role('')
 def serve_bilder(request, image_id):
     # Define the path to the image directory
+    bild_exists = BilderGallery.objects.filter(id=image_id).exists()
+    if not bild_exists:
+        return HttpResponseNotFound('Bild nicht gefunden')
+
     bild = BilderGallery.objects.get(id=image_id)
     if not bild.org == request.user.org:
-        return 'not allowed'
+        return HttpResponseNotAllowed('Nicht erlaubt')
     
     return get_bild(bild.image.path, bild.bilder.titel)
 
@@ -78,10 +82,14 @@ def serve_bilder(request, image_id):
 @required_role('')
 def serve_small_bilder(request, image_id):
     # Define the path to the image directory
+    bild_exists = BilderGallery.objects.filter(id=image_id).exists()
+    if not bild_exists:
+        return HttpResponseNotFound('Bild nicht gefunden')
+
     bild = BilderGallery.objects.get(id=image_id)
 
     if not bild.org == request.user.org:
-        return 'not allowed'
+        return HttpResponseNotAllowed('Nicht erlaubt')
 
     if not bild.small_image:
         return serve_bilder(request, image_id)
@@ -101,14 +109,18 @@ def serve_dokument(request, dokument_id):
     img = request.GET.get('img', None)
     download = request.GET.get('download', None)
     # Define the path to the image directory
+    dokument_exists = Dokument.objects.filter(id=dokument_id).exists()
+    if not dokument_exists:
+        return HttpResponseNotFound('Dokument nicht gefunden')
+
     dokument = Dokument.objects.get(id=dokument_id)
     if not dokument.org == request.user.org:
-        return 'not allowed'
+        return HttpResponseNotAllowed('Nicht erlaubt')
 
     doc_path = dokument.dokument.path
 
     if not os.path.exists(doc_path):
-        raise Http404("Dokument does not exist")
+        return HttpResponseNotFound('Dokument nicht gefunden')
 
     mimetype = get_mimetype(doc_path)
     if mimetype and mimetype.startswith('image') and not download:
@@ -211,6 +223,11 @@ def remove_bild(request):
         return redirect('profil')
 
     try:
+        gallery_image_exists = BilderGallery.objects.filter(id=gallery_image_id).exists()
+        if not gallery_image_exists:
+            messages.error(request, 'Bild nicht gefunden')
+            return redirect('profil')
+        
         gallery_image = BilderGallery.objects.get(id=gallery_image_id)
         
         if gallery_image.bilder.user != request.user:
@@ -240,6 +257,11 @@ def remove_bild_all(request):
     bild_id = request.GET.get('bild_id', None)
     if not bild_id:
         messages.error(request, 'Kein Bild gefunden')
+        return redirect('profil')
+    
+    bild_exists = Bilder.objects.filter(id=bild_id).exists()
+    if not bild_exists:
+        messages.error(request, 'Bild nicht gefunden')
         return redirect('profil')
     
     bild = Bilder.objects.get(id=bild_id)
