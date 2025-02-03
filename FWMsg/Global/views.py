@@ -138,9 +138,9 @@ def serve_dokument(request, dokument_id):
         return response
 
 def get_bilder(request, filter_user=None):
-    bilder = Bilder.objects.filter(org=request.user.org)
+    bilder = Bilder.objects.filter(org=request.user.org).order_by('-date_created')
     if filter_user:
-        bilder = bilder.filter(user=filter_user).order_by('-date_created')
+        bilder = bilder.filter(user=filter_user)
 
     gallery_images = []
     for bild in bilder:

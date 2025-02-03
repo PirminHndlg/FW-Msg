@@ -21,70 +21,9 @@
             <div class="card-body">
                 {% if gallery_images %}
                     <div class="row g-4">
-                        {% for bilder, bilder_gallery in gallery_images.items %}
-                        <div class="col-12 mb-4">
-                            <div class="d-flex align-items-center mb-3 justify-content-between">
-                                <a href="{% url 'profil' bilder.user.id %}" class="text-decoration-none text-dark d-flex align-items-center">
-                                    <img src="{% url 'serve_profil_picture' bilder.user.id %}" 
-                                                class="rounded-circle me-2 border" 
-                                                style="width: 40px; height: 40px; object-fit: cover;" 
-                                                alt="Profile Picture">
-                                    <div>
-                                        <h6 class="mb-0">{{ bilder.user.get_full_name|default:bilder.user.username }}</h6>
-                                        <small class="text-muted">{{ bilder.date_created|date:"d.m.Y H:i" }}</small>
-                                    </div>
-                                </a>
-                                <a href="{% url 'download_bild_as_zip' bilder.id %}" class="btn btn-sm btn-outline-primary">Download</a>
-                            </div>
 
-                            <div id="carousel-{{ forloop.counter }}" class="carousel slide shadow-sm rounded" data-bs-ride="carousel">
-                                <div class="carousel-inner rounded">
-                                    {% for img in bilder_gallery %}
-                                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                            <div class="position-relative" style="aspect-ratio: 4/3;">
-                                                <img src="{% url 'serve_small_bilder' img.id %}"
-                                                        class="d-block w-100 h-100 object-fit-cover rounded"
-                                                        alt="{{ img.bilder.titel }}"
-                                                        data-bs-toggle="tooltip"
-                                                        title="{{ img.bilder.titel }}">
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                                {% if bilder_gallery|length > 1 %}
-                                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ forloop.counter }}" data-bs-slide="prev">
-                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                        <span class="visually-hidden">Previous</span>
-                                    </button>
-                                    <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ forloop.counter }}" data-bs-slide="next">
-                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                        <span class="visually-hidden">Next</span>
-                                    </button>
-                                    <div class="carousel-indicators">
-                                        {% for img in bilder_gallery %}
-                                            <button type="button" 
-                                                    data-bs-target="#carousel-{{ forloop.parentloop.counter }}" 
-                                                    data-bs-slide-to="{{ forloop.counter0 }}" 
-                                                    {% if forloop.first %}class="active"{% endif %}
-                                                    aria-current="true" 
-                                                    aria-label="Slide {{ forloop.counter }}">
-                                            </button>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="mt-3">
-                                <h5 class="mb-2">{{ bilder.titel }}</h5>
-                                {% if bilder.beschreibung %}
-                                    <p class="text-muted mb-0">{{ bilder.beschreibung }}</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% if not forloop.last %}
-                            <hr class="w-75 mx-auto my-0">
-                        {% endif %}
-                        {% endfor %}
+                        {% include 'bilder_show.html' with gallery_images=gallery_images is_org=True small=True %}
+
                     </div>
                 {% else %}
                     <div class="text-center py-4">
