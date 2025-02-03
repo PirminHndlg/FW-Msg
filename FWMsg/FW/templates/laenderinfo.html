@@ -78,6 +78,13 @@
                                     <a href="mailto:{{ freiwilliger.org.email }}" class="text-decoration-none text-body-secondary">{{ freiwilliger.org.email }}</a>
                                 </div>
                                 {% endif %}
+
+                                {% if freiwilliger.entsendeform %}
+                                <div class="contact-info">
+                                    <i class="bi bi-file-earmark-text-fill text-primary"></i>
+                                    <strong class="me-1">Entsendeform: </strong>{{ freiwilliger.entsendeform.name }}
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
