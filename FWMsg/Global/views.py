@@ -140,10 +140,13 @@ def serve_dokument(request, dokument_id):
 def get_bilder(request, filter_user=None):
     bilder = Bilder.objects.filter(org=request.user.org)
     if filter_user:
-        bilder = bilder.filter(user=filter_user)
-    gallery_images = {}
+        bilder = bilder.filter(user=filter_user).order_by('-date_created')
+
+    gallery_images = []
     for bild in bilder:
-        gallery_images[bild] = BilderGallery.objects.filter(bilder=bild)
+        gallery_images.append({
+            bild: BilderGallery.objects.filter(bilder=bild)
+        })
     return gallery_images
 
 @login_required
