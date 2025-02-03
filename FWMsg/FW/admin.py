@@ -80,6 +80,7 @@ class JahrgangAdmin(admin.ModelAdmin):
 @admin.register(Bilder)
 class BilderAdmin(admin.ModelAdmin):
     search_fields = ['name']
+    list_display = ('titel', 'user', 'date_created')
 
 @admin.register(BilderGallery)
 class BilderGalleryAdmin(admin.ModelAdmin):

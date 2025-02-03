@@ -22,6 +22,7 @@ from django.db.models import Case, When, Value
 from FW import models as FWmodels
 from . import models as ORGmodels
 from . import forms as ORGforms
+
 from FWMsg.decorators import required_role
 
 base_template = 'baseOrg.html'
@@ -106,17 +107,15 @@ allowed_models_to_edit = {
 @required_role('O')
 @filter_jahrgang
 def home(request):
+    from Global.views import get_bilder
+
     # Get latest images
     latest_images = FWmodels.Bilder.objects.filter(
         org=request.user.org
-    )[:6]  # Show last 6 images
+    ).order_by('-date_created')[:6]  # Show last 6 images
 
     # Get all gallery images and group by bilder
-    gallery_images = {}
-    for gallery_image in FWmodels.BilderGallery.objects.filter(bilder__in=latest_images):
-        if gallery_image.bilder not in gallery_images:
-            gallery_images[gallery_image.bilder] = []
-        gallery_images[gallery_image.bilder].append(gallery_image)
+    gallery_images = get_bilder(request)[:6]
 
     # Get pending tasks
     now = timezone.now().date()

@@ -1,6 +1,6 @@
 {% for bild_gallery in gallery_images %}
 {% for bild, bilder_gallery in bild_gallery.items %}
-<div class="col-lg-4 col-md-6">
+<div class="{% if small %}col-lg-6 col-md-12{% else %}col-lg-4 col-md-6{% endif %}">
     <div class="card rounded-4 h-100">
         <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-between align-items-center gap-2">
             <div class="d-flex align-items-center">
