@@ -104,10 +104,46 @@
 <script>
 let currentChart = null;
 
+// Function to generate colors with good contrast
+function generateColors(count) {
+    const colors = [
+        'rgba(54, 162, 235, 0.7)',   // Blue
+        'rgba(255, 99, 132, 0.7)',   // Red
+        'rgba(75, 192, 192, 0.7)',   // Teal
+        'rgba(255, 159, 64, 0.7)',   // Orange
+        'rgba(153, 102, 255, 0.7)',  // Purple
+        'rgba(255, 205, 86, 0.7)',   // Yellow
+        'rgba(201, 203, 207, 0.7)',  // Grey
+        'rgba(100, 181, 246, 0.7)',  // Light Blue
+        'rgba(255, 138, 101, 0.7)',  // Deep Orange
+        'rgba(156, 204, 101, 0.7)'   // Light Green
+    ];
+
+    // If we need more colors than in our predefined array, generate them
+    while (colors.length < count) {
+        const h = (colors.length * 137.508) % 360; // Use golden angle approximation
+        const s = 70;  // Saturation
+        const l = 60;  // Lightness
+        colors.push(`hsla(${h}, ${s}%, ${l}%, 0.7)`);
+    }
+
+    return colors;
+}
+
+// Function to generate border colors (darker version of background colors)
+function generateBorderColors(backgroundColors) {
+    return backgroundColors.map(color => {
+        return color.replace('0.7)', '1)'); // Make border fully opaque
+    });
+}
+
 function createChart(data, labels, title) {
     if (currentChart) {
         currentChart.destroy();
     }
+
+    const backgroundColors = generateColors(labels.length);
+    const borderColors = generateBorderColors(backgroundColors);
 
     const ctx = document.getElementById('statisticsChart').getContext('2d');
     currentChart = new Chart(ctx, {
@@ -117,8 +153,8 @@ function createChart(data, labels, title) {
             datasets: [{
                 label: title,
                 data: data,
-                backgroundColor: 'rgba(var(--bs-primary-rgb), 0.5)',
-                borderColor: 'rgb(var(--bs-primary-rgb))',
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
                 borderWidth: 1
             }]
         },
@@ -131,16 +167,51 @@ function createChart(data, labels, title) {
                 },
                 title: {
                     display: true,
-                    text: title
+                    text: title,
+                    font: {
+                        size: 16,
+                        weight: 'bold'
+                    }
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        precision: 0
+                        precision: 0,
+                        font: {
+                            size: 12
+                        }
+                    },
+                    grid: {
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            size: 12
+                        },
+                        autoSkip: false,
+                        maxRotation: 45,
+                        minRotation: 45
+                    },
+                    grid: {
+                        display: false
                     }
                 }
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeInOutQuart'
+            },
+            hover: {
+                mode: 'index',
+                intersect: false
+            },
+            tooltips: {
+                mode: 'index',
+                intersect: false
             }
         }
     });
@@ -151,12 +222,16 @@ function updateDataTable(data, labels, counts) {
     tbody.innerHTML = '';
     
     const total = counts.reduce((a, b) => a + b, 0);
+    const backgroundColors = generateColors(labels.length);
     
     labels.forEach((label, index) => {
         const percent = ((counts[index] / total) * 100).toFixed(1);
         tbody.innerHTML += `
             <tr>
-                <td>${label}</td>
+                <td>
+                    <span class="d-inline-block me-2" style="width: 20px; height: 20px; background-color: ${backgroundColors[index]}; border-radius: 3px;"></span>
+                    ${label}
+                </td>
                 <td>${counts[index]}</td>
                 <td>${percent}%</td>
             </tr>
