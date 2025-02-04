@@ -49,7 +49,7 @@
                     <div class="card-body p-2">
                         <div class="d-flex flex-column gap-2">
                             {% for field in fields %}
-                            <div class="field-selector" data-field="{{ field.name }}">
+                            <div class="field-selector" data-field="{{ field.name }}" data-field-name="{{ field.verbose_name }}">
                                 {{ field.verbose_name }}
                             </div>
                             {% endfor %}
@@ -239,7 +239,7 @@ function updateDataTable(data, labels, counts) {
     });
 }
 
-function fetchFieldData(fieldName) {
+function fetchFieldData(fieldName, fieldNameVerbose) {
     fetch(`{% url 'statistik' %}` + `?field=${fieldName}`)
         .then(response => response.json())
         .then(data => {
@@ -249,7 +249,7 @@ function fetchFieldData(fieldName) {
             const labels = Object.keys(data);
             const counts = Object.values(data);
             
-            createChart(counts, labels, fieldName);
+            createChart(counts, labels, fieldNameVerbose);
             updateDataTable(data, labels, counts);
         })
         .catch(error => {
@@ -269,7 +269,8 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.add('active');
             
             const fieldName = this.dataset.field;
-            fetchFieldData(fieldName);
+            const fieldNameVerbose = this.dataset.fieldName;
+            fetchFieldData(fieldName, fieldNameVerbose);
         });
     });
 });
