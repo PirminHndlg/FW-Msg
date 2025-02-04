@@ -138,6 +138,7 @@ class Dokument(models.Model):
     
     def get_preview_converted(self):
         import subprocess
+        import hashlib
 
         def pdf_to_image(doc_path, img_path):
                 from pdf2image import convert_from_path
@@ -145,8 +146,18 @@ class Dokument(models.Model):
                 image.save(img_path)
                 return img_path
             
+        def get_hashed_filename(filename):
+            """Create a shorter, hashed filename while preserving extension"""
+            name, ext = os.path.splitext(filename)
+            hash_object = hashlib.md5(name.encode())
+            hashed_name = hash_object.hexdigest()[:8]  # Use first 8 chars of hash
+            return f"{hashed_name}{ext}"
+            
         mimetype = self.get_document_type()
-        preview_image_path = upload_to_preview_image(self, self.dokument.name + '.jpg')
+        
+        # Create hashed filename for preview image
+        hashed_name = get_hashed_filename(self.dokument.name)
+        preview_image_path = upload_to_preview_image(self, hashed_name + '.jpg')
 
         if mimetype and mimetype.startswith('image'):
             return self.dokument.path
@@ -170,7 +181,9 @@ class Dokument(models.Model):
             
         if os.path.exists(preview_image_path):
             if not self.preview_image:
-                self.preview_image = preview_image_path
+                # Store relative path instead of full path
+                relative_path = os.path.relpath(preview_image_path, settings.MEDIA_ROOT)
+                self.preview_image = relative_path
                 self.save()
             return preview_image_path
         else:
