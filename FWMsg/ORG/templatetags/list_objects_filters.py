@@ -16,8 +16,10 @@ def get_attribute(obj, attr):
 @register.filter
 def format_text_with_link(obj):
     """Format text with links."""
-    if not obj or not isinstance(obj, str):
+    if not obj:
         return ''
+    if not isinstance(obj, str):
+        return obj
     links = re.findall(r'https?://\S+', obj)
     for link in links:
         obj = obj.replace(link, f'<a href="{link}" target="_blank">{link}</a>')
