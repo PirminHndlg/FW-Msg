@@ -181,9 +181,7 @@ class Dokument(models.Model):
             
         if os.path.exists(preview_image_path):
             if not self.preview_image:
-                # Store relative path instead of full path
-                relative_path = os.path.relpath(preview_image_path, settings.MEDIA_ROOT)
-                self.preview_image = relative_path
+                self.preview_image = preview_image_path
                 self.save()
             return preview_image_path
         else:
