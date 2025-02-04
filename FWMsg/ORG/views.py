@@ -319,12 +319,27 @@ def list_object(request, model_name, highlight_id=None):
         for field in model._meta.fields if field.name != 'org' and field.name != 'id' and field.name != 'user'
     ]
 
-    if 'first_name' in [field.name for field in model._meta.fields]:
-        objects = objects.order_by('first_name')
-    elif 'name' in [field.name for field in model._meta.fields]:
-        objects = objects.order_by('name')
+    model_fields = [field.name for field in model._meta.fields]
+
+    if model._meta.object_name == 'Aufgabe':
+        faellig_art_order = Case(
+            When(faellig_art=FWmodels.Aufgabe.FAELLIG_CHOICES[0][0], then=0),  # Weekly tasks first
+            When(faellig_art=FWmodels.Aufgabe.FAELLIG_CHOICES[1][0], then=1),  # 'Vorher' tasks second
+            When(faellig_art=FWmodels.Aufgabe.FAELLIG_CHOICES[2][0], then=2),  # 'Nachher' tasks third
+            default=3
+        )
+        objects = objects.order_by(faellig_art_order, 'faellig_tag', 'faellig_monat', 'faellig_tage_nach_start', 'faellig_tage_vor_ende')
     else:
-        objects = objects.order_by('id')
+        if 'freiwilliger' in model_fields:
+            objects = objects.order_by('freiwilliger__first_name', 'freiwilliger__last_name')
+        elif 'first_name' in model_fields:
+            objects = objects.order_by('first_name')
+        elif 'last_name' in model_fields:
+            objects = objects.order_by('last_name')
+        elif 'name' in model_fields:
+            objects = objects.order_by('name')
+        else:
+            objects = objects.order_by('id')
     
     # Add many-to-many fields
     m2m_fields = [

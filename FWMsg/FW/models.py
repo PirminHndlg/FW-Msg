@@ -268,7 +268,8 @@ def post_delete_handler(sender, instance, **kwargs):
 class Notfallkontakt(OrgModel):
     first_name = models.CharField(max_length=50, verbose_name='Vorname')
     last_name = models.CharField(max_length=50, verbose_name='Nachname')
-    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon')
+    phone_work = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon (Arbeit)')
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon (Mobil)')
     email = models.EmailField(max_length=100, blank=True, null=True, verbose_name='E-Mail')
     freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r', null=True, blank=True)
 

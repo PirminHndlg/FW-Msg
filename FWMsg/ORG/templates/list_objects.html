@@ -82,10 +82,8 @@
                             </div>
                             {% elif object|get_field_type:field.name == 'DateField' or object|get_field_type:field.name == 'DateTimeField' %}
                                 {{ object|get_attribute:field.name|date:"d.m.Y"|default:'' }}
-                            {% elif object|get_attribute:field.name|include:'@' %}
-                                <a href="mailto:{{ object|get_attribute:field.name|default:'' }}">{{ object|get_attribute:field.name|default:'' }}</a>
                             {% else %}
-                                {{ object|get_attribute:field.name|default:'' }}
+                                {{ object|get_attribute:field.name|format_text_with_link|safe|default:'' }}
                             {% endif %}
                         {% endif %}
                     </td>

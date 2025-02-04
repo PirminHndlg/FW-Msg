@@ -32,6 +32,12 @@
                             {{ notfallkontakt.phone }}
                         </div>
                         {% endif %}
+                        {% if notfallkontakt.phone_work %}
+                        <div class="d-flex align-items-center text-body-secondary mb-2">
+                            <i class="bi bi-telephone-fill me-2 text-primary"></i>
+                            {{ notfallkontakt.phone_work }}
+                        </div>
+                        {% endif %}
                         {% if notfallkontakt.email %}
                         <div class="d-flex align-items-center text-body-secondary">
                             <i class="bi bi-envelope-fill me-2 text-primary"></i>
