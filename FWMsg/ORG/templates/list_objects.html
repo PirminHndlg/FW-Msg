@@ -49,7 +49,14 @@
 
 
 <div class="card rounded-4 p-1">
-    <small class="text-muted p-1 pb-0">insgesamt {{ objects.count }} {{ verbose_name }}</small>
+    <div>
+        <small class="text-muted p-1 pb-0">insgesamt {{ objects.count }} {{ verbose_name }}</small>
+        {% if model_name == 'freiwilliger' %}
+            <small class="text-muted p-1 pb-0">
+                <a href="{% url 'statistik' %}">Statistik</a>
+            </small>
+        {% endif %}
+    </div>
     <div class="table-responsive rounded-4 pt-0">
         <table class="table table-hover mb-0 align-middle">
             <thead>

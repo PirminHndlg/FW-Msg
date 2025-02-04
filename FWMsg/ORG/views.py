@@ -17,7 +17,7 @@ from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.template.context_processors import request
 from django.db.models import QuerySet
-from django.db.models import Case, When, Value
+from django.db.models import Case, When, Value, Count
 
 from FW import models as FWmodels
 from . import models as ORGmodels
@@ -779,3 +779,39 @@ def download_bild_as_zip(request, id):
 @filter_jahrgang
 def dokumente(request):
     return render(request, 'dokumente.html', context={'extends_base': base_template})
+
+
+@login_required
+@required_role('O')
+@filter_jahrgang
+def statistik(request):
+    field_name = request.GET.get('field')
+    if field_name:
+        if field_name not in [f.name for f in FWmodels.Freiwilliger._meta.fields]:
+            return JsonResponse({'error': 'Invalid field'}, status=400)
+        
+        stats = FWmodels.Freiwilliger.objects.filter(org=request.user.org)\
+            .values(field_name)\
+            .annotate(count=Count('id'))\
+            .order_by(field_name)
+        
+        # Convert QuerySet to dictionary
+        data = {}
+        for item in stats:
+            value = item[field_name]
+            if isinstance(value, int) and any(f.name == field_name and isinstance(f, ForeignKey) for f in FWmodels.Freiwilliger._meta.fields):
+                related_obj = FWmodels.Freiwilliger._meta.get_field(field_name).related_model.objects.get(id=value)
+                key = str(related_obj)
+            else:
+                key = str(value) if value is not None else 'Nicht angegeben'
+            data[key] = item['count']
+        
+        return JsonResponse(data)
+
+    freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
+    filter_for_fields = ['entsendeform', 'einsatzland', 'einsatzstelle', 'kirchenzugehoerigkeit', 'geschlecht', 'ort', 'geburtsdatum']
+    if not 'selectedJahrgang' in request.COOKIES:
+        filter_for_fields.append('jahrgang')
+    all_fields = FWmodels.Freiwilliger._meta.fields
+    fields = [field for field in all_fields if field.name in filter_for_fields]
+    return render(request, 'statistik.html', context={'freiwillige': freiwillige, 'fields': fields})
