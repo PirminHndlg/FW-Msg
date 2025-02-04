@@ -604,7 +604,7 @@ def list_aufgaben_table(request, scroll_to=None):
                 fw_aufg.save()
         return redirect('list_aufgaben_table_scroll', scroll_to=fw_aufg.id)
 
-    freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
+    freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org).order_by('first_name', 'last_name')
     aufgaben = FWmodels.Aufgabe.objects.filter(org=request.user.org)
     faellig_art_choices = FWmodels.Aufgabe.FAELLIG_CHOICES
 
