@@ -177,7 +177,13 @@ def send_aufgaben_email(aufgabe):
     
     if send_mail_smtp(aufgabe.freiwilliger.email, subject, email_content, reply_to=aufgabe.aufgabe.org.email):
         aufgabe.last_reminder = timezone.now()
-        aufgabe.save()#
+        aufgabe.currently_sending = False
+        aufgabe.save()
+        return True
+    
+    aufgabe.currently_sending = False
+    aufgabe.save()
+    return False
 
 
 def send_mail_smtp(receiver_email, subject, html_content, reply_to=None):
