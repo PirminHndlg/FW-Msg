@@ -271,7 +271,7 @@ def list_object(request, model_name, highlight_id=None):
         return HttpResponse(f'Kein Model für {model_name} gefunden')
 
     # Initialize the filter form
-    filter_form = ORGforms.FilterForm(model, request=request, **request.GET)
+    filter_form = ORGforms.FilterForm(model, request.GET, request=request)
     
     # Start with all objects for this organization
     objects = model.objects.filter(org=request.user.org)
