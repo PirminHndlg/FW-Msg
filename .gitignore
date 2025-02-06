@@ -60,3 +60,5 @@ FWMsg/send_aufgaben_email.txt
 .secrets.json
 FWMsg/celerybeat-schedule.db
 FWMsg/uploads/
+
+bilder/
