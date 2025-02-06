@@ -21,8 +21,9 @@
             </div>
             {% if is_org %}
             <div class="d-flex justify-content-end mt-2">
-                <a href="{% url 'download_bild_as_zip' bild.id %}" download class="btn btn-sm btn-outline-primary d-flex align-items-center">
-                    <i class="bi bi-download me-1"></i>Download
+                <a href="{% url 'download_bild_as_zip' bild.id %}" download class="btn btn-sm btn-outline-primary d-flex align-items-center"
+                    data-tooltip="Download">
+                    <i class="bi bi-download"></i>
                 </a>
             </div>
             {% endif %}
