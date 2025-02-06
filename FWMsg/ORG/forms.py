@@ -1,7 +1,9 @@
 from django import forms
 from django.db import models
+from django.contrib.auth.models import User
 
 from FW import models as FWmodels
+from Global import models as Globalmodels
 from . import models as ORGmodels
 
 class OrgFormMixin:
@@ -13,7 +15,9 @@ class OrgFormMixin:
             for field_name, field in self.fields.items():
                 if isinstance(field, forms.ModelChoiceField):
                     related_model = field.queryset.model
-                    if hasattr(related_model, 'org'):
+                    if related_model == User:
+                        field.queryset = field.queryset.filter(customuser__org=self.request.user.org)
+                    elif hasattr(related_model, 'org'):
                         field.queryset = field.queryset.filter(org=self.request.user.org)
 
 
@@ -87,6 +91,13 @@ class AddNotfallkontaktForm(OrgFormMixin, forms.ModelForm):
         exclude = ['org']
 
 
+class AddUserForm(OrgFormMixin, forms.ModelForm):
+    class Meta:
+        model = Globalmodels.CustomUser
+        fields = '__all__'
+        exclude = ['org']
+
+
 # Define which fields should be filterable for each model
 filterable_fields = {
     FWmodels.Freiwilliger: ['jahrgang', 'einsatzland', 'entsendeform', 'kirchenzugehoerigkeit'],
@@ -94,6 +105,7 @@ filterable_fields = {
     FWmodels.Einsatzstelle: ['einsatzland'],
     FWmodels.Notfallkontakt: ['freiwilliger'],
     FWmodels.FreiwilligerAufgaben: ['freiwilliger', 'aufgabe', 'erledigt'],
+    Globalmodels.CustomUser: ['role'],
     # FWmodels.Aufgabenprofil: ['aufgaben__aufgabe'],
 }
 
@@ -111,11 +123,19 @@ class FilterForm(forms.Form):
                 continue
                 
             if isinstance(field, (models.CharField, models.TextField)):
-                self.fields[f'filter_{field.name}'] = forms.CharField(
-                    required=False,
-                    label=field.verbose_name,
-                    widget=forms.TextInput(attrs={'class': 'form-control'})
-                )
+                if field.choices:
+                    self.fields[f'filter_{field.name}'] = forms.ChoiceField(
+                        required=False,
+                        label=field.verbose_name,
+                        choices=field.choices,
+                        widget=forms.Select(attrs={'class': 'form-control'})
+                    )
+                else:
+                    self.fields[f'filter_{field.name}'] = forms.CharField(
+                        required=False,
+                        label=field.verbose_name,
+                        widget=forms.TextInput(attrs={'class': 'form-control'})
+                    )
             elif isinstance(field, models.BooleanField):
                 self.fields[f'filter_{field.name}'] = forms.ChoiceField(
                     required=False,
@@ -164,5 +184,6 @@ model_to_form_mapping = {
     FWmodels.Notfallkontakt: AddNotfallkontaktForm,
     FWmodels.Entsendeform: AddEntsendeformForm,
     FWmodels.FreiwilligerAufgaben: AddFreiwilligerAufgabenForm,
-    ORGmodels.Referenten: AddReferentenForm
+    ORGmodels.Referenten: AddReferentenForm,
+    Globalmodels.CustomUser: AddUserForm
 }
