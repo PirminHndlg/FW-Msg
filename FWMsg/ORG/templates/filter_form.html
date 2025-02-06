@@ -17,7 +17,7 @@
                 </a>
             {% endif %}
         </div>
-        <div class="collapse{% if filter_form.is_bound %}{% for key, value in filter_form.cleaned_data.items %}{% if key != 'search' %} show{% endif %}{% endfor %}{% endif %}" id="filterCollapse">
+        <div class="collapse{% if filter_form.is_bound %}{% for key, value in filter_form.cleaned_data.items %}{% if key != 'search' and value %} show{% endif %}{% endfor %}{% endif %}" id="filterCollapse">
             <div class="card-body">
                 <form method="get" class="row g-3" id="filterForm">
                     <!-- Field specific filters -->

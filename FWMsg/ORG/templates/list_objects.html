@@ -85,7 +85,7 @@
                             </div>
                             {% elif object|get_field_type:field.name == 'CharField' and object|get_attribute:field.name|length == 1 %}
                                 {% if object|has_choices:field.name %}
-                                    {{ object|get_choice_label:field.name }}
+                                    {{ object|get_choice_label:field.name|default:'' }}
                                 {% else %}
                                     <div class="text-center">
                                         {{ object|get_attribute:field.name|default:'' }}
@@ -95,7 +95,7 @@
                                 {{ object|get_attribute:field.name|date:"d.m.Y"|default:'' }}
                             {% else %}
                                 {% if object|has_choices:field.name %}
-                                    {{ object|get_choice_label:field.name }}
+                                    {{ object|get_choice_label:field.name|default:'' }}
                                 {% else %}
                                     {{ object|get_attribute:field.name|format_text_with_link|safe|default:'' }}
                                 {% endif %}
