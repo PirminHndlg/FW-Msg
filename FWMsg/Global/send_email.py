@@ -22,7 +22,7 @@ aufgaben_email_template = """
 
     <br>
 
-    <div style="display: flex; align-items: center; gap: 10px;">
+    <div style="display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap;">
         <img style="width: 50px;" src="data:image/png;base64,{base64_image}" alt="{org_name} Logo">
         <h2>{org_name}</h2>
     </div>
@@ -30,26 +30,26 @@ aufgaben_email_template = """
     <div>
         <p>Hallo {freiwilliger_name},</p>
         
-        <p>dies ist eine Erinnerung an die folgende Aufgabe:</p>
+        <p>dies ist eine automatische Erinnerung an die folgende Aufgabe:</p>
         
         <div>
             <strong>{aufgabe_name}</strong><br>
+            Beschreibung: {aufgabe_beschreibung}<br>
             Fällig am: {aufgabe_deadline}
         </div>
         
-        <p>Bitte schauen Sie sich die Aufgabe an und bearbeiten Sie diese zeitnah.</p>
+        <p>Bitte schaue dir die Aufgabe an und bearbeite diese zeitnah.</p>
     </div>
     
     <div>
-        Gucken Sie sich die Aufgabe an:
-        <a href="{action_url}">{action_url}</a>
+        Link zur Aufgabe: <a href="{action_url}">{action_url}</a>
     </div>
     
     <div>
-        <p>Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions - keine Antworten erwartet.</p>
+        <p>Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions - es wird keine Antwort erwartet.</p>
     </div>
 
-    <br>
+    <br><br>
 
     <div>
         <strong>- English version -</strong>
@@ -127,10 +127,11 @@ register_email_org_template = """
 </html>
 """
 
-def format_aufgaben_email(aufgabe_name, aufgabe_deadline, base64_image, org_name, freiwilliger_name, action_url):
+def format_aufgaben_email(aufgabe_name, aufgabe_deadline, base64_image, org_name, freiwilliger_name, action_url, aufgabe_beschreibung='',):
     return aufgaben_email_template.format(
         aufgabe_name=aufgabe_name,
-        aufgabe_deadline=aufgabe_deadline.strftime('%d.%m.%Y'),
+        aufgabe_beschreibung=aufgabe_beschreibung,
+        aufgabe_deadline=aufgabe_deadline.strftime('%d.%m.%Y') if aufgabe_deadline else '',
         base64_image=base64_image,
         org_name=org_name,
         freiwilliger_name=freiwilliger_name,
@@ -158,7 +159,7 @@ def format_register_email_org(einmalpasswort, action_url, org_name, freiwilliger
 
 def send_aufgaben_email(aufgabe):
     # Construct the action URL for the specific task
-    action_url = 'https://volunteer.solutions' #f"/fw/aufgabe/{aufgabe.id}/"
+    action_url = 'https://volunteer.solutions/fw/aufgabe/' + str(aufgabe.id) + "/"
     
     # Get the organization logo URL
     with open(aufgabe.aufgabe.org.logo.path, "rb") as org_logo:
@@ -170,7 +171,8 @@ def send_aufgaben_email(aufgabe):
         base64_image=base64_image,
         org_name=aufgabe.aufgabe.org.name,
         freiwilliger_name=f"{aufgabe.freiwilliger.first_name} {aufgabe.freiwilliger.last_name}",
-        action_url=action_url
+        action_url=action_url,
+        aufgabe_beschreibung=aufgabe.aufgabe.beschreibung if aufgabe.aufgabe.beschreibung else ''
     )   
     
     subject = f'Erinnerung: {aufgabe.aufgabe.name}'
