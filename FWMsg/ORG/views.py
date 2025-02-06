@@ -20,6 +20,7 @@ from django.db.models import QuerySet
 from django.db.models import Case, When, Value, Count
 
 from FW import models as FWmodels
+from Global import models as Globalmodels
 from . import models as ORGmodels
 from . import forms as ORGforms
 
@@ -98,7 +99,8 @@ allowed_models_to_edit = {
     'notfallkontakt': FWmodels.Notfallkontakt,
     'entsendeform': FWmodels.Entsendeform,
     'freiwilligeraufgaben': FWmodels.FreiwilligerAufgaben,
-    'referenten': ORGmodels.Referenten
+    'referenten': ORGmodels.Referenten,
+    'user': Globalmodels.CustomUser
 }
 
 
@@ -314,9 +316,10 @@ def list_object(request, model_name, highlight_id=None):
                     objects = objects.filter(**{field.name: value})
     
     # Get both regular fields and many-to-many fields
+   
     field_metadata = [
         {'name': field.name, 'verbose_name': field.verbose_name}
-        for field in model._meta.fields if field.name != 'org' and field.name != 'id' and field.name != 'user'
+        for field in model._meta.fields if field.name != 'org' and field.name != 'id' and (field.name != 'user' or model._meta.object_name == 'CustomUser')
     ]
 
     model_fields = [field.name for field in model._meta.fields]
