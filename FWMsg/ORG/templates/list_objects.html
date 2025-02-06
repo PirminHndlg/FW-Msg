@@ -84,13 +84,21 @@
                                 {% endif %}
                             </div>
                             {% elif object|get_field_type:field.name == 'CharField' and object|get_attribute:field.name|length == 1 %}
-                            <div class="text-center">
-                                {{ object|get_attribute:field.name|default:'' }}
-                            </div>
+                                {% if object|has_choices:field.name %}
+                                    {{ object|get_choice_label:field.name }}
+                                {% else %}
+                                    <div class="text-center">
+                                        {{ object|get_attribute:field.name|default:'' }}
+                                    </div>
+                                {% endif %}
                             {% elif object|get_field_type:field.name == 'DateField' or object|get_field_type:field.name == 'DateTimeField' %}
                                 {{ object|get_attribute:field.name|date:"d.m.Y"|default:'' }}
                             {% else %}
-                                {{ object|get_attribute:field.name|format_text_with_link|safe|default:'' }}
+                                {% if object|has_choices:field.name %}
+                                    {{ object|get_choice_label:field.name }}
+                                {% else %}
+                                    {{ object|get_attribute:field.name|format_text_with_link|safe|default:'' }}
+                                {% endif %}
                             {% endif %}
                         {% endif %}
                     </td>

@@ -4,14 +4,20 @@ from django import template
 from datetime import date
 from django.db.models import ManyToManyField
 import re
+from django.db import models
+from django.utils.html import format_html
 
 register = template.Library()
 
 
 @register.filter
 def get_attribute(obj, attr):
-    """Get an attribute of an object by name."""
-    return getattr(obj, attr, '')
+    """Get an attribute of an object dynamically from a string name"""
+    if hasattr(obj, str(attr)):
+        return getattr(obj, attr)
+    elif hasattr(obj, 'get_%s_display' % attr):
+        return getattr(obj, 'get_%s_display' % attr)()
+    return None
 
 @register.filter
 def format_text_with_link(obj):
@@ -49,21 +55,13 @@ def get_fields(obj):
 
 @register.filter
 def is_many_to_many(obj, field_name):
-    """Check if a field is a many-to-many relationship."""
-    try:
-        field = obj._meta.get_field(field_name)
-        return isinstance(field, ManyToManyField)
-    except:
-        return False
+    """Check if a field is a many-to-many relationship"""
+    return isinstance(obj._meta.get_field(field_name), models.ManyToManyField)
 
 @register.filter
 def get_field_type(obj, field_name):
-    """Return the field type name for a given model field."""
-    try:
-        field = obj._meta.get_field(field_name)
-        return field.get_internal_type()
-    except:
-        return ''
+    """Get the field type of a model field"""
+    return obj._meta.get_field(field_name).get_internal_type()
 
 @register.filter
 def include(value, substring):
@@ -76,3 +74,16 @@ def include(value, substring):
 def class_name(value):
     """Return the class name of an object."""
     return value.__class__.__name__
+
+@register.filter
+def has_choices(obj, field_name):
+    """Check if a field has choices defined"""
+    field = obj._meta.get_field(field_name)
+    return bool(field.choices)
+
+@register.filter
+def get_choice_label(obj, field_name):
+    """Get the display label for a choice field"""
+    if hasattr(obj, f'get_{field_name}_display'):
+        return getattr(obj, f'get_{field_name}_display')()
+    return get_attribute(obj, field_name)
