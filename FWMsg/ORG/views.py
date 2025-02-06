@@ -319,7 +319,7 @@ def list_object(request, model_name, highlight_id=None):
    
     field_metadata = [
         {'name': field.name, 'verbose_name': field.verbose_name}
-        for field in model._meta.fields if field.name != 'org' and field.name != 'id' and (field.name != 'user' or model._meta.object_name == 'CustomUser')
+        for field in model._meta.fields if field.name != 'org' and field.name != 'id' #and (field.name != 'user' or model._meta.object_name == 'CustomUser')
     ]
 
     model_fields = [field.name for field in model._meta.fields]
