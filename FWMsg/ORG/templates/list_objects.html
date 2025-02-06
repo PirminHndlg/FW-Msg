@@ -95,6 +95,10 @@
                                 {% endif %}
                             {% elif object|get_field_type:field.name == 'DateField' or object|get_field_type:field.name == 'DateTimeField' %}
                                 {{ object|get_attribute:field.name|date:"d.m.Y"|default:'' }}
+                            {% elif object|get_field_type:field.name == 'FileField' %}
+                                {% if object|get_attribute:field.name %}
+                                    <i class="bi bi-file-earmark"></i>
+                                {% endif %}
                             {% else %}
                                 {% if object|has_choices:field.name %}
                                     {{ object|get_choice_label:field.name|default:'' }}
