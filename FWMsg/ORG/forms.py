@@ -1,3 +1,5 @@
+import random
+import string
 from django import forms
 from django.db import models
 from django.contrib.auth.models import User
@@ -92,10 +94,57 @@ class AddNotfallkontaktForm(OrgFormMixin, forms.ModelForm):
 
 
 class AddUserForm(OrgFormMixin, forms.ModelForm):
+    username = forms.CharField(max_length=150, required=False, label='Username')
+    first_name = forms.CharField(max_length=150, required=False, label='First Name')
+    last_name = forms.CharField(max_length=150, required=False, label='Last Name')
+    email = forms.EmailField(required=False, label='Email')
+
     class Meta:
         model = Globalmodels.CustomUser
-        fields = '__all__'
+        fields = ['username', 'first_name', 'last_name', 'email', 'role', 'einmalpasswort', 'profil_picture']
         exclude = ['org']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # If we're editing an existing instance, populate the user fields
+        if self.instance and self.instance.pk and hasattr(self.instance, 'user'):
+            self.fields['username'].initial = self.instance.user.username
+            self.fields['first_name'].initial = self.instance.user.first_name
+            self.fields['last_name'].initial = self.instance.user.last_name
+            self.fields['email'].initial = self.instance.user.email
+
+    def save(self, commit=True):
+        custom_user = super().save(commit=False)
+        
+        if custom_user.pk:  # If editing existing user
+            user = custom_user.user
+            user.email = self.cleaned_data['email']
+            user.first_name = self.cleaned_data['first_name']
+            user.last_name = self.cleaned_data['last_name']
+            user.username = self.cleaned_data['username'] or user.username
+            user.save()
+        else:  # If creating new user
+            username = self.cleaned_data['username'] or self.cleaned_data['first_name'].split(' ')[0]
+            
+            # Ensure unique username
+            while User.objects.filter(username=username).exists():
+                username = username + str(random.randint(1, 9))
+            
+            # Create User instance
+            user = User.objects.create_user(
+                username=username,
+                email=self.cleaned_data['email'],
+                password=''.join(random.choices(string.ascii_letters + string.digits, k=10)),
+                first_name=self.cleaned_data['first_name'],
+                last_name=self.cleaned_data['last_name']
+            )
+            custom_user.user = user
+        
+        if commit:
+            custom_user.save()
+            self.save_m2m()
+        
+        return custom_user
 
 
 # Define which fields should be filterable for each model
