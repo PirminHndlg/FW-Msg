@@ -129,7 +129,7 @@
                 <tbody>
                     {% for freiwilliger, aufgaben in freiwilliger_aufgaben_matrix.items %}
                     <tr class="border-bottom">
-                        <th class="border-end border-dark text-nowrap">{{ freiwilliger.first_name }} {{ freiwilliger.last_name }}</th>
+                        <th class="border-end border-dark" style="max-width: 30vw;">{{ freiwilliger.first_name }} {{ freiwilliger.last_name }}</th>
                         {% for aufgabe in aufgaben %}
                         <td class="text-center p-0 rounded-4
                             {% if aufgabe.id %}
