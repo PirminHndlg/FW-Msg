@@ -159,7 +159,7 @@ def format_register_email_org(einmalpasswort, action_url, org_name, freiwilliger
 
 def send_aufgaben_email(aufgabe):
     # Construct the action URL for the specific task
-    action_url = 'https://volunteer.solutions/fw/aufgabe/' + str(aufgabe.id) + "/"
+    action_url = 'https://volunteer.solutions/fw/aufgaben/' + str(aufgabe.aufgabe.id) + "/"
     
     # Get the organization logo URL
     with open(aufgabe.aufgabe.org.logo.path, "rb") as org_logo:

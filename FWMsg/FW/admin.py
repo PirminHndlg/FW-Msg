@@ -70,6 +70,13 @@ class AmpelAdmin(admin.ModelAdmin):
 @admin.register(FreiwilligerAufgaben)
 class FreiwilligerAufgabenAdmin(admin.ModelAdmin):
     search_fields = ['freiwilliger', 'aufgabe']
+    actions = ['send_aufgaben_email']
+
+    def send_aufgaben_email(self, request, queryset):
+        for freiwilliger_aufgabe in queryset:
+            freiwilliger_aufgabe.send_reminder_email()
+        msg = f"Erinnerungen wurden gesendet"
+        self.message_user(request, msg)
 
 
 @admin.register(Jahrgang)
