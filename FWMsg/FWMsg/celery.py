@@ -83,6 +83,6 @@ def send_email_aufgaben_daily():
 app.conf.beat_schedule = {
     'send_email_aufgaben_daily': {
         'task': 'send_email_aufgaben_daily',
-        'schedule': crontab(hour=23, minute=13),
+        'schedule': crontab(hour=10, minute=0),g
     },
 }
