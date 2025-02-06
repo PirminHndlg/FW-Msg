@@ -17,8 +17,6 @@ from ORG.models import Dokument, Ordner
 
 from ORG.views import base_template
 
-from FW.tasks import send_aufgaben_email_task
-
 from FWMsg.celery import send_email_aufgaben_daily
 
 from FWMsg.decorators import required_role
