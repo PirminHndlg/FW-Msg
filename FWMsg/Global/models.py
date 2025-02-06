@@ -16,7 +16,7 @@ class CustomUser(models.Model):
         ('T', 'Team')
     ]
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Benutzer:in')
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
     role = models.CharField(max_length=1, choices=ROLE_CHOICES, default='F', verbose_name='Rolle')
     profil_picture = models.ImageField(upload_to='profil_picture/', blank=True, null=True, verbose_name='Profilbild')
@@ -39,6 +39,11 @@ class CustomUser(models.Model):
     
     def __str__(self):
         return self.user.username
+    
+    class Meta:
+        verbose_name = 'Benutzer:in'
+        verbose_name_plural = 'Benutzer:innen'
+        
     
 @receiver(post_save, sender=CustomUser)
 def post_save_handler(sender, instance, created, **kwargs):
