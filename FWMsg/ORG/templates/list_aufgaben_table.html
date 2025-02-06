@@ -249,8 +249,15 @@
                                                     {% csrf_token %}
                                                     <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
                                                     <input type="hidden" name="reminder" value="True">
-                                                    <button type="submit" class="dropdown-item" disabled>
-                                                        <i class="bi bi-bell-fill me-2"></i>{% trans "Erinnerung senden" %}
+                                                    <button type="submit" class="dropdown-item" {% if aufgabe.currently_sending %}disabled{% endif %}>
+                                                        {% if aufgabe.currently_sending %}
+                                                            <i class="bi bi-hourglass-split"></i>Wird gerade gesendet
+                                                        {% else %}
+                                                            <i class="bi bi-bell-fill me-2"></i>{% trans "Erinnern" %}
+                                                            {% if aufgabe.last_reminder %}
+                                                                <small class="text-muted">({% trans "Zuletzt" %} {{ aufgabe.last_reminder|date:'d.m.' }}{% if aufgabe.last_reminder.year < today.year %}{{ aufgabe.last_reminder|date:'y' }}{% endif %})</small>
+                                                            {% endif %}
+                                                        {% endif %}
                                                     </button>
                                                 </form>
                                             </li>

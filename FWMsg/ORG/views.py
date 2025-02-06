@@ -592,7 +592,8 @@ def list_aufgaben_table(request, scroll_to=None):
         aufgabe_id = request.POST.get('aufgabe_id')
 
         if request.POST.get('reminder') == 'True':
-            pass
+            fw_aufg = FWmodels.FreiwilligerAufgaben.objects.get(pk=aufgabe_id)
+            fw_aufg.send_reminder_email()
         else:
             fw_aufg = FWmodels.FreiwilligerAufgaben.objects.get(pk=aufgabe_id)
             if fw_aufg.org == request.user.org:

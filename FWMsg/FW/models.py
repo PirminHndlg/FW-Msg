@@ -337,7 +337,6 @@ class FreiwilligerAufgaben(OrgModel):
     wiederholung = models.CharField(max_length=1, choices=WIEDERHOLUNG_CHOICES, default='N', verbose_name='Wiederholung')
     wiederholung_ende = models.DateField(blank=True, null=True, verbose_name='Wiederholung bis')
     file = models.FileField(upload_to='uploads/', blank=True, null=True, verbose_name='Datei')
-    currently_sending = models.BooleanField(default=False, verbose_name='Wird gerade gesendet')
 
     def save(self, *args, **kwargs):
         if self.wiederholung != 'N' and not self.wiederholung_ende:
@@ -385,9 +384,7 @@ class FreiwilligerAufgaben(OrgModel):
 
     def send_reminder_email(self):
         from Global.send_email import send_aufgaben_email
-        send_aufgaben_email.s(self.id).apply_async(countdown=1)
-        self.currently_sending = True
-        self.save()
+        send_aufgaben_email(self)
 
 
     class Meta:
