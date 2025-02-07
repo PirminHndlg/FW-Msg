@@ -1,0 +1,36 @@
+{% load static %}
+
+<div class="ampel_container d-flex justify-content-center gap-4 mb-4">
+    <div id="R" class="ampel_element ampel_rot rounded-circle shadow-sm" title="Rot - Dringender Handlungsbedarf"></div>
+    <div id="Y" class="ampel_element ampel_gelb rounded-circle shadow-sm" title="Gelb - Aufmerksamkeit erforderlich"></div>
+    <div id="G" class="ampel_element ampel_gruen rounded-circle shadow-sm" title="Grün - Alles in Ordnung"></div>
+    <input type="hidden" name="ampel" required>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let ampelElements = document.querySelectorAll('.ampel_element');
+        let ampelInput = document.querySelector('input[name="ampel"]');
+        
+        ampelElements.forEach(ampelElement => {
+            ampelElement.addEventListener('click', () => {
+                if (ampelElement.classList.contains('ampel_selected')) {
+                    // Deselect if already selected
+                    ampelElements.forEach(el => {
+                        el.classList.remove('ampel_selected', 'ampel_disabled');
+                    });
+                    ampelInput.value = '';
+                    return;
+                }
+                // Select new option
+                ampelElements.forEach(el => {
+                    el.classList.remove('ampel_selected');
+                    el.classList.add('ampel_disabled');
+                });
+                ampelElement.classList.add('ampel_selected');
+                ampelElement.classList.remove('ampel_disabled');
+                ampelInput.value = ampelElement.id;
+            });
+        });
+    });
+</script> 

@@ -1,25 +1,10 @@
 {% extends extends_base|default:'base.html' %}
 {% load static %}
 
-{% block scripts %}
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
-    <script>
-        window.calendarEvents = JSON.parse('{{ calendar_events|escapejs }}');
-    </script>
-    <script src="{% static 'js/kalendar.js' %}"></script>
-{% endblock %}
-
 {% block headline %}
     Kalender
 {% endblock %}
 
 {% block content %}
-    <div class="card rounded-4 mb-2">
-        <div class="card-header bg-light rounded-4">
-            <h3 class="card-title mb-0">Kalender</h3>
-        </div>
-        <div class="card-body">
-            <div id="calendar"></div>
-        </div>
-    </div>
+    {% include "components/calendar.html" with calendar_events=calendar_events title="Kalender" hide_header=True %}
 {% endblock %}

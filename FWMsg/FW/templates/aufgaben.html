@@ -6,109 +6,31 @@
     <link rel="stylesheet" href="{% static 'css/aufgaben.css' %}">
 {% endblock %}
 
-{% block scripts %}
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
-    <script>
-        window.calendarEvents = JSON.parse('{{ calendar_events|escapejs }}');
-    </script>
-    <script src="{% static 'js/aufgaben.js' %}"></script>
-{% endblock %}
-
 {% block headline %}
     Aufgaben
 {% endblock %}
 
 {% block content %}
-
     {% if show_confetti %}
         {% include 'confetti.html' %}
     {% endif %}
 
-<div class="card rounded-4 mb-2">
-    <div class="card-body">
-        <div class="progress" style="height: 25px;">
-            <div class="progress-bar bg-primary" role="progressbar" 
-                style="width: {{ offen_prozent }}%" 
-                aria-valuenow="{{ offen_prozent }}" 
-                aria-valuemin="0" 
-                aria-valuemax="100"
-                data-bs-toggle="tooltip"
-                title="Offen: {{ offen_prozent }}%">
-                {{ offen_prozent }}%
-            </div>
-            <div class="progress-bar bg-warning" role="progressbar" 
-                style="width: {{ pending_prozent }}%" 
-                aria-valuenow="{{ pending_prozent }}" 
-                aria-valuemin="0" 
-                aria-valuemax="100"
-                data-bs-toggle="tooltip"
-                title="Pending: {{ pending_prozent }}%">
-                {{ pending_prozent }}%
-            </div>
-            <div class="progress-bar bg-success" role="progressbar" 
-                style="width: {{ erledigt_prozent }}%" 
-                aria-valuenow="{{ erledigt_prozent }}" 
-                aria-valuemin="0" 
-                aria-valuemax="100"
-                data-bs-toggle="tooltip"
-                title="Erledigt: {{ erledigt_prozent }}%">
-                {{ erledigt_prozent }}%
-            </div>
-        </div>
-        <div class="d-flex justify-content-between mt-2 small text-muted">
-            <span><i class="bi bi-square-fill text-primary me-1"></i>Offen ({{ len_offen }})</span>
-            <span><i class="bi bi-square-fill text-warning me-1"></i>Pending ({{ len_pending }})</span>
-            <span><i class="bi bi-square-fill text-success me-1"></i>Erledigt ({{ len_erledigt }})</span>
-        </div>
-    </div>
-</div>
+    {# Progress Bar #}
+    {% include "components/progress_bar.html" with offen_prozent=offen_prozent pending_prozent=pending_prozent erledigt_prozent=erledigt_prozent len_offen=len_offen len_pending=len_pending len_erledigt=len_erledigt show_count=True %}
 
-{# Calendar Card #}
-<div class="card rounded-4 mb-2">
-    <div class="card-header sticky-top bg-light rounded-4">
-        <h3 class="card-title mb-0">Kalender</h3>
-    </div>
-    <div class="card-body">
-        <div id="calendar"></div>
-    </div>
-</div>
+    {# Calendar Section #}
+    {% include "components/calendar.html" with calendar_events=calendar_events title="Kalender" initial_view="dayGridWeek" show_view_toggle=True dynamic_height=True %}
 
-<div class="card rounded-4 mb-2">
-    <div class="card-header sticky-top bg-light rounded-4">
-        <h3 class="card-title mb-0">Offene Aufgaben: {{ len_offen }}</h3>
-    </div>
-    <div class="card-body">
-        {{ aufgaben_offen|generate_html_for_aufgaben }}
-    </div>
-    <div class="alert mb-0 pt-0 small text-muted">
-        <i class="bi bi-info-circle me-1"></i>
-        Offene Aufgaben sind Aufgaben, die noch nicht abgeschlossen sind.
-    </div>
-</div>
+    {# Task Sections #}
+    {% if aufgaben_offen %}
+        {% include "components/task_section.html" with title="Offene Aufgaben" count=len_offen tasks=aufgaben_offen info_text="Offene Aufgaben sind Aufgaben, die noch nicht abgeschlossen sind." %}
+    {% endif %}
 
-<div class="card rounded-4 mb-2">
-    <div class="card-header sticky-top bg-light rounded-4">
-        <h3 class="card-title mb-0">Pending Aufgaben: {{ len_pending }}</h3>
-    </div>
-    <div class="card-body">
-        {{ aufgaben_pending|generate_html_for_aufgaben }}
-    </div>
-    <div class="alert mb-0 pt-0 small text-muted">
-        <i class="bi bi-info-circle me-1"></i>
-        Pending Aufgaben sind abgeschlossene Aufgaben, die zur Überprüfung eingereicht wurden und auf Bestätigung warten.
-    </div>
-</div>
+    {% if aufgaben_pending %}
+        {% include "components/task_section.html" with title="Pending Aufgaben" count=len_pending tasks=aufgaben_pending info_text="Pending Aufgaben sind abgeschlossene Aufgaben, die zur Überprüfung eingereicht wurden und auf Bestätigung warten." %}
+    {% endif %}
 
-<div class="card rounded-4 mb-2">
-    <div class="card-header sticky-top bg-light rounded-4">
-        <h3 class="card-title mb-0">Erledigte Aufgaben: {{ len_erledigt }}</h3>
-    </div>
-    <div class="card-body">
-        {{ aufgaben_erledigt|generate_html_for_aufgaben }}
-    </div>
-    <div class="alert mb-0 pt-0 small text-muted">
-        <i class="bi bi-info-circle me-1"></i>
-        Erledigte Aufgaben sind Aufgaben, die abgeschlossen wurden.
-    </div>
-</div>
+    {% if aufgaben_erledigt %}
+        {% include "components/task_section.html" with title="Erledigte Aufgaben" count=len_erledigt tasks=aufgaben_erledigt info_text="Erledigte Aufgaben sind Aufgaben, die abgeschlossen wurden." %}
+    {% endif %}
 {% endblock %}

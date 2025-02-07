@@ -1,0 +1,53 @@
+{% load base_filter %}
+
+<form id="addNotfallkontaktForm" method="post" class="d-none mt-4">
+    {% csrf_token %}
+    <div class="row g-3">
+        {% for field in form %}
+        {% if field.name != 'freiwilliger' %}
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label fw-medium" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field|add_class:"form-control" }}
+                {% if field.help_text %}
+                <div class="form-text">{{ field.help_text }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+        <div class="col-12">
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-secondary d-flex align-items-center gap-2" id="cancelAddNotfallkontakt">
+                    <i class="bi bi-x-circle"></i>
+                    <span>Abbrechen</span>
+                </button>
+                <button type="submit" class="btn btn-primary d-flex align-items-center gap-2">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Hinzufügen</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addButton = document.getElementById('addNotfallkontakt');
+        const form = document.getElementById('addNotfallkontaktForm');
+        const cancelButton = document.getElementById('cancelAddNotfallkontakt');
+        
+        if (addButton && form && cancelButton) {
+            addButton.addEventListener('click', function() {
+                form.classList.remove('d-none');
+                addButton.classList.add('d-none');
+            });
+
+            cancelButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                form.classList.add('d-none');
+                addButton.classList.remove('d-none');
+            });
+        }
+    });
+</script> 

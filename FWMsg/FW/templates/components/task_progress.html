@@ -1,0 +1,36 @@
+<a href="{% url 'aufgaben' %}" class="text-decoration-none">
+    <div class="progress mb-3" style="height: 25px;">
+        <div class="progress-bar bg-primary" role="progressbar" 
+            style="width: {{ aufgaben.offen_prozent }}%" 
+            aria-valuenow="{{ aufgaben.offen_prozent }}" 
+            aria-valuemin="0" 
+            aria-valuemax="100"
+            data-bs-toggle="tooltip"
+            title="Offen: {{ aufgaben.offen_prozent }}%">
+            {{ aufgaben.offen_prozent }}%
+        </div>
+        <div class="progress-bar bg-warning" role="progressbar" 
+            style="width: {{ aufgaben.pending_prozent }}%" 
+            aria-valuenow="{{ aufgaben.pending_prozent }}" 
+            aria-valuemin="0" 
+            aria-valuemax="100"
+            data-bs-toggle="tooltip"
+            title="Pending: {{ aufgaben.pending_prozent }}%">
+            {{ aufgaben.pending_prozent }}%
+        </div>
+        <div class="progress-bar bg-success" role="progressbar" 
+            style="width: {{ aufgaben.erledigt_prozent }}%" 
+            aria-valuenow="{{ aufgaben.erledigt_prozent }}" 
+            aria-valuemin="0" 
+            aria-valuemax="100"
+            data-bs-toggle="tooltip"
+            title="Erledigt: {{ aufgaben.erledigt_prozent }}%">
+            {{ aufgaben.erledigt_prozent }}%
+        </div>
+    </div>
+    <div class="d-flex justify-content-between mb-3 small text-muted">
+        <span><i class="bi bi-square-fill text-primary me-1"></i>Offen</span>
+        <span><i class="bi bi-square-fill text-warning me-1"></i>Pending</span>
+        <span><i class="bi bi-square-fill text-success me-1"></i>Erledigt</span>
+    </div>
+</a> 

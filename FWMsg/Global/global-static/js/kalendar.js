@@ -6,16 +6,37 @@ document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
 
+    // Get configuration from window object
+    const config = window.calendarConfig || {};
+    const isSmall = config.small || false;
+    const showViewToggle = config.showViewToggle || false;
+    const dynamicHeight = config.dynamicHeight || false;
+
+    function updateCalendarSize(view) {
+        if (!dynamicHeight) return;
+        
+        if (view === 'dayGridWeek') {
+            calendarEl.classList.add('small-view');
+            calendarEl.classList.remove('large-view');
+        } else {
+            calendarEl.classList.add('large-view');
+            calendarEl.classList.remove('small-view');
+        }
+    }
+
     var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
+        initialView: config.initialView || 'dayGridMonth',
         locale: 'de',
         headerToolbar: {
-            left: 'prev,next',
-            center: 'title',
-            right: 'today'
+            left: isSmall ? '' : 'prev,next',
+            center: isSmall ? '' : 'title',
+            right: isSmall ? '' : 'today'
         },
-        height: 'auto',
+        height: isSmall && !dynamicHeight ? 400 : 'auto',
         events: window.calendarEvents || [],
+        viewDidMount: function(info) {
+            updateCalendarSize(info.view.type);
+        },
         eventClick: function(info) {
             if (info.event.url) {
                 window.location.href = info.event.url;
@@ -48,6 +69,33 @@ document.addEventListener('DOMContentLoaded', function() {
         navLinks: false
     });
     calendar.render();
+
+    // Set initial size
+    updateCalendarSize(calendar.view.type);
+
+    // Add view toggle functionality if enabled
+    if (showViewToggle) {
+        document.getElementById('weekViewBtn').addEventListener('click', function() {
+            calendar.changeView('dayGridWeek');
+            updateCalendarSize('dayGridWeek');
+            this.classList.add('active');
+            document.getElementById('monthViewBtn').classList.remove('active');
+        });
+
+        document.getElementById('monthViewBtn').addEventListener('click', function() {
+            calendar.changeView('dayGridMonth');
+            updateCalendarSize('dayGridMonth');
+            this.classList.add('active');
+            document.getElementById('weekViewBtn').classList.remove('active');
+        });
+
+        // Set initial active state
+        if (config.initialView === 'dayGridWeek') {
+            document.getElementById('weekViewBtn').classList.add('active');
+        } else {
+            document.getElementById('monthViewBtn').classList.add('active');
+        }
+    }
 
     let touchStartX = 0;
     let touchEndX = 0;
