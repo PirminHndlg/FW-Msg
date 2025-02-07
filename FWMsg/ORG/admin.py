@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Organisation, Ordner, Dokument, Referenten
+from .models import Organisation, Ordner, Dokument, Referenten, JahrgangTyp
 
 # Register your models here.
 @admin.register(Organisation)
@@ -17,3 +17,7 @@ class DokumentAdmin(admin.ModelAdmin):
 @admin.register(Referenten)
 class ReferentenAdmin(admin.ModelAdmin):
     search_fields = ['first_name', 'last_name', 'email', 'phone']
+
+@admin.register(JahrgangTyp)
+class JahrgangTypAdmin(admin.ModelAdmin):
+    search_fields = ['name']

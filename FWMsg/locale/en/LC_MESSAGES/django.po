@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-07 19:07+0100\n"
+"POT-Creation-Date: 2025-02-07 20:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -63,12 +63,6 @@ msgstr "Task"
 msgid "Aufgaben"
 msgstr "Tasks"
 
-#: FW/templates/aufgaben.html:23 FW/templates/base.html:72
-#: FW/templates/base.html:169 FW/templates/components/calendar.html:8
-#: Global/templates/kalender.html:6
-msgid "Kalender"
-msgstr "Calendar"
-
 #: FW/templates/aufgaben.html:27
 msgid "Offene Aufgaben"
 msgstr "Open Tasks"
@@ -96,6 +90,11 @@ msgstr "Completed Tasks"
 #: FW/templates/aufgaben.html:35
 msgid "Erledigte Aufgaben sind Aufgaben, die abgeschlossen wurden."
 msgstr "Completed tasks are tasks that have been completed."
+
+#: FW/templates/base.html:72 FW/templates/base.html:169
+#: FW/templates/components/calendar.html:8 Global/templates/kalender.html:6
+msgid "Kalender"
+msgstr "Calendar"
 
 #: FW/templates/base.html:77 FW/templates/base.html:174
 msgid "Mein Einsatzland"
@@ -142,7 +141,7 @@ msgid "Mehr"
 msgstr "More"
 
 #: FW/templates/base.html:184 FW/templates/base.html:274
-#: Global/templates/feedback.html:27
+#: Global/templates/feedback.html:28
 msgid "Feedback"
 msgstr "Feedback"
 
@@ -153,7 +152,7 @@ msgstr "Complete task"
 #: FW/templates/components/add_contact_form.html:23
 #: Global/templates/bilder.html:59
 #: Global/templates/components/profile_details.html:64
-#: Global/templates/feedback.html:72 Global/templates/profil.html:55
+#: Global/templates/feedback.html:73 Global/templates/profil.html:55
 #: Global/templates/profil.html:137
 msgid "Abbrechen"
 msgstr "Cancel"
@@ -539,19 +538,19 @@ msgstr "New Document"
 msgid "Neuer Ordner"
 msgstr "New Folder"
 
-#: Global/templates/feedback.html:75
+#: Global/templates/feedback.html:76
 msgid "Feedback senden"
 msgstr "Send Feedback"
 
-#: Global/templates/feedback.html:79
+#: Global/templates/feedback.html:80
 msgid "Oder sende eine E-Mail an"
 msgstr "Or send an email to"
 
-#: Global/templates/feedback.html:79
+#: Global/templates/feedback.html:80
 msgid "Feedback zu Volunteer.Solutions"
 msgstr "Feedback to Volunteer.Solutions"
 
-#: Global/templates/feedback.html:91
+#: Global/templates/feedback.html:92
 msgid "Hinweis"
 msgstr "Note"
 

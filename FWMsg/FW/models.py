@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from PIL import Image  # Make sure this is from PIL, not Django models
 from django.contrib.auth.models import User, AbstractUser
 from django.db import models
-from ORG.models import Organisation
+from ORG.models import Organisation, JahrgangTyp
 from Global.models import CustomUser, OrgModel
 from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
@@ -123,6 +123,7 @@ class Jahrgang(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Jahrgang')
     start = models.DateField(verbose_name='Startdatum')
     ende = models.DateField(verbose_name='Enddatum')
+    typ = models.ForeignKey(JahrgangTyp, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Typ')
 
     class Meta:
         verbose_name = 'Jahrgang'
