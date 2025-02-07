@@ -553,7 +553,7 @@ def feedback(request):
 def kalendar(request):
     calendar_events = []
     
-    for freiwilliger_aufgabe in FreiwilligerAufgaben.objects.filter(org=request.user.org).order_by('faellig'):
+    for freiwilliger_aufgabe in FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user).order_by('faellig'):
         color = '#dc3545'  # Bootstrap danger color to match the theme
         if freiwilliger_aufgabe.erledigt:
             color = '#198754'  # Bootstrap success color
