@@ -1,81 +1,36 @@
+{% load i18n %}
+
 {% for bild_gallery in gallery_images %}
 {% for bild, bilder_gallery in bild_gallery.items %}
 <div class="{% if small %}col-lg-6 col-md-12{% else %}col-lg-4 col-md-6{% endif %}">
     <div class="card rounded-4 h-100">
-        <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-between align-items-center gap-2">
-            <div class="d-flex align-items-center">
-                <a href="{% url 'profil' bild.user.id %}" class="text-decoration-none">
-                    <img src="{% url 'serve_profil_picture' bild.user.id %}" 
-                        alt="Profilbild" 
-                        class="rounded-circle me-3" 
-                        style="width: 50px; height: 50px; object-fit: cover;">
-                </a>
-                <div>
-                    <h5 class="mb-0">{{ bild.titel }}</h5>
-                    <div class="small text-muted">
-                        <span>{{ bild.user.get_full_name|default:bild.user.username }}</span>
-                        <span class="mx-1">•</span>
-                        <span>{{ bild.date_created|date:"d.m.Y" }}</span>
-                    </div>
-                </div>
-            </div>
-            {% if is_org %}
-            <div class="d-flex justify-content-end mt-2">
-                <a href="{% url 'download_bild_as_zip' bild.id %}" download class="btn btn-sm btn-outline-primary d-flex align-items-center"
-                    data-tooltip="Download">
-                    <i class="bi bi-download"></i>
-                </a>
-            </div>
-            {% endif %}
+        <div class="card-header">
+            {% include "components/image_card_header.html" %}
         </div>
 
         <div class="card-body p-0">
-            <div id="carousel-{{ bild.id }}" class="carousel slide" data-bs-ride="carousel">
-                <div class="carousel-inner {% if not bild.beschreibung %}rounded-bottom-4{% endif %}">
-                    {% for img in bilder_gallery %}
-                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                            <div style="aspect-ratio: 1/1;">
-                                <img src="{% if img.small_image %}{% url 'serve_small_bilder' img.id %}{% else %}{% url 'serve_bilder' img.id %}{% endif %}"
-                                    alt="Bild"
-                                    class="w-100 h-100"
-                                    style="object-fit: cover;">
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-                {% if bilder_gallery|length > 1 %}
-                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ bild.id }}" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Vorheriges</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ bild.id }}" data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Nächstes</span>
-                    </button>
-                    <div class="carousel-indicators">
-                        {% for img in bilder_gallery %}
-                            <button type="button" 
-                                    data-bs-target="#carousel-{{ bild.id }}"
-                                    data-bs-slide-to="{{ forloop.counter0 }}"
-                                    {% if forloop.first %}class="active"{% endif %}
-                                    aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
-                                    aria-label="Slide {{ forloop.counter }}">
-                            </button>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-            {% if bild.beschreibung %}
-            <p class="small m-2 mt-0">
-                <span class="description-preview">{{ bild.beschreibung|truncatewords:10 }}</span>
-                <span class="description-full" style="display:none">{{ bild.beschreibung }}</span>
-                {% if bild.beschreibung|wordcount > 10 %}
-                    <a href="#" class="show-more" onclick="event.preventDefault(); toggleDescription(this);">mehr</a>
-                {% endif %}
-            </p>
-            {% endif %}
+            {% include "components/image_carousel.html" %}
+            {% include "components/image_description.html" %}
         </div>
     </div>
 </div>
 {% endfor %}
 {% endfor %}
+
+<script>
+    function toggleDescription(link) {
+        const container = link.closest('p');
+        const preview = container.querySelector('.description-preview');
+        const full = container.querySelector('.description-full');
+        
+        if (preview.style.display !== 'none') {
+            preview.style.display = 'none';
+            full.style.display = 'inline';
+            link.textContent = '{% trans "weniger" %}';
+        } else {
+            preview.style.display = 'inline';
+            full.style.display = 'none';
+            link.textContent = '{% trans "mehr" %}';
+        }
+    }
+</script>

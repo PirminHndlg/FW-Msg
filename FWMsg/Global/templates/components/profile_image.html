@@ -1,0 +1,30 @@
+{% load i18n %}
+
+<div class="text-center">
+    <div class="d-flex flex-column align-items-center">
+        <div class="position-relative">
+            <img src="{% url 'serve_profil_picture' user.id %}" 
+                 alt="{% trans 'Profilbild' %}" 
+                 class="img-fluid rounded-circle mb-3" 
+                 style="max-width: 250px; max-height: 250px;">
+            {% if this_user %}
+            <div class="position-absolute bottom-0 end-0 mb-3 me-2">
+                <button type="button" class="btn btn-light btn-sm rounded-circle" data-bs-toggle="modal" data-bs-target="#profilPictureModal">
+                    <i class="bi bi-pencil"></i>
+                </button>
+            </div>
+            {% endif %}
+        </div>
+        {% if freiwilliger %}
+            {% if freiwilliger.einsatzland %}
+            <a {% if this_user %}href="{% url 'laenderinfo' %}"{% endif %} class="text-decoration-none d-flex flex-column align-items-center">
+                <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }} mb-2" style="width: 100px; height: 50px;"></span>
+                <span class="small text-muted">{{ freiwilliger.einsatzland.name|default:"" }}</span>
+                <span class="small text-muted">{{ freiwilliger.einsatzstelle|default:"" }}</span>
+            </a>
+            {% else %}
+                <i class="bi bi-globe mb-2" style="font-size: 3rem; color: var(--bs-primary);"></i>
+            {% endif %}
+        {% endif %}
+    </div>
+</div> 

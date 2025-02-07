@@ -551,7 +551,7 @@ def feedback(request):
 
 @login_required
 @required_role('')
-def kalendar(request):
+def kalender(request):
     calendar_events = []
     
     for freiwilliger_aufgabe in FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user):
@@ -601,4 +601,4 @@ def kalendar(request):
     context = {
         'calendar_events': json.dumps(calendar_events)
     }
-    return render(request, 'kalendar.html', context=context)
+    return render(request, 'kalender.html', context=context)

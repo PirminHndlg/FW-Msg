@@ -25,7 +25,7 @@ urlpatterns = [
 
     path('feedback/', views.feedback, name='feedback'),
 
-    path('kalendar/', views.kalendar, name='kalendar'),
+    path('kalender/', views.kalender, name='kalender'),
 
     path('datenschutz/', views.datenschutz, name='datenschutz'),
 
