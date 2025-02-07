@@ -15,7 +15,8 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 
 from FW.forms import BilderForm, BilderGalleryForm, ProfilUserForm
-from FW.models import Ampel, Bilder, BilderGallery, CustomUser, Freiwilliger, ProfilUser, FreiwilligerAufgaben
+from FW.models import Ampel, Bilder, BilderGallery, Freiwilliger, ProfilUser, FreiwilligerAufgaben
+from Global.models import KalenderEvent, CustomUser
 from ORG.models import Dokument, Ordner
 
 from ORG.views import base_template
@@ -553,7 +554,7 @@ def feedback(request):
 def kalendar(request):
     calendar_events = []
     
-    for freiwilliger_aufgabe in FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user).order_by('faellig'):
+    for freiwilliger_aufgabe in FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user):
         color = '#dc3545'  # Bootstrap danger color to match the theme
         if freiwilliger_aufgabe.erledigt:
             color = '#198754'  # Bootstrap success color
@@ -571,7 +572,7 @@ def kalendar(request):
             'textColor': '#000'
         })
 
-    birthday_events = Freiwilliger.objects.filter(geburtsdatum__isnull=False).order_by('geburtsdatum')
+    birthday_events = Freiwilliger.objects.filter(geburtsdatum__isnull=False)
     for birthday_event in birthday_events:
         # add two times to the calendar, one for the birthday this year and one for the birthday next year
         for i in range(5):
@@ -584,8 +585,18 @@ def kalendar(request):
                 'borderColor': '#ff69b4',
                 'textColor': '#fff'
             })
-
-    print('calendar_events:', calendar_events)
+        
+    kalender_events = KalenderEvent.objects.filter(org=request.user.org).filter(user__in=[request.user])
+    for kalender_event in kalender_events:
+        calendar_events.append({
+            'title': kalender_event.title,
+            'start': kalender_event.start.strftime('%Y-%m-%d') if kalender_event.start else '',
+            'end': kalender_event.end.strftime('%Y-%m-%d') if kalender_event.end else '',
+            'url': kalender_event.description,
+            'backgroundColor': '#000',
+            'borderColor': '#000',
+            'textColor': '#fff'
+        })
 
     context = {
         'calendar_events': json.dumps(calendar_events)

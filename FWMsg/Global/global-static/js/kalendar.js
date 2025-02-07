@@ -10,9 +10,9 @@ document.addEventListener('DOMContentLoaded', function() {
         initialView: 'dayGridMonth',
         locale: 'de',
         headerToolbar: {
-            left: 'prev,next today',
+            left: 'prev,next',
             center: 'title',
-            right: 'dayGridWeek,dayGridMonth'
+            right: 'today'
         },
         height: 'auto',
         events: window.calendarEvents || [],

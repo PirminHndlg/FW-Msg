@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CustomUser, Feedback
+from .models import CustomUser, Feedback, KalenderEvent
 
 # Register your models here.
 @admin.register(CustomUser)
@@ -17,3 +17,9 @@ class FeedbackAdmin(admin.ModelAdmin):
     list_display = ['user', 'text', 'anonymous']
     search_fields = ['user__username', 'text']
     list_filter = ['anonymous']
+
+@admin.register(KalenderEvent)
+class KalenderEventAdmin(admin.ModelAdmin):
+    list_display = ['title', 'start', 'end', 'description']
+    search_fields = ['title', 'description']
+    list_filter = ['start']
