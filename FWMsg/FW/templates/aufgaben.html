@@ -1,13 +1,14 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load aufgaben_filter %}
+{% load i18n %}
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/aufgaben.css' %}">
 {% endblock %}
 
 {% block headline %}
-    Aufgaben
+    {% trans "Aufgaben" %}
 {% endblock %}
 
 {% block content %}
@@ -19,18 +20,18 @@
     {% include "components/progress_bar.html" with offen_prozent=offen_prozent pending_prozent=pending_prozent erledigt_prozent=erledigt_prozent len_offen=len_offen len_pending=len_pending len_erledigt=len_erledigt show_count=True %}
 
     {# Calendar Section #}
-    {% include "components/calendar.html" with calendar_events=calendar_events title="Kalender" initial_view="dayGridWeek" show_view_toggle=True dynamic_height=True %}
+    {% include "components/calendar.html" with calendar_events=calendar_events initial_view="dayGridWeek" show_view_toggle=True dynamic_height=True %}
 
     {# Task Sections #}
     {% if aufgaben_offen %}
-        {% include "components/task_section.html" with title="Offene Aufgaben" count=len_offen tasks=aufgaben_offen info_text="Offene Aufgaben sind Aufgaben, die noch nicht abgeschlossen sind." %}
+        {% include "components/task_section.html" with title=_("Offene Aufgaben") count=len_offen tasks=aufgaben_offen info_text=_("Offene Aufgaben sind Aufgaben, die noch nicht abgeschlossen sind.") %}
     {% endif %}
 
     {% if aufgaben_pending %}
-        {% include "components/task_section.html" with title="Pending Aufgaben" count=len_pending tasks=aufgaben_pending info_text="Pending Aufgaben sind abgeschlossene Aufgaben, die zur Überprüfung eingereicht wurden und auf Bestätigung warten." %}
+        {% include "components/task_section.html" with title=_("Pending Aufgaben") count=len_pending tasks=aufgaben_pending info_text=_("Pending Aufgaben sind abgeschlossene Aufgaben, die zur Überprüfung eingereicht wurden und auf Bestätigung warten.") %}
     {% endif %}
 
     {% if aufgaben_erledigt %}
-        {% include "components/task_section.html" with title="Erledigte Aufgaben" count=len_erledigt tasks=aufgaben_erledigt info_text="Erledigte Aufgaben sind Aufgaben, die abgeschlossen wurden." %}
+        {% include "components/task_section.html" with title=_("Erledigte Aufgaben") count=len_erledigt tasks=aufgaben_erledigt info_text=_("Erledigte Aufgaben sind Aufgaben, die abgeschlossen wurden.") %}
     {% endif %}
 {% endblock %}

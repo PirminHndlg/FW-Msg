@@ -64,22 +64,22 @@
         <ul class="nav flex-column text-white">
             <li class="nav-item">
                 <a class="nav-link text-white" href="{% url 'ampel' %}">
-                    <i class="bi bi-circle-fill me-1"></i>Ampelmeldung
+                    <i class="bi bi-circle-fill me-1"></i>{% trans "Ampelmeldung" %}
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="{% url 'kalender' %}">
-                    <i class="bi bi-calendar-date me-1"></i>Kalender
+                    <i class="bi bi-calendar-date me-1"></i>{% trans "Kalender" %}
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="{% url 'laenderinfo' %}">
-                    <i class="bi bi-people me-1"></i>Mein Einsatzland
+                    <i class="bi bi-people me-1"></i>{% trans "Mein Einsatzland" %}
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white" href="{% url 'notfallkontakte' %}">
-                    <i class="bi bi-person-rolodex me-1"></i>Notfallkontakte
+                    <i class="bi bi-person-rolodex me-1"></i>{% trans "Notfallkontakte" %}
                 </a>
             </li>
         </ul>
@@ -158,9 +158,9 @@
                             <i class="bi bi-person"></i> {% trans "Profil" %}
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" style="z-index: 9999;">
                         <button class="btn btn-link nav-link dropdown-toggle text-white p-0" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            Mehr
+                            {% trans "Mehr" %}
                         </button>
             
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">

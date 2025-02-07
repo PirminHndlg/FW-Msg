@@ -1,6 +1,7 @@
 {% extends extends_base|default:'base.html' %}
 {% load static %}
 {% load widget_tweaks %}
+{% load i18n %}
 
 {% block head %}
 <script src="{% static 'js/bild.js' %}"></script>
@@ -8,13 +9,13 @@
 {% endblock %}
 
 {% block headline %}
-Bilder
+{% trans "Bilder" %}
 {% endblock %}
 
 {% block content %}
 <div class="card rounded-4">
     <div class="card-header">
-        <h3 class="card-title mb-0">Bilder hochladen</h3>
+        <h3 class="card-title mb-0">{% trans "Bilder hochladen" %}</h3>
     </div>
     <div class="card-body">
         <form method="post" enctype="multipart/form-data">
@@ -63,7 +64,7 @@ Bilder
             <div id="previewContainer" class="mb-3"></div>
 
             <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save me-2"></i>Speichern
+                <i class="fas fa-save me-2"></i>{% trans "Speichern" %}
             </button>
         </form>
     </div>

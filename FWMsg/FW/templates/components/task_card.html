@@ -1,5 +1,7 @@
 {% load static %}
 {% load aufgaben_filter %}
+{% load i18n %}
+
 <div class="col">
     <div class="card h-100 rounded-4">
         <div class="card-body">
@@ -8,26 +10,26 @@
             
             {% if task.faellig %}
             <p class="card-text">
-                <small class="text-muted">Fällig: {{ task.faellig|date:"d.m.Y" }}</small>
+                <small class="text-muted">{% trans "Fällig" %}: {{ task.faellig|date:"d.m.Y" }}</small>
             </p>
             {% endif %}
 
             {# Status Badges #}
             {% if task.faellig and task.faellig|compare_date_to_current_time and not task.erledigt and not task.pending %}
             <p class="card-text">
-                <span class="badge bg-danger">Überfällig</span>
+                <span class="badge bg-danger">{% trans "Überfällig" %}</span>
             </p>
             {% endif %}
 
             {% if task.erledigt %}
             <p class="card-text">
-                <span class="badge bg-success">Erledigt</span>
+                <span class="badge bg-success">{% trans "Erledigt" %}</span>
             </p>
             {% endif %}
 
             {% if task.pending %}
             <p class="card-text">
-                <span class="badge bg-warning text-dark">Wird bearbeitet</span>
+                <span class="badge bg-warning text-dark">{% trans "Wird bearbeitet" %}</span>
             </p>
             {% endif %}
 
@@ -35,11 +37,11 @@
             <a href="{% url 'aufgaben_detail' task.id %}" 
                class="btn {% if task.erledigt %}btn-success{% elif task.pending %}btn-primary{% else %}btn-success{% endif %} text-white">
                 {% if task.erledigt %}
-                    Anzeigen
+                    {% trans "Anzeigen" %}
                 {% elif task.pending %}
-                    Bearbeiten
+                    {% trans "Bearbeiten" %}
                 {% else %}
-                    Jetzt erledigen
+                    {% trans "Jetzt erledigen" %}
                 {% endif %}
             </a>
         </div>

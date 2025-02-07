@@ -1,13 +1,15 @@
+{% load i18n %}
+
 {% if last_ampel %}
 <small class="text-muted d-flex align-items-center gap-1">
-    Zuletzt 
+    {% trans "Zuletzt" %} 
     <span class="badge rounded-circle {% if last_ampel.status == 'G' %}bg-success{% elif last_ampel.status == 'Y' %}bg-warning{% elif last_ampel.status == 'R' %}bg-danger{% endif %}" 
           style="width: 15px; height: 15px; display: inline-block;">
     </span>
-    am {{ last_ampel.date|date:"d.m.Y" }} abgegeben
+    {% trans "am" %} {{ last_ampel.date|date:"d.m.Y" }} {% trans "abgegeben" %}
 </small>
 {% else %}
 <small class="text-muted">
-    Keine Ampelmeldung vorhanden
+    {% trans "Keine Ampelmeldung vorhanden" %}
 </small>
 {% endif %} 

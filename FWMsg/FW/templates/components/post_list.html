@@ -5,7 +5,7 @@
             <h6 class="card-subtitle mb-2 text-muted">{{ post.date|date:"d.m.Y" }}</h6>
             <p class="card-text">{{ post.text|truncatewords:50 }}</p>
             {% if post.text|wordcount > 50 %}
-                <a href="#" class="card-link">Weiterlesen</a>
+                <a href="#" class="card-link">{% trans "Weiterlesen" %}</a>
             {% endif %}
         </div>
     </div>

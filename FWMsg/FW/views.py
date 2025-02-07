@@ -12,7 +12,7 @@ from django.shortcuts import render, redirect
 from django.conf import settings
 from functools import wraps
 from django.urls import reverse
-
+from django.utils.translation import gettext as _
 from .forms import BilderForm, BilderGalleryForm, ProfilUserForm
 from .models import (
     Freiwilliger, Aufgabe, FreiwilligerAufgabenprofil, 
@@ -244,7 +244,7 @@ def laenderinfo(request):
     if land:
         country_cards = [
             {
-                'title': 'Reisehinweise',
+                'title': _('Reisehinweise'),
                 'items': [
                     {
                         'icon': 'box-arrow-up-right',
@@ -259,7 +259,7 @@ def laenderinfo(request):
         
         if land.notfallnummern:
             country_cards.append({
-                'title': 'Notfallnummern',
+                'title': _('Notfallnummern'),
                 'items': [
                     {'icon': 'telephone-fill', 'value': format_text_with_link(land.notfallnummern)}
                 ]
@@ -269,7 +269,7 @@ def laenderinfo(request):
     if freiwilliger.einsatzstelle:
         if freiwilliger.einsatzstelle.botschaft:
             country_cards.append({
-                'title': 'Botschaft',
+                'title': _('Botschaft'),
                 'items': [
                     {'icon': 'building', 'value': format_text_with_link(freiwilliger.einsatzstelle.botschaft)}
                 ]
@@ -277,7 +277,7 @@ def laenderinfo(request):
         
         if freiwilliger.einsatzstelle.konsulat:
             country_cards.append({
-                'title': 'Konsulat',
+                'title': _('Konsulat'),
                 'items': [
                     {'icon': 'building', 'value': format_text_with_link(freiwilliger.einsatzstelle.konsulat)}
                 ]
@@ -288,7 +288,7 @@ def laenderinfo(request):
     if freiwilliger.einsatzstelle:
         if freiwilliger.einsatzstelle.arbeitsvorgesetzter:
             location_cards.append({
-                'title': 'Arbeitsvorgesetzte:r',
+                'title': _('Arbeitsvorgesetzte:r'),
                 'items': [
                     {'icon': 'person', 'value': format_text_with_link(freiwilliger.einsatzstelle.arbeitsvorgesetzter)}
                 ]
@@ -296,7 +296,7 @@ def laenderinfo(request):
         
         if freiwilliger.einsatzstelle.partnerorganisation:
             location_cards.append({
-                'title': 'Partnerorganisation',
+                'title': _('Partnerorganisation'),
                 'items': [
                     {'icon': 'building', 'value': format_text_with_link(freiwilliger.einsatzstelle.partnerorganisation)}
                 ]
@@ -304,7 +304,7 @@ def laenderinfo(request):
         
         if freiwilliger.einsatzstelle.mentor:
             location_cards.append({
-                'title': 'Mentor:in',
+                'title': _('Mentor:in'),
                 'items': [
                     {'icon': 'person', 'value': format_text_with_link(freiwilliger.einsatzstelle.mentor)}
                 ]
@@ -315,7 +315,7 @@ def laenderinfo(request):
     if land:
         if land.arztpraxen:
             general_cards.append({
-                'title': 'Arztpraxen',
+                'title': _('Arztpraxen'),
                 'items': [
                     {'icon': 'hospital', 'value': format_text_with_link(land.arztpraxen)}
                 ]
@@ -323,7 +323,7 @@ def laenderinfo(request):
         
         if land.apotheken:
             general_cards.append({
-                'title': 'Apotheken',
+                'title': _('Apotheken'),
                 'items': [
                     {'icon': 'capsule', 'value': format_text_with_link(land.apotheken)}
                 ]
@@ -331,7 +331,7 @@ def laenderinfo(request):
         
         if land.informationen:
             general_cards.append({
-                'title': 'Weitere Informationen',
+                'title': _('Weitere Informationen'),
                 'width': '8',
                 'items': [
                     {'icon': 'info-circle', 'value': format_text_with_link(land.informationen)}

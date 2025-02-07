@@ -1,6 +1,7 @@
 {% extends extends_base|default:'base.html' %}
 {% load static %}
 {% load widget_tweaks %}
+{% load i18n %}
 
 {% block head %}
 <style>
@@ -24,7 +25,7 @@
 <div class="card rounded-4">
     <!-- Header -->
     <div class="card-header">
-        <h3 class="mb-0">Feedback</h3>
+        <h3 class="mb-0">{% trans "Feedback" %}</h3>
     </div>
 
     <!-- Form Content -->
@@ -69,14 +70,14 @@
 
                     <div class="d-flex justify-content-end gap-2 mt-4">
                         <a href="{% url 'fw_home' %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-lg me-2"></i>Abbrechen
+                            <i class="bi bi-x-lg me-2"></i>{% trans "Abbrechen" %}
                         </a>
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-send me-2"></i>Feedback senden
+                            <i class="bi bi-send me-2"></i>{% trans "Feedback senden" %}
                         </button>
                     </div>
                 </form>
-                <p class="mt-3">Oder sende eine E-Mail an <a href="mailto:{{ feedback_email }}?subject=Feedback zu Volunteer.Solutions">{{ feedback_email }}</a></p>
+                <p class="mt-3">{% trans "Oder sende eine E-Mail an" %} <a href="mailto:{{ feedback_email }}?subject={% trans "Feedback zu Volunteer.Solutions" %}">{{ feedback_email }}</a></p>
             </div>
         </div>
     </div>
@@ -88,7 +89,7 @@
     <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header {% if message.tags %}bg-{{ message.tags }}{% endif %} text-white">
             <i class="bi bi-info-circle me-2"></i>
-            <strong class="me-auto">Hinweis</strong>
+            <strong class="me-auto">{% trans "Hinweis" %}</strong>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
         <div class="toast-body">

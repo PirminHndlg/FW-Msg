@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% load base_filter %}
+{% load i18n %}
 
 {% block head %}
 <style>
@@ -39,7 +40,7 @@
 <div class="card rounded-4">
     <!-- Country Header -->
     <div class="card-header d-flex align-items-center flex-wrap gap-3">
-        <h3 class="card-title mb-0 me-auto">Länderinfo</h3>
+        <h3 class="card-title mb-0 me-auto">{% trans "Länderinfo" %}</h3>
         {% if freiwilliger.einsatzland %}
             <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }}" style="width: 80px; height: 30px;"></span>
             <div class="d-flex gap-2 text-muted small">
@@ -53,17 +54,17 @@
     <div class="card-body">
         <div class="row g-4 p-2">
             {# Organization Section #}
-            {% include "components/info_section.html" with section_title="Entsendende Organisation" cards=org_cards %}
+            {% include "components/info_section.html" with section_title=_("Entsendende Organisation") cards=org_cards %}
 
             {# Country Information Section #}
             {% if freiwilliger.einsatzland %}
-                {% include "components/info_section.html" with section_title="Länderinformationen"|add:" "|add:freiwilliger.einsatzland.name cards=country_cards %}
+                {% include "components/info_section.html" with section_title=_("Länderinformationen")|add:" "|add:freiwilliger.einsatzland.name cards=country_cards %}
             {% endif %}
 
             {# Assignment Location Information #}
             {% if freiwilliger.einsatzstelle %}
-                {% include "components/info_section.html" with section_title="Informationen Einsatzstelle"|add:" "|add:freiwilliger.einsatzstelle cards=location_cards %}
-                {% include "components/info_section.html" with section_title="Generelle Informationen" cards=general_cards %}
+                {% include "components/info_section.html" with section_title=_("Informationen Einsatzstelle")|add:" "|add:freiwilliger.einsatzstelle cards=location_cards %}
+                {% include "components/info_section.html" with section_title=_("Generelle Informationen") cards=general_cards %}
             {% endif %}
         </div>
     </div>

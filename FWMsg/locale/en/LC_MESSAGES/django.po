@@ -2,13 +2,11 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-11 21:42+0000\n"
+"POT-Creation-Date: 2025-02-07 19:07+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,146 +16,804 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: FW/templates/base.html:65 FW/templates/base.html:144
-msgid "Home"
-msgstr "Home"
-
-#: FW/templates/base.html:70 FW/templates/base.html:150
-msgid "Aufgaben"
-msgstr "Tasks"
-
-#: FW/templates/base.html:75 FW/templates/base.html:170
-msgid "Dokumente"
-msgstr "Documents"
-
-#: FW/templates/base.html:80 FW/templates/base.html:176
-#: FW/templates/profil.html:12
-msgid "Profil"
-msgstr "Profile"
-
-#: FW/templates/base.html:88 FW/templates/base.html:157
-msgid "Add"
-msgstr "Add"
-
-#: FW/templates/base.html:91 FW/templates/base.html:161
-msgid "Bilder hochladen"
-msgstr "Upload images"
-
-#: FW/templates/base.html:92 FW/templates/base.html:162
-msgid "Dokumente hochladen"
-msgstr "Upload documents"
-
-#: FW/templates/base.html:93 FW/templates/base.html:163
-msgid "Aufgabe erledigen"
-msgstr "Complete task"
-
-#: FW/templates/base.html:94 FW/templates/base.html:164
-msgid "Ampelmeldung"
-msgstr "Status report"
-
-#: FW/templates/bilder.html:10 FW/templates/profil.html:124
-msgid "Bilder"
-msgstr "Images"
-
-#: FW/templates/bilder.html:21 FW/templates/profil.html:38
-msgid "Profilbild"
-msgstr "Profile picture"
-
-#: FW/templates/bilder.html:42 FW/templates/profil.html:142
-msgid "Bild"
-msgstr "Image"
-
-#: FW/templates/bilder.html:51
-msgid "Vorheriges"
-msgstr ""
-
-#: FW/templates/bilder.html:55
-msgid "Nächstes"
-msgstr ""
-
-#: FW/templates/bilder.html:64
-#, python-format
-msgid "Slide %(slide_number)s"
-msgstr ""
-
-#: FW/templates/bilder.html:83
-#, fuzzy
-#| msgid "Profilbild"
-msgid "Vollbild"
-msgstr "Profile picture"
-
-#: FW/templates/profil.html:25
+#: FW/templates/ampel.html:10
+#: Global/templates/components/profile_header.html:10
 msgid "Ampel"
 msgstr "Status"
 
-#: FW/templates/profil.html:57 FW/templates/profil.html:64
-msgid "Geburtsdatum"
-msgstr "Date of birth"
+#: FW/templates/ampel.html:18 FW/templates/base.html:67
+#: FW/templates/base.html:148 FW/templates/base.html:273
+msgid "Ampelmeldung"
+msgstr "Status report"
 
-#: FW/templates/profil.html:58
-msgid "Änderungen melden"
-msgstr "Report changes"
+#: FW/templates/ampel.html:21
+msgid ""
+"Bitte wähle eine Farbe aus, die deinen aktuellen Status am besten beschreibt"
+msgstr "Please select a color that best describes your current status"
 
-#: FW/templates/profil.html:60
-msgid "Telefon"
-msgstr "Phone"
+#: FW/templates/ampel.html:28
+msgid "Anmerkungen"
+msgstr "Comments"
 
-#: FW/templates/profil.html:61
-msgid "Telefon Einsatzland"
-msgstr "Phone deployment country"
+#: FW/templates/ampel.html:30
+msgid "Deine Anmerkungen hier..."
+msgstr "Your comments here..."
 
-#: FW/templates/profil.html:62
-msgid "Email"
-msgstr "Email"
+#: FW/templates/ampel.html:41 FW/templates/components/task_detail_form.html:51
+msgid "Zurück"
+msgstr "Back"
 
-#: FW/templates/profil.html:76 FW/templates/profil.html:84
-msgid "Entfernen"
-msgstr "Remove"
+#: FW/templates/ampel.html:44
+msgid "Abschicken"
+msgstr "Submit"
 
-#: FW/templates/profil.html:83 FW/templates/profil.html:100
-msgid "Speichern"
-msgstr "Save"
+#: FW/templates/ampel.html:58
+msgid "Bitte wählen Sie eine Farbe aus"
+msgstr "Please select a color"
 
-#: FW/templates/profil.html:106 FW/templates/profil.html:128
-msgid "Hinzufügen"
-msgstr "Add"
+#: FW/templates/aufgabe.html:11 ORG/templates/list_aufgaben.html:46
+#: ORG/templates/list_aufgaben.html:113 ORG/templates/list_aufgaben.html:172
+msgid "Aufgabe"
+msgstr "Task"
 
-#: FW/templates/profil.html:109
-msgid "Bearbeiten"
-msgstr "Edit"
+#: FW/templates/aufgaben.html:11 FW/templates/base.html:138
+#: FW/templates/base.html:260 FW/templates/home.html:20
+#: ORG/templates/aufgaben_assign.html:82 ORG/templates/list_aufgaben.html:5
+#: ORG/templates/list_aufgaben_table.html:4
+msgid "Aufgaben"
+msgstr "Tasks"
 
-#: FW/templates/profil.html:112 FW/templates/profil.html:282
+#: FW/templates/aufgaben.html:23 FW/templates/base.html:72
+#: FW/templates/base.html:169 FW/templates/components/calendar.html:8
+#: Global/templates/kalender.html:6
+msgid "Kalender"
+msgstr "Calendar"
+
+#: FW/templates/aufgaben.html:27
+msgid "Offene Aufgaben"
+msgstr "Open Tasks"
+
+#: FW/templates/aufgaben.html:27
+msgid "Offene Aufgaben sind Aufgaben, die noch nicht abgeschlossen sind."
+msgstr "Open tasks are tasks that have not yet been completed."
+
+#: FW/templates/aufgaben.html:31 ORG/templates/list_aufgaben.html:23
+msgid "Pending Aufgaben"
+msgstr "Pending Tasks"
+
+#: FW/templates/aufgaben.html:31
+msgid ""
+"Pending Aufgaben sind abgeschlossene Aufgaben, die zur Überprüfung "
+"eingereicht wurden und auf Bestätigung warten."
+msgstr ""
+"Pending tasks are completed tasks that have been submitted for review and "
+"are awaiting confirmation."
+
+#: FW/templates/aufgaben.html:35 ORG/templates/list_aufgaben.html:30
+msgid "Erledigte Aufgaben"
+msgstr "Completed Tasks"
+
+#: FW/templates/aufgaben.html:35
+msgid "Erledigte Aufgaben sind Aufgaben, die abgeschlossen wurden."
+msgstr "Completed tasks are tasks that have been completed."
+
+#: FW/templates/base.html:77 FW/templates/base.html:174
+msgid "Mein Einsatzland"
+msgstr "My deployment country"
+
+#: FW/templates/base.html:82 FW/templates/base.html:179
+#: FW/templates/notfallkontakte.html:6 FW/templates/notfallkontakte.html:22
+msgid "Notfallkontakte"
+msgstr "Emergency contacts"
+
+#: FW/templates/base.html:91 FW/templates/base.html:105
+#: FW/templates/base.html:209 FW/templates/base.html:221
+#: Home/templates/first_login.html:106 Home/templates/index.html:94
+msgid "Deutsch"
+msgstr "German"
+
+#: FW/templates/base.html:91 FW/templates/base.html:105
+#: FW/templates/base.html:211 FW/templates/base.html:226
+#: Home/templates/first_login.html:106 Home/templates/index.html:94
+msgid "English"
+msgstr "English"
+
+#: FW/templates/base.html:133 FW/templates/base.html:254
+msgid "Home"
+msgstr "Home"
+
+#: FW/templates/base.html:143 FW/templates/base.html:271
+#: Global/templates/bild.html:18
+msgid "Bilder hochladen"
+msgstr "Upload images"
+
+#: FW/templates/base.html:153 FW/templates/base.html:280
+#: Global/templates/dokumente.html:15
+msgid "Dokumente"
+msgstr "Documents"
+
+#: FW/templates/base.html:158 FW/templates/base.html:286
+#: Global/templates/profil.html:12
+msgid "Profil"
+msgstr "Profile"
+
+#: FW/templates/base.html:163
+msgid "Mehr"
+msgstr "More"
+
+#: FW/templates/base.html:184 FW/templates/base.html:274
+#: Global/templates/feedback.html:27
+msgid "Feedback"
+msgstr "Feedback"
+
+#: FW/templates/base.html:272
+msgid "Aufgabe erledigen"
+msgstr "Complete task"
+
+#: FW/templates/components/add_contact_form.html:23
+#: Global/templates/bilder.html:59
+#: Global/templates/components/profile_details.html:64
+#: Global/templates/feedback.html:72 Global/templates/profil.html:55
+#: Global/templates/profil.html:137
 msgid "Abbrechen"
 msgstr "Cancel"
 
-#: FW/templates/profil.html:162
-msgid "Dieses Bild löschen"
-msgstr "Delete this image"
+#: FW/templates/components/add_contact_form.html:27
+#: Global/templates/components/profile_details.html:58
+#: Global/templates/components/profile_gallery.html:10
+msgid "Hinzufügen"
+msgstr "Add"
 
-#: FW/templates/profil.html:168 FW/templates/profil.html:263
-msgid "Alle Bilder löschen"
+#: FW/templates/components/ampel_selector.html:6
+msgid "Rot - Dringender Handlungsbedarf"
+msgstr "Red - Urgent action required"
+
+#: FW/templates/components/ampel_selector.html:8
+msgid "Gelb - Aufmerksamkeit erforderlich"
+msgstr "Yellow - Attention required"
+
+#: FW/templates/components/ampel_selector.html:10
+msgid "Grün - Alles in Ordnung"
+msgstr "Green - All good"
+
+#: FW/templates/components/ampel_status.html:5
+#: ORG/templates/list_aufgaben_table.html:258
+msgid "Zuletzt"
+msgstr "Last"
+
+#: FW/templates/components/ampel_status.html:9
+msgid "am"
+msgstr "on"
+
+#: FW/templates/components/ampel_status.html:9
+msgid "abgegeben"
+msgstr "submitted"
+
+#: FW/templates/components/ampel_status.html:13
+msgid "Keine Ampelmeldung vorhanden"
+msgstr "Status report"
+
+#: FW/templates/components/calendar.html:12
+msgid "Woche"
+msgstr "Week"
+
+#: FW/templates/components/calendar.html:13
+msgid "Monat"
+msgstr "Month"
+
+#: FW/templates/components/contact_card_simple.html:19
+msgid "Arbeit"
+msgstr "Work"
+
+#: FW/templates/components/post_list.html:8
+msgid "Weiterlesen"
+msgstr "Complete task"
+
+#: FW/templates/components/progress_bar.html:35
+#: FW/templates/components/task_progress.html:11
+#: FW/templates/components/task_progress.html:34
+msgid "Offen"
+msgstr "Open"
+
+#: FW/templates/components/progress_bar.html:36
+#: FW/templates/components/task_detail_form.html:42
+#: FW/templates/components/task_progress.html:20
+#: FW/templates/components/task_progress.html:35
+#: ORG/templates/list_aufgaben_table.html:85
+#: ORG/templates/list_aufgaben_table.html:189
+msgid "Pending"
+msgstr "Pending"
+
+#: FW/templates/components/progress_bar.html:37
+#: FW/templates/components/task_card.html:26
+#: FW/templates/components/task_detail_form.html:36
+#: FW/templates/components/task_detail_form.html:65
+#: FW/templates/components/task_progress.html:29
+#: FW/templates/components/task_progress.html:36
+#: ORG/templates/list_aufgaben.html:91 ORG/templates/list_aufgaben.html:150
+#: ORG/templates/list_aufgaben_table.html:82
+#: ORG/templates/list_aufgaben_table.html:155
+msgid "Erledigt"
+msgstr "Completed"
+
+#: FW/templates/components/task_card.html:13
+#: FW/templates/components/task_detail_form.html:29
+#: ORG/templates/list_aufgaben.html:47 ORG/templates/list_aufgaben.html:114
+msgid "Fällig"
+msgstr "Due"
+
+#: FW/templates/components/task_card.html:20
+#: ORG/templates/list_aufgaben_table.html:88
+msgid "Überfällig"
+msgstr "Overdue"
+
+#: FW/templates/components/task_card.html:32
+msgid "Wird bearbeitet"
+msgstr "Edit"
+
+#: FW/templates/components/task_card.html:40
+msgid "Anzeigen"
+msgstr "View"
+
+#: FW/templates/components/task_card.html:42
+#: Global/templates/components/profile_details.html:61
+#: ORG/templates/list_aufgaben_table.html:171
+#: ORG/templates/list_aufgaben_table.html:205
+#: ORG/templates/list_aufgaben_table.html:244
+msgid "Bearbeiten"
+msgstr "Edit"
+
+#: FW/templates/components/task_card.html:44
+msgid "Jetzt erledigen"
+msgstr "Complete task"
+
+#: FW/templates/components/task_detail_form.html:9
+#: ORG/templates/list_aufgaben.html:48 ORG/templates/list_aufgaben.html:115
+#: ORG/templates/list_aufgaben.html:173
+msgid "Beschreibung"
+msgstr "Description"
+
+#: FW/templates/components/task_detail_form.html:16
+msgid "Datei hochladen"
+msgstr "Upload documents"
+
+#: FW/templates/components/task_detail_form.html:34
+#: ORG/templates/list_ampel.html:99
+msgid "Status"
+msgstr "Status"
+
+#: FW/templates/components/task_detail_form.html:37
+#: FW/templates/components/task_detail_form.html:43
+msgid "Ja"
+msgstr "Yes"
+
+#: FW/templates/components/task_detail_form.html:39
+#: FW/templates/components/task_detail_form.html:45
+msgid "Nein"
+msgstr "No"
+
+#: FW/templates/components/task_detail_form.html:54
+#: ORG/templates/list_aufgaben_table.html:215
+msgid "Als nicht erledigt markieren"
+msgstr "Mark as not completed"
+
+#: FW/templates/components/task_detail_form.html:58
+msgid "Problem mit Aufgabe"
+msgstr "Problem with task"
+
+#: FW/templates/components/task_detail_form.html:58
+#, python-format
+msgid ""
+"Ich habe ein Problem mit der Aufgabe '%(name)s' vom %(date)s."
+"%%0D%%0A%%0D%%0AAufgabendetails:%%0D%%0A%%0D%%0ABeschreibung: "
+"%(desc)s%%0D%%0AFällig am: %(date)s%%0D%%0AErledigt am: "
+"%(done_date)s%%0D%%0AAufgabenprofil: %(profile)s%%0D%%0AUpload erforderlich: "
+"%(upload)s"
+msgstr ""
+"I have a problem with the task '%(name)s' from %(date)s.%%0D%%0A%%0D%%0ATask "
+"details:%%0D%%0A%%0D%%0ADescription: %(desc)s%%0D%%0ADue on: "
+"%(date)s%%0D%%0ACompleted on: %(done_date)s%%0D%%0ATask profile: "
+"%(profile)s%%0D%%0AUpload required: %(upload)s"
+
+#: FW/templates/components/task_detail_form.html:60
+msgid "Problem melden"
+msgstr "Report problem"
+
+#: FW/templates/home.html:12
+msgid "FW Msg"
+msgstr "FW Msg"
+
+#: FW/templates/home.html:30
+msgid "Keine offenen Aufgaben!"
+msgstr "No open tasks!"
+
+#: FW/templates/home.html:36
+msgid "Alle Aufgaben anzeigen"
+msgstr "Complete task"
+
+#: FW/templates/home.html:46
+msgid "Neue Bilder"
+msgstr "Images"
+
+#: FW/templates/home.html:57
+msgid "Alle Bilder anzeigen"
 msgstr "Delete all images"
 
-#: FW/templates/profil.html:189
-msgid "mehr"
-msgstr "more"
+#: FW/templates/home.html:67
+msgid "Neue Posts"
+msgstr "New Posts"
 
-#: FW/templates/profil.html:252
+#: FW/templates/home.html:73
+msgid "Noch keine Posts"
+msgstr "No posts yet"
+
+#: FW/templates/laenderinfo.html:43
+msgid "Länderinfo"
+msgstr "Country Information"
+
+#: FW/templates/laenderinfo.html:57
+msgid "Entsendende Organisation"
+msgstr "Sending Organization"
+
+#: FW/templates/laenderinfo.html:61
+msgid "Länderinformationen"
+msgstr "Country Information"
+
+#: FW/templates/laenderinfo.html:66
+msgid "Informationen Einsatzstelle"
+msgstr "Assignment Location Information"
+
+#: FW/templates/laenderinfo.html:67
+msgid "Generelle Informationen"
+msgstr "General Information"
+
+#: FW/templates/notfallkontakte.html:37
+msgid "Notfallkontakt hinzufügen"
+msgstr "Emergency contacts"
+
+#: FW/templates/notfallkontakte.html:48
+msgid ""
+"Notfallkontakte können nur von der Organisation gelöscht oder bearbeitet "
+"werden. Melde dich bei"
+msgstr ""
+"Emergency contacts can only be deleted or edited by the organization. Please "
+"contact"
+
+#: FW/views.py:247
+msgid "Reisehinweise"
+msgstr "Note for travel"
+
+#: FW/views.py:262
+msgid "Notfallnummern"
+msgstr "Emergency contacts"
+
+#: FW/views.py:272
+msgid "Botschaft"
+msgstr "Embassy"
+
+#: FW/views.py:280
+msgid "Konsulat"
+msgstr "Consulate"
+
+#: FW/views.py:291
+msgid "Arbeitsvorgesetzte:r"
+msgstr "Supervisor"
+
+#: FW/views.py:299
+msgid "Partnerorganisation"
+msgstr "Sending Organization"
+
+#: FW/views.py:307
+msgid "Mentor:in"
+msgstr "Mentor"
+
+#: FW/views.py:318
+msgid "Arztpraxen"
+msgstr "Doctors"
+
+#: FW/views.py:326
+msgid "Apotheken"
+msgstr "Pharmacies"
+
+#: FW/views.py:334
+msgid "Weitere Informationen"
+msgstr "General Information"
+
+#: Global/templates/bild.html:12 Global/templates/bilder.html:10
+#: Global/templates/components/gallery_header.html:4
+#: Global/templates/components/profile_gallery.html:6
+msgid "Bilder"
+msgstr "Images"
+
+#: Global/templates/bild.html:67
+#: Global/templates/components/profile_details.html:35
+#: Global/templates/components/profile_details.html:52
+#: Global/templates/profil.html:56
+msgid "Speichern"
+msgstr "Save"
+
+#: Global/templates/bilder.html:29 Global/templates/profil.html:107
 msgid "Bild löschen"
 msgstr "Delete image"
 
-#: FW/templates/profil.html:253
+#: Global/templates/bilder.html:30 Global/templates/profil.html:108
 msgid "Möchten Sie dieses Bild wirklich löschen?"
 msgstr "Do you really want to delete this image?"
 
-#: FW/templates/profil.html:257
+#: Global/templates/bilder.html:34 Global/templates/profil.html:112
 msgid "Löschen"
 msgstr "Delete"
 
-#: FW/templates/profil.html:264
+#: Global/templates/bilder.html:40 Global/templates/profil.html:118
+msgid "Alle Bilder löschen"
+msgstr "Delete all images"
+
+#: Global/templates/bilder.html:41 Global/templates/profil.html:119
 msgid "Möchten Sie wirklich alle Bilder dieser Galerie löschen?"
 msgstr "Do you really want to delete all images in this gallery?"
 
-#: FW/templates/profil.html:265
+#: Global/templates/bilder.html:42 Global/templates/profil.html:120
 msgid "Alle löschen"
 msgstr "Delete all"
+
+#: Global/templates/bilder_show.html:29
+msgid "weniger"
+msgstr "less"
+
+#: Global/templates/bilder_show.html:33
+#: Global/templates/components/image_description.html:8
+#: Global/templates/dokumente.html:130
+msgid "mehr"
+msgstr "more"
+
+#: Global/templates/components/gallery_header.html:6
+msgid "Bilder hinzufügen"
+msgstr "Add"
+
+#: Global/templates/components/image_card_header.html:7
+#: Global/templates/components/profile_image.html:7
+msgid "Profilbild"
+msgstr "Profile picture"
+
+#: Global/templates/components/image_card_header.html:23
+#: Global/templates/dokumente.html:144
+#: ORG/templates/list_aufgaben_table.html:195
+msgid "Download"
+msgstr "Download"
+
+#: Global/templates/components/image_carousel.html:9
+msgid "Bild"
+msgstr "Image"
+
+#: Global/templates/components/image_carousel.html:19
+msgid "Vorheriges"
+msgstr "Previous"
+
+#: Global/templates/components/image_carousel.html:23
+msgid "Nächstes"
+msgstr "Next"
+
+#: Global/templates/components/image_carousel.html:32
+msgid "Slide"
+msgstr "Slide"
+
+#: Global/templates/components/profile_details.html:9
+#: Global/templates/components/profile_details.html:16
+msgid "Geburtsdatum"
+msgstr "Date of birth"
+
+#: Global/templates/components/profile_details.html:10
+msgid "Änderungen melden"
+msgstr "Report changes"
+
+#: Global/templates/components/profile_details.html:12
+msgid "Telefon"
+msgstr "Phone"
+
+#: Global/templates/components/profile_details.html:13
+msgid "Telefon Einsatzland"
+msgstr "Phone deployment country"
+
+#: Global/templates/components/profile_details.html:14
+msgid "Email"
+msgstr "Email"
+
+#: Global/templates/components/profile_details.html:28
+#: Global/templates/components/profile_details.html:36
+msgid "Entfernen"
+msgstr "Remove"
+
+#: Global/templates/components/profile_header.html:19
+msgid "Abmelden"
+msgstr "Logout"
+
+#: Global/templates/dokumente.html:48
+msgid "Ordner nicht leer"
+msgstr "Folder not empty"
+
+#: Global/templates/dokumente.html:61
+msgid "Neues Dokument"
+msgstr "New Document"
+
+#: Global/templates/dokumente.html:177
+msgid "Neuer Ordner"
+msgstr "New Folder"
+
+#: Global/templates/feedback.html:75
+msgid "Feedback senden"
+msgstr "Send Feedback"
+
+#: Global/templates/feedback.html:79
+msgid "Oder sende eine E-Mail an"
+msgstr "Or send an email to"
+
+#: Global/templates/feedback.html:79
+msgid "Feedback zu Volunteer.Solutions"
+msgstr "Feedback to Volunteer.Solutions"
+
+#: Global/templates/feedback.html:91
+msgid "Hinweis"
+msgstr "Note"
+
+#: Global/templates/profil.html:43
+msgid "Profilbild ändern"
+msgstr "Change profile picture"
+
+#: Global/templates/profil.html:50
+msgid "Neues Profilbild auswählen"
+msgstr "Select new profile picture"
+
+#: Home/templates/first_login.html:41
+msgid "Zurück zur Startseite"
+msgstr "Back to home"
+
+#: Home/templates/first_login.html:44 Home/templates/index.html:42
+msgid "Willkommen"
+msgstr "Welcome"
+
+#: Home/templates/first_login.html:45
+msgid "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
+msgstr "Please log in with your username and one-time password"
+
+#: Home/templates/first_login.html:62 Home/templates/index.html:54
+msgid "Benutzername oder Passwort falsch."
+msgstr "Username or password incorrect."
+
+#: Home/templates/first_login.html:67 Home/templates/first_login.html:68
+#: Home/templates/index.html:59 Home/templates/index.html:60
+msgid "Benutzername"
+msgstr "Username"
+
+#: Home/templates/first_login.html:72 Home/templates/first_login.html:73
+msgid "Einmalpasswort"
+msgstr "One-time password"
+
+#: Home/templates/first_login.html:77 Home/templates/first_login.html:78
+msgid "Neues Passwort"
+msgstr "New password"
+
+#: Home/templates/first_login.html:82 Home/templates/first_login.html:83
+msgid "Neues Passwort wiederholen"
+msgstr "Repeat new password"
+
+#: Home/templates/first_login.html:89 Home/templates/index.html:71
+msgid "Anmelden"
+msgstr "Status report"
+
+#: Home/templates/first_login.html:116 Home/templates/index.html:104
+msgid "Datenschutz"
+msgstr "Privacy Policy"
+
+#: Home/templates/index.html:43
+msgid "Bitte melden Sie sich an"
+msgstr "Please log in"
+
+#: Home/templates/index.html:64 Home/templates/index.html:65
+msgid "Passwort"
+msgstr "Password"
+
+#: Home/templates/index.html:77
+msgid "Anmelden mit Einmalpasswort"
+msgstr "Login with one-time password"
+
+#: Home/views.py:30
+msgid "Ungültiger Benutzername oder Passwort."
+msgstr "Invalid username or password."
+
+#: Home/views.py:44
+msgid "Benutzername nicht gefunden."
+msgstr "Username not found."
+
+#: Home/views.py:50
+msgid ""
+"Interner Fehler: Benutzer nicht gefunden. Kontaktiere den Administrator."
+msgstr "Internal error: User not found. Contact the administrator."
+
+#: Home/views.py:54
+msgid "Passwörter stimmen nicht überein."
+msgstr "Passwords do not match."
+
+#: Home/views.py:58
+msgid "Einmalpasswort bereits verwendet."
+msgstr "One-time password already used."
+
+#: Home/views.py:62
+msgid "Ungültiges Einmalpasswort."
+msgstr "Invalid one-time password."
+
+#: Home/views.py:77
+msgid "Fehler beim Login. Bitte versuchen Sie es erneut."
+msgstr "Login error. Please try again."
+
+#: ORG/templates/aufgaben_assign.html:5 ORG/templates/aufgaben_assign.html:10
+#: ORG/templates/aufgaben_assign.html:196
+msgid "Aufgaben zuweisen"
+msgstr "Complete task"
+
+#: ORG/templates/aufgaben_assign.html:22 ORG/templates/list_aufgaben.html:112
+#: ORG/templates/list_aufgaben_table.html:116
+msgid "Freiwillige"
+msgstr "Volunteers"
+
+#: ORG/templates/aufgaben_assign.html:34
+msgid "Freiwillige suchen..."
+msgstr "Search volunteers..."
+
+#: ORG/templates/aufgaben_assign.html:44
+msgid "Alle Freiwillige auswählen"
+msgstr "Select all volunteers"
+
+#: ORG/templates/aufgaben_assign.html:88
+msgid "Profile"
+msgstr "Profile"
+
+#: ORG/templates/aufgaben_assign.html:104
+msgid "Aufgaben suchen..."
+msgstr "Tasks"
+
+#: ORG/templates/aufgaben_assign.html:114
+msgid "Alle Aufgaben auswählen"
+msgstr "Select all tasks"
+
+#: ORG/templates/aufgaben_assign.html:151
+msgid "Profile suchen..."
+msgstr "Search profiles..."
+
+#: ORG/templates/aufgaben_assign.html:160
+msgid "Alle Profile auswählen"
+msgstr "Delete all images"
+
+#: ORG/templates/baseOrg.html:135 ORG/templates/baseOrg.html:140
+msgid "Alle Jahrgänge"
+msgstr "All years"
+
+#: ORG/templates/filter_form.html:10 ORG/templates/list_aufgaben_table.html:98
+msgid "Filter"
+msgstr "Filter"
+
+#: ORG/templates/filter_form.html:16
+msgid "Filter entfernen"
+msgstr "Remove"
+
+#: ORG/templates/filter_form.html:38
+msgid "Apply Filters"
+msgstr "Apply Filters"
+
+#: ORG/templates/filter_form.html:41
+msgid "Active filters:"
+msgstr "Active filters:"
+
+#: ORG/templates/list_ampel.html:6
+msgid "Ampelmeldungen"
+msgstr "Status report"
+
+#: ORG/templates/list_ampel.html:15
+msgid "Ampel Übersicht"
+msgstr "Traffic Light Overview"
+
+#: ORG/templates/list_ampel.html:21
+msgid "Grün"
+msgstr "Green"
+
+#: ORG/templates/list_ampel.html:25
+msgid "Gelb"
+msgstr "Yellow"
+
+#: ORG/templates/list_ampel.html:29
+msgid "Rot"
+msgstr "Red"
+
+#: ORG/templates/list_ampel.html:38 ORG/templates/list_aufgaben.html:45
+#: ORG/templates/list_aufgaben.html:171
+msgid "Freiwilliger"
+msgstr "Volunteer"
+
+#: ORG/templates/list_ampel.html:53
+msgid "Historie anzeigen"
+msgstr "Show history"
+
+#: ORG/templates/list_ampel.html:81
+msgid "Keine Ampelmeldungen gefunden."
+msgstr "No traffic light reports found."
+
+#: ORG/templates/list_aufgaben.html:16
+msgid "Fällige Aufgaben"
+msgstr "Tasks"
+
+#: ORG/templates/list_aufgaben.html:49 ORG/templates/list_aufgaben.html:116
+#: ORG/templates/list_aufgaben.html:175
+msgid "Dateien"
+msgstr "Files"
+
+#: ORG/templates/list_aufgaben.html:50 ORG/templates/list_aufgaben.html:117
+#: ORG/templates/list_aufgaben.html:176
+msgid "Aktion"
+msgstr "Action"
+
+#: ORG/templates/list_aufgaben.html:83
+msgid "Erinnerung"
+msgstr "Reminder"
+
+#: ORG/templates/list_aufgaben.html:141
+msgid "Herunterladen"
+msgstr "Download"
+
+#: ORG/templates/list_aufgaben.html:174
+#: ORG/templates/list_aufgaben_table.html:154
+msgid "Erledigt am"
+msgstr "Completed on"
+
+#: ORG/templates/list_aufgaben.html:204
+msgid "Als unerledigt markieren"
+msgstr "Mark as incomplete"
+
+#: ORG/templates/list_aufgaben.html:215
+#: ORG/templates/list_aufgaben_table.html:181
+msgid "Als pending markieren"
+msgstr "Mark as pending"
+
+#: ORG/templates/list_aufgaben_table.html:77
+msgid "Aufgaben Übersicht"
+msgstr "Complete task"
+
+#: ORG/templates/list_aufgaben_table.html:91
+msgid "Nicht zugewiesen"
+msgstr "Not assigned"
+
+#: ORG/templates/list_aufgaben_table.html:101
+msgid "Alle"
+msgstr "All"
+
+#: ORG/templates/list_aufgaben_table.html:122
+msgid "Allen Freiwilligen zuweisen"
+msgstr "Assign to all volunteers"
+
+#: ORG/templates/list_aufgaben_table.html:160
+#: ORG/templates/list_aufgaben_table.html:194
+msgid "Datei herunterladen"
+msgstr "Download file"
+
+#: ORG/templates/list_aufgaben_table.html:226
+#: ORG/templates/list_aufgaben_table.html:271
+msgid "Als erledigt markieren"
+msgstr "Mark as completed"
+
+#: ORG/templates/list_aufgaben_table.html:234
+msgid "Fällig am"
+msgstr "Due on"
+
+#: ORG/templates/list_aufgaben_table.html:256
+msgid "Erinnern"
+msgstr "Remind"
+
+#: ORG/templates/list_aufgaben_table.html:282
+msgid "Aufgabe zuweisen"
+msgstr "Complete task"
+
+#: ORG/templates/list_objects.html:120
+msgid "Are you sure you want to delete this item?"
+msgstr "Are you sure you want to delete this item?"
+
+#: ORG/templates/list_objects.html:129
+msgid "No items found"
+msgstr "No items found"
