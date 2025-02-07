@@ -601,4 +601,5 @@ def kalender(request):
     context = {
         'calendar_events': json.dumps(calendar_events)
     }
+    context = checkForOrg(request, context)
     return render(request, 'kalender.html', context=context)
