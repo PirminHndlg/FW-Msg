@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block content %}
-
+    {# Tasks Section #}
     <div class="card rounded-4 mb-2">
         <div class="card-header">
             <a href="{% url 'aufgaben' %}" class="text-decoration-none text-body">
@@ -20,56 +20,25 @@
             </a>
         </div>
         <div class="card-body">
-            <a href="{% url 'aufgaben' %}" class="text-decoration-none">
-                <div class="progress mb-3" style="height: 25px;">
-                    <div class="progress-bar bg-primary" role="progressbar" 
-                        style="width: {{ aufgaben.offen_prozent }}%" 
-                        aria-valuenow="{{ aufgaben.offen_prozent }}" 
-                        aria-valuemin="0" 
-                        aria-valuemax="100"
-                        data-bs-toggle="tooltip"
-                        title="Offen: {{ aufgaben.offen_prozent }}%">
-                        {{ aufgaben.offen_prozent }}%
-                    </div>
-                    <div class="progress-bar bg-warning" role="progressbar" 
-                        style="width: {{ aufgaben.pending_prozent }}%" 
-                        aria-valuenow="{{ aufgaben.pending_prozent }}" 
-                        aria-valuemin="0" 
-                        aria-valuemax="100"
-                        data-bs-toggle="tooltip"
-                        title="Pending: {{ aufgaben.pending_prozent }}%">
-                        {{ aufgaben.pending_prozent }}%
-                    </div>
-                    <div class="progress-bar bg-success" role="progressbar" 
-                        style="width: {{ aufgaben.erledigt_prozent }}%" 
-                        aria-valuenow="{{ aufgaben.erledigt_prozent }}" 
-                        aria-valuemin="0" 
-                        aria-valuemax="100"
-                        data-bs-toggle="tooltip"
-                        title="Erledigt: {{ aufgaben.erledigt_prozent }}%">
-                        {{ aufgaben.erledigt_prozent }}%
-                    </div>
-                </div>
-                <div class="d-flex justify-content-between mb-3 small text-muted">
-                    <span><i class="bi bi-square-fill text-primary me-1"></i>Offen</span>
-                    <span><i class="bi bi-square-fill text-warning me-1"></i>Pending</span>
-                    <span><i class="bi bi-square-fill text-success me-1"></i>Erledigt</span>
-                </div>
-            </a>
-            <br>
-            {{ aufgaben.offen|generate_html_for_aufgaben }}
-
-            {% if not aufgaben.offen %}
+            {% include "components/task_progress.html" with aufgaben=aufgaben %}
+            
+            {% if aufgaben.offen %}
+            {% include "components/task_grid.html" with tasks=aufgaben.offen %}
+            {% else %}
                 <div class="alert alert-success mb-0">
                     <i class="bi bi-check-circle me-2"></i>Keine offenen Aufgaben!
                 </div>
             {% endif %}
+
             <div class="text-center mt-3">
-                <a href="{% url 'aufgaben' %}" class="btn btn-secondary btn-sm text-white">Alle Aufgaben anzeigen</a>
+                <a href="{% url 'aufgaben' %}" class="btn btn-secondary btn-sm text-white">
+                    Alle Aufgaben anzeigen
+                </a>
             </div>
         </div>
     </div>
 
+    {# Images Section #}
     <div class="card rounded-4 mb-2">
         <div class="card-header">
             <a href="{% url 'bilder' %}" class="text-decoration-none text-body">
@@ -83,23 +52,25 @@
 
             {% if bilder %}
                 <div class="text-center mt-3">
-                    <a href="{% url 'bilder' %}" class="btn btn-secondary btn-sm text-white">Alle Bilder anzeigen</a>
+                    <a href="{% url 'bilder' %}" class="btn btn-secondary btn-sm text-white">
+                        Alle Bilder anzeigen
+                    </a>
                 </div>
             {% endif %}
         </div>
     </div>
 
+    {# Posts Section #}
     <div class="card rounded-4 mb-2">
         <div class="card-header">
             <h3 class="mb-0">Neue Posts ⟩</h3>
         </div>
         <div class="card-body">
-            {{ posts }}
             {% if posts %}
+                {% include "components/post_list.html" with posts=posts %}
             {% else %}
                 <p class="card-text">Noch keine Posts</p>
             {% endif %}
         </div>
     </div>
-
 {% endblock %}

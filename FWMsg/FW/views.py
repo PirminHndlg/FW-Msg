@@ -23,6 +23,7 @@ from ORG.models import Dokument, Ordner, Referenten
 from ORG.forms import AddNotfallkontaktForm
 
 from FWMsg.decorators import required_role
+from .templatetags.base_filter import get_auswaeriges_amt_link, format_text_with_link
 
 from Global.views import get_bilder
 
@@ -209,11 +210,143 @@ def aufgabe(request, aufgabe_id):
 @required_role('F')
 def laenderinfo(request):
     user = request.user
-    org = user.org
     freiwilliger = Freiwilliger.objects.get(user=user)
     land = freiwilliger.einsatzland
-    referenten = Referenten.objects.filter(org=org, land=land)
-    return render(request, 'laenderinfo.html', context={'referenten': referenten, 'freiwilliger': freiwilliger})
+    referenten = Referenten.objects.filter(org=user.org, land=land) if land else []
+
+    # Prepare organization cards
+    org_cards = []
+    if freiwilliger.org:
+        org_cards.append({
+            'title': freiwilliger.org.name,
+            'items': [
+                {'icon': 'telephone-fill', 'value': freiwilliger.org.telefon},
+                {'icon': 'globe', 'type': 'link', 'value': freiwilliger.org.website, 'url': freiwilliger.org.website, 'external': True} if freiwilliger.org.website else None,
+                {'icon': 'envelope-fill', 'type': 'email', 'value': freiwilliger.org.email},
+                {'icon': 'file-earmark-text-fill', 'value': freiwilliger.entsendeform.name if hasattr(freiwilliger, 'entsendeform') and freiwilliger.entsendeform else None, 'label': 'Entsendeform'}
+            ]
+        })
+
+    # Add referent cards
+    for referent in referenten:
+        org_cards.append({
+            'title': f"Referent:in {referent.first_name} {referent.last_name}",
+            'items': [
+                {'icon': 'telephone-fill', 'value': f"{referent.phone_work} (Arbeit)" if referent.phone_work else None},
+                {'icon': 'telephone-fill', 'value': f"{referent.phone_mobil} (Mobil)" if referent.phone_mobil else None},
+                {'icon': 'envelope-fill', 'type': 'email', 'value': referent.email},
+                {'icon': 'globe', 'value': ', '.join(land.name for land in referent.land.all()) if referent.land.exists() else None}
+            ]
+        })
+
+    # Prepare country cards
+    country_cards = []
+    if land:
+        country_cards = [
+            {
+                'title': 'Reisehinweise',
+                'items': [
+                    {
+                        'icon': 'box-arrow-up-right',
+                        'type': 'link',
+                        'value': 'Auswärtiges Amt',
+                        'url': get_auswaeriges_amt_link(land.name),
+                        'external': True
+                    }
+                ]
+            }
+        ]
+        
+        if land.notfallnummern:
+            country_cards.append({
+                'title': 'Notfallnummern',
+                'items': [
+                    {'icon': 'telephone-fill', 'value': format_text_with_link(land.notfallnummern)}
+                ]
+            })
+
+    # Add embassy and consulate cards if einsatzstelle exists and has the data
+    if freiwilliger.einsatzstelle:
+        if freiwilliger.einsatzstelle.botschaft:
+            country_cards.append({
+                'title': 'Botschaft',
+                'items': [
+                    {'icon': 'building', 'value': format_text_with_link(freiwilliger.einsatzstelle.botschaft)}
+                ]
+            })
+        
+        if freiwilliger.einsatzstelle.konsulat:
+            country_cards.append({
+                'title': 'Konsulat',
+                'items': [
+                    {'icon': 'building', 'value': format_text_with_link(freiwilliger.einsatzstelle.konsulat)}
+                ]
+            })
+
+    # Prepare location cards
+    location_cards = []
+    if freiwilliger.einsatzstelle:
+        if freiwilliger.einsatzstelle.arbeitsvorgesetzter:
+            location_cards.append({
+                'title': 'Arbeitsvorgesetzte:r',
+                'items': [
+                    {'icon': 'person', 'value': format_text_with_link(freiwilliger.einsatzstelle.arbeitsvorgesetzter)}
+                ]
+            })
+        
+        if freiwilliger.einsatzstelle.partnerorganisation:
+            location_cards.append({
+                'title': 'Partnerorganisation',
+                'items': [
+                    {'icon': 'building', 'value': format_text_with_link(freiwilliger.einsatzstelle.partnerorganisation)}
+                ]
+            })
+        
+        if freiwilliger.einsatzstelle.mentor:
+            location_cards.append({
+                'title': 'Mentor:in',
+                'items': [
+                    {'icon': 'person', 'value': format_text_with_link(freiwilliger.einsatzstelle.mentor)}
+                ]
+            })
+
+    # Prepare general cards
+    general_cards = []
+    if land:
+        if land.arztpraxen:
+            general_cards.append({
+                'title': 'Arztpraxen',
+                'items': [
+                    {'icon': 'hospital', 'value': format_text_with_link(land.arztpraxen)}
+                ]
+            })
+        
+        if land.apotheken:
+            general_cards.append({
+                'title': 'Apotheken',
+                'items': [
+                    {'icon': 'capsule', 'value': format_text_with_link(land.apotheken)}
+                ]
+            })
+        
+        if land.informationen:
+            general_cards.append({
+                'title': 'Weitere Informationen',
+                'width': '8',
+                'items': [
+                    {'icon': 'info-circle', 'value': format_text_with_link(land.informationen)}
+                ]
+            })
+
+    context = {
+        'referenten': referenten,
+        'freiwilliger': freiwilliger,
+        'org_cards': org_cards,
+        'country_cards': country_cards,
+        'location_cards': location_cards,
+        'general_cards': general_cards
+    }
+    return render(request, 'laenderinfo.html', context=context)
 
 @login_required
 @required_role('F')

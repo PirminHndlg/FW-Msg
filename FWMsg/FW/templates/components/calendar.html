@@ -1,0 +1,47 @@
+{% load static %}
+
+<div class="card rounded-4 mb-2">
+    <div class="card-header {% if not hide_header %}sticky-top{% endif %} bg-light rounded-4 z-1">
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="{% url 'kalendar' %}" class="text-decoration-none text-body">
+                <h3 class="card-title mb-0">{{ title|default:"Kalender" }}</h3>
+            </a>
+            {% if show_view_toggle %}
+            <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="weekViewBtn">Woche</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="monthViewBtn">Monat</button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        <div id="calendar" class="calendar-container"></div>
+    </div>
+</div>
+
+<style>
+    .calendar-container.small-view {
+        max-height: 100px;
+        transition: max-height 0.3s ease-in-out;
+
+    }
+    
+    .calendar-container.large-view {
+        max-height: none;
+        transition: max-height 0.3s ease-in-out;
+    }
+</style>
+
+{% block calendar_scripts %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<script>
+    window.calendarEvents = JSON.parse('{{ calendar_events|escapejs }}');
+    window.calendarConfig = {
+        initialView: '{{ initial_view|default:"dayGridMonth" }}',
+        small: {% if small_calendar %}true{% else %}false{% endif %},
+        showViewToggle: {% if show_view_toggle %}true{% else %}false{% endif %},
+        dynamicHeight: {% if dynamic_height %}true{% else %}false{% endif %}
+    };
+</script>
+<script src="{% static 'js/kalendar.js' %}"></script>
+{% endblock %} 

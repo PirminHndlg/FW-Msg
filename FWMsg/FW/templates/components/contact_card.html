@@ -1,0 +1,30 @@
+{% load base_filter %}
+
+<div class="card h-100 border-0 shadow-sm card-hover">
+    <div class="card-body">
+        <h5 class="fw-bold mb-3">{{ title }}</h5>
+        <div class="d-flex flex-column gap-2">
+            {% for item in contact_items %}
+                {% if item.value %}
+                    <div class="contact-info d-flex align-items-start">
+                        <i class="bi bi-{{ item.icon }} text-primary me-2 mt-1"></i>
+                        <div class="flex-grow-1">
+                            {% if item.type == 'link' %}
+                                <a href="{{ item.url }}" {% if item.external %}target="_blank"{% endif %} class="text-decoration-none text-body-secondary">
+                                    {{ item.value }}
+                                </a>
+                            {% elif item.type == 'email' %}
+                                <a href="mailto:{{ item.value }}" class="text-decoration-none text-body-secondary">
+                                    {{ item.value }}
+                                </a>
+                            {% else %}
+                                {% if item.label %}<strong class="me-1">{{ item.label }}:</strong>{% endif %}
+                                {{ item.value|safe }}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div> 

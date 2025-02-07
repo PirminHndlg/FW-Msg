@@ -1,0 +1,47 @@
+{% load static %}
+{% load aufgaben_filter %}
+<div class="col">
+    <div class="card h-100 rounded-4">
+        <div class="card-body">
+            <h4 class="card-title">{{ task.aufgabe.name }}</h4>
+            <p class="card-text">{{ task.aufgabe.beschreibung }}</p>
+            
+            {% if task.faellig %}
+            <p class="card-text">
+                <small class="text-muted">Fällig: {{ task.faellig|date:"d.m.Y" }}</small>
+            </p>
+            {% endif %}
+
+            {# Status Badges #}
+            {% if task.faellig and task.faellig|compare_date_to_current_time and not task.erledigt and not task.pending %}
+            <p class="card-text">
+                <span class="badge bg-danger">Überfällig</span>
+            </p>
+            {% endif %}
+
+            {% if task.erledigt %}
+            <p class="card-text">
+                <span class="badge bg-success">Erledigt</span>
+            </p>
+            {% endif %}
+
+            {% if task.pending %}
+            <p class="card-text">
+                <span class="badge bg-warning text-dark">Wird bearbeitet</span>
+            </p>
+            {% endif %}
+
+            {# Action Button #}
+            <a href="{% url 'aufgaben_detail' task.id %}" 
+               class="btn {% if task.erledigt %}btn-success{% elif task.pending %}btn-primary{% else %}btn-success{% endif %} text-white">
+                {% if task.erledigt %}
+                    Anzeigen
+                {% elif task.pending %}
+                    Bearbeiten
+                {% else %}
+                    Jetzt erledigen
+                {% endif %}
+            </a>
+        </div>
+    </div>
+</div> 
