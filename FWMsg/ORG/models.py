@@ -152,6 +152,9 @@ class Dokument(models.Model):
             hash_object = hashlib.md5(name.encode())
             hashed_name = hash_object.hexdigest()[:8]  # Use first 8 chars of hash
             return f"{hashed_name}{ext}"
+        
+        if not self.dokument:
+            return None
             
         mimetype = self.get_document_type()
         

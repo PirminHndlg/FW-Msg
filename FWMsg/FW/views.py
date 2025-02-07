@@ -57,7 +57,7 @@ def home(request):
     }
 
     # Get recent images
-    gallery_images = get_bilder(request)
+    gallery_images = get_bilder(request.user.org)
 
     context = {
         'aufgaben': freiwilliger_aufgaben,
