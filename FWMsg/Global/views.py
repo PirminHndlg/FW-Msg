@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 import mimetypes
 import os
 import subprocess
@@ -11,8 +12,10 @@ from django.conf import settings
 from django.shortcuts import redirect, render
 
 from django.contrib.auth.models import User
+from django.urls import reverse
+
 from FW.forms import BilderForm, BilderGalleryForm, ProfilUserForm
-from FW.models import Ampel, Bilder, BilderGallery, CustomUser, Freiwilliger, ProfilUser
+from FW.models import Ampel, Bilder, BilderGallery, CustomUser, Freiwilliger, ProfilUser, FreiwilligerAufgaben
 from ORG.models import Dokument, Ordner
 
 from ORG.views import base_template
@@ -544,3 +547,47 @@ def feedback(request):
     }
     context = checkForOrg(request, context)
     return render(request, 'feedback.html', context=context)
+
+@login_required
+@required_role('')
+def kalendar(request):
+    calendar_events = []
+    
+    for freiwilliger_aufgabe in FreiwilligerAufgaben.objects.filter(org=request.user.org).order_by('faellig'):
+        color = '#dc3545'  # Bootstrap danger color to match the theme
+        if freiwilliger_aufgabe.erledigt:
+            color = '#198754'  # Bootstrap success color
+        elif freiwilliger_aufgabe.pending:
+            color = '#ffc107'  # Bootstrap warning color
+        elif freiwilliger_aufgabe.faellig and freiwilliger_aufgabe.faellig > datetime.now().date():
+            color = '#0d6efd'  # Bootstrap primary color
+
+        calendar_events.append({
+            'title': freiwilliger_aufgabe.aufgabe.name,
+            'start': freiwilliger_aufgabe.faellig.strftime('%Y-%m-%d') if freiwilliger_aufgabe.faellig else '',
+            'url': reverse('aufgaben_detail', args=[freiwilliger_aufgabe.id]),
+            'backgroundColor': color,
+            'borderColor': color,
+            'textColor': '#000'
+        })
+
+    birthday_events = Freiwilliger.objects.filter(geburtsdatum__isnull=False).order_by('geburtsdatum')
+    for birthday_event in birthday_events:
+        # add two times to the calendar, one for the birthday this year and one for the birthday next year
+        for i in range(5):
+            birthday = birthday_event.geburtsdatum.replace(year=datetime.now().year + i)
+            calendar_events.append({
+                'title': f'Geburtstag: {birthday_event.user.first_name} {birthday_event.user.last_name}',
+                'start': birthday.strftime('%Y-%m-%d') if birthday else '',
+                'url': reverse('profil', args=[birthday_event.user.id]),
+                'backgroundColor': '#ff69b4', # Hot pink - cheerful color for birthdays
+                'borderColor': '#ff69b4',
+                'textColor': '#fff'
+            })
+
+    print('calendar_events:', calendar_events)
+
+    context = {
+        'calendar_events': json.dumps(calendar_events)
+    }
+    return render(request, 'kalendar.html', context=context)
