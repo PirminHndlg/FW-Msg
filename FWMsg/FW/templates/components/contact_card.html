@@ -7,7 +7,7 @@
             {% for item in contact_items %}
                 {% if item.value %}
                     <div class="contact-info d-flex align-items-start">
-                        <i class="bi bi-{{ item.icon }} text-primary me-2 mt-1"></i>
+                        <i class="bi bi-{{ item.icon }} text-primary me-2"></i>
                         <div class="flex-grow-1">
                             {% if item.type == 'link' %}
                                 <a href="{{ item.url }}" {% if item.external %}target="_blank"{% endif %} class="text-decoration-none text-body-secondary">
