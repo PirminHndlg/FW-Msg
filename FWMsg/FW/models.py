@@ -5,28 +5,12 @@ from PIL import Image  # Make sure this is from PIL, not Django models
 from django.contrib.auth.models import User, AbstractUser
 from django.db import models
 from ORG.models import Organisation
-from Global.models import CustomUser
+from Global.models import CustomUser, OrgModel
 from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 from django.core.files.base import ContentFile
-from FWMsg.middleware import get_current_request
 import io
 
-
-class OrgManager(models.Manager):
-    def get_queryset(self):
-        request = get_current_request()
-        if request and hasattr(request, 'user') and hasattr(request.user, 'org'):
-            return super().get_queryset().filter(org=request.user.org)
-        return super().get_queryset()
-
-
-class OrgModel(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
-    objects = OrgManager()
-
-    class Meta:
-        abstract = True
 
 
 # class Organisation(models.Model):

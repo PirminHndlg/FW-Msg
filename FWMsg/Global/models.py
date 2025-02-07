@@ -5,6 +5,25 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 import random
 from django.db import models
+from FWMsg.middleware import get_current_request
+
+
+
+class OrgManager(models.Manager):
+    def get_queryset(self):
+        request = get_current_request()
+        if request and hasattr(request, 'user') and hasattr(request.user, 'org'):
+            return super().get_queryset().filter(org=request.user.org)
+        return super().get_queryset()
+
+
+class OrgModel(models.Model):
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    objects = OrgManager()
+
+    class Meta:
+        abstract = True
+
 # Create your models here.
 class CustomUser(models.Model):
     ROLE_CHOICES = [
@@ -43,7 +62,7 @@ class CustomUser(models.Model):
     class Meta:
         verbose_name = 'Benutzer:in'
         verbose_name_plural = 'Benutzer:innen'
-        
+
     
 @receiver(post_save, sender=CustomUser)
 def post_save_handler(sender, instance, created, **kwargs):
@@ -76,3 +95,10 @@ def post_save_handler(sender, instance, created, **kwargs):
     if created:
         from ORG.tasks import send_feedback_email_task
         send_feedback_email_task.s(instance.id).apply_async(countdown=10)
+
+class KalenderEvent(OrgModel):
+    user = models.ManyToManyField(User, verbose_name='Benutzer:in')
+    title = models.CharField(max_length=255, verbose_name='Titel')
+    start = models.DateTimeField(verbose_name='Start')
+    end = models.DateTimeField(verbose_name='Ende', null=True, blank=True)
+    description = models.TextField(verbose_name='Beschreibung', null=True, blank=True)
