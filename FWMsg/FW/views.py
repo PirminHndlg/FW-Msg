@@ -119,7 +119,7 @@ def aufgaben(request):
         calendar_events.append({
             'title': aufgabe.aufgabe.name,
             'start': aufgabe.faellig.strftime('%Y-%m-%d') if aufgabe.faellig else '',
-            'url': reverse('aufgaben_detail', args=[aufgabe.aufgabe.id]),
+            'url': reverse('aufgaben_detail', args=[aufgabe.id]),
             'backgroundColor': '#0d6efd',
             'borderColor': '#0d6efd'
         })
@@ -129,7 +129,7 @@ def aufgaben(request):
         calendar_events.append({
             'title': aufgabe.aufgabe.name,
             'start': aufgabe.faellig.strftime('%Y-%m-%d') if aufgabe.faellig else '',
-            'url': reverse('aufgaben_detail', args=[aufgabe.aufgabe.id]),
+            'url': reverse('aufgaben_detail', args=[aufgabe.id]),
             'backgroundColor': '#ffc107',
             'borderColor': '#ffc107',
             'textColor': '#000'
@@ -140,7 +140,7 @@ def aufgaben(request):
         calendar_events.append({
             'title': aufgabe.aufgabe.name,
             'start': aufgabe.faellig.strftime('%Y-%m-%d') if aufgabe.faellig else '',
-            'url': reverse('aufgaben_detail', args=[aufgabe.aufgabe.id]),
+            'url': reverse('aufgaben_detail', args=[aufgabe.id]),
             'backgroundColor': '#198754',
             'borderColor': '#198754'
         })
@@ -164,57 +164,43 @@ def aufgaben(request):
 @login_required
 @required_role('F')
 def aufgabe(request, aufgabe_id):
+
+    freiwilliger_aufgabe_exists = FreiwilligerAufgaben.objects.filter(id=aufgabe_id).exists()
+    if not freiwilliger_aufgabe_exists:
+        return redirect('aufgaben')
+    freiwilliger_aufgabe = FreiwilligerAufgaben.objects.get(id=aufgabe_id)
+    
     if request.method == 'POST':
-        requested_aufgabe = Aufgabe.objects.get(id=aufgabe_id)
         file = request.FILES.get('file')
-        freiwilliger_aufgaben = \
-            FreiwilligerAufgaben.objects.filter(aufgabe=requested_aufgabe, freiwilliger__user=request.user)[0]
         
-        if file and freiwilliger_aufgaben.aufgabe.mitupload:
-            freiwilliger_aufgaben.file = file
+        if file and freiwilliger_aufgabe.aufgabe.mitupload:
+            freiwilliger_aufgabe.file = file
         
         action = request.POST.get('action')
         if action == 'unpend':
-            freiwilliger_aufgaben.pending = False
-            freiwilliger_aufgaben.erledigt = False
-            freiwilliger_aufgaben.erledigt_am = None
+            freiwilliger_aufgabe.pending = False
+            freiwilliger_aufgabe.erledigt = False
+            freiwilliger_aufgabe.erledigt_am = None
         else:  # action == 'pending'
-            if requested_aufgabe.requires_submission:
-                freiwilliger_aufgaben.pending = True
-                freiwilliger_aufgaben.erledigt = False
+            if freiwilliger_aufgabe.aufgabe.requires_submission:
+                freiwilliger_aufgabe.pending = True
+                freiwilliger_aufgabe.erledigt = False
             else:
-                freiwilliger_aufgaben.pending = False
-                freiwilliger_aufgaben.erledigt = True
+                freiwilliger_aufgabe.pending = False
+                freiwilliger_aufgabe.erledigt = True
 
-            freiwilliger_aufgaben.erledigt_am = datetime.now()
+            freiwilliger_aufgabe.erledigt_am = datetime.now()
 
 
-        freiwilliger_aufgaben.save()
+        freiwilliger_aufgabe.save()
         base_url = reverse('aufgaben')
         if action == 'pending':
             return redirect(f'{base_url}?show_confetti=true')
         return redirect(base_url)
 
-    aufgabe_exists = Aufgabe.objects.filter(id=aufgabe_id).exists()
-    if not aufgabe_exists:
-        return redirect('aufgaben')
-
-    requested_aufgabe = Aufgabe.objects.get(id=aufgabe_id)
-
-    print(requested_aufgabe)
-
-    freiwilliger_aufgaben_exists = FreiwilligerAufgaben.objects.filter(aufgabe=requested_aufgabe,
-                                                                       freiwilliger__user=request.user).exists()
-
-    if not freiwilliger_aufgaben_exists:
-        # return redirect('aufgaben')
-        pass
-
-    freiwilliger_aufgaben = FreiwilligerAufgaben.objects.filter(aufgabe=requested_aufgabe, freiwilliger__user=request.user)[0]
 
     context = {
-        'aufgabe': requested_aufgabe,
-        'freiwilliger_aufgaben': freiwilliger_aufgaben
+        'freiwilliger_aufgabe': freiwilliger_aufgabe
     }
     return render(request, 'aufgabe.html', context=context)
 

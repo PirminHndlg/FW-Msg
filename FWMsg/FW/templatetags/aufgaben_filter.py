@@ -11,7 +11,7 @@ def generate_html_for_aufgaben(aufgaben):
     html_content = ""
     html_content += '<div class="row row-cols-1 row-cols-md-3 g-4">'
     for aufgabe in aufgaben:
-        detail_url = reverse("aufgaben_detail", args=[aufgabe.aufgabe.id])
+        detail_url = reverse("aufgaben_detail", args=[aufgabe.id])
         html_content += '<div class="col">'
         html_content += '<div class="card h-100 rounded-4">'
         html_content += '<div class="card-body">'
