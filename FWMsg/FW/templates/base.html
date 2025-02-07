@@ -47,8 +47,8 @@
         <!-- Logo/Brand -->
         <a class="navbar-brand" href="{% url 'fw_home' %}">
             {% with org=user|get_org %}
-                <img src="{{ org.logo.url }}" alt="{{ org.name }}-Logo" style="height: 30px;">
-            {% endwith %}
+                <img src="{% url 'serve_image' org.id %}" alt="{{ org.name }}-Logo" style="height: 30px;">
+            {% endwith %}   
         </a>
 
         <!-- Hamburger Menu Button -->
@@ -120,7 +120,7 @@
             <a class="navbar-brand mb-3 d-flex align-items-center flex-wrap link-underline link-underline-opacity-0 link-underline-opacity-0-hover"
                href="{% url 'fw_home' %}">
                 {% with org=user|get_org %}
-                    <img src="{{ org.logo.url }}" alt="BMW-Logo"
+                    <img src="{% url 'serve_image' org.id %}" alt="{{ org.name }}-Logo"
                          style="height: 50px; margin-right: 10px; margin-bottom: 5px;">
                     <h3 class="text-white mb-0">{{ org.kurzname|default:org.name }}</h3>
                 {% endwith %}

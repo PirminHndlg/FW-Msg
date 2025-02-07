@@ -2,7 +2,7 @@ from . import views
 from django.urls import path 
 
 urlpatterns = [
-    path('logos/<str:image_name>', views.serve_logo, name='serve_image'),
+    path('logos/<int:org_id>', views.serve_logo, name='serve_image'),
     path('bilder/', views.bilder, name='bilder'),
     path('bilder/<int:image_id>', views.serve_bilder, name='serve_bilder'),
     path('bilder/small/<int:image_id>', views.serve_small_bilder, name='serve_small_bilder'),
@@ -28,6 +28,4 @@ urlpatterns = [
     path('kalender/', views.kalender, name='kalender'),
 
     path('datenschutz/', views.datenschutz, name='datenschutz'),
-
-    path('send_aufgaben_email/', views.send_aufgaben_email, name='send_aufgaben_email'),
 ]

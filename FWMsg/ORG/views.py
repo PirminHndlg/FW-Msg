@@ -117,7 +117,7 @@ def home(request):
     ).order_by('-date_created')[:6]  # Show last 6 images
 
     # Get all gallery images and group by bilder
-    gallery_images = get_bilder(request)[:6]
+    gallery_images = get_bilder(request.user.org)[:6]
 
     # Get pending tasks
     now = timezone.now().date()

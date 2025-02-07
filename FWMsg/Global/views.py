@@ -1,146 +1,111 @@
+"""
+Global views for the FWMsg application.
+
+This module contains view functions for handling general functionality like:
+- Image and document serving
+- Profile management
+- Gallery and image handling
+- Calendar functionality
+- Organization-specific context handling
+
+The views are organized into logical sections:
+1. Context and utility functions
+2. File serving views
+3. Gallery and image management
+4. Document management
+5. Profile management
+6. Calendar and event handling
+"""
+
+# Standard library imports
 from datetime import datetime
 import json
 import mimetypes
 import os
 import subprocess
+
+# Django imports
 from django.contrib import messages
 from django.contrib.auth import logout
-from django.http import HttpResponseRedirect, HttpResponse, Http404, HttpResponseNotAllowed, HttpResponseNotFound
-
 from django.contrib.auth.decorators import login_required
-from django.conf import settings
-from django.shortcuts import redirect, render
-
 from django.contrib.auth.models import User
+from django.conf import settings
+from django.http import (
+    HttpResponseRedirect, 
+    HttpResponse, 
+    Http404, 
+    HttpResponseNotAllowed, 
+    HttpResponseNotFound
+)
+from django.shortcuts import redirect, render
 from django.urls import reverse
 
+# Local application imports
 from FW.forms import BilderForm, BilderGalleryForm, ProfilUserForm
-from FW.models import Ampel, Bilder, BilderGallery, Freiwilliger, ProfilUser, FreiwilligerAufgaben
+from FW.models import (
+    Ampel, 
+    Bilder, 
+    BilderGallery, 
+    Freiwilliger, 
+    ProfilUser, 
+    FreiwilligerAufgaben
+)
 from Global.models import KalenderEvent, CustomUser
-from ORG.models import Dokument, Ordner
-
+from ORG.models import Dokument, Ordner, Organisation
 from ORG.views import base_template
-
 from FWMsg.celery import send_email_aufgaben_daily
-
 from FWMsg.decorators import required_role
-
 from .forms import FeedbackForm
 
-def send_aufgaben_email(request):
-    print('send_aufgaben_email')
-    send_email_aufgaben_daily.delay()
-    return HttpResponse({"success": True, "message": "Email sent"}, content_type="application/json")
-
-def datenschutz(request):
-    return render(request, 'datenschutz.html')
-
-
-def checkForOrg(request, context):
-    if not request.user.is_authenticated or not hasattr(request.user, 'customuser'):
-        return context
-    if request.user.customuser.role == 'O':
-        context['extends_base'] = base_template
-        context['is_org'] = True
-    return context
-
-@login_required
-@required_role('')
-def serve_logo(request, image_name):
-    # Define the path to the image directory
-    image_path = os.path.join(settings.LOGOS_PATH, image_name)
-
-    print('image_path:', image_path)
-
-    # Check if the file exists
-    if not os.path.exists(image_path):
-        return HttpResponseNotFound('Bild nicht gefunden')
-
-    # Open the image file in binary mode
-    with open(image_path, 'rb') as img_file:
-        # Determine the content type (you might want to use a library to detect this)
-        content_type = 'image/jpeg'  # Change this if your images are in different formats
-        response = HttpResponse(img_file.read(), content_type=content_type)
-        response['Content-Disposition'] = f'inline; filename="{image_name}"'
-
-    return response
-
-@login_required
-@required_role('')
-def serve_bilder(request, image_id):
-    # Define the path to the image directory
-    bild_exists = BilderGallery.objects.filter(id=image_id).exists()
-    if not bild_exists:
-        return HttpResponseNotFound('Bild nicht gefunden')
-
-    bild = BilderGallery.objects.get(id=image_id)
-    if not bild.org == request.user.org:
-        return HttpResponseNotAllowed('Nicht erlaubt')
-    
-    return get_bild(bild.image.path, bild.bilder.titel)
-
-
-@login_required
-@required_role('')
-def serve_small_bilder(request, image_id):
-    # Define the path to the image directory
-    bild_exists = BilderGallery.objects.filter(id=image_id).exists()
-    if not bild_exists:
-        return HttpResponseNotFound('Bild nicht gefunden')
-
-    bild = BilderGallery.objects.get(id=image_id)
-
-    if not bild.org == request.user.org:
-        return HttpResponseNotAllowed('Nicht erlaubt')
-
-    if not bild.small_image:
-        return serve_bilder(request, image_id)
-
-    return get_bild(bild.small_image.path, bild.bilder.titel)
-
-
+# Utility Functions
 def get_mimetype(doc_path):
+    """
+    Determine the MIME type of a file.
+    
+    Args:
+        doc_path (str): Path to the document
+        
+    Returns:
+        str: The MIME type of the file, or None if it cannot be determined
+    """
     mime_type, _ = mimetypes.guess_type(doc_path)
     return mime_type
 
+def get_bild(image_path, image_name):
+    """
+    Serve an image file with proper headers.
+    
+    Args:
+        image_path (str): Path to the image file
+        image_name (str): Name of the image for the response header
+        
+    Returns:
+        HttpResponse: Response containing the image file
+        
+    Raises:
+        Http404: If the image file does not exist
+    """
+    if not os.path.exists(image_path):
+        raise Http404("Image does not exist")
 
-
-@login_required
-@required_role('')
-def serve_dokument(request, dokument_id):
-    img = request.GET.get('img', None)
-    download = request.GET.get('download', None)
-    # Define the path to the image directory
-    dokument_exists = Dokument.objects.filter(id=dokument_id).exists()
-    if not dokument_exists:
-        return HttpResponseNotFound('Dokument nicht gefunden')
-
-    dokument = Dokument.objects.get(id=dokument_id)
-    if not dokument.org == request.user.org:
-        return HttpResponseNotAllowed('Nicht erlaubt')
-
-    doc_path = dokument.dokument.path
-
-    if not os.path.exists(doc_path):
-        return HttpResponseNotFound('Dokument nicht gefunden')
-
-    mimetype = get_mimetype(doc_path)
-    if mimetype and mimetype.startswith('image') and not download:
-        return get_bild(doc_path, dokument.dokument.name)
-
-    if img and not download:
-        img_path = dokument.get_preview_image()
-        print('img_path:', img_path)
-        if img_path:
-            return get_bild(img_path, img_path.split('/')[-1])
-
-    with open(doc_path, 'rb') as file:
-        response = HttpResponse(file.read(), content_type=mimetype or 'application/octet-stream')
-        response['Content-Disposition'] = f'attachment; filename="{dokument.dokument.name}"'
+    with open(image_path, 'rb') as img_file:
+        content_type = 'image/jpeg'  # Default content type
+        response = HttpResponse(img_file.read(), content_type=content_type)
+        response['Content-Disposition'] = f'inline; filename="{image_name}"'
         return response
 
-def get_bilder(request, filter_user=None):
-    bilder = Bilder.objects.filter(org=request.user.org).order_by('-date_created')
+def get_bilder(org, filter_user=None):
+    """
+    Retrieve gallery images, optionally filtered by user.
+    
+    Args:
+        org: The organization object
+        filter_user (User, optional): User to filter images by. Defaults to None.
+        
+    Returns:
+        list: List of dictionaries containing gallery images and their metadata
+    """
+    bilder = Bilder.objects.filter(org=org).order_by('-date_created')
     if filter_user:
         bilder = bilder.filter(user=filter_user)
 
@@ -151,17 +116,187 @@ def get_bilder(request, filter_user=None):
         })
     return gallery_images
 
+def check_organization_context(request, context=None):
+    """
+    Enhance the template context with organization-specific settings.
+    
+    Args:
+        request: The HTTP request object
+        context (dict, optional): Existing context dictionary. Defaults to empty dict if None.
+    
+    Returns:
+        dict: The enhanced context dictionary with organization-specific settings
+    """
+    if context is None:
+        context = {}
+
+    # Check if user is authenticated and has a custom user profile
+    if not request.user.is_authenticated or not hasattr(request.user, 'customuser'):
+        return context
+
+    # Add organization-specific template settings if user is an organization
+    if request.user.customuser.role == 'O':
+        context.update({
+            'extends_base': base_template,
+            'is_org': True
+        })
+
+    return context
+
+# Basic Views
+def datenschutz(request):
+    """Render the privacy policy page."""
+    return render(request, 'datenschutz.html')
+
 @login_required
+@required_role('')
+def serve_logo(request, org_id):
+    """
+    Serve organization logo images.
+    
+    Args:
+        request: The HTTP request object
+        image_name (str): Name of the logo image file
+        
+    Returns:
+        HttpResponse: Response containing the logo image
+        HttpResponseNotFound: If the image doesn't exist
+    """
+
+    org_exists = Organisation.objects.filter(id=org_id).exists()
+    if not org_exists:
+        return HttpResponseNotFound('Organisation nicht gefunden')
+
+    org = Organisation.objects.get(id=org_id)
+
+    if not request.user.org == org:
+        return HttpResponseNotAllowed('Nicht erlaubt')
+    
+    if not org.logo:
+        return HttpResponseNotFound('Logo nicht gefunden')
+
+    image_path = org.logo.path
+
+    if not os.path.exists(image_path):
+        return HttpResponseNotFound('Bild nicht gefunden')
+
+    with open(image_path, 'rb') as img_file:
+        content_type = 'image/jpeg'
+        response = HttpResponse(img_file.read(), content_type=content_type)
+        response['Content-Disposition'] = f'inline; filename="{org.logo.name}"'
+
+    return response
+
+@login_required
+@required_role('')
+def serve_bilder(request, image_id):
+    """
+    Serve gallery images.
+    
+    Args:
+        request: The HTTP request object
+        image_id (int): ID of the gallery image
+        
+    Returns:
+        HttpResponse: Response containing the image
+        HttpResponseNotFound: If the image doesn't exist
+        HttpResponseNotAllowed: If user doesn't have permission
+    """
+    bild_exists = BilderGallery.objects.filter(id=image_id).exists()
+    if not bild_exists:
+        return HttpResponseNotFound('Bild nicht gefunden')
+
+    bild = BilderGallery.objects.get(id=image_id)
+    if not bild.org == request.user.org:
+        return HttpResponseNotAllowed('Nicht erlaubt')
+    
+    return get_bild(bild.image.path, bild.bilder.titel)
+
+@login_required
+@required_role('')
+def serve_small_bilder(request, image_id):
+    """
+    Serve small (thumbnail) versions of gallery images.
+    
+    Args:
+        request: The HTTP request object
+        image_id (int): ID of the gallery image
+        
+    Returns:
+        HttpResponse: Response containing the small image
+        HttpResponseNotFound: If the image doesn't exist
+        HttpResponseNotAllowed: If user doesn't have permission
+    """
+    bild_exists = BilderGallery.objects.filter(id=image_id).exists()
+    if not bild_exists:
+        return HttpResponseNotFound('Bild nicht gefunden')
+
+    bild = BilderGallery.objects.get(id=image_id)
+    if not bild.org == request.user.org:
+        return HttpResponseNotAllowed('Nicht erlaubt')
+
+    if not bild.small_image:
+        return serve_bilder(request, image_id)
+
+    return get_bild(bild.small_image.path, bild.bilder.titel)
+
+@login_required
+@required_role('')
+def serve_dokument(request, dokument_id):
+    """
+    Serve document files with proper content type handling.
+    
+    Args:
+        request: The HTTP request object
+        dokument_id (int): ID of the document
+        
+    Returns:
+        HttpResponse: Response containing the document
+        HttpResponseNotFound: If document doesn't exist
+        HttpResponseNotAllowed: If user doesn't have permission
+    """
+    img = request.GET.get('img', None)
+    download = request.GET.get('download', None)
+
+    dokument_exists = Dokument.objects.filter(id=dokument_id).exists()
+    if not dokument_exists:
+        return HttpResponseNotFound('Dokument nicht gefunden')
+
+    dokument = Dokument.objects.get(id=dokument_id)
+    if not dokument.org == request.user.org:
+        return HttpResponseNotAllowed('Nicht erlaubt')
+
+    doc_path = dokument.dokument.path
+    if not os.path.exists(doc_path):
+        return HttpResponseNotFound('Dokument nicht gefunden')
+
+    # Handle image documents
+    mimetype = get_mimetype(doc_path)
+    if mimetype and mimetype.startswith('image') and not download:
+        return get_bild(doc_path, dokument.dokument.name)
+
+    # Handle preview images
+    if img and not download:
+        img_path = dokument.get_preview_image()
+        if img_path:
+            return get_bild(img_path, img_path.split('/')[-1])
+
+    # Serve document as download
+    with open(doc_path, 'rb') as file:
+        response = HttpResponse(file.read(), content_type=mimetype or 'application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{dokument.dokument.name}"'
+        return response
+
+@login_required
+@required_role('')
 def bilder(request):
-    gallery_images = get_bilder(request)
+    gallery_images = get_bilder(request.user.org)
 
     context={'gallery_images': gallery_images}
 
-    context = checkForOrg(request, context)
+    context = check_organization_context(request, context)
 
     return render(request, 'bilder.html', context=context)
-
-
 
 @login_required
 @required_role('')
@@ -212,10 +347,9 @@ def bild(request):
         'form_errors': form_errors
     }
 
-    context = checkForOrg(request, context)
+    context = check_organization_context(request, context)
 
     return render(request, 'bild.html', context=context)
-
 
 @login_required
 @required_role('')
@@ -255,7 +389,6 @@ def remove_bild(request):
 
     return redirect('profil')
 
-
 @login_required
 @required_role('')
 def remove_bild_all(request):
@@ -281,8 +414,6 @@ def remove_bild_all(request):
     messages.success(request, 'Alle Bilder erfolgreich gelöscht')
     return redirect('profil')
 
-
-
 @login_required
 @required_role('')
 def dokumente(request, ordner_id=None):
@@ -302,11 +433,9 @@ def dokumente(request, ordner_id=None):
         'ordner_id': ordner_id
     }
 
-    context = checkForOrg(request, context)
+    context = check_organization_context(request, context)
 
     return render(request, 'dokumente.html', context=context)
-
-
 
 @login_required
 @required_role('')
@@ -349,7 +478,6 @@ def add_dokument(request):
 
     return redirect('dokumente', ordner_id=dokument.ordner.id)
 
-
 @login_required
 @required_role('')
 def add_ordner(request):
@@ -368,21 +496,6 @@ def add_ordner(request):
 
     return redirect('dokumente', ordner_id=ordner.id)
 
-
-def get_bild(image_path, image_name):
-    print('image_path:', image_path)
-    if not os.path.exists(image_path):
-        raise Http404("Image does not exist")
-
-    # Open the image file in binary mode
-    with open(image_path, 'rb') as img_file:
-        # Determine the content type (you might want to use a library to detect this)
-        content_type = 'image/jpeg'  # Change this if your images are in different formats
-        response = HttpResponse(img_file.read(), content_type=content_type)
-        response['Content-Disposition'] = f'inline; filename="{image_name}"'
-        return response
-
-
 @login_required
 @required_role('')
 def remove_dokument(request):
@@ -398,7 +511,6 @@ def remove_dokument(request):
             pass
 
     return redirect('dokumente')
-
 
 @login_required
 @required_role('')
@@ -417,8 +529,6 @@ def remove_ordner(request):
             pass
 
     return redirect('dokumente')
-
-
 
 @login_required
 @required_role('')
@@ -486,12 +596,11 @@ def view_profil(request, user_id=None):
             return redirect('profil')
 
     profil_users = ProfilUser.objects.filter(user=user)
-    gallery_images = get_bilder(request, user)
+    gallery_images = get_bilder(request.user.org, user)
 
     ampel_of_user = None
     if this_user:
         ampel_of_user = Ampel.objects.filter(freiwilliger__user=user).order_by('-date').first()
-
 
     profil_user_form = ProfilUserForm()
     if Freiwilliger.objects.filter(user=user).exists():
@@ -509,10 +618,9 @@ def view_profil(request, user_id=None):
         'gallery_images': gallery_images
     }
 
-    context = checkForOrg(request, context)
+    context = check_organization_context(request, context)
 
     return render(request, 'profil.html', context=context)
-
 
 @login_required
 @required_role('')
@@ -546,7 +654,7 @@ def feedback(request):
         'form': feedback_form,
         'feedback_email': feedback_email
     }
-    context = checkForOrg(request, context)
+    context = check_organization_context(request, context)
     return render(request, 'feedback.html', context=context)
 
 @login_required
@@ -601,5 +709,5 @@ def kalender(request):
     context = {
         'calendar_events': json.dumps(calendar_events)
     }
-    context = checkForOrg(request, context)
+    context = check_organization_context(request, context)
     return render(request, 'kalender.html', context=context)
