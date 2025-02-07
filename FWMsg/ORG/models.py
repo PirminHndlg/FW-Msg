@@ -68,9 +68,23 @@ class MailBenachrichtigungen(models.Model):
         return f'{self.organisation} - {self.betreff}'
 
 
+class JahrgangTyp(models.Model):
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50, verbose_name='Jahrgangstyp')
+
+    class Meta:
+        verbose_name = 'Jahrgangstyp'
+        verbose_name_plural = 'Jahrgangstypen'
+
+    def __str__(self):
+        return self.name
+    
+
 class Ordner(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     ordner_name = models.CharField(max_length=100)
+    typ = models.ForeignKey(JahrgangTyp, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Typ')
+
     def __str__(self):
         return self.ordner_name
 

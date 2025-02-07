@@ -22,12 +22,11 @@ from datetime import datetime
 import json
 import mimetypes
 import os
-import subprocess
 
 # Django imports
 from django.contrib import messages
-from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.http import (
@@ -48,10 +47,11 @@ from FW.models import (
     BilderGallery, 
     Freiwilliger, 
     ProfilUser, 
-    FreiwilligerAufgaben
+    FreiwilligerAufgaben,
+    Jahrgang
 )
 from Global.models import KalenderEvent, CustomUser
-from ORG.models import Dokument, Ordner, Organisation
+from ORG.models import Dokument, Ordner, Organisation, JahrgangTyp
 from ORG.views import base_template
 from FWMsg.celery import send_email_aufgaben_daily
 from FWMsg.decorators import required_role
@@ -417,10 +417,20 @@ def remove_bild_all(request):
 @login_required
 @required_role('')
 def dokumente(request, ordner_id=None):
-    ordners = Ordner.objects.filter(org=request.user.org).order_by('ordner_name')
-
     folder_structure = []
 
+    if request.user.customuser.role == 'F' and Freiwilliger.objects.filter(user=request.user).exists():
+        jahrgang_typ = Freiwilliger.objects.get(user=request.user).jahrgang.typ
+    elif request.COOKIES.get('selectedJahrgang') and Jahrgang.objects.filter(id=request.COOKIES.get('selectedJahrgang')).exists():
+        jahrgang_typ = Jahrgang.objects.get(id=request.COOKIES.get('selectedJahrgang')).typ
+    else:
+        jahrgang_typ = None
+    
+    if jahrgang_typ:
+        ordners = Ordner.objects.filter(org=request.user.org).filter(Q(typ=None) | Q(typ=jahrgang_typ)).order_by('ordner_name')
+    else:
+        ordners = Ordner.objects.filter(org=request.user.org).order_by('ordner_name')
+    
     for ordner in ordners:
         folder_structure.append({
             'ordner': ordner,
@@ -430,7 +440,8 @@ def dokumente(request, ordner_id=None):
     context = {
         'ordners': ordners,
         'folder_structure': folder_structure,
-        'ordner_id': ordner_id
+        'ordner_id': ordner_id,
+        'jahrgang_typen': JahrgangTyp.objects.all().order_by('name')
     }
 
     context = check_organization_context(request, context)
@@ -484,15 +495,31 @@ def add_ordner(request):
     if request.method == 'POST':
         ordner_id = request.POST.get('ordner_id')
         ordner_name = request.POST.get('ordner_name')
+        typ_id = request.POST.get('typ')
+        
+        # Get the JahrgangTyp instance if typ_id is provided
+        typ = None
+        if typ_id:
+            try:
+                typ = JahrgangTyp.objects.get(id=typ_id)
+            except JahrgangTyp.DoesNotExist:
+                messages.error(request, 'Ausgewählter Jahrgangstyp existiert nicht.')
+                return redirect('dokumente')
+
         if ordner_id and Ordner.objects.filter(id=ordner_id).exists():
             ordner = Ordner.objects.get(id=ordner_id)
             if ordner.org != request.user.org:
                 messages.error(request, 'Nicht erlaubt')
                 return redirect('dokumente')
             ordner.ordner_name = ordner_name
+            ordner.typ = typ
             ordner.save()
         else:
-            ordner = Ordner.objects.create(org=request.user.org, ordner_name=ordner_name)
+            ordner = Ordner.objects.create(
+                org=request.user.org, 
+                ordner_name=ordner_name,
+                typ=typ
+            )
 
     return redirect('dokumente', ordner_id=ordner.id)
 
