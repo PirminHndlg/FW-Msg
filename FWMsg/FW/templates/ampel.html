@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load i18n %}
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/ampel.css' %}">
 {% endblock %}
 
 {% block headline %}
-    Ampel
+    {% trans "Ampel" %}
 {% endblock %}
 
 {% block content %}
@@ -14,19 +15,19 @@
     {% csrf_token %}
     <div class="card rounded-4 mb-4">
         <div class="card-header">
-            <h3 class="card-title mb-0">Ampelmeldung</h3>
+            <h3 class="card-title mb-0">{% trans "Ampelmeldung" %}</h3>
         </div>
         <div class="card-body">
-            <p class="text-center mb-3">Bitte wähle eine Farbe aus, die deinen aktuellen Status am besten beschreibt:</p>
+            <p class="text-center mb-3">{% trans "Bitte wähle eine Farbe aus, die deinen aktuellen Status am besten beschreibt" %}:</p>
             
             {# Traffic Light Selector Component #}
             {% include "components/ampel_selector.html" %}
 
             {# Comment Section #}
             <div class="mb-4">
-                <h4 class="mb-3">Anmerkungen</h4>
+                <h4 class="mb-3">{% trans "Anmerkungen" %}</h4>
                 <textarea id="ampel_comment" name="ampel_comment" class="form-control" rows="4" 
-                          placeholder="Deine Anmerkungen hier..."></textarea>
+                          placeholder="{% trans 'Deine Anmerkungen hier...' %}"></textarea>
             </div>
 
             {# Footer with Status and Buttons #}
@@ -37,10 +38,10 @@
                 {# Action Buttons #}
                 <div>
                     <button type="button" class="btn btn-secondary me-2" onclick="window.location.href = '{% url 'fw_home' %}'">
-                        <i class="bi bi-arrow-left me-2"></i>Zurück
+                        <i class="bi bi-arrow-left me-2"></i>{% trans "Zurück" %}
                     </button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-send me-2"></i>Abschicken
+                        <i class="bi bi-send me-2"></i>{% trans "Abschicken" %}
                     </button>
                 </div>
             </div>
@@ -54,7 +55,7 @@
         
         const ampelInput = document.querySelector('input[name="ampel"]');
         if (!ampelInput.value) {
-            alert('Bitte wählen Sie eine Farbe aus');
+            alert('{% trans "Bitte wählen Sie eine Farbe aus" %}');
             return;
         }
 

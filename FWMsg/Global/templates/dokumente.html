@@ -2,7 +2,7 @@
 {% load static %}
 {% load base_filter %}
 {% load dokument_filter %}
-
+{% load i18n %}
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/dokumente.css' %}">
     <script src="{% static 'js/dokumente.js' %}"></script>
@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block headline %}
-    Dokumente
+    {% trans "Dokumente" %}
 {% endblock %}
 
 {% block content %}
@@ -45,7 +45,7 @@
                                         {% if structure.dokumente|length > 0 %}
                                         
                                         data-bs-toggle="tooltip"
-                                        data-bs-title="Ordner nicht leer"
+                                        data-bs-title="{% trans 'Ordner nicht leer' %}"
                                         {% endif %}>
                                     <i class="bi bi-trash"></i>
                                 </button>
@@ -58,7 +58,7 @@
                             <button class="btn btn-primary btn-sm rounded-4" 
                                     onclick="addDokument({{ structure.ordner.id }})" 
                                     data-token='{% csrf_token %}'>
-                                <i class="bi bi-plus-lg"></i> Neues Dokument
+                                <i class="bi bi-plus-lg"></i> {% trans "Neues Dokument" %}
                             </button>
                         </div>
                         <div class="row g-3">
@@ -127,7 +127,7 @@
                                                 <span class="description-preview">{{ dokument.beschreibung|truncatewords:10 }}</span>
                                                 <span class="description-full" style="display:none">{{ dokument.beschreibung }}</span>
                                                 {% if dokument.beschreibung|wordcount > 10 %}
-                                                    <a href="#" class="show-more" onclick="event.preventDefault(); toggleDescription(this);">mehr</a>
+                                                    <a href="#" class="show-more" onclick="event.preventDefault(); toggleDescription(this);">{% trans "mehr" %}</a>
                                                 {% endif %}
 
                                                 {% if dokument.link %}
@@ -141,7 +141,7 @@
                                                     <a href="{% url 'serve_dokument' dokument.id %}?download=true" 
                                                     class="btn btn-outline-primary btn-sm rounded-4 text-decoration-none"
                                                     download>
-                                                        <i class="bi bi-download"></i> Download
+                                                        <i class="bi bi-download"></i> {% trans "Download" %}
                                                     </a>
                                                 </div>
                                                 {% endif %}
@@ -174,7 +174,7 @@
     <div class="card rounded-4">
         <div class="card-body">
             <button class="btn btn-primary w-100 rounded-4" onclick="addOrdner()">
-                <i class="bi bi-folder-plus me-2"></i> Neuer Ordner
+                <i class="bi bi-folder-plus me-2"></i> {% trans "Neuer Ordner" %}
             </button>
         </div>
     </div>

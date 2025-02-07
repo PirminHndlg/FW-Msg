@@ -1,18 +1,19 @@
 {% load base_filter %}
+{% load i18n %}
 
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
     {% if task.aufgabe.beschreibung %}
     <div class="mb-3">
-        <label class="form-label">Beschreibung:</label>
+        <label class="form-label">{% trans "Beschreibung" %}:</label>
         <p class="form-text">{{ task.aufgabe.beschreibung }}</p>
     </div>
     {% endif %}
 
     {% if task.aufgabe.mitupload %}
     <div class="mb-3">
-        <label class="form-label">Datei hochladen</label>
+        <label class="form-label">{% trans "Datei hochladen" %}</label>
         {% if task.file %}
         <div id="file-name" class="form-control bg-light">
             <i class="bi bi-file-earmark me-2"></i>{{ task.file.name|cut:"uploads/" }}
@@ -25,43 +26,43 @@
     {% endif %}
 
     <div class="mb-3">
-        <label class="form-label">Fällig:</label>
+        <label class="form-label">{% trans "Fällig" %}:</label>
         <p class="form-text">{{ task.faellig|date:"d.m.Y" }}</p>
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Status:</label>
+        <label class="form-label">{% trans "Status" %}:</label>
         <p class="form-text">
-            Erledigt: {% if task.erledigt %}
-            <span class="badge bg-success">Ja</span>
+            {% trans "Erledigt" %}: {% if task.erledigt %}
+            <span class="badge bg-success">{% trans "Ja" %}</span>
             {% else %}
-            <span class="badge bg-danger">Nein</span>
+            <span class="badge bg-danger">{% trans "Nein" %}</span>
             {% endif %}
             <br>
-            Pending: {% if task.pending %}
-            <span class="badge bg-warning">Ja</span>
+            {% trans "Pending" %}: {% if task.pending %}
+            <span class="badge bg-warning">{% trans "Ja" %}</span>
             {% else %}
-            <span class="badge bg-info">Nein</span>
+            <span class="badge bg-info">{% trans "Nein" %}</span>
             {% endif %}
         </p>
     </div>
 
     <div class="d-flex gap-2">
-        <a href="{% url 'aufgaben' %}" class="btn text-black border border-2">Zurück</a>
+        <a href="{% url 'aufgaben' %}" class="btn text-black border border-2">{% trans "Zurück" %}</a>
         {% if task.pending %}
         <button type="submit" name="action" value="unpend" class="btn btn-warning">
-            Als nicht erledigt markieren
+            {% trans "Als nicht erledigt markieren" %}
         </button>
         {% elif task.erledigt %}
         {% with org=user|get_org %}
-        <a href="mailto:{{ org.email }}?subject=Problem mit Aufgabe: {{ task.aufgabe.name }}&body=Ich habe ein Problem mit der Aufgabe '{{ task.aufgabe.name }}' vom {{ task.faellig|date:'d.m.Y' }}.%0D%0A%0D%0AAufgabendetails:%0D%0A%0D%0ABeschreibung: {{ task.aufgabe.beschreibung }}%0D%0AFällig am: {{ task.faellig|date:'d.m.Y' }}%0D%0AErledigt am: {{ task.erledigt_am|date:'d.m.Y' }}%0D%0AAufgabenprofil: {{ task.aufgabe.aufgabenprofil }}%0D%0AUpload erforderlich: {% if task.aufgabe.mitupload %}Ja{% else %}Nein{% endif %}"
+        <a href="mailto:{{ org.email }}?subject={% trans 'Problem mit Aufgabe' %}: {{ task.aufgabe.name }}&body={% blocktrans with name=task.aufgabe.name date=task.faellig|date:'d.m.Y' desc=task.aufgabe.beschreibung done_date=task.erledigt_am|date:'d.m.Y' profile=task.aufgabe.aufgabenprofil upload=task.aufgabe.mitupload|yesno:'Ja,Nein' %}Ich habe ein Problem mit der Aufgabe '{{ name }}' vom {{ date }}.%0D%0A%0D%0AAufgabendetails:%0D%0A%0D%0ABeschreibung: {{ desc }}%0D%0AFällig am: {{ date }}%0D%0AErledigt am: {{ done_date }}%0D%0AAufgabenprofil: {{ profile }}%0D%0AUpload erforderlich: {{ upload }}{% endblocktrans %}"
             class="btn btn-danger text-black">
-            <i class="bi bi-exclamation-triangle me-1"></i>Problem melden
+            <i class="bi bi-exclamation-triangle me-1"></i>{% trans "Problem melden" %}
         </a>
         {% endwith %}
         {% else %}
         <button type="submit" name="action" value="pending" class="btn btn-primary">
-            Erledigt
+            {% trans "Erledigt" %}
         </button>
         {% endif %}
     </div>

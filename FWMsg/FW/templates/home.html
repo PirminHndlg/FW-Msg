@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load aufgaben_filter %}
+{% load i18n %}
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
@@ -8,7 +9,7 @@
 {% endblock %}
 
 {% block headline %}
-    FW Msg
+    {% trans "FW Msg" %}
 {% endblock %}
 
 {% block content %}
@@ -16,7 +17,7 @@
     <div class="card rounded-4 mb-2">
         <div class="card-header">
             <a href="{% url 'aufgaben' %}" class="text-decoration-none text-body">
-                <h3 class="mb-0">Aufgaben ⟩</h3>
+                <h3 class="mb-0">{% trans "Aufgaben" %} ⟩</h3>
             </a>
         </div>
         <div class="card-body">
@@ -26,13 +27,13 @@
             {% include "components/task_grid.html" with tasks=aufgaben.offen %}
             {% else %}
                 <div class="alert alert-success mb-0">
-                    <i class="bi bi-check-circle me-2"></i>Keine offenen Aufgaben!
+                    <i class="bi bi-check-circle me-2"></i>{% trans "Keine offenen Aufgaben!" %}
                 </div>
             {% endif %}
 
             <div class="text-center mt-3">
                 <a href="{% url 'aufgaben' %}" class="btn btn-secondary btn-sm text-white">
-                    Alle Aufgaben anzeigen
+                    {% trans "Alle Aufgaben anzeigen" %}
                 </a>
             </div>
         </div>
@@ -42,7 +43,7 @@
     <div class="card rounded-4 mb-2">
         <div class="card-header">
             <a href="{% url 'bilder' %}" class="text-decoration-none text-body">
-                <h3 class="mb-0">Neue Bilder ⟩</h3>
+                <h3 class="mb-0">{% trans "Neue Bilder" %} ⟩</h3>
             </a>
         </div>
         <div class="card-body">
@@ -53,7 +54,7 @@
             {% if bilder %}
                 <div class="text-center mt-3">
                     <a href="{% url 'bilder' %}" class="btn btn-secondary btn-sm text-white">
-                        Alle Bilder anzeigen
+                        {% trans "Alle Bilder anzeigen" %}
                     </a>
                 </div>
             {% endif %}
@@ -63,13 +64,13 @@
     {# Posts Section #}
     <div class="card rounded-4 mb-2">
         <div class="card-header">
-            <h3 class="mb-0">Neue Posts ⟩</h3>
+            <h3 class="mb-0">{% trans "Neue Posts" %} ⟩</h3>
         </div>
         <div class="card-body">
             {% if posts %}
                 {% include "components/post_list.html" with posts=posts %}
             {% else %}
-                <p class="card-text">Noch keine Posts</p>
+                <p class="card-text">{% trans "Noch keine Posts" %}</p>
             {% endif %}
         </div>
     </div>

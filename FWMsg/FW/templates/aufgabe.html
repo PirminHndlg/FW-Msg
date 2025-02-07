@@ -1,13 +1,14 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load base_filter %}
+{% load i18n %}
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/aufgabe.css' %}">
 {% endblock %}
 
 {% block headline %}
-Aufgabe
+{% trans "Aufgabe" %}
 {% endblock %}
 
 {% block content %}
