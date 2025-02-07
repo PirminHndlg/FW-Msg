@@ -24,8 +24,14 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         eventDidMount: function(info) {
             if (typeof bootstrap !== 'undefined') {
+                let datetime_format = {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'}
+                // If event has no time component, only show the date
+                if (info.event.start && info.event.start.getHours() === 0 && info.event.start.getMinutes() === 0) {
+                    datetime_format = {day: '2-digit', month: '2-digit', year: 'numeric'};
+                }
+                
                 new bootstrap.Tooltip(info.el, {
-                    title: info.event.title,
+                    title: info.event.title + ' ' + info.event.start.toLocaleString([], datetime_format) + ' ' + (info.event.end ? info.event.end.toLocaleString([], datetime_format) : ''),
                     placement: 'top',
                     trigger: 'hover',
                     container: 'body'

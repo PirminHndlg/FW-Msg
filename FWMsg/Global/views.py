@@ -590,8 +590,8 @@ def kalendar(request):
     for kalender_event in kalender_events:
         calendar_events.append({
             'title': kalender_event.title,
-            'start': kalender_event.start.strftime('%Y-%m-%d') if kalender_event.start else '',
-            'end': kalender_event.end.strftime('%Y-%m-%d') if kalender_event.end else '',
+            'start': kalender_event.start.strftime('%Y-%m-%d %H:%M') if kalender_event.start else '',
+            'end': kalender_event.end.strftime('%Y-%m-%d %H:%M') if kalender_event.end else '',
             'url': kalender_event.description,
             'backgroundColor': '#000',
             'borderColor': '#000',
