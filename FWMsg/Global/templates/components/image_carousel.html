@@ -1,0 +1,37 @@
+{% load i18n %}
+
+<div id="carousel-{{ bild.id }}" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner {% if not bild.beschreibung %}rounded-bottom-4{% endif %}">
+        {% for img in bilder_gallery %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <div style="aspect-ratio: 1/1;">
+                    <img src="{% if img.small_image %}{% url 'serve_small_bilder' img.id %}{% else %}{% url 'serve_bilder' img.id %}{% endif %}"
+                        alt="{% trans 'Bild' %}"
+                        class="w-100 h-100"
+                        style="object-fit: cover;">
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% if bilder_gallery|length > 1 %}
+        <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ bild.id }}" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">{% trans "Vorheriges" %}</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ bild.id }}" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">{% trans "Nächstes" %}</span>
+        </button>
+        <div class="carousel-indicators">
+            {% for img in bilder_gallery %}
+                <button type="button" 
+                        data-bs-target="#carousel-{{ bild.id }}"
+                        data-bs-slide-to="{{ forloop.counter0 }}"
+                        {% if forloop.first %}class="active"{% endif %}
+                        aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
+                        aria-label="{% trans 'Slide' %} {{ forloop.counter }}">
+                </button>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div> 

@@ -1,0 +1,22 @@
+{% load i18n %}
+
+<div class="d-flex align-items-center gap-2 justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+        <h3 class="card-title mb-0">{% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</h3>
+        {% if this_user %}
+            {% if ampel_of_user %}
+            <a href="{% url 'ampel' %}" class="text-decoration-none">
+                <div class="d-flex align-items-center gap-1">
+                    <small class="text-muted d-flex align-items-center gap-1">{% trans "Ampel" %}</small>
+                    <span class="badge rounded-circle {% if ampel_of_user.status == 'G' %}bg-success{% elif ampel_of_user.status == 'Y' %}bg-warning{% elif ampel_of_user.status == 'R' %}bg-danger{% endif %}" style="width: 15px; height: 15px; display: inline-block;"></span>
+                </div>
+            </a>
+            {% endif %}
+        {% endif %}
+    </div>
+    {% if this_user %}
+    <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">
+        <i class="bi bi-box-arrow-right me-1"></i>{% trans "Logout" %}
+    </a>
+    {% endif %}
+</div> 

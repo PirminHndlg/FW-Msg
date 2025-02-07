@@ -1,23 +1,70 @@
 {% extends extends_base|default:'base.html' %}
 {% load static %}
+{% load i18n %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/bilder.css' %}">
+{% endblock %}
 
 {% block title %}
-Bilder
+    {% trans "Bilder" %}
 {% endblock %}
 
 {% block content %}
-<div class="card rounded-4 mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="mb-0">Bilder</h3>
-        <a href="{% url 'bild' %}" class="btn btn-sm btn-primary text-white">
-            <i class="bi bi-plus-circle me-2"></i>Bilder hinzufügen
-        </a>
-    </div>
+    {% include "components/gallery_grid.html" %}
+{% endblock %}
 
-    <div class="card-body">
-        <div class="row g-4">
-            {% include 'bilder_show.html' with gallery_images=gallery_images %}
-        </div>
-    </div>
-</div>
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+
+    function showDeleteConfirmation(bildId, imageUrl, titel) {
+        createModal('deleteModal', 
+            '{% trans "Bild löschen" %}', 
+            `<p>{% trans "Möchten Sie dieses Bild wirklich löschen?" %}</p>
+            <div class="text-center">
+                <img src="${imageUrl}" alt="${titel}" class="img-fluid rounded" style="max-height: 200px;">
+            </div>`,
+            `<a href="{% url 'remove_bild' %}?galleryImageId=${bildId}" class="btn btn-danger">{% trans "Löschen" %}</a>`
+        );
+    }
+
+    function showDeleteConfirmationAll(bildId) {
+        createModal('deleteAllModal', 
+            '{% trans "Alle Bilder löschen" %}',
+            '<p>{% trans "Möchten Sie wirklich alle Bilder dieser Galerie löschen?" %}</p>',
+            `<a href="{% url 'remove_bild_all' %}?bild_id=${bildId}" class="btn btn-danger">{% trans "Alle löschen" %}</a>`
+        );
+    }
+
+    function createModal(id, title, body, actionButton) {
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.id = id;
+        modal.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">${title}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">${body}</div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
+                        ${actionButton}
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+        modal.addEventListener('hidden.bs.modal', () => modal.remove());
+    }
+</script>
 {% endblock %}

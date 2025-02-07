@@ -3,7 +3,7 @@
 <div class="card rounded-4 mb-2">
     <div class="card-header bg-light rounded-4 z-1">
         <div class="d-flex justify-content-between align-items-center">
-            <a href="{% url 'kalendar' %}" class="text-decoration-none text-body">
+            <a href="{% url 'kalender' %}" class="text-decoration-none text-body">
                 <h3 class="card-title mb-0">{{ title|default:"Kalender" }}</h3>
             </a>
             {% if show_view_toggle %}
@@ -43,5 +43,5 @@
         dynamicHeight: {% if dynamic_height %}true{% else %}false{% endif %}
     };
 </script>
-<script src="{% static 'js/kalendar.js' %}"></script>
+<script src="{% static 'js/kalender.js' %}"></script>
 {% endblock %} 

@@ -12,241 +12,30 @@
     {% trans "Profil" %}
 {% endblock %}
 
-
 {% block content %}
     {# Profile Card #}
     <div class="card rounded-4 mb-2">
-        <div class="card-header d-flex align-items-center gap-2 justify-content-between">
-            <div class="d-flex align-items-center gap-2">
-                <h3 class="card-title mb-0">{% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</h3>
-                {% if this_user %}
-                    {% if ampel_of_user %}
-                    <a href="{% url 'ampel' %}" class="text-decoration-none">
-                        <div class="d-flex align-items-center gap-1">
-                            <small class="text-muted d-flex align-items-center gap-1">{% trans "Ampel" %}</small>
-                            <span class="badge rounded-circle {% if ampel_of_user.status == 'G' %}bg-success{% elif ampel_of_user.status == 'Y' %}bg-warning{% elif ampel_of_user.status == 'R' %}bg-danger{% endif %}" style="width: 15px; height: 15px; display: inline-block;"></span>
-                        </div>
-                    </a>
-                    {% endif %}
-                {% endif %}
-            </div>
-            {% if this_user %}
-            <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">
-                <i class="bi bi-box-arrow-right me-1"></i>{% trans "Logout" %}
-            </a>
-            {% endif %}
+        <div class="card-header">
+            {% include "components/profile_header.html" %}
         </div>
         <div class="card-body d-flex flex-md-row flex-column row">
             {# Profile Image Section #}
             <div class="col-sm-4 mb-2">
-                <div class="text-center">
-                    <div class="d-flex flex-column align-items-center">
-                        <div class="position-relative">
-                            <img src="{% url 'serve_profil_picture' user.id %}" 
-                                    alt="{% trans 'Profilbild' %}" 
-                                    class="img-fluid rounded-circle mb-3" 
-                                    style="max-width: 250px; max-height: 250px;">
-                            {% if this_user %}
-                            <div class="position-absolute bottom-0 end-0 mb-3 me-2">
-                                <button type="button" class="btn btn-light btn-sm rounded-circle" data-bs-toggle="modal" data-bs-target="#profilPictureModal">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% if freiwilliger %}
-                            {% if freiwilliger.einsatzland %}
-                            <a {% if this_user %}href="{% url 'laenderinfo' %}"{% endif %} class="text-decoration-none d-flex flex-column align-items-center">
-                                <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }} mb-2" style="width: 100px; height: 50px;"></span>
-                                <span class="small text-muted">{{ freiwilliger.einsatzland.name|default:"" }}</span>
-                                <span class="small text-muted">{{ freiwilliger.einsatzstelle|default:"" }}</span>
-                            </a>
-                            {% else %}
-                                <i class="bi bi-globe mb-2" style="font-size: 3rem; color: var(--bs-primary);"></i>
-                            {% endif %}
-                        {% endif %}
-                    </div>
-                </div>
+                {% include "components/profile_image.html" %}
             </div>
 
             {# Profile Details Section #}
             <div class="col-sm-8 mb-2">
-                {# Basic Info #}
-                <div class="mb-3">
-                    {% if freiwilliger %}
-                        {% if this_user %}
-                            <div class="d-flex justify-content-between gap-2 mb-2 align-items-center">
-                                <p class="mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ freiwilliger.geburtsdatum|date:"d.m.Y" }}</p>
-                                <a href="mailto:{{ user.org.email|default:'' }}" class="btn btn-sm"><i class="bi bi-envelope-fill me-1"></i>{% trans "Änderungen melden" %}</a>
-                            </div>
-                            <p class="mb-2"><strong>{% trans "Telefon" %}:</strong> {{ freiwilliger.phone|default:"" }}</p>
-                            <p class="mb-2"><strong>{% trans "Telefon Einsatzland" %}:</strong> {{ freiwilliger.phone_einsatzland|default:"" }}</p>
-                            <p class="mb-2"><strong>{% trans "Email" %}:</strong> {{ freiwilliger.email|default:"" }}</p>
-                        {% else %}
-                            <p class="mb-2 mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ freiwilliger.geburtsdatum|date:"d.m.Y" }}</p>
-                        {% endif %}
-                    {% endif %}
-
-                </div>
-
-                {# Profile Attributes #}
-                <div class="mb-3">
-                    {% for profil in profil_users %}
-                        <div class="d-flex align-items-center mb-2 profil-item" data-id="{{ profil.id }}">
-                            <div class="view-mode" style="display: block">
-                                <div class="d-flex align-items-center">
-                                    <span class="me-2"><strong>{{ profil.attribut }}</strong>: {{ profil.value }}</span>
-                                    <a class="rm_btn btn btn-sm btn-danger" style="display: none" href="{% url 'remove_profil_attribut' profil.id %}">{% trans "Entfernen" %}</a>
-                                </div>
-                            </div>
-                            <div class="edit-mode" style="display: none">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" value="{{ profil.attribut }}" name="attribut_{{ profil.id }}">
-                                    <input type="text" class="form-control" value="{{ profil.value }}" name="value_{{ profil.id }}">
-                                    <button class="btn btn-primary save-btn" type="button">{% trans "Speichern" %}</button>
-                                    <a class="rm_btn btn btn-danger" href="{% url 'remove_profil_attribut' profil.id %}">{% trans "Entfernen" %}</a>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-
-                {# Profile Edit Controls #}
-                {% if this_user %}
-                    <div id="form_div" class="mb-3" style="display: none">
-                        <form method="post">
-                            {% csrf_token %}
-                            <div class="input-group mb-2">
-                                {{ profil_user_form.attribut|add_class:"form-control me-2" }}
-                                {{ profil_user_form.value|add_class:"form-control" }}
-                            </div>
-                            <button type="submit" class="btn btn-primary">{% trans "Speichern" %}</button>
-                        </form>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <button id="add_btn" class="btn btn-primary" onclick="toggleFormVisibility(true)">
-                            {% trans "Hinzufügen" %}
-                        </button>
-                        <button id="edit_btn" class="btn btn-secondary" onclick="toggleEditMode(true)">
-                            {% trans "Bearbeiten" %}
-                        </button>
-                        <button id="cancel_edit" class="btn btn-danger" style="display:none" onclick="cancel_edit(this)">
-                            {% trans "Abbrechen" %}
-                        </button>
-                    </div>
-                {% endif %}
+                {% include "components/profile_details.html" %}
             </div>
         </div>
     </div>
 
-    {# Image Gallery Card #}
-    <div class="card rounded-4 mb-2">
-        <div class="card-header mb-2">
-            <div class="d-flex align-items-center gap-2">
-                <h3 class="card-title mb-0">{% trans "Bilder" %}</h3>
-                {% if this_user %}
-                <a href="{% url 'bild' %}" class="link-primary">
-                    <i class="bi bi-plus-circle"></i>
-                    {% trans "Hinzufügen" %}
-                </a>
-                {% endif %}
-            </div>
-        </div>
-
-
-        <div class="card-body">
-            <div class="row g-4">
-                {% include 'bilder_show.html' with gallery_images=gallery_images %}
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Profile Management Functions
-        function toggleFormVisibility(show) {
-            document.getElementById('form_div').style.display = show ? 'block' : 'none';
-            document.getElementById('cancel_edit').style.display = show ? 'block' : 'none';
-            document.getElementById('add_btn').style.display = show ? 'none' : 'block';
-            document.getElementById('edit_btn').style.display = show ? 'none' : 'block';
-        }
-
-        function toggleEditMode(show) {
-            Array.from(document.getElementsByClassName('rm_btn')).forEach(e => e.style.display = show ? 'block' : 'none');
-            document.getElementById('cancel_edit').style.display = show ? 'block' : 'none';
-            document.getElementById('edit_btn').style.display = show ? 'none' : 'block';
-            document.getElementById('add_btn').style.display = show ? 'none' : 'block';
-        }
-
-        function cancel_edit(btn) {
-            toggleEditMode(false);
-            toggleFormVisibility(false);
-        }
-
-        // Image Gallery Functions
-        function showFullscreen(img) {
-            document.getElementById('fullscreen-image').src = img.getAttribute('data-large');
-            document.getElementById('fullscreen-container').classList.remove('d-none');
-            document.addEventListener('keydown', handleEscKey);
-        }
-        
-        function hideFullscreen() {
-            document.getElementById('fullscreen-container').classList.add('d-none');
-            document.removeEventListener('keydown', handleEscKey);
-        }
-
-        function handleEscKey(event) {
-            if (event.key === 'Escape') {
-                hideFullscreen();
-            }
-        }
-
-        function showDeleteConfirmation(bildId, imageUrl, titel) {
-            createModal('deleteModal', 
-                '{% trans "Bild löschen" %}', 
-                `<p>{% trans "Möchten Sie dieses Bild wirklich löschen?" %}</p>
-                <div class="text-center">
-                    <img src="${imageUrl}" alt="${titel}" class="img-fluid rounded" style="max-height: 200px;">
-                </div>`,
-                `<a href="{% url 'remove_bild' %}?galleryImageId=${bildId}" class="btn btn-danger">{% trans "Löschen" %}</a>`
-            );
-        }
-
-        function showDeleteConfirmationAll(bildId) {
-            createModal('deleteAllModal', 
-                '{% trans "Alle Bilder löschen" %}',
-                '<p>{% trans "Möchten Sie wirklich alle Bilder dieser Galerie löschen?" %}</p>',
-                `<a href="{% url 'remove_bild_all' %}?bild_id=${bildId}" class="btn btn-danger">{% trans "Alle löschen" %}</a>`
-            );
-        }
-
-        function createModal(id, title, body, actionButton) {
-            const modal = document.createElement('div');
-            modal.className = 'modal fade';
-            modal.id = id;
-            modal.innerHTML = `
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">${title}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">${body}</div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
-                            ${actionButton}
-                        </div>
-                    </div>
-                </div>`;
-            document.body.appendChild(modal);
-            const bsModal = new bootstrap.Modal(modal);
-            bsModal.show();
-            modal.addEventListener('hidden.bs.modal', () => modal.remove());
-        }
-    </script>
+    {# Image Gallery Section #}
+    {% include "components/profile_gallery.html" %}
 
     {% if this_user %}
-    <!-- Profile Picture Upload Modal -->
+    {# Profile Picture Upload Modal #}
     <div class="modal fade" id="profilPictureModal" tabindex="-1" aria-labelledby="profilPictureModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -271,4 +60,89 @@
         </div>
     </div>
     {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Profile Management Functions
+    function toggleFormVisibility(show) {
+        document.getElementById('form_div').style.display = show ? 'block' : 'none';
+        document.getElementById('cancel_edit').style.display = show ? 'block' : 'none';
+        document.getElementById('add_btn').style.display = show ? 'none' : 'block';
+        document.getElementById('edit_btn').style.display = show ? 'none' : 'block';
+    }
+
+    function toggleEditMode(show) {
+        Array.from(document.getElementsByClassName('rm_btn')).forEach(e => e.style.display = show ? 'block' : 'none');
+        document.getElementById('cancel_edit').style.display = show ? 'block' : 'none';
+        document.getElementById('edit_btn').style.display = show ? 'none' : 'block';
+        document.getElementById('add_btn').style.display = show ? 'none' : 'block';
+    }
+
+    function cancel_edit(btn) {
+        toggleEditMode(false);
+        toggleFormVisibility(false);
+    }
+
+    // Image Gallery Functions
+    function showFullscreen(img) {
+        document.getElementById('fullscreen-image').src = img.getAttribute('data-large');
+        document.getElementById('fullscreen-container').classList.remove('d-none');
+        document.addEventListener('keydown', handleEscKey);
+    }
+    
+    function hideFullscreen() {
+        document.getElementById('fullscreen-container').classList.add('d-none');
+        document.removeEventListener('keydown', handleEscKey);
+    }
+
+    function handleEscKey(event) {
+        if (event.key === 'Escape') {
+            hideFullscreen();
+        }
+    }
+
+    function showDeleteConfirmation(bildId, imageUrl, titel) {
+        createModal('deleteModal', 
+            '{% trans "Bild löschen" %}', 
+            `<p>{% trans "Möchten Sie dieses Bild wirklich löschen?" %}</p>
+            <div class="text-center">
+                <img src="${imageUrl}" alt="${titel}" class="img-fluid rounded" style="max-height: 200px;">
+            </div>`,
+            `<a href="{% url 'remove_bild' %}?galleryImageId=${bildId}" class="btn btn-danger">{% trans "Löschen" %}</a>`
+        );
+    }
+
+    function showDeleteConfirmationAll(bildId) {
+        createModal('deleteAllModal', 
+            '{% trans "Alle Bilder löschen" %}',
+            '<p>{% trans "Möchten Sie wirklich alle Bilder dieser Galerie löschen?" %}</p>',
+            `<a href="{% url 'remove_bild_all' %}?bild_id=${bildId}" class="btn btn-danger">{% trans "Alle löschen" %}</a>`
+        );
+    }
+
+    function createModal(id, title, body, actionButton) {
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.id = id;
+        modal.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">${title}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">${body}</div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
+                        ${actionButton}
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+        modal.addEventListener('hidden.bs.modal', () => modal.remove());
+    }
+</script>
 {% endblock %}

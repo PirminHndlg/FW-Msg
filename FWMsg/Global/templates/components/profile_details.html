@@ -1,0 +1,67 @@
+{% load i18n %}
+{% load base_filter %}
+
+{# Basic Info #}
+<div class="mb-3">
+    {% if freiwilliger %}
+        {% if this_user %}
+            <div class="d-flex justify-content-between gap-2 mb-2 align-items-center">
+                <p class="mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ freiwilliger.geburtsdatum|date:"d.m.Y" }}</p>
+                <a href="mailto:{{ user.org.email|default:'' }}" class="btn btn-sm"><i class="bi bi-envelope-fill me-1"></i>{% trans "Änderungen melden" %}</a>
+            </div>
+            <p class="mb-2"><strong>{% trans "Telefon" %}:</strong> {{ freiwilliger.phone|default:"" }}</p>
+            <p class="mb-2"><strong>{% trans "Telefon Einsatzland" %}:</strong> {{ freiwilliger.phone_einsatzland|default:"" }}</p>
+            <p class="mb-2"><strong>{% trans "Email" %}:</strong> {{ freiwilliger.email|default:"" }}</p>
+        {% else %}
+            <p class="mb-2 mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ freiwilliger.geburtsdatum|date:"d.m.Y" }}</p>
+        {% endif %}
+    {% endif %}
+</div>
+
+{# Profile Attributes #}
+<div class="mb-3">
+    {% for profil in profil_users %}
+        <div class="d-flex align-items-center mb-2 profil-item" data-id="{{ profil.id }}">
+            <div class="view-mode" style="display: block">
+                <div class="d-flex align-items-center">
+                    <span class="me-2"><strong>{{ profil.attribut }}</strong>: {{ profil.value }}</span>
+                    <a class="rm_btn btn btn-sm btn-danger" style="display: none" href="{% url 'remove_profil_attribut' profil.id %}">{% trans "Entfernen" %}</a>
+                </div>
+            </div>
+            <div class="edit-mode" style="display: none">
+                <div class="input-group">
+                    <input type="text" class="form-control" value="{{ profil.attribut }}" name="attribut_{{ profil.id }}">
+                    <input type="text" class="form-control" value="{{ profil.value }}" name="value_{{ profil.id }}">
+                    <button class="btn btn-primary save-btn" type="button">{% trans "Speichern" %}</button>
+                    <a class="rm_btn btn btn-danger" href="{% url 'remove_profil_attribut' profil.id %}">{% trans "Entfernen" %}</a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{# Profile Edit Controls #}
+{% if this_user %}
+    <div id="form_div" class="mb-3" style="display: none">
+        <form method="post">
+            {% csrf_token %}
+            <div class="input-group mb-2">
+                {{ profil_user_form.attribut|add_class:"form-control me-2" }}
+                {{ profil_user_form.value|add_class:"form-control" }}
+            </div>
+            <button type="submit" class="btn btn-primary">{% trans "Speichern" %}</button>
+        </form>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button id="add_btn" class="btn btn-primary" onclick="toggleFormVisibility(true)">
+            {% trans "Hinzufügen" %}
+        </button>
+        <button id="edit_btn" class="btn btn-secondary" onclick="toggleEditMode(true)">
+            {% trans "Bearbeiten" %}
+        </button>
+        <button id="cancel_edit" class="btn btn-danger" style="display:none" onclick="cancel_edit(this)">
+            {% trans "Abbrechen" %}
+        </button>
+    </div>
+{% endif %} 
