@@ -190,6 +190,9 @@ def aufgabe(request, aufgabe_id):
                 freiwilliger_aufgabe.pending = False
                 freiwilliger_aufgabe.erledigt = True
 
+            from ORG.tasks import send_aufgabe_erledigt_email_task
+            send_aufgabe_erledigt_email_task.delay(freiwilliger_aufgabe.id)
+
             freiwilliger_aufgabe.erledigt_am = datetime.now()
 
 
