@@ -24,6 +24,19 @@ def send_register_email_task(customuser_id):
     return False
 
 @shared_task
+def send_aufgabe_erledigt_email_task(aufgabe_id):
+    from FW.models import FreiwilligerAufgaben
+    try:
+        aufgabe = FreiwilligerAufgaben.objects.get(id=aufgabe_id)
+        subject = f'{aufgabe.freiwilliger.user.first_name} {aufgabe.freiwilliger.user.last_name} hat die Aufgabe {aufgabe.aufgabe.name} erledigt'
+        org_email = aufgabe.freiwilliger.user.org.email
+        email_content = f'{aufgabe.freiwilliger.user.first_name} {aufgabe.freiwilliger.user.last_name} hat die Aufgabe {aufgabe.aufgabe.name} erledigt. <br><br>Aufgabe braucht Bestätigung: {aufgabe.aufgabe.requires_submission}<br>Aufgabe hat Upload: {aufgabe.aufgabe.mitupload}'
+        return send_mail_smtp(org_email, subject, email_content)
+    except Exception as e:
+        print(e)
+        return False
+
+@shared_task
 def send_feedback_email_task(feedback_id):
     from Global.models import Feedback
     import json
