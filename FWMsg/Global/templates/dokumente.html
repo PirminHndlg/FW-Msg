@@ -14,7 +14,8 @@
 
             function handleCollapseShow(collapse) {
                 // Scroll into view
-                collapse.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                let card_header = collapse.closest('.card').querySelector('.card-header');
+                card_header.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 
                 // Load lazy images
                 collapse.querySelectorAll('[data-preview-src]').forEach(img => {
