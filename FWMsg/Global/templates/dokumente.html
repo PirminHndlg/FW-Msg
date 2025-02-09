@@ -10,15 +10,24 @@
         let is_org = '{{ user.role|lower }}' == 'o';
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Handle folder collapse events
-            document.querySelectorAll('.accordion-collapse').forEach(collapse => {
+            const accordionCollapses = document.querySelectorAll('.accordion-collapse');
+
+            function handleCollapseShow(collapse) {
+                // Scroll into view
+                collapse.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Load lazy images
+                collapse.querySelectorAll('[data-preview-src]').forEach(img => {
+                    if (!img.src) {
+                        img.src = img.dataset.previewSrc;
+                    }
+                });
+            }
+
+            // Add event listeners to all collapses
+            accordionCollapses.forEach(collapse => {
                 collapse.addEventListener('show.bs.collapse', function() {
-                    // Load images when folder is expanded
-                    this.querySelectorAll('[data-preview-src]').forEach(img => {
-                        if (!img.src) {
-                            img.src = img.dataset.previewSrc;
-                        }
-                    });
+                    handleCollapseShow(this);
                 });
             });
         });
