@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-07 20:47+0100\n"
+"POT-Creation-Date: 2025-02-09 14:19+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -152,6 +152,7 @@ msgstr "Complete task"
 #: FW/templates/components/add_contact_form.html:23
 #: Global/templates/bilder.html:59
 #: Global/templates/components/profile_details.html:64
+#: Global/templates/dokumente.html:234 Global/templates/dokumente.html:271
 #: Global/templates/feedback.html:73 Global/templates/profil.html:55
 #: Global/templates/profil.html:137
 msgid "Abbrechen"
@@ -199,6 +200,10 @@ msgstr "Week"
 #: FW/templates/components/calendar.html:13
 msgid "Monat"
 msgstr "Month"
+
+#: FW/templates/components/calendar.html:74
+msgid "Heute"
+msgstr "Today"
 
 #: FW/templates/components/contact_card_simple.html:19
 msgid "Arbeit"
@@ -267,8 +272,8 @@ msgid "Jetzt erledigen"
 msgstr "Complete task"
 
 #: FW/templates/components/task_detail_form.html:9
-#: ORG/templates/list_aufgaben.html:48 ORG/templates/list_aufgaben.html:115
-#: ORG/templates/list_aufgaben.html:173
+#: Global/templates/dokumente.html:210 ORG/templates/list_aufgaben.html:48
+#: ORG/templates/list_aufgaben.html:115 ORG/templates/list_aufgaben.html:173
 msgid "Beschreibung"
 msgstr "Description"
 
@@ -378,43 +383,43 @@ msgstr ""
 "Emergency contacts can only be deleted or edited by the organization. Please "
 "contact"
 
-#: FW/views.py:247
+#: FW/views.py:250
 msgid "Reisehinweise"
 msgstr "Note for travel"
 
-#: FW/views.py:262
+#: FW/views.py:265
 msgid "Notfallnummern"
 msgstr "Emergency contacts"
 
-#: FW/views.py:272
+#: FW/views.py:275
 msgid "Botschaft"
 msgstr "Embassy"
 
-#: FW/views.py:280
+#: FW/views.py:283
 msgid "Konsulat"
 msgstr "Consulate"
 
-#: FW/views.py:291
+#: FW/views.py:294
 msgid "Arbeitsvorgesetzte:r"
 msgstr "Supervisor"
 
-#: FW/views.py:299
+#: FW/views.py:302
 msgid "Partnerorganisation"
 msgstr "Sending Organization"
 
-#: FW/views.py:307
+#: FW/views.py:310
 msgid "Mentor:in"
 msgstr "Mentor"
 
-#: FW/views.py:318
+#: FW/views.py:321
 msgid "Arztpraxen"
 msgstr "Doctors"
 
-#: FW/views.py:326
+#: FW/views.py:329
 msgid "Apotheken"
 msgstr "Pharmacies"
 
-#: FW/views.py:334
+#: FW/views.py:337
 msgid "Weitere Informationen"
 msgstr "General Information"
 
@@ -427,6 +432,7 @@ msgstr "Images"
 #: Global/templates/bild.html:67
 #: Global/templates/components/profile_details.html:35
 #: Global/templates/components/profile_details.html:52
+#: Global/templates/dokumente.html:235 Global/templates/dokumente.html:272
 #: Global/templates/profil.html:56
 msgid "Speichern"
 msgstr "Save"
@@ -530,13 +536,54 @@ msgstr "Logout"
 msgid "Ordner nicht leer"
 msgstr "Folder not empty"
 
-#: Global/templates/dokumente.html:61
+#: Global/templates/dokumente.html:61 Global/templates/dokumente.html:220
 msgid "Neues Dokument"
 msgstr "New Document"
 
-#: Global/templates/dokumente.html:177
+#: Global/templates/dokumente.html:177 Global/templates/dokumente.html:248
 msgid "Neuer Ordner"
 msgstr "New Folder"
+
+#: Global/templates/dokumente.html:188
+msgid "Neues Dokument hinzufügen"
+msgstr "New Document"
+
+#: Global/templates/dokumente.html:201
+msgid "Alle Felder sind optional und können weggelassen werden."
+msgstr "All fields are optional and can be omitted."
+
+#: Global/templates/dokumente.html:205
+msgid "Titel"
+msgstr "Title"
+
+#: Global/templates/dokumente.html:215
+msgid "Link"
+msgstr "Link"
+
+#: Global/templates/dokumente.html:220
+msgid "wird gelöscht, wenn ein neues Dokument hochgeladen wird."
+msgstr "will be deleted when a new document is uploaded."
+
+#: Global/templates/dokumente.html:224
+msgid "Dokument"
+msgstr "Documents"
+
+#: Global/templates/dokumente.html:229
+msgid "Freiwillige dürfen dieses Dokument bearbeiten/löschen"
+msgstr ""
+
+#: Global/templates/dokumente.html:256
+msgid "Ordnername"
+msgstr "Username"
+
+#: Global/templates/dokumente.html:261
+msgid "Anzeigen für"
+msgstr "View"
+
+#: Global/templates/dokumente.html:263
+#: ORG/templates/list_aufgaben_table.html:101
+msgid "Alle"
+msgstr "All"
 
 #: Global/templates/feedback.html:76
 msgid "Feedback senden"
@@ -779,10 +826,6 @@ msgstr "Complete task"
 msgid "Nicht zugewiesen"
 msgstr "Not assigned"
 
-#: ORG/templates/list_aufgaben_table.html:101
-msgid "Alle"
-msgstr "All"
-
 #: ORG/templates/list_aufgaben_table.html:122
 msgid "Allen Freiwilligen zuweisen"
 msgstr "Assign to all volunteers"
@@ -816,3 +859,4 @@ msgstr "Are you sure you want to delete this item?"
 #: ORG/templates/list_objects.html:129
 msgid "No items found"
 msgstr "No items found"
+
