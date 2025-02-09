@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+    return;
 
     console.log('window.calendarEvents', window.calendarEvents);
     console.log('document.getElementById', document.getElementById('calendar'));
@@ -12,21 +13,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const showViewToggle = config.showViewToggle || false;
     const dynamicHeight = config.dynamicHeight || false;
 
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
     function updateCalendarSize(view) {
         if (!dynamicHeight) return;
         
@@ -39,15 +25,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Get language from Django cookie or default to system default
-    const language = getCookie('django_language') || document.documentElement.lang || 'de';
-
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: config.initialView || 'dayGridMonth',
-        locale: language,
-        buttonText: {
-            today: window.translations?.today || 'Heute'
-        },
+        locale: 'de',
         headerToolbar: {
             left: isSmall ? '' : 'prev,next',
             center: isSmall ? '' : 'title',

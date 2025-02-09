@@ -7,12 +7,6 @@
             <a href="{% url 'kalender' %}" class="text-decoration-none text-body">
                 <h3 class="card-title mb-0">{% trans "Kalender" %}</h3>
             </a>
-            {% if show_view_toggle %}
-            <div class="btn-group">
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="weekViewBtn">{% trans "Woche" %}</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="monthViewBtn">{% trans "Monat" %}</button>
-            </div>
-            {% endif %}
         </div>
     </div>
     <div class="card-body">
@@ -20,22 +14,12 @@
     </div>
 </div>
 
-<style>
-    .calendar-container.small-view {
-        max-height: 100px;
-        transition: max-height 0.3s ease-in-out;
-    }
-    
-    .calendar-container.large-view {
-        max-height: none;
-        transition: max-height 0.3s ease-in-out;
-    }
-</style>
-
 {% block calendar_scripts %}
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
 <script>
     let calendarEvents = [];
+    let touchStartX = 0;
+    let touchEndX = 0;
 
     function getCookie(name) {
         let cookieValue = null;
@@ -68,7 +52,7 @@
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: '{{ initial_view|default:"dayGridMonth" }}',
                 events: calendarEvents,
-                height: {% if small_calendar %}100{% else %}'auto'{% endif %},
+                height: 'auto',//{% if small_calendar %}100{% else %}'auto'{% endif %},
                 locale: language,
                 buttonText: {
                     today: '{% trans "Heute" %}'
@@ -80,6 +64,29 @@
                 },
             });
             calendar.render();
+
+            calendarEl.addEventListener('touchstart', function(e) {
+                touchStartX = e.changedTouches[0].screenX;
+            }, false);
+            
+            calendarEl.addEventListener('touchend', function(e) {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, false);
+            
+            function handleSwipe() {
+                const swipeThreshold = 50;
+                const swipeDistance = touchEndX - touchStartX;
+                
+                if (Math.abs(swipeDistance) > swipeThreshold) {
+                    if (swipeDistance > 0) {
+                        calendar.prev();
+                    } else {
+                        calendar.next();
+                    }
+                }
+            }
+
         } catch (error) {
             console.error('Error loading calendar events:', error);
         }
