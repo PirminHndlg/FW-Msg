@@ -34,7 +34,8 @@ from django.http import (
     HttpResponse, 
     Http404, 
     HttpResponseNotAllowed, 
-    HttpResponseNotFound
+    HttpResponseNotFound,
+    JsonResponse
 )
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -687,6 +688,17 @@ def feedback(request):
 @login_required
 @required_role('')
 def kalender(request):
+    calendar_events = get_calendar_events(request)
+
+    context = {
+        'calendar_events': calendar_events
+    }
+    context = check_organization_context(request, context)
+    return render(request, 'kalender.html', context=context)
+
+@login_required
+@required_role('')
+def get_calendar_events(request):
     calendar_events = []
     
     for freiwilliger_aufgabe in FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user):
@@ -732,9 +744,5 @@ def kalender(request):
             'borderColor': '#000',
             'textColor': '#fff'
         })
-
-    context = {
-        'calendar_events': json.dumps(calendar_events)
-    }
-    context = check_organization_context(request, context)
-    return render(request, 'kalender.html', context=context)
+            
+    return JsonResponse(calendar_events, safe=False)

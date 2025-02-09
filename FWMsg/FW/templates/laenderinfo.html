@@ -63,7 +63,7 @@
 
             {# Assignment Location Information #}
             {% if freiwilliger.einsatzstelle %}
-                {% include "components/info_section.html" with section_title=_("Informationen Einsatzstelle")|add:" "|add:freiwilliger.einsatzstelle cards=location_cards %}
+                {% include "components/info_section.html" with section_title=_("Informationen Einsatzstelle")|add:" "|add:freiwilliger.einsatzstelle.name cards=location_cards %}
                 {% include "components/info_section.html" with section_title=_("Generelle Informationen") cards=general_cards %}
             {% endif %}
         </div>

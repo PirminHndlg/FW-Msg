@@ -24,7 +24,6 @@
     .calendar-container.small-view {
         max-height: 100px;
         transition: max-height 0.3s ease-in-out;
-
     }
     
     .calendar-container.large-view {
@@ -36,13 +35,56 @@
 {% block calendar_scripts %}
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
 <script>
-    window.calendarEvents = JSON.parse('{{ calendar_events|escapejs }}');
-    window.calendarConfig = {
-        initialView: '{{ initial_view|default:"dayGridMonth" }}',
-        small: {% if small_calendar %}true{% else %}false{% endif %},
-        showViewToggle: {% if show_view_toggle %}true{% else %}false{% endif %},
-        dynamicHeight: {% if dynamic_height %}true{% else %}false{% endif %}
-    };
+    let calendarEvents = [];
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    async function initializeCalendar() {
+        try {
+            const response = await fetch('{% url "get_calendar_events" %}');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            calendarEvents = await response.json();
+            
+            // Get language from Django cookie or default to 'de'
+            const language = getCookie('django_language') || 'de';
+            
+            // Initialize calendar after events are loaded
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: '{{ initial_view|default:"dayGridMonth" }}',
+                events: calendarEvents,
+                height: {% if small_calendar %}100{% else %}'auto'{% endif %},
+                locale: language,
+                buttonText: {
+                    today: '{% trans "Heute" %}'
+                },
+                headerToolbar: { 
+                    left: 'prev,next',
+                    center: 'title',
+                    right: 'today'
+                },
+            });
+            calendar.render();
+        } catch (error) {
+            console.error('Error loading calendar events:', error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initializeCalendar);
 </script>
-<script src="{% static 'js/kalender.js' %}"></script>
 {% endblock %} 
