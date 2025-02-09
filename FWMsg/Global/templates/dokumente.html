@@ -8,6 +8,20 @@
     <script src="{% static 'js/dokumente.js' %}"></script>
     <script>
         let is_org = '{{ user.role|lower }}' == 'o';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle folder collapse events
+            document.querySelectorAll('.accordion-collapse').forEach(collapse => {
+                collapse.addEventListener('show.bs.collapse', function() {
+                    // Load images when folder is expanded
+                    this.querySelectorAll('[data-preview-src]').forEach(img => {
+                        if (!img.src) {
+                            img.src = img.dataset.previewSrc;
+                        }
+                    });
+                });
+            });
+        });
     </script>
 {% endblock %}
 
@@ -78,24 +92,24 @@
                                     <div class="card rounded-4 h-100 hover-shadow">
                                         {% if dokument.get_document_type|starts_with:'image' %}
                                             <img onclick="showImgLarge(this)" 
-                                                    src="{% url 'serve_dokument' dokument.id %}"
+                                                    data-preview-src="{% url 'serve_dokument' dokument.id %}"
                                                     class="card-img-top img-fluid cursor-pointer rounded-top-4"
                                                     alt="{{ dokument.titel }}">
                                         {% elif dokument.get_document_type|starts_with:'application/pdf' %}
                                             <a href="{% url 'serve_dokument' dokument.id %}" class="text-decoration-none">
-                                                <img src="{% url 'serve_dokument' dokument.id %}?img=True" 
+                                                <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
                                                         class="card-img-top img-fluid rounded-top-4"
                                                         alt="PDF Vorschau">
                                             </a>
                                         {% elif dokument.dokument.name|ends_with:'docx' %}
                                             <a href="{% url 'serve_dokument' dokument.id %}?download=True" class="text-decoration-none">
-                                                <img src="{% url 'serve_dokument' dokument.id %}?img=True" 
+                                                <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
                                                         class="card-img-top img-fluid rounded-top-4"
                                                         alt="DOCX Vorschau">
                                             </a>
                                         {% elif dokument.dokument.name|ends_with:'doc' %}
                                             <a href="{% url 'serve_dokument' dokument.id %}?download=True" class="text-decoration-none">
-                                                <img src="{% url 'serve_dokument' dokument.id %}?img=True" 
+                                                <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
                                                         class="card-img-top img-fluid rounded-top-4"
                                                         alt="DOC Vorschau">
                                             </a>
