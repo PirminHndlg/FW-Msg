@@ -59,10 +59,14 @@ def home(request):
     # Get recent images
     gallery_images = get_bilder(request.user.org)
 
+    days_until_start = (Freiwilliger.objects.get(user=request.user).start_geplant - datetime.now().date()).days
+
     context = {
         'aufgaben': freiwilliger_aufgaben,
         'gallery_images': gallery_images,
         'posts': Post.objects.all().order_by('date')[:3],
+        'freiwilliger': Freiwilliger.objects.get(user=request.user) if Freiwilliger.objects.filter(user=request.user).exists() else None,
+        'days_until_start': days_until_start,
     }
 
     return render(request, 'home.html', context=context)

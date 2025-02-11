@@ -1,0 +1,21 @@
+{% load i18n %}
+
+{% if days_until_start > 0 %}
+<div class="card rounded-4 mb-2 bg-primary text-white">
+    <div class="card-header border-bottom border-light d-flex justify-content-between align-items-center">
+        <h3 class="mb-0">
+            <i class="bi bi-globe me-2"></i>
+            {% trans "Tage bis Ausreise" %}
+        </h3>
+        {% if freiwilliger and freiwilliger.einsatzland %}
+            <p class="mb-0">
+                <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }} mb-2" style="width: 100px; height: 50px;"></span>
+            </p>
+        {% endif %}
+    </div>
+    <div class="card-body text-center">
+        <h1 class="display-1 fw-bold mb-0">{{ days_until_start }}</h1>
+        <p class="lead mb-0 text-white">{% trans "Tage" %}</p>
+    </div>
+</div>
+{% endif %} 
