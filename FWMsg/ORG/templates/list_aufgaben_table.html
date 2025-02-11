@@ -58,7 +58,7 @@
     }
 
     /* Special tooltip positioning for add-all button */
-    .add-all-btn[data-tooltip]::before {
+    .data-tooltip-bottom[data-tooltip]::before {
         bottom: auto;
         top: 100%;
         margin-top: 5px;
@@ -118,12 +118,19 @@
                         <th class="text-center">
                             {{ aufgabe.name }}
                             <a href="{% url 'list_aufgaben_table' %}?a={{aufgabe.id}}&fw=all" 
-                               class="btn btn-sm btn-outline-primary add-all-btn" 
+                               class="btn btn-sm btn-outline-primary data-tooltip-bottom" 
                                data-tooltip="{% trans 'Allen Freiwilligen zuweisen' %}">
                                 <i class="bi bi-people-fill"></i>
                             </a>
                         </th>
                         {% endfor %}
+                        <th>
+                            <a href="{% url 'add_object' 'aufgabe' %}?next={% url 'list_aufgaben_table' %}"
+                                class="btn btn-sm data-tooltip-bottom"
+                                data-tooltip="{% trans 'Neue Aufgabe erstellen' %}">
+                                <i class="bi bi-plus-circle"></i>
+                            </a>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -167,7 +174,7 @@
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li>
-                                                <a class="dropdown-item" href="{% url 'edit_object' 'freiwilligeraufgaben' aufgabe.id %}">
+                                                <a class="dropdown-item" href="{% url 'edit_object' 'freiwilligeraufgaben' aufgabe.id %}?next={% url 'list_aufgaben_table' %}">
                                                     <i class="bi bi-pencil me-2"></i>{% trans "Bearbeiten" %}
                                                 </a>
                                             </li>
@@ -201,7 +208,7 @@
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li>
-                                                <a class="dropdown-item" href="{% url 'edit_object' 'freiwilligeraufgaben' aufgabe.id %}">
+                                                <a class="dropdown-item" href="{% url 'edit_object' 'freiwilligeraufgaben' aufgabe.id %}?next={% url 'list_aufgaben_table' %}">
                                                     <i class="bi bi-pencil me-2"></i>{% trans "Bearbeiten" %}
                                                 </a>
                                             </li>
@@ -240,7 +247,7 @@
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li>
-                                                <a class="dropdown-item" href="{% url 'edit_object' 'freiwilligeraufgaben' aufgabe.id %}">
+                                                <a class="dropdown-item" href="{% url 'edit_object' 'freiwilligeraufgaben' aufgabe.id %}?next={% url 'list_aufgaben_table' %}">
                                                     <i class="bi bi-pencil me-2"></i>{% trans "Bearbeiten" %}
                                                 </a>
                                             </li>
