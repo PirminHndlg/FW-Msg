@@ -117,8 +117,13 @@
                         {% for aufgabe in aufgaben %}
                         <th class="text-center">
                             {{ aufgabe.name }}
+                            <a href="{% url 'edit_object' 'aufgabe' aufgabe.id %}?next={% url 'list_aufgaben_table' %}" 
+                               class="btn btn-sm data-tooltip-bottom p-0" 
+                               data-tooltip="{% trans 'Aufgabe bearbeiten' %}">
+                                <i class="bi bi-pencil"></i>
+                            </a>
                             <a href="{% url 'list_aufgaben_table' %}?a={{aufgabe.id}}&fw=all" 
-                               class="btn btn-sm btn-outline-primary data-tooltip-bottom" 
+                               class="btn btn-sm data-tooltip-bottom p-1" 
                                data-tooltip="{% trans 'Allen Freiwilligen zuweisen' %}">
                                 <i class="bi bi-people-fill"></i>
                             </a>
