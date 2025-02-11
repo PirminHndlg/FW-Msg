@@ -253,6 +253,10 @@ def edit_object(request, model_name, id):
         obj = form.instance.id
         highlight_id = obj
 
+        next = request.GET.get('next')
+        if next:
+            return redirect(next)
+
         if model_name == 'freiwilligeraufgaben':
             return redirect('list_aufgaben_table')
         
