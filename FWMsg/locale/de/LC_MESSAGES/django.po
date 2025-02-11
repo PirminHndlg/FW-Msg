@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-09 14:19+0100\n"
+"POT-Creation-Date: 2025-02-11 11:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -62,7 +62,7 @@ msgid "Aufgabe"
 msgstr "Aufgaben"
 
 #: FW/templates/aufgaben.html:11 FW/templates/base.html:138
-#: FW/templates/base.html:260 FW/templates/home.html:20
+#: FW/templates/base.html:260 FW/templates/home.html:23
 #: ORG/templates/aufgaben_assign.html:82 ORG/templates/list_aufgaben.html:5
 #: ORG/templates/list_aufgaben_table.html:4
 msgid "Aufgaben"
@@ -82,7 +82,7 @@ msgstr ""
 #, fuzzy
 #| msgid "Aufgaben"
 msgid "Pending Aufgaben"
-msgstr "Aufgaben"
+msgstr "Pending Aufgaben"
 
 #: FW/templates/aufgaben.html:31
 msgid ""
@@ -137,7 +137,7 @@ msgid "Bilder hochladen"
 msgstr "Bilder hochladen"
 
 #: FW/templates/base.html:153 FW/templates/base.html:280
-#: Global/templates/dokumente.html:15
+#: Global/templates/dokumente.html:39
 msgid "Dokumente"
 msgstr "Dokumente"
 
@@ -162,7 +162,7 @@ msgstr "Aufgabe erledigen"
 #: FW/templates/components/add_contact_form.html:23
 #: Global/templates/bilder.html:59
 #: Global/templates/components/profile_details.html:64
-#: Global/templates/dokumente.html:234 Global/templates/dokumente.html:271
+#: Global/templates/dokumente.html:258 Global/templates/dokumente.html:295
 #: Global/templates/feedback.html:73 Global/templates/profil.html:55
 #: Global/templates/profil.html:137
 msgid "Abbrechen"
@@ -205,15 +205,7 @@ msgstr "abgegeben"
 msgid "Keine Ampelmeldung vorhanden"
 msgstr "Ampelmeldung"
 
-#: FW/templates/components/calendar.html:12
-msgid "Woche"
-msgstr ""
-
-#: FW/templates/components/calendar.html:13
-msgid "Monat"
-msgstr ""
-
-#: FW/templates/components/calendar.html:74
+#: FW/templates/components/calendar.html:58
 msgid "Heute"
 msgstr ""
 
@@ -240,9 +232,9 @@ msgstr "Offen"
 #: FW/templates/components/task_progress.html:20
 #: FW/templates/components/task_progress.html:35
 #: ORG/templates/list_aufgaben_table.html:85
-#: ORG/templates/list_aufgaben_table.html:189
+#: ORG/templates/list_aufgaben_table.html:206
 msgid "Pending"
-msgstr "In Bearbeitung"
+msgstr "Pending"
 
 #: FW/templates/components/progress_bar.html:37
 #: FW/templates/components/task_card.html:26
@@ -252,9 +244,17 @@ msgstr "In Bearbeitung"
 #: FW/templates/components/task_progress.html:36
 #: ORG/templates/list_aufgaben.html:91 ORG/templates/list_aufgaben.html:150
 #: ORG/templates/list_aufgaben_table.html:82
-#: ORG/templates/list_aufgaben_table.html:155
+#: ORG/templates/list_aufgaben_table.html:175
 msgid "Erledigt"
 msgstr "Erledigt"
+
+#: FW/templates/components/start_counter.html:8
+msgid "Tage bis Ausreise"
+msgstr ""
+
+#: FW/templates/components/start_counter.html:18
+msgid "Tage"
+msgstr ""
 
 #: FW/templates/components/task_card.html:13
 #: FW/templates/components/task_detail_form.html:29
@@ -279,9 +279,9 @@ msgstr "Anzeigen"
 
 #: FW/templates/components/task_card.html:42
 #: Global/templates/components/profile_details.html:61
-#: ORG/templates/list_aufgaben_table.html:171
-#: ORG/templates/list_aufgaben_table.html:205
-#: ORG/templates/list_aufgaben_table.html:244
+#: ORG/templates/list_aufgaben_table.html:180
+#: ORG/templates/list_aufgaben_table.html:211
+#: ORG/templates/list_aufgaben_table.html:247
 msgid "Bearbeiten"
 msgstr "Bearbeiten"
 
@@ -292,7 +292,7 @@ msgid "Jetzt erledigen"
 msgstr "Jetzt erledigen"
 
 #: FW/templates/components/task_detail_form.html:9
-#: Global/templates/dokumente.html:210 ORG/templates/list_aufgaben.html:48
+#: Global/templates/dokumente.html:234 ORG/templates/list_aufgaben.html:48
 #: ORG/templates/list_aufgaben.html:115 ORG/templates/list_aufgaben.html:173
 msgid "Beschreibung"
 msgstr "Beschreibung"
@@ -319,7 +319,7 @@ msgid "Nein"
 msgstr "Nein"
 
 #: FW/templates/components/task_detail_form.html:54
-#: ORG/templates/list_aufgaben_table.html:215
+#: ORG/templates/list_aufgaben_table.html:221
 msgid "Als nicht erledigt markieren"
 msgstr "Als nicht erledigt markieren"
 
@@ -345,33 +345,33 @@ msgstr "Problem melden"
 msgid "FW Msg"
 msgstr "FW Msg"
 
-#: FW/templates/home.html:30
+#: FW/templates/home.html:33
 msgid "Keine offenen Aufgaben!"
 msgstr "Keine offenen Aufgaben!"
 
-#: FW/templates/home.html:36
+#: FW/templates/home.html:39
 #, fuzzy
 #| msgid "Aufgabe erledigen"
 msgid "Alle Aufgaben anzeigen"
 msgstr "Alle Aufgaben anzeigen"
 
-#: FW/templates/home.html:46
+#: FW/templates/home.html:49
 #, fuzzy
 #| msgid "Bilder"
 msgid "Neue Bilder"
 msgstr "Neue Bilder"
 
-#: FW/templates/home.html:57
+#: FW/templates/home.html:60
 #, fuzzy
 #| msgid "Alle Bilder löschen"
 msgid "Alle Bilder anzeigen"
 msgstr "Alle Bilder anzeigen"
 
-#: FW/templates/home.html:67
+#: FW/templates/home.html:70
 msgid "Neue Posts"
 msgstr "Neue Beiträge"
 
-#: FW/templates/home.html:73
+#: FW/templates/home.html:76
 msgid "Noch keine Posts"
 msgstr "Noch keine Beiträge"
 
@@ -407,45 +407,45 @@ msgid ""
 "werden. Melde dich bei"
 msgstr ""
 
-#: FW/views.py:250
+#: FW/views.py:254
 msgid "Reisehinweise"
 msgstr ""
 
-#: FW/views.py:265
+#: FW/views.py:269
 #, fuzzy
 #| msgid "Notfallkontakte"
 msgid "Notfallnummern"
 msgstr "Notfallkontakte"
 
-#: FW/views.py:275
+#: FW/views.py:279
 msgid "Botschaft"
 msgstr ""
 
-#: FW/views.py:283
+#: FW/views.py:287
 msgid "Konsulat"
 msgstr ""
 
-#: FW/views.py:294
+#: FW/views.py:298
 msgid "Arbeitsvorgesetzte:r"
 msgstr ""
 
-#: FW/views.py:302
+#: FW/views.py:306
 msgid "Partnerorganisation"
 msgstr ""
 
-#: FW/views.py:310
+#: FW/views.py:314
 msgid "Mentor:in"
 msgstr ""
 
-#: FW/views.py:321
+#: FW/views.py:325
 msgid "Arztpraxen"
 msgstr ""
 
-#: FW/views.py:329
+#: FW/views.py:333
 msgid "Apotheken"
 msgstr ""
 
-#: FW/views.py:337
+#: FW/views.py:341
 msgid "Weitere Informationen"
 msgstr ""
 
@@ -458,7 +458,7 @@ msgstr "Bilder"
 #: Global/templates/bild.html:67
 #: Global/templates/components/profile_details.html:35
 #: Global/templates/components/profile_details.html:52
-#: Global/templates/dokumente.html:235 Global/templates/dokumente.html:272
+#: Global/templates/dokumente.html:259 Global/templates/dokumente.html:296
 #: Global/templates/profil.html:56
 msgid "Speichern"
 msgstr "Speichern"
@@ -493,7 +493,7 @@ msgstr "weniger"
 
 #: Global/templates/bilder_show.html:33
 #: Global/templates/components/image_description.html:8
-#: Global/templates/dokumente.html:130
+#: Global/templates/dokumente.html:154
 msgid "mehr"
 msgstr "mehr"
 
@@ -509,8 +509,7 @@ msgid "Profilbild"
 msgstr "Profilbild"
 
 #: Global/templates/components/image_card_header.html:23
-#: Global/templates/dokumente.html:144
-#: ORG/templates/list_aufgaben_table.html:195
+#: Global/templates/dokumente.html:168
 msgid "Download"
 msgstr "Herunterladen"
 
@@ -562,67 +561,67 @@ msgstr "Entfernen"
 msgid "Abmelden"
 msgstr "Anmelden"
 
-#: Global/templates/dokumente.html:48
+#: Global/templates/dokumente.html:72
 msgid "Ordner nicht leer"
 msgstr ""
 
-#: Global/templates/dokumente.html:61 Global/templates/dokumente.html:220
+#: Global/templates/dokumente.html:85 Global/templates/dokumente.html:244
 #, fuzzy
 #| msgid "Dokumente"
 msgid "Neues Dokument"
 msgstr "Dokumente"
 
-#: Global/templates/dokumente.html:177 Global/templates/dokumente.html:248
+#: Global/templates/dokumente.html:201 Global/templates/dokumente.html:272
 #, fuzzy
 #| msgid "Bilder"
 msgid "Neuer Ordner"
 msgstr "Neue Bilder"
 
-#: Global/templates/dokumente.html:188
+#: Global/templates/dokumente.html:212
 #, fuzzy
 #| msgid "Dokumente"
 msgid "Neues Dokument hinzufügen"
 msgstr "Dokumente"
 
-#: Global/templates/dokumente.html:201
+#: Global/templates/dokumente.html:225
 msgid "Alle Felder sind optional und können weggelassen werden."
 msgstr ""
 
-#: Global/templates/dokumente.html:205
+#: Global/templates/dokumente.html:229
 msgid "Titel"
 msgstr ""
 
-#: Global/templates/dokumente.html:215
+#: Global/templates/dokumente.html:239
 msgid "Link"
 msgstr ""
 
-#: Global/templates/dokumente.html:220
+#: Global/templates/dokumente.html:244
 msgid "wird gelöscht, wenn ein neues Dokument hochgeladen wird."
 msgstr ""
 
-#: Global/templates/dokumente.html:224
+#: Global/templates/dokumente.html:248
 #, fuzzy
 #| msgid "Dokumente"
 msgid "Dokument"
 msgstr "Dokumente"
 
-#: Global/templates/dokumente.html:229
+#: Global/templates/dokumente.html:253
 msgid "Freiwillige dürfen dieses Dokument bearbeiten/löschen"
 msgstr ""
 
-#: Global/templates/dokumente.html:256
+#: Global/templates/dokumente.html:280
 #, fuzzy
 #| msgid "Benutzername"
 msgid "Ordnername"
 msgstr "Benutzername"
 
-#: Global/templates/dokumente.html:261
+#: Global/templates/dokumente.html:285
 #, fuzzy
 #| msgid "Anzeigen"
 msgid "Anzeigen für"
 msgstr "Anzeigen"
 
-#: Global/templates/dokumente.html:263
+#: Global/templates/dokumente.html:287
 #: ORG/templates/list_aufgaben_table.html:101
 msgid "Alle"
 msgstr "Alle"
@@ -868,7 +867,7 @@ msgid "Herunterladen"
 msgstr "Herunterladen"
 
 #: ORG/templates/list_aufgaben.html:174
-#: ORG/templates/list_aufgaben_table.html:154
+#: ORG/templates/list_aufgaben_table.html:174
 msgid "Erledigt am"
 msgstr "Erledigt am"
 
@@ -877,7 +876,7 @@ msgid "Als unerledigt markieren"
 msgstr "Als unerledigt markieren"
 
 #: ORG/templates/list_aufgaben.html:215
-#: ORG/templates/list_aufgaben_table.html:181
+#: ORG/templates/list_aufgaben_table.html:190
 msgid "Als pending markieren"
 msgstr "Als pending markieren"
 
@@ -892,20 +891,32 @@ msgid "Nicht zugewiesen"
 msgstr "Nicht zugewiesen"
 
 #: ORG/templates/list_aufgaben_table.html:122
+#, fuzzy
+#| msgid "Aufgabe erledigen"
+msgid "Aufgabe bearbeiten"
+msgstr "Aufgabe erledigen"
+
+#: ORG/templates/list_aufgaben_table.html:127
 msgid "Allen Freiwilligen zuweisen"
 msgstr "Allen Freiwilligen zuweisen"
 
-#: ORG/templates/list_aufgaben_table.html:160
-#: ORG/templates/list_aufgaben_table.html:194
+#: ORG/templates/list_aufgaben_table.html:135
+#, fuzzy
+#| msgid "Aufgabe erledigen"
+msgid "Neue Aufgabe erstellen"
+msgstr "Aufgabe erledigen"
+
+#: ORG/templates/list_aufgaben_table.html:168
+#: ORG/templates/list_aufgaben_table.html:200
 msgid "Datei herunterladen"
 msgstr "Datei herunterladen"
 
-#: ORG/templates/list_aufgaben_table.html:226
-#: ORG/templates/list_aufgaben_table.html:271
+#: ORG/templates/list_aufgaben_table.html:232
+#: ORG/templates/list_aufgaben_table.html:270
 msgid "Als erledigt markieren"
 msgstr "Als erledigt markieren"
 
-#: ORG/templates/list_aufgaben_table.html:234
+#: ORG/templates/list_aufgaben_table.html:241
 msgid "Fällig am"
 msgstr "Fällig am"
 
@@ -913,7 +924,7 @@ msgstr "Fällig am"
 msgid "Erinnern"
 msgstr "Erinnern"
 
-#: ORG/templates/list_aufgaben_table.html:282
+#: ORG/templates/list_aufgaben_table.html:281
 #, fuzzy
 #| msgid "Aufgabe erledigen"
 msgid "Aufgabe zuweisen"
