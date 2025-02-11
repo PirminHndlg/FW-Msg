@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-11 11:46+0100\n"
+"POT-Creation-Date: 2025-02-11 11:51+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -239,6 +239,18 @@ msgstr "Days until departure"
 #: FW/templates/components/start_counter.html:18
 msgid "Tage"
 msgstr "Days"
+
+#: FW/templates/components/start_counter.html:26
+msgid "Heute geht's los!"
+msgstr "Today is the start!"
+
+#: FW/templates/components/start_counter.html:38
+msgid "Gute Reise!"
+msgstr "Good journey!"
+
+#: FW/templates/components/start_counter.html:43
+msgid "Wir wünschen dir einen guten Start in dein Auslandsjahr!"
+msgstr "We wish you a good start in your exchange year!"
 
 #: FW/templates/components/task_card.html:13
 #: FW/templates/components/task_detail_form.html:29
