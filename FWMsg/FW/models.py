@@ -229,15 +229,17 @@ def post_save_handler(sender, instance, created, **kwargs):
     else:
         if instance.has_field_changed('ende_real'):
             tasks = FreiwilligerAufgaben.objects.filter(freiwilliger=instance, faellig__isnull=False,
-                                                        aufgabe__faellig_tage_vor_ende__gt=0)
+                                                        aufgabe__faellig_tage_vor_ende__isnull=False, erledigt=False, pending=False)
+            start_date = instance.start_real or instance.start_geplant or instance.jahrgang.start
             for task in tasks:
-                task.faellig = instance.ende_real - timedelta(days=task.aufgabe.faellig_tage_vor_ende)
+                task.faellig = start_date - timedelta(days=task.aufgabe.faellig_tage_vor_ende)
                 task.save()
         if instance.has_field_changed('start_real'):
             tasks = FreiwilligerAufgaben.objects.filter(freiwilliger=instance, faellig__isnull=False,
-                                                        aufgabe__faellig_tage_nach_start__gt=0)
+                                                        aufgabe__faellig_tage_nach_start__isnull=False, erledigt=False, pending=False)
+            start_date = instance.start_real or instance.start_geplant or instance.jahrgang.start
             for task in tasks:
-                task.faellig = instance.start_real + timedelta(days=task.aufgabe.faellig_tage_nach_start)
+                task.faellig = start_date + timedelta(days=task.aufgabe.faellig_tage_nach_start)
                 task.save()
 
     if not instance.user.first_name or not instance.user.last_name:
