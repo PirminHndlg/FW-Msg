@@ -1,21 +1,78 @@
 {% load i18n %}
 
 {% if days_until_start > 0 %}
-<div class="card rounded-4 mb-2 bg-primary text-white">
-    <div class="card-header border-bottom border-light d-flex justify-content-between align-items-center">
-        <h3 class="mb-0">
-            <i class="bi bi-globe me-2"></i>
-            {% trans "Tage bis Ausreise" %}
-        </h3>
-        {% if freiwilliger and freiwilliger.einsatzland %}
-            <p class="mb-0">
-                <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }} mb-2" style="width: 100px; height: 50px;"></span>
-            </p>
-        {% endif %}
+    <div class="card rounded-4 mb-2 bg-primary text-white">
+        <div class="card-header border-bottom border-light d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">
+                <i class="bi bi-globe me-2"></i>
+                {% trans "Tage bis Ausreise" %}
+            </h3>
+            {% if freiwilliger and freiwilliger.einsatzland %}
+                <p class="mb-0">
+                    <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }} mb-2" style="width: 100px; height: 50px;"></span>
+                </p>
+            {% endif %}
+        </div>
+        <div class="card-body text-center">
+            <h1 class="display-1 fw-bold mb-0">{{ days_until_start }}</h1>
+            <p class="lead mb-0 text-white">{% trans "Tage" %}</p>
+        </div>
     </div>
-    <div class="card-body text-center">
-        <h1 class="display-1 fw-bold mb-0">{{ days_until_start }}</h1>
-        <p class="lead mb-0 text-white">{% trans "Tage" %}</p>
+{% elif days_until_start == 0 %}
+    <div class="card rounded-4 mb-2 bg-success text-white">
+        <div class="card-header border-bottom border-light d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">
+                <i class="bi bi-airplane-engines me-2"></i>
+                {% trans "Heute geht's los!" %}
+            </h3>
+            {% if freiwilliger and freiwilliger.einsatzland %}
+                <p class="mb-0">
+                    <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }} mb-2" style="width: 100px; height: 50px;"></span>
+                </p>
+            {% endif %}
+        </div>
+        <div class="card-body text-center">
+            <div class="celebration-animation">
+                <h1 class="display-1 fw-bold mb-3">
+                    <i class="bi bi-stars"></i>
+                    {% trans "Gute Reise!" %}
+                    <i class="bi bi-stars"></i>
+                </h1>
+                <p class="lead mb-0">
+                    <i class="bi bi-heart-fill text-danger me-2 pulse"></i>
+                    {% trans "Wir wünschen dir einen guten Start in dein Auslandsjahr!" %}
+                    <i class="bi bi-heart-fill text-danger ms-2 pulse"></i>
+                </p>
+            </div>
+        </div>
     </div>
-</div>
+
+    <style>
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .celebration-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .pulse {
+            animation: pulse 1.5s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        .bi-stars {
+            color: #ffd700;
+            animation: pulse 2s ease-in-out infinite;
+            display: inline-block;
+        }
+    </style>
 {% endif %} 
