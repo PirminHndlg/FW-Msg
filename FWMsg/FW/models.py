@@ -456,7 +456,7 @@ class Aufgabe(OrgModel):
     
     name = models.CharField(max_length=50, verbose_name='Aufgabenname')
     beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung')
-    mitupload = models.BooleanField(default=False, verbose_name='Upload möglich')
+    mitupload = models.BooleanField(default=True, verbose_name='Upload möglich')
     requires_submission = models.BooleanField(default=True, verbose_name='Bestätigung erforderlich')
     faellig_art = models.CharField(max_length=1, choices=FAELLIG_CHOICES, default='W', verbose_name='Fällig Art')
     faellig_tag = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tag')
