@@ -84,6 +84,7 @@ class Ordner(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     ordner_name = models.CharField(max_length=100)
     typ = models.ForeignKey(JahrgangTyp, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Typ')
+    color = models.ForeignKey('DokumentColor', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Farbe')
 
     def __str__(self):
         return self.ordner_name
@@ -228,6 +229,13 @@ def remove_file(sender, instance, **kwargs):
 
     if instance.preview_image and os.path.isfile(instance.preview_image.path):
         os.remove(instance.preview_image.path)
+
+class DokumentColor(models.Model):
+    name = models.CharField(max_length=50, verbose_name='Farbname')
+    color = models.CharField(max_length=7, verbose_name='Farbcodes')
+
+    def __str__(self):
+        return self.name
 
 class Referenten(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)

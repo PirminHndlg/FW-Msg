@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Organisation, Ordner, Dokument, Referenten, JahrgangTyp
+from .models import Organisation, Ordner, Dokument, Referenten, JahrgangTyp, DokumentColor
 
 # Register your models here.
 @admin.register(Organisation)
@@ -13,6 +13,10 @@ class OrdnerAdmin(admin.ModelAdmin):
 @admin.register(Dokument)
 class DokumentAdmin(admin.ModelAdmin):
     search_fields = ['ordner', 'dokument', 'beschreibung']
+
+@admin.register(DokumentColor)
+class DokumentColorAdmin(admin.ModelAdmin):
+    search_fields = ['name']
 
 @admin.register(Referenten)
 class ReferentenAdmin(admin.ModelAdmin):
