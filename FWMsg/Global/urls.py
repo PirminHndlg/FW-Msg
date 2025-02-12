@@ -29,4 +29,6 @@ urlpatterns = [
     path('calendar_events/', views.get_calendar_events, name='get_calendar_events'),
     
     path('datenschutz/', views.datenschutz, name='datenschutz'),
+
+    # path('test_email/', views.test_email, name='test_email'),
 ]
