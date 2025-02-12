@@ -240,8 +240,8 @@ class Referenten(models.Model):
     land = models.ManyToManyField('FW.Einsatzland', verbose_name='Einsatzland', blank=True, null=True)
 
     class Meta:
-        verbose_name = 'Länderreferent:in'
-        verbose_name_plural = 'Länderreferent:innen'
+        verbose_name = 'Teammitglied'
+        verbose_name_plural = 'Team'
 
     def __str__(self):
         return f'{self.last_name}, {self.first_name}'
@@ -258,7 +258,7 @@ def create_user(sender, instance, **kwargs):
         user.save()
     
         einmalpasswort = random.randint(10000000, 99999999)
-        customuser = CustomUser.objects.create(user=user, org=instance.org, role='R', einmalpasswort=einmalpasswort)
+        customuser = CustomUser.objects.create(user=user, org=instance.org, role='T', einmalpasswort=einmalpasswort)
         
         instance.user = user
         instance.save()
