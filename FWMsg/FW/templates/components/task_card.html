@@ -7,6 +7,9 @@
         <div class="card-body">
             <h4 class="card-title">{{ task.aufgabe.name }}</h4>
             <p class="card-text">{{ task.aufgabe.beschreibung }}</p>
+            {% if task.personalised_description %}
+            <p class="card-text"><strong>{% trans "Persönliche Beschreibung" %}</strong>: {{ task.personalised_description }}</p>
+            {% endif %}
             
             {% if task.faellig %}
             <p class="card-text">

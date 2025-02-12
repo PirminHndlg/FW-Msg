@@ -8,6 +8,9 @@
     <div class="mb-3">
         <label class="form-label">{% trans "Beschreibung" %}:</label>
         <p class="form-text">{{ task.aufgabe.beschreibung }}</p>
+        {% if task.personalised_description %}
+        <p class="form-text"><strong>{% trans "Persönliche Beschreibung" %}</strong>: {{ task.personalised_description }}</p>
+        {% endif %}
     </div>
     {% endif %}
 
