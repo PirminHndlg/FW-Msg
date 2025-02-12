@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-11 11:51+0100\n"
+"POT-Creation-Date: 2025-02-12 11:05+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -39,7 +39,7 @@ msgstr "Comments"
 msgid "Deine Anmerkungen hier..."
 msgstr "Your comments here..."
 
-#: FW/templates/ampel.html:41 FW/templates/components/task_detail_form.html:51
+#: FW/templates/ampel.html:41 FW/templates/components/task_detail_form.html:54
 msgid "Zurück"
 msgstr "Back"
 
@@ -212,7 +212,7 @@ msgid "Offen"
 msgstr "Open"
 
 #: FW/templates/components/progress_bar.html:36
-#: FW/templates/components/task_detail_form.html:42
+#: FW/templates/components/task_detail_form.html:45
 #: FW/templates/components/task_progress.html:20
 #: FW/templates/components/task_progress.html:35
 #: ORG/templates/list_aufgaben_table.html:85
@@ -221,9 +221,9 @@ msgid "Pending"
 msgstr "Pending"
 
 #: FW/templates/components/progress_bar.html:37
-#: FW/templates/components/task_card.html:26
-#: FW/templates/components/task_detail_form.html:36
-#: FW/templates/components/task_detail_form.html:65
+#: FW/templates/components/task_card.html:29
+#: FW/templates/components/task_detail_form.html:39
+#: FW/templates/components/task_detail_form.html:68
 #: FW/templates/components/task_progress.html:29
 #: FW/templates/components/task_progress.html:36
 #: ORG/templates/list_aufgaben.html:91 ORG/templates/list_aufgaben.html:150
@@ -252,26 +252,33 @@ msgstr "Good journey!"
 msgid "Wir wünschen dir einen guten Start in dein Auslandsjahr!"
 msgstr "We wish you a good start in your exchange year!"
 
-#: FW/templates/components/task_card.html:13
-#: FW/templates/components/task_detail_form.html:29
+#: FW/templates/components/task_card.html:11
+#: FW/templates/components/task_detail_form.html:12
+#, fuzzy
+#| msgid "Beschreibung"
+msgid "Persönliche Beschreibung"
+msgstr "Personal description"
+
+#: FW/templates/components/task_card.html:16
+#: FW/templates/components/task_detail_form.html:32
 #: ORG/templates/list_aufgaben.html:47 ORG/templates/list_aufgaben.html:114
 msgid "Fällig"
 msgstr "Due"
 
-#: FW/templates/components/task_card.html:20
+#: FW/templates/components/task_card.html:23
 #: ORG/templates/list_aufgaben_table.html:88
 msgid "Überfällig"
 msgstr "Overdue"
 
-#: FW/templates/components/task_card.html:32
+#: FW/templates/components/task_card.html:35
 msgid "Wird bearbeitet"
 msgstr "Edit"
 
-#: FW/templates/components/task_card.html:40
+#: FW/templates/components/task_card.html:43
 msgid "Anzeigen"
 msgstr "View"
 
-#: FW/templates/components/task_card.html:42
+#: FW/templates/components/task_card.html:45
 #: Global/templates/components/profile_details.html:61
 #: ORG/templates/list_aufgaben_table.html:180
 #: ORG/templates/list_aufgaben_table.html:211
@@ -279,7 +286,7 @@ msgstr "View"
 msgid "Bearbeiten"
 msgstr "Edit"
 
-#: FW/templates/components/task_card.html:44
+#: FW/templates/components/task_card.html:47
 msgid "Jetzt erledigen"
 msgstr "Complete task"
 
@@ -289,35 +296,35 @@ msgstr "Complete task"
 msgid "Beschreibung"
 msgstr "Description"
 
-#: FW/templates/components/task_detail_form.html:16
+#: FW/templates/components/task_detail_form.html:19
 msgid "Datei hochladen"
 msgstr "Upload documents"
 
-#: FW/templates/components/task_detail_form.html:34
+#: FW/templates/components/task_detail_form.html:37
 #: ORG/templates/list_ampel.html:99
 msgid "Status"
 msgstr "Status"
 
-#: FW/templates/components/task_detail_form.html:37
-#: FW/templates/components/task_detail_form.html:43
+#: FW/templates/components/task_detail_form.html:40
+#: FW/templates/components/task_detail_form.html:46
 msgid "Ja"
 msgstr "Yes"
 
-#: FW/templates/components/task_detail_form.html:39
-#: FW/templates/components/task_detail_form.html:45
+#: FW/templates/components/task_detail_form.html:42
+#: FW/templates/components/task_detail_form.html:48
 msgid "Nein"
 msgstr "No"
 
-#: FW/templates/components/task_detail_form.html:54
+#: FW/templates/components/task_detail_form.html:57
 #: ORG/templates/list_aufgaben_table.html:221
 msgid "Als nicht erledigt markieren"
 msgstr "Mark as not completed"
 
-#: FW/templates/components/task_detail_form.html:58
+#: FW/templates/components/task_detail_form.html:61
 msgid "Problem mit Aufgabe"
 msgstr "Problem with task"
 
-#: FW/templates/components/task_detail_form.html:58
+#: FW/templates/components/task_detail_form.html:61
 #, python-format
 msgid ""
 "Ich habe ein Problem mit der Aufgabe '%(name)s' vom %(date)s."
@@ -331,7 +338,7 @@ msgstr ""
 "%(date)s%%0D%%0ACompleted on: %(done_date)s%%0D%%0ATask profile: "
 "%(profile)s%%0D%%0AUpload required: %(upload)s"
 
-#: FW/templates/components/task_detail_form.html:60
+#: FW/templates/components/task_detail_form.html:63
 msgid "Problem melden"
 msgstr "Report problem"
 
@@ -395,43 +402,43 @@ msgstr ""
 "Emergency contacts can only be deleted or edited by the organization. Please "
 "contact"
 
-#: FW/views.py:254
+#: FW/views.py:259
 msgid "Reisehinweise"
 msgstr "Note for travel"
 
-#: FW/views.py:269
+#: FW/views.py:274
 msgid "Notfallnummern"
 msgstr "Emergency contacts"
 
-#: FW/views.py:279
+#: FW/views.py:284
 msgid "Botschaft"
 msgstr "Embassy"
 
-#: FW/views.py:287
+#: FW/views.py:292
 msgid "Konsulat"
 msgstr "Consulate"
 
-#: FW/views.py:298
+#: FW/views.py:303
 msgid "Arbeitsvorgesetzte:r"
 msgstr "Supervisor"
 
-#: FW/views.py:306
+#: FW/views.py:311
 msgid "Partnerorganisation"
 msgstr "Sending Organization"
 
-#: FW/views.py:314
+#: FW/views.py:319
 msgid "Mentor:in"
 msgstr "Mentor"
 
-#: FW/views.py:325
+#: FW/views.py:330
 msgid "Arztpraxen"
 msgstr "Doctors"
 
-#: FW/views.py:333
+#: FW/views.py:338
 msgid "Apotheken"
 msgstr "Pharmacies"
 
-#: FW/views.py:341
+#: FW/views.py:346
 msgid "Weitere Informationen"
 msgstr "General Information"
 

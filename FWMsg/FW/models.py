@@ -315,6 +315,7 @@ class FreiwilligerAufgaben(OrgModel):
 
     freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
     aufgabe = models.ForeignKey('Aufgabe', on_delete=models.CASCADE, verbose_name='Aufgabe')
+    personalised_description = models.TextField(blank=True, null=True, verbose_name='Persönliche Beschreibung')
     erledigt = models.BooleanField(default=False, verbose_name='Erledigt')
     pending = models.BooleanField(default=False, verbose_name='Wird bearbeitet')
     datetime = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
