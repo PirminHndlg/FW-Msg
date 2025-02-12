@@ -1,0 +1,13 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+    {% if show_send_emails_button %}
+        <li>
+            <a href="{% url 'admin:send_daily_emails' %}" class="btn btn-high btn-success" style="margin-right: 8px;">
+                <i class="fas fa-envelope"></i> {% trans "Send Daily Task Emails" %}
+            </a>
+        </li>
+    {% endif %}
+    {{ block.super }}
+{% endblock %}
