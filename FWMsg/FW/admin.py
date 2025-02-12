@@ -59,17 +59,16 @@ class AufgabenprofilAdmin(admin.ModelAdmin):
 
 @admin.register(FreiwilligerAufgabenprofil)
 class FreiwilligerAufgabenprofilAdmin(admin.ModelAdmin):
-    search_fields = ['freiwilliger', 'aufgabenprofil']
+    search_fields = ['freiwilliger__user__first_name', 'freiwilliger__user__last_name', 'aufgabenprofil__name']
 
 
 @admin.register(Ampel)
 class AmpelAdmin(admin.ModelAdmin):
     search_fields = ['status']
 
-
 @admin.register(FreiwilligerAufgaben)
 class FreiwilligerAufgabenAdmin(admin.ModelAdmin):
-    search_fields = ['freiwilliger', 'aufgabe']
+    search_fields = ['freiwilliger__user__first_name', 'freiwilliger__user__last_name', 'aufgabe__name'] 
     actions = ['send_aufgaben_email']
 
     def send_aufgaben_email(self, request, queryset):
