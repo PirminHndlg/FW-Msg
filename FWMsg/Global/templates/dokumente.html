@@ -45,14 +45,21 @@
         {% for structure in folder_structure %}
             <div class="card rounded-4 mb-3">
                 <div class="card-header p-0 rounded-4">
-                    <button class="accordion-button collapsed rounded-4" 
+                    <button class="accordion-button collapsed rounded-4 ps-2" 
                             type="button" 
                             data-bs-toggle="collapse" 
                             data-bs-target="#collapse{{ structure.ordner.id }}" 
                             aria-expanded="false" 
-                            aria-controls="collapse{{ structure.ordner.id }}">
+                            aria-controls="collapse{{ structure.ordner.id }}"
+                            {% comment %} style="border: 7px solid {{ structure.ordner.color.color|default:'white' }};" {% endcomment %}
+                            >
                         <div class="d-flex justify-content-between align-items-center w-100 me-3">
-                            <span><i class="bi bi-folder me-2"></i>{{ structure.ordner }}</span>
+                            <span>
+                                {% if structure.ordner.color %}
+                                    <div class="vr rounded-1" style="background-color: {{ structure.ordner.color.color }}; width: 10px; margin-right: 10px; opacity: 1;"></div>
+                                {% endif %}
+                                <i class="bi bi-folder me-2"></i>{{ structure.ordner }}
+                            </span>
                             <span class="badge bg-secondary">{{ structure.dokumente|length }}</span>
                         </div>
                     </button>
