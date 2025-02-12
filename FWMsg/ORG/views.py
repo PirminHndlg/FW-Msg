@@ -420,7 +420,12 @@ def delete_object(request, model_name, id):
         return HttpResponse('Nicht erlaubt')
 
     instance.delete()
-    return HttpResponseRedirect(f'/org/list/{model_name}/')
+
+    next = request.GET.get('next')
+    if next:
+        return redirect(next)
+    
+    return redirect('list_object', model_name=model_name)
 
 
 @login_required

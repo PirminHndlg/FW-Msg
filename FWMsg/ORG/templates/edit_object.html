@@ -56,7 +56,7 @@
             </div>
             <div class="card-footer d-flex flex-row-reverse justify-content-between">
                 <div class="btn-group" role="group">
-                    <a href="{% url 'list_object' object %}" class="btn btn-secondary">
+                    <a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'list_object' object %}{% endif %}" class="btn btn-secondary">
                         <i class="bi bi-x-circle"></i> Abbrechen
                     </a>
                     <button type="submit" class="btn btn-primary">
@@ -64,7 +64,7 @@
                     </button>
                 </div>
                 {% if form.instance.id %}
-                    <a href="{% url 'delete_object' object form.instance.id %}" 
+                    <a href="{% url 'delete_object' object form.instance.id %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}"
                        class="btn btn-danger" 
                        onclick="return confirm('Wirklich löschen?')">
                         <i class="bi bi-trash"></i>
