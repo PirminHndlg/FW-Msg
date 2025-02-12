@@ -5,7 +5,7 @@ from django.conf import settings
 from celery import Celery
 from celery.schedules import crontab
 
-from Global.send_email import send_aufgaben_email
+from Global.send_email import send_aufgaben_email, send_new_aufgaben_email
 
 from datetime import datetime, timedelta
 from django.db.models import Q
@@ -40,6 +40,15 @@ def get_faellige_aufgaben():
     )
 
 
+def get_new_aufgaben():
+    from FW.models import FreiwilligerAufgaben
+    
+    return FreiwilligerAufgaben.objects.filter(
+        erledigt=False,
+        pending=False,
+        last_reminder__isnull=True
+    )
+
 
 @app.task(bind=True)
 def debug_task(self):
@@ -50,28 +59,43 @@ def debug_task(self):
 def send_email_aufgaben_daily():
     from Global.send_email import send_mail_smtp
 
-    faellige_aufgaben = get_faellige_aufgaben()
-    start_time = datetime.now()
-
     response_json = {
-        'count': len(faellige_aufgaben),
+        'count': 0,
         'aufgaben_sent': [],
         'aufgaben_failed': [],
+        'new_aufgaben_sent': [],
+        'new_aufgaben_failed': [],
     }
+    
+    new_aufgaben = get_new_aufgaben()
+    freiwilliger_ids = new_aufgaben.values('freiwilliger').distinct()
+    for freiwilliger_id in freiwilliger_ids:
+        aufgaben = new_aufgaben.filter(freiwilliger_id=freiwilliger_id['freiwilliger'])
+        if send_new_aufgaben_email(aufgaben, aufgaben[0].aufgabe.org):
+            response_json['new_aufgaben_sent'].append({'aufgaben': [aufgabe.aufgabe.name for aufgabe in aufgaben], 'freiwilliger': aufgaben[0].freiwilliger.first_name})
+        else:
+            response_json['new_aufgaben_failed'].append({'aufgaben': [aufgabe.aufgabe.name for aufgabe in aufgaben], 'freiwilliger': aufgaben[0].freiwilliger.first_name})
 
+
+    faellige_aufgaben = get_faellige_aufgaben()
+    start_time = datetime.now()
     for aufgabe in faellige_aufgaben:
-        if send_aufgaben_email(aufgabe):
+        if send_aufgaben_email(aufgabe, aufgabe.aufgabe.org):
             response_json['aufgaben_sent'].append({'id': aufgabe.id, 'name': aufgabe.aufgabe.name, 'freiwilliger': aufgabe.freiwilliger.first_name})
         else:
             response_json['aufgaben_failed'].append({'id': aufgabe.id, 'name': aufgabe.aufgabe.name, 'freiwilliger': aufgabe.freiwilliger.first_name})
-
+    
+    response_json['count'] = len(faellige_aufgaben)
 
     msg = f"""Uhrzeit: {datetime.now()}<br>
     Gebrauchte Zeit: {datetime.now() - start_time}<br><br>
     <br><br>Erfolgreich gesendet: {len(response_json['aufgaben_sent'])}<br>
     Fehlgeschlagen: {len(response_json['aufgaben_failed'])}<br><br>
     Gesamt: {len(response_json['aufgaben_sent']) + len(response_json['aufgaben_failed'])}<br><br>
-    Fehlgeschlagene Aufgaben: {response_json['aufgaben_failed']}
+    Fehlgeschlagene Aufgaben: {response_json['aufgaben_failed']}<br><br>
+    Erfolgreich gesendete neue Aufgaben: {response_json['new_aufgaben_sent']}<br><br>
+    Fehlgeschlagene neue Aufgaben: {response_json['new_aufgaben_failed']}<br><br>
+    Gesamt: {len(response_json['new_aufgaben_sent']) + len(response_json['new_aufgaben_failed'])}
     """
 
     send_mail_smtp(settings.SERVER_EMAIL, 'Aufgabenerinnerungen erfolgreich gesendet', msg, reply_to=settings.SERVER_EMAIL)

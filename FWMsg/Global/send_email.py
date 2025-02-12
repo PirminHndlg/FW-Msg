@@ -9,14 +9,7 @@ from email.utils import formatdate
 from django.conf import settings
 
 aufgaben_email_template = """
-<!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        
-    </style>
-</head>
 <body>
     <p>- English version below -</p>
 
@@ -80,6 +73,51 @@ aufgaben_email_template = """
 </html>
 """
 
+new_aufgaben_email_template = """
+<html>
+<body>
+    <p>- English version below -</p>
+
+    <br>
+
+    <div style="display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <img style="width: 50px;" src="data:image/png;base64,{base64_image}" alt="{org_name} Logo">
+        <h2>{org_name}</h2>
+    </div>
+
+    <div>
+        <p>Hallo {freiwilliger_name},</p>
+        <p>es gibt neue Aufgaben für Dich:</p>
+        <div>
+            <strong>{aufgaben_name}</strong><br>
+        </div>
+        <p>Bitte schaue dir die Aufgaben an und bearbeite diese zeitnah.</p>
+        <div>
+            <a href="{action_url}">{action_url}</a>
+        </div>
+
+        <p>Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions - es wird keine Antwort erwartet.</p>
+
+        <br><br>
+
+        <div>
+            <strong>- English version -</strong>
+        </div>
+        <div>
+            <p>Hello {freiwilliger_name},</p>
+            <p>there are new tasks for you:</p>
+            <div>
+                <strong>{aufgaben_name}</strong><br>
+            </div>
+        </div>
+        <div>
+            <p>This is an automatically generated email from Volunteer.Solutions - no replies expected.</p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
 register_email_fw_template = """
 <html>
 <body>
@@ -138,6 +176,16 @@ def format_aufgaben_email(aufgabe_name, aufgabe_deadline, base64_image, org_name
         action_url=action_url
     )
 
+def format_new_aufgaben_email(aufgaben, base64_image, org_name, freiwilliger_name, action_url):
+    aufgaben_name = ', '.join([aufgabe.aufgabe.name for aufgabe in aufgaben])
+    return new_aufgaben_email_template.format(
+        aufgaben_name=aufgaben_name,
+        base64_image=base64_image,
+        org_name=org_name,
+        freiwilliger_name=freiwilliger_name,
+        action_url=action_url
+    )
+
 def format_register_email_fw(einmalpasswort, action_url, base64_image, org_name, freiwilliger_name, username):
     return register_email_fw_template.format(
         einmalpasswort=einmalpasswort,
@@ -157,19 +205,22 @@ def format_register_email_org(einmalpasswort, action_url, org_name, freiwilliger
         username=username
     )
 
-def send_aufgaben_email(aufgabe):
-    # Construct the action URL for the specific task
+def get_logo_base64(org):
+    with open(org.logo.path, "rb") as org_logo:
+        base64_image = base64.b64encode(org_logo.read()).decode('utf-8')
+    return base64_image
+
+def send_aufgaben_email(aufgabe, org):
+    # Get the organization logo URL
     action_url = 'https://volunteer.solutions/fw/aufgaben/' + str(aufgabe.aufgabe.id) + "/"
     
-    # Get the organization logo URL
-    with open(aufgabe.aufgabe.org.logo.path, "rb") as org_logo:
-        base64_image = base64.b64encode(org_logo.read()).decode('utf-8')
+    base64_image = get_logo_base64(org)
     
     email_content = format_aufgaben_email(
         aufgabe_name=aufgabe.aufgabe.name,
         aufgabe_deadline=aufgabe.faellig,
         base64_image=base64_image,
-        org_name=aufgabe.aufgabe.org.name,
+        org_name=org.name,
         freiwilliger_name=f"{aufgabe.freiwilliger.first_name} {aufgabe.freiwilliger.last_name}",
         action_url=action_url,
         aufgabe_beschreibung=aufgabe.aufgabe.beschreibung if aufgabe.aufgabe.beschreibung else ''
@@ -177,7 +228,7 @@ def send_aufgaben_email(aufgabe):
     
     subject = f'Erinnerung: {aufgabe.aufgabe.name}'
     
-    if send_mail_smtp(aufgabe.freiwilliger.email, subject, email_content, reply_to=aufgabe.aufgabe.org.email):
+    if send_mail_smtp(aufgabe.freiwilliger.email, subject, email_content, reply_to=org.email):
         aufgabe.last_reminder = timezone.now()
         aufgabe.currently_sending = False
         aufgabe.save()
@@ -187,6 +238,34 @@ def send_aufgaben_email(aufgabe):
     aufgabe.save()
     return False
 
+def send_new_aufgaben_email(aufgaben, org):
+    action_url = 'https://volunteer.solutions/fw/aufgaben/'
+
+    base64_image = get_logo_base64(org)
+
+    email_content = format_new_aufgaben_email(
+        aufgaben=aufgaben,
+        base64_image=base64_image,
+        org_name=org.name,
+        freiwilliger_name=f"{aufgaben[0].freiwilliger.first_name} {aufgaben[0].freiwilliger.last_name}",
+        action_url=action_url
+    )
+
+    subject = f'Neue Aufgaben: {aufgaben[0].aufgabe.name}... und mehr'
+
+    if send_mail_smtp(aufgaben[0].freiwilliger.email, subject, email_content, reply_to=org.email):
+        for aufgabe in aufgaben:
+            aufgabe.last_reminder = timezone.now()
+            aufgabe.currently_sending = False
+            aufgabe.save()
+            
+        return True
+    
+    for aufgabe in aufgaben:
+        aufgabe.currently_sending = False
+        aufgabe.save()
+    
+    return False
 
 def send_mail_smtp(receiver_email, subject, html_content, reply_to=None):
     if not receiver_email or not subject or not html_content:

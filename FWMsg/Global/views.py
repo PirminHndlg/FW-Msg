@@ -151,6 +151,13 @@ def datenschutz(request):
 
 @login_required
 @required_role('')
+def test_email(request):
+    send_email_aufgaben_daily()
+    return redirect('profil')
+
+
+@login_required
+@required_role('')
 def serve_logo(request, org_id):
     """
     Serve organization logo images.
@@ -428,9 +435,9 @@ def dokumente(request, ordner_id=None):
         jahrgang_typ = None
     
     if jahrgang_typ:
-        ordners = Ordner.objects.filter(org=request.user.org).filter(Q(typ=None) | Q(typ=jahrgang_typ)).order_by('ordner_name')
+        ordners = Ordner.objects.filter(org=request.user.org).filter(Q(typ=None) | Q(typ=jahrgang_typ)).order_by('color', 'ordner_name')
     else:
-        ordners = Ordner.objects.filter(org=request.user.org).order_by('ordner_name')
+        ordners = Ordner.objects.filter(org=request.user.org).order_by('color', 'ordner_name')
     
     for ordner in ordners:
         folder_structure.append({
