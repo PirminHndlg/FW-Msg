@@ -627,8 +627,11 @@ def list_aufgaben_table(request, scroll_to=None):
     # Apply ordering
     aufgaben = aufgaben.order_by(
         faellig_art_order,
+        'faellig_monat',
         'faellig_tag',
-        'faellig_monat'
+        'faellig_tage_nach_start',
+        'faellig_tage_vor_ende',
+        'name'
     )
 
     # Get filter type from request or cookie
