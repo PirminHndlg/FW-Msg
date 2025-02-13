@@ -273,7 +273,7 @@ def serve_dokument(request, dokument_id):
     dokument = Dokument.objects.get(id=dokument_id)
     if not dokument.org == request.user.org:
         return HttpResponseNotAllowed('Nicht erlaubt')
-
+g
     doc_path = dokument.dokument.path
     if not os.path.exists(doc_path):
         return HttpResponseNotFound('Dokument nicht gefunden')
