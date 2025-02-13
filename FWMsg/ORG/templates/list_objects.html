@@ -57,9 +57,9 @@
             </small>
         {% endif %}
     </div>
-    <div class="table-responsive rounded-4 pt-0">
+    <div class="rounded-4 pt-0 overflow-x-auto" style="max-height: 80vh;">
         <table class="table table-hover mb-0 align-middle">
-            <thead>
+            <thead class="sticky-top" style="background: white;">
                 <tr>
                     {% for field in field_metadata %}
                     <th>{{ field.verbose_name }}</th>
