@@ -30,4 +30,5 @@ urlpatterns = [
     #path('login/', LoginView.as_view(), name='login'),
     path('login/', views.index, name='login'),
     path('logout/', logout_view, name='logout'),
+    path('password_reset/', views.password_reset, name='password_reset'),
 ]

@@ -4,6 +4,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.contrib.auth.models import User
+from .forms import PasswordResetForm
+
 def index(request):
     # Redirect if user is already authenticated
     if request.path != '/index':
@@ -78,3 +80,26 @@ def first_login(request):
             return redirect('first_login')
 
     return render(request, 'first_login.html')
+
+def password_reset(request):
+    if request.method == 'POST':
+        form = PasswordResetForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            email = form.cleaned_data['email']
+            try:
+                user = User.objects.get(username=username)
+                print(user.email, email)
+                if user.email != email:
+                    messages.error(request, 'Der Benutzer hat eine andere E-Mail-Adresse.')
+                    return redirect('password_reset')
+                else:
+                    messages.success(request, 'Eine E-Mail mit einem Link zum Zurücksetzen des Passworts wurde an die angegebene E-Mail-Adresse gesendet.')
+                    user.customuser.send_registration_email()
+                    return redirect('first_login')
+            except User.DoesNotExist:
+                messages.error(request, 'Es gibt keinen Benutzer mit diesem Benutzernamen.')
+                return redirect('password_reset')
+    else:
+        form = PasswordResetForm()
+    return render(request, 'password_reset.html', {'form': form})
