@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-12 11:05+0100\n"
+"POT-Creation-Date: 2025-02-14 11:50+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -117,13 +117,15 @@ msgstr "Notfallkontakte"
 
 #: FW/templates/base.html:91 FW/templates/base.html:105
 #: FW/templates/base.html:209 FW/templates/base.html:221
-#: Home/templates/first_login.html:106 Home/templates/index.html:94
+#: Home/templates/first_login.html:106 Home/templates/index.html:96
+#: Home/templates/password_reset.html:90
 msgid "Deutsch"
 msgstr "Deutsch"
 
 #: FW/templates/base.html:91 FW/templates/base.html:105
 #: FW/templates/base.html:211 FW/templates/base.html:226
-#: Home/templates/first_login.html:106 Home/templates/index.html:94
+#: Home/templates/first_login.html:106 Home/templates/index.html:96
+#: Home/templates/password_reset.html:90
 msgid "English"
 msgstr "Englisch"
 
@@ -162,7 +164,7 @@ msgstr "Aufgabe erledigen"
 #: FW/templates/components/add_contact_form.html:23
 #: Global/templates/bilder.html:59
 #: Global/templates/components/profile_details.html:64
-#: Global/templates/dokumente.html:258 Global/templates/dokumente.html:295
+#: Global/templates/dokumente.html:266 Global/templates/dokumente.html:303
 #: Global/templates/feedback.html:73 Global/templates/profil.html:55
 #: Global/templates/profil.html:137
 msgid "Abbrechen"
@@ -311,7 +313,7 @@ msgid "Jetzt erledigen"
 msgstr "Jetzt erledigen"
 
 #: FW/templates/components/task_detail_form.html:9
-#: Global/templates/dokumente.html:234 ORG/templates/list_aufgaben.html:48
+#: Global/templates/dokumente.html:242 ORG/templates/list_aufgaben.html:48
 #: ORG/templates/list_aufgaben.html:115 ORG/templates/list_aufgaben.html:173
 msgid "Beschreibung"
 msgstr "Beschreibung"
@@ -468,6 +470,10 @@ msgstr ""
 msgid "Weitere Informationen"
 msgstr ""
 
+#: Global/templates/admin/global/customuser/change_list.html:8
+msgid "Send Daily Task Emails"
+msgstr ""
+
 #: Global/templates/bild.html:12 Global/templates/bilder.html:10
 #: Global/templates/components/gallery_header.html:4
 #: Global/templates/components/profile_gallery.html:6
@@ -477,7 +483,7 @@ msgstr "Bilder"
 #: Global/templates/bild.html:67
 #: Global/templates/components/profile_details.html:35
 #: Global/templates/components/profile_details.html:52
-#: Global/templates/dokumente.html:259 Global/templates/dokumente.html:296
+#: Global/templates/dokumente.html:267 Global/templates/dokumente.html:304
 #: Global/templates/profil.html:56
 msgid "Speichern"
 msgstr "Speichern"
@@ -512,7 +518,7 @@ msgstr "weniger"
 
 #: Global/templates/bilder_show.html:33
 #: Global/templates/components/image_description.html:8
-#: Global/templates/dokumente.html:154
+#: Global/templates/dokumente.html:162
 msgid "mehr"
 msgstr "mehr"
 
@@ -528,7 +534,7 @@ msgid "Profilbild"
 msgstr "Profilbild"
 
 #: Global/templates/components/image_card_header.html:23
-#: Global/templates/dokumente.html:168
+#: Global/templates/dokumente.html:176
 msgid "Download"
 msgstr "Herunterladen"
 
@@ -566,6 +572,7 @@ msgid "Telefon Einsatzland"
 msgstr "Telefon Einsatzland"
 
 #: Global/templates/components/profile_details.html:14
+#: Home/templates/password_reset.html:68 Home/templates/password_reset.html:69
 msgid "Email"
 msgstr "E-Mail"
 
@@ -580,67 +587,67 @@ msgstr "Entfernen"
 msgid "Abmelden"
 msgstr "Anmelden"
 
-#: Global/templates/dokumente.html:72
+#: Global/templates/dokumente.html:80
 msgid "Ordner nicht leer"
 msgstr ""
 
-#: Global/templates/dokumente.html:85 Global/templates/dokumente.html:244
+#: Global/templates/dokumente.html:93 Global/templates/dokumente.html:252
 #, fuzzy
 #| msgid "Dokumente"
 msgid "Neues Dokument"
 msgstr "Dokumente"
 
-#: Global/templates/dokumente.html:201 Global/templates/dokumente.html:272
+#: Global/templates/dokumente.html:209 Global/templates/dokumente.html:280
 #, fuzzy
 #| msgid "Bilder"
 msgid "Neuer Ordner"
 msgstr "Neue Bilder"
 
-#: Global/templates/dokumente.html:212
+#: Global/templates/dokumente.html:220
 #, fuzzy
 #| msgid "Dokumente"
 msgid "Neues Dokument hinzufügen"
 msgstr "Dokumente"
 
-#: Global/templates/dokumente.html:225
+#: Global/templates/dokumente.html:233
 msgid "Alle Felder sind optional und können weggelassen werden."
 msgstr ""
 
-#: Global/templates/dokumente.html:229
+#: Global/templates/dokumente.html:237
 msgid "Titel"
 msgstr ""
 
-#: Global/templates/dokumente.html:239
+#: Global/templates/dokumente.html:247
 msgid "Link"
 msgstr ""
 
-#: Global/templates/dokumente.html:244
+#: Global/templates/dokumente.html:252
 msgid "wird gelöscht, wenn ein neues Dokument hochgeladen wird."
 msgstr ""
 
-#: Global/templates/dokumente.html:248
+#: Global/templates/dokumente.html:256
 #, fuzzy
 #| msgid "Dokumente"
 msgid "Dokument"
 msgstr "Dokumente"
 
-#: Global/templates/dokumente.html:253
+#: Global/templates/dokumente.html:261
 msgid "Freiwillige dürfen dieses Dokument bearbeiten/löschen"
 msgstr ""
 
-#: Global/templates/dokumente.html:280
+#: Global/templates/dokumente.html:288
 #, fuzzy
 #| msgid "Benutzername"
 msgid "Ordnername"
 msgstr "Benutzername"
 
-#: Global/templates/dokumente.html:285
+#: Global/templates/dokumente.html:293
 #, fuzzy
 #| msgid "Anzeigen"
 msgid "Anzeigen für"
 msgstr "Anzeigen"
 
-#: Global/templates/dokumente.html:287
+#: Global/templates/dokumente.html:295
 #: ORG/templates/list_aufgaben_table.html:101
 msgid "Alle"
 msgstr "Alle"
@@ -673,11 +680,11 @@ msgstr "Profilbild"
 msgid "Neues Profilbild auswählen"
 msgstr "Neues Profilbild auswählen"
 
-#: Home/templates/first_login.html:41
+#: Home/templates/first_login.html:41 Home/templates/password_reset.html:40
 msgid "Zurück zur Startseite"
 msgstr "Zurück zur Startseite"
 
-#: Home/templates/first_login.html:44 Home/templates/index.html:42
+#: Home/templates/first_login.html:44 Home/templates/index.html:41
 msgid "Willkommen"
 msgstr "Willkommen"
 
@@ -685,12 +692,13 @@ msgstr "Willkommen"
 msgid "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
 msgstr "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
 
-#: Home/templates/first_login.html:62 Home/templates/index.html:54
+#: Home/templates/first_login.html:62 Home/templates/index.html:53
 msgid "Benutzername oder Passwort falsch."
 msgstr "Benutzername oder Passwort falsch."
 
 #: Home/templates/first_login.html:67 Home/templates/first_login.html:68
-#: Home/templates/index.html:59 Home/templates/index.html:60
+#: Home/templates/index.html:58 Home/templates/index.html:59
+#: Home/templates/password_reset.html:63 Home/templates/password_reset.html:64
 msgid "Benutzername"
 msgstr "Benutzername"
 
@@ -706,55 +714,76 @@ msgstr "Neues Passwort"
 msgid "Neues Passwort wiederholen"
 msgstr "Neues Passwort wiederholen"
 
-#: Home/templates/first_login.html:89 Home/templates/index.html:71
+#: Home/templates/first_login.html:89 Home/templates/index.html:70
 #, fuzzy
 #| msgid "Ampelmeldung"
 msgid "Anmelden"
 msgstr "Anmelden"
 
-#: Home/templates/first_login.html:116 Home/templates/index.html:104
+#: Home/templates/first_login.html:116 Home/templates/index.html:106
+#: Home/templates/password_reset.html:100
 msgid "Datenschutz"
 msgstr "Datenschutz"
 
-#: Home/templates/index.html:43
+#: Home/templates/index.html:42
 msgid "Bitte melden Sie sich an"
 msgstr "Bitte melden Sie sich an"
 
-#: Home/templates/index.html:64 Home/templates/index.html:65
+#: Home/templates/index.html:63 Home/templates/index.html:64
 msgid "Passwort"
 msgstr "Passwort"
 
-#: Home/templates/index.html:77
+#: Home/templates/index.html:76
 msgid "Anmelden mit Einmalpasswort"
 msgstr "Anmelden mit Einmalpasswort"
 
-#: Home/views.py:30
+#: Home/templates/index.html:79
+msgid "Passwort vergessen?"
+msgstr ""
+
+#: Home/templates/password_reset.html:9
+#, fuzzy
+#| msgid "Passwort"
+msgid "Password Reset"
+msgstr "Passwort"
+
+#: Home/templates/password_reset.html:45 Home/templates/password_reset.html:73
+msgid "Passwort zurücksetzen"
+msgstr ""
+
+#: Home/templates/password_reset.html:46
+#, fuzzy
+#| msgid "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
+msgid "Bitte geben Sie Ihren Benutzernamen und Ihre E-Mail-Adresse ein"
+msgstr "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
+
+#: Home/views.py:32
 msgid "Ungültiger Benutzername oder Passwort."
 msgstr "Ungültiger Benutzername oder Passwort."
 
-#: Home/views.py:44
+#: Home/views.py:46
 msgid "Benutzername nicht gefunden."
 msgstr "Benutzername nicht gefunden."
 
-#: Home/views.py:50
+#: Home/views.py:52
 msgid ""
 "Interner Fehler: Benutzer nicht gefunden. Kontaktiere den Administrator."
 msgstr ""
 "Interner Fehler: Benutzer nicht gefunden. Kontaktiere den Administrator."
 
-#: Home/views.py:54
+#: Home/views.py:56
 msgid "Passwörter stimmen nicht überein."
 msgstr "Passwörter stimmen nicht überein."
 
-#: Home/views.py:58
+#: Home/views.py:60
 msgid "Einmalpasswort bereits verwendet."
 msgstr "Einmalpasswort bereits verwendet."
 
-#: Home/views.py:62
+#: Home/views.py:64
 msgid "Ungültiges Einmalpasswort."
 msgstr "Ungültiges Einmalpasswort."
 
-#: Home/views.py:77
+#: Home/views.py:79
 msgid "Fehler beim Login. Bitte versuchen Sie es erneut."
 msgstr "Fehler beim Login. Bitte versuchen Sie es erneut."
 
