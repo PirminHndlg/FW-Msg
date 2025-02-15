@@ -102,27 +102,3 @@ class KalenderEvent(OrgModel):
     start = models.DateTimeField(verbose_name='Start')
     end = models.DateTimeField(verbose_name='Ende', null=True, blank=True)
     description = models.TextField(verbose_name='Beschreibung', null=True, blank=True)
-
-class Log(models.Model):
-    LEVEL_CHOICES = [
-        ('DEBUG', 'Debug'),
-        ('INFO', 'Info'),
-        ('WARNING', 'Warning'),
-        ('ERROR', 'Error'),
-        ('CRITICAL', 'Critical'),
-    ]
-
-    timestamp = models.DateTimeField(auto_now_add=True, verbose_name='Timestamp')
-    level = models.CharField(max_length=10, choices=LEVEL_CHOICES, default='INFO', verbose_name='Level')
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='User')
-    message = models.TextField(verbose_name='Message')
-    source = models.CharField(max_length=100, verbose_name='Source')
-    trace = models.TextField(blank=True, null=True, verbose_name='Stack Trace')
-
-    class Meta:
-        verbose_name = 'Log Entry'
-        verbose_name_plural = 'Log Entries'
-        ordering = ['-timestamp']
-
-    def __str__(self):
-        return f"[{self.timestamp}] {self.level}: {self.message}"
