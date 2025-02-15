@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect
 from django.urls import path
 from django.contrib import messages
 from django.utils.html import format_html
-from .models import CustomUser, Feedback, KalenderEvent, Log
+from .models import CustomUser, Feedback, KalenderEvent
 from FWMsg.celery import send_email_aufgaben_daily
 
 # Register your models here.
@@ -52,18 +52,3 @@ class KalenderEventAdmin(admin.ModelAdmin):
     list_display = ['title', 'start', 'end', 'description']
     search_fields = ['title', 'description']
     list_filter = ['start']
-
-@admin.register(Log)
-class LogAdmin(admin.ModelAdmin):
-    list_display = ('timestamp', 'level', 'user', 'source', 'message')
-    list_filter = ('level', 'source', 'timestamp')
-    search_fields = ('message', 'user__username', 'source')
-    readonly_fields = ('timestamp', 'level', 'user', 'message', 'source', 'trace')
-    date_hierarchy = 'timestamp'
-    ordering = ('-timestamp',)
-
-    def has_add_permission(self, request):
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return False

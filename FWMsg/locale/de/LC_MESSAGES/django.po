@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-14 11:50+0100\n"
+"POT-Creation-Date: 2025-02-15 10:18+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -117,15 +117,15 @@ msgstr "Notfallkontakte"
 
 #: FW/templates/base.html:91 FW/templates/base.html:105
 #: FW/templates/base.html:209 FW/templates/base.html:221
-#: Home/templates/first_login.html:106 Home/templates/index.html:96
-#: Home/templates/password_reset.html:90
+#: Home/templates/first_login.html:108 Home/templates/index.html:98
+#: Home/templates/password_reset.html:92
 msgid "Deutsch"
 msgstr "Deutsch"
 
 #: FW/templates/base.html:91 FW/templates/base.html:105
 #: FW/templates/base.html:211 FW/templates/base.html:226
-#: Home/templates/first_login.html:106 Home/templates/index.html:96
-#: Home/templates/password_reset.html:90
+#: Home/templates/first_login.html:108 Home/templates/index.html:98
+#: Home/templates/password_reset.html:92
 msgid "English"
 msgstr "Englisch"
 
@@ -572,7 +572,7 @@ msgid "Telefon Einsatzland"
 msgstr "Telefon Einsatzland"
 
 #: Global/templates/components/profile_details.html:14
-#: Home/templates/password_reset.html:68 Home/templates/password_reset.html:69
+#: Home/templates/password_reset.html:70 Home/templates/password_reset.html:71
 msgid "Email"
 msgstr "E-Mail"
 
@@ -680,64 +680,64 @@ msgstr "Profilbild"
 msgid "Neues Profilbild auswählen"
 msgstr "Neues Profilbild auswählen"
 
-#: Home/templates/first_login.html:41 Home/templates/password_reset.html:40
+#: Home/templates/first_login.html:43 Home/templates/password_reset.html:42
 msgid "Zurück zur Startseite"
 msgstr "Zurück zur Startseite"
 
-#: Home/templates/first_login.html:44 Home/templates/index.html:41
+#: Home/templates/first_login.html:46 Home/templates/index.html:43
 msgid "Willkommen"
 msgstr "Willkommen"
 
-#: Home/templates/first_login.html:45
+#: Home/templates/first_login.html:47
 msgid "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
 msgstr "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
 
-#: Home/templates/first_login.html:62 Home/templates/index.html:53
+#: Home/templates/first_login.html:64 Home/templates/index.html:55
 msgid "Benutzername oder Passwort falsch."
 msgstr "Benutzername oder Passwort falsch."
 
-#: Home/templates/first_login.html:67 Home/templates/first_login.html:68
-#: Home/templates/index.html:58 Home/templates/index.html:59
-#: Home/templates/password_reset.html:63 Home/templates/password_reset.html:64
+#: Home/templates/first_login.html:69 Home/templates/first_login.html:70
+#: Home/templates/index.html:60 Home/templates/index.html:61
+#: Home/templates/password_reset.html:65 Home/templates/password_reset.html:66
 msgid "Benutzername"
 msgstr "Benutzername"
 
-#: Home/templates/first_login.html:72 Home/templates/first_login.html:73
+#: Home/templates/first_login.html:74 Home/templates/first_login.html:75
 msgid "Einmalpasswort"
 msgstr "Einmalpasswort"
 
-#: Home/templates/first_login.html:77 Home/templates/first_login.html:78
+#: Home/templates/first_login.html:79 Home/templates/first_login.html:80
 msgid "Neues Passwort"
 msgstr "Neues Passwort"
 
-#: Home/templates/first_login.html:82 Home/templates/first_login.html:83
+#: Home/templates/first_login.html:84 Home/templates/first_login.html:85
 msgid "Neues Passwort wiederholen"
 msgstr "Neues Passwort wiederholen"
 
-#: Home/templates/first_login.html:89 Home/templates/index.html:70
+#: Home/templates/first_login.html:91 Home/templates/index.html:72
 #, fuzzy
 #| msgid "Ampelmeldung"
 msgid "Anmelden"
 msgstr "Anmelden"
 
-#: Home/templates/first_login.html:116 Home/templates/index.html:106
-#: Home/templates/password_reset.html:100
+#: Home/templates/first_login.html:118 Home/templates/index.html:105
+#: Home/templates/password_reset.html:102
 msgid "Datenschutz"
 msgstr "Datenschutz"
 
-#: Home/templates/index.html:42
+#: Home/templates/index.html:44
 msgid "Bitte melden Sie sich an"
 msgstr "Bitte melden Sie sich an"
 
-#: Home/templates/index.html:63 Home/templates/index.html:64
+#: Home/templates/index.html:65 Home/templates/index.html:66
 msgid "Passwort"
 msgstr "Passwort"
 
-#: Home/templates/index.html:76
+#: Home/templates/index.html:78
 msgid "Anmelden mit Einmalpasswort"
 msgstr "Anmelden mit Einmalpasswort"
 
-#: Home/templates/index.html:79
+#: Home/templates/index.html:81
 msgid "Passwort vergessen?"
 msgstr ""
 
@@ -747,11 +747,11 @@ msgstr ""
 msgid "Password Reset"
 msgstr "Passwort"
 
-#: Home/templates/password_reset.html:45 Home/templates/password_reset.html:73
+#: Home/templates/password_reset.html:47 Home/templates/password_reset.html:75
 msgid "Passwort zurücksetzen"
 msgstr ""
 
-#: Home/templates/password_reset.html:46
+#: Home/templates/password_reset.html:48
 #, fuzzy
 #| msgid "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
 msgid "Bitte geben Sie Ihren Benutzernamen und Ihre E-Mail-Adresse ein"
