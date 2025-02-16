@@ -66,3 +66,7 @@ logos/
 static/
 FWMsg/dump.rdb
 media/
+gdpr-log.sqlite3
+media_old/
+old_db_2.sqlite3
+convert_dump.py
