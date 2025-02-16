@@ -58,7 +58,13 @@ class CustomUser(models.Model):
         elif self.role == 'O':
             from ORG.tasks import send_register_email_task
             send_register_email_task.s(self.id).apply_async(countdown=10)
-    
+
+    def create_small_image(self):
+        if self.profil_picture:
+            from FW.models import calculate_small_image
+            self.profil_picture = calculate_small_image(self.profil_picture)
+            self.save()
+
     def __str__(self):
         return self.user.username
     
@@ -69,12 +75,10 @@ class CustomUser(models.Model):
     
 @receiver(post_save, sender=CustomUser)
 def post_save_handler(sender, instance, created, **kwargs):
-    from FW.models import calculate_small_image
 
     if instance.profil_picture and not hasattr(instance, '_processing_profil_picture'):
         instance._processing_profil_picture = True
-        instance.profil_picture = calculate_small_image(instance.profil_picture)
-        instance.save()
+        instance.create_small_image()
         delattr(instance, '_processing_profil_picture')
 
 # Add property to User model to access org
