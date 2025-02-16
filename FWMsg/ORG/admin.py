@@ -1,25 +1,26 @@
 from django.contrib import admin
 from .models import Organisation, Ordner, Dokument, Referenten, JahrgangTyp, DokumentColor
+from simple_history.admin import SimpleHistoryAdmin
 
 # Register your models here.
 @admin.register(Organisation)
-class OrganisationAdmin(admin.ModelAdmin):
+class OrganisationAdmin(SimpleHistoryAdmin):
     search_fields = ['name']
 
 @admin.register(Ordner)
-class OrdnerAdmin(admin.ModelAdmin):
+class OrdnerAdmin(SimpleHistoryAdmin):
     search_fields = ['ordner_name']
 
 @admin.register(Dokument)
-class DokumentAdmin(admin.ModelAdmin):
+class DokumentAdmin(SimpleHistoryAdmin):
     search_fields = ['ordner', 'dokument', 'beschreibung']
 
 @admin.register(DokumentColor)
-class DokumentColorAdmin(admin.ModelAdmin):
+class DokumentColorAdmin(SimpleHistoryAdmin):
     search_fields = ['name']
 
 @admin.register(Referenten)
-class ReferentenAdmin(admin.ModelAdmin):
+class ReferentenAdmin(SimpleHistoryAdmin):
     search_fields = ['first_name', 'last_name', 'email', 'phone']
     actions = ['anonymize_user']
 
@@ -33,5 +34,5 @@ class ReferentenAdmin(admin.ModelAdmin):
             referent.user.save()
 
 @admin.register(JahrgangTyp)
-class JahrgangTypAdmin(admin.ModelAdmin):
+class JahrgangTypAdmin(SimpleHistoryAdmin):
     search_fields = ['name']

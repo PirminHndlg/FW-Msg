@@ -6,7 +6,7 @@ from django.dispatch import receiver
 from django.contrib.auth.models import User
 import random
 import string
-
+from simple_history.models import HistoricalRecords
 # Create your models here.
 class Organisation(models.Model):
     name = models.CharField(max_length=100)
@@ -17,6 +17,8 @@ class Organisation(models.Model):
     website = models.URLField(null=True, blank=True)
     logo = models.ImageField(upload_to='logos/')
     farbe = models.CharField(max_length=7, default='#007bff')
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = 'Organisation'
@@ -72,6 +74,8 @@ class JahrgangTyp(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     name = models.CharField(max_length=50, verbose_name='Jahrgangstyp')
 
+    history = HistoricalRecords()
+
     class Meta:
         verbose_name = 'Jahrgangstyp'
         verbose_name_plural = 'Jahrgangstypen'
@@ -85,6 +89,8 @@ class Ordner(models.Model):
     ordner_name = models.CharField(max_length=100)
     typ = models.ForeignKey(JahrgangTyp, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Typ')
     color = models.ForeignKey('DokumentColor', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Farbe')
+
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.ordner_name
@@ -129,6 +135,8 @@ class Dokument(models.Model):
     beschreibung = models.TextField(null=True, blank=True)
     fw_darf_bearbeiten = models.BooleanField(default=True)
     preview_image = models.ImageField(upload_to=upload_to_preview_image, null=True, blank=True)
+
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.titel or self.dokument.name or self.link
@@ -234,6 +242,8 @@ class DokumentColor(models.Model):
     name = models.CharField(max_length=50, verbose_name='Farbname')
     color = models.CharField(max_length=7, verbose_name='Farbcodes')
 
+    history = HistoricalRecords()
+
     def __str__(self):
         return self.name
 
@@ -246,6 +256,8 @@ class Referenten(models.Model):
     phone_work = models.CharField(max_length=20, verbose_name='Telefon Arbeit', null=True, blank=True)
     phone_mobil = models.CharField(max_length=20, verbose_name='Telefon Mobil', null=True, blank=True)
     land = models.ManyToManyField('FW.Einsatzland', verbose_name='Einsatzland', blank=True, null=True)
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = 'Teammitglied'

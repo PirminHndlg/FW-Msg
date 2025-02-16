@@ -5,10 +5,11 @@ from django.contrib import messages
 from django.utils.html import format_html
 from .models import CustomUser, Feedback, KalenderEvent
 from FWMsg.celery import send_email_aufgaben_daily
+from simple_history.admin import SimpleHistoryAdmin
 
 # Register your models here.
 @admin.register(CustomUser)
-class CustomUserAdmin(admin.ModelAdmin):
+class CustomUserAdmin(SimpleHistoryAdmin):
     search_fields = ['user__username', 'user__email']
     actions = ['send_registration_email']
     list_filter = [('einmalpasswort', admin.EmptyFieldListFilter)]
@@ -48,7 +49,7 @@ class FeedbackAdmin(admin.ModelAdmin):
     list_filter = ['anonymous']
 
 @admin.register(KalenderEvent)
-class KalenderEventAdmin(admin.ModelAdmin):
+class KalenderEventAdmin(SimpleHistoryAdmin):
     list_display = ['title', 'start', 'end', 'description']
     search_fields = ['title', 'description']
     list_filter = ['start']

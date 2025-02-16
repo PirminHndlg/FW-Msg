@@ -6,6 +6,7 @@ from django.db.models.signals import post_save
 import random
 from django.db import models
 from FWMsg.middleware import get_current_request
+from simple_history.models import HistoricalRecords
 
 
 
@@ -41,6 +42,8 @@ class CustomUser(models.Model):
     profil_picture = models.ImageField(upload_to='profil_picture/', blank=True, null=True, verbose_name='Profilbild')
 
     einmalpasswort = models.CharField(max_length=20, blank=True, null=True, verbose_name='Einmalpasswort')
+
+    history = HistoricalRecords()
 
     def send_registration_email(self):
         if not self.einmalpasswort:
@@ -102,3 +105,5 @@ class KalenderEvent(OrgModel):
     start = models.DateTimeField(verbose_name='Start')
     end = models.DateTimeField(verbose_name='Ende', null=True, blank=True)
     description = models.TextField(verbose_name='Beschreibung', null=True, blank=True)
+
+    history = HistoricalRecords()
