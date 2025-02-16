@@ -33,7 +33,7 @@ from simple_history.models import HistoricalRecords
 #         CustomUser.objects.create(user=instance, org=sender.org)
 
 
-def calculate_small_image(image):
+def calculate_small_image(image, size=(750, 750)):
     # Open the image
     img = Image.open(image)
             
@@ -54,7 +54,7 @@ def calculate_small_image(image):
         # No EXIF data or no orientation info
         pass
 
-    img.thumbnail((1000, 1000))
+    img.thumbnail(size)
 
     img_io = io.BytesIO()
     format = "JPEG"
