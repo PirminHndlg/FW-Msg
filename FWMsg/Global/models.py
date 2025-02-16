@@ -62,7 +62,7 @@ class CustomUser(models.Model):
     def create_small_image(self):
         if self.profil_picture:
             from FW.models import calculate_small_image
-            self.profil_picture = calculate_small_image(self.profil_picture)
+            self.profil_picture = calculate_small_image(self.profil_picture, size=(500, 500))
             self.save()
 
     def __str__(self):
