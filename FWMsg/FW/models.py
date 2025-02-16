@@ -11,6 +11,8 @@ from django.dispatch import receiver
 from django.core.files.base import ContentFile
 import io
 
+from simple_history.models import HistoricalRecords
+
 
 
 # class Organisation(models.Model):
@@ -63,6 +65,8 @@ def calculate_small_image(image):
 class Entsendeform(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Entsendeform-Name')
 
+    history = HistoricalRecords()
+
     class Meta:
         verbose_name = 'Entsendeform'
         verbose_name_plural = 'Entsendeformen'
@@ -73,6 +77,8 @@ class Entsendeform(OrgModel):
 
 class Kirchenzugehoerigkeit(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Kirchenzugehoerigkeit-Name')
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = 'Kirchenzugehörigkeit'
@@ -91,7 +97,7 @@ class Einsatzland(OrgModel):
     apotheken = models.TextField(verbose_name='Apotheken', null=True, blank=True)
     informationen = models.TextField(verbose_name='Weitere Informationen', null=True, blank=True)
 
-
+    history = HistoricalRecords()
     class Meta:
         verbose_name = 'Einsatzland'
         verbose_name_plural = 'Einsatzländer'
@@ -111,6 +117,8 @@ class Einsatzstelle(OrgModel):
     konsulat = models.TextField(verbose_name='Konsulat', null=True, blank=True)
     informationen = models.TextField(verbose_name='Weitere Informationen', null=True, blank=True)
 
+    history = HistoricalRecords()
+
     class Meta:
         verbose_name = 'Einsatzstelle'
         verbose_name_plural = 'Einsatzstellen'
@@ -124,6 +132,8 @@ class Jahrgang(OrgModel):
     start = models.DateField(verbose_name='Startdatum')
     ende = models.DateField(verbose_name='Enddatum')
     typ = models.ForeignKey(JahrgangTyp, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Typ')
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = 'Jahrgang'
@@ -170,6 +180,8 @@ class Freiwilliger(models.Model):
     start_real = models.DateField(blank=True, null=True, verbose_name='Start real')
     ende_geplant = models.DateField(blank=True, null=True, verbose_name='Ende geplant')
     ende_real = models.DateField(blank=True, null=True, verbose_name='Ende real')
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = 'Freiwillige:r'
@@ -326,6 +338,8 @@ class FreiwilligerAufgaben(OrgModel):
     wiederholung_ende = models.DateField(blank=True, null=True, verbose_name='Wiederholung bis')
     file = models.FileField(upload_to='uploads/', blank=True, null=True, verbose_name='Datei')
 
+    history = HistoricalRecords()
+
     def save(self, *args, **kwargs):
         if self.wiederholung != 'N' and not self.wiederholung_ende:
             self.wiederholung_ende = self.freiwilliger.ende_geplant
@@ -388,6 +402,8 @@ class FreiwilligerUpload(OrgModel):
     file = models.FileField(upload_to='uploads/', verbose_name='Datei')
     datetime = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
 
+    history = HistoricalRecords()
+
     class Meta:
         verbose_name = 'Freiwilliger Upload'
         verbose_name_plural = 'Freiwilliger Uploads'
@@ -405,6 +421,8 @@ class FreiwilligerFotos(OrgModel):
     freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
     file = models.ImageField(upload_to='fotos/', verbose_name='Foto')
     datetime = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = 'Freiwilliger Foto'
@@ -465,6 +483,8 @@ class Aufgabe(OrgModel):
     faellig_tage_nach_start = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage nach Einsatzstart')
     faellig_tage_vor_ende = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage vor Einsatzende')
 
+    history = HistoricalRecords()
+
     class Meta:
         verbose_name = 'Aufgabe'
         verbose_name_plural = 'Aufgaben'
@@ -478,6 +498,8 @@ class Post(OrgModel):
     title = models.CharField(max_length=50, verbose_name='Posttitel')
     text = models.TextField(verbose_name='Text')
     date = models.DateTimeField(auto_now_add=True, verbose_name='Datum')
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = 'Post'
@@ -500,6 +522,8 @@ class Bilder(OrgModel):
     date_created = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
     date_updated = models.DateTimeField(auto_now=True, verbose_name='Aktualisiert am')
 
+    history = HistoricalRecords()
+
     class Meta:
         verbose_name = 'Bild'
         verbose_name_plural = 'Bilder'
@@ -513,6 +537,8 @@ class BilderGallery(OrgModel):
 
     small_image = models.ImageField(upload_to='bilder/small/', blank=True, null=True, verbose_name='Kleines Bild')
     bilder = models.ForeignKey(Bilder, on_delete=models.CASCADE, verbose_name='Bild')
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = 'Bilder Gallery'
@@ -596,6 +622,8 @@ class ProfilUser(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
     attribut = models.CharField(max_length=50, verbose_name='Attribut')
     value = models.TextField(verbose_name='Wert')
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = 'Profil User'

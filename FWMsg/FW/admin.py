@@ -4,11 +4,12 @@ from django.contrib import admin
 from .models import Freiwilliger, Entsendeform, Einsatzland, Einsatzstelle, Notfallkontakt, Post, Aufgabe, \
     Aufgabenprofil, FreiwilligerAufgabenprofil, Ampel, FreiwilligerAufgaben, Jahrgang, \
     CustomUser, Bilder, BilderGallery
+from simple_history.admin import SimpleHistoryAdmin
 
 
 # Register your models here.
 @admin.register(Freiwilliger)
-class FreiwilligerAdmin(admin.ModelAdmin):
+class FreiwilligerAdmin(SimpleHistoryAdmin):
     search_fields = ['first_name', 'last_name']
     actions = ['send_register_email', 'give_user_name', 'anonymize_user']
 
