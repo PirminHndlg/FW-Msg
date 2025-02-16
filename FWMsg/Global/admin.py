@@ -11,7 +11,7 @@ from simple_history.admin import SimpleHistoryAdmin
 @admin.register(CustomUser)
 class CustomUserAdmin(SimpleHistoryAdmin):
     search_fields = ['user__username', 'user__email']
-    actions = ['send_registration_email']
+    actions = ['send_registration_email', 'create_small_image']
     list_filter = [('einmalpasswort', admin.EmptyFieldListFilter)]
     list_display = ('user', 'org', 'role')
     list_filter = ('org', 'role')
@@ -28,6 +28,10 @@ class CustomUserAdmin(SimpleHistoryAdmin):
     def send_registration_email(self, request, queryset):
         for customuser in queryset:
             customuser.send_registration_email()
+
+    def create_small_image(self, request, queryset):
+        for customuser in queryset:
+            customuser.create_small_image()
 
     def send_daily_emails(self, request):
         try:
