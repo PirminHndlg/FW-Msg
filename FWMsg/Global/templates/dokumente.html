@@ -1,4 +1,4 @@
-{% extends extends_base|default:'base.html' %}
+{% extends extends_base|default:'baseFw.html' %}
 {% load static %}
 {% load base_filter %}
 {% load dokument_filter %}
@@ -14,8 +14,8 @@
 
             function handleCollapseShow(collapse) {
                 // Scroll into view
-                let card_header = collapse.closest('.card').querySelector('.card-header');
-                card_header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                {% comment %} let card_header = collapse.closest('.card').querySelector('.card-header');
+                card_header.scrollIntoView({ behavior: 'smooth', block: 'start' }); {% endcomment %}
                 
                 // Load lazy images
                 collapse.querySelectorAll('[data-preview-src]').forEach(img => {
