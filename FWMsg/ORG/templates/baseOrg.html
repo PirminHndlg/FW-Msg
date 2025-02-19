@@ -1,179 +1,147 @@
 {# Base template that all other templates inherit from #}
 {% load static %}
 {% load base_filter %}
+{% load base_fw_filter %}
 {% load i18n %}
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     {% include 'header.html' %}
 
     <title>
-        {% block title %}FWMsg{% endblock %}
+      {% block title %}
+        FWMsg
+      {% endblock %}
     </title>
 
     <script src="{% static 'js/baseOrg.js' %}"></script>
 
     {% block head %}
+
     {% endblock %}
-</head>
-<body>
-
-<div class="d-flex">
-    {# Main Navigation Bar #}
-    <div class="content w-100">
+  </head>
+  <body>
+    <div class="d-flex">
+      {# Main Navigation Bar #}
+      <div class="content w-100">
         <nav class="navbar bg-primary navbar-expand-md">
-            <div class="container-fluid">
-                {# Organization Logo and Name #}
-                <a class="navbar-brand" href="{% url 'org_home' %}">
-                    {% with org=user|get_org %}
-                        <img src="{% url 'serve_image' org.id %}" alt="{% if org.kurzname %}{{ org.kurzname }}{% else %}{{ org.name }}{% endif %}-Logo" height="30"
-                             class="d-inline-block align-text-top">
-                    {% endwith %}
-                </a>
+          <div class="container-fluid">
+            {# Organization Logo and Name #}
+            <a class="navbar-brand" href="{% url 'org_home' %}">
+              {% with org=user|get_org %}
+                <img src="{% url 'serve_image' org.id %}"
+                  alt="{% if org.kurzname %}
+                    {{ org.kurzname }}
+                  {% else %}
+                    {{ org.name }}
+                  {% endif %}-Logo"
+                  height="30"
+                  class="d-inline-block align-text-top" />
+              {% endwith %}
+            </a>
 
-                {# Mobile Navigation Toggle Button #}
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#navbarResponsive" aria-controls="navbarResponsive"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+            {# Mobile Navigation Toggle Button #}
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
 
-                {# Navigation Links #}
-                <div class="collapse navbar-collapse" id="navbarResponsive">
-                    <ul class="navbar-nav me-auto mb-2 mb-md-0">
-                        <li class="nav-item">
-                            <a href="{% url 'org_home' %}" class="nav-link" aria-current="page">
-                                Home
-                            </a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button"
-                               data-bs-toggle="dropdown" aria-expanded="false">
-                                Tabellen
-                            </a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <a href="{% url 'list_object' 'freiwilliger' %}" class="dropdown-item">Freiwillige</a>
-                                <a href="{% url 'list_object' 'notfallkontakt' %}"
-                                   class="dropdown-item">Notfallkontakte</a>
-                                <a href="{% url 'list_object' 'kirchenzugehoerigkeit' %}"
-                                      class="dropdown-item">Kirchenzugehörigkeiten</a>
-                                <a href="{% url 'list_object' 'jahrgang' %}"
-                                         class="dropdown-item">Jahrgänge</a>
-                                <a href="{% url 'list_object' 'entsendeform' %}" class="dropdown-item">Entsendeform</a>
-                                <hr class="dropdown-divider">
-                                <a href="{% url 'list_object' 'aufgabe' %}" class="dropdown-item">Aufgaben</a>
-                                <a href="{% url 'list_object' 'aufgabenprofil' %}"
-                                   class="dropdown-item">Aufgabenprofile</a>
-                                <a href="{% url 'list_object' 'freiwilligeraufgaben' %}"
-                                   class="dropdown-item">Freiwillige:r Aufgaben</a>
-                                <hr class="dropdown-divider">
-                                <a href="{% url 'list_object' 'referenten' %}"
-                                   class="dropdown-item">Team</a>
-                                <hr class="dropdown-divider">
-                                <a href="{% url 'list_object' 'einsatzland' %}"
-                                   class="dropdown-item">Einsatzländer</a>
-                                <a href="{% url 'list_object' 'einsatzstelle' %}"
-                                   class="dropdown-item">Einsatzstellen</a>
-                                <hr class="dropdown-divider">
-                                <a href="{% url 'list_object' 'user' %}"
-                                   class="dropdown-item">Benutzer:innen</a>
-                            </div>
-                        </li>
-                        <li>
-                            <a href="{% url 'list_aufgaben_table' %}" class="nav-link">Aufgabenübersicht</a>
-                        </li>
-                        <li>
-                            <a href="{% url 'list_ampel' %}" class="nav-link">Ampelmeldungen</a>
-                        </li>
-                        <li>
-                            <a href="{% url 'bilder' %}" class="nav-link">Bilder</a>
-                        </li>
-                        <li>
-                            <a href="{% url 'dokumente' %}" class="nav-link">Dokumente</a>
-                        </li>
-                    </ul>
+            {# Navigation Links #}
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+              <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                <li class="nav-item">
+                  <a href="{% url 'org_home' %}" class="nav-link" aria-current="page">Home</a>
+                </li>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Tabellen</a>
+                  <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <a href="{% url 'list_object' 'freiwilliger' %}" class="dropdown-item">Freiwillige</a>
+                    <a href="{% url 'list_object' 'notfallkontakt' %}" class="dropdown-item">Notfallkontakte</a>
+                    <a href="{% url 'list_object' 'kirchenzugehoerigkeit' %}" class="dropdown-item">Kirchenzugehörigkeiten</a>
+                    <a href="{% url 'list_object' 'jahrgang' %}" class="dropdown-item">Jahrgänge</a>
+                    <a href="{% url 'list_object' 'entsendeform' %}" class="dropdown-item">Entsendeform</a>
+                    <hr class="dropdown-divider" />
+                    <a href="{% url 'list_object' 'aufgabe' %}" class="dropdown-item">Aufgaben</a>
+                    <a href="{% url 'list_object' 'aufgabenprofil' %}" class="dropdown-item">Aufgabenprofile</a>
+                    <a href="{% url 'list_object' 'freiwilligeraufgaben' %}" class="dropdown-item">Freiwillige:r Aufgaben</a>
+                    <hr class="dropdown-divider" />
+                    <a href="{% url 'list_object' 'referenten' %}" class="dropdown-item">Team</a>
+                    <hr class="dropdown-divider" />
+                    <a href="{% url 'list_object' 'einsatzland' %}" class="dropdown-item">Einsatzländer</a>
+                    <a href="{% url 'list_object' 'einsatzstelle' %}" class="dropdown-item">Einsatzstellen</a>
+                    <hr class="dropdown-divider" />
+                    <a href="{% url 'list_object' 'user' %}" class="dropdown-item">Benutzer:innen</a>
+                  </div>
+                </li>
+                <li>
+                  <a href="{% url 'list_aufgaben_table' %}" class="nav-link">Aufgabenübersicht</a>
+                </li>
+                <li>
+                  <a href="{% url 'list_ampel' %}" class="nav-link">Ampelmeldungen</a>
+                </li>
+                <li>
+                  <a href="{% url 'bilder' %}" class="nav-link">Bilder</a>
+                </li>
+                <li>
+                  <a href="{% url 'dokumente' %}" class="nav-link">Dokumente</a>
+                </li>
+              </ul>
 
-                    <!-- Jahrgang Selector -->
-                    <div class="d-flex align-items-center me-3 gap-2">
-                        <div class="dropdown">
-                            <button class="btn btn-light dropdown-toggle" type="button" id="jahrgangDropdown" 
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-calendar-event me-1"></i>
-                                <span id="selectedJahrgang">{% trans "Alle Jahrgänge" %}</span>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="jahrgangDropdown">
-                                <li>
-                                    <a class="dropdown-item" href="#" data-jahrgang="">
-                                        {% trans "Alle Jahrgänge" %}
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                {% for jahrgang in jahrgaenge %}
-                                    <li>
-                                        <a class="dropdown-item" href="#" data-jahrgang="{{ jahrgang.id }}">
-                                            {{ jahrgang }}
-                                        </a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        <!-- Profil Button -->
-                        <div class="d-flex">
-                            <a href="{% url 'profil' %}" class="btn btn-light">
-                                <i class="bi bi-person me-1"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
+              <!-- Jahrgang Selector -->
+              {% include 'components/jahrgang_selector.html' with jahrgaenge=jahrgaenge %}
+
+              <!-- Profil Button -->
+              <div class="d-flex">
+                <a href="{% url 'profil' %}" class="btn btn-light"><i class="bi bi-person me-1"></i></a>
+              </div>
             </div>
+          </div>
         </nav>
 
         {# Main Content Area #}
         <div class="container-fluid mt-3 mb-5">
-            {% include 'error_message.html' %}
-            {% block content %}
-            {% endblock %}
+          {% include 'error_message.html' %}
+          {% block content %}
+
+          {% endblock %}
         </div>
+      </div>
     </div>
-</div>
 
-{% block footer %}
-{% endblock %}
+    {% block footer %}
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
+    {% endblock %}
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
         // Handle jahrgang selection
-        document.querySelectorAll('[data-jahrgang]').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                const jahrgangId = this.dataset.jahrgang;
-                const jahrgangName = this.textContent.trim();
-                
-                // Save to cookies
-                if (jahrgangId) {
-                    Cookies.set('selectedJahrgang', jahrgangId, { expires: 365 });
-                    Cookies.set('selectedJahrgangName', jahrgangName, { expires: 365 });
-                } else {
-                    Cookies.remove('selectedJahrgang');
-                    Cookies.remove('selectedJahrgangName');
-                }
-
-                // Update dropdown text
-                document.getElementById('selectedJahrgang').textContent = jahrgangName;
-
-                // Reload current page
-                window.location.reload();
-            });
-        });
-
+        document.querySelectorAll('[data-jahrgang]').forEach((item) => {
+          item.addEventListener('click', function (e) {
+            e.preventDefault()
+            const jahrgangId = this.dataset.jahrgang
+            const jahrgangName = this.textContent.trim()
+      
+            // Save to cookies
+            if (jahrgangId) {
+              Cookies.set('selectedJahrgang', jahrgangId, { expires: 365 })
+              Cookies.set('selectedJahrgangName', jahrgangName, { expires: 365 })
+            } else {
+              Cookies.remove('selectedJahrgang')
+              Cookies.remove('selectedJahrgangName')
+            }
+      
+            // Update dropdown text
+            document.getElementById('selectedJahrgang').textContent = jahrgangName
+      
+            // Reload current page
+            window.location.reload()
+          })
+        })
+      
         // Set initial dropdown text from cookie
-        const savedJahrgangName = Cookies.get('selectedJahrgangName');
+        const savedJahrgangName = Cookies.get('selectedJahrgangName')
         if (savedJahrgangName) {
-            document.getElementById('selectedJahrgang').textContent = savedJahrgangName;
+          document.getElementById('selectedJahrgang').textContent = savedJahrgangName
         }
-    });
-</script>
-
-</body>
+      })
+    </script>
+  </body>
 </html>

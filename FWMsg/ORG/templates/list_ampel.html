@@ -1,4 +1,4 @@
-{% extends "baseOrg.html" %}
+{% extends extends_base|default:'baseOrg.html' %}
 {% load static %}
 {% load ampel_tags %}
 {% load i18n %}
@@ -10,115 +10,16 @@
 {% endblock %}
 
 {% block content %}
-<div class="card rounded-4">
+<div class="card rounded-4 p-2 pt-0">
     <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center py-3">
         <h4 class="mb-0">{% trans "Ampel Übersicht" %}</h4>
-
         <!-- Legend -->
-        <div class="d-flex align-items-center gap-3">
-            <div class="d-flex align-items-center">
-                <span class="ampel-dot ampel-G me-2"></span>
-                <span>{% trans "Grün" %}</span>
-            </div>
-            <div class="d-flex align-items-center">
-                <span class="ampel-dot ampel-Y me-2"></span>
-                <span>{% trans "Gelb" %}</span>
-            </div>
-            <div class="d-flex align-items-center">
-                <span class="ampel-dot ampel-R me-2"></span>
-                <span>{% trans "Rot" %}</span>
-            </div>
-        </div>
+        {% include "components/ampel_legend.html" %}
     </div>
     <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
-                <thead>
-                    <tr>
-                        <th class="border-end sticky-col bg-transparent">{% trans "Freiwilliger" %}</th>
-                        {% for month in months %}
-                        <th class="text-center {% if month == current_month %}table-active{% endif %}"
-                            style="min-width: 100px;">
-                            {{ month }}
-                        </th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for jahrgang, fw_matrix in ampel_matrix.items %}
-                    {% for freiwilliger, months_data in fw_matrix.items %}
-                    <tr>
-                        <td class="border-end sticky-col">
-                            <a class="text-decoration-none text-body" data-bs-toggle="tooltip"
-                                title="{% trans 'Historie anzeigen' %}">
-                                {{ freiwilliger }}
-                            </a>
-                        </td>
-                        {% for month in months %}
-                        <td class="text-center {% if month == current_month %}table-active{% endif %}">
-                            <div class="ampel-dot-container">
-                                {% for entry in months_data|get_item:month %}
-                                <span class="ampel-dot ampel-{{ entry.status }}"
-                                    onclick="showAmpelComment('{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}')"
-                                    data-bs-toggle="tooltip" data-bs-html="true"
-                                    title="<strong>{{ entry.date }}</strong><br>{{ entry.comment|default:'' }}">
-                                </span>
-                                {% endfor %}
-                            </div>
-                        </td>
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        {% include "components/ampel_table.html" %}
     </div>
 </div>
 
-{% if not ampel_matrix %}
-<div class="alert alert-info mt-4">
-    {% trans "Keine Ampelmeldungen gefunden." %}
-</div>
-{% endif %}
-
-<!-- Ampel Comment Modal -->
-<div class="modal fade" id="ampelCommentModal" tabindex="-1" aria-labelledby="ampelCommentModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header border-0">
-                <h5 class="modal-title" id="ampelCommentModalLabel">
-                    <span id="modalDate" class="text-muted"></span>
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="d-flex align-items-center mb-3 gap-1">
-                    <div id="modalStatus" class="ampel-dot me-3"></div>
-                    <h6 class="mb-0">{% trans "Status" %}</h6>
-                </div>
-                <div class="comment-box p-3 bg-light rounded">
-                    <p id="modalComment" class="mb-0"></p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    function showAmpelComment(date, status, comment) {
-        const modal = new bootstrap.Modal(document.getElementById('ampelCommentModal'));
-        document.getElementById('modalDate').textContent = date;
-        document.getElementById('modalStatus').className = `ampel-dot ampel-${status}`;
-        document.getElementById('modalComment').textContent = comment;
-        modal.show();
-    }
-
-    // Initialize all tooltips
-    document.addEventListener('DOMContentLoaded', function () {
-        const tooltips = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltips.forEach(tooltip => new bootstrap.Tooltip(tooltip));
-    });
-</script>
+{% include "components/ampel_modal.html" %}
 {% endblock %}
