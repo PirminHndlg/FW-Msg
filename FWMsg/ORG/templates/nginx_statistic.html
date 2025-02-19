@@ -1,0 +1,16 @@
+{% extends "baseOrg.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Nginx Statistics" %}{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">{% trans "Error" %}</h4>
+        <p>{{ error }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

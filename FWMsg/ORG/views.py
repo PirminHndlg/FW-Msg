@@ -3,6 +3,7 @@ import io
 import os
 import zipfile
 import pandas as pd
+import subprocess
 
 from django.db.models import ForeignKey
 from django.shortcuts import render, redirect
@@ -18,6 +19,8 @@ from django.utils import timezone
 from django.template.context_processors import request
 from django.db.models import QuerySet
 from django.db.models import Case, When, Value, Count
+from django.contrib.admin.views.decorators import staff_member_required
+from django.template.loader import render_to_string
 
 from FW import models as FWmodels
 from Global import models as Globalmodels
@@ -141,6 +144,39 @@ def home(request):
     }
     
     return render(request, 'homeOrg.html', context)
+
+
+@staff_member_required
+def nginx_statistic(request):
+    try:
+        # Execute the goaccess command with HTML output
+        cmd = "zcat -f /var/log/nginx/volunteer.solutions-access.log.* | goaccess /var/log/nginx/volunteer.solutions-access.log --ignore-crawlers --anonymize-ip --output-format=html"
+        
+        # Run the command and capture output
+        process = subprocess.Popen(
+            cmd,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True
+        )
+        
+        # Get the output
+        output, error = process.communicate()
+        
+        if process.returncode != 0:
+            # If there was an error, return it in the template
+            return render(request, 'nginx_statistic.html', {
+                'error': f"Error running goaccess: {error}"
+            })
+        
+        # Return the HTML output directly
+        return HttpResponse(output)
+        
+    except Exception as e:
+        return render(request, 'nginx_statistic.html', {
+            'error': f"Error: {str(e)}"
+        })
 
 
 def get_model(model_name):
