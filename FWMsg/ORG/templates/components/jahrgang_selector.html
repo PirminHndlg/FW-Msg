@@ -1,0 +1,27 @@
+{% load i18n %}
+
+<!-- Jahrgang Selector -->
+<div class="d-flex align-items-center me-3 gap-2">
+    <div class="dropdown">
+        <button class="btn btn-light dropdown-toggle" type="button" id="jahrgangDropdown" 
+                data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-calendar-event me-1"></i>
+            <span id="selectedJahrgang">{% trans "Alle Jahrgänge" %}</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="jahrgangDropdown">
+            <li>
+                <a class="dropdown-item" href="#" data-jahrgang="">
+                    {% trans "Alle Jahrgänge" %}
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            {% for jahrgang in jahrgaenge %}
+                <li>
+                    <a class="dropdown-item" href="#" data-jahrgang="{{ jahrgang.id }}">
+                        {{ jahrgang }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

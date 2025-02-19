@@ -1,0 +1,51 @@
+{% load i18n %}
+{% load ampel_tags %}
+
+<div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+        <thead>
+            <tr>
+                <th class="border-end sticky-col bg-transparent">{% trans "Freiwilliger" %}</th>
+                {% for month in months %}
+                <th class="text-center {% if month == current_month %}table-active{% endif %}"
+                    style="min-width: 100px;">
+                    {{ month }}
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for jahrgang, fw_matrix in ampel_matrix.items %}
+            {% for freiwilliger, months_data in fw_matrix.items %}
+            <tr>
+                <td class="border-end sticky-col">
+                    <a class="text-decoration-none text-body" data-bs-toggle="tooltip"
+                        title="{% trans 'Historie anzeigen' %}">
+                        {{ freiwilliger }}
+                    </a>
+                </td>
+                {% for month in months %}
+                <td class="text-center {% if month == current_month %}table-active{% endif %}">
+                    <div class="ampel-dot-container">
+                        {% for entry in months_data|get_item:month %}
+                        <span class="ampel-dot ampel-{{ entry.status }}"
+                            onclick="showAmpelComment('{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}')"
+                            data-bs-toggle="tooltip" data-bs-html="true"
+                            title="<strong>{{ entry.date }}</strong><br>{{ entry.comment|default:'' }}">
+                        </span>
+                        {% endfor %}
+                    </div>
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if not ampel_matrix %}
+<div class="alert alert-info mt-4">
+    {% trans "Keine Ampelmeldungen gefunden." %}
+</div>
+{% endif %} 

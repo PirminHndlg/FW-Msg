@@ -12,6 +12,8 @@ def index(request):
         if request.user.is_authenticated and hasattr(request.user, 'customuser'):
             if request.user.customuser.role == 'O':
                 return redirect('org_home')
+            elif request.user.customuser.role == 'T':
+                return redirect('team_home')
             return redirect('fw_home')
 
     # Handle login form

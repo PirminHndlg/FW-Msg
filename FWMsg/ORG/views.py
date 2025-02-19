@@ -82,7 +82,7 @@ def filter_jahrgang(view_func):
 
 def org_context_processor(request):
     """Context processor to add jahrgaenge to all templates."""
-    if hasattr(request, 'user') and request.user.is_authenticated and request.user.role == 'O':
+    if hasattr(request, 'user') and request.user.is_authenticated and (request.user.role == 'O' or request.user.role == 'T'):
         return {
             'jahrgaenge': FWmodels.Jahrgang.objects.filter(org=request.user.org)
         }
@@ -427,25 +427,8 @@ def delete_object(request, model_name, id):
     
     return redirect('list_object', model_name=model_name)
 
-
-@login_required
-@required_role('O')
-@filter_jahrgang
-def list_ampel(request):
-    # Get jahrgang filter from cookie
-    jahrgang_id = request.COOKIES.get('selectedJahrgang')
-    
-    # Base queryset for freiwillige
-    freiwillige_qs = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
-    
-    # Apply jahrgang filter if specified
-    if jahrgang_id:
-        freiwillige_qs = freiwillige_qs.filter(jahrgang=jahrgang_id)
-    
-    # Order by jahrgang and name
-    freiwillige = freiwillige_qs.order_by('-jahrgang', 'last_name', 'first_name')
-    
-    # Get date range for ampel entries
+def _get_ampel_matrix(request, freiwillige):
+        # Get date range for ampel entries
     date_range = get_ampel_date_range(request.user.org)
     start_date, end_date = date_range['start_date'], date_range['end_date']
     
@@ -468,10 +451,31 @@ def list_ampel(request):
         if fw.jahrgang not in grouped_matrix:
             grouped_matrix[fw.jahrgang] = {}
         grouped_matrix[fw.jahrgang][fw] = ampel_matrix[fw]
+
+    return grouped_matrix, months
+
+@login_required
+@required_role('O')
+@filter_jahrgang
+def list_ampel(request):
+    # Get jahrgang filter from cookie
+    jahrgang_id = request.COOKIES.get('selectedJahrgang')
+    
+    # Base queryset for freiwillige
+    freiwillige_qs = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
+    
+    # Apply jahrgang filter if specified
+    if jahrgang_id:
+        freiwillige_qs = freiwillige_qs.filter(jahrgang=jahrgang_id)
+    
+    # Order by jahrgang and name
+    freiwillige = freiwillige_qs.order_by('-jahrgang', 'last_name', 'first_name')
+    
+    ampel_matrix, months = _get_ampel_matrix(request, freiwillige)
     
     context = {
         'months': months,
-        'ampel_matrix': grouped_matrix,
+        'ampel_matrix': ampel_matrix,
         'current_month': timezone.now().strftime("%b %y"),
         'jahrgang': jahrgang_id
     }

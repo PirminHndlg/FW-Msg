@@ -1,0 +1,40 @@
+{% load i18n %}
+
+<div class="modal fade" id="ampelCommentModal" tabindex="-1" aria-labelledby="ampelCommentModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="ampelCommentModalLabel">
+                    <span id="modalDate" class="text-muted"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center mb-3 gap-1">
+                    <div id="modalStatus" class="ampel-dot me-3"></div>
+                    <h6 class="mb-0">{% trans "Status" %}</h6>
+                </div>
+                <div class="comment-box p-3 bg-light rounded">
+                    <p id="modalComment" class="mb-0"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showAmpelComment(date, status, comment) {
+        const modal = new bootstrap.Modal(document.getElementById('ampelCommentModal'));
+        document.getElementById('modalDate').textContent = date;
+        document.getElementById('modalStatus').className = `ampel-dot ampel-${status}`;
+        document.getElementById('modalComment').textContent = comment;
+        modal.show();
+    }
+
+    // Initialize all tooltips
+    document.addEventListener('DOMContentLoaded', function () {
+        const tooltips = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltips.forEach(tooltip => new bootstrap.Tooltip(tooltip));
+    });
+</script> 

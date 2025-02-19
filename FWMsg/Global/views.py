@@ -53,7 +53,8 @@ from FW.models import (
 )
 from Global.models import KalenderEvent, CustomUser
 from ORG.models import Dokument, Ordner, Organisation, JahrgangTyp
-from ORG.views import base_template
+from ORG.views import base_template as org_base_template
+from TEAM.views import base_template as team_base_template
 from FWMsg.celery import send_email_aufgaben_daily
 from FWMsg.decorators import required_role
 from .forms import FeedbackForm
@@ -138,8 +139,13 @@ def check_organization_context(request, context=None):
     # Add organization-specific template settings if user is an organization
     if request.user.customuser.role == 'O':
         context.update({
-            'extends_base': base_template,
+            'extends_base': org_base_template,
             'is_org': True
+        })
+    elif request.user.customuser.role == 'T':
+        context.update({
+            'extends_base': team_base_template,
+            'is_team': True
         })
 
     return context

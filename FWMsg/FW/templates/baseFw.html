@@ -1,277 +1,279 @@
 {% load static %}
 {% load base_filter %}
+{% load base_fw_filter %}
 {% load i18n %}
 
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
-<head>
+  <head>
     {% include 'header.html' %}
 
     <title>
-        Volunteer.Solutions
-        {% block title %}
-        {% endblock %}
+      Volunteer.Solutions{% block title %}
+
+      {% endblock %}
     </title>
-    
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <link rel="stylesheet" href="{% static 'css/base.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
     <script src="{% static 'js/base.js' %}"></script>
 
     {% block head %}
+
     {% endblock %}
 
     {% block scripts %}
-    {% endblock %}
-</head>
-<body>
 
+    {% endblock %}
+  </head>
+  <body>
     <nav class="navbar navbar-dark bg-primary d-lg-none">
-        <div class="container-fluid">
-            <!-- Logo/Brand -->
-            <a class="navbar-brand" href="{% url 'fw_home' %}">
-                {% with org=user|get_org %}
-                    <img src="{% url 'serve_image' org.id %}" alt="{{ org.name }}-Logo" style="height: 30px;">
-                {% endwith %}   
-            </a>
-    
-            <!-- Hamburger Menu Button -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNavContent" aria-controls="mobileNavContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-        </div>
+      <div class="container-fluid">
+        <!-- Logo/Brand -->
+        <a class="navbar-brand" href="{% url 'fw_home' %}">
+          {% with org=user|get_org %}
+            <img src="{% url 'serve_image' org.id %}" alt="{{ org.name }}-Logo" style="height: 30px;" />
+          {% endwith %}
+        </a>
+
+        <!-- Hamburger Menu Button -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNavContent" aria-controls="mobileNavContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+      </div>
     </nav>
-    
+
     <!-- Mobile Navigation Collapse Content -->
     <div class="collapse bg-primary d-lg-none" id="mobileNavContent">
-        <div class="container-fluid py-3">
-            <ul class="nav flex-column text-white">
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'ampel' %}">
-                        <i class="bi bi-circle-fill me-1"></i>{% trans "Ampelmeldung" %}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'kalender' %}">
-                        <i class="bi bi-calendar-date me-1"></i>{% trans "Kalender" %}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'laenderinfo' %}">
-                        <i class="bi bi-people me-1"></i>{% trans "Mein Einsatzland" %}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'notfallkontakte' %}">
-                        <i class="bi bi-person-rolodex me-1"></i>{% trans "Notfallkontakte" %}
-                    </a>
-                </li>
-            </ul>
-            <!-- Language Selector -->
-            <div class="dropdown">
-                <button class="btn btn-link nav-link dropdown-toggle text-white p-0" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    {% get_current_language as CURRENT_LANGUAGE %}
-                    <span class="fi fi-{% if CURRENT_LANGUAGE == 'de' %}de{% else %}gb{% endif %}"></span>
-                    {% if CURRENT_LANGUAGE == 'de' %}{% trans "Deutsch" %}{% else %}{% trans "English" %} (Beta){% endif %}
-                </button>
-    
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
-                    <form action="{% url 'set_language' %}" method="post" id="language-form">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ request.path }}">
-                        
-                        {% get_available_languages as LANGUAGES %}
-                        {% for lang_code, lang_name in LANGUAGES %}
-                            <li>
-                                <button type="submit" name="language" value="{{ lang_code }}" 
-                                        class="dropdown-item {% if CURRENT_LANGUAGE == lang_code %}active{% endif %}">
-                                    <span class="fi fi-{% if lang_code == 'de' %}de{% else %}gb{% endif %}"></span>
-                                    {% if lang_code == 'de' %}{% trans "Deutsch" %}{% else %}{% trans "English" %} (Beta){% endif %}
-                                </button>
-                            </li>
-                        {% endfor %}
-                    </form>
-                </ul>
-            </div>
-        </div>
-    </div>
-    
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar for large devices -->
-            <nav class="col-lg-2 bg-primary d-none d-lg-flex flex-column vh-100 p-3 position-sticky top-0">
-                <!-- Logo section -->
-                <a class="navbar-brand mb-3 d-flex align-items-center flex-wrap link-underline link-underline-opacity-0 link-underline-opacity-0-hover"
-                   href="{% url 'fw_home' %}">
-                    {% with org=user|get_org %}
-                        <img src="{% url 'serve_image' org.id %}" alt="{{ org.name }}-Logo"
-                             style="height: 50px; margin-right: 10px; margin-bottom: 5px;">
-                        <h3 class="text-white mb-0">{{ org.kurzname|default:org.name }}</h3>
-                    {% endwith %}
-                </a>
-                <!-- Scrollable menu section -->
-                <div class="overflow-y-auto overflow-x-hidden flex-grow-1" style="min-height: 0;">
-                    <ul class="nav flex-column text-white gap-2">
-                        <li class="nav-item">
-                            <a class="nav-link text-white px-0 py-1" href="{% url 'fw_home' %}">
-                                <i class="bi bi-house"></i> {% trans "Home" %}
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white px-0 py-1" href="{% url 'aufgaben' %}">
-                                <i class="bi bi-list-check"></i> {% trans "Aufgaben" %}
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white px-0 py-1" href="{% url 'bild' %}">
-                                <i class="bi bi-image"></i> {% trans "Bilder hochladen" %}
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white px-0 py-1" href="{% url 'ampel' %}">
-                                <i class="bi bi-plus-circle"></i> {% trans "Ampelmeldung" %}
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white px-0 py-1" href="{% url 'dokumente' %}">
-                                <i class="bi bi-file-earmark-text"></i> {% trans "Dokumente" %}
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white px-0 py-1" href="{% url 'profil' %}">
-                                <i class="bi bi-person"></i> {% trans "Profil" %}
-                            </a>
-                        </li>
-                        <li class="nav-item" style="z-index: 9999;">
-                            <button class="btn btn-link nav-link dropdown-toggle text-white p-0" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                {% trans "Mehr" %}
-                            </button>
+      <div class="container-fluid py-3">
+        <ul class="nav flex-column text-white">
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{% url 'ampel' %}"><i class="bi bi-circle-fill me-1"></i>{% trans 'Ampelmeldung' %}</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{% url 'kalender' %}"><i class="bi bi-calendar-date me-1"></i>{% trans 'Kalender' %}</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{% url 'laenderinfo' %}"><i class="bi bi-people me-1"></i>{% trans 'Mein Einsatzland' %}</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{% url 'notfallkontakte' %}"><i class="bi bi-person-rolodex me-1"></i>{% trans 'Notfallkontakte' %}</a>
+          </li>
+        </ul>
+        <!-- Language Selector -->
+        <div class="dropdown">
+          <button class="btn btn-link nav-link dropdown-toggle text-white p-0" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            {% get_current_language as CURRENT_LANGUAGE %}
+            <span class="fi fi-{% if CURRENT_LANGUAGE == 'de' %}
                 
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
-                                <li>
-                                    <a href="{% url 'kalender' %}" class="dropdown-item">
-                                        <i class="bi bi-calendar-date"></i> {% trans "Kalender" %}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{% url 'laenderinfo' %}" class="dropdown-item">
-                                        <i class="bi bi-people me-1"></i> {% trans "Mein Einsatzland" %}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{% url 'notfallkontakte' %}" class="dropdown-item">
-                                            <i class="bi bi-person-rolodex"></i> {% trans "Notfallkontakte" %}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{% url 'feedback' %}" class="dropdown-item">
-                                        <i class="bi bi-chat-dots"></i> {% trans "Feedback" %}
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
-    
-                <!-- More Modal -->
-                <div class="modal fade" id="moreModal" tabindex="-1" aria-labelledby="moreModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="moreModalLabel">Mehr</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Fixed language selector at bottom -->
-                <div class="mt-3">
-                    <div class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {% get_current_language as CURRENT_LANGUAGE %}
-                            {% if CURRENT_LANGUAGE == 'de' %}
-                                <span class="fi fi-de"></span> {% trans "Deutsch" %}
-                            {% else %}
-                                <span class="fi fi-gb"></span> {% trans "English" %} (Beta)
-                            {% endif %}
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
-                            <form action="{% url 'set_language' %}" method="post" id="language-form">
-                                {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.path }}">
-                                
-                                <li>
-                                    <button type="submit" name="language" value="de" class="dropdown-item {% if CURRENT_LANGUAGE == 'de' %}active{% endif %}">
-                                        <span class="fi fi-de"></span> {% trans "Deutsch" %}
-                                    </button>
-                                </li>
-                                <li>
-                                    <button type="submit" name="language" value="en" class="dropdown-item {% if CURRENT_LANGUAGE == 'en' %}active{% endif %}">
-                                        <span class="fi fi-gb"></span> {% trans "English" %} (Beta)
-                                    </button>
-                                </li>
-                            </form>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
-    
-            <!-- Main content -->
-            <main class="col-lg-10 col-md-12 pt-3 pb-5 pb-lg-3 mb-4 mb-lg-0 h-100"
-                  style="background-color: var(--background-color); margin-bottom: 70px; min-height: 100vh;">
-                {% include 'error_message.html' %}
-                {% block content %}
-                {% endblock %}
-    
-            </main>
+                de
+
+              {% else %}
+                
+                gb
+
+              {% endif %}">
+
+            </span>
+            {% if CURRENT_LANGUAGE == 'de' %}
+              {% trans 'Deutsch' %}
+            {% else %}
+              {% trans 'English' %}(Beta)
+            {% endif %}
+          </button>
+
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+            <form action="{% url 'set_language' %}" method="post" id="language-form">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}" />
+
+              {% get_available_languages as LANGUAGES %}
+              {% for lang_code, lang_name in LANGUAGES %}
+                <li>
+                  <button type="submit" name="language" value="{{ lang_code }}" class="dropdown-item {% if CURRENT_LANGUAGE == lang_code %}active{% endif %}">
+                    <span class="fi fi-{% if lang_code == 'de' %}
+                        
+                        de
+
+                      {% else %}
+                        
+                        gb
+
+                      {% endif %}">
+
+                    </span>
+                    {% if lang_code == 'de' %}
+                      {% trans 'Deutsch' %}
+                    {% else %}
+                      {% trans 'English' %}(Beta)
+                    {% endif %}
+                  </button>
+                </li>
+              {% endfor %}
+            </form>
+          </ul>
         </div>
+      </div>
     </div>
-    
-    
+
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Sidebar for large devices -->
+        <nav class="col-lg-2 bg-primary d-none d-lg-flex flex-column vh-100 p-3 position-sticky top-0">
+          <!-- Logo section -->
+          <a class="navbar-brand mb-3 d-flex align-items-center flex-wrap link-underline link-underline-opacity-0 link-underline-opacity-0-hover" href="{% url 'fw_home' %}">
+            {% with org=user|get_org %}
+              <img src="{% url 'serve_image' org.id %}" alt="{{ org.name }}-Logo" style="height: 50px; margin-right: 10px; margin-bottom: 5px;" />
+              <h3 class="text-white mb-0">{{ org.kurzname|default:org.name }}</h3>
+            {% endwith %}
+          </a>
+          <!-- Scrollable menu section -->
+          <div class="overflow-y-auto overflow-x-hidden flex-grow-1" style="min-height: 0;">
+            <ul class="nav flex-column text-white gap-2">
+              <li class="nav-item">
+                <a class="nav-link text-white px-0 py-1" href="{% url 'fw_home' %}"><i class="bi bi-house"></i> {% trans 'Home' %}</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white px-0 py-1" href="{% url 'aufgaben' %}"><i class="bi bi-list-check"></i> {% trans 'Aufgaben' %}</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white px-0 py-1" href="{% url 'bild' %}"><i class="bi bi-image"></i> {% trans 'Bilder hochladen' %}</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white px-0 py-1" href="{% url 'ampel' %}"><i class="bi bi-plus-circle"></i> {% trans 'Ampelmeldung' %}</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white px-0 py-1" href="{% url 'dokumente' %}"><i class="bi bi-file-earmark-text"></i> {% trans 'Dokumente' %}</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white px-0 py-1" href="{% url 'profil' %}"><i class="bi bi-person"></i> {% trans 'Profil' %}</a>
+              </li>
+              <li class="nav-item" style="z-index: 9999;">
+                <button class="btn btn-link nav-link dropdown-toggle text-white p-0" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">{% trans 'Mehr' %}</button>
+
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+                  <li>
+                    <a href="{% url 'kalender' %}" class="dropdown-item"><i class="bi bi-calendar-date"></i> {% trans 'Kalender' %}</a>
+                  </li>
+                  <li>
+                    <a href="{% url 'laenderinfo' %}" class="dropdown-item"><i class="bi bi-people me-1"></i> {% trans 'Mein Einsatzland' %}</a>
+                  </li>
+                  <li>
+                    <a href="{% url 'notfallkontakte' %}" class="dropdown-item"><i class="bi bi-person-rolodex"></i> {% trans 'Notfallkontakte' %}</a>
+                  </li>
+                  <li>
+                    <a href="{% url 'feedback' %}" class="dropdown-item"><i class="bi bi-chat-dots"></i> {% trans 'Feedback' %}</a>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+
+          <!-- More Modal -->
+          <div class="modal fade" id="moreModal" tabindex="-1" aria-labelledby="moreModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="moreModalLabel">Mehr</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Fixed language selector at bottom -->
+          <div class="mt-3">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle text-white" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {% get_current_language as CURRENT_LANGUAGE %}
+                {% if CURRENT_LANGUAGE == 'de' %}
+                  <span class="fi fi-de"></span> {% trans 'Deutsch' %}
+                {% else %}
+                  <span class="fi fi-gb"></span> {% trans 'English' %}(Beta)
+                {% endif %}
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+                <form action="{% url 'set_language' %}" method="post" id="language-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.path }}" />
+
+                  <li>
+                    <button type="submit" name="language" value="de" class="dropdown-item {% if CURRENT_LANGUAGE == 'de' %}active{% endif %}"><span class="fi fi-de"></span> {% trans 'Deutsch' %}</button>
+                  </li>
+                  <li>
+                    <button type="submit" name="language" value="en" class="dropdown-item {% if CURRENT_LANGUAGE == 'en' %}active{% endif %}"><span class="fi fi-gb"></span> {% trans 'English' %}(Beta)</button>
+                  </li>
+                </form>
+              </ul>
+            </div>
+          </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="col-lg-10 col-md-12 pt-3 pb-5 pb-lg-3 mb-4 mb-lg-0 h-100" style="background-color: var(--background-color); margin-bottom: 70px; min-height: 100vh;">
+          {% include 'error_message.html' %}
+          {% block content %}
+
+          {% endblock %}
+        </main>
+      </div>
+    </div>
+
     <!-- Bottom Navbar for small devices -->
     <nav class="navbar navbar-dark bg-primary d-lg-none fixed-bottom p-0">
-        <div class="container-fluid">
-            <ul class="navbar-nav nav-justified w-100 d-flex flex-row">
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'fw_home' %}">
-                        <i class="bi bi-house"></i>
-                        <div>{% trans "Home" %}</div>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'aufgaben' %}">
-                        <i class="bi bi-list-check"></i>
-                        <div>{% trans "Aufgaben" %}</div>
-                    </a>
-                </li>
-                <li class="nav-item text-center">
-                    <a class="nav-link text-white" href="#" id="dropdownAdd" role="button"
-                       data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-plus-circle text-white"></i>
-                        <div>Add</div>
-                    </a>
-                    <ul class="dropdown-menu position-absolute" aria-labelledby="dropdownAdd"
-                        style="top: auto; bottom: 80%; left: 50%; transform: translateX(-50%);">
-                        <li><a class="dropdown-item" href="{% url 'bild' %}">{% trans "Bilder hochladen" %}</a></li>
-                        <li><a class="dropdown-item" href="{% url 'aufgaben' %}">{% trans "Aufgabe erledigen" %}</a></li>
-                        <li><a class="dropdown-item" href="{% url 'ampel' %}">{% trans "Ampelmeldung" %}</a></li>
-                        <li><a class="dropdown-item" href="{% url 'feedback' %}">{% trans "Feedback" %}</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'dokumente' %}">
-                        <i class="bi bi-file-earmark-text"></i>
-                        <div>{% trans "Dokumente" %}</div>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'profil' %}">
-                        <i class="bi bi-person"></i>
-                        <div>{% trans "Profil" %}</div>
-                    </a>
-                </li>
+      <div class="container-fluid">
+        <ul class="navbar-nav nav-justified w-100 d-flex flex-row">
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{% url 'fw_home' %}">
+              <i class="bi bi-house"></i>
+              <div>
+                {% trans 'Home' %}
+              </div>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{% url 'aufgaben' %}">
+              <i class="bi bi-list-check"></i>
+              <div>
+                {% trans 'Aufgaben' %}
+              </div>
+            </a>
+          </li>
+          <li class="nav-item text-center">
+            <a class="nav-link text-white" href="#" id="dropdownAdd" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-plus-circle text-white"></i>
+              <div>Add</div>
+            </a>
+            <ul class="dropdown-menu position-absolute" aria-labelledby="dropdownAdd" style="top: auto; bottom: 80%; left: 50%; transform: translateX(-50%);">
+              <li>
+                <a class="dropdown-item" href="{% url 'bild' %}">{% trans 'Bilder hochladen' %}</a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{% url 'aufgaben' %}">{% trans 'Aufgabe erledigen' %}</a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{% url 'ampel' %}">{% trans 'Ampelmeldung' %}</a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{% url 'feedback' %}">{% trans 'Feedback' %}</a>
+              </li>
             </ul>
-        </div>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{% url 'dokumente' %}">
+              <i class="bi bi-file-earmark-text"></i>
+              <div>
+                {% trans 'Dokumente' %}
+              </div>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{% url 'profil' %}">
+              <i class="bi bi-person"></i>
+              <div>
+                {% trans 'Profil' %}
+              </div>
+            </a>
+          </li>
+        </ul>
+      </div>
     </nav>
-    
-    </body>
-    </html>
+  </body>
+</html>
