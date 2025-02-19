@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-15 10:18+0100\n"
+"POT-Creation-Date: 2025-02-19 12:13+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,6 +23,8 @@ msgstr "Status"
 
 #: FW/templates/ampel.html:18 FW/templates/base.html:67
 #: FW/templates/base.html:148 FW/templates/base.html:273
+#: FW/templates/baseFw.html:49 FW/templates/baseFw.html:141
+#: FW/templates/baseFw.html:252 TEAM/templates/teamAmpelmeldung.html:5
 msgid "Ampelmeldung"
 msgstr "Status report"
 
@@ -57,9 +59,10 @@ msgid "Aufgabe"
 msgstr "Task"
 
 #: FW/templates/aufgaben.html:11 FW/templates/base.html:138
-#: FW/templates/base.html:260 FW/templates/home.html:23
+#: FW/templates/base.html:260 FW/templates/baseFw.html:135
+#: FW/templates/baseFw.html:235 FW/templates/home.html:23
 #: ORG/templates/aufgaben_assign.html:82 ORG/templates/list_aufgaben.html:5
-#: ORG/templates/list_aufgaben_table.html:4
+#: ORG/templates/list_aufgaben_table.html:4 TEAM/templates/baseTeam.html:47
 msgid "Aufgaben"
 msgstr "Tasks"
 
@@ -92,21 +95,27 @@ msgid "Erledigte Aufgaben sind Aufgaben, die abgeschlossen wurden."
 msgstr "Completed tasks are tasks that have been completed."
 
 #: FW/templates/base.html:72 FW/templates/base.html:169
+#: FW/templates/baseFw.html:52 FW/templates/baseFw.html:154
 #: FW/templates/components/calendar.html:8 Global/templates/kalender.html:6
+#: TEAM/templates/baseTeam.html:50
 msgid "Kalender"
 msgstr "Calendar"
 
 #: FW/templates/base.html:77 FW/templates/base.html:174
+#: FW/templates/baseFw.html:55 FW/templates/baseFw.html:157
 msgid "Mein Einsatzland"
 msgstr "My deployment country"
 
 #: FW/templates/base.html:82 FW/templates/base.html:179
+#: FW/templates/baseFw.html:58 FW/templates/baseFw.html:160
 #: FW/templates/notfallkontakte.html:6 FW/templates/notfallkontakte.html:22
 msgid "Notfallkontakte"
 msgstr "Emergency contacts"
 
 #: FW/templates/base.html:91 FW/templates/base.html:105
 #: FW/templates/base.html:209 FW/templates/base.html:221
+#: FW/templates/baseFw.html:77 FW/templates/baseFw.html:104
+#: FW/templates/baseFw.html:187 FW/templates/baseFw.html:198
 #: Home/templates/first_login.html:108 Home/templates/index.html:98
 #: Home/templates/password_reset.html:92
 msgid "Deutsch"
@@ -114,47 +123,55 @@ msgstr "German"
 
 #: FW/templates/base.html:91 FW/templates/base.html:105
 #: FW/templates/base.html:211 FW/templates/base.html:226
+#: FW/templates/baseFw.html:79 FW/templates/baseFw.html:106
+#: FW/templates/baseFw.html:189 FW/templates/baseFw.html:201
 #: Home/templates/first_login.html:108 Home/templates/index.html:98
 #: Home/templates/password_reset.html:92
 msgid "English"
 msgstr "English"
 
 #: FW/templates/base.html:133 FW/templates/base.html:254
+#: FW/templates/baseFw.html:132 FW/templates/baseFw.html:227
+#: TEAM/templates/baseTeam.html:44
 msgid "Home"
 msgstr "Home"
 
 #: FW/templates/base.html:143 FW/templates/base.html:271
+#: FW/templates/baseFw.html:138 FW/templates/baseFw.html:246
 #: Global/templates/bild.html:18
 msgid "Bilder hochladen"
 msgstr "Upload images"
 
 #: FW/templates/base.html:153 FW/templates/base.html:280
-#: Global/templates/dokumente.html:39
+#: FW/templates/baseFw.html:144 FW/templates/baseFw.html:263
+#: Global/templates/dokumente.html:40
 msgid "Dokumente"
 msgstr "Documents"
 
 #: FW/templates/base.html:158 FW/templates/base.html:286
+#: FW/templates/baseFw.html:147 FW/templates/baseFw.html:271
 #: Global/templates/profil.html:12
 msgid "Profil"
 msgstr "Profile"
 
-#: FW/templates/base.html:163
+#: FW/templates/base.html:163 FW/templates/baseFw.html:150
 msgid "Mehr"
 msgstr "More"
 
 #: FW/templates/base.html:184 FW/templates/base.html:274
+#: FW/templates/baseFw.html:163 FW/templates/baseFw.html:255
 #: Global/templates/feedback.html:28
 msgid "Feedback"
 msgstr "Feedback"
 
-#: FW/templates/base.html:272
+#: FW/templates/base.html:272 FW/templates/baseFw.html:249
 msgid "Aufgabe erledigen"
 msgstr "Complete task"
 
 #: FW/templates/components/add_contact_form.html:23
 #: Global/templates/bilder.html:59
 #: Global/templates/components/profile_details.html:64
-#: Global/templates/dokumente.html:266 Global/templates/dokumente.html:303
+#: Global/templates/dokumente.html:267 Global/templates/dokumente.html:304
 #: Global/templates/feedback.html:73 Global/templates/profil.html:55
 #: Global/templates/profil.html:137
 msgid "Abbrechen"
@@ -293,7 +310,7 @@ msgid "Jetzt erledigen"
 msgstr "Complete task"
 
 #: FW/templates/components/task_detail_form.html:9
-#: Global/templates/dokumente.html:242 ORG/templates/list_aufgaben.html:48
+#: Global/templates/dokumente.html:243 ORG/templates/list_aufgaben.html:48
 #: ORG/templates/list_aufgaben.html:115 ORG/templates/list_aufgaben.html:173
 msgid "Beschreibung"
 msgstr "Description"
@@ -303,7 +320,7 @@ msgid "Datei hochladen"
 msgstr "Upload documents"
 
 #: FW/templates/components/task_detail_form.html:37
-#: ORG/templates/list_ampel.html:99
+#: ORG/templates/components/ampel_modal.html:16
 msgid "Status"
 msgstr "Status"
 
@@ -457,7 +474,7 @@ msgstr "Images"
 #: Global/templates/bild.html:67
 #: Global/templates/components/profile_details.html:35
 #: Global/templates/components/profile_details.html:52
-#: Global/templates/dokumente.html:267 Global/templates/dokumente.html:304
+#: Global/templates/dokumente.html:268 Global/templates/dokumente.html:305
 #: Global/templates/profil.html:56
 msgid "Speichern"
 msgstr "Save"
@@ -492,7 +509,7 @@ msgstr "less"
 
 #: Global/templates/bilder_show.html:33
 #: Global/templates/components/image_description.html:8
-#: Global/templates/dokumente.html:162
+#: Global/templates/dokumente.html:163
 msgid "mehr"
 msgstr "more"
 
@@ -506,7 +523,7 @@ msgid "Profilbild"
 msgstr "Profile picture"
 
 #: Global/templates/components/image_card_header.html:23
-#: Global/templates/dokumente.html:176
+#: Global/templates/dokumente.html:177
 msgid "Download"
 msgstr "Download"
 
@@ -557,55 +574,55 @@ msgstr "Remove"
 msgid "Abmelden"
 msgstr "Logout"
 
-#: Global/templates/dokumente.html:80
+#: Global/templates/dokumente.html:81
 msgid "Ordner nicht leer"
 msgstr "Folder not empty"
 
-#: Global/templates/dokumente.html:93 Global/templates/dokumente.html:252
+#: Global/templates/dokumente.html:94 Global/templates/dokumente.html:253
 msgid "Neues Dokument"
 msgstr "New Document"
 
-#: Global/templates/dokumente.html:209 Global/templates/dokumente.html:280
+#: Global/templates/dokumente.html:210 Global/templates/dokumente.html:281
 msgid "Neuer Ordner"
 msgstr "New Folder"
 
-#: Global/templates/dokumente.html:220
+#: Global/templates/dokumente.html:221
 msgid "Neues Dokument hinzufügen"
 msgstr "New Document"
 
-#: Global/templates/dokumente.html:233
+#: Global/templates/dokumente.html:234
 msgid "Alle Felder sind optional und können weggelassen werden."
 msgstr "All fields are optional and can be omitted."
 
-#: Global/templates/dokumente.html:237
+#: Global/templates/dokumente.html:238
 msgid "Titel"
 msgstr "Title"
 
-#: Global/templates/dokumente.html:247
+#: Global/templates/dokumente.html:248
 msgid "Link"
 msgstr "Link"
 
-#: Global/templates/dokumente.html:252
+#: Global/templates/dokumente.html:253
 msgid "wird gelöscht, wenn ein neues Dokument hochgeladen wird."
 msgstr "will be deleted when a new document is uploaded."
 
-#: Global/templates/dokumente.html:256
+#: Global/templates/dokumente.html:257
 msgid "Dokument"
 msgstr "Documents"
 
-#: Global/templates/dokumente.html:261
+#: Global/templates/dokumente.html:262
 msgid "Freiwillige dürfen dieses Dokument bearbeiten/löschen"
 msgstr "Volunteers can edit/delete this document"
 
-#: Global/templates/dokumente.html:288
+#: Global/templates/dokumente.html:289
 msgid "Ordnername"
 msgstr "Username"
 
-#: Global/templates/dokumente.html:293
+#: Global/templates/dokumente.html:294
 msgid "Anzeigen für"
 msgstr "View"
 
-#: Global/templates/dokumente.html:295
+#: Global/templates/dokumente.html:296
 #: ORG/templates/list_aufgaben_table.html:101
 msgid "Alle"
 msgstr "All"
@@ -709,32 +726,32 @@ msgstr "Reset password"
 msgid "Bitte geben Sie Ihren Benutzernamen und Ihre E-Mail-Adresse ein"
 msgstr "Please log in with your username and one-time password"
 
-#: Home/views.py:32
+#: Home/views.py:34
 msgid "Ungültiger Benutzername oder Passwort."
 msgstr "Invalid username or password."
 
-#: Home/views.py:46
+#: Home/views.py:48
 msgid "Benutzername nicht gefunden."
 msgstr "Username not found."
 
-#: Home/views.py:52
+#: Home/views.py:54
 msgid ""
 "Interner Fehler: Benutzer nicht gefunden. Kontaktiere den Administrator."
 msgstr "Internal error: User not found. Contact the administrator."
 
-#: Home/views.py:56
+#: Home/views.py:58
 msgid "Passwörter stimmen nicht überein."
 msgstr "Passwords do not match."
 
-#: Home/views.py:60
+#: Home/views.py:62
 msgid "Einmalpasswort bereits verwendet."
 msgstr "One-time password already used."
 
-#: Home/views.py:64
+#: Home/views.py:66
 msgid "Ungültiges Einmalpasswort."
 msgstr "Invalid one-time password."
 
-#: Home/views.py:79
+#: Home/views.py:81
 msgid "Fehler beim Login. Bitte versuchen Sie es erneut."
 msgstr "Login error. Please try again."
 
@@ -745,6 +762,7 @@ msgstr "Complete task"
 
 #: ORG/templates/aufgaben_assign.html:22 ORG/templates/list_aufgaben.html:112
 #: ORG/templates/list_aufgaben_table.html:116
+#: TEAM/templates/teamContacts.html:26
 msgid "Freiwillige"
 msgstr "Volunteers"
 
@@ -776,7 +794,33 @@ msgstr "Search profiles..."
 msgid "Alle Profile auswählen"
 msgstr "Delete all images"
 
-#: ORG/templates/baseOrg.html:135 ORG/templates/baseOrg.html:140
+#: ORG/templates/components/ampel_legend.html:6
+msgid "Grün"
+msgstr "Green"
+
+#: ORG/templates/components/ampel_legend.html:10
+msgid "Gelb"
+msgstr "Yellow"
+
+#: ORG/templates/components/ampel_legend.html:14
+msgid "Rot"
+msgstr "Red"
+
+#: ORG/templates/components/ampel_table.html:8
+#: ORG/templates/list_aufgaben.html:45 ORG/templates/list_aufgaben.html:171
+msgid "Freiwilliger"
+msgstr "Volunteer"
+
+#: ORG/templates/components/ampel_table.html:23
+msgid "Historie anzeigen"
+msgstr "Show history"
+
+#: ORG/templates/components/ampel_table.html:49
+msgid "Keine Ampelmeldungen gefunden."
+msgstr "No traffic light reports found."
+
+#: ORG/templates/components/jahrgang_selector.html:9
+#: ORG/templates/components/jahrgang_selector.html:14
 msgid "Alle Jahrgänge"
 msgstr "All years"
 
@@ -800,34 +844,9 @@ msgstr "Active filters:"
 msgid "Ampelmeldungen"
 msgstr "Status report"
 
-#: ORG/templates/list_ampel.html:15
+#: ORG/templates/list_ampel.html:15 TEAM/templates/teamAmpelmeldung.html:11
 msgid "Ampel Übersicht"
 msgstr "Traffic Light Overview"
-
-#: ORG/templates/list_ampel.html:21
-msgid "Grün"
-msgstr "Green"
-
-#: ORG/templates/list_ampel.html:25
-msgid "Gelb"
-msgstr "Yellow"
-
-#: ORG/templates/list_ampel.html:29
-msgid "Rot"
-msgstr "Red"
-
-#: ORG/templates/list_ampel.html:38 ORG/templates/list_aufgaben.html:45
-#: ORG/templates/list_aufgaben.html:171
-msgid "Freiwilliger"
-msgstr "Volunteer"
-
-#: ORG/templates/list_ampel.html:53
-msgid "Historie anzeigen"
-msgstr "Show history"
-
-#: ORG/templates/list_ampel.html:81
-msgid "Keine Ampelmeldungen gefunden."
-msgstr "No traffic light reports found."
 
 #: ORG/templates/list_aufgaben.html:16
 msgid "Fällige Aufgaben"
@@ -918,6 +937,22 @@ msgstr "Are you sure you want to delete this item?"
 #: ORG/templates/list_objects.html:129
 msgid "No items found"
 msgstr "No items found"
+
+#: TEAM/templates/teamContacts.html:5
+#, fuzzy
+#| msgid "Notfallkontakte"
+msgid "Kontakte"
+msgstr "Emergency contacts"
+
+#: TEAM/templates/teamContacts.html:17
+msgid "Mail an alle"
+msgstr "Mail to all"
+
+#: TEAM/templates/teamContacts.html:21
+msgid ""
+"Hier findest du alle Kontaktdaten der Freiwilligen, die in deinem "
+"Einsatzland tätig sind."
+msgstr "Here you can find all contact details of the volunteers who are active in your deployment country."
 
 #~ msgid "Woche"
 #~ msgstr "Week"

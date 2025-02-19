@@ -1,0 +1,124 @@
+{% load static %}
+{% load base_filter %}
+{% load base_fw_filter %}
+{% load i18n %}
+
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+  <head>
+    {% include 'header.html' %}
+
+    <title>
+      {% block title %}
+
+      {% endblock %}
+    </title>
+
+    <script src="{% static 'js/teamBase.js' %}"></script>
+
+    {% block head %}
+
+    {% endblock %}
+
+    {% block scripts %}
+
+    {% endblock %}
+  </head>
+  <body>
+    <div class="d-flex">
+      {# Sidebar Navigation #}
+      <div class="content w-100">
+        <nav class="navbar bg-primary navbar-expand-md">
+          <div class="container-fluid">
+            {# Organization Logo and Name #}
+            <a class="navbar-brand" href="{% url 'org_home' %}">
+                {% with org=user|get_org %}
+                    <img src="{% url 'serve_image' org.id %}" alt="{% if org.kurzname %}{{ org.kurzname }}{% else %}{{ org.name }}{% endif %}-Logo" height="30"
+                         class="d-inline-block align-text-top">
+                {% endwith %}
+            </a>
+
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+              <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                <li class="nav-item">
+                  <a class="nav-link text-white" href="{% url 'team_home' %}"><i class="bi bi-house"></i> {% trans 'Home' %}</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link text-white" href="{% url 'team_home' %}"><i class="bi bi-list-check"></i> {% trans 'Aufgaben' %}</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link text-white" href="{% url 'team_home' %}"><i class="bi bi-calendar-date"></i> {% trans 'Kalender' %}</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Ländermanagement</a>
+                    <div class="dropdown-menu dropdown-menu-start" aria-labelledby="navbarDropdown">
+                      <a href="{% url 'team_home' %}" class="dropdown-item">Einsatzländer</a>
+                      <a href="{% url 'team_home' %}" class="dropdown-item">Einsatzstellen</a>
+                      <a href="{% url 'team_home' %}" class="dropdown-item">Protokolle</a>
+                    </div>
+                  </li>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle text-white" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Freiwillige</a>
+                  <div class="dropdown-menu dropdown-menu-start" aria-labelledby="navbarDropdown">
+                    <a href="{% url 'team_contacts' %}" class="dropdown-item">Kontakte</a>
+                    <a href="{% url 'team_ampelmeldung' %}" class="dropdown-item">Ampelmeldung</a>
+                    <a href="{% url 'bilder' %}" class="dropdown-item">Bilder</a>
+                  </div>
+                </li>
+              </ul>
+
+              <!-- Jahrgang Selector -->
+              {% include 'components/jahrgang_selector.html' %}
+
+              <!-- Profile Button -->
+              <div class="d-flex">
+                <a href="{% url 'profil' %}" class="btn btn-light"><i class="bi bi-person me-1"></i></a>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        {# Main Content Area #}
+        <div class="container-fluid mt-3 mb-5">
+          {% include 'error_message.html' %}
+          {% block content %}
+
+          {% endblock %}
+        </div>
+      </div>
+    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        // Handle jahrgang selection
+        document.querySelectorAll('[data-jahrgang]').forEach((item) => {
+          item.addEventListener('click', function (e) {
+            e.preventDefault()
+            const jahrgangId = this.dataset.jahrgang
+            const jahrgangName = this.textContent.trim()
+      
+            // Save to cookies
+            if (jahrgangId) {
+              Cookies.set('selectedJahrgang', jahrgangId, { expires: 365 })
+              Cookies.set('selectedJahrgangName', jahrgangName, { expires: 365 })
+            } else {
+              Cookies.remove('selectedJahrgang')
+              Cookies.remove('selectedJahrgangName')
+            }
+      
+            // Update dropdown text
+            document.getElementById('selectedJahrgang').textContent = jahrgangName
+      
+            // Reload current page
+            window.location.reload()
+          })
+        })
+      
+        // Set initial dropdown text from cookie
+        const savedJahrgangName = Cookies.get('selectedJahrgangName')
+        if (savedJahrgangName) {
+          document.getElementById('selectedJahrgang').textContent = savedJahrgangName
+        }
+      })
+    </script>
+  </body>
+</html>
