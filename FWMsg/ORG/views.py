@@ -149,33 +149,23 @@ def home(request):
 @staff_member_required
 def nginx_statistic(request):
     try:
-        # Execute the goaccess command with HTML output
-        cmd = "zcat -f /var/log/nginx/volunteer.solutions-access.log.* | goaccess /var/log/nginx/volunteer.solutions-access.log --ignore-crawlers --anonymize-ip --output-format=html"
+        # Path to the pre-generated HTML file
+        report_path = '/home/fwmsg/tmp/report.html'
         
-        # Run the command and capture output
-        process = subprocess.Popen(
-            cmd,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            universal_newlines=True
-        )
+        # Read the HTML file
+        with open(report_path, 'r', encoding='utf-8') as file:
+            html_content = file.read()
+            
+        # Return the HTML content directly
+        return HttpResponse(html_content, content_type='text/html')
         
-        # Get the output
-        output, error = process.communicate()
-        
-        if process.returncode != 0:
-            # If there was an error, return it in the template
-            return render(request, 'nginx_statistic.html', {
-                'error': f"Error running goaccess: {error}"
-            })
-        
-        # Return the HTML output directly
-        return HttpResponse(output)
-        
+    except FileNotFoundError:
+        return render(request, 'nginx_statistic.html', {
+            'error': 'Report file not found. The report may not have been generated yet.'
+        })
     except Exception as e:
         return render(request, 'nginx_statistic.html', {
-            'error': f"Error: {str(e)}"
+            'error': f"Error reading report: {str(e)}"
         })
 
 
