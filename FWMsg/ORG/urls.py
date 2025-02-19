@@ -20,4 +20,6 @@ urlpatterns = [
     path('download-bild/<int:id>', views.download_bild_as_zip, name='download_bild_as_zip'),
     path('list-bilder/', views.list_bilder, name='list_bilder'),
     path('statistik/', views.statistik, name='statistik'),
+
+    path('nginx-statistic/', views.nginx_statistic, name='nginx_statistic'),
 ]
