@@ -1,0 +1,28 @@
+{% extends 'baseTeam.html' %}
+{% load i18n %}
+
+{% block title %}
+  {% trans 'Kontakte' %}
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+          <h1>Kontakte</h1>
+          <a href="mailto:{% for fw in freiwillige %}{{ fw.email }}{% if not forloop.last %},{% endif %}
+            {% endfor %}"
+            class="btn btn-primary">
+            <i class="bi bi-envelope me-2"></i>{% trans 'Mail an alle' %}
+          </a>
+        </div>
+        <p>
+          {% trans 'Hier findest du alle Kontaktdaten der Freiwilligen, die in deinem Einsatzland tätig sind.' %}
+        </p>
+      </div>
+    </div>
+
+    {% include 'components/info_section.html' with section_title=_('Freiwillige') cards=fw_cards %}
+  </div>
+{% endblock %}
