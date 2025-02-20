@@ -152,6 +152,12 @@ class Dokument(models.Model):
         else:
             return 'unknown'
         
+    def get_document_suffix(self):
+        if self.dokument:
+            return self.dokument.name.split('.')[-1]
+        else:
+            return 'unknown'
+        
     def get_preview_image(self):
         if self.preview_image:
             return self.preview_image.path

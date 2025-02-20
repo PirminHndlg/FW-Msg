@@ -284,8 +284,9 @@ def serve_dokument(request, dokument_id):
     if not os.path.exists(doc_path):
         return HttpResponseNotFound('Dokument nicht gefunden')
 
-    # Handle image documents
     mimetype = get_mimetype(doc_path)
+    
+    # Handle image documents
     if mimetype and mimetype.startswith('image') and not download:
         return get_bild(doc_path, dokument.dokument.name)
 
@@ -297,6 +298,12 @@ def serve_dokument(request, dokument_id):
 
     # Serve document as download
     with open(doc_path, 'rb') as file:
+        if mimetype == 'application/pdf' and not download:
+            response = HttpResponse(file.read(), content_type='application/pdf')
+            response['Content-Disposition'] = f'inline; filename="{dokument.dokument.name}"'
+            response['Content-Security-Policy'] = "frame-ancestors 'self'"
+            return response
+        # For PDFs, display in browser instead of downloading
         response = HttpResponse(file.read(), content_type=mimetype or 'application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{dokument.dokument.name}"'
         return response

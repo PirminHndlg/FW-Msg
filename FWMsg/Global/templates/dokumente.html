@@ -112,24 +112,28 @@
                                                     data-preview-src="{% url 'serve_dokument' dokument.id %}"
                                                     class="card-img-top img-fluid cursor-pointer rounded-top-4"
                                                     alt="{{ dokument.titel }}">
+                                            <span class="badge bg-dark bg-opacity-25">img</span>
                                         {% elif dokument.get_document_type|starts_with:'application/pdf' %}
                                             <a href="{% url 'serve_dokument' dokument.id %}" class="text-decoration-none">
                                                 <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
                                                         class="card-img-top img-fluid rounded-top-4"
                                                         alt="PDF Vorschau">
                                             </a>
+                                            <span class="badge bg-dark bg-opacity-25">pdf</span>
                                         {% elif dokument.dokument.name|ends_with:'docx' %}
                                             <a href="{% url 'serve_dokument' dokument.id %}?download=True" class="text-decoration-none">
                                                 <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
                                                         class="card-img-top img-fluid rounded-top-4"
                                                         alt="DOCX Vorschau">
                                             </a>
+                                            <span class="badge bg-dark bg-opacity-25">docx</span>
                                         {% elif dokument.dokument.name|ends_with:'doc' %}
                                             <a href="{% url 'serve_dokument' dokument.id %}?download=True" class="text-decoration-none">
                                                 <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
                                                         class="card-img-top img-fluid rounded-top-4"
                                                         alt="DOC Vorschau">
                                             </a>
+                                            <span class="badge bg-dark bg-opacity-25">doc</span>
                                         {% elif dokument.link %}
                                             <a href="{{ dokument.link }}" target="_blank" class="text-decoration-none">
                                                 <div class="card-img-top d-flex flex-column align-items-center justify-content-center bg-light rounded-top-4" 
@@ -138,20 +142,21 @@
                                                     <p class="text-muted small">{{ dokument.link|get_short_link }}</p>
                                                 </div>
                                             </a>
+                                            <hr class="m-0">
                                         {% elif dokument.dokument %}
-                                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light rounded-top-4" style="height: 120px;">
-                                                <i class="bi bi-file-earmark fa-3x text-secondary"></i>
-                                            </div>
+                                            <a href="{% url 'serve_dokument' dokument.id %}?download=true" class="text-decoration-none">
+                                                <div class="card-img-top d-flex align-items-center justify-content-center bg-light rounded-top-4" style="height: 80px;">
+                                                    <i class="bi bi-file-earmark fa-3x text-secondary"></i>
+                                                </div>
+                                            </a>
+                                            <span class="badge bg-dark bg-opacity-25">{{ dokument.get_document_suffix }}</span>
                                         {% endif %}
 
-                                        {% if dokument.dokument %}
+                                        {% comment %} {% if dokument.dokument %}
                                             <hr class="m-0">
-                                        {% endif %}
+                                        {% endif %} {% endcomment %}
                                         
-                                        <div class="card-body pt-1">
-                                            <p class="card-text small text-muted mb-1">
-                                                {{ dokument.date_created|date:"d.m.Y" }}
-                                            </p>
+                                        <div class="card-body pt-2">
                                             {% with dokument_name=dokument|get_document_name %}
                                                 <h6 class="card-title fw-bold mb-1">{{ dokument.titel|default:dokument_name }}</h6>
 
