@@ -131,7 +131,7 @@
                                                         alt="DOC Vorschau">
                                             </a>
                                         {% elif dokument.link %}
-                                            <a href="{% url 'serve_dokument' dokument.id %}" target="_blank" class="text-decoration-none">
+                                            <a href="{{ dokument.link }}" target="_blank" class="text-decoration-none">
                                                 <div class="card-img-top d-flex flex-column align-items-center justify-content-center bg-light rounded-top-4" 
                                                      style="height: 120px; background-image: url('{{ dokument.link|get_favicon_url }}'); background-size: contain; background-position: center; background-repeat: no-repeat;">
                                                     <i class="bi bi-link fa-3x text-secondary"></i>
@@ -163,7 +163,7 @@
 
                                                 {% if dokument.link %}
                                                     <p class="card-text text-muted small">
-                                                        <a href="{% url 'serve_dokument' dokument.id %}" target="_blank" class="text-decoration-none">{{ dokument.link }}</a>
+                                                        <a href="{{ dokument.link }}" target="_blank" class="text-decoration-none">{{ dokument.link }}</a>
                                                     </p>
                                                 {% endif %}
 
