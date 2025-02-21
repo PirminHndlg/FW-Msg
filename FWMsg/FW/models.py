@@ -386,7 +386,7 @@ class FreiwilligerAufgaben(OrgModel):
 
     def send_reminder_email(self):
         from Global.send_email import send_aufgaben_email
-        send_aufgaben_email(self)
+        send_aufgaben_email(self, self.freiwilliger.org)
 
 
     class Meta:
