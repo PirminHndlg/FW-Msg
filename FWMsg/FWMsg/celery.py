@@ -57,8 +57,6 @@ def debug_task(self):
 
 @app.task(name='send_email_aufgaben_daily')
 def send_email_aufgaben_daily():
-    return 'not implemented'
-
     from Global.send_email import send_mail_smtp
 
     response_json = {
