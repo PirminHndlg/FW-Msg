@@ -10,6 +10,17 @@ class OrganisationAdmin(SimpleHistoryAdmin):
 @admin.register(Ordner)
 class OrdnerAdmin(SimpleHistoryAdmin):
     search_fields = ['ordner_name']
+    actions = ['all_to_incoming', 'all_to_outgoing']
+
+    def all_to_incoming(self, request, queryset):
+        for ordner in queryset:
+            ordner.typ = JahrgangTyp.objects.get(name='Incoming')
+            ordner.save()
+    
+    def all_to_outgoing(self, request, queryset):
+        for ordner in queryset:
+            ordner.typ = JahrgangTyp.objects.get(name='Outgoing')
+            ordner.save()
 
 @admin.register(Dokument)
 class DokumentAdmin(SimpleHistoryAdmin):
