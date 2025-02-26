@@ -607,6 +607,9 @@ def list_aufgaben(request):
         'today': date.today()
     })
 
+@login_required
+@required_role('O')
+@filter_jahrgang
 def list_aufgaben_table(request, scroll_to=None):
     if request.method == 'GET' and request.GET.get('fw') and request.GET.get('a'):
         fw_all = request.GET.get('fw') == 'all'
