@@ -72,28 +72,29 @@
 {% endblock %}
 
 {% block content %}
-<div class="card rounded-4">
-    <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-between align-items-center gap-1 flex-wrap">
-        <h4 class="mb-0">{% trans "Aufgaben Übersicht" %}</h4>
-        
-        <!-- Legend -->
-        <div class="d-flex gap-1">
-            <div class="d-flex align-items-center">
-                <span class="badge bg-success">{% trans "Erledigt" %}</span>
-            </div>
-            <div class="d-flex align-items-center">
-                <span class="badge bg-warning">{% trans "Pending" %}</span>
-            </div>
-            <div class="d-flex align-items-center">
-                <span class="badge bg-danger">{% trans "Überfällig" %}</span>
-            </div>
-            <div class="d-flex align-items-center">
-                <span class="badge bg-dark bg-opacity-25">{% trans "Nicht zugewiesen" %}</span>
-            </div>
+<div class="d-flex gap-2 justify-content-between align-items-center flex-wrap">
+    <h2>{% trans "Aufgaben Übersicht" %}</h2>
+    <!-- Legend -->
+    <div class="d-flex gap-1 mb-2">
+        <div class="d-flex align-items-center">
+            <span class="badge bg-success">{% trans "Erledigt" %}</span>
+        </div>
+        <div class="d-flex align-items-center">
+            <span class="badge bg-warning">{% trans "Pending" %}</span>
+        </div>
+        <div class="d-flex align-items-center">
+            <span class="badge bg-danger">{% trans "Überfällig" %}</span>
+        </div>
+        <div class="d-flex align-items-center">
+            <span class="badge bg-dark bg-opacity-25">{% trans "Zugewiesen" %}</span>
         </div>
     </div>
+</div>
 
-    <div class="card-body p-2">
+
+<div class="card rounded-4">
+    <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-center align-items-center gap-1 flex-wrap">
+        
         <div class="d-flex gap-1 mb-2 justify-content-center align-items-center">
             <strong>{% trans "Filter" %}</strong>
             <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center">
@@ -108,6 +109,9 @@
                 {% endfor %}
             </div>
         </div>
+    </div>
+
+    <div class="card-body p-2">
 
         <div class="table-responsive" style="height: 100vh; min-height: 400px">
             <table class="table mb-0 align-middle table-borderless">
