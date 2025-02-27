@@ -127,20 +127,20 @@ def home(request):
     pending_tasks = FWmodels.FreiwilligerAufgaben.objects.filter(
         org=request.user.org,
         erledigt=False,
-        faellig__lte=now + timedelta(days=7)  # Only tasks due within a week or past due
-    ).order_by('faellig')  # Order by deadline
+        pending=True,
+    ).order_by('-erledigt_am', 'faellig')  # Order by deadline
 
-    # Add is_overdue flag to tasks
-    for task in pending_tasks:
-        if task.faellig:
-            if task.faellig <= now:
-                task.is_overdue = 2  # In past
-            else:
-                task.is_overdue = 1  # Within one week
+    open_tasks = FWmodels.FreiwilligerAufgaben.objects.filter(
+        org=request.user.org,
+        erledigt=False,
+        pending=False,
+        faellig__lte=now
+    ).order_by('faellig')
 
     context = {
         'gallery_images': gallery_images,
         'pending_tasks': pending_tasks,
+        'open_tasks': open_tasks
     }
     
     return render(request, 'homeOrg.html', context)
