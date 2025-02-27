@@ -10,12 +10,12 @@
 {% endblock %}
 
 {% block content %}
+<div class="d-flex gap-2 justify-content-between align-items-center flex-wrap">
+    <h2>{% trans "Ampel Übersicht" %}</h2>
+    {% include "components/ampel_legend.html" %}
+</div>
+
 <div class="card rounded-4 p-2 pt-0">
-    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center py-3">
-        <h4 class="mb-0">{% trans "Ampel Übersicht" %}</h4>
-        <!-- Legend -->
-        {% include "components/ampel_legend.html" %}
-    </div>
     <div class="card-body p-0">
         {% include "components/ampel_table.html" %}
     </div>
