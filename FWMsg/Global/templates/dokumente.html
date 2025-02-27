@@ -120,20 +120,20 @@
                                                         alt="PDF Vorschau">
                                             </a>
                                             <span class="badge bg-dark bg-opacity-25">pdf</span>
-                                        {% elif dokument.dokument.name|ends_with:'docx' %}
+                                        {% elif dokument.dokument.name|ends_with:'docx' or dokument.dokument.name|ends_with:'doc' %}
                                             <a href="{% url 'serve_dokument' dokument.id %}?download=True" class="text-decoration-none">
                                                 <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
                                                         class="card-img-top img-fluid rounded-top-4"
                                                         alt="DOCX Vorschau">
                                             </a>
                                             <span class="badge bg-dark bg-opacity-25">docx</span>
-                                        {% elif dokument.dokument.name|ends_with:'doc' %}
+                                        {% elif dokument.dokument.name|ends_with:'xls' or dokument.dokument.name|ends_with:'xlsx' %}
                                             <a href="{% url 'serve_dokument' dokument.id %}?download=True" class="text-decoration-none">
                                                 <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
                                                         class="card-img-top img-fluid rounded-top-4"
-                                                        alt="DOC Vorschau">
+                                                        alt="XLS Vorschau">
                                             </a>
-                                            <span class="badge bg-dark bg-opacity-25">doc</span>
+                                            <span class="badge bg-dark bg-opacity-25">{{ dokument.get_document_suffix }}</span>
                                         {% elif dokument.link %}
                                             <a href="{{ dokument.link }}" target="_blank" class="text-decoration-none">
                                                 <div class="card-img-top d-flex flex-column align-items-center justify-content-center bg-light rounded-top-4" 
