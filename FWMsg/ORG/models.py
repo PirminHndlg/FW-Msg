@@ -175,6 +175,63 @@ class Dokument(models.Model):
                 image.save(img_path)
                 return img_path
             
+        def excel_to_image(excel_path, img_path):
+            from openpyxl import load_workbook
+            from PIL import Image, ImageDraw, ImageFont
+            import numpy as np
+
+            # Load the workbook
+            wb = load_workbook(excel_path, data_only=True)
+            ws = wb.active
+
+            # Define image parameters
+            cell_width = 100
+            cell_height = 30
+            max_rows = 10
+            max_cols = 6
+            padding = 10
+
+            # Calculate actual dimensions needed
+            used_rows = min(ws.max_row, max_rows)
+            used_cols = min(ws.max_column, max_cols)
+
+            # Create image with white background
+            img_width = (cell_width * used_cols) + padding * 2
+            img_height = (cell_height * (used_rows + 1)) + padding * 2  # +1 for header
+            img = Image.new('RGB', (img_width, img_height), 'white')
+            draw = ImageDraw.Draw(img)
+
+            try:
+                # Try to load Arial font, fall back to default if not available
+                font = ImageFont.truetype('Arial', 12)
+            except:
+                font = ImageFont.load_default()
+
+            # Draw grid and cell contents
+            for row in range(used_rows):
+                for col in range(used_cols):
+                    # Calculate cell position
+                    x1 = col * cell_width + padding
+                    y1 = row * cell_height + padding
+                    x2 = x1 + cell_width
+                    y2 = y1 + cell_height
+
+                    # Draw cell border
+                    draw.rectangle([x1, y1, x2, y2], outline='gray')
+
+                    # Get cell value
+                    cell = ws.cell(row=row+1, column=col+1)
+                    value = str(cell.value if cell.value is not None else '')
+                    if len(value) > 15:
+                        value = value[:12] + '...'
+
+                    # Draw text
+                    draw.text((x1 + 5, y1 + 5), value, fill='black', font=font)
+
+            # Save the image
+            img.save(img_path)
+            return img_path
+            
         def get_hashed_filename(filename):
             """Create a shorter, hashed filename while preserving extension"""
             name, ext = os.path.splitext(filename)
@@ -209,6 +266,13 @@ class Dokument(models.Model):
                 pdf_to_image(doc_path, preview_image_path)
             except Exception as e:
                 print(e)
+                return None
+
+        elif self.dokument.name.endswith('.xlsx') or self.dokument.name.endswith('.xls'):
+            try:
+                return excel_to_image(self.dokument.path, preview_image_path)
+            except Exception as e:
+                print(f"Error creating Excel preview: {e}")
                 return None
             
         if os.path.exists(preview_image_path):
