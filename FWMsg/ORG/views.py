@@ -18,7 +18,7 @@ from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.template.context_processors import request
 from django.db.models import QuerySet
-from django.db.models import Case, When, Value, Count
+from django.db.models import Case, When, Value, Count, Q
 from django.contrib.admin.views.decorators import staff_member_required
 from django.template.loader import render_to_string
 
@@ -80,7 +80,7 @@ def filter_jahrgang(view_func):
             if jahrgang_id:
                 jahrgang_typ = FWmodels.Jahrgang.objects.get(id=jahrgang_id).typ
                 if jahrgang_typ:
-                    return base_qs.filter(jahrgang_typ=jahrgang_typ)
+                    return base_qs.filter(Q(jahrgang_typ=jahrgang_typ) | Q(jahrgang_typ=None))
             return base_qs
 
         FWmodels.Freiwilliger.objects.get_queryset = get_jahrgang_queryset.__get__(FWmodels.Freiwilliger.objects)
