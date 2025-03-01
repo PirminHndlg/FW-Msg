@@ -26,7 +26,8 @@ function addOrdner() {
     new bootstrap.Modal(document.getElementById('ordnerModal')).show();
 }
 
-function editOrdner(ordner_id, ordner_name, typ_id=null) {
+function editOrdner(ordner_id, ordner_name, typ_id=null, color_id=null) {
+    console.log(typ_id, color_id);
     document.getElementById('ordnerIdInput').value = ordner_id;
     document.getElementById('ordner_name').value = ordner_name;
     document.getElementById('ordnerModalLabel').textContent = 'Ordner bearbeiten';
@@ -34,6 +35,11 @@ function editOrdner(ordner_id, ordner_name, typ_id=null) {
         document.getElementById('typ').value = typ_id;
     } else {
         document.getElementById('typ').value = '';
+    }
+    if (color_id) {
+        document.getElementById('color').value = color_id;
+    } else {
+        document.getElementById('color').value = '';
     }
     new bootstrap.Modal(document.getElementById('ordnerModal')).show();
 }

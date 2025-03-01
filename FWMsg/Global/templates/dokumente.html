@@ -3,21 +3,18 @@
 {% load base_fw_filter %}
 {% load dokument_filter %}
 {% load i18n %}
+
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/dokumente.css' %}">
     <script src="{% static 'js/dokumente.js' %}"></script>
     <script>
         let is_org = '{{ user.role|lower }}' == 'o';
+        let ordner_id = '{{ ordner_id }}';
 
         document.addEventListener('DOMContentLoaded', function() {
             const accordionCollapses = document.querySelectorAll('.accordion-collapse');
 
             function handleCollapseShow(collapse) {
-                // Scroll into view
-                {% comment %} let card_header = collapse.closest('.card').querySelector('.card-header');
-                card_header.scrollIntoView({ behavior: 'smooth', block: 'start' }); {% endcomment %}
-                
-                // Load lazy images
                 collapse.querySelectorAll('[data-preview-src]').forEach(img => {
                     if (!img.src) {
                         img.src = img.dataset.previewSrc;
@@ -25,12 +22,22 @@
                 });
             }
 
-            // Add event listeners to all collapses
             accordionCollapses.forEach(collapse => {
                 collapse.addEventListener('show.bs.collapse', function() {
                     handleCollapseShow(this);
                 });
             });
+
+            if (ordner_id) {
+                const element = document.getElementById('folderAccordion').querySelector(`[data-bs-target="#collapse${ordner_id}"]`);
+                if (element) {
+                    element.click();
+                    setTimeout(() => {
+                        const cardBody = element.closest('.card').querySelector('.card-body');
+                        cardBody.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 350);
+                }
+            }
         });
     </script>
 {% endblock %}
@@ -43,167 +50,7 @@
     {% csrf_token %}
     <div class="accordion mb-3" id="folderAccordion">
         {% for structure in folder_structure %}
-            <div class="card rounded-4 mb-3">
-                <div class="card-header p-0 rounded-4">
-                    <button class="accordion-button collapsed rounded-4 ps-2" 
-                            type="button" 
-                            data-bs-toggle="collapse" 
-                            data-bs-target="#collapse{{ structure.ordner.id }}" 
-                            aria-expanded="false" 
-                            aria-controls="collapse{{ structure.ordner.id }}"
-                            {% comment %} style="border: 7px solid {{ structure.ordner.color.color|default:'white' }};" {% endcomment %}
-                            >
-                        <div class="d-flex justify-content-between align-items-center w-100 me-3">
-                            <span>
-                                {% if structure.ordner.color %}
-                                    <div class="vr rounded-1" style="background-color: {{ structure.ordner.color.color }}; width: 10px; margin-right: 10px; opacity: 1;"></div>
-                                {% endif %}
-                                <i class="bi bi-folder me-2"></i>{{ structure.ordner }}
-                            </span>
-                            <span class="badge bg-secondary">{{ structure.dokumente|length }}</span>
-                        </div>
-                    </button>
-                </div>
-                <div id="collapse{{ structure.ordner.id }}" 
-                        class="accordion-collapse collapse {% if ordner_id == structure.ordner.id %}show{% endif %}" 
-                        aria-labelledby="heading{{ structure.ordner.id }}" 
-                        data-bs-parent="#folderAccordion">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <button class="btn btn-outline-danger btn-sm rounded-4" 
-                                        onclick="removeOrdner({{ structure.ordner.id }}, '{{ structure.ordner }}')"
-                                        {% if structure.dokumente|length > 0 %}
-                                        
-                                        data-bs-toggle="tooltip"
-                                        data-bs-title="{% trans 'Ordner nicht leer' %}"
-                                        {% endif %}>
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                                <button class="btn btn-sm rounded-4" 
-                                        onclick="editOrdner({{ structure.ordner.id }}, '{{ structure.ordner }}', {% if structure.ordner.typ %}'{{ structure.ordner.typ.id }}'{% endif %})" 
-                                        data-token='{% csrf_token %}'>
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                            </div>
-                            <button class="btn btn-primary btn-sm rounded-4" 
-                                    onclick="addDokument({{ structure.ordner.id }})" 
-                                    data-token='{% csrf_token %}'>
-                                <i class="bi bi-plus-lg"></i> {% trans "Neues Dokument" %}
-                            </button>
-                        </div>
-                        <div class="row g-3">
-                            {% for dokument in structure.dokumente %}
-                                <div class="col-sm-6 col-md-4 col-lg-3" id="dokument-{{ dokument.id }}"
-                                data-id="{{ dokument.id }}"
-                                data-titel="{{ dokument.titel|default:'' }}"
-                                data-beschreibung="{{ dokument.beschreibung|default:'' }}"
-                                data-date_created="{{ dokument.date_created }}"
-                                data-link="{{ dokument.link|default:'' }}"
-                                data-dokument="{{ dokument|get_document_name|default:'' }}"
-                                data-folder_id="{{ structure.ordner.id }}"
-                                data-folder_name="{{ structure.ordner }}"
-                                data-fw_darf_bearbeiten="{{ dokument.fw_darf_bearbeiten }}"
-
-                                data-fw_darf_bearbeiten="{{ dokument.fw_darf_bearbeiten }}">
-                                    <div class="card rounded-4 h-100 hover-shadow">
-                                        {% if dokument.get_document_type|starts_with:'image' %}
-                                            <img onclick="showImgLarge(this)" 
-                                                    data-preview-src="{% url 'serve_dokument' dokument.id %}"
-                                                    class="card-img-top img-fluid cursor-pointer rounded-top-4"
-                                                    alt="{{ dokument.titel }}">
-                                            <span class="badge bg-dark bg-opacity-25">img</span>
-                                        {% elif dokument.get_document_type|starts_with:'application/pdf' %}
-                                            <a href="{% url 'serve_dokument' dokument.id %}" class="text-decoration-none">
-                                                <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
-                                                        class="card-img-top img-fluid rounded-top-4"
-                                                        alt="PDF Vorschau">
-                                            </a>
-                                            <span class="badge bg-dark bg-opacity-25">pdf</span>
-                                        {% elif dokument.dokument.name|ends_with:'docx' or dokument.dokument.name|ends_with:'doc' %}
-                                            <a href="{% url 'serve_dokument' dokument.id %}?download=True" class="text-decoration-none">
-                                                <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
-                                                        class="card-img-top img-fluid rounded-top-4"
-                                                        alt="DOCX Vorschau">
-                                            </a>
-                                            <span class="badge bg-dark bg-opacity-25">docx</span>
-                                        {% elif dokument.dokument.name|ends_with:'xls' or dokument.dokument.name|ends_with:'xlsx' %}
-                                            <a href="{% url 'serve_dokument' dokument.id %}?download=True" class="text-decoration-none">
-                                                <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
-                                                        class="card-img-top img-fluid rounded-top-4"
-                                                        alt="XLS Vorschau">
-                                            </a>
-                                            <span class="badge bg-dark bg-opacity-25">{{ dokument.get_document_suffix }}</span>
-                                        {% elif dokument.link %}
-                                            <a href="{{ dokument.link }}" target="_blank" class="text-decoration-none">
-                                                <div class="card-img-top d-flex flex-column align-items-center justify-content-center bg-light rounded-top-4" 
-                                                     style="height: 120px; background-image: url('{{ dokument.link|get_favicon_url }}'); background-size: contain; background-position: center; background-repeat: no-repeat;">
-                                                    <i class="bi bi-link fa-3x text-secondary"></i>
-                                                    <p class="text-muted small">{{ dokument.link|get_short_link }}</p>
-                                                </div>
-                                            </a>
-                                            <hr class="m-0">
-                                        {% elif dokument.dokument %}
-                                            <a href="{% url 'serve_dokument' dokument.id %}?download=true" class="text-decoration-none">
-                                                <div class="card-img-top d-flex align-items-center justify-content-center bg-light rounded-top-4" style="height: 80px;">
-                                                    <i class="bi bi-file-earmark fa-3x text-secondary"></i>
-                                                </div>
-                                            </a>
-                                            <span class="badge bg-dark bg-opacity-25">{{ dokument.get_document_suffix }}</span>
-                                        {% endif %}
-
-                                        {% comment %} {% if dokument.dokument %}
-                                            <hr class="m-0">
-                                        {% endif %} {% endcomment %}
-                                        
-                                        <div class="card-body pt-2">
-                                            {% with dokument_name=dokument|get_document_name %}
-                                                <h6 class="card-title fw-bold mb-1">{{ dokument.titel|default:dokument_name }}</h6>
-
-                                                <span class="description-preview">{{ dokument.beschreibung|truncatewords:10 }}</span>
-                                                <span class="description-full" style="display:none">{{ dokument.beschreibung }}</span>
-                                                {% if dokument.beschreibung|wordcount > 10 %}
-                                                    <a href="#" class="show-more" onclick="event.preventDefault(); toggleDescription(this);">{% trans "mehr" %}</a>
-                                                {% endif %}
-
-                                                {% if dokument.link %}
-                                                    <p class="card-text text-muted small">
-                                                        <a href="{{ dokument.link }}" target="_blank" class="text-decoration-none">{{ dokument.link }}</a>
-                                                    </p>
-                                                {% endif %}
-
-                                                {% if dokument.dokument %}
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <a href="{% url 'serve_dokument' dokument.id %}?download=true" 
-                                                    class="btn btn-outline-primary btn-sm rounded-4 text-decoration-none"
-                                                    download>
-                                                        <i class="bi bi-download"></i> {% trans "Download" %}
-                                                    </a>
-                                                </div>
-                                                {% endif %}
-                                            </div>
-
-                                            {% if dokument.fw_darf_bearbeiten or is_org %}
-                                            <div class="card-footer">
-                                                <button onclick="removeDokument({{ dokument.id }}, '{{ dokument.titel|default:dokument_name }}', '{% url 'remove_dokument' %}')"
-                                                        class="btn btn-outline-danger btn-sm rounded-4">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-
-                                                <button class="btn btn-sm rounded-4" onclick="editDokument({{ dokument.id }})">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
-                                            </div>
-                                            {% endif %}
-                                            
-                                        {% endwith %}
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% include "components/folder_card.html" %}
         {% endfor %}
     </div>
 
@@ -215,101 +62,6 @@
         </div>
     </div>
 
-    <!-- Document Modal Template -->
-    <div class="modal fade" id="dokumentModal" tabindex="-1" aria-labelledby="dokumentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4">
-                <div class="modal-header">
-                    <div>
-                        <h5 class="modal-title mb-1" id="dokumentModalLabel">{% trans "Neues Dokument hinzufügen" %}</h5>
-                        <small class="text-muted"><i class="bi bi-folder me-1"></i><span id="modalFolderName"></span></small>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="dokumentForm" method="post" enctype="multipart/form-data" action="/dokumente/add/">
-                        {% csrf_token %}
-                        <input type="hidden" name="ordner" id="ordnerInput">
-                        <input type="hidden" name="dokument_id" id="dokumentIdInput">
-                    
-                        <div class="mb-2 text-center d-flex justify-content-center align-items-center gap-1">
-                            <i class="bi bi-info-circle me-1"></i>
-                            <small class="text-muted">{% trans "Alle Felder sind optional und können weggelassen werden." %}</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="titel" class="form-label">{% trans "Titel" %}</label>
-                            <input type="text" class="form-control rounded-4" id="titel" name="titel" placeholder="...">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="beschreibung" class="form-label">{% trans "Beschreibung" %}</label>
-                            <textarea class="form-control rounded-4" id="beschreibung" name="beschreibung" rows="3" placeholder="..."></textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="link" class="form-label">{% trans "Link" %}</label>
-                            <input type="text" class="form-control rounded-4" id="link" name="link" placeholder="https://www.example.com">
-                        </div>
-
-                        <div id="existingDocumentWarning" class="text-danger d-none">
-                            {% trans "Neues Dokument" %} <span id="existingDocumentName"></span> {% trans "wird gelöscht, wenn ein neues Dokument hochgeladen wird." %}
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="dokument" class="form-label">{% trans "Dokument" %}</label>
-                            <input type="file" class="form-control rounded-4" id="dokument" name="dokument">
-                        </div>
-
-                        <div id="fw_darf_bearbeiten_container" class="mb-3">
-                            <label for="fw_darf_bearbeiten" class="form-label">{% trans "Freiwillige dürfen dieses Dokument bearbeiten/löschen" %}</label>
-                            <input type="checkbox" class="form-check-input" id="fw_darf_bearbeiten" name="fw_darf_bearbeiten">
-                        </div>
-                        
-                        <div class="d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-outline-secondary rounded-4" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
-                            <button type="submit" class="btn btn-primary rounded-4">{% trans "Speichern" %}</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Folder Modal Template -->
-    <div class="modal fade" id="ordnerModal" tabindex="-1" aria-labelledby="ordnerModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="ordnerModalLabel">{% trans "Neuer Ordner" %}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="ordnerForm" method="post" action="/dokumente/add_ordner/">
-                        {% csrf_token %}
-                        <input type="hidden" name="ordner_id" id="ordnerIdInput">
-                        <div class="mb-3">
-                            <label for="ordner_name" class="form-label">{% trans "Ordnername" %}</label>
-                            <input type="text" class="form-control rounded-4" id="ordner_name" name="ordner_name">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="typ" class="form-label">{% trans "Anzeigen für" %}</label>
-                            <select class="form-select rounded-4" id="typ" name="typ">
-                                <option value="">{% trans "Alle" %}</option>
-                                {% for typ in jahrgang_typen %}
-                                    <option value="{{ typ.id }}">{{ typ.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-outline-secondary rounded-4" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
-                            <button type="submit" class="btn btn-primary rounded-4">{% trans "Speichern" %}</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include "components/document_modal.html" %}
+    {% include "components/folder_modal.html" %}
 {% endblock %}

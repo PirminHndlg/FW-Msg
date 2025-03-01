@@ -52,7 +52,7 @@ from FW.models import (
     Jahrgang
 )
 from Global.models import KalenderEvent, CustomUser
-from ORG.models import Dokument, Ordner, Organisation, JahrgangTyp
+from ORG.models import Dokument, Ordner, Organisation, JahrgangTyp, DokumentColor
 from ORG.views import base_template as org_base_template
 from TEAM.views import base_template as team_base_template
 from FWMsg.celery import send_email_aufgaben_daily
@@ -458,11 +458,14 @@ def dokumente(request, ordner_id=None):
             'dokumente': Dokument.objects.filter(org=request.user.org, ordner=ordner).order_by('-date_created')
         })
 
+    colors = DokumentColor.objects.all()
+
     context = {
         'ordners': ordners,
         'folder_structure': folder_structure,
         'ordner_id': ordner_id,
-        'jahrgang_typen': JahrgangTyp.objects.all().order_by('name')
+        'jahrgang_typen': JahrgangTyp.objects.all().order_by('name'),
+        'colors': colors
     }
 
     context = check_organization_context(request, context)
@@ -517,6 +520,7 @@ def add_ordner(request):
         ordner_id = request.POST.get('ordner_id')
         ordner_name = request.POST.get('ordner_name')
         typ_id = request.POST.get('typ')
+        color_id = request.POST.get('color')
         
         # Get the JahrgangTyp instance if typ_id is provided
         typ = None
@@ -526,6 +530,14 @@ def add_ordner(request):
             except JahrgangTyp.DoesNotExist:
                 messages.error(request, 'Ausgewählter Jahrgangstyp existiert nicht.')
                 return redirect('dokumente')
+            
+        color = None
+        if color_id:
+            try:
+                color = DokumentColor.objects.get(id=color_id)
+            except DokumentColor.DoesNotExist:
+                messages.error(request, 'Ausgewählte Farbe existiert nicht.')
+                return redirect('dokumente')
 
         if ordner_id and Ordner.objects.filter(id=ordner_id).exists():
             ordner = Ordner.objects.get(id=ordner_id)
@@ -534,12 +546,14 @@ def add_ordner(request):
                 return redirect('dokumente')
             ordner.ordner_name = ordner_name
             ordner.typ = typ
+            ordner.color = color
             ordner.save()
         else:
             ordner = Ordner.objects.create(
                 org=request.user.org, 
                 ordner_name=ordner_name,
-                typ=typ
+                typ=typ,
+                color=color
             )
 
     return redirect('dokumente', ordner_id=ordner.id)

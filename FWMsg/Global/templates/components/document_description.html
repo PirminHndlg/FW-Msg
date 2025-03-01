@@ -1,0 +1,7 @@
+{% load i18n %}
+
+<span class="description-preview">{{ dokument.beschreibung|truncatewords:10 }}</span>
+<span class="description-full" style="display:none">{{ dokument.beschreibung }}</span>
+{% if dokument.beschreibung|wordcount > 10 %}
+    <a href="#" class="show-more" onclick="event.preventDefault(); toggleDescription(this);">{% trans "mehr" %}</a>
+{% endif %} 
