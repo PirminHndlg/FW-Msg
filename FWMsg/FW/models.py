@@ -316,6 +316,98 @@ class Aufgabenprofil(OrgModel):
         return self.name
 
 
+
+class FreiwilligerFotos(OrgModel):
+    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
+    file = models.ImageField(upload_to='fotos/', verbose_name='Foto')
+    datetime = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
+
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = 'Freiwilliger Foto'
+        verbose_name_plural = 'Freiwilliger Fotos'
+
+    def __str__(self):
+        return self.file.name
+
+
+class FreiwilligerAufgabenprofil(OrgModel):
+    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
+    aufgabenprofil = models.ForeignKey(Aufgabenprofil, on_delete=models.CASCADE, verbose_name='Aufgabenprofil')
+
+    class Meta:
+        verbose_name = 'Freiwilliger Aufgabenprofil'
+        verbose_name_plural = 'Freiwilliger Aufgabenprofil'
+
+    def __str__(self):
+        return self.freiwilliger.first_name + ' ' + self.freiwilliger.last_name + ' - ' + self.aufgabenprofil.name
+
+
+@receiver(post_save, sender=FreiwilligerAufgabenprofil)
+def post_save_handler(sender, instance, **kwargs):
+    aufgaben = instance.aufgabenprofil.aufgaben.all()
+    for aufgabe in aufgaben:
+        aufg, created = FreiwilligerAufgaben.objects.get_or_create(org=instance.org, freiwilliger=instance.freiwilliger, aufgabe=aufgabe)
+        if not aufg.faellig:
+            if aufgabe.faellig_tage_nach_start:
+                aufg.faellig = instance.freiwilliger.start_geplant + timedelta(days=aufgabe.faellig_tage_nach_start)
+            elif aufgabe.faellig_tage_vor_ende:
+                aufg.faellig = instance.freiwilliger.ende_geplant - timedelta(days=aufgabe.faellig_tage_vor_ende)
+            else:
+                aufg.faellig = aufgabe.faellig
+            aufg.save()
+
+@receiver(pre_delete, sender=FreiwilligerAufgabenprofil)
+def post_delete_handler(sender, instance, **kwargs):
+    aufgaben = AufgabenprofilAufgabe.objects.filter(aufgabenprofil=instance.aufgabenprofil)
+    for aufgabe in aufgaben:
+        FreiwilligerAufgaben.objects.filter(freiwilliger=instance.freiwilliger, aufgabe=aufgabe.aufgabe).delete()
+
+
+class Aufgabe(OrgModel):
+    FAELLIG_CHOICES = [
+        ('V', 'Vor Einsatzstart'),
+        ('W', 'Während Einsatz'),
+        ('N', 'Nach Einsatzende'),
+        ('A', 'Aktuelles Jahr'),
+    ]
+    
+    name = models.CharField(max_length=50, verbose_name='Aufgabenname')
+    beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung')
+    mitupload = models.BooleanField(default=True, verbose_name='Upload möglich')
+    requires_submission = models.BooleanField(default=True, verbose_name='Bestätigung erforderlich')
+    faellig_art = models.CharField(max_length=1, choices=FAELLIG_CHOICES, default='W', verbose_name='Fällig Art')
+    faellig_tag = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tag')
+    faellig_monat = models.IntegerField(blank=True, null=True, verbose_name='Fällig Monat')
+    faellig_tage_nach_start = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage nach Einsatzstart')
+    faellig_tage_vor_ende = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage vor Einsatzende')
+    jahrgang_typ = models.ForeignKey(JahrgangTyp, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Jahrgang Typ')
+
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = 'Aufgabe'
+        verbose_name_plural = 'Aufgaben'
+
+    def __str__(self):
+        return self.name
+    
+
+class AufgabeZwischenschritte(OrgModel):
+    aufgabe = models.ForeignKey(Aufgabe, on_delete=models.CASCADE, verbose_name='Aufgabe')
+    name = models.CharField(max_length=50, verbose_name='Name')
+    beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung')
+
+    class Meta:
+        verbose_name = 'Aufgabe Zwischenschritt'
+        verbose_name_plural = 'Aufgabe Zwischenschritte'
+
+    def __str__(self):
+        return self.name
+    
+
+
 class FreiwilligerAufgaben(OrgModel):
     WIEDERHOLUNG_CHOICES = [
         ('T', 'Täglich'),
@@ -326,7 +418,7 @@ class FreiwilligerAufgaben(OrgModel):
     ]
 
     freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
-    aufgabe = models.ForeignKey('Aufgabe', on_delete=models.CASCADE, verbose_name='Aufgabe')
+    aufgabe = models.ForeignKey(Aufgabe, on_delete=models.CASCADE, verbose_name='Aufgabe')
     personalised_description = models.TextField(blank=True, null=True, verbose_name='Persönliche Beschreibung')
     erledigt = models.BooleanField(default=False, verbose_name='Erledigt')
     pending = models.BooleanField(default=False, verbose_name='Wird bearbeitet')
@@ -412,87 +504,13 @@ class FreiwilligerUpload(OrgModel):
         return self.file.name
 
 
-# @receiver(post_delete, sender=FreiwilligerUpload)
-# def post_delete_handler(sender, instance, **kwargs):
-#     instance.file.delete(False)
-#     os.remove(instance.file.path)
-
-class FreiwilligerFotos(OrgModel):
-    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
-    file = models.ImageField(upload_to='fotos/', verbose_name='Foto')
-    datetime = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
-
-    history = HistoricalRecords()
+class FreiwilligerAufgabenZwischenschritte(OrgModel):
+    freiwilliger_aufgabe = models.ForeignKey(FreiwilligerAufgaben, on_delete=models.CASCADE, verbose_name='Freiwilliger Aufgabe')
+    aufgabe_zwischenschritt = models.ForeignKey(AufgabeZwischenschritte, on_delete=models.CASCADE, verbose_name='Aufgabe Zwischenschritt')
 
     class Meta:
-        verbose_name = 'Freiwilliger Foto'
-        verbose_name_plural = 'Freiwilliger Fotos'
-
-    def __str__(self):
-        return self.file.name
-
-
-class FreiwilligerAufgabenprofil(OrgModel):
-    freiwilliger = models.ForeignKey(Freiwilliger, on_delete=models.CASCADE, verbose_name='Freiwillige:r')
-    aufgabenprofil = models.ForeignKey(Aufgabenprofil, on_delete=models.CASCADE, verbose_name='Aufgabenprofil')
-
-    class Meta:
-        verbose_name = 'Freiwilliger Aufgabenprofil'
-        verbose_name_plural = 'Freiwilliger Aufgabenprofil'
-
-    def __str__(self):
-        return self.freiwilliger.first_name + ' ' + self.freiwilliger.last_name + ' - ' + self.aufgabenprofil.name
-
-
-@receiver(post_save, sender=FreiwilligerAufgabenprofil)
-def post_save_handler(sender, instance, **kwargs):
-    aufgaben = instance.aufgabenprofil.aufgaben.all()
-    for aufgabe in aufgaben:
-        aufg, created = FreiwilligerAufgaben.objects.get_or_create(org=instance.org, freiwilliger=instance.freiwilliger, aufgabe=aufgabe)
-        if not aufg.faellig:
-            if aufgabe.faellig_tage_nach_start:
-                aufg.faellig = instance.freiwilliger.start_geplant + timedelta(days=aufgabe.faellig_tage_nach_start)
-            elif aufgabe.faellig_tage_vor_ende:
-                aufg.faellig = instance.freiwilliger.ende_geplant - timedelta(days=aufgabe.faellig_tage_vor_ende)
-            else:
-                aufg.faellig = aufgabe.faellig
-            aufg.save()
-
-@receiver(pre_delete, sender=FreiwilligerAufgabenprofil)
-def post_delete_handler(sender, instance, **kwargs):
-    aufgaben = AufgabenprofilAufgabe.objects.filter(aufgabenprofil=instance.aufgabenprofil)
-    for aufgabe in aufgaben:
-        FreiwilligerAufgaben.objects.filter(freiwilliger=instance.freiwilliger, aufgabe=aufgabe.aufgabe).delete()
-
-
-class Aufgabe(OrgModel):
-    FAELLIG_CHOICES = [
-        ('V', 'Vor Einsatzstart'),
-        ('W', 'Während Einsatz'),
-        ('N', 'Nach Einsatzende'),
-        ('A', 'Aktuelles Jahr'),
-    ]
-    
-    name = models.CharField(max_length=50, verbose_name='Aufgabenname')
-    beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung')
-    mitupload = models.BooleanField(default=True, verbose_name='Upload möglich')
-    requires_submission = models.BooleanField(default=True, verbose_name='Bestätigung erforderlich')
-    faellig_art = models.CharField(max_length=1, choices=FAELLIG_CHOICES, default='W', verbose_name='Fällig Art')
-    faellig_tag = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tag')
-    faellig_monat = models.IntegerField(blank=True, null=True, verbose_name='Fällig Monat')
-    faellig_tage_nach_start = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage nach Einsatzstart')
-    faellig_tage_vor_ende = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage vor Einsatzende')
-    jahrgang_typ = models.ForeignKey(JahrgangTyp, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Jahrgang Typ')
-
-    history = HistoricalRecords()
-
-    class Meta:
-        verbose_name = 'Aufgabe'
-        verbose_name_plural = 'Aufgaben'
-
-    def __str__(self):
-        return self.name
-
+        verbose_name = 'Freiwilliger Aufgaben Zwischenschritt'
+        verbose_name_plural = 'Freiwilliger Aufgaben Zwischenschritte'
 
 class Post(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
