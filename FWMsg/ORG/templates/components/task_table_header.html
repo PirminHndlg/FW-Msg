@@ -32,6 +32,12 @@
             <li>
               <a href="{% url 'list_aufgaben_table' %}?a={{ aufgabe.id }}&fw=all" class="dropdown-item"><i class="bi bi-people-fill"></i> {% trans 'Allen Freiwilligen zuweisen' %}</a>
             </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <button type="button" class="dropdown-item text-danger" onclick="showDeleteTaskModal('{{ aufgabe.id }}', '{{ aufgabe.name }}', '{{ freiwilliger.first_name }} {{ freiwilliger.last_name }}')">
+                <i class="bi bi-trash"></i> {% trans 'Aufgabe löschen' %}
+              </button>
+            </li>
           </ul>
         </div>
         <div class="vr border-dark m-0 ms-1 me-1" style="height: 70px;"></div>
@@ -76,5 +82,9 @@
     bottom: -1px;
     height: 1px;
     background-color: var(--bs-border-color-dark);
+  }
+
+  .z-1000 {
+    z-index: 1000;
   }
 </style>
