@@ -1,0 +1,86 @@
+{% load i18n %}
+
+<div class="modal" id="deleteZwischenschrittModal" tabindex="-1" role="dialog" aria-labelledby="deleteZwischenschrittModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteZwischenschrittModalLabel">{% trans "Zwischenschritt löschen" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>{% trans "Möchten Sie den Zwischenschritt" %} <strong id="deleteZwischenschrittName"></strong> {% trans "löschen?" %}</p>
+                <p class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> {% trans "Diese Aktion kann nicht rückgängig gemacht werden!" %}</p>
+            </div>
+            <div class="modal-footer">
+                <form id="deleteZwischenschrittForm" method="POST" action="{% url 'delete_zwischenschritt' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="zwischenschritt_id" id="zwischenschrittIdToDelete">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
+                    <button type="submit" class="btn btn-danger">{% trans "Löschen" %}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showDeleteZwischenschrittModal(zwischenschrittId, zwischenschrittName) {
+    const modal = document.getElementById('deleteZwischenschrittModal');
+    const nameElement = document.getElementById('deleteZwischenschrittName');
+    const idInput = document.getElementById('zwischenschrittIdToDelete');
+    
+    // Update modal content
+    nameElement.textContent = zwischenschrittName;
+    idInput.value = zwischenschrittId;
+    
+    // Show modal
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    
+    // Set focus on the cancel button when modal opens
+    modal.addEventListener('shown.bs.modal', function () {
+        modal.querySelector('.btn-secondary').focus();
+    });
+}
+
+// Handle form submission
+document.getElementById('deleteZwischenschrittForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = this;
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.text();
+    })
+    .then(() => {
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteZwischenschrittModal'));
+        modal.hide();
+        
+        // Hide the deleted zwischenschritt's form
+        const zwischenschrittId = formData.get('zwischenschritt_id');
+        const formRow = document.querySelector(`input[name$="-id"][value="${zwischenschrittId}"]`).closest('.zwischenschritt-form');
+        if (formRow) {
+            formRow.style.display = 'none';
+        }
+        
+        // Refresh the page to show updated state
+        window.location.reload();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+    });
+});
+</script> 

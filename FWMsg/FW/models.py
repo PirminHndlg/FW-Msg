@@ -397,7 +397,7 @@ class Aufgabe(OrgModel):
 class AufgabeZwischenschritte(OrgModel):
     aufgabe = models.ForeignKey(Aufgabe, on_delete=models.CASCADE, verbose_name='Aufgabe')
     name = models.CharField(max_length=50, verbose_name='Name')
-    beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung')
+    beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung', max_length=100)
 
     class Meta:
         verbose_name = 'Aufgabe Zwischenschritt'
