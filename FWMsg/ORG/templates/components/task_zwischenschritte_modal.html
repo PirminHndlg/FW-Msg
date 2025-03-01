@@ -1,0 +1,140 @@
+{% load i18n %}
+
+<div class="modal fade" id="taskZwischenschritteModal" tabindex="-1" aria-labelledby="taskZwischenschritteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskZwischenschritteModalLabel">{% trans "Zwischenschritte" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="taskInfo" class="mb-3">
+                    <h6 class="mb-2">{% trans "Aufgabe" %}: <span id="taskName"></span></h6>
+                    <p class="mb-0">{% trans "Freiwillige:r" %}: <span id="freiwilligerName"></span></p>
+                </div>
+                
+                <div id="zwischenschritteList">
+                    <!-- Zwischenschritte will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Schließen" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleZwischenschrittStatus(taskId, zwischenschrittId, currentStatus) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch('{% url "toggle_zwischenschritt_status" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            taskId: taskId,
+            zwischenschrittId: zwischenschrittId,
+            status: !currentStatus
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Refresh the zwischenschritte list
+            getTaskZwischenschritte(taskId);
+        } else {
+            console.error('Error updating status:', data.error);
+            alert('{% trans "Fehler beim Aktualisieren des Status" %}');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('{% trans "Fehler beim Aktualisieren des Status" %}');
+    });
+}
+
+function getTaskZwischenschritte(taskId) {
+    fetch(`{% url 'get_aufgaben_zwischenschritte' %}?taskId=${taskId}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data)
+            // Update task and freiwilliger info
+            document.getElementById('taskName').textContent = data.task_name;
+            document.getElementById('freiwilligerName').textContent = data.freiwilliger_name;
+            
+            // Update Zwischenschritte list
+            const zwischenschritteList = document.getElementById('zwischenschritteList');
+            zwischenschritteList.innerHTML = ''; // Clear existing content
+            
+            if (data.zwischenschritte.length === 0) {
+                zwischenschritteList.innerHTML = `
+                    <div class="alert alert-info">
+                        {% trans "Keine Zwischenschritte vorhanden" %}
+                    </div>
+                `;
+                return;
+            }
+            
+            // Create list group for Zwischenschritte
+            const listGroup = document.createElement('div');
+            listGroup.className = 'list-group';
+            
+            data.zwischenschritte.forEach((zs, index) => {
+                const item = document.createElement('div');
+                item.className = 'list-group-item';
+                
+                const header = document.createElement('div');
+                header.className = 'd-flex justify-content-between align-items-center';
+                
+                const title = document.createElement('h6');
+                title.className = 'mb-1';
+                title.innerHTML = `${index + 1}. ${zs.name}`;
+                
+                const rightSection = document.createElement('div');
+                rightSection.className = 'd-flex align-items-center gap-2';
+                
+                const badge = document.createElement('span');
+                badge.className = `badge ${zs.erledigt ? 'bg-success' : 'bg-secondary'}`;
+                badge.textContent = zs.erledigt ? '{% trans "Erledigt" %}' : '{% trans "Offen" %}';
+                
+                const toggleButton = document.createElement('button');
+                toggleButton.className = `btn btn-sm ${zs.erledigt ? 'btn-outline-success' : 'btn-outline-secondary'}`;
+                toggleButton.innerHTML = `<i class="bi ${zs.erledigt ? 'bi-check-circle' : 'bi-circle'}"></i>`;
+                toggleButton.onclick = () => toggleZwischenschrittStatus(taskId, zs.id, zs.erledigt);
+                toggleButton.title = zs.erledigt ? '{% trans "Als unerledigt markieren" %}' : '{% trans "Als erledigt markieren" %}';
+                
+                rightSection.appendChild(badge);
+                rightSection.appendChild(toggleButton);
+                
+                header.appendChild(title);
+                header.appendChild(rightSection);
+                item.appendChild(header);
+                
+                if (zs.beschreibung) {
+                    const desc = document.createElement('p');
+                    desc.className = 'mb-0 mt-2 text-muted';
+                    desc.textContent = zs.beschreibung;
+                    item.appendChild(desc);
+                }
+                
+                listGroup.appendChild(item);
+            });
+            
+            zwischenschritteList.appendChild(listGroup);
+        })
+        .catch(error => {
+            console.error('Error fetching task zwischenschritte:', error);
+            const zwischenschritteList = document.getElementById('zwischenschritteList');
+            zwischenschritteList.innerHTML = `
+                <div class="alert alert-danger">
+                    {% trans "Fehler beim Laden der Zwischenschritte" %}
+                </div>
+            `;
+        });
+}
+</script>

@@ -3,7 +3,7 @@ import random
 from django.contrib import admin
 from .models import Freiwilliger, Entsendeform, Einsatzland, Einsatzstelle, Notfallkontakt, Post, Aufgabe, \
     Aufgabenprofil, FreiwilligerAufgabenprofil, Ampel, FreiwilligerAufgaben, Jahrgang, \
-    CustomUser, Bilder, BilderGallery
+    CustomUser, Bilder, BilderGallery, AufgabeZwischenschritte, FreiwilligerAufgabenZwischenschritte
 from simple_history.admin import SimpleHistoryAdmin
 from ORG.models import JahrgangTyp
 
@@ -92,6 +92,16 @@ class AufgabeAdmin(admin.ModelAdmin):
         for aufgabe in queryset:
             aufgabe.jahrgang_typ = JahrgangTyp.objects.get(name='Outgoing')
             aufgabe.save()
+
+
+@admin.register(AufgabeZwischenschritte)
+class AufgabeZwischenschritteAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+
+@admin.register(FreiwilligerAufgabenZwischenschritte)
+class FreiwilligerAufgabenZwischenschritteAdmin(admin.ModelAdmin):
+    search_fields = ['freiwilliger_aufgabe__freiwilliger__user__first_name', 'freiwilliger_aufgabe__freiwilliger__user__last_name', 'aufgabe_zwischenschritt__name']
 
 
 @admin.register(Aufgabenprofil)

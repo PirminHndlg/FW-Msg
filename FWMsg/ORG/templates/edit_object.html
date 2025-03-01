@@ -1,6 +1,7 @@
 {% extends "baseOrg.html" %}
 {% load widget_tweaks %}
 {% load list_objects_filters %}
+{% load i18n %}
 
 {% block content %}
     <form method="post" class="needs-validation mb-3" novalidate enctype="multipart/form-data">
@@ -53,29 +54,160 @@
                         {% endif %}
                     </div>
                 {% endfor %}
+
+                {% if object == 'aufgabe' %}
+                    <hr>
+                    <div class="mt-4">
+                        <h5>{% trans "Zwischenschritte" %}</h5>
+                        <div id="zwischenschritte-formset">
+                            {{ form.zwischenschritte.management_form }}
+                            {% for zwischenschritt_form in form.zwischenschritte %}
+                                <div class="card mb-3 zwischenschritt-form">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <h6>{% trans "Zwischenschritt" %} #{{ forloop.counter }}</h6>
+                                            {% if zwischenschritt_form.instance.pk %}
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="showDeleteZwischenschrittModal('{{ zwischenschritt_form.instance.pk }}', '{{ zwischenschritt_form.instance.name }}')">
+                                                    <i class="bi bi-trash"></i> {% trans "Löschen" %}
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                        {% for hidden in zwischenschritt_form.hidden_fields %}
+                                            {{ hidden }}
+                                        {% endfor %}
+                                        {% for field in zwischenschritt_form.visible_fields %}
+                                            {% if field.name != 'DELETE' %}
+                                                <div class="mb-3">
+                                                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                                    {{ field|add_class:"form-control" }}
+                                                    {% if field.help_text %}
+                                                        <div class="form-text">{{ field.help_text }}</div>
+                                                    {% endif %}
+                                                    {% if field.errors %}
+                                                        <div class="invalid-feedback d-block">
+                                                            {{ field.errors }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn btn-outline-primary" id="add-zwischenschritt" onclick="addZwischenschritt()">
+                            <i class="bi bi-plus-circle"></i> {% trans "Zwischenschritt hinzufügen" %}
+                        </button>
+                    </div>
+                {% endif %}
             </div>
             <div class="card-footer d-flex flex-row-reverse justify-content-between">
                 <div class="btn-group" role="group">
                     <a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'list_object' object %}{% endif %}" class="btn btn-secondary">
-                        <i class="bi bi-x-circle"></i> Abbrechen
+                        <i class="bi bi-x-circle"></i> {% trans "Abbrechen" %}
                     </a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle"></i> Speichern
+                        <i class="bi bi-check-circle"></i> {% trans "Speichern" %}
                     </button>
                 </div>
                 {% if form.instance.id %}
                     <a href="{% url 'delete_object' object form.instance.id %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}"
                        class="btn btn-danger" 
-                       onclick="return confirm('Wirklich löschen?')">
+                       onclick="return confirm('{% trans "Wirklich löschen?" %}')">
                         <i class="bi bi-trash"></i>
                     </a>
                 {% endif %}
             </div>
         </div>
     </form>
-{% endblock %}
 
-{% block extra_css %}
+<!-- Delete Zwischenschritt Modal -->
+<div class="modal" id="deleteZwischenschrittModal" tabindex="-1" role="dialog" aria-labelledby="deleteZwischenschrittModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteZwischenschrittModalLabel">{% trans "Zwischenschritt löschen" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>{% trans "Möchten Sie den Zwischenschritt" %} <strong id="deleteZwischenschrittName"></strong> {% trans "löschen?" %}</p>
+                <p class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> {% trans "Diese Aktion kann nicht rückgängig gemacht werden!" %}</p>
+            </div>
+            <div class="modal-footer">
+                <form id="deleteZwischenschrittForm" method="POST" action="{% url 'delete_zwischenschritt' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="zwischenschritt_id" id="zwischenschrittIdToDelete">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
+                    <button type="submit" class="btn btn-danger">{% trans "Löschen" %}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showDeleteZwischenschrittModal(zwischenschrittId, zwischenschrittName) {
+    const modal = document.getElementById('deleteZwischenschrittModal');
+    const nameElement = document.getElementById('deleteZwischenschrittName');
+    const idInput = document.getElementById('zwischenschrittIdToDelete');
+    
+    // Update modal content
+    nameElement.textContent = zwischenschrittName;
+    idInput.value = zwischenschrittId;
+    
+    // Show modal
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    
+    // Set focus on the cancel button when modal opens
+    modal.addEventListener('shown.bs.modal', function () {
+        modal.querySelector('.btn-secondary').focus();
+    });
+}
+
+// Handle form submission
+document.getElementById('deleteZwischenschrittForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = this;
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.text();
+    })
+    .then(() => {
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteZwischenschrittModal'));
+        modal.hide();
+        
+        // Hide the deleted zwischenschritt's form
+        const zwischenschrittId = formData.get('zwischenschritt_id');
+        const formRow = document.querySelector(`input[name$="-id"][value="${zwischenschrittId}"]`).closest('.zwischenschritt-form');
+        if (formRow) {
+            formRow.style.display = 'none';
+        }
+        
+        // Refresh the page to show updated state
+        window.location.reload();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+    });
+});
+</script>
+
 <style>
 .form-check {
     padding-left: 1.5rem;
@@ -85,4 +217,52 @@
     margin-left: 0;
 }
 </style>
+
+<script>
+    function addZwischenschritt() {
+        // Get the current number of forms
+        const formsetContainer = document.getElementById('zwischenschritte-formset');
+        const totalForms = document.getElementsByClassName('zwischenschritt-form');
+        const currentFormCount = totalForms ? parseInt(totalForms.length) : 0;
+                
+        // Create a new form div
+        const newForm = document.createElement('div');
+        newForm.className = 'card mb-3 zwischenschritt-form';
+        
+        // Generate the new form HTML
+        newForm.innerHTML = `
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6>{% trans "Zwischenschritt" %} #${currentFormCount + 1}</h6>
+                </div>
+                <input type="hidden" name="zwischenschritte-${currentFormCount}-id" id="id_zwischenschritte-${currentFormCount}-id">
+                <div class="mb-3">
+                    <label for="id_zwischenschritte-${currentFormCount}-name" class="form-label">{% trans "Name" %}</label>
+                    <input type="text" name="zwischenschritte-${currentFormCount}-name" 
+                           id="id_zwischenschritte-${currentFormCount}-name" 
+                           class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="id_zwischenschritte-${currentFormCount}-beschreibung" class="form-label">{% trans "Beschreibung" %}</label>
+                    <textarea name="zwischenschritte-${currentFormCount}-beschreibung" 
+                              id="id_zwischenschritte-${currentFormCount}-beschreibung" 
+                              class="form-control"></textarea>
+                </div>
+            </div>
+        `;
+        
+        // Add the new form to the container
+        formsetContainer.appendChild(newForm);
+        
+        // Update the total forms count
+        totalForms.value = currentFormCount + 1;
+        
+        // Focus the name field of the new form
+        const newNameField = newForm.querySelector(`#id_zwischenschritte-${currentFormCount}-name`);
+        if (newNameField) {
+            newNameField.focus();
+        }
+    }
+</script>
+
 {% endblock %}
