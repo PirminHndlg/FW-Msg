@@ -16,7 +16,7 @@ class OrdnerAdmin(SimpleHistoryAdmin):
         for ordner in queryset:
             ordner.typ = JahrgangTyp.objects.get(name='Incoming')
             ordner.save()
-    
+            
     def all_to_outgoing(self, request, queryset):
         for ordner in queryset:
             ordner.typ = JahrgangTyp.objects.get(name='Outgoing')

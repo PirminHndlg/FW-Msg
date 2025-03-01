@@ -482,6 +482,7 @@ class Aufgabe(OrgModel):
     faellig_monat = models.IntegerField(blank=True, null=True, verbose_name='Fällig Monat')
     faellig_tage_nach_start = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage nach Einsatzstart')
     faellig_tage_vor_ende = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage vor Einsatzende')
+    jahrgang_typ = models.ForeignKey(JahrgangTyp, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Jahrgang Typ')
 
     history = HistoricalRecords()
 
