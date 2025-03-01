@@ -1,0 +1,15 @@
+{% load i18n %}
+
+<div class="table-responsive" style="height: 100vh; min-height: 400px">
+    <table class="table mb-0 align-middle table-borderless">
+        <thead>
+            {% include "components/task_table_header.html" %}
+        </thead>
+        <tbody>
+            {% for freiwilliger, aufgaben in freiwilliger_aufgaben_matrix.items %}
+                {% include "components/task_table_row.html" %}
+            {% endfor %}
+            <tr class="h-100"></tr>
+        </tbody>
+    </table>
+</div> 

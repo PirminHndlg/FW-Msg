@@ -1,0 +1,17 @@
+{% load i18n %}
+
+<div class="card-header bg-transparent border-bottom-0 d-flex justify-content-center align-items-center gap-1 flex-wrap">
+    <div class="d-flex gap-1 mb-2 justify-content-center align-items-center">
+        <strong>{% trans "Filter" %}</strong>
+        <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center">
+            <a class="btn btn-sm btn-outline-primary {% if filter == 'None' %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f=None">
+                {% trans "Alle" %}
+            </a>
+            {% for faellig_art in faellig_art_choices %}
+            <a class="btn btn-sm btn-outline-primary {% if filter == faellig_art.0 %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f={{ faellig_art.0 }}">
+                {{ faellig_art.1 }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div> 
