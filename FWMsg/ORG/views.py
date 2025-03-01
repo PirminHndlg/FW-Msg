@@ -633,6 +633,7 @@ def list_aufgaben_table(request, scroll_to=None):
     if request.method == 'POST':
         aufgabe_id = request.POST.get('aufgabe_id')
         country_id = request.POST.get('country_id')
+        delete_file_of_aufgabe = request.POST.get('delete_file_of_aufgabe')
 
         if request.POST.get('reminder') == 'True':
             fw_aufg = FWmodels.FreiwilligerAufgaben.objects.get(pk=aufgabe_id)
@@ -646,6 +647,11 @@ def list_aufgaben_table(request, scroll_to=None):
                     freiwilliger=f,
                     aufgabe=aufgabe
                 )
+        elif delete_file_of_aufgabe and FWmodels.FreiwilligerAufgaben.objects.filter(pk=delete_file_of_aufgabe, org=request.user.org).exists():
+            fw_aufg = FWmodels.FreiwilligerAufgaben.objects.get(pk=delete_file_of_aufgabe, org=request.user.org)
+            fw_aufg.file.delete()
+            fw_aufg.save()
+            return redirect('list_aufgaben_table_scroll', scroll_to=fw_aufg.id)
         else:
             fw_aufg = FWmodels.FreiwilligerAufgaben.objects.get(pk=aufgabe_id)
             if fw_aufg.org == request.user.org:

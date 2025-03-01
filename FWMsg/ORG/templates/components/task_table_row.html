@@ -56,6 +56,13 @@
                                 </button>
                             </form>
                         </li>
+                        {% if aufgabe.file %}
+                            <li>
+                                <button type="button" class="dropdown-item text-danger" onclick="showDeleteTaskModal('{{ aufgabe.id }}', '{{ aufgabe.aufgabe.name }}', '{{ aufgabe.file.name }}', '{{ freiwilliger.first_name }} {{ freiwilliger.last_name }}')">
+                                    <i class="bi bi-trash me-2"></i>{% trans "Datei löschen" %}
+                                </button>
+                            </li>
+                        {% endif %}
                     </ul>
                 </div>
             {% elif aufgabe.pending %}
@@ -150,4 +157,4 @@
         {% endif %}
     </td>
     {% endfor %}
-</tr> 
+</tr>
