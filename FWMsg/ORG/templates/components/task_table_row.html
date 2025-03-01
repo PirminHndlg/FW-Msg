@@ -84,6 +84,11 @@
                             </a>
                         </li>
                         <li>
+                            <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#taskZwischenschritteModal" onclick="getTaskZwischenschritte('{{ aufgabe.id }}')">
+                                <i class="bi bi-list me-2"></i>{% trans "Zwischenschritte anzeigen" %}
+                            </button>
+                        </li>
+                        <li>
                             <form method="post">
                                 {% csrf_token %}
                                 <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
@@ -129,6 +134,17 @@
                                     {% if aufgabe.last_reminder %}
                                         <small class="text-muted">({% trans "Zuletzt" %} {{ aufgabe.last_reminder|date:'d.m.' }}{% if aufgabe.last_reminder.year < today.year %}{{ aufgabe.last_reminder|date:'y' }}{% endif %})</small>
                                     {% endif %}
+                                </button>
+                            </form>
+                        </li>
+                        <li>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
+                                <input type="hidden" name="pending" value="True">
+                                <input type="hidden" name="erledigt" value="False">
+                                <button type="submit" class="dropdown-item text-warning">
+                                    <i class="bi bi-arrow-counterclockwise me-2"></i>{% trans "Als pending markieren" %}
                                 </button>
                             </form>
                         </li>

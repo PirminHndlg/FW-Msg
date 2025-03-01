@@ -3,6 +3,7 @@ import string
 from django import forms
 from django.db import models
 from django.contrib.auth.models import User
+from django.forms import inlineformset_factory
 
 from FW import models as FWmodels
 from Global import models as Globalmodels
@@ -35,6 +36,34 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
         model = FWmodels.Aufgabe
         fields = '__all__'
         exclude = ['org']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Remove request from kwargs before passing to formset
+        formset_kwargs = kwargs.copy()
+        formset_kwargs.pop('request', None)
+        self.zwischenschritte = AufgabeZwischenschritteFormSet(*args, **formset_kwargs)
+        
+
+    def is_valid(self):
+        return super().is_valid() and self.zwischenschritte.is_valid()
+
+    def save(self, commit=True):
+        instance = super().save(commit=commit)
+        if commit:
+            self.zwischenschritte.instance = instance
+            self.zwischenschritte.org = self.request.user.org
+            self.zwischenschritte.save()
+        return instance
+
+# Create the formset for AufgabeZwischenschritte
+AufgabeZwischenschritteFormSet = inlineformset_factory(
+    FWmodels.Aufgabe,
+    FWmodels.AufgabeZwischenschritte,
+    fields=['name', 'beschreibung'],
+    extra=1,
+    can_delete=True
+)
 
 
 class AddAufgabenprofilForm(OrgFormMixin, forms.ModelForm):

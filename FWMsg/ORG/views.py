@@ -4,6 +4,7 @@ import os
 import zipfile
 import pandas as pd
 import subprocess
+import json
 
 from django.db.models import ForeignKey
 from django.shortcuts import render, redirect
@@ -194,6 +195,12 @@ def save_form(request, form):
     obj.org = request.user.org
     obj.save()
     form.save_m2m()
+    if hasattr(form, 'zwischenschritte'):
+        for form in form.zwischenschritte.forms:
+            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                zwischenschritt = form.save(commit=False)
+                zwischenschritt.org = request.user.org
+                zwischenschritt.save()
 
 
 @login_required
@@ -257,6 +264,49 @@ def add_objects_from_excel(request, model_name):
 
         return redirect('list_object', model_name=model_name)
     return render(request, 'add_objects_from_excel.html')
+
+
+@login_required
+@required_role('O')
+@filter_jahrgang
+def delete_zwischenschritt(request):
+    zwischenschritt_id = request.POST.get('zwischenschritt_id')
+    zwischenschritt = FWmodels.AufgabeZwischenschritte.objects.get(id=zwischenschritt_id)
+    zwischenschritt.delete()
+    return redirect('edit_object', model_name='aufgabe', id=zwischenschritt.aufgabe.id)
+
+
+@login_required
+@required_role('O')
+@filter_jahrgang
+def toggle_zwischenschritt_status(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        task_id = data.get('taskId')
+        zwischenschritt_id = data.get('zwischenschrittId')
+        new_status = data.get('status')
+        
+        # Get the FreiwilligerAufgabenZwischenschritte instance
+        zwischenschritt = get_object_or_404(
+            FWmodels.FreiwilligerAufgabenZwischenschritte,
+            id=zwischenschritt_id,
+            freiwilliger_aufgabe_id=task_id,
+            freiwilliger_aufgabe__org=request.user.org
+        )
+        
+        # Update the status
+        zwischenschritt.erledigt = new_status
+        zwischenschritt.save()
+        
+        return JsonResponse({'success': True})
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required
@@ -754,6 +804,33 @@ def list_aufgaben_table(request, scroll_to=None):
             response.set_cookie('filter_aufgaben_table', request.GET.get('f'))
 
     return response
+
+
+@login_required
+@required_role('O')
+@filter_jahrgang
+def get_aufgaben_zwischenschritte(request):
+    taskId = request.GET.get('taskId')
+    if not FWmodels.FreiwilligerAufgaben.objects.filter(pk=taskId, org=request.user.org).exists():
+        return JsonResponse({'error': 'Nicht erlaubt'}, status=403)
+    
+    aufgabe = FWmodels.FreiwilligerAufgaben.objects.get(pk=taskId)
+    zwischenschritte = FWmodels.FreiwilligerAufgabenZwischenschritte.objects.filter(freiwilliger_aufgabe=aufgabe)
+    
+    zwischenschritte_data = []
+    for zs in zwischenschritte:
+        zwischenschritte_data.append({
+            'id': zs.id,
+            'name': zs.aufgabe_zwischenschritt.name,
+            'beschreibung': zs.aufgabe_zwischenschritt.beschreibung,
+            'erledigt': zs.erledigt
+        })
+    
+    return JsonResponse({
+        'task_name': aufgabe.aufgabe.name,
+        'freiwilliger_name': f"{aufgabe.freiwilliger.first_name} {aufgabe.freiwilliger.last_name}",
+        'zwischenschritte': zwischenschritte_data
+    })
 
 
 @login_required

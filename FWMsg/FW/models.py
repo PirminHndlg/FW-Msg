@@ -406,6 +406,22 @@ class AufgabeZwischenschritte(OrgModel):
     def __str__(self):
         return self.name
     
+    def save(self, *args, **kwargs):
+        # First save the instance so it has an ID
+        super(AufgabeZwischenschritte, self).save(*args, **kwargs)
+        
+        # Now we can safely filter related objects
+        freiwilliger_aufgaben = FreiwilligerAufgaben.objects.filter(aufgabe=self.aufgabe)
+        for freiwilliger_aufgabe in freiwilliger_aufgaben:
+            fw_aufg_zw, created = FreiwilligerAufgabenZwischenschritte.objects.get_or_create(
+                freiwilliger_aufgabe=freiwilliger_aufgabe,
+                aufgabe_zwischenschritt=self,
+                org=freiwilliger_aufgabe.org
+            )
+            if created:
+                fw_aufg_zw.erledigt = freiwilliger_aufgabe.erledigt
+                fw_aufg_zw.save()
+    
 
 
 class FreiwilligerAufgaben(OrgModel):
@@ -489,24 +505,10 @@ class FreiwilligerAufgaben(OrgModel):
         return self.freiwilliger.first_name + ' ' + self.freiwilliger.last_name + ' - ' + self.aufgabe.name
 
 
-class FreiwilligerUpload(OrgModel):
-    freiwilligeraufgabe = models.ForeignKey(FreiwilligerAufgaben, on_delete=models.CASCADE, verbose_name='Freiwillige:r Aufgabe')
-    file = models.FileField(upload_to='uploads/', verbose_name='Datei')
-    datetime = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
-
-    history = HistoricalRecords()
-
-    class Meta:
-        verbose_name = 'Freiwilliger Upload'
-        verbose_name_plural = 'Freiwilliger Uploads'
-
-    def __str__(self):
-        return self.file.name
-
-
 class FreiwilligerAufgabenZwischenschritte(OrgModel):
     freiwilliger_aufgabe = models.ForeignKey(FreiwilligerAufgaben, on_delete=models.CASCADE, verbose_name='Freiwilliger Aufgabe')
     aufgabe_zwischenschritt = models.ForeignKey(AufgabeZwischenschritte, on_delete=models.CASCADE, verbose_name='Aufgabe Zwischenschritt')
+    erledigt = models.BooleanField(default=False, verbose_name='Erledigt')
 
     class Meta:
         verbose_name = 'Freiwilliger Aufgaben Zwischenschritt'
