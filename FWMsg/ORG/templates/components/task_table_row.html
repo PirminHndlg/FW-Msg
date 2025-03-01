@@ -1,7 +1,12 @@
 {% load i18n %}
 
 <tr class="border-bottom">
-    <th class="border-end border-dark" style="max-width: 30vw;">{{ freiwilliger.first_name }} {{ freiwilliger.last_name }}</th>
+    <th class="p-0" style="max-width: 30vw;">
+        <div class="d-flex gap-1 align-items-center justify-content-between">
+            {{ freiwilliger.first_name }} {{ freiwilliger.last_name }}
+            <div class="vr border-dark m-0 ms-1" style="height: 70px;"></div>
+        </div>
+    </th>
     {% for aufgabe in aufgaben %}
     <td class="text-center p-0 rounded-4
         {% if aufgabe.id %}

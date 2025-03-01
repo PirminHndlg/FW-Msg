@@ -632,10 +632,20 @@ def list_aufgaben_table(request, scroll_to=None):
     
     if request.method == 'POST':
         aufgabe_id = request.POST.get('aufgabe_id')
+        country_id = request.POST.get('country_id')
 
         if request.POST.get('reminder') == 'True':
             fw_aufg = FWmodels.FreiwilligerAufgaben.objects.get(pk=aufgabe_id)
             fw_aufg.send_reminder_email()
+        elif country_id:
+            fw = FWmodels.Freiwilliger.objects.filter(org=request.user.org, einsatzland=country_id)
+            aufgabe = FWmodels.Aufgabe.objects.get(pk=aufgabe_id)
+            for f in fw:
+                fw_aufg, created = FWmodels.FreiwilligerAufgaben.objects.get_or_create(
+                    org=request.user.org,
+                    freiwilliger=f,
+                    aufgabe=aufgabe
+                )
         else:
             fw_aufg = FWmodels.FreiwilligerAufgaben.objects.get(pk=aufgabe_id)
             if fw_aufg.org == request.user.org:
@@ -694,6 +704,8 @@ def list_aufgaben_table(request, scroll_to=None):
             else:
                 freiwilliger_aufgaben_matrix[freiwilliger].append(aufgabe.id)
 
+    countries = FWmodels.Einsatzland.objects.filter(org=request.user.org, id__in=freiwillige.values_list('einsatzland', flat=True))
+
     context = {
         'freiwillige': freiwillige,
         'aufgaben': aufgaben,
@@ -701,7 +713,8 @@ def list_aufgaben_table(request, scroll_to=None):
         'freiwilliger_aufgaben_matrix': freiwilliger_aufgaben_matrix,
         'faellig_art_choices': faellig_art_choices,
         'filter': filter_type,
-        'scroll_to': scroll_to
+        'scroll_to': scroll_to,
+        'countries': countries
     }
 
     # Create response with rendered template
