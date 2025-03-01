@@ -12,11 +12,11 @@ def group_required(group_name):
     return decorator
 
 
-def required_role(role):
+def required_role(roles):
     def decorator(view_func):
-        @user_passes_test(lambda u: u.is_authenticated and hasattr(u, 'customuser') and (u.customuser.role == role or role == ''))
+        @user_passes_test(lambda u: u.is_authenticated and hasattr(u, 'customuser') and (u.customuser.role in roles or roles == ''))
         def _wrapped_view(request, *args, **kwargs):
-            if not request.user.role == role and role != '':
+            if not request.user.role in roles and roles != '':
                 raise PermissionDenied
             return view_func(request, *args, **kwargs)
         return _wrapped_view
