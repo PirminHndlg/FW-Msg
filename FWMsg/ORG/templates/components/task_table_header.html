@@ -1,0 +1,46 @@
+{% load i18n %}
+
+<tr class="border-bottom border-dark">
+    <th class="border-end border-dark">{% trans "Freiwillige" %}</th>
+    {% for aufgabe in aufgaben %}
+    <th class="text-center">
+        <div class="d-flex gap-1 align-items-start">
+            {% if aufgabe.mitupload %}
+            <a class="btn data-tooltip-bottom p-0" 
+                data-tooltip="{% trans 'Diese Aufgabe erfordert eine Datei' %}">
+                <i class="bi bi-file-earmark-arrow-up text-success"></i>
+            </a>
+            {% endif %}
+        
+            <p class="m-0 text-start">
+                {{ aufgabe.name }}
+            </p>
+        </div>
+        
+        {% if aufgabe.beschreibung %}
+            <a class="btn data-tooltip-bottom p-0" 
+            data-tooltip="{% trans 'Beschreibung' %}: {{ aufgabe.beschreibung }}">
+            <i class="bi bi-info-circle"></i>
+            </a>
+        {% endif %}
+
+        <a href="{% url 'edit_object' 'aufgabe' aufgabe.id %}?next={% url 'list_aufgaben_table' %}" 
+           class="btn btn-sm data-tooltip-bottom p-0" 
+           data-tooltip="{% trans 'Aufgabe bearbeiten' %}">
+            <i class="bi bi-pencil"></i>
+        </a>
+        <a href="{% url 'list_aufgaben_table' %}?a={{aufgabe.id}}&fw=all" 
+           class="btn btn-sm data-tooltip-bottom p-1" 
+           data-tooltip="{% trans 'Allen Freiwilligen zuweisen' %}">
+            <i class="bi bi-people-fill"></i>
+        </a>
+    </th>
+    {% endfor %}
+    <th>
+        <a href="{% url 'add_object' 'aufgabe' %}?next={% url 'list_aufgaben_table' %}"
+            class="btn btn-sm data-tooltip-bottom"
+            data-tooltip="{% trans 'Neue Aufgabe erstellen' %}">
+            <i class="bi bi-plus-circle"></i>
+        </a>
+    </th>
+</tr> 
