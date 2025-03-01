@@ -1,0 +1,104 @@
+{% load widget_tweaks %}
+{% load i18n %}
+
+<div class="">
+    <div id="zwischenschritte-formset">
+        {{ form.zwischenschritte.management_form }}
+        {% for zwischenschritt_form in form.zwischenschritte %}
+            <div class="card mb-3 zwischenschritt-form">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h6>{% trans "Zwischenschritt" %} #{{ forloop.counter }}</h6>
+                        {% if zwischenschritt_form.instance.pk %}
+                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    onclick="showDeleteZwischenschrittModal('{{ zwischenschritt_form.instance.pk }}', '{{ zwischenschritt_form.instance.name }}')">
+                                <i class="bi bi-trash"></i> {% trans "Löschen" %}
+                            </button>
+                        {% endif %}
+                    </div>
+                    {% for hidden in zwischenschritt_form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+                    {% for field in zwischenschritt_form.visible_fields %}
+                        {% if field.name != 'DELETE' %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                {{ field|add_class:"form-control" }}
+                                {% if field.help_text %}
+                                    <div class="form-text">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% if field.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ field.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <button type="button" class="btn btn-outline-primary" id="add-zwischenschritt" onclick="addZwischenschritt()">
+        <i class="bi bi-plus-circle"></i> {% trans "Zwischenschritt hinzufügen" %}
+    </button>
+</div>
+
+<script>
+    function addZwischenschritt() {
+        // Get the current number of forms
+        const formsetContainer = document.getElementById('zwischenschritte-formset');
+        const totalForms = document.getElementsByClassName('zwischenschritt-form');
+        const lastForm = totalForms[totalForms.length - 1];
+
+        // Check if last form exists and is empty
+        if (lastForm) {
+            const nameInput = lastForm.querySelector('input[name$="-name"]');
+            const beschreibungInput = lastForm.querySelector('textarea[name$="-beschreibung"]');
+            
+            if (nameInput && !nameInput.value.trim() && 
+                beschreibungInput && !beschreibungInput.value.trim()) {
+                return; // Exit if last form is empty
+            }
+        }
+
+        const currentFormCount = totalForms ? parseInt(totalForms.length) : 0;
+                
+        // Create a new form div
+        const newForm = document.createElement('div');
+        newForm.className = 'card mb-3 zwischenschritt-form';
+        
+        // Generate the new form HTML
+        newForm.innerHTML = `
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6>{% trans "Zwischenschritt" %} #${currentFormCount + 1}</h6>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeForm(this)">
+                        <i class="bi bi-trash"></i> {% trans "Löschen" %}
+                    </button>
+                </div>
+                <input type="hidden" name="zwischenschritte-${currentFormCount}-id" id="id_zwischenschritte-${currentFormCount}-id">
+                <div class="mb-3">
+                    <label for="id_zwischenschritte-${currentFormCount}-name" class="form-label">{% trans "Name" %}</label>
+                    <input type="text" name="zwischenschritte-${currentFormCount}-name" 
+                           id="id_zwischenschritte-${currentFormCount}-name" 
+                           class="form-control" required value="">
+                </div>
+                <div class="mb-3">
+                    <label for="id_zwischenschritte-${currentFormCount}-beschreibung" class="form-label">{% trans "Beschreibung" %}</label>
+                    <textarea name="zwischenschritte-${currentFormCount}-beschreibung" 
+                              id="id_zwischenschritte-${currentFormCount}-beschreibung" 
+                              class="form-control" rows="4" value=""></textarea>
+                </div>
+            </div>
+        `;
+        
+        // Add the new form to the container
+        formsetContainer.appendChild(newForm);
+    }
+
+    function removeForm(button) {
+        const form = button.closest('.zwischenschritt-form');
+        form.remove();
+    }
+</script> 

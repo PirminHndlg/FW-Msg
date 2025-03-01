@@ -61,8 +61,11 @@ AufgabeZwischenschritteFormSet = inlineformset_factory(
     FWmodels.Aufgabe,
     FWmodels.AufgabeZwischenschritte,
     fields=['name', 'beschreibung'],
-    extra=1,
-    can_delete=True
+    extra=0,
+    can_delete=True,
+    widgets={
+        'beschreibung': forms.Textarea(attrs={'rows': 4}),
+    }
 )
 
 
