@@ -5,6 +5,7 @@ from .models import Freiwilliger, Entsendeform, Einsatzland, Einsatzstelle, Notf
     Aufgabenprofil, FreiwilligerAufgabenprofil, Ampel, FreiwilligerAufgaben, Jahrgang, \
     CustomUser, Bilder, BilderGallery
 from simple_history.admin import SimpleHistoryAdmin
+from ORG.models import JahrgangTyp
 
 
 # Register your models here.
@@ -80,6 +81,17 @@ class PostAdmin(admin.ModelAdmin):
 @admin.register(Aufgabe)
 class AufgabeAdmin(admin.ModelAdmin):
     search_fields = ['name']
+    actions = ['set_jahrgang_typ_incoming', 'set_jahrgang_typ_outgoing']
+
+    def set_jahrgang_typ_incoming(self, request, queryset):
+        for aufgabe in queryset:
+            aufgabe.jahrgang_typ = JahrgangTyp.objects.get(name='Incoming')
+            aufgabe.save()
+    
+    def set_jahrgang_typ_outgoing(self, request, queryset):
+        for aufgabe in queryset:
+            aufgabe.jahrgang_typ = JahrgangTyp.objects.get(name='Outgoing')
+            aufgabe.save()
 
 
 @admin.register(Aufgabenprofil)

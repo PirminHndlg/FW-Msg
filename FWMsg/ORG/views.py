@@ -66,20 +66,31 @@ def filter_jahrgang(view_func):
                 response.delete_cookie('selectedJahrgangName')
             return response
 
-        original_get_queryset = FWmodels.Freiwilliger.objects.get_queryset
+        original_get_queryset_freiwilliger = FWmodels.Freiwilliger.objects.get_queryset
+        original_get_queryset_aufgabe = FWmodels.Aufgabe.objects.get_queryset
 
         def get_jahrgang_queryset(manager):
-            base_qs = original_get_queryset()
+            base_qs = original_get_queryset_freiwilliger()
             if jahrgang_id:
                 return base_qs.filter(jahrgang=jahrgang_id)
             return base_qs
+        
+        def get_jahrgang_queryset_aufgabe(manager):
+            base_qs = original_get_queryset_aufgabe()
+            if jahrgang_id:
+                jahrgang_typ = FWmodels.Jahrgang.objects.get(id=jahrgang_id).typ
+                if jahrgang_typ:
+                    return base_qs.filter(jahrgang_typ=jahrgang_typ)
+            return base_qs
 
         FWmodels.Freiwilliger.objects.get_queryset = get_jahrgang_queryset.__get__(FWmodels.Freiwilliger.objects)
+        FWmodels.Aufgabe.objects.get_queryset = get_jahrgang_queryset_aufgabe.__get__(FWmodels.Aufgabe.objects)
 
         try:
             return view_func(request, *args, **kwargs)
         finally:
-            FWmodels.Freiwilliger.objects.get_queryset = original_get_queryset
+            FWmodels.Freiwilliger.objects.get_queryset = original_get_queryset_freiwilliger
+            FWmodels.Aufgabe.objects.get_queryset = original_get_queryset_aufgabe
 
     return _wrapped_view
 
@@ -613,6 +624,7 @@ def list_aufgaben(request):
 def list_aufgaben_table(request, scroll_to=None):
     if request.method == 'GET' and request.GET.get('fw') and request.GET.get('a'):
         fw_all = request.GET.get('fw') == 'all'
+        fw_aufg = None
         if fw_all:
             freiwilliger = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
         else:
@@ -622,13 +634,21 @@ def list_aufgaben_table(request, scroll_to=None):
         for fw in freiwilliger:
             if not fw.org == request.user.org or not aufgabe.org == request.user.org:
                 continue
+            
+            if aufgabe.jahrgang_typ and fw.jahrgang and fw.jahrgang.typ and not aufgabe.jahrgang_typ == fw.jahrgang.typ:
+                continue
 
             fw_aufg, created = FWmodels.FreiwilligerAufgaben.objects.get_or_create(
                 org=request.user.org,
                 freiwilliger=fw,
                 aufgabe=aufgabe
             )
-        return redirect('list_aufgaben_table_scroll', scroll_to=fw_aufg.id)
+
+        if fw_aufg:
+            return redirect('list_aufgaben_table_scroll', scroll_to=fw_aufg.id)
+        else:
+            return redirect('list_aufgaben_table')
+
     
     if request.method == 'POST':
         aufgabe_id = request.POST.get('aufgabe_id')
