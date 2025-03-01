@@ -1,46 +1,80 @@
 {% load i18n %}
 
-<tr class="border-bottom border-dark">
-    <th class="border-end border-dark">{% trans "Freiwillige" %}</th>
-    {% for aufgabe in aufgaben %}
-    <th class="text-center">
-        <div class="d-flex gap-1 align-items-start">
-            {% if aufgabe.mitupload %}
-            <a class="btn data-tooltip-bottom p-0" 
-                data-tooltip="{% trans 'Diese Aufgabe erfordert eine Datei' %}">
-                <i class="bi bi-file-earmark-arrow-up text-success"></i>
-            </a>
-            {% endif %}
-        
-            <p class="m-0 text-start">
-                {{ aufgabe.name }}
-            </p>
+<tr class="">
+  <th class="p-0">
+    <div class="d-flex gap-1 align-items-center justify-content-between pe-0">
+      {% trans 'Freiwillige' %}
+      <div class="vr border-dark m-0 ms-1" style="height: 70px;"></div>
+    </div>
+    <hr class="border-dark m-0 mt-1" />
+  </th>
+  {% for aufgabe in aufgaben %}
+    <th class="text-center bg-white p-0">
+      <div class="d-flex gap-1 align-items-center">
+        <div class="d-flex gap-0 align-items-center flex-column">
+          {% if aufgabe.beschreibung %}
+            <a class="btn data-tooltip-bottom p-0" data-tooltip="{% trans 'Beschreibung' %}: {{ aufgabe.beschreibung }}"><i class="bi bi-info-circle"></i></a>
+          {% endif %}
+          {% if aufgabe.mitupload %}
+            <a class="btn data-tooltip-bottom p-0" data-tooltip="{% trans 'Diese Aufgabe erfordert eine Datei' %}"><i class="bi bi-file-earmark-arrow-up text-success"></i></a>
+          {% endif %}
         </div>
-        
-        {% if aufgabe.beschreibung %}
-            <a class="btn data-tooltip-bottom p-0" 
-            data-tooltip="{% trans 'Beschreibung' %}: {{ aufgabe.beschreibung }}">
-            <i class="bi bi-info-circle"></i>
-            </a>
-        {% endif %}
 
-        <a href="{% url 'edit_object' 'aufgabe' aufgabe.id %}?next={% url 'list_aufgaben_table' %}" 
-           class="btn btn-sm data-tooltip-bottom p-0" 
-           data-tooltip="{% trans 'Aufgabe bearbeiten' %}">
-            <i class="bi bi-pencil"></i>
-        </a>
-        <a href="{% url 'list_aufgaben_table' %}?a={{aufgabe.id}}&fw=all" 
-           class="btn btn-sm data-tooltip-bottom p-1" 
-           data-tooltip="{% trans 'Allen Freiwilligen zuweisen' %}">
-            <i class="bi bi-people-fill"></i>
-        </a>
+        <div class="dropdown d-inline">
+          <button class="btn btn-sm dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false"><p class="text-wrap m-0">{{ aufgabe.name }}</p></button>
+          <ul class="dropdown-menu z-1000">
+            <li>
+              <a href="{% url 'edit_object' 'aufgabe' aufgabe.id %}?next={% url 'list_aufgaben_table' %}" class="dropdown-item"><i class="bi bi-pencil"></i> {% trans 'Bearbeiten' %}</a>
+            </li>
+            <li>
+              <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#taskCountryModal" onclick="setTaskId({{ aufgabe.id }}, '{{ aufgabe.name }}')"><i class="bi bi-globe-americas"></i> {% trans 'Einem Einsatzland zuweisen' %}</a>
+            </li>
+            <li>
+              <a href="{% url 'list_aufgaben_table' %}?a={{ aufgabe.id }}&fw=all" class="dropdown-item"><i class="bi bi-people-fill"></i> {% trans 'Allen Freiwilligen zuweisen' %}</a>
+            </li>
+          </ul>
+        </div>
+        <div class="vr border-dark m-0 ms-1 me-1" style="height: 70px;"></div>
+      </div>
+
+      <hr class="border-dark m-0 mt-1" />
     </th>
-    {% endfor %}
-    <th>
-        <a href="{% url 'add_object' 'aufgabe' %}?next={% url 'list_aufgaben_table' %}"
-            class="btn btn-sm data-tooltip-bottom"
-            data-tooltip="{% trans 'Neue Aufgabe erstellen' %}">
-            <i class="bi bi-plus-circle"></i>
-        </a>
-    </th>
-</tr> 
+  {% endfor %}
+  <th class="p-0">
+    <div class="d-flex gap-1 align-items-center">
+      <a href="{% url 'add_object' 'aufgabe' %}?next={% url 'list_aufgaben_table' %}" class="btn btn-sm data-tooltip-bottom" data-tooltip="{% trans 'Neue Aufgabe erstellen' %}"><i class="bi bi-plus-circle"></i></a>
+      <div class="vr border-dark m-0 ms-1 me-1" style="height: 70px; width: 0;"></div>
+    </div>
+    <hr class="border-dark m-0 mt-1" />
+  </th>
+</tr>
+
+<style>
+  .sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+  }
+  
+  /* Ensure borders remain visible when scrolling */
+  .border-bottom {
+    border-bottom-width: 1px !important;
+    border-bottom-style: solid !important;
+  }
+  
+  .border-end {
+    border-right-width: 1px !important;
+    border-right-style: solid !important;
+  }
+  
+  /* Add shadow for better visual separation */
+  tr.sticky-top::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background-color: var(--bs-border-color-dark);
+  }
+</style>
