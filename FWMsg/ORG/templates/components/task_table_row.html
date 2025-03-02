@@ -8,6 +8,9 @@
         </div>
     </th>
     {% for aufgabe in aufgaben %}
+    {% with zwischenschritte_done_open=aufgabe.zwischenschritte_done_open %}
+    {% with zwischenschritte_done=aufgabe.zwischenschritte_done %}
+    {% with aufgabe=aufgabe.aufgabe %}
     <td class="text-center p-0 rounded-4
         {% if aufgabe.id %}
             {% if aufgabe.erledigt %}
@@ -75,7 +78,7 @@
                 {% endif %}
                 <div class="dropdown d-inline">
                     <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="badge bg-warning">{% trans "Pending" %}</span>
+                        <span id="pending-badge-{{ aufgabe.id }}" class="badge bg-warning {% if zwischenschritte_done %}border border-2 border-success{% else %}bg-warning{% endif %}">{% trans "Pending" %} {{ zwischenschritte_done_open|default:"" }}</span>
                     </button>
                     <ul class="dropdown-menu">
                         <li>
@@ -172,5 +175,8 @@
         </div>
         {% endif %}
     </td>
+    {% endwith %}
+    {% endwith %}
+    {% endwith %}
     {% endfor %}
 </tr>
