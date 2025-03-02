@@ -300,8 +300,17 @@ def toggle_zwischenschritt_status(request):
         # Update the status
         zwischenschritt.erledigt = new_status
         zwischenschritt.save()
+
+        zwischenschritte = FWmodels.FreiwilligerAufgabenZwischenschritte.objects.filter(freiwilliger_aufgabe=task_id)
+        zwischenschritte_count = zwischenschritte.count()
+        zwischenschritte_done_count = zwischenschritte.filter(erledigt=True).count()
+        json_response = {
+            'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
+            'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
+            'success': True
+        }
         
-        return JsonResponse({'success': True})
+        return JsonResponse(json_response)
         
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
@@ -760,7 +769,7 @@ def list_aufgaben_table(request, scroll_to=None):
         When(faellig_art=faellig_art_choices[2][0], then=2),  # 'Nachher' tasks third
         default=3
     )
-    
+
     # Apply ordering
     aufgaben = aufgaben.order_by(
         faellig_art_order,
@@ -787,9 +796,18 @@ def list_aufgaben_table(request, scroll_to=None):
     for freiwilliger in freiwillige:
         freiwilliger_aufgaben_matrix[freiwilliger] = []
         for aufgabe in aufgaben:
-            freiwilliger_aufgaben = FWmodels.FreiwilligerAufgaben.objects.filter(freiwilliger=freiwilliger, aufgabe=aufgabe)
-            if freiwilliger_aufgaben:
-                freiwilliger_aufgaben_matrix[freiwilliger].append(freiwilliger_aufgaben.first())
+            freiwilliger_aufgaben_exists = FWmodels.FreiwilligerAufgaben.objects.filter(freiwilliger=freiwilliger, aufgabe=aufgabe).exists()
+            if freiwilliger_aufgaben_exists:
+                freiwilliger_aufgaben = FWmodels.FreiwilligerAufgaben.objects.get(freiwilliger=freiwilliger, aufgabe=aufgabe)
+                zwischenschritte = FWmodels.FreiwilligerAufgabenZwischenschritte.objects.filter(freiwilliger_aufgabe=freiwilliger_aufgaben)
+                zwischenschritte_count = zwischenschritte.count()
+                zwischenschritte_done_count = zwischenschritte.filter(erledigt=True).count()
+                freiwilliger_aufgaben_matrix[freiwilliger].append({
+                    'aufgabe': freiwilliger_aufgaben,
+                    'zwischenschritte': zwischenschritte,
+                    'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
+                    'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
+                })
             else:
                 freiwilliger_aufgaben_matrix[freiwilliger].append(aufgabe.id)
 

@@ -46,6 +46,13 @@ function toggleZwischenschrittStatus(taskId, zwischenschrittId, currentStatus) {
     .then(data => {
         if (data.success) {
             // Refresh the zwischenschritte list
+            const pendingBadge = document.getElementById('pending-badge-' + taskId);
+            pendingBadge.textContent = data.zwischenschritte_done_open;
+            if (data.zwischenschritte_done) {
+                pendingBadge.classList.add('border', 'border-2', 'border-success');
+            } else {
+                pendingBadge.classList.remove('border', 'border-2', 'border-success');
+            }
             getTaskZwischenschritte(taskId);
         } else {
             console.error('Error updating status:', data.error);
