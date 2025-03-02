@@ -308,6 +308,19 @@ def toggle_zwischenschritt_status(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+@login_required
+@required_role('O')
+@filter_jahrgang
+def get_zwischenschritt_form(request):
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    try:
+        form_html = render_to_string('components/zwischenschritt_form.html')
+        return JsonResponse({'html': form_html})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 @login_required
 @required_role('O')
