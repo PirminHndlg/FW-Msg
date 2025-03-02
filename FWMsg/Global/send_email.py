@@ -267,7 +267,7 @@ def send_new_aufgaben_email(aufgaben, org):
     
     return False
 
-def send_mail_smtp(receiver_email, subject, html_content, reply_to=None):
+def send_mail_smtp(receiver_email, subject, html_content, reply_to=None, cc=None):
     if not receiver_email or not subject or not html_content:
         return False
 
@@ -285,6 +285,9 @@ def send_mail_smtp(receiver_email, subject, html_content, reply_to=None):
 
     if reply_to:
         message["Reply-To"] = reply_to
+
+    if cc:
+        message["Cc"] = cc
 
     # Add email content
     html_part = MIMEText(html_content, "html")
