@@ -11,9 +11,9 @@
             <div class="card-header rounded-4">
                 <h4 class="mb-0">
                     {% if form.instance.id %}
-                        {% trans "Objekt bearbeiten" %}
+                        {{ object|capfirst }} {% trans " bearbeiten" %}
                     {% else %}
-                        {% trans "Neues Objekt erstellen" %}
+                        {% trans "Neues Objekt in " %} {{ object|capfirst }} {% trans " erstellen" %}
                     {% endif %}
                 </h4>
             </div>
