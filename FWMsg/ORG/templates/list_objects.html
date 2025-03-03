@@ -15,6 +15,38 @@
     .table-primary {
         transition: background-color 0.2s ease;
     }
+
+    /* Sticky columns styling */
+    .sticky-left-1 {
+        position: sticky;
+        left: 0;
+        background: white;
+        width: 150px;
+    }
+
+    .sticky-left-2 {
+        position: sticky;
+        left: var(--left-offset, 150px);
+        background: white;
+        width: 150px;
+    }
+
+    /* Ensure sticky columns stay on top */
+    .table th.sticky-left-1,
+    .table th.sticky-left-2 {
+        z-index: 100;
+    }
+
+    /* Add shadow to indicate scrollable content */
+    .sticky-left-2::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: -2px;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to right, rgba(0,0,0,0.1), rgba(0,0,0,0));
+    }
 </style>
 {% endblock %}
 
@@ -62,7 +94,9 @@
             <thead class="sticky-top z-1" style="background: white;">
                 <tr>
                     {% for field in field_metadata %}
-                    <th>{{ field.verbose_name }}</th>
+                    <th class="{% if field.name == 'first_name' %}sticky-left-1{% elif field.name == 'last_name' %}sticky-left-2{% endif %}">
+                        {{ field.verbose_name }}
+                    </th>
                     {% endfor %}
                     <th class="position-sticky" style="right: 0; background: white;"></th>
                 </tr>
@@ -71,7 +105,9 @@
                 {% for object in objects %}
                 <tr data-pk="{{ object.pk }}" {% if object.pk == highlight_id %}id="highlight-row"{% endif %}>
                     {% for field in field_metadata %}
-                    <td data-default="{{ object|get_attribute:field.name|default:'' }}" data-field="{{ field.name }}" {% if object.pk == highlight_id %}class="table-primary"{% endif %}>
+                    <td data-default="{{ object|get_attribute:field.name|default:'' }}" 
+                        data-field="{{ field.name }}" 
+                        class="{% if field.name == 'first_name' %}sticky-left-1{% elif field.name == 'last_name' %}sticky-left-2{% endif %} {% if object.pk == highlight_id %}table-primary{% endif %}">
                         {% if object|is_many_to_many:field.name %}
                             {% with items=object|get_attribute:field.name %}
                             {{ items.all|join:", " }}
@@ -109,7 +145,7 @@
                         {% endif %}
                     </td>
                     {% endfor %}
-                    <td class="position-sticky" style="right: 0">
+                    <td class="position-sticky" style="right: 0; background: white;">
                         <div class="btn-group">
                             <a class="btn btn-sm btn-outline-primary"
                                 href="{% url 'edit_object' model_name object.pk %}">
@@ -136,10 +172,18 @@
 </div>
 
 <script>
+    // Calculate and set the left offset for the second sticky column
+    document.addEventListener('DOMContentLoaded', function() {
+        const firstStickyColumn = document.querySelector('.sticky-left-1');
+        if (firstStickyColumn) {
+            const width = firstStickyColumn.offsetWidth;
+            document.documentElement.style.setProperty('--left-offset', width + 'px');
+        }
+    });
+
     $(document).ready(function () {
         $("#mySearch").on("keyup", function () {
             var value = $(this).val().toLowerCase();
-            console.log(value);
             $("#myTable tr").filter(function () {
                 $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
             });
