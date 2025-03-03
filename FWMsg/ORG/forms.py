@@ -30,6 +30,19 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
         fields = '__all__'
         exclude = ['user', 'org']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        date_field = forms.DateField(
+            widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            required=False
+        )
+        self.fields['geburtsdatum'] = date_field
+        self.fields['start_geplant'] = date_field
+        self.fields['start_real'] = date_field
+        self.fields['ende_geplant'] = date_field
+        self.fields['ende_real'] = date_field
+
+
 
 class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
     class Meta:
@@ -82,6 +95,15 @@ class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
         fields = ['freiwilliger', 'aufgabe', 'personalised_description', 'faellig', 'wiederholung', 'wiederholung_ende', 'file', 'benachrichtigung_cc']
         exclude = ['org']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        date_field = forms.DateField(
+            widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            required=False
+        )
+        self.fields['faellig'] = date_field
+        self.fields['wiederholung_ende'] = date_field
+
 
 class AddKirchenzugehoerigkeitForm(OrgFormMixin, forms.ModelForm):
     class Meta:
@@ -117,6 +139,14 @@ class AddJahrgangForm(OrgFormMixin, forms.ModelForm):
         fields = '__all__'
         exclude = ['org']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        date_field = forms.DateField(
+            widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            required=False
+        )
+        self.fields['start'] = date_field
+        self.fields['ende'] = date_field
 
 class AddNotfallkontaktForm(OrgFormMixin, forms.ModelForm):
     class Meta:
