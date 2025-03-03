@@ -7,7 +7,7 @@
         </a>
     </div>
     <div>
-        {% if object.id %}
+        {% if form.instance.id %}
             <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#deleteObjectModal">
                 <i class="bi bi-trash"></i> {% trans "Löschen" %}
             </button>
@@ -18,7 +18,7 @@
     </div>
 </div>
 
-{% if object.id %}
+{% if form.instance.id %}
 <div class="modal fade" id="deleteObjectModal" tabindex="-1" aria-labelledby="deleteObjectModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -35,10 +35,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
-                <form method="post" action="{{ delete_url }}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">{% trans "Löschen" %}</button>
-                </form>
+                <a href="{% url 'delete_object' object form.instance.id %}" type="submit" class="btn btn-danger">{% trans "Löschen" %}</a>
             </div>
         </div>
     </div>
