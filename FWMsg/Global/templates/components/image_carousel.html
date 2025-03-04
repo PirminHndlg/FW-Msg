@@ -4,7 +4,7 @@
     <div class="carousel-inner {% if not bild.beschreibung %}rounded-bottom-4{% endif %}">
         {% for img in bilder_gallery %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                <div style="aspect-ratio: 1/1;">
+                <div style="aspect-ratio: 1/1; cursor: pointer;" onclick="openCarouselImageFullscreen(this, {{ bild.id }})">
                     <img src="{% if img.small_image %}{% url 'serve_small_bilder' img.id %}{% else %}{% url 'serve_bilder' img.id %}{% endif %}"
                         alt="{% trans 'Bild' %}"
                         class="w-100 h-100"
@@ -34,4 +34,17 @@
             {% endfor %}
         </div>
     {% endif %}
-</div> 
+</div>
+
+{% include "components/image_fullscreen.html" %}
+
+<script>
+function openCarouselImageFullscreen(container, bildId) {
+    const carousel = document.getElementById(`carousel-${bildId}`);
+    const activeItem = carousel.querySelector('.carousel-item.active img');
+    const allImages = Array.from(carousel.querySelectorAll('.carousel-item img')).map(img => img.src);
+    
+    // Open fullscreen modal with the active image and all carousel images
+    openImageFullscreen(activeItem.src, allImages);
+}
+</script> 
