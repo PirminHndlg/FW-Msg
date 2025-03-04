@@ -55,18 +55,18 @@
         <a href="{% url 'aufgaben' %}" class="btn text-black border border-2">{% trans "Zurück" %}</a>
         {% if task.pending %}
         <button type="submit" name="action" value="unpend" class="btn btn-warning">
-            {% trans "Als nicht erledigt markieren" %}
+            <i class="bi bi-arrow-counterclockwise me-1"></i>{% trans "Als nicht erledigt markieren" %}
         </button>
         {% elif task.erledigt %}
         {% with org=user|get_org %}
         <a href="mailto:{{ org.email }}?subject={% trans 'Problem mit Aufgabe' %}: {{ task.aufgabe.name }}&body={% blocktrans with name=task.aufgabe.name date=task.faellig|date:'d.m.Y' desc=task.aufgabe.beschreibung done_date=task.erledigt_am|date:'d.m.Y' profile=task.aufgabe.aufgabenprofil upload=task.aufgabe.mitupload|yesno:'Ja,Nein' %}Ich habe ein Problem mit der Aufgabe '{{ name }}' vom {{ date }}.%0D%0A%0D%0AAufgabendetails:%0D%0A%0D%0ABeschreibung: {{ desc }}%0D%0AFällig am: {{ date }}%0D%0AErledigt am: {{ done_date }}%0D%0AAufgabenprofil: {{ profile }}%0D%0AUpload erforderlich: {{ upload }}{% endblocktrans %}"
-            class="btn btn-danger text-black">
+            class="btn btn-danger text-white">
             <i class="bi bi-exclamation-triangle me-1"></i>{% trans "Problem melden" %}
         </a>
         {% endwith %}
         {% else %}
         <button type="submit" name="action" value="pending" class="btn btn-primary">
-            {% trans "Erledigt" %}
+            <i class="bi bi-check-circle me-1"></i>{% trans "Erledigt" %}
         </button>
         {% endif %}
     </div>

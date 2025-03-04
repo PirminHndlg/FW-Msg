@@ -29,6 +29,8 @@ from . import models as ORGmodels
 from . import forms as ORGforms
 
 from FWMsg.decorators import required_role
+from django.views.decorators.http import require_http_methods
+from Global.models import CustomUser
 
 base_template = 'baseOrg.html'
 
@@ -1011,3 +1013,37 @@ def statistik(request):
     all_fields = FWmodels.Freiwilliger._meta.fields
     fields = [field for field in all_fields if field.name in filter_for_fields]
     return render(request, 'statistik.html', context={'freiwillige': freiwillige, 'fields': fields})
+
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def send_registration_mail(request):
+    try:
+        data = json.loads(request.body)
+        user_id = data.get('userId')
+        
+        # Get the CustomUser instance
+        custom_user = CustomUser.objects.get(
+            id=user_id,
+            org=request.user.org
+        )
+
+        # Send the registration email
+        custom_user.send_registration_email()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Registrierungsmail erfolgreich gesendet',
+            'einmalpasswort': custom_user.einmalpasswort
+        })
+        
+    except CustomUser.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Benutzer nicht gefunden'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)

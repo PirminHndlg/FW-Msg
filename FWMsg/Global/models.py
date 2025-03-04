@@ -46,6 +46,7 @@ class CustomUser(models.Model):
     history = HistoricalRecords()
 
     def send_registration_email(self):
+        print(self.einmalpasswort)
         if not self.einmalpasswort:
             self.einmalpasswort = random.randint(100000, 999999)
             self.save()
