@@ -151,6 +151,16 @@
                                 href="{% url 'edit_object' model_name object.pk %}">
                                 <i class="bi bi-pencil"></i>
                             </a>
+                            {% if model_name == 'user' %}
+                            {% csrf_token %}
+                            <button type="button" id="sendRegistrationMailButton-{{ object.pk }}"
+                                    class="btn btn-sm btn-outline-info"
+                                    onclick="sendRegistrationMail({{ object.pk }})"
+                                    data-bs-toggle="tooltip"
+                                    title="{% trans 'Send Registration Mail' %}">
+                                <i class="bi bi-envelope"></i>
+                            </button>
+                            {% endif %}
                             <a class="btn btn-sm btn-outline-danger"
                                 href="{% url 'delete_object' model_name object.pk %}"
                                 onclick="return confirm('{% trans 'Are you sure you want to delete this item?' %}')">
@@ -172,6 +182,47 @@
 </div>
 
 <script>
+    function sendRegistrationMail(userId) {
+        const csrfTokenElement = document.querySelector('[name=csrfmiddlewaretoken]');
+        const csrfToken = csrfTokenElement.value;
+        
+        fetch('{% url "send_registration_mail" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                userId: userId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const button = document.getElementById(`sendRegistrationMailButton-${userId}`);
+                if (button) {
+                    button.classList.add('btn-success', 'text-white', 'disabled');
+                    button.classList.remove('btn-outline-info');
+                    button.innerHTML = '<i class="bi bi-envelope"></i> <i class="bi bi-check"></i>';
+                } else {
+                    alert('{% trans "Erfolgreich gesendet!" %}');
+                }
+
+                const einmalpasswort = data.einmalpasswort;
+                const td = button.closest('tr').querySelector('td[data-field="einmalpasswort"]');
+                if (td) {
+                    td.innerHTML = einmalpasswort;
+                }
+            } else {
+                alert('{% trans "Fehler beim Senden der Registrierungsmail:" %} ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{% trans "Error sending registration mail" %}');
+        });
+    }
+
     // Calculate and set the left offset for the second sticky column
     document.addEventListener('DOMContentLoaded', function() {
         const firstStickyColumn = document.querySelector('.sticky-left-1');

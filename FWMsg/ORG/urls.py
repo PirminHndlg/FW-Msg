@@ -26,4 +26,6 @@ urlpatterns = [
     path('statistik/', views.statistik, name='statistik'),
 
     path('nginx-statistic/', views.nginx_statistic, name='nginx_statistic'),
+
+    path('send-registration-mail/', views.send_registration_mail, name='send_registration_mail'),
 ]

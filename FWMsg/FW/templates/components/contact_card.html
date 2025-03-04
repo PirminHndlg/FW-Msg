@@ -6,15 +6,15 @@
         <div class="d-flex flex-column gap-2">
             {% for item in contact_items %}
                 {% if item.value %}
-                    <div class="contact-info d-flex align-items-start">
+                    <div class="contact-info d-flex align-items-baseline">
                         <i class="bi bi-{{ item.icon }} text-primary me-2"></i>
                         <div class="flex-grow-1">
                             {% if item.type == 'link' %}
-                                <a href="{{ item.url }}" {% if item.external %}target="_blank"{% endif %} class="text-decoration-none text-body-secondary">
+                                <a href="{{ item.url }}" {% if item.external %}target="_blank"{% endif %} class="text-decoration-underline text-body-secondary">
                                     {{ item.value }}
                                 </a>
                             {% elif item.type == 'email' %}
-                                <a href="mailto:{{ item.value }}" class="text-decoration-none text-body-secondary">
+                                <a href="mailto:{{ item.value }}" class="text-decoration-underline text-body-secondary">
                                     {{ item.value }}
                                 </a>
                             {% else %}

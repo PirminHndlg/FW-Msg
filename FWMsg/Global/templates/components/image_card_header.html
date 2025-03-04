@@ -1,28 +1,85 @@
 {% load i18n %}
 
 <div class="bg-transparent border-bottom-0 d-flex justify-content-between align-items-center gap-2">
-    <div class="d-flex align-items-center">
-        <a href="{% url 'profil' bild.user.id %}" class="text-decoration-none">
-            <img src="{% url 'serve_profil_picture' bild.user.id %}" 
-                alt="{% trans 'Profilbild' %}" 
-                class="rounded-circle me-3" 
-                style="width: 50px; object-fit: cover;">
-        </a>
-        <div>
-            <h5 class="mb-0">{{ bild.titel }}</h5>
-            <div class="small text-muted">
-                <span>{{ bild.user.get_full_name|default:bild.user.username }}</span>
-                <span class="mx-1">•</span>
-                <span>{{ bild.date_created|date:"d.m.Y" }}</span>
-            </div>
-        </div>
+  <div class="d-flex align-items-center">
+    <a href="{% url 'profil' bild.user.id %}" class="text-decoration-none"><img src="{% url 'serve_profil_picture' bild.user.id %}" alt="{% trans 'Profilbild' %}" class="rounded-circle me-3" style="width: 50px; object-fit: cover;" /></a>
+    <div>
+      <h5 class="mb-0">{{ bild.titel }}</h5>
+      <div class="small text-muted">
+        <span>{{ bild.user.get_full_name|default:bild.user.username }}</span>
+        <span class="mx-1">•</span>
+        <span>{{ bild.date_created|date:'d.m.Y' }}</span>
+      </div>
     </div>
-    {% if is_org %}
+  </div>
+  {% if is_org or user == bild.user %}
     <div class="d-flex justify-content-end mt-2">
-        <a href="{% url 'download_bild_as_zip' bild.id %}" download class="btn btn-sm btn-outline-primary d-flex align-items-center"
-            data-tooltip="{% trans 'Download' %}">
-            <i class="bi bi-download"></i>
-        </a>
+      <div class="btn-group">
+        <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#deleteBildModal-{{ bild.id }}" data-tooltip="{% trans 'Löschen' %}"><i class="bi bi-trash"></i></button>
+        {% if is_org %}
+          <a href="{% url 'download_bild_as_zip' bild.id %}" download class="btn btn-sm btn-outline-primary d-flex align-items-center" data-tooltip="{% trans 'Download' %}"><i class="bi bi-download"></i></a>
+        {% endif %}
+      </div>
     </div>
-    {% endif %}
-</div> 
+  {% endif %}
+</div>
+
+<div class="modal fade" id="deleteBildModal-{{ bild.id }}" tabindex="-1" aria-labelledby="deleteBildModalLabel-{{ bild.id }}" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteBildModalLabel-{{ bild.id }}">{% trans 'Bild löschen' %}</h5>
+      </div>
+
+      <div class="modal-body">
+        <div class="text-center">
+          <div id="modalImageContainer-{{ bilder_gallery.first.id }}" class="rounded" style="max-height: 200px;"></div>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <p>
+          {% trans 'Dieses Bild wirklich löschen?' %}
+        </p>
+        <p class="text-danger">
+          {% trans 'Diese Aktion kann nicht rückgängig gemacht werden!' %}
+        </p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Abbrechen' %}</button>
+        <a href="{% url 'remove_bild_all' %}?bild_id={{ bild.id }}" class="btn btn-danger">{% trans 'Löschen' %}</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('deleteBildModal-{{ bild.id }}');
+    const imageContainer = document.getElementById('modalImageContainer-{{ bilder_gallery.first.id }}');
+
+    modal.addEventListener('show.bs.modal', function() {
+      // Create and add image only when modal is shown
+      const img = document.createElement('img');
+      img.src = "{% url 'serve_bilder' bilder_gallery.first.id %}";
+      img.alt = "{% trans 'Bild' %}";
+      img.className = "img-fluid rounded";
+      img.style.maxHeight = '200px';
+      imageContainer.appendChild(img);
+      let num_images = {{ bilder_gallery|length }};
+      if (num_images == 1) {
+        modal.querySelector('.modal-title').textContent = '{% trans 'Dieses Bild wirklich löschen?' %}';
+      } else if (num_images == 2) {
+        modal.querySelector('.modal-title').textContent = '{% trans 'Dieses Bild und' %} ' + (num_images - 1) + ' {% trans 'weiteres Bild löschen?' %}';
+      } else {
+        modal.querySelector('.modal-title').textContent = '{% trans 'Dieses Bild und' %} ' + (num_images - 1) + ' {% trans 'weitere Bilder löschen?' %}';
+      }
+    });
+
+    modal.addEventListener('hidden.bs.modal', function() {
+      // Remove image when modal is hidden
+      imageContainer.innerHTML = '';
+    });
+  });
+</script>

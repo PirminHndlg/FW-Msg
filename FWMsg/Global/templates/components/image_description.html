@@ -1,7 +1,7 @@
 {% load i18n %}
 
 {% if bild.beschreibung %}
-<p class="small m-2 mt-0 text-muted">
+<p class="small m-2 mt-1 text-muted">
     <span class="description-preview">{{ bild.beschreibung|truncatewords:10 }}</span>
     <span class="description-full" style="display:none">{{ bild.beschreibung }}</span>
     {% if bild.beschreibung|wordcount > 10 %}
