@@ -1,0 +1,90 @@
+{% load i18n %}
+
+<div class="modal fade" id="imageFullscreenModal" tabindex="-1">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content bg-dark bg-opacity-75">
+            
+            <div class="modal-body d-flex flex-column align-items-center justify-content-center min-vh-100">
+                <img id="fullscreenImage" src="" alt="{% trans 'Vollbild' %}" class="img-fluid" style="max-height: 80vh">
+                
+                <div class="btn-group mt-3">
+                    <button class="btn btn-light" id="prevImageBtn"><i class="bi bi-chevron-left"></i></button>
+                    <button class="btn btn-light" id="nextImageBtn"><i class="bi bi-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <button type="button" class="btn-close btn-close-white fs-4 position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="{% trans 'Schließen' %}"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentImageIndex = 0;
+    let galleryImages = [];
+    
+    const modal = document.getElementById('imageFullscreenModal');
+    const fullscreenImage = document.getElementById('fullscreenImage');
+    const prevBtn = document.getElementById('prevImageBtn');
+    const nextBtn = document.getElementById('nextImageBtn');
+    
+    // Function to update the fullscreen image
+    function updateFullscreenImage() {
+        if (galleryImages.length > 0) {
+            const imageUrl = galleryImages[currentImageIndex];
+            fullscreenImage.src = imageUrl;
+            
+            // Update button states
+            prevBtn.disabled = currentImageIndex === 0;
+            nextBtn.disabled = currentImageIndex === galleryImages.length - 1;
+        }
+    }
+    
+    // Event listeners for navigation buttons
+    prevBtn.addEventListener('click', (event) => {
+        if (currentImageIndex > 0) {
+            currentImageIndex--;
+            updateFullscreenImage();
+        }
+    });
+    
+    nextBtn.addEventListener('click', (event) => {
+        if (currentImageIndex < galleryImages.length - 1) {
+            currentImageIndex++;
+            updateFullscreenImage();
+        }
+    });
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (modal.classList.contains('show')) {
+            if (e.key === 'ArrowLeft' && currentImageIndex > 0) {
+                currentImageIndex--;
+                updateFullscreenImage();
+            } else if (e.key === 'ArrowRight' && currentImageIndex < galleryImages.length - 1) {
+                currentImageIndex++;
+                updateFullscreenImage();
+            } else if (e.key === 'Escape') {
+                bootstrap.Modal.getInstance(modal).hide();
+            }
+        }
+    });
+
+    // Close modal on background click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            bootstrap.Modal.getInstance(modal).hide();
+        }
+    });
+    
+    // Function to open the fullscreen modal
+    window.openImageFullscreen = function(clickedImageUrl, allImageUrls) {
+        galleryImages = allImageUrls;
+        currentImageIndex = galleryImages.indexOf(clickedImageUrl);
+        updateFullscreenImage();
+        
+        const modalInstance = new bootstrap.Modal(modal);
+        modalInstance.show();
+    };
+});
+</script>
