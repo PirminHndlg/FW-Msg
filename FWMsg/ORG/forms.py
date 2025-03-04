@@ -156,7 +156,7 @@ class AddNotfallkontaktForm(OrgFormMixin, forms.ModelForm):
 
 
 class AddUserForm(OrgFormMixin, forms.ModelForm):
-    username = forms.CharField(max_length=150, required=False, label='Username')
+    username = forms.CharField(max_length=150, required=False, label='Username', help_text='Wird automatisch mit Vornamen erzeugt, wenn leer')
     first_name = forms.CharField(max_length=150, required=False, label='First Name')
     last_name = forms.CharField(max_length=150, required=False, label='Last Name')
     email = forms.EmailField(required=False, label='Email')
