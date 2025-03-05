@@ -42,7 +42,7 @@
 </style>
 
 <script>
-  function initFullscreenDropZone(fileInputId, options = {multiple: false}) {
+  function initFullscreenDropZone(fileInputId, options = { multiple: false }) {
     const fileInput = document.getElementById(fileInputId)
     const fullscreenDropZone = document.getElementById('fullscreenDropZone')
   
@@ -84,6 +84,11 @@
       }
     })
   
+    // Hide drop zone when clicked
+    fullscreenDropZone.addEventListener('click', function (e) {
+      fullscreenDropZone.classList.add('d-none')
+    })
+  
     // Handle drop
     fullscreenDropZone.addEventListener('drop', function (e) {
       fullscreenDropZone.classList.add('d-none')
@@ -121,10 +126,10 @@
       const overlay = uploadContainer.querySelector('.upload-overlay')
       if (overlay) {
         overlay.innerHTML = `
-                  <i class="bi bi-file-earmark-check display-4 text-success"></i>
-                  <p class="mb-0 text-muted text-break text-center">${file.name}</p>
-                  <small class="text-muted">${formatFileSize(file.size)}</small>
-              `
+                    <i class="bi bi-file-earmark-check display-4 text-success"></i>
+                    <p class="mb-0 text-muted text-break text-center">${file.name}</p>
+                    <small class="text-muted">${formatFileSize(file.size)}</small>
+                `
       }
     }
   
