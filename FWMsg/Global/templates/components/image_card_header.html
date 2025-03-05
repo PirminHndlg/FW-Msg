@@ -12,7 +12,7 @@
       </div>
     </div>
   </div>
-  {% if is_org or user == bild.user %}
+  {% if is_org or request.user == bild.user %}
     <div class="d-flex justify-content-end mt-2">
       <div class="btn-group">
         <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#deleteBildModal-{{ bild.id }}" data-tooltip="{% trans 'Löschen' %}"><i class="bi bi-trash"></i></button>
