@@ -42,7 +42,7 @@
 </style>
 
 <script>
-  function initFullscreenDropZone(fileInputId, options = {}) {
+  function initFullscreenDropZone(fileInputId, options = {multiple: false}) {
     const fileInput = document.getElementById(fileInputId)
     const fullscreenDropZone = document.getElementById('fullscreenDropZone')
   
@@ -92,13 +92,19 @@
   
       if (files.length) {
         fileInput.files = files
-        handleFileSelect(files[0])
+        if (options.multiple) {
+          handleFileSelect(files)
+        } else if (files.length === 1) {
+          handleFileSelect(files[0])
+        }
       }
     })
   
     // Handle file selection
     fileInput.addEventListener('change', function (e) {
-      if (this.files.length) {
+      if (options.multiple) {
+        handleFileSelect(this.files)
+      } else if (this.files.length === 1) {
         handleFileSelect(this.files[0])
       }
     })

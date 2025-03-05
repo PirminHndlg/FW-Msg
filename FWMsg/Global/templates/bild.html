@@ -42,13 +42,37 @@
                     {% endif %}
                 </div>
                 {% endfor %}
+
+                {% include "components/fullscreen_drop_zone.html" %}
             </div>
 
             <div class="mb-3">
                 {% for field in bilder_gallery_form %}
                 <div class="form-group mb-3">
                     <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+                    {% if field.name == 'image' %}
+                    <div class="upload-container position-relative">
+                        <input type="file" class="form-control" name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                               {% if not field.value %} required {% endif %} 
+                               multiple="true"
+                               accept="image/*"
+                               style="z-index: 2;">
+                        <div class="upload-overlay d-flex flex-column align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100"
+                             style="z-index: 1; pointer-events: none;">
+                             {% if field.value %}
+                            <i class="bi bi-file-earmark-check display-4 text-success"></i>
+                            <p class="mb-0 text-muted">{{ field.value|cut:"uploads/" }}</p>
+                            <p class="mb-0 text-muted">{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</p>
+                            {% else %}
+                            <i class="bi bi-cloud-upload display-4 text-primary"></i>
+                            <p class="mb-0 text-muted">{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
                     {{ field|add_class:"form-control" }}
+                    {% endif %}
                     {% if field.help_text %}
                     <small class="form-text text-muted">{{ field.help_text }}</small>
                     {% endif %}
@@ -70,8 +94,17 @@
     </div>
 </div>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.getElementById('id_image').addEventListener('change', function (event) {
+    document.addEventListener('DOMContentLoaded', function (event) {
+        initFullscreenDropZone('id_image', { 
+            multiple: true,
+            onFileSelect: function (file) {
+                console.log('file', file)
+                console.log('file.files', file.files)
+                handleFileSelect(file);
+            }
+        });
+
+        function handleFileSelect(files) {
             const previewContainer = document.getElementById('previewContainer');
             previewContainer.innerHTML = ''; // Clear existing previews
 
@@ -81,7 +114,7 @@
             previewContainer.appendChild(row);
 
             // Loop through selected files
-            const fileList = Array.from(event.target.files);
+            const fileList = Array.from(files);
             fileList.forEach((file, index) => {
                 const reader = new FileReader();
 
@@ -142,7 +175,7 @@
 
                 reader.readAsDataURL(file);
             });
-        });
+        }
     });
 </script>
 
