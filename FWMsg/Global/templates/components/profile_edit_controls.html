@@ -1,0 +1,108 @@
+{% load i18n %}
+{% load widget_tweaks %}
+
+{# Form for adding/editing profile attributes #}
+<div id="profileAttributeForm" class="mb-3 d-none">
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="input-group mb-2">
+            {{ profil_user_form.attribut|add_class:"form-control me-2"|attr:"required:required"|attr:"placeholder:Attribut" }}
+            {{ profil_user_form.value|add_class:"form-control"|attr:"required:required"|attr:"placeholder:Wert" }}
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i>
+                {% trans "Speichern" %}
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="ProfileControls.cancelEdit()">
+                <i class="bi bi-x-circle"></i>
+                {% trans "Abbrechen" %}
+            </button>
+        </div>
+    </form>
+</div>
+
+{# Control buttons #}
+<div class="d-flex gap-2">
+    <button id="addAttributeBtn" class="btn btn-primary d-flex align-items-center gap-2">
+        <i class="bi bi-plus-circle"></i>
+    </button>
+    <button id="editAttributesBtn" class="btn btn-secondary d-flex align-items-center gap-2">
+        <i class="bi bi-pencil"></i>
+    </button>
+</div>
+
+<script>
+const ProfileControls = {
+    elements: {
+        form: document.getElementById('profileAttributeForm'),
+        addBtn: document.getElementById('addAttributeBtn'),
+        editBtn: document.getElementById('editAttributesBtn'),
+        removeButtons: document.getElementsByClassName('attribute-remove-btn')
+    },
+
+    init() {
+        // Add event listeners
+        this.elements.addBtn.addEventListener('click', () => this.showForm());
+        this.elements.editBtn.addEventListener('click', () => this.toggleEditMode());
+
+        // Form validation
+        const form = this.elements.form.querySelector('form');
+        form.addEventListener('submit', (event) => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    },
+
+    showForm() {
+        this.elements.form.classList.remove('d-none');
+        this.elements.addBtn.classList.add('d-none');
+        this.elements.editBtn.classList.add('d-none');
+    },
+
+    hideForm() {
+        this.elements.form.classList.add('d-none');
+        this.elements.addBtn.classList.remove('d-none');
+        this.elements.editBtn.classList.remove('d-none');
+        this.elements.form.querySelector('form').reset();
+        this.elements.form.querySelector('form').classList.remove('was-validated');
+    },
+
+    toggleEditMode() {
+        const isEditing = this.elements.editBtn.classList.contains('active');
+        
+        // Toggle edit button state
+        this.elements.editBtn.classList.toggle('active');
+        this.elements.editBtn.classList.toggle('btn-secondary');
+        this.elements.editBtn.classList.toggle('btn-primary');
+        
+        // Toggle visibility of remove buttons
+        Array.from(this.elements.removeButtons).forEach(btn => {
+            btn.classList.toggle('d-none');
+        });
+
+        // Update button text and icon
+        const icon = this.elements.editBtn.querySelector('i');
+        const text = this.elements.editBtn.lastChild;
+        if (isEditing) {
+            icon.classList.replace('bi-x', 'bi-pencil');
+            text.textContent = '';
+            this.elements.addBtn.classList.remove('d-none');
+        } else {
+            icon.classList.replace('bi-pencil', 'bi-x');
+            text.textContent = ' {% trans "Fertig" %}';
+            this.elements.addBtn.classList.add('d-none');
+        }
+    },
+
+    cancelEdit() {
+        this.hideForm();
+    }
+};
+
+// Initialize controls when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => ProfileControls.init());
+</script> 

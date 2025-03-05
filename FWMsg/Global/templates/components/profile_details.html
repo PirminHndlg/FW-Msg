@@ -20,48 +20,27 @@
 
 {# Profile Attributes #}
 <div class="mb-3">
-    {% for profil in profil_users %}
-        <div class="d-flex align-items-center mb-2 profil-item" data-id="{{ profil.id }}">
-            <div class="view-mode" style="display: block">
-                <div class="d-flex align-items-center">
-                    <span class="me-2"><strong>{{ profil.attribut }}</strong>: {{ profil.value }}</span>
-                    <a class="rm_btn btn btn-sm btn-danger" style="display: none" href="{% url 'remove_profil_attribut' profil.id %}">{% trans "Entfernen" %}</a>
+    <div class="profile-details">
+        {# Profile Attributes List #}
+        <div class="profile-attributes mb-4">
+            {% for profil in profil_users %}
+                <div class="profile-attribute d-flex gap-2 align-items-center mb-2">
+                    <a href="{% url 'remove_profil_attribut' profil.id %}" 
+                       class="btn btn-sm btn-outline-danger attribute-remove-btn d-none"
+                       title="{% trans 'Attribut löschen' %}">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                    <div>
+                        <strong>{{ profil.attribut }}:</strong>
+                        <span>{{ profil.value }}</span>
+                    </div>
                 </div>
-            </div>
-            <div class="edit-mode" style="display: none">
-                <div class="input-group">
-                    <input type="text" class="form-control" value="{{ profil.attribut }}" name="attribut_{{ profil.id }}">
-                    <input type="text" class="form-control" value="{{ profil.value }}" name="value_{{ profil.id }}">
-                    <button class="btn btn-primary save-btn" type="button">{% trans "Speichern" %}</button>
-                    <a class="rm_btn btn btn-danger" href="{% url 'remove_profil_attribut' profil.id %}">{% trans "Entfernen" %}</a>
-                </div>
-            </div>
+            {% endfor %}
         </div>
-    {% endfor %}
+    </div>
 </div>
 
 {# Profile Edit Controls #}
 {% if this_user %}
-    <div id="form_div" class="mb-3" style="display: none">
-        <form method="post">
-            {% csrf_token %}
-            <div class="input-group mb-2">
-                {{ profil_user_form.attribut|add_class:"form-control me-2" }}
-                {{ profil_user_form.value|add_class:"form-control" }}
-            </div>
-            <button type="submit" class="btn btn-primary">{% trans "Speichern" %}</button>
-        </form>
-    </div>
-
-    <div class="d-flex gap-2">
-        <button id="add_btn" class="btn btn-primary" onclick="toggleFormVisibility(true)">
-            {% trans "Hinzufügen" %}
-        </button>
-        <button id="edit_btn" class="btn btn-secondary" onclick="toggleEditMode(true)">
-            {% trans "Bearbeiten" %}
-        </button>
-        <button id="cancel_edit" class="btn btn-danger" style="display:none" onclick="cancel_edit(this)">
-            {% trans "Abbrechen" %}
-        </button>
-    </div>
+    {% include "components/profile_edit_controls.html" %}
 {% endif %} 
