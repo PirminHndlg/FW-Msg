@@ -18,15 +18,27 @@
     {% if task.aufgabe.mitupload %}
     <div class="mb-3">
         <label class="form-label">{% trans "Datei hochladen" %}</label>
-        {% if task.file %}
-        <div id="file-name" class="form-control bg-light">
-            <i class="bi bi-file-earmark me-2"></i>{{ task.file.name|cut:"uploads/" }}
+        {% if not task.pending and not task.erledigt %}
+        <div class="upload-container position-relative">
+            <input type="file" class="form-control" name="file" id="fileInput" 
+                   {% if not task.file %} required {% endif %} 
+                   style="z-index: 2;">
+            <div class="upload-overlay d-flex flex-column align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100"
+                 style="z-index: 1; pointer-events: none;">
+                 {% if task.file %}
+                <i class="bi bi-file-earmark-check display-4 text-success"></i>
+                <p class="mb-0 text-muted">{{ task.file.name|cut:"uploads/" }}</p>
+                <p class="mb-0 text-muted">{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</p>
+                {% else %}
+                <i class="bi bi-cloud-upload display-4 text-primary"></i>
+                <p class="mb-0 text-muted">{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</p>
+                {% endif %}
+            </div>
         </div>
         {% endif %}
-        {% if not task.pending and not task.erledigt %}
-        <input type="file" class="form-control" name="file" {% if not task.file %} required {% endif %} onchange="document.getElementById('file-name').style.display = 'none';">
-        {% endif %}
     </div>
+
+    {% include "components/fullscreen_drop_zone.html" %}
     {% endif %}
 
     <div class="mb-3">
@@ -70,4 +82,31 @@
         </button>
         {% endif %}
     </div>
-</form> 
+</form>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const fileNameDisplay = document.getElementById('file-name')
+    
+      if (document.getElementById('fileInput')) {
+        initFullscreenDropZone('fileInput', {
+          /*onFileSelect: function (file) {
+            if (fileNameDisplay) {
+              fileNameDisplay.style.display = 'none'
+              const overlay = uploadContainer.querySelector('.upload-overlay')
+              console.log(overlay)
+              if (overlay) {
+                overlay.innerHTML = `
+                          <i class="bi bi-file-earmark-check display-4 text-success"></i>
+                          <p class="mb-0 text-muted">${file.name}</p>
+                          <small class="text-muted">${formatFileSize(file.size)}</small>
+                      `
+              }
+            }
+          }
+          */
+        })
+      }
+    })
+  </script>

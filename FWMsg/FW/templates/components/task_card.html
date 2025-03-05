@@ -3,50 +3,80 @@
 {% load i18n %}
 
 <div class="col">
-    <div class="card h-100 rounded-4">
-        <div class="card-body">
-            <h4 class="card-title">{{ task.aufgabe.name }}</h4>
-            <p class="card-text">{{ task.aufgabe.beschreibung }}</p>
-            {% if task.personalised_description %}
-            <p class="card-text"><strong>{% trans "Persönliche Beschreibung" %}</strong>: {{ task.personalised_description }}</p>
-            {% endif %}
-            
-            {% if task.faellig %}
-            <p class="card-text">
-                <small class="text-muted">{% trans "Fällig" %}: {{ task.faellig|date:"d.m.Y" }}</small>
-            </p>
-            {% endif %}
+  <div class="card h-100 rounded-4">
+    <div class="card-body">
+      <a href="{% url 'aufgaben_detail' task.id %}" class="text-decoration-none text-body">
+        <h4 class="card-title">{{ task.aufgabe.name }}</h4>
+        <p class="card-text">{{ task.aufgabe.beschreibung }}</p>
+        {% if task.personalised_description %}
+          <p class="card-text">
+            <strong>{% trans 'Persönliche Beschreibung' %}</strong>: {{ task.personalised_description }}
+          </p>
+        {% endif %}
 
-            {# Status Badges #}
-            {% if task.faellig and task.faellig|compare_date_to_current_time and not task.erledigt and not task.pending %}
-            <p class="card-text">
-                <span class="badge bg-danger">{% trans "Überfällig" %}</span>
-            </p>
-            {% endif %}
+        {% if task.faellig %}
+          <p class="card-text">
+            <small class="text-muted">{% trans 'Fällig' %}: {{ task.faellig|date:'d.m.Y' }}</small>
+          </p>
+        {% endif %}
 
-            {% if task.erledigt %}
-            <p class="card-text">
-                <span class="badge bg-success">{% trans "Erledigt" %}</span>
-            </p>
-            {% endif %}
+        {# Status Badges #}
+        {% if task.faellig and task.faellig|compare_date_to_current_time and not task.erledigt and not task.pending %}
+          <p class="card-text">
+            <span class="badge bg-danger">{% trans 'Überfällig' %}</span>
+          </p>
+        {% endif %}
 
-            {% if task.pending %}
-            <p class="card-text">
-                <span class="badge bg-warning text-dark">{% trans "Wird bearbeitet" %}</span>
-            </p>
-            {% endif %}
+        {% if task.erledigt %}
+          <p class="card-text">
+            <span class="badge bg-success">{% trans 'Erledigt' %}</span>
+          </p>
+        {% endif %}
 
-            {# Action Button #}
-            <a href="{% url 'aufgaben_detail' task.id %}" 
-               class="btn {% if task.erledigt %}btn-success{% elif task.pending %}btn-primary{% else %}btn-success{% endif %} text-white">
-                {% if task.erledigt %}
-                    {% trans "Anzeigen" %}
-                {% elif task.pending %}
-                    {% trans "Bearbeiten" %}
-                {% else %}
-                    {% trans "Jetzt erledigen" %}
-                {% endif %}
-            </a>
-        </div>
+        {% if task.pending %}
+          <p class="card-text">
+            <span class="badge bg-warning text-dark">{% trans 'Wird bearbeitet' %}</span>
+          </p>
+        {% endif %}
+      </a>
     </div>
-</div> 
+
+    <div class="card-footer bg-transparent border-top-0 d-flex justify-content-end">
+      {# Action Button #}
+      <a href="{% url 'aufgaben_detail' task.id %}"
+        class="btn {% if task.erledigt %}
+          
+            
+            
+          btn-success
+
+
+
+        {% elif task.pending %}
+          
+            
+            
+          btn-primary
+
+
+
+        {% else %}
+          
+            
+            
+          btn-success
+
+
+
+        {% endif %} text-white">
+        {% if task.erledigt %}
+          {% trans 'Anzeigen' %}
+        {% elif task.pending %}
+          {% trans 'Bearbeiten' %}
+        {% else %}
+          {% trans 'Jetzt erledigen' %}
+        {% endif %}
+      </a>
+    </div>
+  </div>
+</div>

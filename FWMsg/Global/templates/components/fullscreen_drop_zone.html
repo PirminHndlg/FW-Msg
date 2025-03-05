@@ -1,0 +1,188 @@
+{% load i18n %}
+
+<div id="fullscreenDropZone" class="position-fixed top-0 start-0 w-100 h-100 bg-primary bg-opacity-75 d-none" style="z-index: 1050;">
+  <div class="d-flex flex-column align-items-center justify-content-center h-100 text-white">
+    <i class="bi bi-cloud-upload display-1 mb-3"></i>
+    <h3 class="drop-title">{% trans 'Datei hier ablegen' %}</h3>
+    <p class="drop-subtitle">
+      {% trans 'Loslassen zum Hochladen' %}
+    </p>
+  </div>
+</div>
+
+<style>
+  #fullscreenDropZone {
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+  }
+  
+  .upload-container {
+    min-height: 150px;
+    border: 2px dashed var(--bs-primary);
+    border-radius: 0.375rem;
+    background-color: var(--bs-light);
+    transition: all 0.3s ease;
+  }
+  
+  .upload-container:hover {
+    border-color: var(--bs-primary);
+    background-color: var(--bs-light);
+  }
+  
+  .upload-container input[type='file'] {
+    cursor: pointer;
+    height: 150px;
+    opacity: 0;
+  }
+  
+  .upload-overlay {
+    pointer-events: none;
+    background-color: var(--bs-light);
+  }
+</style>
+
+<script>
+  function initFullscreenDropZone(fileInputId, options = {}) {
+    const fileInput = document.getElementById(fileInputId)
+    const fullscreenDropZone = document.getElementById('fullscreenDropZone')
+  
+    if (!fileInput || !fullscreenDropZone) return
+  
+    const defaultOptions = {
+      containerSelector: '.upload-container',
+      onFileSelect: null,
+      customText: {
+        dropTitle: '{% trans "Datei hier ablegen" %}',
+        dropSubtitle: '{% trans "Loslassen zum Hochladen" %}',
+        dragText: '{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}'
+      }
+    }
+  
+    options = { ...defaultOptions, ...options }
+  
+    const uploadContainer = document.querySelector(options.containerSelector)
+  
+    // Prevent default drag behaviors
+    ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
+      document.body.addEventListener(eventName, preventDefaults, false)
+    })
+  
+    function preventDefaults(e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+  
+    // Handle drag enter
+    document.body.addEventListener('dragenter', function (e) {
+      fullscreenDropZone.classList.remove('d-none')
+    })
+  
+    // Handle drag leave
+    fullscreenDropZone.addEventListener('dragleave', function (e) {
+      if (e.target === fullscreenDropZone) {
+        fullscreenDropZone.classList.add('d-none')
+      }
+    })
+  
+    // Handle drop
+    fullscreenDropZone.addEventListener('drop', function (e) {
+      fullscreenDropZone.classList.add('d-none')
+      const dt = e.dataTransfer
+      const files = dt.files
+  
+      if (files.length) {
+        fileInput.files = files
+        handleFileSelect(files[0])
+      }
+    })
+  
+    // Handle file selection
+    fileInput.addEventListener('change', function (e) {
+      if (this.files.length) {
+        handleFileSelect(this.files[0])
+      }
+    })
+  
+    function handleFileSelect(file) {
+      if (options.onFileSelect) {
+        options.onFileSelect(file)
+      } else if (uploadContainer) {
+        updateUploadContainer(file)
+      }
+    }
+  
+    function updateUploadContainer(file) {
+      const overlay = uploadContainer.querySelector('.upload-overlay')
+      if (overlay) {
+        overlay.innerHTML = `
+                  <i class="bi bi-file-earmark-check display-4 text-success"></i>
+                  <p class="mb-0 text-muted">${file.name}</p>
+                  <small class="text-muted">${formatFileSize(file.size)}</small>
+              `
+      }
+    }
+  
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes'
+      const k = 1024
+      const sizes = ['Bytes', 'KB', 'MB', 'GB']
+      const i = Math.floor(Math.log(bytes) / Math.log(k))
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+    }
+  
+    // Update custom text if provided
+    if (options.customText) {
+      const dropTitle = fullscreenDropZone.querySelector('.drop-title')
+      const dropSubtitle = fullscreenDropZone.querySelector('.drop-subtitle')
+  
+      if (dropTitle && options.customText.dropTitle) {
+        dropTitle.textContent = options.customText.dropTitle
+      }
+      if (dropSubtitle && options.customText.dropSubtitle) {
+        dropSubtitle.textContent = options.customText.dropSubtitle
+      }
+    }
+  
+    return {
+      updateText: function (text) {
+        if (uploadContainer) {
+          const overlay = uploadContainer.querySelector('.upload-overlay')
+          if (overlay) {
+            overlay.innerHTML = text
+          }
+        }
+      }
+    }
+  }
+</script>
+
+<style>
+  .upload-container {
+    min-height: 150px;
+    border: 2px dashed var(--bs-primary);
+    border-radius: 0.375rem;
+    background-color: var(--bs-light);
+    transition: all 0.3s ease;
+  }
+  
+  .upload-container:hover {
+    border-color: var(--bs-primary);
+    background-color: var(--bs-light);
+  }
+  
+  .upload-container input[type='file'] {
+    cursor: pointer;
+    height: 150px;
+    opacity: 0;
+  }
+  
+  .upload-overlay {
+    pointer-events: none;
+    background-color: var(--bs-light);
+  }
+  
+  #fullscreenDropZone {
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+  }
+</style>
