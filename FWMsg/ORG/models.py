@@ -159,7 +159,7 @@ class Dokument(models.Model):
             return 'unknown'
         
     def get_preview_image(self):
-        if self.preview_image:
+        if self.preview_image and os.path.exists(self.preview_image.path):
             return self.preview_image.path
         else:
             return self.get_preview_converted()
@@ -173,7 +173,10 @@ class Dokument(models.Model):
                 from pdf2image import convert_from_path
                 image = convert_from_path(doc_path, first_page=1, last_page=1)[0]
                 image.save(img_path)
-                return img_path
+                if os.path.exists(img_path):
+                    return img_path
+                else:
+                    return None
             
         def excel_to_image(excel_path, img_path):
             from openpyxl import load_workbook
