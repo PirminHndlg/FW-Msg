@@ -33,6 +33,14 @@ def get_text_color(user):
     return color
 
 @register.filter
+def get_text_color_on_org_color(user):
+    org = get_org(user)
+    color = '#000000'
+    if org:
+        color = org.text_color_on_org_color
+    return color
+
+@register.filter
 def get_org(user):
     if user.is_authenticated:
         if CustomUser.objects.filter(user=user).exists():
