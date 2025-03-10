@@ -17,6 +17,7 @@ class Organisation(models.Model):
     website = models.URLField(null=True, blank=True)
     logo = models.ImageField(upload_to='logos/')
     farbe = models.CharField(max_length=7, default='#007bff')
+    text_color_on_org_color = models.CharField(max_length=7, default='#000000')
 
     history = HistoricalRecords()
 

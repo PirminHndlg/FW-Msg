@@ -1,4 +1,5 @@
 {% load base_filter %}
+{% load static %}
 
 {# Basic meta setup #}
 <meta charset="UTF-8">
@@ -27,6 +28,7 @@
         --color: {{ user|get_color }};
         --secondary_color: {{ user|get_secondary_color }};
         --text_color: {{ user|get_text_color }};
+        --text_color_on_org_color: {{ user|get_text_color_on_org_color }};
         --ampel_red: #FF0000;
         --ampel_yellow: #FFFF00;
         --ampel_green: #00FF00;
@@ -35,6 +37,10 @@
         --bs-primary: {{ user|get_color }};
         --bs-secondary-bg-rgb: {{ user|get_secondary_color|hex_to_rgb }};
         --bs-secondary: {{ user|get_secondary_color }};
+    }
+
+    .text-on-org-color, .nav-item.text-on-org-color {
+        color: var(--text_color_on_org_color);
     }
 </style>
 

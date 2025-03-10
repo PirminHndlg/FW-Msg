@@ -3,8 +3,8 @@
 {% if days_until_start > 0 %}
     <div class="card rounded-4 mb-2 bg-primary text-white">
         <div class="card-header border-bottom border-light d-flex justify-content-between align-items-center">
-            <h3 class="mb-0">
-                <i class="bi bi-globe me-2"></i>
+            <h3 class="mb-0 text-on-org-color">
+                <i class="bi bi-globe me-2 text-on-org-color"></i>
                 {% trans "Tage bis Ausreise" %}
             </h3>
             {% if freiwilliger and freiwilliger.einsatzland %}
@@ -14,8 +14,8 @@
             {% endif %}
         </div>
         <div class="card-body text-center">
-            <h1 class="display-1 fw-bold mb-0">{{ days_until_start }}</h1>
-            <p class="lead mb-0">{% trans "Tage" %}</p>
+            <h1 class="display-1 fw-bold mb-0 text-on-org-color">{{ days_until_start }}</h1>
+            <p class="lead mb-0 text-on-org-color">{% trans "Tage" %}</p>
         </div>
     </div>
 {% elif days_until_start == 0 %}
