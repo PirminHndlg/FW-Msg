@@ -104,11 +104,14 @@ class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
         self.fields['faellig'] = date_field
         self.fields['wiederholung_ende'] = date_field
 
-        self.fields['freiwilliger'].widget = forms.Select(attrs={'class': 'form-control', 'disabled': True})
-        self.fields['freiwilliger'].queryset = FWmodels.Freiwilliger.objects.filter(org=self.request.user.org)
+        self.fields['benachrichtigung_cc'].widget.attrs['placeholder'] = 'E-Mail-Adressen mit Komma getrennt'
+        self.fields['benachrichtigung_cc'].help_text = 'Geben Sie hier E-Mail-Adressen ein, die eine Kopie der Benachrichtigungen erhalten sollen'
 
-        self.fields['aufgabe'].widget = forms.Select(attrs={'class': 'form-control', 'disabled': True})
-        self.fields['aufgabe'].queryset = FWmodels.Aufgabe.objects.filter(org=self.request.user.org)
+        # self.fields['freiwilliger'].widget = forms.Select(attrs={'class': 'form-control', 'disabled': True, 'required': False})
+        # self.fields['freiwilliger'].queryset = FWmodels.Freiwilliger.objects.filter(org=self.request.user.org)
+
+        # self.fields['aufgabe'].widget = forms.Select(attrs={'class': 'form-control', 'disabled': True, 'required': False})
+        # self.fields['aufgabe'].queryset = FWmodels.Aufgabe.objects.filter(org=self.request.user.org)
 
         self.fields['personalised_description'].widget = forms.Textarea(attrs={'rows': 2})
 
