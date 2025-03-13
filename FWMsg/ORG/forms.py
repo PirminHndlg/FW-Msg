@@ -104,6 +104,14 @@ class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
         self.fields['faellig'] = date_field
         self.fields['wiederholung_ende'] = date_field
 
+        self.fields['freiwilliger'].widget = forms.Select(attrs={'class': 'form-control', 'disabled': True})
+        self.fields['freiwilliger'].queryset = FWmodels.Freiwilliger.objects.filter(org=self.request.user.org)
+
+        self.fields['aufgabe'].widget = forms.Select(attrs={'class': 'form-control', 'disabled': True})
+        self.fields['aufgabe'].queryset = FWmodels.Aufgabe.objects.filter(org=self.request.user.org)
+
+        self.fields['personalised_description'].widget = forms.Textarea(attrs={'rows': 2})
+
 
 class AddKirchenzugehoerigkeitForm(OrgFormMixin, forms.ModelForm):
     class Meta:
