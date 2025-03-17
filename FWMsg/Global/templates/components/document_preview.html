@@ -6,21 +6,21 @@
             data-preview-src="{% url 'serve_dokument' dokument.id %}"
             class="card-img-top img-fluid cursor-pointer rounded-top-4"
             alt="{{ dokument.titel }}">
-    <span class="badge bg-dark bg-opacity-25">img</span>
+    <span class="badge bg-dark bg-opacity-25">{{ dokument.get_document_suffix }}</span>
 {% elif dokument.get_document_type|starts_with:'application/pdf' %}
     <a href="{% url 'serve_dokument' dokument.id %}" class="text-decoration-none">
         <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
                 class="card-img-top img-fluid rounded-top-4"
                 alt="PDF Vorschau">
     </a>
-    <span class="badge bg-dark bg-opacity-25">pdf</span>
+    <span class="badge bg-dark bg-opacity-25">{{ dokument.get_document_suffix }}</span>
 {% elif dokument.dokument.name|ends_with:'docx' or dokument.dokument.name|ends_with:'doc' or dokument.dokument.name|ends_with:'odt' %}
     <a href="{% url 'serve_dokument' dokument.id %}?download=True" class="text-decoration-none">
         <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
                 class="card-img-top img-fluid rounded-top-4"
                 alt="DOCX Vorschau">
     </a>
-    <span class="badge bg-dark bg-opacity-25">docx</span>
+    <span class="badge bg-dark bg-opacity-25">{{ dokument.get_document_suffix }}</span>
 {% elif dokument.dokument.name|ends_with:'xls' or dokument.dokument.name|ends_with:'xlsx' %}
     <a href="{% url 'serve_dokument' dokument.id %}?download=True" class="text-decoration-none">
         <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
