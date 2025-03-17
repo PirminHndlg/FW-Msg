@@ -90,9 +90,20 @@ class AddAufgabenprofilForm(OrgFormMixin, forms.ModelForm):
 
 
 class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
+    freiwilliger_display = forms.CharField(
+        label='Freiwillige:r',
+        required=False,
+        widget=forms.TextInput(attrs={'readonly': True, 'class': 'form-control-plaintext fw-bold row w-75 ms-3', 'style': 'display: inline-block;'})
+    )
+    aufgabe_display = forms.CharField(
+        label='Aufgabe', 
+        required=False,
+        widget=forms.TextInput(attrs={'readonly': True, 'class': 'form-control-plaintext fw-bold row w-75 ms-3', 'style': 'display: inline-block;'})
+    )
+
     class Meta:
         model = FWmodels.FreiwilligerAufgaben
-        fields = ['freiwilliger', 'aufgabe', 'personalised_description', 'faellig', 'wiederholung', 'wiederholung_ende', 'file', 'benachrichtigung_cc']
+        fields = ['personalised_description', 'faellig', 'wiederholung', 'wiederholung_ende', 'file', 'benachrichtigung_cc']
         exclude = ['org']
 
     def __init__(self, *args, **kwargs):
@@ -107,13 +118,18 @@ class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
         self.fields['benachrichtigung_cc'].widget.attrs['placeholder'] = 'E-Mail-Adressen mit Komma getrennt'
         self.fields['benachrichtigung_cc'].help_text = 'Geben Sie hier E-Mail-Adressen ein, die eine Kopie der Benachrichtigungen erhalten sollen'
 
-        # self.fields['freiwilliger'].widget = forms.Select(attrs={'class': 'form-control', 'disabled': True, 'required': False})
-        # self.fields['freiwilliger'].queryset = FWmodels.Freiwilliger.objects.filter(org=self.request.user.org)
+        # Hide the actual fields and set up display fields
+        if self.instance and self.instance.pk:
+            
+            # Set initial values for display fields
+            self.fields['freiwilliger_display'].initial = str(self.instance.freiwilliger)
+            self.fields['aufgabe_display'].initial = str(self.instance.aufgabe)
 
-        # self.fields['aufgabe'].widget = forms.Select(attrs={'class': 'form-control', 'disabled': True, 'required': False})
-        # self.fields['aufgabe'].queryset = FWmodels.Aufgabe.objects.filter(org=self.request.user.org)
-
-        self.fields['personalised_description'].widget = forms.Textarea(attrs={'rows': 2})
+            # Reorder fields to show display fields first
+            field_order = ['freiwilliger_display', 'aufgabe_display', 'personalised_description', 
+                          'faellig', 'wiederholung', 'wiederholung_ende', 'file', 
+                          'benachrichtigung_cc']
+            self.order_fields(field_order)
 
 
 class AddKirchenzugehoerigkeitForm(OrgFormMixin, forms.ModelForm):
