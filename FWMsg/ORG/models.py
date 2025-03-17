@@ -258,14 +258,16 @@ class Dokument(models.Model):
         if mimetype and mimetype == 'application/pdf':
             return pdf_to_image(self.dokument.path, preview_image_path)
 
-        elif self.dokument.name.endswith('.docx') or self.dokument.name.endswith('.doc'):
+        elif self.dokument.name.endswith('.docx') or self.dokument.name.endswith('.doc') or self.dokument.name.endswith('.odt'):
             command = ["abiword", "--to=pdf", self.dokument.path]
             try:
                 subprocess.run(command)
                 doc_path = str(self.dokument.path)  # Create string copy
                 if self.dokument.name.endswith('.docx'):
                     doc_path = doc_path.replace('.docx', '.pdf')
-                else:
+                elif self.dokument.name.endswith('.odt'):
+                    doc_path = doc_path.replace('.odt', '.pdf')
+                elif self.dokument.name.endswith('.doc'):
                     doc_path = doc_path.replace('.doc', '.pdf')
                 pdf_to_image(doc_path, preview_image_path)
             except Exception as e:
