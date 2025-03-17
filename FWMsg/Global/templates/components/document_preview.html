@@ -8,7 +8,7 @@
             alt="{{ dokument.titel }}">
     <span class="badge bg-dark bg-opacity-25">{{ dokument.get_document_suffix }}</span>
 {% elif dokument.get_document_type|starts_with:'application/pdf' %}
-    <a href="{% url 'serve_dokument' dokument.id %}" class="text-decoration-none">
+    <a href="{% url 'serve_dokument' dokument.id %}" target="_blank" class="text-decoration-none">
         <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
                 class="card-img-top img-fluid rounded-top-4"
                 alt="PDF Vorschau">
