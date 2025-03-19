@@ -128,7 +128,7 @@ def upload_to_preview_image(instance, filename):
 class Dokument(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     ordner = models.ForeignKey(Ordner, on_delete=models.CASCADE)
-    dokument = models.FileField(upload_to=upload_to_folder, null=True, blank=True)
+    dokument = models.FileField(upload_to=upload_to_folder, max_length=255, null=True, blank=True)
     link = models.URLField(null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
