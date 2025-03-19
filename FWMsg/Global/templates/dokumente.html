@@ -5,7 +5,6 @@
 {% load i18n %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/dokumente.css' %}">
     <script src="{% static 'js/dokumente.js' %}"></script>
     <script>
         let is_org = '{{ user.role|lower }}' == 'o';
