@@ -39,10 +39,10 @@
 <!-- Header Card -->
 <div class="card rounded-4">
     <!-- Country Header -->
-    <div class="card-header d-flex align-items-center flex-wrap gap-3">
-        <h3 class="card-title mb-0 me-auto">{% trans "Länderinfo" %}</h3>
+    <div class="card-header rounded-4 d-flex align-items-center flex-wrap gap-3">
+        <h3 class="mb-0 me-auto">{% trans "Länderinfo" %}</h3>
         {% if freiwilliger.einsatzland %}
-            <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }} mb-2 border" style="font-size: 3rem;"></span>
+            <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }} border my-0" style="font-size: 2.5rem;"></span>
             <div class="d-flex gap-2 text-muted small">
                 <span>{{ freiwilliger.einsatzland.name|default:"" }}</span>
                 <span>{{ freiwilliger.einsatzstelle|default:"" }}</span>

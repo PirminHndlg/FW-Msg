@@ -15,7 +15,7 @@
 {% block content %}
     {# Profile Card #}
     <div class="card rounded-4 mb-2">
-        <div class="card-header">
+        <div class="card-header rounded-4">
             {% include "components/profile_header.html" %}
         </div>
         <div class="card-body d-flex flex-md-row flex-column row">
@@ -32,7 +32,7 @@
     </div>
 
     {# Image Gallery Section #}
-    {% include "components/profile_gallery.html" %}
+    {% include "components/gallery_grid.html" %}
 
     {% if this_user %}
     {# Profile Picture Upload Modal #}
