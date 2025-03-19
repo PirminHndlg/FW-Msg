@@ -55,6 +55,7 @@ aufgaben_email_template = """
         
         <div>
             <strong>{aufgabe_name}</strong><br>
+            Description: {aufgabe_beschreibung}<br>
             Deadline: {aufgabe_deadline}
         </div>
         
