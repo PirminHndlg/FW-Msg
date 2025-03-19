@@ -13,8 +13,8 @@
 
 {% block content %}
 <div class="card rounded-4">
-    <div class="card-header">
-        <h2 class="card-title mb-0">{{ freiwilliger_aufgabe.aufgabe.name }}</h2>
+    <div class="card-header rounded-4">
+        <h3 class="card-title mb-0">{{ freiwilliger_aufgabe.aufgabe.name }}</h3>
     </div>
     <div class="card-body">
         {% include "components/task_detail_form.html" with task=freiwilliger_aufgabe %}
