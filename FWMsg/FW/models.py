@@ -443,7 +443,7 @@ class FreiwilligerAufgaben(OrgModel):
     erledigt_am = models.DateField(blank=True, null=True, verbose_name='Erledigt am')
     wiederholung = models.CharField(max_length=1, choices=WIEDERHOLUNG_CHOICES, default='N', verbose_name='Wiederholung')
     wiederholung_ende = models.DateField(blank=True, null=True, verbose_name='Wiederholung bis')
-    file = models.FileField(upload_to='uploads/', blank=True, null=True, verbose_name='Datei')
+    file = models.FileField(upload_to='uploads/', max_length=255, blank=True, null=True, verbose_name='Datei')
     benachrichtigung_cc = models.CharField(max_length=255, blank=True, null=True, verbose_name='CC an Mailadressen', help_text='Komma-getrennte E-Mail-Adressen')
     history = HistoricalRecords()
 
