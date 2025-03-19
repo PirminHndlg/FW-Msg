@@ -7,10 +7,10 @@
             <div class="vr border-dark m-0 ms-1" style="height: 70px;"></div>
         </div>
     </th>
-    {% for aufgabe in aufgaben %}
-    {% with zwischenschritte_done_open=aufgabe.zwischenschritte_done_open %}
-    {% with zwischenschritte_done=aufgabe.zwischenschritte_done %}
-    {% with aufgabe=aufgabe.aufgabe %}
+    {% for fw_aufgabe in aufgaben %}
+    {% with zwischenschritte_done_open=fw_aufgabe.zwischenschritte_done_open %}
+    {% with zwischenschritte_done=fw_aufgabe.zwischenschritte_done %}
+    {% with aufgabe=fw_aufgabe.aufgabe %}
     <td class="text-center p-0 rounded-4
         {% if aufgabe.id %}
             {% if aufgabe.erledigt %}
@@ -168,7 +168,7 @@
         {% else %}
         <div class="p-0 m-0">
             <a class="btn btn-sm" 
-                href="{% url 'list_aufgaben_table' %}?fw={{freiwilliger.id}}&a={{aufgabe}}"
+                href="{% url 'list_aufgaben_table' %}?fw={{freiwilliger.id}}&a={{fw_aufgabe}}"
                 data-tooltip="{% trans 'Aufgabe zuweisen' %}">
                 <i class="bi bi-plus-circle"></i>
             </a>
