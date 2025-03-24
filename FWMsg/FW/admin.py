@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import random
 from django.contrib import admin
 from .models import Freiwilliger, Entsendeform, Einsatzland, Einsatzstelle, Notfallkontakt, Post, Aufgabe, \
-    Aufgabenprofil, FreiwilligerAufgabenprofil, Ampel, FreiwilligerAufgaben, Jahrgang, \
+    Aufgabenprofil, FreiwilligerAufgabenprofil, Ampel, FreiwilligerAufgaben, Jahrgang, Attribute, FreiwlligerAttribute, \
     CustomUser, Bilder, BilderGallery, AufgabeZwischenschritte, FreiwilligerAufgabenZwischenschritte
 from simple_history.admin import SimpleHistoryAdmin
 from ORG.models import JahrgangTyp
@@ -42,6 +42,16 @@ class FreiwilligerAdmin(SimpleHistoryAdmin):
             freiwilliger.country = None
             freiwilliger.save()
             freiwilliger.user.save()
+    
+
+@admin.register(Attribute)
+class AttributeAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+@admin.register(FreiwlligerAttribute)
+class FreiwlligerAttributeAdmin(admin.ModelAdmin):
+    search_fields = ['user__first_name', 'user__last_name', 'attribute__name']
+
 
 @admin.register(Entsendeform)
 class EntsendeformAdmin(admin.ModelAdmin):

@@ -39,6 +39,7 @@ class CustomUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Benutzer:in')
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
     role = models.CharField(max_length=1, choices=ROLE_CHOICES, default='F', verbose_name='Rolle')
+    jahrgang_typ = models.ForeignKey('ORG.JahrgangTyp', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Jahrgangstyp')
     profil_picture = models.ImageField(upload_to='profil_picture/', blank=True, null=True, verbose_name='Profilbild')
 
     einmalpasswort = models.CharField(max_length=20, blank=True, null=True, verbose_name='Einmalpasswort', help_text='Wird automatisch erzeugt, wenn leer')

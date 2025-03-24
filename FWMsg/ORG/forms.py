@@ -36,11 +36,105 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
             widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             required=False
         )
-        self.fields['geburtsdatum'] = date_field
+
         self.fields['start_geplant'] = date_field
         self.fields['start_real'] = date_field
         self.fields['ende_geplant'] = date_field
         self.fields['ende_real'] = date_field
+
+        self.fields['first_name'] = forms.CharField(
+            widget=forms.TextInput(attrs={'class': 'form-control'}),
+            required=False
+        )
+        if self.instance and self.instance.pk:
+            self.fields['first_name'].initial = self.instance.user.first_name
+
+        self.fields['last_name'] = forms.CharField(
+            widget=forms.TextInput(attrs={'class': 'form-control'}),
+            required=False
+        )
+        if self.instance and self.instance.pk:
+            self.fields['last_name'].initial = self.instance.user.last_name
+
+        self.fields['email'] = forms.EmailField(
+            widget=forms.EmailInput(attrs={'class': 'form-control'}),
+            required=False
+        )
+        if self.instance and self.instance.pk:
+            self.fields['email'].initial = self.instance.user.email
+
+        self.fields['jahrgang_typ'] = forms.ModelChoiceField(
+            queryset=FWmodels.JahrgangTyp.objects.filter(org=self.request.user.org),
+            widget=forms.Select(attrs={'class': 'form-control'}),
+            required=False
+        )
+        if self.instance and self.instance.pk:
+            self.fields['jahrgang_typ'].initial = self.instance.user.customuser.jahrgang_typ
+
+        jahrgang_typ = self.instance.user.customuser.jahrgang_typ if self.instance and self.instance.pk else None
+        if jahrgang_typ:
+            attributes = FWmodels.Attribute.objects.filter(org=self.request.user.org, jahrgang_typ=jahrgang_typ)
+            for attribute in attributes:
+                if attribute.type == 'T':
+                    self.fields[attribute.name] = forms.CharField(
+                        widget=forms.TextInput(attrs={'class': 'form-control'}),
+                        required=False
+                    )
+                elif attribute.type == 'L':
+                    self.fields[attribute.name] = forms.CharField(
+                        widget=forms.Textarea(attrs={'class': 'form-control'}),
+                        required=False
+                    )
+                elif attribute.type == 'N':
+                    self.fields[attribute.name] = forms.IntegerField(
+                        widget=forms.NumberInput(attrs={'class': 'form-control'}),
+                        required=False
+                    )
+                elif attribute.type == 'E':
+                    self.fields[attribute.name] = forms.EmailField(
+                        widget=forms.EmailInput(attrs={'class': 'form-control'}),
+                        required=False
+                    )
+                elif attribute.type == 'B':
+                    self.fields[attribute.name] = forms.BooleanField(
+                        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+                        required=False
+                    )
+                elif attribute.type == 'F':
+                    self.fields[attribute.name] = forms.FileField(
+                        widget=forms.FileInput(attrs={'class': 'form-control'}),
+                        required=False
+                    )
+                elif attribute.type == 'P':
+                    self.fields[attribute.name] = forms.CharField(
+                        widget=forms.TextInput(attrs={'class': 'form-control'}),
+                        required=False
+                    )
+                elif attribute.type == 'D':
+                    self.fields[attribute.name] = forms.DateField(
+                        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+                        required=False
+                    )
+                
+                freiwlliger_attribute = FWmodels.FreiwlligerAttribute.objects.filter(user=self.instance.user, attribute=attribute).first()
+                if freiwlliger_attribute:
+                    if attribute.type == 'B':
+                        self.fields[attribute.name].initial = freiwlliger_attribute.value == 'True'
+                    else:
+                        self.fields[attribute.name].initial = freiwlliger_attribute.value
+                    
+                
+
+    def save(self, commit=True):
+        instance = super().save(commit=commit)
+        for attribute in FWmodels.Attribute.objects.filter(org=self.request.user.org, jahrgang_typ=self.instance.user.customuser.jahrgang_typ):
+            freiwlliger_attribute, created = FWmodels.FreiwlligerAttribute.objects.get_or_create(org=self.request.user.org, user=self.instance.user, attribute=attribute)
+            freiwlliger_attribute.value = self.cleaned_data[attribute.name]
+            freiwlliger_attribute.save()
+        
+        instance.user.customuser.jahrgang_typ = self.cleaned_data['jahrgang_typ']
+        instance.user.customuser.save()
+        return instance
 
 
 
