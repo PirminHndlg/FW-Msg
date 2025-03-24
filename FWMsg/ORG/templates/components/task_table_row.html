@@ -3,7 +3,7 @@
 <tr class="border-bottom">
     <th class="p-0" style="max-width: 30vw;">
         <div class="d-flex gap-1 align-items-center justify-content-between">
-            {{ freiwilliger.first_name }} {{ freiwilliger.last_name }}
+            {{ user.first_name }} {{ user.last_name }}
             <div class="vr border-dark m-0 ms-1" style="height: 70px;"></div>
         </div>
     </th>
@@ -61,7 +61,7 @@
                         </li>
                         {% if aufgabe.file %}
                             <li>
-                                <button type="button" class="dropdown-item text-danger" onclick="showDeleteTaskModal('{{ aufgabe.id }}', '{{ aufgabe.aufgabe.name }}', '{{ aufgabe.file.name }}', '{{ freiwilliger.first_name }} {{ freiwilliger.last_name }}')">
+                                <button type="button" class="dropdown-item text-danger" onclick="showDeleteTaskModal('{{ aufgabe.id }}', '{{ aufgabe.aufgabe.name }}', '{{ aufgabe.file.name }}', '{{ user.first_name }} {{ user.last_name }}')">
                                     <i class="bi bi-trash me-2"></i>{% trans "Datei löschen" %}
                                 </button>
                             </li>
@@ -168,7 +168,7 @@
         {% else %}
         <div class="p-0 m-0">
             <a class="btn btn-sm" 
-                href="{% url 'list_aufgaben_table' %}?fw={{freiwilliger.id}}&a={{fw_aufgabe}}"
+                href="{% url 'list_aufgaben_table' %}?u={{user.id}}&a={{fw_aufgabe}}"
                 data-tooltip="{% trans 'Aufgabe zuweisen' %}">
                 <i class="bi bi-plus-circle"></i>
             </a>

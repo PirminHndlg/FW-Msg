@@ -696,19 +696,21 @@ def list_aufgaben(request):
 @required_role('O')
 @filter_jahrgang
 def list_aufgaben_table(request, scroll_to=None):
-    if request.method == 'GET' and request.GET.get('fw') and request.GET.get('a'):
-        fw_all = request.GET.get('fw') == 'all'
-        fw_aufg = None
-        if fw_all:
+    if request.method == 'GET' and request.GET.get('u') and request.GET.get('a'):
+        user_id = request.GET.get('u')
+        aufgabe_id = request.GET.get('a')
+
+        if user_id == 'all':
             freiwilliger = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
         else:
-            freiwilliger = FWmodels.Freiwilliger.objects.filter(pk=request.GET.get('fw'))
-        aufgabe = FWmodels.Aufgabe.objects.get(pk=request.GET.get('a'))
+            freiwilliger = FWmodels.Freiwilliger.objects.filter(user__id=user_id)
+
+        aufgabe = FWmodels.Aufgabe.objects.get(pk=aufgabe_id)
         
         for fw in freiwilliger:
             if not fw.org == request.user.org or not aufgabe.org == request.user.org:
                 continue
-            
+                
             if aufgabe.jahrgang_typ and fw.jahrgang and fw.jahrgang.typ and not aufgabe.jahrgang_typ == fw.jahrgang.typ:
                 continue
 
@@ -760,7 +762,7 @@ def list_aufgaben_table(request, scroll_to=None):
                 fw_aufg.save()
         return redirect('list_aufgaben_table_scroll', scroll_to=fw_aufg.id)
 
-    freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org).order_by('first_name', 'last_name')
+    freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org).order_by('user__first_name', 'user__last_name')
     aufgaben = FWmodels.Aufgabe.objects.filter(org=request.user.org)
     faellig_art_choices = FWmodels.Aufgabe.FAELLIG_CHOICES
 
@@ -796,7 +798,7 @@ def list_aufgaben_table(request, scroll_to=None):
 
     freiwilliger_aufgaben_matrix = {}
     for freiwilliger in freiwillige:
-        freiwilliger_aufgaben_matrix[freiwilliger] = []
+        freiwilliger_aufgaben_matrix[freiwilliger.user] = []
         for aufgabe in aufgaben:
             freiwilliger_aufgaben_exists = FWmodels.FreiwilligerAufgaben.objects.filter(freiwilliger=freiwilliger, aufgabe=aufgabe).exists()
             if freiwilliger_aufgaben_exists:
@@ -804,14 +806,14 @@ def list_aufgaben_table(request, scroll_to=None):
                 zwischenschritte = FWmodels.FreiwilligerAufgabenZwischenschritte.objects.filter(freiwilliger_aufgabe=freiwilliger_aufgaben)
                 zwischenschritte_count = zwischenschritte.count()
                 zwischenschritte_done_count = zwischenschritte.filter(erledigt=True).count()
-                freiwilliger_aufgaben_matrix[freiwilliger].append({
+                freiwilliger_aufgaben_matrix[freiwilliger.user].append({
                     'aufgabe': freiwilliger_aufgaben,
                     'zwischenschritte': zwischenschritte,
                     'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
                     'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
                 })
             else:
-                freiwilliger_aufgaben_matrix[freiwilliger].append(aufgabe.id)
+                freiwilliger_aufgaben_matrix[freiwilliger.user].append(aufgabe.id)
 
     countries = FWmodels.Einsatzland.objects.filter(org=request.user.org, id__in=freiwillige.values_list('einsatzland', flat=True))
 

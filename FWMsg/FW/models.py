@@ -161,17 +161,6 @@ class Freiwilliger(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
     jahrgang = models.ForeignKey(Jahrgang, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Jahrgang')
     user = models.OneToOneField(User, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name='Benutzer:in')
-    first_name = models.CharField(max_length=50, verbose_name='Vorname')
-    last_name = models.CharField(max_length=50, verbose_name='Nachname')
-    geschlecht = models.CharField(max_length=1, blank=True, null=True, choices=GESCHLECHT_CHOICES, verbose_name='Geschlecht')
-    geburtsdatum = models.DateField(blank=True, null=True, verbose_name='Geburtsdatum')
-    strasse = models.CharField(max_length=100, blank=True, null=True, verbose_name='Straße')
-    plz = models.CharField(max_length=10, blank=True, null=True, verbose_name='PLZ')
-    ort = models.CharField(max_length=100, blank=True, null=True, verbose_name='Ort')
-    country = models.CharField(max_length=100, blank=True, null=True, verbose_name='Land', default='Deutschland')
-    email = models.EmailField(max_length=100, verbose_name='E-Mail')
-    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon')
-    phone_einsatzland = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon Einsatzland')
     entsendeform = models.ForeignKey(Entsendeform, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Entsendeform')
     einsatzland = models.ForeignKey(Einsatzland, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzland')
     einsatzstelle = models.ForeignKey(Einsatzstelle, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzstelle')
@@ -203,8 +192,42 @@ class Freiwilliger(models.Model):
         send_register_email_task.delay(self)
 
     def __str__(self):
-        return self.first_name + ' ' + self.last_name
+        return self.user.first_name + ' ' + self.user.last_name
+    
+class Attribute(OrgModel):
+    TYPE_CHOICES = [
+        ('T', 'Text'),
+        ('L', 'Langer Text'),
+        ('N', 'Zahl'),
+        ('D', 'Datum'),
+        ('B', 'Wahrheitswert'),
+        ('E', 'E-Mail'),
+        ('P', 'Telefon'),
+        ('F', 'Datei'),
+    ]
 
+    name = models.CharField(max_length=50, verbose_name='Attribut')
+    type = models.CharField(max_length=1, choices=TYPE_CHOICES, verbose_name='Feldtyp')
+    jahrgang_typ = models.ForeignKey(JahrgangTyp, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Jahrgang Typ')
+
+    class Meta:
+        verbose_name = 'Attribut'
+        verbose_name_plural = 'Attribute'
+
+    def __str__(self):
+        return self.name
+
+class FreiwlligerAttribute(OrgModel):
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name='Benutzer:in')
+    attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE, verbose_name='Attribut')
+    value = models.TextField(verbose_name='Wert')
+
+    class Meta:
+        verbose_name = 'Freiwilliger Attribut'
+        verbose_name_plural = 'Freiwilliger Attribute'
+
+    def __str__(self):
+        return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.attribute.name
 
 @receiver(post_save, sender=Freiwilliger)
 def post_save_handler(sender, instance, created, **kwargs):
