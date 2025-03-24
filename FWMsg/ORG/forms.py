@@ -5,9 +5,13 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
 
-from FW import models as FWmodels
-from Global import models as Globalmodels
-from . import models as ORGmodels
+from Global.models import (
+    Freiwilliger, Aufgabe, 
+    UserAufgaben, Post, Bilder, CustomUser,
+    BilderGallery, Ampel, ProfilUser, Notfallkontakt, Referenten, UserAttribute, 
+    PersonCluster, Jahrgang, Einsatzland, Einsatzstelle, Entsendeform,
+    AufgabeZwischenschritte
+)
 
 class OrgFormMixin:
     def __init__(self, *args, **kwargs):
@@ -26,7 +30,7 @@ class OrgFormMixin:
 
 class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = FWmodels.Freiwilliger
+        model = Freiwilliger
         fields = '__all__'
         exclude = ['user', 'org']
 
@@ -64,7 +68,7 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
             self.fields['email'].initial = self.instance.user.email
 
         self.fields['jahrgang_typ'] = forms.ModelChoiceField(
-            queryset=FWmodels.JahrgangTyp.objects.filter(org=self.request.user.org),
+            queryset=PersonCluster.objects.filter(org=self.request.user.org),
             widget=forms.Select(attrs={'class': 'form-control'}),
             required=False
         )
@@ -73,7 +77,7 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
 
         jahrgang_typ = self.instance.user.customuser.jahrgang_typ if self.instance and self.instance.pk else None
         if jahrgang_typ:
-            attributes = FWmodels.Attribute.objects.filter(org=self.request.user.org, jahrgang_typ=jahrgang_typ)
+            attributes = UserAttribute.objects.filter(org=self.request.user.org, jahrgang_typ=jahrgang_typ)
             for attribute in attributes:
                 if attribute.type == 'T':
                     self.fields[attribute.name] = forms.CharField(
@@ -116,7 +120,7 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
                         required=False
                     )
                 
-                freiwlliger_attribute = FWmodels.FreiwlligerAttribute.objects.filter(user=self.instance.user, attribute=attribute).first()
+                freiwlliger_attribute = UserAttribute.objects.filter(user=self.instance.user, attribute=attribute).first()
                 if freiwlliger_attribute:
                     if attribute.type == 'B':
                         self.fields[attribute.name].initial = freiwlliger_attribute.value == 'True'
@@ -127,8 +131,8 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit=commit)
-        for attribute in FWmodels.Attribute.objects.filter(org=self.request.user.org, jahrgang_typ=self.instance.user.customuser.jahrgang_typ):
-            freiwlliger_attribute, created = FWmodels.FreiwlligerAttribute.objects.get_or_create(org=self.request.user.org, user=self.instance.user, attribute=attribute)
+        for attribute in UserAttribute.objects.filter(org=self.request.user.org, jahrgang_typ=self.instance.user.customuser.jahrgang_typ):
+            freiwlliger_attribute, created = UserAttribute.objects.get_or_create(org=self.request.user.org, user=self.instance.user, attribute=attribute)
             freiwlliger_attribute.value = self.cleaned_data[attribute.name]
             freiwlliger_attribute.save()
         
@@ -140,7 +144,7 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
 
 class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = FWmodels.Aufgabe
+        model = Aufgabe
         fields = '__all__'
         exclude = ['org']
 
@@ -165,8 +169,8 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
 
 # Create the formset for AufgabeZwischenschritte
 AufgabeZwischenschritteFormSet = inlineformset_factory(
-    FWmodels.Aufgabe,
-    FWmodels.AufgabeZwischenschritte,
+    Aufgabe,
+    AufgabeZwischenschritte,
     fields=['name', 'beschreibung'],
     extra=0,
     can_delete=True,
@@ -174,13 +178,6 @@ AufgabeZwischenschritteFormSet = inlineformset_factory(
         'beschreibung': forms.Textarea(attrs={'rows': 4}),
     }
 )
-
-
-class AddAufgabenprofilForm(OrgFormMixin, forms.ModelForm):
-    class Meta:
-        model = FWmodels.Aufgabenprofil
-        fields = '__all__'
-        exclude = ['org']
 
 
 class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
@@ -196,7 +193,7 @@ class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
     )
 
     class Meta:
-        model = FWmodels.FreiwilligerAufgaben
+        model = UserAufgaben
         fields = ['personalised_description', 'faellig', 'wiederholung', 'wiederholung_ende', 'file', 'benachrichtigung_cc']
         exclude = ['org']
 
@@ -226,37 +223,31 @@ class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
             self.order_fields(field_order)
 
 
-class AddKirchenzugehoerigkeitForm(OrgFormMixin, forms.ModelForm):
-    class Meta:
-        model = FWmodels.Kirchenzugehoerigkeit
-        fields = '__all__'
-        exclude = ['org']
-
 
 class AddEntsendeformForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = FWmodels.Entsendeform
+        model = Entsendeform
         fields = '__all__'
         exclude = ['org']
 
 
 class AddEinsatzlandForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = FWmodels.Einsatzland
+        model = Einsatzland
         fields = '__all__'
         exclude = ['org']
 
 
 class AddEinsatzstelleForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = FWmodels.Einsatzstelle
+        model = Einsatzstelle
         fields = '__all__'
         exclude = ['org']
 
 
 class AddJahrgangForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = FWmodels.Jahrgang
+        model = Jahrgang
         fields = '__all__'
         exclude = ['org']
 
@@ -271,7 +262,7 @@ class AddJahrgangForm(OrgFormMixin, forms.ModelForm):
 
 class AddNotfallkontaktForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = FWmodels.Notfallkontakt
+        model = Notfallkontakt
         fields = '__all__'
         exclude = ['org']
 
@@ -283,7 +274,7 @@ class AddUserForm(OrgFormMixin, forms.ModelForm):
     email = forms.EmailField(required=False, label='Email')
 
     class Meta:
-        model = Globalmodels.CustomUser
+        model = CustomUser
         fields = ['username', 'first_name', 'last_name', 'email', 'role', 'einmalpasswort', 'profil_picture']
         exclude = ['org']
 
@@ -332,13 +323,13 @@ class AddUserForm(OrgFormMixin, forms.ModelForm):
 
 # Define which fields should be filterable for each model
 filterable_fields = {
-    FWmodels.Freiwilliger: ['jahrgang', 'einsatzland', 'entsendeform', 'kirchenzugehoerigkeit'],
-    FWmodels.Aufgabe: ['faellig_art', 'mitupload'],
-    FWmodels.Einsatzstelle: ['einsatzland'],
-    FWmodels.Notfallkontakt: ['freiwilliger'],
-    FWmodels.FreiwilligerAufgaben: ['freiwilliger', 'aufgabe', 'erledigt'],
-    Globalmodels.CustomUser: ['role'],
-    # FWmodels.Aufgabenprofil: ['aufgaben__aufgabe'],
+    Freiwilliger: ['jahrgang', 'einsatzland', 'entsendeform', 'kirchenzugehoerigkeit'],
+    Aufgabe: ['faellig_art', 'mitupload'],
+    Einsatzstelle: ['einsatzland'],
+    Notfallkontakt: ['freiwilliger'],
+    UserAufgaben: ['freiwilliger', 'aufgabe', 'erledigt'],
+    CustomUser: ['role'],
+    # Aufgabenprofil: ['aufgaben__aufgabe'],
 }
 
 class FilterForm(forms.Form):    
@@ -401,21 +392,23 @@ class FilterForm(forms.Form):
 
 class AddReferentenForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = ORGmodels.Referenten
+        model = Referenten
         fields = '__all__'
         exclude = ['org', 'user']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['land'].queryset = Einsatzland.objects.filter(org=self.request.user.org)
+
 model_to_form_mapping = {
-    FWmodels.Einsatzland: AddEinsatzlandForm,
-    FWmodels.Einsatzstelle: AddEinsatzstelleForm,
-    FWmodels.Freiwilliger: AddFreiwilligerForm,
-    FWmodels.Aufgabe: AddAufgabeForm,
-    FWmodels.Aufgabenprofil: AddAufgabenprofilForm,
-    FWmodels.Jahrgang: AddJahrgangForm,
-    FWmodels.Kirchenzugehoerigkeit: AddKirchenzugehoerigkeitForm,
-    FWmodels.Notfallkontakt: AddNotfallkontaktForm,
-    FWmodels.Entsendeform: AddEntsendeformForm,
-    FWmodels.FreiwilligerAufgaben: AddFreiwilligerAufgabenForm,
-    ORGmodels.Referenten: AddReferentenForm,
-    Globalmodels.CustomUser: AddUserForm
+    Einsatzland: AddEinsatzlandForm,
+    Einsatzstelle: AddEinsatzstelleForm,
+    Freiwilliger: AddFreiwilligerForm,
+    Aufgabe: AddAufgabeForm,
+    Jahrgang: AddJahrgangForm,
+    Notfallkontakt: AddNotfallkontaktForm,
+    Entsendeform: AddEntsendeformForm,
+    UserAufgaben: AddFreiwilligerAufgabenForm,
+    Referenten: AddReferentenForm,
+    CustomUser: AddUserForm
 }

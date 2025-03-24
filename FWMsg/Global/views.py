@@ -41,18 +41,23 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 
 # Local application imports
-from FW.forms import BilderForm, BilderGalleryForm, ProfilUserForm
-from FW.models import (
+from FW.forms import BilderForm, BilderGalleryForm#, ProfilUserForm
+from .models import (
     Ampel, 
     Bilder, 
     BilderGallery, 
     Freiwilliger, 
     ProfilUser, 
-    FreiwilligerAufgaben,
-    Jahrgang
+    UserAufgaben,
+    Jahrgang,
+    KalenderEvent,
+    CustomUser,
+    Dokument,
+    Ordner,
+    Organisation,
+    PersonCluster,
+    DokumentColor
 )
-from Global.models import KalenderEvent, CustomUser
-from ORG.models import Dokument, Ordner, Organisation, JahrgangTyp, DokumentColor
 from ORG.views import base_template as org_base_template
 from TEAM.views import base_template as team_base_template
 from FWMsg.celery import send_email_aufgaben_daily
@@ -155,15 +160,8 @@ def datenschutz(request):
     """Render the privacy policy page."""
     return render(request, 'datenschutz.html')
 
-@login_required
-@required_role('')
-def test_email(request):
-    send_email_aufgaben_daily()
-    return redirect('profil')
-
 
 @login_required
-@required_role('')
 def serve_logo(request, org_id):
     """
     Serve organization logo images.
@@ -202,7 +200,6 @@ def serve_logo(request, org_id):
     return response
 
 @login_required
-@required_role('')
 def serve_bilder(request, image_id):
     """
     Serve gallery images.
@@ -227,7 +224,6 @@ def serve_bilder(request, image_id):
     return get_bild(bild.image.path, bild.bilder.titel)
 
 @login_required
-@required_role('')
 def serve_small_bilder(request, image_id):
     """
     Serve small (thumbnail) versions of gallery images.
@@ -255,7 +251,6 @@ def serve_small_bilder(request, image_id):
     return get_bild(bild.small_image.path, bild.bilder.titel)
 
 @login_required
-@required_role('')
 def serve_dokument(request, dokument_id):
     """
     Serve document files with proper content type handling.
@@ -309,7 +304,6 @@ def serve_dokument(request, dokument_id):
         return response
 
 @login_required
-@required_role('')
 def bilder(request):
     gallery_images = get_bilder(request.user.org)
 
@@ -320,7 +314,6 @@ def bilder(request):
     return render(request, 'bilder.html', context=context)
 
 @login_required
-@required_role('')
 def bild(request):
     form_errors = None
 
@@ -373,7 +366,6 @@ def bild(request):
     return render(request, 'bild.html', context=context)
 
 @login_required
-@required_role('')
 def remove_bild(request):
     gallery_image_id = request.GET.get('galleryImageId', None)
     bild_id = request.GET.get('bildId', None)
@@ -411,7 +403,6 @@ def remove_bild(request):
     return redirect('profil')
 
 @login_required
-@required_role('')
 def remove_bild_all(request):
     bild_id = request.GET.get('bild_id', None)
     if not bild_id:
@@ -436,7 +427,6 @@ def remove_bild_all(request):
     return redirect('profil')
 
 @login_required
-@required_role('')
 def dokumente(request, ordner_id=None):
     folder_structure = []
 
@@ -464,7 +454,7 @@ def dokumente(request, ordner_id=None):
         'ordners': ordners,
         'folder_structure': folder_structure,
         'ordner_id': ordner_id,
-        'jahrgang_typen': JahrgangTyp.objects.all().order_by('name'),
+        'jahrgang_typen': PersonCluster.objects.all().order_by('name'),
         'colors': colors
     }
 
@@ -473,7 +463,6 @@ def dokumente(request, ordner_id=None):
     return render(request, 'dokumente.html', context=context)
 
 @login_required
-@required_role('')
 def add_dokument(request):
     if request.method == 'POST':
         dokument_id = request.POST.get('dokument_id')
@@ -514,7 +503,6 @@ def add_dokument(request):
     return redirect('dokumente', ordner_id=dokument.ordner.id)
 
 @login_required
-@required_role('')
 def add_ordner(request):
     if request.method == 'POST':
         ordner_id = request.POST.get('ordner_id')
@@ -526,8 +514,8 @@ def add_ordner(request):
         typ = None
         if typ_id:
             try:
-                typ = JahrgangTyp.objects.get(id=typ_id)
-            except JahrgangTyp.DoesNotExist:
+                typ = PersonCluster.objects.get(id=typ_id)
+            except PersonCluster.DoesNotExist:
                 messages.error(request, 'Ausgewählter Jahrgangstyp existiert nicht.')
                 return redirect('dokumente')
             
@@ -559,7 +547,6 @@ def add_ordner(request):
     return redirect('dokumente', ordner_id=ordner.id)
 
 @login_required
-@required_role('')
 def remove_dokument(request):
     if request.method == 'POST':
         dokument_id = request.POST.get('dokument_id')
@@ -575,7 +562,6 @@ def remove_dokument(request):
     return redirect('dokumente')
 
 @login_required
-@required_role('')
 def remove_ordner(request):
     if request.method == 'POST':
         ordner_id = request.POST.get('ordner_id')
@@ -593,7 +579,6 @@ def remove_ordner(request):
     return redirect('dokumente')
 
 @login_required
-@required_role('')
 def update_profil_picture(request):
     if request.method == 'POST' and request.FILES.get('profil_picture'):
         try:
@@ -611,7 +596,6 @@ def update_profil_picture(request):
     return redirect('profil')
 
 @login_required
-@required_role('')
 def serve_profil_picture(request, user_id):
     requested_user = User.objects.get(id=user_id)
 
@@ -624,7 +608,6 @@ def serve_profil_picture(request, user_id):
     return get_bild(requested_user.customuser.profil_picture.path, requested_user.customuser.profil_picture.name)
 
 @login_required
-@required_role('')
 def view_profil(request, user_id=None):
     this_user = False
     if not user_id or user_id == request.user.id:
@@ -665,6 +648,7 @@ def view_profil(request, user_id=None):
         ampel_of_user = Ampel.objects.filter(freiwilliger__user=user).order_by('-date').first()
 
     profil_user_form = ProfilUserForm()
+
     if Freiwilliger.objects.filter(user=user).exists():
         freiwilliger = Freiwilliger.objects.get(user=user)
     else:
@@ -685,7 +669,6 @@ def view_profil(request, user_id=None):
     return render(request, 'profil.html', context=context)
 
 @login_required
-@required_role('')
 def remove_profil_attribut(request, profil_id):
     profil_user = ProfilUser.objects.get(id=profil_id)
     if profil_user.user == request.user:
@@ -693,7 +676,6 @@ def remove_profil_attribut(request, profil_id):
     return redirect('profil')
 
 @login_required
-@required_role('')
 def feedback(request):
     if request.method == 'POST':
         feedback_form = FeedbackForm(request.POST)
@@ -720,7 +702,6 @@ def feedback(request):
     return render(request, 'feedback.html', context=context)
 
 @login_required
-@required_role('')
 def kalender(request):
     calendar_events = get_calendar_events(request)
 
@@ -731,11 +712,10 @@ def kalender(request):
     return render(request, 'kalender.html', context=context)
 
 @login_required
-@required_role('')
 def get_calendar_events(request):
     calendar_events = []
     
-    for freiwilliger_aufgabe in FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user):
+    for freiwilliger_aufgabe in UserAufgaben.objects.filter(user=request.user):
         color = '#dc3545'  # Bootstrap danger color to match the theme
         if freiwilliger_aufgabe.erledigt:
             color = '#198754'  # Bootstrap success color
