@@ -1,11 +1,10 @@
 from datetime import datetime, timedelta
 import random
 from django.contrib import admin
-from .models import Freiwilliger, Entsendeform, Einsatzland, Einsatzstelle, Notfallkontakt, Post, Aufgabe, \
-    Aufgabenprofil, FreiwilligerAufgabenprofil, Ampel, FreiwilligerAufgaben, Jahrgang, Attribute, FreiwlligerAttribute, \
-    CustomUser, Bilder, BilderGallery, AufgabeZwischenschritte, FreiwilligerAufgabenZwischenschritte
+from Global.models import Freiwilliger, Entsendeform, Einsatzland, Einsatzstelle, Notfallkontakt, Post, Aufgabe, \
+    Ampel, Jahrgang, Attribute, \
+    Bilder, BilderGallery, AufgabeZwischenschritte, UserAufgabenZwischenschritte, PersonCluster, UserAttribute, UserAufgaben
 from simple_history.admin import SimpleHistoryAdmin
-from ORG.models import JahrgangTyp
 
 
 # Register your models here.
@@ -48,8 +47,8 @@ class FreiwilligerAdmin(SimpleHistoryAdmin):
 class AttributeAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
-@admin.register(FreiwlligerAttribute)
-class FreiwlligerAttributeAdmin(admin.ModelAdmin):
+@admin.register(UserAttribute)
+class UserAttributeAdmin(admin.ModelAdmin):
     search_fields = ['user__first_name', 'user__last_name', 'attribute__name']
 
 
@@ -95,12 +94,12 @@ class AufgabeAdmin(admin.ModelAdmin):
 
     def set_jahrgang_typ_incoming(self, request, queryset):
         for aufgabe in queryset:
-            aufgabe.jahrgang_typ = JahrgangTyp.objects.get(name='Incoming')
+            aufgabe.jahrgang_typ = PersonCluster.objects.get(name='Incoming')
             aufgabe.save()
     
     def set_jahrgang_typ_outgoing(self, request, queryset):
         for aufgabe in queryset:
-            aufgabe.jahrgang_typ = JahrgangTyp.objects.get(name='Outgoing')
+            aufgabe.jahrgang_typ = PersonCluster.objects.get(name='Outgoing')
             aufgabe.save()
 
 
@@ -109,27 +108,17 @@ class AufgabeZwischenschritteAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
 
-@admin.register(FreiwilligerAufgabenZwischenschritte)
-class FreiwilligerAufgabenZwischenschritteAdmin(admin.ModelAdmin):
-    search_fields = ['freiwilliger_aufgabe__freiwilliger__user__first_name', 'freiwilliger_aufgabe__freiwilliger__user__last_name', 'aufgabe_zwischenschritt__name']
-
-
-@admin.register(Aufgabenprofil)
-class AufgabenprofilAdmin(admin.ModelAdmin):
-    search_fields = ['name']
-
-
-@admin.register(FreiwilligerAufgabenprofil)
-class FreiwilligerAufgabenprofilAdmin(admin.ModelAdmin):
-    search_fields = ['freiwilliger__user__first_name', 'freiwilliger__user__last_name', 'aufgabenprofil__name']
+@admin.register(UserAufgabenZwischenschritte)
+class UserAufgabenZwischenschritteAdmin(admin.ModelAdmin):
+    search_fields = ['user_aufgabe__freiwilliger__user__first_name', 'user_aufgabe__freiwilliger__user__last_name', 'aufgabe_zwischenschritt__name']
 
 
 @admin.register(Ampel)
 class AmpelAdmin(admin.ModelAdmin):
     search_fields = ['status']
 
-@admin.register(FreiwilligerAufgaben)
-class FreiwilligerAufgabenAdmin(admin.ModelAdmin):
+@admin.register(UserAufgaben)
+class UserAufgabenAdmin(admin.ModelAdmin):
     search_fields = ['freiwilliger__user__first_name', 'freiwilliger__user__last_name', 'aufgabe__name'] 
     actions = ['send_aufgaben_email']
 

@@ -1,8 +1,7 @@
 from django.utils import timezone
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from FW.models import Freiwilliger, Einsatzstelle, Ampel
-from ORG.models import Referenten
+from Global.models import Freiwilliger, Referenten, Einsatzstelle, Ampel
 
 from ORG.views import filter_jahrgang, _get_ampel_matrix
 from FWMsg.decorators import required_role

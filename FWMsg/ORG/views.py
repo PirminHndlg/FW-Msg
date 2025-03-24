@@ -23,14 +23,16 @@ from django.db.models import Case, When, Value, Count, Q
 from django.contrib.admin.views.decorators import staff_member_required
 from django.template.loader import render_to_string
 
-from FW import models as FWmodels
-from Global import models as Globalmodels
-from . import models as ORGmodels
-from . import forms as ORGforms
+from Global.models import (
+    Freiwilliger, Aufgabe, 
+    UserAufgaben, Post, Bilder, CustomUser,
+    BilderGallery, Ampel, ProfilUser, Notfallkontakt, Referenten,
+    Einsatzland, Einsatzstelle, Jahrgang, Entsendeform,
+    AufgabeZwischenschritte
+)
 
 from FWMsg.decorators import required_role
 from django.views.decorators.http import require_http_methods
-from Global.models import CustomUser
 
 base_template = 'baseOrg.html'
 
@@ -51,7 +53,7 @@ class JahrgangFilteredQuerySet(QuerySet):
 
     def filter(self, *args, **kwargs):
         queryset = super().filter(*args, **kwargs)
-        if self._jahrgang_id and self.model == FWmodels.Freiwilliger:
+        if self._jahrgang_id and self.model == Freiwilliger:
             queryset = queryset.filter(jahrgang=self._jahrgang_id)
         return queryset
     
@@ -60,7 +62,7 @@ def filter_jahrgang(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         jahrgang_id = request.COOKIES.get('selectedJahrgang')
-        if jahrgang_id and not FWmodels.Jahrgang.objects.filter(id=jahrgang_id, org=request.user.org).exists():
+        if jahrgang_id and not Jahrgang.objects.filter(id=jahrgang_id, org=request.user.org).exists():
             jahrgang_id = None
             response = HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
             if 'selectedJahrgang' in request.COOKIES:
@@ -69,8 +71,8 @@ def filter_jahrgang(view_func):
                 response.delete_cookie('selectedJahrgangName')
             return response
 
-        original_get_queryset_freiwilliger = FWmodels.Freiwilliger.objects.get_queryset
-        original_get_queryset_aufgabe = FWmodels.Aufgabe.objects.get_queryset
+        original_get_queryset_freiwilliger = Freiwilliger.objects.get_queryset
+        original_get_queryset_aufgabe = Aufgabe.objects.get_queryset
 
         def get_jahrgang_queryset(manager):
             base_qs = original_get_queryset_freiwilliger()
@@ -81,19 +83,19 @@ def filter_jahrgang(view_func):
         def get_jahrgang_queryset_aufgabe(manager):
             base_qs = original_get_queryset_aufgabe()
             if jahrgang_id:
-                jahrgang_typ = FWmodels.Jahrgang.objects.get(id=jahrgang_id).typ
+                jahrgang_typ = Jahrgang.objects.get(id=jahrgang_id).typ
                 if jahrgang_typ:
                     return base_qs.filter(Q(jahrgang_typ=jahrgang_typ) | Q(jahrgang_typ=None))
             return base_qs
 
-        FWmodels.Freiwilliger.objects.get_queryset = get_jahrgang_queryset.__get__(FWmodels.Freiwilliger.objects)
-        FWmodels.Aufgabe.objects.get_queryset = get_jahrgang_queryset_aufgabe.__get__(FWmodels.Aufgabe.objects)
+        Freiwilliger.objects.get_queryset = get_jahrgang_queryset.__get__(Freiwilliger.objects)
+        Aufgabe.objects.get_queryset = get_jahrgang_queryset_aufgabe.__get__(Aufgabe.objects)
 
         try:
             return view_func(request, *args, **kwargs)
         finally:
-            FWmodels.Freiwilliger.objects.get_queryset = original_get_queryset_freiwilliger
-            FWmodels.Aufgabe.objects.get_queryset = original_get_queryset_aufgabe
+            Freiwilliger.objects.get_queryset = original_get_queryset_freiwilliger
+            Aufgabe.objects.get_queryset = original_get_queryset_aufgabe
 
     return _wrapped_view
 
@@ -101,23 +103,21 @@ def org_context_processor(request):
     """Context processor to add jahrgaenge to all templates."""
     if hasattr(request, 'user') and request.user.is_authenticated and (request.user.role == 'O' or request.user.role == 'T'):
         return {
-            'jahrgaenge': FWmodels.Jahrgang.objects.filter(org=request.user.org)
+            'jahrgaenge': Jahrgang.objects.filter(org=request.user.org)
         }
     return {}
 
 allowed_models_to_edit = {
-    'einsatzland': FWmodels.Einsatzland,
-    'einsatzstelle': FWmodels.Einsatzstelle,
-    'freiwilliger': FWmodels.Freiwilliger,
-    'aufgabe': FWmodels.Aufgabe,
-    'aufgabenprofil': FWmodels.Aufgabenprofil,
-    'jahrgang': FWmodels.Jahrgang,
-    'kirchenzugehoerigkeit': FWmodels.Kirchenzugehoerigkeit,
-    'notfallkontakt': FWmodels.Notfallkontakt,
-    'entsendeform': FWmodels.Entsendeform,
-    'freiwilligeraufgaben': FWmodels.FreiwilligerAufgaben,
-    'referenten': ORGmodels.Referenten,
-    'user': Globalmodels.CustomUser
+    'einsatzland': Einsatzland,
+    'einsatzstelle': Einsatzstelle,
+    'freiwilliger': Freiwilliger,
+    'aufgabe': Aufgabe,
+    'jahrgang': Jahrgang,
+    'notfallkontakt': Notfallkontakt,
+    'entsendeform': Entsendeform,
+    'freiwilligeraufgaben': UserAufgaben,
+    'referenten': Referenten,
+    'user': CustomUser
 }
 
 
@@ -129,7 +129,7 @@ def home(request):
     from Global.views import get_bilder
 
     # Get latest images
-    latest_images = FWmodels.Bilder.objects.filter(
+    latest_images = Bilder.objects.filter(
         org=request.user.org
     ).order_by('-date_created')[:6]  # Show last 6 images
 
@@ -138,13 +138,13 @@ def home(request):
 
     # Get pending tasks
     now = timezone.now().date()
-    pending_tasks = FWmodels.FreiwilligerAufgaben.objects.filter(
+    pending_tasks = UserAufgaben.objects.filter(
         org=request.user.org,
         erledigt=False,
         pending=True,
     ).order_by('-erledigt_am', 'faellig')  # Order by deadline
 
-    open_tasks = FWmodels.FreiwilligerAufgaben.objects.filter(
+    open_tasks = UserAufgaben.objects.filter(
         org=request.user.org,
         erledigt=False,
         pending=False,
@@ -212,13 +212,13 @@ def add_object(request, model_name):
     freiwilliger_id = request.GET.get('freiwilliger')
     aufgabe_id = request.GET.get('aufgabe')
     if freiwilliger_id and aufgabe_id:
-        freiwilliger = FWmodels.Freiwilliger.objects.get(pk=freiwilliger_id)
-        aufgabe = FWmodels.Aufgabe.objects.get(pk=aufgabe_id)
+        freiwilliger = Freiwilliger.objects.get(pk=freiwilliger_id)
+        aufgabe = Aufgabe.objects.get(pk=aufgabe_id)
 
         if not freiwilliger.org == request.user.org or not aufgabe.org == request.user.org:
             return HttpResponse('Nicht erlaubt')
 
-        obj, created = FWmodels.FreiwilligerAufgaben.objects.get_or_create(
+        obj, created = UserAufgaben.objects.get_or_create(
             org=request.user.org,
             freiwilliger=freiwilliger,
             aufgabe=aufgabe
@@ -236,8 +236,8 @@ def add_objects_from_excel(request, model_name):
         model = get_model(model_name)
 
         jahrgang_id = request.COOKIES.get('selectedJahrgang')
-        if FWmodels.Jahrgang.objects.filter(id=jahrgang_id).exists():
-            jahrgang = FWmodels.Jahrgang.objects.get(id=jahrgang_id)
+        if Jahrgang.objects.filter(id=jahrgang_id).exists():
+            jahrgang = Jahrgang.objects.get(id=jahrgang_id)
             if jahrgang.org != request.user.org:
                 return HttpResponse('Nicht erlaubt')
         else:
@@ -273,7 +273,7 @@ def add_objects_from_excel(request, model_name):
 @filter_jahrgang
 def delete_zwischenschritt(request):
     zwischenschritt_id = request.POST.get('zwischenschritt_id')
-    zwischenschritt = FWmodels.AufgabeZwischenschritte.objects.get(id=zwischenschritt_id)
+    zwischenschritt = AufgabeZwischenschritte.objects.get(id=zwischenschritt_id)
     zwischenschritt.delete()
     return redirect('edit_object', model_name='aufgabe', id=zwischenschritt.aufgabe.id)
 
@@ -293,17 +293,17 @@ def toggle_zwischenschritt_status(request):
         
         # Get the FreiwilligerAufgabenZwischenschritte instance
         zwischenschritt = get_object_or_404(
-            FWmodels.FreiwilligerAufgabenZwischenschritte,
+            AufgabeZwischenschritte,
             id=zwischenschritt_id,
-            freiwilliger_aufgabe_id=task_id,
-            freiwilliger_aufgabe__org=request.user.org
+            user_aufgabe_id=task_id,
+            user_aufgabe__org=request.user.org
         )
         
         # Update the status
         zwischenschritt.erledigt = new_status
         zwischenschritt.save()
 
-        zwischenschritte = FWmodels.FreiwilligerAufgabenZwischenschritte.objects.filter(freiwilliger_aufgabe=task_id)
+        zwischenschritte = AufgabeZwischenschritte.objects.filter(user_aufgabe=task_id)
         zwischenschritte_count = zwischenschritte.count()
         zwischenschritte_done_count = zwischenschritte.filter(erledigt=True).count()
         json_response = {
@@ -544,7 +544,7 @@ def _get_ampel_matrix(request, freiwillige):
     start_date, end_date = date_range['start_date'], date_range['end_date']
     
     # Get ampel entries within date range
-    ampel_entries = FWmodels.Ampel.objects.filter(
+    ampel_entries = Ampel.objects.filter(
         freiwilliger__in=freiwillige,
         date__gte=start_date,
         date__lte=end_date
@@ -573,7 +573,7 @@ def list_ampel(request):
     jahrgang_id = request.COOKIES.get('selectedJahrgang')
     
     # Base queryset for freiwillige
-    freiwillige_qs = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
+    freiwillige_qs = Freiwilliger.objects.filter(org=request.user.org)
     
     # Apply jahrgang filter if specified
     if jahrgang_id:
@@ -595,14 +595,14 @@ def list_ampel(request):
 def get_ampel_date_range(org):
     """Helper function to determine the date range for ampel entries."""
     # Get earliest start date
-    start_dates = FWmodels.Freiwilliger.objects.filter(org=org).aggregate(
+    start_dates = Freiwilliger.objects.filter(org=org).aggregate(
         real_start=Min('start_real'),
         planned_start=Min('start_geplant')
     )
     start_date = start_dates['real_start'] or start_dates['planned_start']
 
     # Get latest end date
-    end_dates = FWmodels.Freiwilliger.objects.filter(org=org).aggregate(
+    end_dates = Freiwilliger.objects.filter(org=org).aggregate(
         real_end=Max('ende_real'),
         planned_end=Max('ende_geplant')
     )
@@ -649,7 +649,7 @@ def list_aufgaben(request):
 
     if request.method == 'POST':
         aufgabe_id = request.POST.get('aufgabe_id')
-        aufgabe = FWmodels.FreiwilligerAufgaben.objects.get(pk=aufgabe_id)
+        aufgabe = UserAufgaben.objects.get(pk=aufgabe_id)
 
         if aufgabe.org == request.user.org:
             aufgabe.erledigt = request.POST.get('erledigt') == 'True'
@@ -666,19 +666,19 @@ def list_aufgaben(request):
         base_filter['freiwilliger__jahrgang'] = jahrgang_id
 
     # Get filtered tasks for each category
-    aufgaben_unfinished = FWmodels.FreiwilligerAufgaben.objects.filter(
+    aufgaben_unfinished = UserAufgaben.objects.filter(
         **base_filter,
         erledigt=False,
         pending=False
     )
     
-    aufgaben_pending = FWmodels.FreiwilligerAufgaben.objects.filter(
+    aufgaben_pending = UserAufgaben.objects.filter(
         **base_filter,
         pending=True,
         erledigt=False
     )
     
-    aufgaben_finished = FWmodels.FreiwilligerAufgaben.objects.filter(
+    aufgaben_finished = UserAufgaben.objects.filter(
         **base_filter,
         erledigt=True
     )
@@ -701,11 +701,11 @@ def list_aufgaben_table(request, scroll_to=None):
         aufgabe_id = request.GET.get('a')
 
         if user_id == 'all':
-            freiwilliger = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
+            freiwilliger = Freiwilliger.objects.filter(org=request.user.org)
         else:
-            freiwilliger = FWmodels.Freiwilliger.objects.filter(user__id=user_id)
+            freiwilliger = Freiwilliger.objects.filter(user__id=user_id)
 
-        aufgabe = FWmodels.Aufgabe.objects.get(pk=aufgabe_id)
+        aufgabe = Aufgabe.objects.get(pk=aufgabe_id)
         
         for fw in freiwilliger:
             if not fw.org == request.user.org or not aufgabe.org == request.user.org:
@@ -714,7 +714,7 @@ def list_aufgaben_table(request, scroll_to=None):
             if aufgabe.jahrgang_typ and fw.jahrgang and fw.jahrgang.typ and not aufgabe.jahrgang_typ == fw.jahrgang.typ:
                 continue
 
-            fw_aufg, created = FWmodels.FreiwilligerAufgaben.objects.get_or_create(
+            fw_aufg, created = UserAufgaben.objects.get_or_create(
                 org=request.user.org,
                 freiwilliger=fw,
                 aufgabe=aufgabe
@@ -732,24 +732,24 @@ def list_aufgaben_table(request, scroll_to=None):
         delete_file_of_aufgabe = request.POST.get('delete_file_of_aufgabe')
 
         if request.POST.get('reminder') == 'True':
-            fw_aufg = FWmodels.FreiwilligerAufgaben.objects.get(pk=aufgabe_id)
+            fw_aufg = UserAufgaben.objects.get(pk=aufgabe_id)
             fw_aufg.send_reminder_email()
         elif country_id:
-            fw = FWmodels.Freiwilliger.objects.filter(org=request.user.org, einsatzland=country_id)
-            aufgabe = FWmodels.Aufgabe.objects.get(pk=aufgabe_id)
+            fw = Freiwilliger.objects.filter(org=request.user.org, einsatzland=country_id)
+            aufgabe = Aufgabe.objects.get(pk=aufgabe_id)
             for f in fw:
-                fw_aufg, created = FWmodels.FreiwilligerAufgaben.objects.get_or_create(
+                fw_aufg, created = UserAufgaben.objects.get_or_create(
                     org=request.user.org,
                     freiwilliger=f,
                     aufgabe=aufgabe
                 )
-        elif delete_file_of_aufgabe and FWmodels.FreiwilligerAufgaben.objects.filter(pk=delete_file_of_aufgabe, org=request.user.org).exists():
-            fw_aufg = FWmodels.FreiwilligerAufgaben.objects.get(pk=delete_file_of_aufgabe, org=request.user.org)
+        elif delete_file_of_aufgabe and UserAufgaben.objects.filter(pk=delete_file_of_aufgabe, org=request.user.org).exists():
+            fw_aufg = UserAufgaben.objects.get(pk=delete_file_of_aufgabe, org=request.user.org)
             fw_aufg.file.delete()
             fw_aufg.save()
             return redirect('list_aufgaben_table_scroll', scroll_to=fw_aufg.id)
         else:
-            fw_aufg = FWmodels.FreiwilligerAufgaben.objects.get(pk=aufgabe_id)
+            fw_aufg = UserAufgaben.objects.get(pk=aufgabe_id)
             if fw_aufg.org == request.user.org:
                 fw_aufg.pending = request.POST.get('pending') == 'True'
                 fw_aufg.erledigt = request.POST.get('erledigt') == 'True'
@@ -762,9 +762,9 @@ def list_aufgaben_table(request, scroll_to=None):
                 fw_aufg.save()
         return redirect('list_aufgaben_table_scroll', scroll_to=fw_aufg.id)
 
-    freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org).order_by('user__first_name', 'user__last_name')
-    aufgaben = FWmodels.Aufgabe.objects.filter(org=request.user.org)
-    faellig_art_choices = FWmodels.Aufgabe.FAELLIG_CHOICES
+    freiwillige = Freiwilliger.objects.filter(org=request.user.org).order_by('user__first_name', 'user__last_name')
+    aufgaben = Aufgabe.objects.filter(org=request.user.org)
+    faellig_art_choices = Aufgabe.FAELLIG_CHOICES
 
     # Order by faellig_art priority (weekly -> vorher -> nachher)
     faellig_art_order = Case(
@@ -800,10 +800,10 @@ def list_aufgaben_table(request, scroll_to=None):
     for freiwilliger in freiwillige:
         freiwilliger_aufgaben_matrix[freiwilliger.user] = []
         for aufgabe in aufgaben:
-            freiwilliger_aufgaben_exists = FWmodels.FreiwilligerAufgaben.objects.filter(freiwilliger=freiwilliger, aufgabe=aufgabe).exists()
+            freiwilliger_aufgaben_exists = UserAufgaben.objects.filter(freiwilliger=freiwilliger, aufgabe=aufgabe).exists()
             if freiwilliger_aufgaben_exists:
-                freiwilliger_aufgaben = FWmodels.FreiwilligerAufgaben.objects.get(freiwilliger=freiwilliger, aufgabe=aufgabe)
-                zwischenschritte = FWmodels.FreiwilligerAufgabenZwischenschritte.objects.filter(freiwilliger_aufgabe=freiwilliger_aufgaben)
+                freiwilliger_aufgaben = UserAufgaben.objects.get(freiwilliger=freiwilliger, aufgabe=aufgabe)
+                zwischenschritte = AufgabeZwischenschritte.objects.filter(user_aufgabe=freiwilliger_aufgaben)
                 zwischenschritte_count = zwischenschritte.count()
                 zwischenschritte_done_count = zwischenschritte.filter(erledigt=True).count()
                 freiwilliger_aufgaben_matrix[freiwilliger.user].append({
@@ -815,7 +815,7 @@ def list_aufgaben_table(request, scroll_to=None):
             else:
                 freiwilliger_aufgaben_matrix[freiwilliger.user].append(aufgabe.id)
 
-    countries = FWmodels.Einsatzland.objects.filter(org=request.user.org, id__in=freiwillige.values_list('einsatzland', flat=True))
+    countries = Einsatzland.objects.filter(org=request.user.org, id__in=freiwillige.values_list('einsatzland', flat=True))
 
     context = {
         'freiwillige': freiwillige,
@@ -846,11 +846,11 @@ def list_aufgaben_table(request, scroll_to=None):
 @filter_jahrgang
 def get_aufgaben_zwischenschritte(request):
     taskId = request.GET.get('taskId')
-    if not FWmodels.FreiwilligerAufgaben.objects.filter(pk=taskId, org=request.user.org).exists():
+    if not UserAufgaben.objects.filter(pk=taskId, org=request.user.org).exists():
         return JsonResponse({'error': 'Nicht erlaubt'}, status=403)
     
-    aufgabe = FWmodels.FreiwilligerAufgaben.objects.get(pk=taskId)
-    zwischenschritte = FWmodels.FreiwilligerAufgabenZwischenschritte.objects.filter(freiwilliger_aufgabe=aufgabe)
+    aufgabe = UserAufgaben.objects.get(pk=taskId)
+    zwischenschritte = AufgabeZwischenschritte.objects.filter(user_aufgabe=aufgabe)
     
     zwischenschritte_data = []
     for zs in zwischenschritte:
@@ -868,66 +868,12 @@ def get_aufgaben_zwischenschritte(request):
     })
 
 
-@login_required
-@required_role('O')
-@filter_jahrgang
-def aufgaben_assign(request):
-    if request.method == 'POST':
-        freiwillige = request.POST.getlist('freiwillige')
-        profil = request.POST.getlist('profil')
-        aufgaben = request.POST.getlist('aufgaben')
-
-        print(freiwillige, profil, aufgaben)
-
-        for f in freiwillige:
-            freiwilliger = FWmodels.Freiwilliger.objects.get(pk=f)
-
-            if not freiwilliger.org == request.user.org:
-                continue
-
-            for p in profil:
-                profil = FWmodels.Aufgabenprofil.objects.get(pk=p)
-
-                if not freiwilliger.org == request.user.org:
-                    continue
-
-                FWmodels.FreiwilligerAufgabenprofil.objects.get_or_create(
-                    org=request.user.org,
-                    aufgabenprofil=profil,
-                    freiwilliger=freiwilliger
-                )
-
-            for a in aufgaben:
-                aufgabe = FWmodels.Aufgabe.objects.get(pk=a)
-
-                if not aufgabe.org == request.user.org or not freiwilliger.org == request.user.org:
-                    continue
-
-                FWmodels.FreiwilligerAufgaben.objects.get_or_create(
-                    org=request.user.org,
-                    aufgabe=aufgabe,
-                    freiwilliger=freiwilliger
-                )
-
-        return redirect('aufgaben_assign')
-
-    freiwillige = FWmodels.Freiwilliger.objects.filter(org=request.user.org)
-    aufgaben = FWmodels.Aufgabe.objects.filter(org=request.user.org)
-    profil = FWmodels.Aufgabenprofil.objects.filter(org=request.user.org)
-
-    context = {
-        'freiwillige': freiwillige,
-        'aufgaben': aufgaben,
-        'profil': profil
-    }
-    return render(request, 'aufgaben_assign.html', context=context)
-
 
 @login_required
 @required_role('O')
 @filter_jahrgang
 def download_aufgabe(request, id):
-    aufgabe = FWmodels.FreiwilligerAufgaben.objects.get(pk=id)
+    aufgabe = UserAufgaben.objects.get(pk=id)
     if not aufgabe.org == request.user.org:
         return HttpResponse('Nicht erlaubt')
     if not aufgabe.file:
@@ -947,7 +893,7 @@ def download_aufgabe(request, id):
 @required_role('O')
 @filter_jahrgang
 def list_bilder(request):
-    bilder = FWmodels.Bilder.objects.filter(org=request.user.org)
+    bilder = Bilder.objects.filter(org=request.user.org)
 
     gallery_images = {}
 

@@ -13,13 +13,12 @@ from django.conf import settings
 from functools import wraps
 from django.urls import reverse
 from django.utils.translation import gettext as _
-from .forms import BilderForm, BilderGalleryForm, ProfilUserForm
-from .models import (
-    Freiwilliger, Aufgabe, FreiwilligerAufgabenprofil, 
-    FreiwilligerAufgaben, Post, Bilder, CustomUser,
-    BilderGallery, Ampel, ProfilUser, Notfallkontakt
+from .forms import BilderForm, BilderGalleryForm#, ProfilUserForm
+from Global.models import (
+    Freiwilliger, Aufgabe, 
+    UserAufgaben, Post, Bilder, CustomUser,
+    BilderGallery, Ampel, ProfilUser, Notfallkontakt, Referenten
 )
-from ORG.models import Dokument, Ordner, Referenten
 from ORG.forms import AddNotfallkontaktForm
 
 from FWMsg.decorators import required_role
@@ -32,7 +31,7 @@ from Global.views import get_bilder
 def home(request):
     """Dashboard view showing tasks, images and posts."""
     # Get task statistics
-    task_queryset = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user)
+    task_queryset = UserAufgaben.objects.filter(user=request.user)
     
     erledigte_aufgaben = task_queryset.filter(erledigt=True).order_by('faellig')
     offene_aufgaben = task_queryset.filter(erledigt=False, pending=False).order_by('faellig')
@@ -47,7 +46,7 @@ def home(request):
     def safe_percentage(part, total):
         return round(part / total * 100) if total > 0 else 0
 
-    freiwilliger_aufgaben = {
+    user_aufgaben = {
         'erledigt': erledigte_aufgaben,
         'erledigt_prozent': safe_percentage(len_erledigt, gesamt),
         'pending': pending_aufgaben,
@@ -67,7 +66,7 @@ def home(request):
         days_until_start = None
 
     context = {
-        'aufgaben': freiwilliger_aufgaben,
+        'aufgaben': user_aufgaben,
         'gallery_images': gallery_images,
         'posts': Post.objects.all().order_by('date')[:3],
         'freiwilliger': freiwilliger,
@@ -84,9 +83,8 @@ def ampel(request):
     if ampel and ampel.upper() in ['R', 'G', 'Y']:
         ampel = ampel.upper()
         comment = request.POST.get('ampel_comment', None)
-        freiwilliger = Freiwilliger.objects.get(user=request.user)
         ampel_object = Ampel.objects.create(
-            freiwilliger=freiwilliger, 
+            user=request.user, 
             status=ampel, 
             org=request.user.org,
             comment=comment
@@ -99,7 +97,7 @@ def ampel(request):
         messages.success(request, msg_text)
         return redirect('fw_home')
 
-    last_ampel = Ampel.objects.filter(freiwilliger__user=request.user).order_by('-date').first()
+    last_ampel = Ampel.objects.filter(user=request.user).order_by('-date').first()
 
     return render(request, 'ampel.html', context={'last_ampel': last_ampel})
 
@@ -108,11 +106,11 @@ def ampel(request):
 @login_required
 @required_role('F')
 def aufgaben(request):
-    erledigte_aufgaben = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=True).order_by(
+    erledigte_aufgaben = UserAufgaben.objects.filter(user=request.user, erledigt=True).order_by(
         'faellig')
-    offene_aufgaben = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=False,
+    offene_aufgaben = UserAufgaben.objects.filter(user=request.user, erledigt=False,
                                                           pending=False).order_by('faellig')
-    pending_aufgaben = FreiwilligerAufgaben.objects.filter(freiwilliger__user=request.user, erledigt=False,
+    pending_aufgaben = UserAufgaben.objects.filter(user=request.user, erledigt=False,
                                                            pending=True).order_by('faellig')
 
     len_erledigt = erledigte_aufgaben.count()
@@ -175,37 +173,37 @@ def aufgaben(request):
 @required_role('F')
 def aufgabe(request, aufgabe_id):
 
-    freiwilliger_aufgabe_exists = FreiwilligerAufgaben.objects.filter(id=aufgabe_id).exists()
-    if not freiwilliger_aufgabe_exists:
+    user_aufgabe_exists = UserAufgaben.objects.filter(id=aufgabe_id).exists()
+    if not user_aufgabe_exists:
         return redirect('aufgaben')
-    freiwilliger_aufgabe = FreiwilligerAufgaben.objects.get(id=aufgabe_id)
+    user_aufgabe = UserAufgaben.objects.get(id=aufgabe_id)
     
     if request.method == 'POST':
         file = request.FILES.get('file')
         
-        if file and freiwilliger_aufgabe.aufgabe.mitupload:
-            freiwilliger_aufgabe.file = file
+        if file and user_aufgabe.aufgabe.mitupload:
+            user_aufgabe.file = file
         
         action = request.POST.get('action')
         if action == 'unpend':
-            freiwilliger_aufgabe.pending = False
-            freiwilliger_aufgabe.erledigt = False
-            freiwilliger_aufgabe.erledigt_am = None
+            user_aufgabe.pending = False
+            user_aufgabe.erledigt = False
+            user_aufgabe.erledigt_am = None
         else:  # action == 'pending'
-            if freiwilliger_aufgabe.aufgabe.requires_submission:
-                freiwilliger_aufgabe.pending = True
-                freiwilliger_aufgabe.erledigt = False
+            if user_aufgabe.aufgabe.requires_submission:
+                user_aufgabe.pending = True
+                user_aufgabe.erledigt = False
             else:
-                freiwilliger_aufgabe.pending = False
-                freiwilliger_aufgabe.erledigt = True
+                user_aufgabe.pending = False
+                user_aufgabe.erledigt = True
 
             from ORG.tasks import send_aufgabe_erledigt_email_task
-            send_aufgabe_erledigt_email_task.delay(freiwilliger_aufgabe.id)
+            send_aufgabe_erledigt_email_task.delay(user_aufgabe.id)
 
-            freiwilliger_aufgabe.erledigt_am = datetime.now()
+            user_aufgabe.erledigt_am = datetime.now()
 
 
-        freiwilliger_aufgabe.save()
+        user_aufgabe.save()
         base_url = reverse('aufgaben')
         if action == 'pending':
             return redirect(f'{base_url}?show_confetti=true')
@@ -213,7 +211,7 @@ def aufgabe(request, aufgabe_id):
 
 
     context = {
-        'freiwilliger_aufgabe': freiwilliger_aufgabe
+        'freiwilliger_aufgabe': user_aufgabe
     }
     return render(request, 'aufgabe.html', context=context)
 
