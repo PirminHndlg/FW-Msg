@@ -19,7 +19,7 @@ from Global.models import (
     UserAufgaben, Post, Bilder, CustomUser,
     BilderGallery, Ampel, ProfilUser, Notfallkontakt, Referenten
 )
-from ORG.forms import AddNotfallkontaktForm
+#from ORG.forms import AddNotfallkontaktForm
 
 from FWMsg.decorators import required_role
 from .templatetags.base_fw_filter import get_auswaeriges_amt_link, format_text_with_link

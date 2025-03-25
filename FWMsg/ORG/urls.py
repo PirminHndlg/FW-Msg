@@ -19,7 +19,6 @@ urlpatterns = [
     path('get-aufgaben-zwischenschritte/', views.get_aufgaben_zwischenschritte, name='get_aufgaben_zwischenschritte'),
     path('toggle-zwischenschritt-status/', views.toggle_zwischenschritt_status, name='toggle_zwischenschritt_status'),
     path('get-zwischenschritt-form/', views.get_zwischenschritt_form, name='get_zwischenschritt_form'),
-    path('aufgaben-assign/', views.aufgaben_assign, name='aufgaben_assign'),
     path('download-aufgabe/<int:id>', views.download_aufgabe, name='download_aufgabe'),
     path('download-bild/<int:id>', views.download_bild_as_zip, name='download_bild_as_zip'),
     path('list-bilder/', views.list_bilder, name='list_bilder'),

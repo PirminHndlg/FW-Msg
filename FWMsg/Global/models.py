@@ -431,15 +431,12 @@ class DokumentColor(models.Model):
     def __str__(self):
         return self.name
 
-class Referenten(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+class Referenten(OrgModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, blank=True, null=True)
-    first_name = models.CharField(max_length=50, verbose_name='Vorname', null=True, blank=True)
-    last_name = models.CharField(max_length=50, verbose_name='Nachname')
     email = models.EmailField(verbose_name='E-Mail')
     phone_work = models.CharField(max_length=20, verbose_name='Telefon Arbeit', null=True, blank=True)
     phone_mobil = models.CharField(max_length=20, verbose_name='Telefon Mobil', null=True, blank=True)
-    land = models.ManyToManyField('FW.Einsatzland', verbose_name='Einsatzland', blank=True, null=True)
+    land = models.ManyToManyField('Einsatzland', verbose_name='Einsatzland', blank=True, null=True)
 
     history = HistoricalRecords()
 
@@ -448,7 +445,7 @@ class Referenten(models.Model):
         verbose_name_plural = 'Team'
 
     def __str__(self):
-        return f'{self.last_name}, {self.first_name}'
+        return f'{self.user.last_name}, {self.user.first_name}'
 
 @receiver(post_save, sender=Referenten)
 def create_user(sender, instance, **kwargs):
@@ -650,56 +647,32 @@ class UserAttribute(OrgModel):
 
 @receiver(post_save, sender=Freiwilliger)
 def post_save_handler(sender, instance, created, **kwargs):
-    if created:
-        import random
-
-        # Create username by combining first and last names
-        default_username = f"{instance.first_name.replace(' ', '-').lower()}"
-        username = default_username
-        c = 0
-        user = True
-        while user:
-            user = User.objects.filter(username=username).exists()
-            if user:
-                c += 1
-                username = default_username + str(c)
-
-        # Create a User with the username and password set to birthdate
-        user = User.objects.create_user(
-            username=username,
-            password=str(instance.last_name.lower()),  # Ensure password is a string
-            email=instance.email  # You can link email to User if needed
-        )
-
-        # Link the created User to the Freiwilliger instance
-        instance.user = user
-        instance.save()
+    if instance.user and not instance.user.customuser:
 
         einmalpasswort = random.randint(100000, 999999)
 
-        custom_user = CustomUser.objects.create(user=user, org=instance.org, einmalpasswort=einmalpasswort)
-        custom_user.save()
+        CustomUser.objects.create(
+            user=instance.user,
+            org=instance.org,
+            einmalpasswort=einmalpasswort,
+            role='F'
+        )
 
     else:
         if instance.has_field_changed('ende_real'):
-            tasks = FreiwilligerAufgaben.objects.filter(freiwilliger=instance, faellig__isnull=False,
+            tasks = UserAufgaben.objects.filter(user=instance.user, faellig__isnull=False,
                                                         aufgabe__faellig_tage_vor_ende__isnull=False, erledigt=False, pending=False)
             start_date = instance.start_real or instance.start_geplant or instance.jahrgang.start
             for task in tasks:
                 task.faellig = start_date - timedelta(days=task.aufgabe.faellig_tage_vor_ende)
                 task.save()
         if instance.has_field_changed('start_real'):
-            tasks = FreiwilligerAufgaben.objects.filter(freiwilliger=instance, faellig__isnull=False,
+            tasks = UserAufgaben.objects.filter(user=instance.user, faellig__isnull=False,
                                                         aufgabe__faellig_tage_nach_start__isnull=False, erledigt=False, pending=False)
             start_date = instance.start_real or instance.start_geplant or instance.jahrgang.start
             for task in tasks:
                 task.faellig = start_date + timedelta(days=task.aufgabe.faellig_tage_nach_start)
                 task.save()
-
-    if not instance.user.first_name or not instance.user.last_name:
-        instance.user.first_name = instance.first_name
-        instance.user.last_name = instance.last_name
-        instance.user.save()
 
 
 @receiver(post_delete, sender=Freiwilliger)
@@ -740,7 +713,7 @@ class Ampel(OrgModel):
         verbose_name_plural = 'Ampeln'
 
     def __str__(self):
-        return self.freiwilliger.first_name + ' ' + self.freiwilliger.last_name + ' - ' + self.status
+        return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.status
 
 
 class Aufgabe(OrgModel):
@@ -879,7 +852,7 @@ class UserAufgaben(OrgModel):
         verbose_name_plural = 'Freiwillige:r Aufgaben'
 
     def __str__(self):
-        return self.freiwilliger.first_name + ' ' + self.freiwilliger.last_name + ' - ' + self.aufgabe.name
+        return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.aufgabe.name
 
 
 class UserAufgabenZwischenschritte(OrgModel):
