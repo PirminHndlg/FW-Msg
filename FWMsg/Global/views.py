@@ -41,7 +41,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 
 # Local application imports
-from FW.forms import BilderForm, BilderGalleryForm#, ProfilUserForm
+from FW.forms import BilderForm, BilderGalleryForm, ProfilUserForm
 from .models import (
     Ampel, 
     Bilder, 
@@ -49,7 +49,6 @@ from .models import (
     Freiwilliger, 
     ProfilUser, 
     UserAufgaben,
-    Jahrgang,
     KalenderEvent,
     CustomUser,
     Dokument,
@@ -138,16 +137,16 @@ def check_organization_context(request, context=None):
         context = {}
 
     # Check if user is authenticated and has a custom user profile
-    if not request.user.is_authenticated or not hasattr(request.user, 'customuser'):
+    if not request.user.is_authenticated or not hasattr(request.user, 'role'):
         return context
 
     # Add organization-specific template settings if user is an organization
-    if request.user.customuser.role == 'O':
+    if request.user.customuser.person_cluster.view == 'O':
         context.update({
             'extends_base': org_base_template,
             'is_org': True
         })
-    elif request.user.customuser.role == 'T':
+    elif request.user.customuser.person_cluster.view == 'T':
         context.update({
             'extends_base': team_base_template,
             'is_team': True
@@ -430,15 +429,16 @@ def remove_bild_all(request):
 def dokumente(request, ordner_id=None):
     folder_structure = []
 
-    if request.user.customuser.role == 'F' and Freiwilliger.objects.filter(user=request.user).exists():
-        jahrgang_typ = Freiwilliger.objects.get(user=request.user).jahrgang.typ
-    elif request.COOKIES.get('selectedJahrgang') and Jahrgang.objects.filter(id=request.COOKIES.get('selectedJahrgang')).exists():
-        jahrgang_typ = Jahrgang.objects.get(id=request.COOKIES.get('selectedJahrgang')).typ
+    if request.user.customuser.person_cluster.view == 'O':
+        person_cluster_typ = PersonCluster.objects.get(id=request.COOKIES.get('selectedPersonCluster')) if request.COOKIES.get('selectedPersonCluster') else None
+    elif request.user.customuser.person_cluster.dokumente:
+        person_cluster_typ = request.user.customuser.person_cluster
     else:
-        jahrgang_typ = None
-    
-    if jahrgang_typ:
-        ordners = Ordner.objects.filter(org=request.user.org).filter(Q(typ=None) | Q(typ=jahrgang_typ)).order_by('color', 'ordner_name')
+        messages.error(request, 'Keine Dokumentenansicht verfügbar')
+        return redirect('index_home')
+
+    if person_cluster_typ:
+        ordners = Ordner.objects.filter(org=request.user.org).filter(Q(typ=None) | Q(typ=person_cluster_typ)).order_by('color', 'ordner_name')
     else:
         ordners = Ordner.objects.filter(org=request.user.org).order_by('color', 'ordner_name')
     
@@ -454,7 +454,7 @@ def dokumente(request, ordner_id=None):
         'ordners': ordners,
         'folder_structure': folder_structure,
         'ordner_id': ordner_id,
-        'jahrgang_typen': PersonCluster.objects.all().order_by('name'),
+        'person_clusters': PersonCluster.objects.all().order_by('name'),
         'colors': colors
     }
 
@@ -469,7 +469,8 @@ def add_dokument(request):
         titel = request.POST.get('titel')
         beschreibung = request.POST.get('beschreibung')
         link = request.POST.get('link')
-        fw_darf_bearbeiten = request.POST.get('fw_darf_bearbeiten') == 'on'
+        darf_bearbeiten = request.POST.getlist('darf_bearbeiten')
+        darf_bearbeiten = PersonCluster.objects.filter(id__in=darf_bearbeiten)
 
         file = request.FILES.get('dokument')
 
@@ -485,8 +486,8 @@ def add_dokument(request):
             dokument.titel = titel
             dokument.beschreibung = beschreibung
             dokument.link = link
-            dokument.fw_darf_bearbeiten = fw_darf_bearbeiten
             dokument.save()
+            dokument.darf_bearbeiten.set(darf_bearbeiten)
         else:
             ordner = Ordner.objects.get(id=request.POST.get('ordner'))
             dokument = Dokument.objects.create(
@@ -496,9 +497,9 @@ def add_dokument(request):
                 beschreibung=beschreibung,
                 dokument=file,
                 link=link,
-                fw_darf_bearbeiten=fw_darf_bearbeiten,
                 date_created=datetime.now()
             )
+            dokument.darf_bearbeiten.set(darf_bearbeiten)
 
     return redirect('dokumente', ordner_id=dokument.ordner.id)
 
@@ -510,13 +511,13 @@ def add_ordner(request):
         typ_id = request.POST.get('typ')
         color_id = request.POST.get('color')
         
-        # Get the JahrgangTyp instance if typ_id is provided
+        # Get the PersonenCluster instance if typ_id is provided
         typ = None
         if typ_id:
             try:
                 typ = PersonCluster.objects.get(id=typ_id)
             except PersonCluster.DoesNotExist:
-                messages.error(request, 'Ausgewählter Jahrgangstyp existiert nicht.')
+                messages.error(request, 'Ausgewählter PersonenCluster existiert nicht.')
                 return redirect('dokumente')
             
         color = None
@@ -552,10 +553,10 @@ def remove_dokument(request):
         dokument_id = request.POST.get('dokument_id')
         try:
             dokument = Dokument.objects.get(id=dokument_id, org=request.user.org)
-            if dokument.fw_darf_bearbeiten or request.user.customuser.role == 'O':
+            if request.user.customuser.person_cluster.view == 'O' or request.user.customuser.person_cluster in dokument.darf_bearbeiten.all():
                 dokument.delete()
             else:
-                messages.error(request, 'Dokument kann nicht gelöscht werden, da es von einem FW bearbeitet wird.')
+                messages.error(request, 'Dokument kann nicht gelöscht werden, da du nicht der Ersteller bist.')
         except Dokument.DoesNotExist:
             pass
 
@@ -609,6 +610,18 @@ def serve_profil_picture(request, user_id):
 
 @login_required
 def view_profil(request, user_id=None):
+
+    if request.POST:
+        attribut = request.POST.get('attribut')
+        value = request.POST.get('value')
+        ProfilUser.objects.create(
+            org=request.user.org,
+            user=request.user,
+            attribut=attribut,
+            value=value
+        )
+        return redirect('profil')
+
     this_user = False
     if not user_id or user_id == request.user.id:
         user_id = request.user.id
@@ -645,7 +658,7 @@ def view_profil(request, user_id=None):
 
     ampel_of_user = None
     if this_user:
-        ampel_of_user = Ampel.objects.filter(freiwilliger__user=user).order_by('-date').first()
+        ampel_of_user = Ampel.objects.filter(user=user).order_by('-date').first()
 
     profil_user_form = ProfilUserForm()
 
@@ -703,6 +716,14 @@ def feedback(request):
 
 @login_required
 def kalender(request):
+    if request.user.customuser.person_cluster.view == 'O':
+        person_cluster_typ = PersonCluster.objects.get(id=request.COOKIES.get('selectedPersonCluster')) if request.COOKIES.get('selectedPersonCluster') else None
+    elif request.user.customuser.person_cluster.calendar:
+        person_cluster_typ = request.user.customuser.person_cluster
+    else:
+        messages.error(request, 'Keine Kalenderansicht verfügbar')
+        return redirect('index_home')
+
     calendar_events = get_calendar_events(request)
 
     context = {
@@ -715,25 +736,30 @@ def kalender(request):
 def get_calendar_events(request):
     calendar_events = []
     
-    for freiwilliger_aufgabe in UserAufgaben.objects.filter(user=request.user):
+    for user_aufgabe in UserAufgaben.objects.filter(user=request.user):
         color = '#dc3545'  # Bootstrap danger color to match the theme
-        if freiwilliger_aufgabe.erledigt:
+        if user_aufgabe.erledigt:
             color = '#198754'  # Bootstrap success color
-        elif freiwilliger_aufgabe.pending:
+        elif user_aufgabe.pending:
             color = '#ffc107'  # Bootstrap warning color
-        elif freiwilliger_aufgabe.faellig and freiwilliger_aufgabe.faellig > datetime.now().date():
+        elif user_aufgabe.faellig and user_aufgabe.faellig > datetime.now().date():
             color = '#0d6efd'  # Bootstrap primary color
 
         calendar_events.append({
-            'title': freiwilliger_aufgabe.aufgabe.name,
-            'start': freiwilliger_aufgabe.faellig.strftime('%Y-%m-%d') if freiwilliger_aufgabe.faellig else '',
-            'url': reverse('aufgaben_detail', args=[freiwilliger_aufgabe.id]),
+            'title': user_aufgabe.aufgabe.name,
+            'start': user_aufgabe.faellig.strftime('%Y-%m-%d') if user_aufgabe.faellig else '',
+            'url': reverse('aufgaben_detail', args=[user_aufgabe.id]),
             'backgroundColor': color,
             'borderColor': color,
             'textColor': '#000'
         })
 
-    birthday_events = Freiwilliger.objects.filter(geburtsdatum__isnull=False)
+    if request.user.is_staff:
+        custom_users = CustomUser.objects.filter(org=request.user.org)
+    else:
+        custom_users = CustomUser.objects.filter(person_cluster=request.user.customuser.person_cluster)
+
+    birthday_events = custom_users.filter(geburtsdatum__isnull=False)
     for birthday_event in birthday_events:
         # add two times to the calendar, one for the birthday this year and one for the birthday next year
         for i in range(5):

@@ -14,9 +14,9 @@ def group_required(group_name):
 
 def required_role(roles):
     def decorator(view_func):
-        @user_passes_test(lambda u: u.is_authenticated and hasattr(u, 'customuser') and (u.customuser.role in roles or roles == ''))
+        # @user_passes_test(lambda u: u.is_authenticated and hasattr(u, 'customuser'))
         def _wrapped_view(request, *args, **kwargs):
-            if not request.user.role in roles and roles != '':
+            if not request.user.customuser.person_cluster.view in roles and roles != '':
                 raise PermissionDenied
             return view_func(request, *args, **kwargs)
         return _wrapped_view

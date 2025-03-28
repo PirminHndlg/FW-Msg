@@ -1,5 +1,5 @@
 from django import forms
-from Global.models import Bilder, BilderGallery, UserAttribute
+from Global.models import Bilder, BilderGallery, ProfilUser
 
 
 class MultipleFileInput(forms.ClearableFileInput):
@@ -38,11 +38,11 @@ class BilderGalleryForm(forms.ModelForm):
         }
 
 
-# class ProfilUserForm(forms.ModelForm):
-#     class Meta:
-#         model = UserAttribute
-#         fields = ['attribut', 'value']
-#         widgets = {
-#             'attribut': forms.TextInput(attrs={'placeholder': 'Attribut'}),
-#             'value': forms.TextInput(attrs={'placeholder': 'Wert'}),
-#         }
+class ProfilUserForm(forms.ModelForm):
+    class Meta:
+        model = ProfilUser
+        fields = ['attribut', 'value']
+        widgets = {
+            'attribut': forms.TextInput(attrs={'placeholder': 'Attribut'}),
+            'value': forms.TextInput(attrs={'placeholder': 'Wert'}),
+        }

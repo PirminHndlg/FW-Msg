@@ -96,6 +96,10 @@ class PersonCluster(OrgModel):
     aufgaben = models.BooleanField(default=False, verbose_name='Aufgaben')
     calendar = models.BooleanField(default=False, verbose_name='Kalender')
     dokumente = models.BooleanField(default=False, verbose_name='Dokumente')
+    ampel = models.BooleanField(default=False, verbose_name='Ampel')
+    notfallkontakt = models.BooleanField(default=False, verbose_name='Notfallkontakt')
+    bilder = models.BooleanField(default=False, verbose_name='Bilder')
+
     view = models.CharField(max_length=1, choices=view_choices, default='F', verbose_name='Anzeigen')
 
     history = HistoricalRecords()
@@ -109,19 +113,10 @@ class PersonCluster(OrgModel):
     
 
 class CustomUser(OrgModel):
-    ROLE_CHOICES = [
-        ('A', 'Admin'),
-        ('O', 'Organisation'),
-        ('F', 'Freiwillige:r'),
-        ('R', 'Referent:in'),
-        ('E', 'Ehemalige:r'),
-        ('T', 'Team')
-    ]
-
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Benutzer:in')
-    role = models.CharField(max_length=1, choices=ROLE_CHOICES, default='F', verbose_name='Rolle')
     person_cluster = models.ForeignKey(PersonCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Person Cluster')
     profil_picture = models.ImageField(upload_to='profil_picture/', blank=True, null=True, verbose_name='Profilbild')
+    geburtsdatum = models.DateField(blank=True, null=True, verbose_name='Geburtsdatum')
 
     einmalpasswort = models.CharField(max_length=20, blank=True, null=True, verbose_name='Einmalpasswort', help_text='Wird automatisch erzeugt, wenn leer')
 
@@ -132,12 +127,12 @@ class CustomUser(OrgModel):
             self.einmalpasswort = random.randint(100000, 999999)
             self.save()
 
-        if self.role == 'F':
+        if self.person_cluster.view == 'F':
             from FW.tasks import send_register_email_task
             from FW.models import Freiwilliger
             freiwilliger = Freiwilliger.objects.get(user=self.user)
             send_register_email_task.s(freiwilliger.id).apply_async(countdown=10)
-        elif self.role == 'O':
+        elif self.person_cluster.view == 'O':
             from ORG.tasks import send_register_email_task
             send_register_email_task.s(self.id).apply_async(countdown=10)
 
@@ -165,7 +160,8 @@ def post_save_handler(sender, instance, created, **kwargs):
 
 # Add property to User model to access org
 User.add_to_class('org', property(lambda self: self.customuser.org if hasattr(self, 'customuser') else None))
-User.add_to_class('role', property(lambda self: self.customuser.role if hasattr(self, 'customuser') else None))
+User.add_to_class('view', property(lambda self: self.customuser.person_cluster.view if hasattr(self, 'customuser') and self.customuser.person_cluster else None))
+User.add_to_class('role', property(lambda self: self.customuser.person_cluster.view if hasattr(self, 'customuser') and self.customuser.person_cluster else None))
 
 class Feedback(models.Model):
     text = models.TextField(verbose_name='Feedback')
@@ -242,7 +238,7 @@ class Dokument(models.Model):
     date_modified = models.DateTimeField(auto_now=True)
     titel = models.CharField(max_length=100, null=True, blank=True)
     beschreibung = models.TextField(null=True, blank=True)
-    fw_darf_bearbeiten = models.BooleanField(default=True)
+    darf_bearbeiten = models.ManyToManyField(PersonCluster, verbose_name='Darf bearbeiten')
     preview_image = models.ImageField(upload_to=upload_to_preview_image, null=True, blank=True)
 
     history = HistoricalRecords()
@@ -494,19 +490,6 @@ def calculate_small_image(image, size=(750, 750)):
     return ContentFile(img_io.getvalue(), name=image.name.split('/')[-1])
 
 
-class Entsendeform(OrgModel):
-    name = models.CharField(max_length=50, verbose_name='Entsendeform-Name')
-
-    history = HistoricalRecords()
-
-    class Meta:
-        verbose_name = 'Entsendeform'
-        verbose_name_plural = 'Entsendeformen'
-
-    def __str__(self):
-        return self.name
-
-
 class Einsatzland(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Einsatzland')
     code = models.CharField(max_length=2, verbose_name='Einsatzland-Code')
@@ -553,12 +536,12 @@ class Attribute(OrgModel):
         ('B', 'Wahrheitswert'),
         ('E', 'E-Mail'),
         ('P', 'Telefon'),
-        ('F', 'Datei'),
         ('C', 'Auswahl')
     ]
 
     name = models.CharField(max_length=50, verbose_name='Attribut')
     type = models.CharField(max_length=1, choices=TYPE_CHOICES, verbose_name='Feldtyp')
+    value_for_choices = models.CharField(null=True, blank=True, max_length=250, help_text='Nur für Feldtyp Auswahl, kommagetrennt die Auswahlmöglichkeiten eintragen. Z.B. "Vegan, Vegetarisch, Konventionell" für Attribut "Essen"')
     person_cluster = models.ForeignKey(PersonCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Person Cluster')
 
     class Meta:
@@ -598,9 +581,7 @@ class Freiwilliger(OrgModel):
         ('N', 'Keine Angabe')
     ]
 
-    jahrgang = models.ForeignKey(Jahrgang, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Jahrgang')
     user = models.OneToOneField(User, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name='Benutzer:in')
-    entsendeform = models.ForeignKey(Entsendeform, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Entsendeform')
     einsatzland = models.ForeignKey(Einsatzland, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzland')
     einsatzstelle = models.ForeignKey(Einsatzstelle, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzstelle')
     start_geplant = models.DateField(blank=True, null=True, verbose_name='Start geplant')
@@ -632,6 +613,7 @@ class Freiwilliger(OrgModel):
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name
 
+Freiwilliger.add_to_class('person_cluster', property(lambda self: self.user.customuser.person_cluster))
 
 class UserAttribute(OrgModel):
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name='Benutzer:in')
@@ -655,7 +637,6 @@ def post_save_handler(sender, instance, created, **kwargs):
             user=instance.user,
             org=instance.org,
             einmalpasswort=einmalpasswort,
-            role='F'
         )
 
     else:
@@ -716,19 +697,23 @@ class Ampel(OrgModel):
         return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.status
 
 
+class AufgabenCluster(OrgModel):
+    name = models.CharField(max_length=50, verbose_name='Aufgaben Cluster')
+    person_cluster = models.ForeignKey(PersonCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Person Cluster')
+    class Meta:
+        verbose_name = 'Aufgaben Cluster'
+        verbose_name_plural = 'Aufgaben Cluster'
+
+    def __str__(self):
+        return self.name + ' - ' + self.person_cluster.name
+
 class Aufgabe(OrgModel):
-    FAELLIG_CHOICES = [
-        ('V', 'Vor Einsatzstart'),
-        ('W', 'Während Einsatz'),
-        ('N', 'Nach Einsatzende'),
-        ('A', 'Aktuelles Jahr'),
-    ]
-    
+
     name = models.CharField(max_length=50, verbose_name='Aufgabenname')
     beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung')
     mitupload = models.BooleanField(default=True, verbose_name='Upload möglich')
     requires_submission = models.BooleanField(default=True, verbose_name='Bestätigung erforderlich')
-    faellig_art = models.CharField(max_length=1, choices=FAELLIG_CHOICES, default='W', verbose_name='Fällig Art')
+    faellig_art = models.ForeignKey(AufgabenCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Fällig Art')
     faellig_tag = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tag')
     faellig_monat = models.IntegerField(blank=True, null=True, verbose_name='Fällig Monat')
     faellig_tage_nach_start = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage nach Einsatzstart')
@@ -762,15 +747,15 @@ class AufgabeZwischenschritte(OrgModel):
         super(AufgabeZwischenschritte, self).save(*args, **kwargs)
         
         # Now we can safely filter related objects
-        freiwilliger_aufgaben = FreiwilligerAufgaben.objects.filter(aufgabe=self.aufgabe)
-        for freiwilliger_aufgabe in freiwilliger_aufgaben:
-            fw_aufg_zw, created = FreiwilligerAufgabenZwischenschritte.objects.get_or_create(
-                freiwilliger_aufgabe=freiwilliger_aufgabe,
+        user_aufgaben = UserAufgaben.objects.filter(aufgabe=self.aufgabe)
+        for user_aufgabe in user_aufgaben:
+            fw_aufg_zw, created = UserAufgabenZwischenschritte.objects.get_or_create(
+                user_aufgabe=user_aufgabe,
                 aufgabe_zwischenschritt=self,
-                org=freiwilliger_aufgabe.org
+                org=user_aufgabe.org
             )
             if created:
-                fw_aufg_zw.erledigt = freiwilliger_aufgabe.erledigt
+                fw_aufg_zw.erledigt = user_aufgabe.erledigt
                 fw_aufg_zw.save()
     
 
@@ -839,7 +824,7 @@ class UserAufgaben(OrgModel):
                     print(e)
                     pass
         
-        super(FreiwilligerAufgaben, self).save(*args, **kwargs)
+        super(UserAufgaben, self).save(*args, **kwargs)
 
 
     def send_reminder_email(self):

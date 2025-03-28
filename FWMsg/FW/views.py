@@ -19,7 +19,8 @@ from Global.models import (
     UserAufgaben, Post, Bilder, CustomUser,
     BilderGallery, Ampel, ProfilUser, Notfallkontakt, Referenten
 )
-#from ORG.forms import AddNotfallkontaktForm
+
+from ORG.forms import AddNotfallkontaktForm
 
 from FWMsg.decorators import required_role
 from .templatetags.base_fw_filter import get_auswaeriges_amt_link, format_text_with_link
@@ -365,12 +366,11 @@ def notfallkontakte(request):
         form = AddNotfallkontaktForm(request.POST)
         if form.is_valid():
             form.instance.org = request.user.org
-            form.instance.freiwilliger = Freiwilliger.objects.get(user=request.user)
+            form.instance.user = request.user
             form.save()
             return redirect('notfallkontakte')
         else:
             messages.error(request, 'Fehler beim Hinzufügen des Notfallkontakts')
     form = AddNotfallkontaktForm()
-    form.fields['freiwilliger'].widget = form.fields['freiwilliger'].hidden_widget()
-    notfallkontakte = Notfallkontakt.objects.filter(freiwilliger__user=request.user)
+    notfallkontakte = Notfallkontakt.objects.filter(user=request.user)
     return render(request, 'notfallkontakte.html', context={'form': form, 'notfallkontakte': notfallkontakte})
