@@ -89,24 +89,24 @@
     </div>
     <script>
       document.addEventListener('DOMContentLoaded', function () {
-        // Handle jahrgang selection
-        document.querySelectorAll('[data-jahrgang]').forEach((item) => {
+        // Handle personen_cluster selection
+        document.querySelectorAll('[data-person-cluster]').forEach((item) => {
           item.addEventListener('click', function (e) {
             e.preventDefault()
-            const jahrgangId = this.dataset.jahrgang
-            const jahrgangName = this.textContent.trim()
+            const personClusterId = this.dataset.personCluster
+            const personClusterName = this.textContent.trim()
       
             // Save to cookies
-            if (jahrgangId) {
-              Cookies.set('selectedJahrgang', jahrgangId, { expires: 365 })
-              Cookies.set('selectedJahrgangName', jahrgangName, { expires: 365 })
+            if (personClusterId) {
+              Cookies.set('selectedPersonCluster', personClusterId, { expires: 365 })
+              Cookies.set('selectedPersonClusterName', personClusterName, { expires: 365 })
             } else {
-              Cookies.remove('selectedJahrgang')
-              Cookies.remove('selectedJahrgangName')
+              Cookies.remove('selectedPersonCluster')
+              Cookies.remove('selectedPersonClusterName')
             }
       
             // Update dropdown text
-            document.getElementById('selectedJahrgang').textContent = jahrgangName
+            document.getElementById('selectedPersonCluster').textContent = personClusterName
       
             // Reload current page
             window.location.reload()
@@ -114,9 +114,9 @@
         })
       
         // Set initial dropdown text from cookie
-        const savedJahrgangName = Cookies.get('selectedJahrgangName')
-        if (savedJahrgangName) {
-          document.getElementById('selectedJahrgang').textContent = savedJahrgangName
+        const savedPersonClusterName = Cookies.get('selectedPersonClusterName')
+        if (savedPersonClusterName) {
+          document.getElementById('selectedPersonCluster').textContent = savedPersonClusterName
         }
       })
     </script>

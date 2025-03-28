@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import random
 from django.contrib import admin
-from Global.models import Freiwilliger, Entsendeform, Einsatzland, Einsatzstelle, Notfallkontakt, Post, Aufgabe, \
+from Global.models import AufgabenCluster, Freiwilliger, Einsatzland, Einsatzstelle, Notfallkontakt, Post, Aufgabe, \
     Ampel, Jahrgang, Attribute, \
     Bilder, BilderGallery, AufgabeZwischenschritte, UserAufgabenZwischenschritte, PersonCluster, UserAttribute, UserAufgaben
 from simple_history.admin import SimpleHistoryAdmin
@@ -52,11 +52,6 @@ class UserAttributeAdmin(admin.ModelAdmin):
     search_fields = ['user__first_name', 'user__last_name', 'attribute__name']
 
 
-@admin.register(Entsendeform)
-class EntsendeformAdmin(admin.ModelAdmin):
-    search_fields = ['name']
-
-
 @admin.register(Einsatzland)
 class EinsatzlandAdmin(admin.ModelAdmin):
     search_fields = ['name']
@@ -90,16 +85,16 @@ class PostAdmin(admin.ModelAdmin):
 @admin.register(Aufgabe)
 class AufgabeAdmin(admin.ModelAdmin):
     search_fields = ['name']
-    actions = ['set_jahrgang_typ_incoming', 'set_jahrgang_typ_outgoing']
+    actions = ['set_person_cluster_typ_incoming', 'set_person_cluster_typ_outgoing']
 
-    def set_jahrgang_typ_incoming(self, request, queryset):
+    def set_person_cluster_typ_incoming(self, request, queryset):
         for aufgabe in queryset:
-            aufgabe.jahrgang_typ = PersonCluster.objects.get(name='Incoming')
+            aufgabe.person_cluster = PersonCluster.objects.get(name='Incoming')
             aufgabe.save()
     
-    def set_jahrgang_typ_outgoing(self, request, queryset):
+    def set_person_cluster_typ_outgoing(self, request, queryset):
         for aufgabe in queryset:
-            aufgabe.jahrgang_typ = PersonCluster.objects.get(name='Outgoing')
+            aufgabe.person_cluster = PersonCluster.objects.get(name='Outgoing')
             aufgabe.save()
 
 
@@ -127,6 +122,11 @@ class UserAufgabenAdmin(admin.ModelAdmin):
             freiwilliger_aufgabe.send_reminder_email()
         msg = f"Erinnerungen wurden gesendet"
         self.message_user(request, msg)
+
+
+@admin.register(AufgabenCluster)
+class AufgabenClusterAdmin(admin.ModelAdmin):
+    search_fields = ['name']
 
 
 @admin.register(Jahrgang)

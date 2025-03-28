@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from Global.models import Freiwilliger, Referenten, Einsatzstelle, Ampel
 
-from ORG.views import filter_jahrgang, _get_ampel_matrix
+from ORG.views import filter_person_cluster, _get_ampel_matrix
 from FWMsg.decorators import required_role
 base_template = 'baseTeam.html'
 
@@ -22,7 +22,7 @@ def _get_Freiwillige(request):
     else:
         return []
 
-@filter_jahrgang
+@filter_person_cluster
 @login_required
 @required_role('T')
 def contacts(request):
@@ -41,7 +41,7 @@ def contacts(request):
     return render(request, 'teamContacts.html', {'freiwillige': freiwillige, 'fw_cards': fw_cards})
 
 
-@filter_jahrgang
+@filter_person_cluster
 @login_required
 @required_role('T')
 def ampelmeldung(request):
@@ -60,7 +60,7 @@ def ampelmeldung(request):
 
     return render(request, 'list_ampel.html', context)
 
-@filter_jahrgang
+@filter_person_cluster
 @login_required
 @required_role('T')
 def einsatzstellen(request):
@@ -73,7 +73,7 @@ def einsatzstellen(request):
         msg = 'Bitte wählen Sie ein Einsatzland'
         return render(request, 'teamEinsatzstellen.html', {'msg': msg})
 
-@filter_jahrgang
+@filter_person_cluster
 @login_required
 @required_role('T')
 def laender(request):

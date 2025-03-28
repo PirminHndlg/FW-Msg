@@ -7,7 +7,7 @@
 {% block head %}
     <script src="{% static 'js/dokumente.js' %}"></script>
     <script>
-        let is_org = '{{ user.role|lower }}' == 'o';
+        let is_org = '{{ user.person_cluster.view|lower }}' == 'o';
         let ordner_id = '{{ ordner_id }}';
 
         document.addEventListener('DOMContentLoaded', function() {

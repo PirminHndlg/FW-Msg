@@ -56,7 +56,7 @@ function addDokument(ordner_id) {
     modal.show();
 
     if (!is_org) {
-        document.getElementById('fw_darf_bearbeiten_container').style.display = 'none';
+        document.getElementById('darf_bearbeiten_container').style.display = 'none';
     }
 }
 
@@ -71,7 +71,15 @@ function editDokument(dokument_id) {
     document.getElementById('titel').value = doc_data.titel;
     document.getElementById('beschreibung').value = doc_data.beschreibung;
     document.getElementById('link').value = doc_data.link;
-    document.getElementById('fw_darf_bearbeiten').checked = doc_data.fw_darf_bearbeiten === 'True';
+
+    let darf_bearbeiten_inputs = document.querySelectorAll('input[name="darf_bearbeiten"]');
+    for (const darf_bearbeiten_input of darf_bearbeiten_inputs) {
+        let darf_bearbeiten_id = darf_bearbeiten_input.value;
+        let checkbox = document.getElementById(`person_cluster_${darf_bearbeiten_id}`);
+        if (checkbox) {
+            checkbox.checked = true;
+        }
+    }
     
     // Show existing document warning if applicable
     if (doc_data.dokument) {
@@ -85,7 +93,7 @@ function editDokument(dokument_id) {
     modal.show();
 
     if (!is_org) {
-        document.getElementById('fw_darf_bearbeiten_container').style.display = 'none';
+        document.getElementById('darf_bearbeiten_container').style.display = 'none';
     }
 }
 

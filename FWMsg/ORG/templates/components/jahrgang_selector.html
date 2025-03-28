@@ -1,24 +1,24 @@
 {% load i18n %}
 
-<!-- Jahrgang Selector -->
+<!-- Personencluster Selector -->
 <div class="d-flex align-items-center me-3 gap-2">
     <div class="dropdown">
-        <button class="btn btn-light dropdown-toggle" type="button" id="jahrgangDropdown" 
+        <button class="btn btn-light dropdown-toggle" type="button" id="personenClusterDropdown" 
                 data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-calendar-event me-1"></i>
-            <span id="selectedJahrgang">{% trans "Alle Jahrgänge" %}</span>
+            <i class="bi bi-people me-1"></i>
+            <span id="selectedPersonCluster">{% trans "Alle Personencluster" %}</span>
         </button>
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="jahrgangDropdown">
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="personenClusterDropdown">
             <li>
-                <a class="dropdown-item" href="#" data-jahrgang="">
-                    {% trans "Alle Jahrgänge" %}
+                <a class="dropdown-item" data-person-cluster="">
+                    {% trans "Alle Personencluster" %}
                 </a>
             </li>
             <li><hr class="dropdown-divider"></li>
-            {% for jahrgang in jahrgaenge %}
+            {% for person_cluster in person_cluster %}
                 <li>
-                    <a class="dropdown-item" href="#" data-jahrgang="{{ jahrgang.id }}">
-                        {{ jahrgang }}
+                    <a class="dropdown-item" data-person-cluster="{{ person_cluster.id }}">
+                        {{ person_cluster }}
                     </a>
                 </li>
             {% endfor %}

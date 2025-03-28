@@ -10,9 +10,9 @@ def index(request):
     # Redirect if user is already authenticated
     if request.path != '/index':
         if request.user.is_authenticated and hasattr(request.user, 'customuser'):
-            if request.user.customuser.role == 'O':
+            if request.user.customuser.person_cluster.view == 'O':
                 return redirect('org_home')
-            elif request.user.customuser.role == 'T':
+            elif request.user.customuser.person_cluster.view == 'T':
                 return redirect('team_home')
             return redirect('fw_home')
 

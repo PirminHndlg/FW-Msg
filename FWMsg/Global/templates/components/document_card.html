@@ -10,7 +10,9 @@
     data-dokument="{{ dokument|get_document_name|default:'' }}"
     data-folder_id="{{ structure.ordner.id }}"
     data-folder_name="{{ structure.ordner }}"
-    data-fw_darf_bearbeiten="{{ dokument.fw_darf_bearbeiten }}">
+    {% for person_cluster in dokument.darf_bearbeiten.all %}
+        <input type="hidden" name="darf_bearbeiten" value="{{ person_cluster.id }}">
+    {% endfor %}
     <div class="card rounded-4 h-100 hover-shadow">
         {% include "components/document_preview.html" %}
         
@@ -37,7 +39,7 @@
                 {% endif %}
             </div>
 
-            {% if dokument.fw_darf_bearbeiten or is_org %}
+            {% if user.person_cluster.view == 'O' or user.customuser.person_cluster in dokument.darf_bearbeiten %}
             <div class="card-footer">
                 <button onclick="removeDokument({{ dokument.id }}, '{{ dokument.titel|default:dokument_name }}', '{% url 'remove_dokument' %}')"
                         class="btn btn-outline-danger btn-sm rounded-4">

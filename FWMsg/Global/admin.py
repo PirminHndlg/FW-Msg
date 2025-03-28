@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect
 from django.urls import path
 from django.contrib import messages
 from django.utils.html import format_html
-from .models import CustomUser, Feedback, KalenderEvent
+from .models import CustomUser, Feedback, KalenderEvent, PersonCluster
 from FWMsg.celery import send_email_aufgaben_daily
 from simple_history.admin import SimpleHistoryAdmin
 
@@ -13,8 +13,8 @@ class CustomUserAdmin(SimpleHistoryAdmin):
     search_fields = ['user__username', 'user__email']
     actions = ['send_registration_email', 'create_small_image']
     list_filter = [('einmalpasswort', admin.EmptyFieldListFilter)]
-    list_display = ('user', 'org', 'role')
-    list_filter = ('org', 'role')
+    list_display = ('user', 'org')
+    list_filter = ('org',)
 
     def get_urls(self):
         urls = super().get_urls()
@@ -45,6 +45,13 @@ class CustomUserAdmin(SimpleHistoryAdmin):
         extra_context = extra_context or {}
         extra_context['show_send_emails_button'] = True
         return super().changelist_view(request, extra_context=extra_context)
+
+@admin.register(PersonCluster)
+class PersonClusterAdmin(admin.ModelAdmin):
+    list_display = ['name', 'view']
+    search_fields = ['name']
+    list_filter = ['view']
+
 
 @admin.register(Feedback)
 class FeedbackAdmin(admin.ModelAdmin):

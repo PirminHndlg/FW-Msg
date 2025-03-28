@@ -105,43 +105,74 @@
                 {% for object in objects %}
                 <tr data-pk="{{ object.pk }}" {% if object.pk == highlight_id %}id="highlight-row"{% endif %}>
                     {% for field in field_metadata %}
-                    <td data-default="{{ object|get_attribute:field.name|default:'' }}" 
+                    <td data-default="{{ object|get_attribute:field|default:'' }}" 
                         data-field="{{ field.name }}" 
                         class="{% if field.name == 'first_name' %}sticky-left-1{% elif field.name == 'last_name' %}sticky-left-2{% endif %} {% if object.pk == highlight_id %}table-primary{% endif %}">
                         {% if object|is_many_to_many:field.name %}
-                            {% with items=object|get_attribute:field.name %}
+                            {% with items=object|get_attribute:field %}
                             {{ items.all|join:", " }}
                             {% endwith %}
                         {% else %}
                             {% if field.name == 'user' and object.user %}
-                                <a href="{% url 'profil' object.user.pk %}">{{ object.user.username }}</a>
-                            {% elif object|get_field_type:field.name == 'BooleanField' %}
-                            <div class="text-center">
-                                {% if object|get_attribute:field.name %}
-                                <i class="bi bi-check text-white bg-success rounded"></i>
-                                {% endif %}
-                            </div>
-                            {% elif object|get_field_type:field.name == 'CharField' and object|get_attribute:field.name|length == 1 %}
-                                {% if object|has_choices:field.name %}
-                                    {{ object|get_choice_label:field.name|default:'' }}
-                                {% else %}
-                                    <div class="text-center">
-                                        {{ object|get_attribute:field.name|default:'' }}
-                                    </div>
-                                {% endif %}
-                            {% elif object|get_field_type:field.name == 'DateField' or object|get_field_type:field.name == 'DateTimeField' %}
-                                {{ object|get_attribute:field.name|date:"d.m.Y"|default:'' }}
-                            {% elif object|get_field_type:field.name == 'FileField' %}
-                                {% if object|get_attribute:field.name %}
-                                    <i class="bi bi-file-earmark"></i>
-                                {% endif %}
+                                <div class="d-flex align-items-center gap-1">
+                                    <i class="bi bi-person"></i>
+                                    <a href="{% url 'profil' object.user.pk %}">{{ object.user.username }}</a>
+                                </div>
                             {% else %}
-                                {% if object|has_choices:field.name %}
-                                    {{ object|get_choice_label:field.name|default:'' }}
+                            {% with field_type=object|get_field_type:field %}
+                            {% with field_attribute=object|get_attribute:field %}
+                                {% if field_type == 'BooleanField' and field_attribute == 'False' or field_attribute == 'True' %}
+                                <div class="text-center">
+                                    {% if field_attribute == True or field_attribute == 'True' %}
+                                    <i class="bi bi-check text-white bg-success rounded"></i>
+                                    {% else %}
+                                    <i class="bi bi-x text-white bg-danger rounded"></i>
+                                    {% endif %}
+                                </div>
+                                {% elif field_type == 'CharField' and field_attribute|length == 1 %}
+                                    {% if object|has_choices:field %}
+                                        {{ object|get_choice_label:field.name|default:'' }}
+                                    {% else %}
+                                        <div class="text-center">
+                                            {{ field_attribute|default:'' }}
+                                        </div>
+                                    {% endif %}
+                                {% elif field_type == 'DateField' or field_type == 'DateTimeField' %}
+                                    {% if field_attribute%}
+                                        <div class="d-flex align-items-center gap-1">
+                                            <i class="bi bi-calendar"></i>
+                                            {{ field_attribute|date:"d.m.Y"|default:field_attribute }}
+                                        </div>
+                                    {% endif %}
+                                {% elif field_type == 'FileField' %}
+                                    {% if field_attribute %}
+                                        <i class="bi bi-file-earmark"></i>
+                                    {% endif %}
+                                {% elif field_type == 'PhoneNumberField' %}
+                                    {% if field_attribute %}
+                                    <div class="d-flex align-items-center gap-1">
+                                            <i class="bi bi-phone"></i>
+                                            <a href="tel:{{ field_attribute }}">{{ field_attribute }}</a>
+                                        </div>  
+                                    {% endif %}
+                                {% elif field_type == 'EmailField' %}
+                                    {% if field_attribute %}
+                                        <div class="d-flex align-items-center gap-1">
+                                            <i class="bi bi-envelope"></i>
+                                            <a href="mailto:{{ field_attribute }}">{{ field_attribute }}</a>
+                                        </div>
+                                    {% endif %}
                                 {% else %}
-                                    {{ object|get_attribute:field.name|format_text_with_link|safe|default:'' }}
+                                    {% if object|has_choices:field %}
+                                        {{ object|get_choice_label:field|default:'' }}
+                                    {% else %}
+                                        {{ field_attribute|format_text_with_link|safe|default:'' }}
+                                    {% endif %}
                                 {% endif %}
+                            {% endwith %}
+                            {% endwith %}
                             {% endif %}
+
                         {% endif %}
                     </td>
                     {% endfor %}

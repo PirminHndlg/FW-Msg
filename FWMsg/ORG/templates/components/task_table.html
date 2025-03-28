@@ -6,7 +6,7 @@
             {% include "components/task_table_header.html" %}
         </thead>
         <tbody>
-            {% for user, aufgaben in freiwilliger_aufgaben_matrix.items %}
+            {% for user, user_aufgaben in user_aufgaben_matrix.items %}
                 {% include "components/task_table_row.html" %}
             {% endfor %}
             <tr class="h-100"></tr>
