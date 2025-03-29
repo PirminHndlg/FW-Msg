@@ -105,8 +105,8 @@ class PersonCluster(OrgModel):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'Jahrgangstyp'
-        verbose_name_plural = 'Jahrgangstypen'
+        verbose_name = 'Person Cluster'
+        verbose_name_plural = 'Person Cluster'
 
     def __str__(self):
         return self.name
@@ -129,16 +129,13 @@ class CustomUser(OrgModel):
 
         if self.person_cluster.view == 'F':
             from FW.tasks import send_register_email_task
-            from FW.models import Freiwilliger
-            freiwilliger = Freiwilliger.objects.get(user=self.user)
-            send_register_email_task.s(freiwilliger.id).apply_async(countdown=10)
-        elif self.person_cluster.view == 'O':
+            send_register_email_task.s(self.user.id).apply_async(countdown=2)
+        else:
             from ORG.tasks import send_register_email_task
-            send_register_email_task.s(self.id).apply_async(countdown=10)
+            send_register_email_task.s(self.id).apply_async(countdown=2)
 
     def create_small_image(self):
         if self.profil_picture:
-            from FW.models import calculate_small_image
             self.profil_picture = calculate_small_image(self.profil_picture, size=(500, 500))
             self.save()
 
@@ -428,10 +425,7 @@ class DokumentColor(models.Model):
         return self.name
 
 class Referenten(OrgModel):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, blank=True, null=True)
-    email = models.EmailField(verbose_name='E-Mail')
-    phone_work = models.CharField(max_length=20, verbose_name='Telefon Arbeit', null=True, blank=True)
-    phone_mobil = models.CharField(max_length=20, verbose_name='Telefon Mobil', null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
     land = models.ManyToManyField('Einsatzland', verbose_name='Einsatzland', blank=True, null=True)
 
     history = HistoricalRecords()
@@ -445,6 +439,7 @@ class Referenten(OrgModel):
 
 @receiver(post_save, sender=Referenten)
 def create_user(sender, instance, **kwargs):
+    return
     if not instance.user:
         from Global.models import CustomUser
 
@@ -542,7 +537,7 @@ class Attribute(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Attribut')
     type = models.CharField(max_length=1, choices=TYPE_CHOICES, verbose_name='Feldtyp')
     value_for_choices = models.CharField(null=True, blank=True, max_length=250, help_text='Nur für Feldtyp Auswahl, kommagetrennt die Auswahlmöglichkeiten eintragen. Z.B. "Vegan, Vegetarisch, Konventionell" für Attribut "Essen"')
-    person_cluster = models.ForeignKey(PersonCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Person Cluster')
+    person_cluster = models.ManyToManyField(PersonCluster, verbose_name='Person Cluster')
 
     class Meta:
         verbose_name = 'Attribut'
@@ -718,7 +713,7 @@ class Aufgabe(OrgModel):
     faellig_monat = models.IntegerField(blank=True, null=True, verbose_name='Fällig Monat')
     faellig_tage_nach_start = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage nach Einsatzstart')
     faellig_tage_vor_ende = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage vor Einsatzende')
-    person_cluster = models.ForeignKey(PersonCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Person Cluster')
+    person_cluster = models.ForeignKey(PersonCluster, verbose_name='Person Cluster', on_delete=models.CASCADE)
     
     history = HistoricalRecords()
 
@@ -829,7 +824,7 @@ class UserAufgaben(OrgModel):
 
     def send_reminder_email(self):
         from Global.send_email import send_aufgaben_email
-        send_aufgaben_email(self, self.freiwilliger.org)
+        send_aufgaben_email(self, self.user.org)
 
 
     class Meta:

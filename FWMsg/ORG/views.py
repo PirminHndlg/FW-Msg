@@ -464,7 +464,7 @@ def list_object(request, model_name, highlight_id=None):
             default=3
         )
         objects = objects.order_by(faellig_art_order, 'faellig_art', 'faellig_tag', 'faellig_monat', 'faellig_tage_nach_start', 'faellig_tage_vor_ende')
-    elif model._meta.object_name == 'Freiwilliger':
+    elif model._meta.object_name == 'Freiwilliger' or model._meta.object_name == 'Referenten':
         # Initialize empty lists for different field types
         field_metadata = []
         model_fields = []
@@ -771,6 +771,7 @@ def list_aufgaben_table(request, scroll_to=None):
     countries = Einsatzland.objects.filter(org=request.user.org)
 
     context = {
+        'current_person_cluster': get_person_cluster(request),
         'users': users,
         'aufgaben': aufgaben,
         'today': date.today(),

@@ -167,7 +167,7 @@
         {% else %}
         <div class="p-0 m-0">
             <a class="btn btn-sm" 
-                href="{% url 'list_aufgaben_table' %}?u={{user.id}}&a={{user_aufgabe.id}}"
+                href="{% url 'list_aufgaben_table' %}?u={{user.id}}&a={{user_aufgabe}}"
                 data-tooltip="{% trans 'Aufgabe zuweisen' %}">
                 <i class="bi bi-plus-circle"></i>
             </a>

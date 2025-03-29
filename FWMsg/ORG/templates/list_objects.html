@@ -21,14 +21,13 @@
         position: sticky;
         left: 0;
         background: white;
-        width: 150px;
+        width: 120px;
     }
 
     .sticky-left-2 {
         position: sticky;
-        left: var(--left-offset, 150px);
+        left: var(--left-offset, 120px);
         background: white;
-        width: 150px;
     }
 
     /* Ensure sticky columns stay on top */
@@ -94,7 +93,7 @@
             <thead class="sticky-top z-1" style="background: white;">
                 <tr>
                     {% for field in field_metadata %}
-                    <th class="{% if field.name == 'first_name' %}sticky-left-1{% elif field.name == 'last_name' %}sticky-left-2{% endif %}">
+                    <th class="{% if field.name == 'first_name' or field.name == 'user_first_name' %}sticky-left-1{% elif field.name == 'last_name' or field.name == 'user_last_name' %}sticky-left-2{% endif %}">
                         {{ field.verbose_name }}
                     </th>
                     {% endfor %}
@@ -107,7 +106,7 @@
                     {% for field in field_metadata %}
                     <td data-default="{{ object|get_attribute:field|default:'' }}" 
                         data-field="{{ field.name }}" 
-                        class="{% if field.name == 'first_name' %}sticky-left-1{% elif field.name == 'last_name' %}sticky-left-2{% endif %} {% if object.pk == highlight_id %}table-primary{% endif %}">
+                        class="{% if field.name == 'first_name' or field.name == 'user_first_name' %}sticky-left-1{% elif field.name == 'last_name' or field.name == 'user_last_name' %}sticky-left-2{% endif %} {% if object.pk == highlight_id %}table-primary{% endif %}">
                         {% if object|is_many_to_many:field.name %}
                             {% with items=object|get_attribute:field %}
                             {{ items.all|join:", " }}
