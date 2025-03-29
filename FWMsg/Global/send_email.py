@@ -222,14 +222,14 @@ def send_aufgaben_email(aufgabe, org):
         aufgabe_deadline=aufgabe.faellig,
         base64_image=base64_image,
         org_name=org.name,
-        freiwilliger_name=f"{aufgabe.freiwilliger.first_name} {aufgabe.freiwilliger.last_name}",
+        freiwilliger_name=f"{aufgabe.user.first_name} {aufgabe.user.last_name}",
         action_url=action_url,
         aufgabe_beschreibung=aufgabe.aufgabe.beschreibung if aufgabe.aufgabe.beschreibung else ''
     )   
     
     subject = f'Erinnerung: {aufgabe.aufgabe.name}'
     
-    if send_mail_smtp(aufgabe.freiwilliger.email, subject, email_content, reply_to=org.email):
+    if send_mail_smtp(aufgabe.user.email, subject, email_content, reply_to=org.email):
         aufgabe.last_reminder = timezone.now()
         aufgabe.currently_sending = False
         aufgabe.save()
@@ -248,13 +248,13 @@ def send_new_aufgaben_email(aufgaben, org):
         aufgaben=aufgaben,
         base64_image=base64_image,
         org_name=org.name,
-        freiwilliger_name=f"{aufgaben[0].freiwilliger.first_name} {aufgaben[0].freiwilliger.last_name}",
+        freiwilliger_name=f"{aufgaben[0].user.first_name} {aufgaben[0].user.last_name}",
         action_url=action_url
     )
 
     subject = f'Neue Aufgaben: {aufgaben[0].aufgabe.name}... und mehr'
 
-    if send_mail_smtp(aufgaben[0].freiwilliger.email, subject, email_content, reply_to=org.email):
+    if send_mail_smtp(aufgaben[0].user.email, subject, email_content, reply_to=org.email):
         for aufgabe in aufgaben:
             aufgabe.last_reminder = timezone.now()
             aufgabe.currently_sending = False
