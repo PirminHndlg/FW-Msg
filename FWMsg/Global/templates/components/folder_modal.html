@@ -20,7 +20,7 @@
                         <label for="typ" class="form-label">{% trans "Anzeigen für" %}</label>
                         <select class="form-select rounded-4" id="typ" name="typ">
                             <option value="">{% trans "Alle" %}</option>
-                            {% for typ in person_cluster_typen %}
+                            {% for typ in person_clusters %}
                                 <option value="{{ typ.id }}">{{ typ.name }}</option>
                             {% endfor %}
                         </select>
