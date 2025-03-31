@@ -425,7 +425,7 @@ class DokumentColor(models.Model):
         return self.name
 
 class Referenten(OrgModel):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Benutzer:in')
     land = models.ManyToManyField('Einsatzland', verbose_name='Einsatzland', blank=True, null=True)
 
     history = HistoricalRecords()

@@ -56,18 +56,17 @@
                   <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                     <a href="{% url 'list_object' 'freiwilliger' %}" class="dropdown-item">Freiwillige</a>
                     <a href="{% url 'list_object' 'notfallkontakt' %}" class="dropdown-item">Notfallkontakte</a>
-                    <a href="{% url 'list_object' 'attribute' %}" class="dropdown-item">Attribute</a>
+                    <hr class="dropdown-divider" />
+                    <a href="{% url 'list_object' 'referenten' %}" class="dropdown-item">Team</a>
                     <hr class="dropdown-divider" />
                     <a href="{% url 'list_object' 'aufgabe' %}" class="dropdown-item">Aufgaben</a>
                     <a id="useraufgaben_link" href="{% url 'list_object' 'freiwilligeraufgaben' %}" class="dropdown-item">Freiwillige:r Aufgaben</a>
-                    <hr class="dropdown-divider" />
-                    <a href="{% url 'list_object' 'referenten' %}" class="dropdown-item">Team</a>
                     <hr class="dropdown-divider" />
                     <a href="{% url 'list_object' 'einsatzland' %}" class="dropdown-item">Einsatzländer</a>
                     <a href="{% url 'list_object' 'einsatzstelle' %}" class="dropdown-item">Einsatzstellen</a>
                     <hr class="dropdown-divider" />
                     <a href="{% url 'list_object' 'user' %}" class="dropdown-item">Benutzer:innen</a>
-                    <hr class="dropdown-divider" />
+                    <a href="{% url 'list_object' 'attribute' %}" class="dropdown-item">Attribute</a>
                     <a href="{% url 'list_object' 'personcluster' %}" class="dropdown-item">Personencluster</a>
                   </div>
                 </li>
