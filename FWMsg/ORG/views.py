@@ -407,23 +407,7 @@ def edit_object(request, model_name, id):
     return render(request, 'edit_object.html', {'form': form, 'object': model_name})
 
 
-@login_required
-@required_role('O')
-@filter_person_cluster
-def list_object(request, model_name, highlight_id=None):
-    model = get_model(model_name)
-
-    if not model:
-        return HttpResponse(f'Kein Model für {model_name} gefunden')
-
-    # Initialize the filter form
-    filter_form = ORGforms.FilterForm(model, request.GET, request=request)
-    
-    # Start with all objects for this organization
-    objects = model.objects.filter(org=request.user.org)
-
-    error = None
-
+def _check_filter_form(filter_form, model, objects):
     # Apply filters if form is valid
     if filter_form.is_valid():
         # Handle search across all text fields
@@ -462,8 +446,25 @@ def list_object(request, model_name, highlight_id=None):
                 value = filter_form.cleaned_data.get(f'filter_{field.name}')
                 if value:
                     objects = objects.filter(**{field.name: value})
+
+@login_required
+@required_role('O')
+@filter_person_cluster
+def list_object(request, model_name, highlight_id=None):
+    model = get_model(model_name)
+
+    if not model:
+        return HttpResponse(f'Kein Model für {model_name} gefunden')
+
+    # Start with all objects for this organization
+    objects = model.objects.filter(org=request.user.org)
     
-    # Get both regular fields and many-to-many fields
+    # Initialize the filter form
+    filter_form = ORGforms.FilterForm(model, request.GET, request=request)
+    # Apply filters if form is valid
+    _check_filter_form(filter_form, model, objects)
+    
+    error = None
    
     field_metadata = [
         {'name': field.name, 'verbose_name': field.verbose_name}
@@ -472,55 +473,73 @@ def list_object(request, model_name, highlight_id=None):
 
     model_fields = [field.name for field in model._meta.fields]
 
-    if model._meta.object_name == 'Aufgabe':
-        person_cluster = get_person_cluster(request)
+    person_cluster = get_person_cluster(request)
+
+    def check_person_cluster(field_name):
         if person_cluster:
-            objects = objects.filter(person_cluster=person_cluster)
-            if not person_cluster.aufgaben:
-                error = f'{person_cluster.name} hat keine Aufgaben-Funktion aktiviert'
-        faellig_art_order = Case(
-            # When(faellig_art=AufgabenCluster.objects.get(name='Wochenaufgaben').id, then=0),  # Weekly tasks first
-            # When(faellig_art=AufgabenCluster.objects.get(name='Vorher').id, then=1),  # 'Vorher' tasks second
-            # When(faellig_art=AufgabenCluster.objects.get(name='Nachher').id, then=2),  # 'Nachher' tasks third
-            default=3
-        )
-        objects = objects.order_by(faellig_art_order, 'faellig_art', 'faellig_tag', 'faellig_monat', 'faellig_tage_nach_start', 'faellig_tage_vor_ende')
-    elif model._meta.object_name == 'Freiwilliger' or model._meta.object_name == 'Referenten':
-        # Initialize empty lists for different field types
-        field_metadata = []
-        model_fields = []
+            if not getattr(person_cluster, field_name):
+                error = f'{person_cluster.name} hat keine {field_name[0].upper() + field_name[1:].replace("_", " ")}-Funktion aktiviert'
+                return error
+        return None
 
-        # 1. Add user fields first
-        user_fields = [
-            {'name': 'user_first_name', 'verbose_name': 'Vorname', 'type': 'T'},
-            {'name': 'user_last_name', 'verbose_name': 'Nachname', 'type': 'T'},
-            {'name': 'user_email', 'verbose_name': 'Email', 'type': 'E'}
-        ]
-        field_metadata.extend(user_fields)
-        model_fields.extend(['user_first_name', 'user_last_name', 'user_email'])
-        
-        # Annotate user fields
-        objects = objects.annotate(
-            user_first_name=F('user__first_name'),
-            user_last_name=F('user__last_name'),
-            user_email=F('user__email')
-        )
+    def filter_objects(objects, filter_name=None):
+        if person_cluster:
+            if filter_name == 'usr_aufg':
+                objects = objects.filter(aufgabe__person_cluster=person_cluster)
+            else:
+                objects = objects.filter(person_cluster=person_cluster)
+        return objects
 
-        # 2. Add Freiwilliger model fields (except org, id, and user)
-        freiwilliger_fields = [
-            {'name': field.name, 'verbose_name': field.verbose_name}
-            for field in model._meta.fields 
-            if field.name not in ['org', 'id']
-        ]
-        field_metadata.extend(freiwilliger_fields)
-        model_fields.extend([field['name'] for field in freiwilliger_fields])
-
-        # 3. Add UserAttribute fields last
-        person_cluster = person_cluster=get_person_cluster(request)
-        if person_cluster or True:
-            attributes = Attribute.objects.filter(org=request.user.org, person_cluster=person_cluster)
+    def extend_fields(objects, field_metadata, model_fields, fields, position=None):
+        if position == 0:
+            field_metadata[0:0] = fields
+            model_fields[0:0] = [field['name'] for field in fields]
+            objects = objects.annotate(
+                **{field['name']: F(f'user__{field["name"].replace("user_", "")}') for field in fields}
+            )
         else:
-            attributes = Attribute.objects.filter(org=request.user.org)
+            field_metadata.extend(fields)
+            model_fields.extend(field['name'] for field in fields)
+            objects = objects.annotate(
+                **{field['name']: F(f'user__{field["name"].replace("user_", "")}') for field in fields}
+            )
+        return objects
+
+    user_fields = [
+        {'name': 'user_first_name', 'verbose_name': 'Vorname', 'type': 'T'},
+        {'name': 'user_last_name', 'verbose_name': 'Nachname', 'type': 'T'},
+        {'name': 'user_email', 'verbose_name': 'Email', 'type': 'E'}
+    ]    
+
+    if model._meta.object_name == 'Aufgabe':
+        error = check_person_cluster('aufgaben')
+        objects = filter_objects(objects)
+
+        objects = objects.order_by('faellig_art', 'faellig_tag', 'faellig_monat', 'faellig_tage_nach_start', 'faellig_tage_vor_ende')
+    
+    elif model._meta.object_name == 'UserAufgaben':
+        error = check_person_cluster('aufgaben')
+        objects = filter_objects(objects, 'usr_aufg')
+
+    elif model._meta.object_name == 'CustomUser':
+        objects = filter_objects(objects)
+        objects = objects.order_by('user__first_name', 'user__last_name')
+
+        objects = extend_fields(objects, field_metadata, model_fields, user_fields, position=0)
+
+    elif model._meta.object_name == 'Freiwilliger' or model._meta.object_name == 'Referenten':
+        objects = objects.order_by('user__first_name', 'user__last_name')
+        
+        objects = extend_fields(objects, field_metadata, model_fields, user_fields, 0)
+
+        attributes = []
+        if person_cluster:
+            attributes = Attribute.objects.filter(org=request.user.org, person_cluster=person_cluster)
+            if not person_cluster.view == 'F' and model._meta.object_name == 'Freiwilliger':
+                error = f'{person_cluster.name} sind keine Freiwillige'
+            elif not person_cluster.view == 'T' and model._meta.object_name == 'Referenten':
+                error = f'{person_cluster.name} sind keine Teammitglieder'
+
         for attr in attributes:
             field_metadata.append({
                 'name': attr.name,
@@ -709,12 +728,17 @@ def list_aufgaben_table(request, scroll_to=None):
             users = User.objects.filter(id=user_id)
 
         aufgabe = Aufgabe.objects.get(pk=aufgabe_id)
+
+        user_aufgabe = None
         
         for user in users:
             if not user.org == request.user.org or not aufgabe.org == request.user.org:
                 continue
                 
             if aufgabe.person_cluster and user.customuser.person_cluster and not aufgabe.person_cluster == user.customuser.person_cluster:
+                name = f'{user.first_name + " " if user.first_name else ""}{user.last_name + " " if user.last_name else ""}{user.username if not user.first_name and not user.last_name else ""}'
+                message = f'{name} ({user.customuser.person_cluster.name}) hat keine Aufgabe {aufgabe.name}'
+                messages.error(request, message)
                 continue
 
             user_aufgabe, created = UserAufgaben.objects.get_or_create(
