@@ -106,11 +106,26 @@ def filter_person_cluster(view_func):
             
     return _wrapped_view
 
-def get_filtered_user_queryset(request):
+def get_filtered_user_queryset(request, requested_view=None):
     person_cluster = get_person_cluster(request)
     if person_cluster:
-        return User.objects.filter(customuser__person_cluster=person_cluster)
-    return User.objects.filter(customuser__org=request.user.org, customuser__person_cluster__isnull=False)
+        base_filter = {'customuser__person_cluster': person_cluster}
+        
+        if requested_view:
+            view_filter_map = {
+                'aufgaben': 'aufgaben',
+                'calendar': 'calendar', 
+                'dokumente': 'dokumente',
+                'ampel': 'ampel',
+                'notfallkontakt': 'notfallkontakt',
+                'bilder': 'bilder'
+            }
+            
+            if requested_view in view_filter_map:
+                base_filter[f'customuser__person_cluster__{view_filter_map[requested_view]}'] = True
+                
+        return User.objects.filter(**base_filter).order_by('-customuser__person_cluster', 'first_name', 'last_name'), person_cluster
+    return User.objects.filter(customuser__org=request.user.org, customuser__person_cluster__isnull=False).order_by('-customuser__person_cluster', 'first_name', 'last_name'), None
 
 
 def org_context_processor(request):
@@ -130,7 +145,8 @@ allowed_models_to_edit = {
     'notfallkontakt': Notfallkontakt,
     'freiwilligeraufgaben': UserAufgaben,
     'referenten': Referenten,
-    'user': CustomUser
+    'user': CustomUser,
+    'personcluster': PersonCluster
 }
 
 
@@ -406,7 +422,7 @@ def list_object(request, model_name, highlight_id=None):
     # Start with all objects for this organization
     objects = model.objects.filter(org=request.user.org)
 
-    print(objects)
+    error = None
 
     # Apply filters if form is valid
     if filter_form.is_valid():
@@ -457,6 +473,11 @@ def list_object(request, model_name, highlight_id=None):
     model_fields = [field.name for field in model._meta.fields]
 
     if model._meta.object_name == 'Aufgabe':
+        person_cluster = get_person_cluster(request)
+        if person_cluster:
+            objects = objects.filter(person_cluster=person_cluster)
+            if not person_cluster.aufgaben:
+                error = f'{person_cluster.name} hat keine Aufgaben-Funktion aktiviert'
         faellig_art_order = Case(
             # When(faellig_art=AufgabenCluster.objects.get(name='Wochenaufgaben').id, then=0),  # Weekly tasks first
             # When(faellig_art=AufgabenCluster.objects.get(name='Vorher').id, then=1),  # 'Vorher' tasks second
@@ -518,6 +539,13 @@ def list_object(request, model_name, highlight_id=None):
 
         # Order objects by user name
         objects = objects.order_by('user__first_name', 'user__last_name')
+    
+    elif model._meta.object_name == 'Notfallkontakt':
+        person_cluster = get_person_cluster(request)
+        if person_cluster:
+            objects = objects.filter(user__customuser__person_cluster=person_cluster)
+            if not person_cluster.notfallkontakt:
+                error = f'{person_cluster.name} hat keine Notfallkontakt-Funktion aktiviert'
 
     else:
         if 'freiwilliger' in model_fields:
@@ -544,7 +572,8 @@ def list_object(request, model_name, highlight_id=None):
                   'model_name': model_name,
                   'verbose_name': model._meta.verbose_name_plural,
                   'filter_form': filter_form,
-                  'highlight_id': highlight_id})
+                  'highlight_id': highlight_id,
+                  'error': error})
 
 
 @login_required
@@ -599,14 +628,21 @@ def _get_ampel_matrix(request, users):
 @filter_person_cluster
 def list_ampel(request):
     # Base queryset for freiwillige
-    user_qs = get_filtered_user_queryset(request).order_by('-customuser__person_cluster', 'last_name', 'first_name')
-    
-    ampel_matrix, months = _get_ampel_matrix(request, user_qs)
+    user_qs, person_cluster = get_filtered_user_queryset(request, 'ampel')
+    error = None
+
+    if not person_cluster or person_cluster.ampel:
+        ampel_matrix, months = _get_ampel_matrix(request, user_qs)
+    else:
+        ampel_matrix = {}
+        months = []
+        error = f'{person_cluster.name} hat keine Ampel-Funktion aktiviert'
     
     context = {
         'months': months,
         'ampel_matrix': ampel_matrix,
         'current_month': timezone.now().strftime("%b %y"),
+        'error': error
     }
     return render(request, 'list_ampel.html', context=context)
 
@@ -668,7 +704,7 @@ def list_aufgaben_table(request, scroll_to=None):
         aufgabe_id = request.GET.get('a')
 
         if user_id == 'all':
-            users = get_filtered_user_queryset(request)
+            users, person_cluster = get_filtered_user_queryset(request, 'aufgaben')
         else:
             users = User.objects.filter(id=user_id)
 
@@ -726,61 +762,68 @@ def list_aufgaben_table(request, scroll_to=None):
             user_aufgabe.save()
         return redirect('list_aufgaben_table_scroll', scroll_to=user_aufgabe.id)
 
-    users = get_filtered_user_queryset(request).filter(customuser__person_cluster__aufgaben=True).order_by('first_name', 'last_name')
-    aufgaben = Aufgabe.objects.filter(org=request.user.org, person_cluster__aufgaben=True)
+    users, person_cluster = get_filtered_user_queryset(request, 'aufgaben')
 
-    # Apply ordering
-    aufgaben = aufgaben.order_by(
-        'faellig_art',
-        'faellig_monat',
-        'faellig_tag',
-        'faellig_tage_nach_start',
-        'faellig_tage_vor_ende',
-        'name'
-    )
+    if not person_cluster or person_cluster.aufgaben:
+        aufgaben = Aufgabe.objects.filter(org=request.user.org, person_cluster__aufgaben=True)
 
-    # Get filter type from request or cookie
-    filter_type = request.GET.get('f')
-    if not filter_type:
-        filter_type = request.COOKIES.get('filter_aufgaben_table') or 'None'
+        # Apply ordering
+        aufgaben = aufgaben.order_by(
+            'faellig_art',
+            'faellig_monat',
+            'faellig_tag',
+            'faellig_tage_nach_start',
+            'faellig_tage_vor_ende',
+            'name'
+        )
 
-    # Apply filter if provided
-    if filter_type and filter_type != 'None':
-        aufgaben = aufgaben.filter(faellig_art=filter_type)
+        # Get filter type from request or cookie
+        filter_type = request.GET.get('f')
+        if not filter_type:
+            filter_type = request.COOKIES.get('filter_aufgaben_table') or 'None'
 
-    user_aufgaben_matrix = {}
-    for user in users:
-        user_aufgaben_matrix[user] = []
-        for aufgabe in aufgaben:
-            user_aufgaben_exists = UserAufgaben.objects.filter(user=user, aufgabe=aufgabe).exists()
-            if user_aufgaben_exists:
-                user_aufgabe = UserAufgaben.objects.get(user=user, aufgabe=aufgabe)
-                zwischenschritte = UserAufgabenZwischenschritte.objects.filter(user_aufgabe=user_aufgabe)
-                zwischenschritte_count = zwischenschritte.count()
-                zwischenschritte_done_count = zwischenschritte.filter(erledigt=True).count()
-                user_aufgaben_matrix[user].append({
-                    'user_aufgabe': user_aufgabe,
-                    'zwischenschritte': zwischenschritte,
-                    'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
-                    'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
-                })
-            else:
-                user_aufgaben_matrix[user].append(aufgabe.id)
+        # Apply filter if provided
+        if filter_type and filter_type != 'None':
+            aufgaben = aufgaben.filter(faellig_art=filter_type)
 
-    # Get countries for users
-    countries = Einsatzland.objects.filter(org=request.user.org)
+        user_aufgaben_matrix = {}
+        for user in users:
+            user_aufgaben_matrix[user] = []
+            for aufgabe in aufgaben:
+                user_aufgaben_exists = UserAufgaben.objects.filter(user=user, aufgabe=aufgabe).exists()
+                if user_aufgaben_exists:
+                    user_aufgabe = UserAufgaben.objects.get(user=user, aufgabe=aufgabe)
+                    zwischenschritte = UserAufgabenZwischenschritte.objects.filter(user_aufgabe=user_aufgabe)
+                    zwischenschritte_count = zwischenschritte.count()
+                    zwischenschritte_done_count = zwischenschritte.filter(erledigt=True).count()
+                    user_aufgaben_matrix[user].append({
+                        'user_aufgabe': user_aufgabe,
+                        'zwischenschritte': zwischenschritte,
+                        'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
+                        'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
+                    })
+                else:
+                    user_aufgaben_matrix[user].append(aufgabe.id)
 
-    context = {
-        'current_person_cluster': get_person_cluster(request),
-        'users': users,
-        'aufgaben': aufgaben,
-        'today': date.today(),
-        'user_aufgaben_matrix': user_aufgaben_matrix,
-        'aufgaben_cluster': AufgabenCluster.objects.filter(org=request.user.org),
-        'filter': filter_type,
-        'scroll_to': scroll_to,
-        'countries': countries
-    }
+        # Get countries for users
+        countries = Einsatzland.objects.filter(org=request.user.org)
+
+        context = {
+            'current_person_cluster': get_person_cluster(request),
+            'users': users,
+            'aufgaben': aufgaben,
+            'today': date.today(),
+            'user_aufgaben_matrix': user_aufgaben_matrix,
+            'aufgaben_cluster': AufgabenCluster.objects.filter(org=request.user.org),
+            'filter': filter_type,
+            'scroll_to': scroll_to,
+            'countries': countries
+        }
+    
+    else:
+        context = {
+            'error': f'{person_cluster.name} hat keine Aufgaben-Funktion aktiviert'
+        }
 
     # Create response with rendered template
     response = render(request, 'list_aufgaben_table.html', context=context)

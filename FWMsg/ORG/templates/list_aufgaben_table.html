@@ -79,75 +79,82 @@
     {% include 'components/task_legend.html' %}
   </div>
 
-  <div class="card rounded-4">
-    {% include 'components/task_filter.html' %}
-    <div class="card-body p-2">
-      {% include 'components/task_table.html' %}
+  {% if error %}
+    <div class="alert alert-danger" role="alert">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      {{ error }}
     </div>
-  </div>
+  {% else %}
+    <div class="card rounded-4">
+      {% include 'components/task_filter.html' %}
+      <div class="card-body p-2">
+        {% include 'components/task_table.html' %}
+      </div>
+    </div>
 
-  {% include 'components/task_country_modal.html' with countries=countries %}
+    {% include 'components/task_country_modal.html' with countries=countries %}
 
-  <!-- Delete Task Modal -->
-  <div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="deleteTaskModalLabel">{% trans 'Aufgabe löschen' %}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>
-            {% trans 'Die Datei' %} <strong id="deleteTaskFileName"></strong> {% trans 'der Aufgabe' %} <strong id="deleteTaskName"></strong> {% trans 'für' %} <strong id="deleteTaskFreiwilliger"></strong> {% trans 'wirklich löschen?' %}
-          </p>
-          <p class="text-danger">
-            <i class="bi bi-exclamation-triangle-fill"></i> {% trans 'Diese Aktion kann nicht rückgängig gemacht werden!' %}
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Abbrechen' %}</button>
-          <form id="deleteTaskForm" method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="delete_file_of_aufgabe" id="deleteTaskId">
-            <button type="submit" class="btn btn-danger">{% trans 'Löschen' %}</button>
-          </form>
+    <!-- Delete Task Modal -->
+    <div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteTaskModalLabel">{% trans 'Aufgabe löschen' %}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>
+              {% trans 'Die Datei' %} <strong id="deleteTaskFileName"></strong> {% trans 'der Aufgabe' %} <strong id="deleteTaskName"></strong> {% trans 'für' %} <strong id="deleteTaskFreiwilliger"></strong> {% trans 'wirklich löschen?' %}
+            </p>
+            <p class="text-danger">
+              <i class="bi bi-exclamation-triangle-fill"></i> {% trans 'Diese Aktion kann nicht rückgängig gemacht werden!' %}
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Abbrechen' %}</button>
+            <form id="deleteTaskForm" method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="delete_file_of_aufgabe" id="deleteTaskId" />
+              <button type="submit" class="btn btn-danger">{% trans 'Löschen' %}</button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  {% include 'components/task_zwischenschritte_modal.html' %}
+    {% include 'components/task_zwischenschritte_modal.html' %}
 
-  <script>
-    function showDeleteTaskModal(taskId, taskName, taskFileName, freiwilligerName) {
-      const modal = document.getElementById('deleteTaskModal')
-      const taskNameElement = document.getElementById('deleteTaskName')
-      const taskFileNameElement = document.getElementById('deleteTaskFileName')
-      const freiwilligerElement = document.getElementById('deleteTaskFreiwilliger')
-      const deleteTaskId = document.getElementById('deleteTaskId')
-    
-      // Update modal content
-      taskNameElement.textContent = taskName
-      taskFileNameElement.textContent = taskFileName
-      freiwilligerElement.textContent = freiwilligerName
-    
-      deleteTaskId.value = taskId
+    <script>
+      function showDeleteTaskModal(taskId, taskName, taskFileName, freiwilligerName) {
+        const modal = document.getElementById('deleteTaskModal')
+        const taskNameElement = document.getElementById('deleteTaskName')
+        const taskFileNameElement = document.getElementById('deleteTaskFileName')
+        const freiwilligerElement = document.getElementById('deleteTaskFreiwilliger')
+        const deleteTaskId = document.getElementById('deleteTaskId')
       
-      // Show modal
-      const bsModal = new bootstrap.Modal(modal)
-      bsModal.show()
-    }
-    
-    document.addEventListener('DOMContentLoaded', function () {
-      const scrollToElement = document.getElementById('scroll-to')
-      if (scrollToElement) {
-        scrollToElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        // Update modal content
+        taskNameElement.textContent = taskName
+        taskFileNameElement.textContent = taskFileName
+        freiwilligerElement.textContent = freiwilligerName
+      
+        deleteTaskId.value = taskId
+      
+        // Show modal
+        const bsModal = new bootstrap.Modal(modal)
+        bsModal.show()
       }
-    })
-    
-    function setTaskId(taskId, taskName) {
-      document.getElementById('taskIdInput').value = taskId
-      document.getElementById('task_name').innerHTML = taskName
-    }
-  </script>
+      
+      document.addEventListener('DOMContentLoaded', function () {
+        const scrollToElement = document.getElementById('scroll-to')
+        if (scrollToElement) {
+          scrollToElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      })
+      
+      function setTaskId(taskId, taskName) {
+        document.getElementById('taskIdInput').value = taskId
+        document.getElementById('task_name').innerHTML = taskName
+      }
+    </script>
+  {% endif %}
 {% endblock %}

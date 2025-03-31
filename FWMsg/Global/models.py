@@ -100,7 +100,7 @@ class PersonCluster(OrgModel):
     notfallkontakt = models.BooleanField(default=False, verbose_name='Notfallkontakt')
     bilder = models.BooleanField(default=False, verbose_name='Bilder')
 
-    view = models.CharField(max_length=1, choices=view_choices, default='F', verbose_name='Anzeigen')
+    view = models.CharField(max_length=1, choices=view_choices, default='F', verbose_name='Webseitenansicht als')
 
     history = HistoricalRecords()
 
