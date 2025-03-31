@@ -59,8 +59,7 @@
                     <a href="{% url 'list_object' 'attribute' %}" class="dropdown-item">Attribute</a>
                     <hr class="dropdown-divider" />
                     <a href="{% url 'list_object' 'aufgabe' %}" class="dropdown-item">Aufgaben</a>
-                    <a href="{% url 'list_object' 'aufgabenprofil' %}" class="dropdown-item">Aufgabenprofile</a>
-                    <a href="{% url 'list_object' 'freiwilligeraufgaben' %}" class="dropdown-item">Freiwillige:r Aufgaben</a>
+                    <a id="useraufgaben_link" href="{% url 'list_object' 'freiwilligeraufgaben' %}" class="dropdown-item">Freiwillige:r Aufgaben</a>
                     <hr class="dropdown-divider" />
                     <a href="{% url 'list_object' 'referenten' %}" class="dropdown-item">Team</a>
                     <hr class="dropdown-divider" />
@@ -68,6 +67,8 @@
                     <a href="{% url 'list_object' 'einsatzstelle' %}" class="dropdown-item">Einsatzstellen</a>
                     <hr class="dropdown-divider" />
                     <a href="{% url 'list_object' 'user' %}" class="dropdown-item">Benutzer:innen</a>
+                    <hr class="dropdown-divider" />
+                    <a href="{% url 'list_object' 'personcluster' %}" class="dropdown-item">Personencluster</a>
                   </div>
                 </li>
                 <li>
@@ -139,6 +140,7 @@
         const savedPersonClusterName = Cookies.get('selectedPersonClusterName')
         if (savedPersonClusterName) {
           document.getElementById('selectedPersonCluster').textContent = savedPersonClusterName
+          document.getElementById('useraufgaben_link').innerHTML = `${savedPersonClusterName} Aufgaben`
         }
       })
     </script>

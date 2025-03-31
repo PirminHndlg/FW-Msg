@@ -261,7 +261,7 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
                 del self.fields['faellig_art']
                 del self.fields['faellig_tage_nach_start']
                 del self.fields['faellig_tage_vor_ende']
-        
+
 
     def is_valid(self):
         return super().is_valid() and self.zwischenschritte.is_valid()
@@ -363,7 +363,7 @@ class AddUserForm(OrgFormMixin, forms.ModelForm):
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'first_name', 'last_name', 'email', 'einmalpasswort', 'profil_picture']
+        fields = ['username', 'first_name', 'last_name', 'person_cluster', 'email', 'einmalpasswort', 'profil_picture']
         exclude = ['org']
 
     def __init__(self, *args, **kwargs):
@@ -411,11 +411,12 @@ class AddUserForm(OrgFormMixin, forms.ModelForm):
 
 # Define which fields should be filterable for each model
 filterable_fields = {
-    Freiwilliger: ['person_cluster', 'einsatzland', 'entsendeform', 'kirchenzugehoerigkeit'],
+    Freiwilliger: ['person_cluster', 'einsatzland', 'einsatzstelle'],
     Aufgabe: ['faellig_art', 'mitupload'],
     Einsatzstelle: ['einsatzland'],
     Notfallkontakt: ['freiwilliger'],
     UserAufgaben: ['freiwilliger', 'aufgabe', 'erledigt'],
+    CustomUser: ['person_cluster'],
     # Aufgabenprofil: ['aufgaben__aufgabe'],
 }
 
@@ -508,7 +509,12 @@ class AddReferentenForm(OrgFormMixin, forms.ModelForm):
         
         return instance
     
-        
+
+class AddPersonClusterForm(OrgFormMixin, forms.ModelForm):
+    class Meta:
+        model = PersonCluster
+        fields = '__all__'
+        exclude = ['org']
         
 
 model_to_form_mapping = {
@@ -520,5 +526,6 @@ model_to_form_mapping = {
     UserAufgaben: AddFreiwilligerAufgabenForm,
     Referenten: AddReferentenForm,
     CustomUser: AddUserForm,
-    Attribute: AddAttributeForm
+    Attribute: AddAttributeForm,
+    PersonCluster: AddPersonClusterForm
 }

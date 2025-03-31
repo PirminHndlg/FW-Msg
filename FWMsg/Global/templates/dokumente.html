@@ -5,62 +5,67 @@
 {% load i18n %}
 
 {% block head %}
-    <script src="{% static 'js/dokumente.js' %}"></script>
-    <script>
-        let is_org = '{{ user.person_cluster.view|lower }}' == 'o';
-        let ordner_id = '{{ ordner_id }}';
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const accordionCollapses = document.querySelectorAll('.accordion-collapse');
-
-            function handleCollapseShow(collapse) {
-                collapse.querySelectorAll('[data-preview-src]').forEach(img => {
-                    if (!img.src) {
-                        img.src = img.dataset.previewSrc;
-                    }
-                });
-            }
-
-            accordionCollapses.forEach(collapse => {
-                collapse.addEventListener('show.bs.collapse', function() {
-                    handleCollapseShow(this);
-                });
-            });
-
-            if (ordner_id) {
-                const element = document.getElementById('folderAccordion').querySelector(`[data-bs-target="#collapse${ordner_id}"]`);
-                if (element) {
-                    element.click();
-                    setTimeout(() => {
-                        const cardBody = element.closest('.card').querySelector('.card-body');
-                        cardBody.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }, 350);
-                }
-            }
-        });
-    </script>
+  <script src="{% static 'js/dokumente.js' %}"></script>
+  <script>
+    let is_org = '{{ user.person_cluster.view|lower }}' == 'o'
+    let ordner_id = '{{ ordner_id }}'
+    
+    document.addEventListener('DOMContentLoaded', function () {
+      const accordionCollapses = document.querySelectorAll('.accordion-collapse')
+    
+      function handleCollapseShow(collapse) {
+        collapse.querySelectorAll('[data-preview-src]').forEach((img) => {
+          if (!img.src) {
+            img.src = img.dataset.previewSrc
+          }
+        })
+      }
+    
+      accordionCollapses.forEach((collapse) => {
+        collapse.addEventListener('show.bs.collapse', function () {
+          handleCollapseShow(this)
+        })
+      })
+    
+      if (ordner_id) {
+        const element = document.getElementById('folderAccordion').querySelector(`[data-bs-target="#collapse${ordner_id}"]`)
+        if (element) {
+          element.click()
+          setTimeout(() => {
+            const cardBody = element.closest('.card').querySelector('.card-body')
+            cardBody.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }, 350)
+        }
+      }
+    })
+  </script>
 {% endblock %}
 
 {% block headline %}
-    {% trans "Dokumente" %}
+  {% trans 'Dokumente' %}
 {% endblock %}
 
 {% block content %}
-    {% csrf_token %}
+  {% csrf_token %}
+  {% if error %}
+    <div class="alert alert-danger" role="alert">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      {{ error }}
+    </div>
+  {% else %}
     <div class="accordion mb-3" id="folderAccordion">
-        {% for structure in folder_structure %}
-            {% include "components/folder_card.html" %}
-        {% endfor %}
+      {% for structure in folder_structure %}
+        {% include 'components/folder_card.html' %}
+      {% endfor %}
     </div>
 
     <div class="card rounded-4">
-        <div class="card-body">
-            <button class="btn btn-primary w-100 rounded-4" onclick="addOrdner()">
-                <i class="bi bi-folder-plus me-2"></i> {% trans "Neuer Ordner" %}
-            </button>
-        </div>
+      <div class="card-body">
+        <button class="btn btn-primary w-100 rounded-4" onclick="addOrdner()"><i class="bi bi-folder-plus me-2"></i> {% trans 'Neuer Ordner' %}</button>
+      </div>
     </div>
+  {% endif %}
 
-    {% include "components/document_modal.html" %}
-    {% include "components/folder_modal.html" %}
+  {% include 'components/document_modal.html' %}
+  {% include 'components/folder_modal.html' %}
 {% endblock %}

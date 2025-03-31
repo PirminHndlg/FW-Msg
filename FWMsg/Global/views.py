@@ -430,15 +430,22 @@ def dokumente(request, ordner_id=None):
     folder_structure = []
 
     if request.user.customuser.person_cluster.view == 'O':
-        person_cluster_typ = PersonCluster.objects.get(id=request.COOKIES.get('selectedPersonCluster')) if request.COOKIES.get('selectedPersonCluster') else None
+        from ORG.views import get_person_cluster
+        person_cluster_typ = get_person_cluster(request)
     elif request.user.customuser.person_cluster.dokumente:
         person_cluster_typ = request.user.customuser.person_cluster
     else:
         messages.error(request, 'Keine Dokumentenansicht verfügbar')
         return redirect('index_home')
 
+    ordners = []
+    error = None
+
     if person_cluster_typ:
-        ordners = Ordner.objects.filter(org=request.user.org).filter(Q(typ=None) | Q(typ=person_cluster_typ)).order_by('color', 'ordner_name')
+        if person_cluster_typ.dokumente:
+            ordners = Ordner.objects.filter(org=request.user.org).filter(Q(typ=None) | Q(typ=person_cluster_typ)).order_by('color', 'ordner_name')
+        else:
+            error = f'{person_cluster_typ.name} hat keine Dokumenten-Funktion aktiviert'
     else:
         ordners = Ordner.objects.filter(org=request.user.org).order_by('color', 'ordner_name')
     
@@ -454,8 +461,9 @@ def dokumente(request, ordner_id=None):
         'ordners': ordners,
         'folder_structure': folder_structure,
         'ordner_id': ordner_id,
-        'person_clusters': PersonCluster.objects.all().order_by('name'),
-        'colors': colors
+        'person_clusters': PersonCluster.objects.filter(org=request.user.org, dokumente=True).order_by('name'),
+        'colors': colors,
+        'error': error
     }
 
     context = check_organization_context(request, context)

@@ -114,10 +114,9 @@ def class_name(value):
 def has_choices(obj, field):
     """Check if a field has choices defined"""
     try:
-        field = obj._meta.get_field(field.name)
+        field = obj._meta.get_field(field.get('name'))
         return bool(field.choices)
     except:
-        print(field.get('type'))
         if field.get('type'):
             return field.get('type') == 'B'
         return False

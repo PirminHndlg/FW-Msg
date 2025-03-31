@@ -3,23 +3,32 @@
 {% load ampel_tags %}
 {% load i18n %}
 
-{% block title %}{% trans "Ampelmeldungen" %}{% endblock %}
+{% block title %}
+  {% trans 'Ampelmeldungen' %}
+{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="{% static 'css/list_ampel.css' %}">
+  <link rel="stylesheet" href="{% static 'css/list_ampel.css' %}" />
 {% endblock %}
 
 {% block content %}
-<div class="d-flex gap-2 justify-content-between align-items-center flex-wrap">
-    <h2>{% trans "Ampel Übersicht" %}</h2>
-    {% include "components/ampel_legend.html" %}
-</div>
+  <div class="d-flex gap-2 justify-content-between align-items-center flex-wrap">
+    <h2>{% trans 'Ampelübersicht' %}</h2>
+    {% include 'components/ampel_legend.html' %}
+  </div>
 
-<div class="card rounded-4 p-2 pt-0">
-    <div class="card-body p-0">
-        {% include "components/ampel_table.html" %}
+  {% if error %}
+    <div class="alert alert-danger" role="alert">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      {{ error }}
     </div>
-</div>
+  {% else %}
+    <div class="card rounded-4 p-2 pt-0">
+      <div class="card-body p-0">
+        {% include 'components/ampel_table.html' %}
+      </div>
+    </div>
+  {% endif %}
 
-{% include "components/ampel_modal.html" %}
+  {% include 'components/ampel_modal.html' %}
 {% endblock %}
