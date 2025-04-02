@@ -100,7 +100,7 @@ def get_bild(image_path, image_name):
         response['Content-Disposition'] = f'inline; filename="{image_name}"'
         return response
 
-def get_bilder(org, filter_user=None):
+def get_bilder(org, filter_user=None, filter_person_cluster=None):
     """
     Retrieve gallery images, optionally filtered by user.
     
@@ -111,9 +111,14 @@ def get_bilder(org, filter_user=None):
     Returns:
         list: List of dictionaries containing gallery images and their metadata
     """
-    bilder = Bilder.objects.filter(org=org).order_by('-date_created')
-    if filter_user:
-        bilder = bilder.filter(user=filter_user)
+
+    if filter_person_cluster:
+        user_set = User.objects.filter(customuser__person_cluster=filter_person_cluster)
+        bilder = Bilder.objects.filter(org=org, user__in=user_set).order_by('-date_created')
+    elif filter_user:
+        bilder = Bilder.objects.filter(org=org, user=filter_user).order_by('-date_created')
+    else:
+        bilder = Bilder.objects.filter(org=org).order_by('-date_created')
 
     gallery_images = []
     for bild in bilder:
@@ -304,9 +309,28 @@ def serve_dokument(request, dokument_id):
 
 @login_required
 def bilder(request):
-    gallery_images = get_bilder(request.user.org)
+    if not request.user.customuser.person_cluster.bilder:
+        messages.error(request, 'Du hast keine Berechtigung, Bilder anzusehen')
+        return redirect('index_home')
+    
+    error = None
 
-    context={'gallery_images': gallery_images}
+    if request.user.customuser.person_cluster.view == 'O':
+        from ORG.views import get_person_cluster
+        person_cluster = get_person_cluster(request)
+        if person_cluster:
+            if person_cluster.bilder:
+                gallery_images = get_bilder(request.user.org, filter_person_cluster=person_cluster)
+            else:
+                error = f'{person_cluster.name} hat keine Bilder-Funktion aktiviert'
+                gallery_images = []
+        else:
+            gallery_images = get_bilder(request.user.org)
+
+    else:
+        gallery_images = get_bilder(request.user.org)
+
+    context={'gallery_images': gallery_images, 'error': error}
 
     context = check_organization_context(request, context)
 
@@ -314,6 +338,10 @@ def bilder(request):
 
 @login_required
 def bild(request):
+    if not request.user.customuser.person_cluster.bilder:
+        messages.error(request, 'Du hast keine Berechtigung, Bilder hochladen')
+        return redirect('index_home')
+    
     form_errors = None
 
     if request.POST:

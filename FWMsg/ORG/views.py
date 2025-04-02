@@ -107,25 +107,28 @@ def filter_person_cluster(view_func):
     return _wrapped_view
 
 def get_filtered_user_queryset(request, requested_view=None):
+    view_filter_map = {
+            'aufgaben': 'aufgaben',
+            'calendar': 'calendar', 
+            'dokumente': 'dokumente',
+            'ampel': 'ampel',
+            'notfallkontakt': 'notfallkontakt',
+            'bilder': 'bilder'
+        }
+    
+    base_filter = {
+        'customuser__org': request.user.org,
+        'customuser__person_cluster__isnull': False
+    }
+
+    if requested_view and requested_view in view_filter_map:
+        base_filter[f'customuser__person_cluster__{view_filter_map[requested_view]}'] = True
+    
     person_cluster = get_person_cluster(request)
     if person_cluster:
-        base_filter = {'customuser__person_cluster': person_cluster}
+        base_filter['customuser__person_cluster'] = person_cluster
         
-        if requested_view:
-            view_filter_map = {
-                'aufgaben': 'aufgaben',
-                'calendar': 'calendar', 
-                'dokumente': 'dokumente',
-                'ampel': 'ampel',
-                'notfallkontakt': 'notfallkontakt',
-                'bilder': 'bilder'
-            }
-            
-            if requested_view in view_filter_map:
-                base_filter[f'customuser__person_cluster__{view_filter_map[requested_view]}'] = True
-                
-        return User.objects.filter(**base_filter).order_by('-customuser__person_cluster', 'first_name', 'last_name'), person_cluster
-    return User.objects.filter(customuser__org=request.user.org, customuser__person_cluster__isnull=False).order_by('-customuser__person_cluster', 'first_name', 'last_name'), None
+    return User.objects.filter(**base_filter).order_by('-customuser__person_cluster', 'first_name', 'last_name'), person_cluster
 
 
 def org_context_processor(request):
@@ -735,7 +738,7 @@ def list_aufgaben_table(request, scroll_to=None):
             if not user.org == request.user.org or not aufgabe.org == request.user.org:
                 continue
                 
-            if aufgabe.person_cluster and user.customuser.person_cluster and not aufgabe.person_cluster == user.customuser.person_cluster:
+            if aufgabe.person_cluster and user.customuser.person_cluster and not user.customuser.person_cluster in aufgabe.person_cluster.all():
                 name = f'{user.first_name + " " if user.first_name else ""}{user.last_name + " " if user.last_name else ""}{user.username if not user.first_name and not user.last_name else ""}'
                 message = f'{name} ({user.customuser.person_cluster.name}) hat keine Aufgabe {aufgabe.name}'
                 messages.error(request, message)
@@ -789,7 +792,10 @@ def list_aufgaben_table(request, scroll_to=None):
     users, person_cluster = get_filtered_user_queryset(request, 'aufgaben')
 
     if not person_cluster or person_cluster.aufgaben:
-        aufgaben = Aufgabe.objects.filter(org=request.user.org, person_cluster__aufgaben=True)
+        if person_cluster:
+            aufgaben = Aufgabe.objects.filter(org=request.user.org, person_cluster=person_cluster).distinct()
+        else:
+            aufgaben = Aufgabe.objects.filter(org=request.user.org)
 
         # Apply ordering
         aufgaben = aufgaben.order_by(
