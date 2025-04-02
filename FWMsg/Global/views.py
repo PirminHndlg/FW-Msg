@@ -853,7 +853,12 @@ def notfallkontakte(request):
             messages.error(request, 'Fehler beim Hinzufügen des Notfallkontakts')
     form = AddNotfallkontaktForm()
     notfallkontakte = Notfallkontakt.objects.filter(user=request.user)
-    return render(request, 'notfallkontakte.html', context={'form': form, 'notfallkontakte': notfallkontakte})
+    context = {
+        'form': form,
+        'notfallkontakte': notfallkontakte
+    }
+    context = check_organization_context(request, context)
+    return render(request, 'notfallkontakte.html', context=context)
 
 
 @login_required
@@ -880,7 +885,11 @@ def ampel(request):
 
     last_ampel = Ampel.objects.filter(user=request.user).order_by('-date').first()
 
-    return render(request, 'ampel.html', context={'last_ampel': last_ampel})
+    context = {
+        'last_ampel': last_ampel
+    }
+    context = check_organization_context(request, context)
+    return render(request, 'ampel.html', context=context)
 
 
 
@@ -948,6 +957,7 @@ def aufgaben(request):
         'show_confetti': request.GET.get('show_confetti') == 'true',
         'calendar_events': json.dumps(calendar_events)
     }
+    context = check_organization_context(request, context)
     return render(request, 'aufgaben.html', context=context)
 
 
@@ -957,8 +967,13 @@ def aufgabe(request, aufgabe_id):
 
     user_aufgabe_exists = UserAufgaben.objects.filter(id=aufgabe_id).exists()
     if not user_aufgabe_exists:
+        messages.error(request, 'Aufgabe nicht gefunden')
         return redirect('aufgaben')
     user_aufgabe = UserAufgaben.objects.get(id=aufgabe_id)
+
+    if user_aufgabe.user != request.user:
+        messages.error(request, 'Nicht erlaubt')
+        return redirect('aufgaben')
     
     if request.method == 'POST':
         file = request.FILES.get('file')
@@ -995,4 +1010,5 @@ def aufgabe(request, aufgabe_id):
     context = {
         'freiwilliger_aufgabe': user_aufgabe
     }
+    context = check_organization_context(request, context)
     return render(request, 'aufgabe.html', context=context)
