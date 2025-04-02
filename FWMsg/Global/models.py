@@ -426,7 +426,7 @@ class DokumentColor(models.Model):
 
 class Referenten(OrgModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Benutzer:in')
-    land = models.ManyToManyField('Einsatzland', verbose_name='Einsatzland', blank=True, null=True)
+    land = models.ManyToManyField('Einsatzland', verbose_name='Länderzuständigkeit', blank=True, null=True)
 
     history = HistoricalRecords()
 
@@ -713,7 +713,7 @@ class Aufgabe(OrgModel):
     faellig_monat = models.IntegerField(blank=True, null=True, verbose_name='Fällig Monat')
     faellig_tage_nach_start = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage nach Einsatzstart')
     faellig_tage_vor_ende = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage vor Einsatzende')
-    person_cluster = models.ForeignKey(PersonCluster, verbose_name='Person Cluster', on_delete=models.CASCADE)
+    person_cluster = models.ManyToManyField(PersonCluster, verbose_name='Person Cluster')
     
     history = HistoricalRecords()
 

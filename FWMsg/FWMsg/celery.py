@@ -26,12 +26,12 @@ app.conf.timezone = 'Europe/Berlin'
 
 
 def get_faellige_aufgaben():
-    from FW.models import FreiwilligerAufgaben
+    from Global.models import UserAufgaben
     
     current_time = datetime.now()
     reminder_threshold = current_time - timedelta(days=14)
     
-    return FreiwilligerAufgaben.objects.filter(
+    return UserAufgaben.objects.filter(
         erledigt=False,
         pending=False,
         faellig__lt=current_time
@@ -41,9 +41,9 @@ def get_faellige_aufgaben():
 
 
 def get_new_aufgaben():
-    from FW.models import FreiwilligerAufgaben
+    from Global.models import UserAufgaben
     
-    return FreiwilligerAufgaben.objects.filter(
+    return UserAufgaben.objects.filter(
         erledigt=False,
         pending=False,
         last_reminder__isnull=True
@@ -68,22 +68,22 @@ def send_email_aufgaben_daily():
     }
     
     new_aufgaben = get_new_aufgaben()
-    freiwilliger_ids = new_aufgaben.values('freiwilliger').distinct()
-    for freiwilliger_id in freiwilliger_ids:
-        aufgaben = new_aufgaben.filter(freiwilliger_id=freiwilliger_id['freiwilliger'])
+    user_ids = new_aufgaben.values('user').distinct()
+    for user_id in user_ids:
+        aufgaben = new_aufgaben.filter(user_id=user_id['user'])
         if send_new_aufgaben_email(aufgaben, aufgaben[0].aufgabe.org):
-            response_json['new_aufgaben_sent'].append({'aufgaben': [aufgabe.aufgabe.name for aufgabe in aufgaben], 'freiwilliger': aufgaben[0].freiwilliger.first_name})
+            response_json['new_aufgaben_sent'].append({'aufgaben': [aufgabe.aufgabe.name for aufgabe in aufgaben], 'user': aufgaben[0].user.first_name})
         else:
-            response_json['new_aufgaben_failed'].append({'aufgaben': [aufgabe.aufgabe.name for aufgabe in aufgaben], 'freiwilliger': aufgaben[0].freiwilliger.first_name})
+            response_json['new_aufgaben_failed'].append({'aufgaben': [aufgabe.aufgabe.name for aufgabe in aufgaben], 'user': aufgaben[0].user.first_name})
 
 
     faellige_aufgaben = get_faellige_aufgaben()
     start_time = datetime.now()
     for aufgabe in faellige_aufgaben:
         if send_aufgaben_email(aufgabe, aufgabe.aufgabe.org):
-            response_json['aufgaben_sent'].append({'id': aufgabe.id, 'name': aufgabe.aufgabe.name, 'freiwilliger': aufgabe.freiwilliger.first_name})
+            response_json['aufgaben_sent'].append({'id': aufgabe.id, 'name': aufgabe.aufgabe.name, 'user': aufgabe.user.first_name})
         else:
-            response_json['aufgaben_failed'].append({'id': aufgabe.id, 'name': aufgabe.aufgabe.name, 'freiwilliger': aufgabe.freiwilliger.first_name})
+            response_json['aufgaben_failed'].append({'id': aufgabe.id, 'name': aufgabe.aufgabe.name, 'user': aufgabe.user.first_name})
     
     response_json['count'] = len(faellige_aufgaben)
 

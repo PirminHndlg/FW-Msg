@@ -244,24 +244,6 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
         formset_kwargs.pop('request', None)
         self.zwischenschritte = AufgabeZwischenschritteFormSet(*args, **formset_kwargs)
 
-        from ORG.views import get_person_cluster
-
-        person_cluster = get_person_cluster(self.request)
-        if person_cluster:
-            del self.fields['person_cluster']
-            self.fields['person_cluster_display'] = forms.CharField(
-                label='Person Cluster',
-                required=False,
-                widget=forms.TextInput(attrs={'readonly': True, 'class': 'form-control-plaintext fw-bold row w-75 ms-3', 'style': 'display: inline-block;'}),
-                initial=person_cluster,
-                help_text='Kann durch Auswahl oben rechts geändert werden'
-            )
-
-            if person_cluster.view != 'F':
-                del self.fields['faellig_art']
-                del self.fields['faellig_tage_nach_start']
-                del self.fields['faellig_tage_vor_ende']
-
 
     def is_valid(self):
         return super().is_valid() and self.zwischenschritte.is_valid()
@@ -269,7 +251,7 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
     def save(self, commit=True):
         from ORG.views import get_person_cluster
 
-        self.instance.person_cluster = get_person_cluster(self.request)
+        # self.instance.person_cluster = get_person_cluster(self.request)
         instance = super().save(commit=commit)
         if commit:
             self.zwischenschritte.instance = instance
