@@ -19,6 +19,11 @@ urlpatterns = [
     path('profil_picture/', views.update_profil_picture, name='update_profil_picture'),
     path('profil_picture/<int:user_id>', views.serve_profil_picture, name='serve_profil_picture'),
 
+    path('ampel/', views.ampel, name='ampel'),
+    path('aufgaben/', views.aufgaben, name='aufgaben'),
+    path('aufgaben/<int:aufgabe_id>/', views.aufgabe, name='aufgaben_detail'),
+    path('notfallkontakte/', views.notfallkontakte, name='notfallkontakte'),
+
     path('profil/', views.view_profil, name='profil'),
     path('profil/<int:user_id>', views.view_profil, name='profil'),
     path('profil/remove/<int:profil_id>', views.remove_profil_attribut, name='remove_profil_attribut'),
