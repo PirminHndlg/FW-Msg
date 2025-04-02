@@ -15,30 +15,32 @@
     {% include "components/start_counter.html" %}
 
     {# Tasks Section #}
-    <div class="card rounded-4 mb-2">
-        <div class="card-header rounded-4">
-            <a href="{% url 'aufgaben' %}" class="text-decoration-none text-body">
-                <h3 class="mb-0">{% trans "Aufgaben" %} ⟩</h3>
-            </a>
-        </div>
-        <div class="card-body">
-            {% include "components/task_progress.html" with aufgaben=aufgaben %}
-            
-            {% if aufgaben.offen %}
-            {% include "components/task_grid.html" with tasks=aufgaben.offen %}
-            {% else %}
-                <div class="alert alert-success mb-0">
-                    <i class="bi bi-check-circle me-2"></i>{% trans "Keine offenen Aufgaben!" %}
-                </div>
-            {% endif %}
-
-            <div class="text-center mt-3">
-                <a href="{% url 'aufgaben' %}" class="btn btn-secondary btn-sm text-white">
-                    {% trans "Alle Aufgaben anzeigen" %}
+    {% if aufgaben %}
+        <div class="card rounded-4 mb-2">
+            <div class="card-header rounded-4">
+                <a href="{% url 'aufgaben' %}" class="text-decoration-none text-body">
+                    <h3 class="mb-0">{% trans "Aufgaben" %} ⟩</h3>
                 </a>
             </div>
+            <div class="card-body">
+                {% include "components/task_progress.html" with aufgaben=aufgaben %}
+                
+                {% if aufgaben.offen %}
+                {% include "components/task_grid.html" with tasks=aufgaben.offen %}
+                {% else %}
+                    <div class="alert alert-success mb-0">
+                        <i class="bi bi-check-circle me-2"></i>{% trans "Keine offenen Aufgaben!" %}
+                    </div>
+                {% endif %}
+
+                <div class="text-center mt-3">
+                    <a href="{% url 'aufgaben' %}" class="btn btn-secondary btn-sm text-white">
+                        {% trans "Alle Aufgaben anzeigen" %}
+                    </a>
+                </div>
+            </div>
         </div>
-    </div>
+    {% endif %}
 
     {# Images Section #}
     <div class="card rounded-4 mb-2">

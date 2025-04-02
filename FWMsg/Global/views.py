@@ -55,14 +55,15 @@ from .models import (
     Ordner,
     Organisation,
     PersonCluster,
+    Notfallkontakt,
     DokumentColor
 )
 from ORG.views import base_template as org_base_template
 from TEAM.views import base_template as team_base_template
 from FWMsg.celery import send_email_aufgaben_daily
-from FWMsg.decorators import required_role
+from FWMsg.decorators import required_person_cluster
 from .forms import FeedbackForm
-
+from ORG.forms import AddNotfallkontaktForm
 # Utility Functions
 def get_mimetype(doc_path):
     """
@@ -204,6 +205,7 @@ def serve_logo(request, org_id):
     return response
 
 @login_required
+@required_person_cluster('bilder')
 def serve_bilder(request, image_id):
     """
     Serve gallery images.
@@ -228,6 +230,7 @@ def serve_bilder(request, image_id):
     return get_bild(bild.image.path, bild.bilder.titel)
 
 @login_required
+@required_person_cluster('bilder')
 def serve_small_bilder(request, image_id):
     """
     Serve small (thumbnail) versions of gallery images.
@@ -255,6 +258,7 @@ def serve_small_bilder(request, image_id):
     return get_bild(bild.small_image.path, bild.bilder.titel)
 
 @login_required
+@required_person_cluster('dokumente')
 def serve_dokument(request, dokument_id):
     """
     Serve document files with proper content type handling.
@@ -308,6 +312,7 @@ def serve_dokument(request, dokument_id):
         return response
 
 @login_required
+@required_person_cluster('bilder')
 def bilder(request):
     if not request.user.customuser.person_cluster.bilder:
         messages.error(request, 'Du hast keine Berechtigung, Bilder anzusehen')
@@ -337,6 +342,7 @@ def bilder(request):
     return render(request, 'bilder.html', context=context)
 
 @login_required
+@required_person_cluster('bilder')
 def bild(request):
     if not request.user.customuser.person_cluster.bilder:
         messages.error(request, 'Du hast keine Berechtigung, Bilder hochladen')
@@ -393,6 +399,7 @@ def bild(request):
     return render(request, 'bild.html', context=context)
 
 @login_required
+@required_person_cluster('bilder')
 def remove_bild(request):
     gallery_image_id = request.GET.get('galleryImageId', None)
     bild_id = request.GET.get('bildId', None)
@@ -430,6 +437,7 @@ def remove_bild(request):
     return redirect('profil')
 
 @login_required
+@required_person_cluster('bilder')
 def remove_bild_all(request):
     bild_id = request.GET.get('bild_id', None)
     if not bild_id:
@@ -454,6 +462,7 @@ def remove_bild_all(request):
     return redirect('profil')
 
 @login_required
+@required_person_cluster('dokumente')
 def dokumente(request, ordner_id=None):
     folder_structure = []
 
@@ -499,6 +508,7 @@ def dokumente(request, ordner_id=None):
     return render(request, 'dokumente.html', context=context)
 
 @login_required
+@required_person_cluster('dokumente')
 def add_dokument(request):
     if request.method == 'POST':
         dokument_id = request.POST.get('dokument_id')
@@ -540,6 +550,7 @@ def add_dokument(request):
     return redirect('dokumente', ordner_id=dokument.ordner.id)
 
 @login_required
+@required_person_cluster('dokumente')
 def add_ordner(request):
     if request.method == 'POST':
         ordner_id = request.POST.get('ordner_id')
@@ -584,6 +595,7 @@ def add_ordner(request):
     return redirect('dokumente', ordner_id=ordner.id)
 
 @login_required
+@required_person_cluster('dokumente')
 def remove_dokument(request):
     if request.method == 'POST':
         dokument_id = request.POST.get('dokument_id')
@@ -599,6 +611,7 @@ def remove_dokument(request):
     return redirect('dokumente')
 
 @login_required
+@required_person_cluster('dokumente')
 def remove_ordner(request):
     if request.method == 'POST':
         ordner_id = request.POST.get('ordner_id')
@@ -751,6 +764,7 @@ def feedback(request):
     return render(request, 'feedback.html', context=context)
 
 @login_required
+@required_person_cluster('calendar')
 def kalender(request):
     if request.user.customuser.person_cluster.view == 'O':
         person_cluster_typ = PersonCluster.objects.get(id=request.COOKIES.get('selectedPersonCluster')) if request.COOKIES.get('selectedPersonCluster') else None
@@ -769,6 +783,7 @@ def kalender(request):
     return render(request, 'kalender.html', context=context)
 
 @login_required
+@required_person_cluster('calendar')
 def get_calendar_events(request):
     calendar_events = []
     
@@ -822,3 +837,162 @@ def get_calendar_events(request):
         })
             
     return JsonResponse(calendar_events, safe=False)
+
+@login_required
+@required_person_cluster('notfallkontakt')
+def notfallkontakte(request):
+
+    if request.method == 'POST':
+        form = AddNotfallkontaktForm(request.POST)
+        if form.is_valid():
+            form.instance.org = request.user.org
+            form.instance.user = request.user
+            form.save()
+            return redirect('notfallkontakte')
+        else:
+            messages.error(request, 'Fehler beim Hinzufügen des Notfallkontakts')
+    form = AddNotfallkontaktForm()
+    notfallkontakte = Notfallkontakt.objects.filter(user=request.user)
+    return render(request, 'notfallkontakte.html', context={'form': form, 'notfallkontakte': notfallkontakte})
+
+
+@login_required
+@required_person_cluster('ampel')
+def ampel(request):
+
+    ampel = request.POST.get('ampel', None)
+    if ampel and ampel.upper() in ['R', 'G', 'Y']:
+        ampel = ampel.upper()
+        comment = request.POST.get('ampel_comment', None)
+        ampel_object = Ampel.objects.create(
+            user=request.user, 
+            status=ampel, 
+            org=request.user.org,
+            comment=comment
+        )
+        ampel_object.save()
+
+        msg_text = 'Ampel erfolgreich auf ' + (
+            'Grün' if ampel == 'G' else 'Rot' if ampel == 'R' else 'Gelb' if ampel == 'Y' else 'error') + ' gesetzt'
+
+        messages.success(request, msg_text)
+        return redirect('fw_home')
+
+    last_ampel = Ampel.objects.filter(user=request.user).order_by('-date').first()
+
+    return render(request, 'ampel.html', context={'last_ampel': last_ampel})
+
+
+
+@login_required
+@required_person_cluster('aufgaben')
+def aufgaben(request):
+
+    erledigte_aufgaben = UserAufgaben.objects.filter(user=request.user, erledigt=True).order_by(
+        'faellig')
+    offene_aufgaben = UserAufgaben.objects.filter(user=request.user, erledigt=False,
+                                                          pending=False).order_by('faellig')
+    pending_aufgaben = UserAufgaben.objects.filter(user=request.user, erledigt=False,
+                                                           pending=True).order_by('faellig')
+
+    len_erledigt = erledigte_aufgaben.count()
+    len_offen = offene_aufgaben.count()
+    len_pending = pending_aufgaben.count()
+
+    gesamt = len_erledigt + len_offen + len_pending
+
+    # Create calendar events
+    calendar_events = []
+    
+    # Add open tasks (blue)
+    for aufgabe in offene_aufgaben:
+        calendar_events.append({
+            'title': aufgabe.aufgabe.name,
+            'start': aufgabe.faellig.strftime('%Y-%m-%d') if aufgabe.faellig else '',
+            'url': reverse('aufgaben_detail', args=[aufgabe.id]),
+            'backgroundColor': '#0d6efd',
+            'borderColor': '#0d6efd'
+        })
+    
+    # Add pending tasks (yellow)
+    for aufgabe in pending_aufgaben:
+        calendar_events.append({
+            'title': aufgabe.aufgabe.name,
+            'start': aufgabe.faellig.strftime('%Y-%m-%d') if aufgabe.faellig else '',
+            'url': reverse('aufgaben_detail', args=[aufgabe.id]),
+            'backgroundColor': '#ffc107',
+            'borderColor': '#ffc107',
+            'textColor': '#000'
+        })
+    
+    # Add completed tasks (green)
+    for aufgabe in erledigte_aufgaben:
+        calendar_events.append({
+            'title': aufgabe.aufgabe.name,
+            'start': aufgabe.faellig.strftime('%Y-%m-%d') if aufgabe.faellig else '',
+            'url': reverse('aufgaben_detail', args=[aufgabe.id]),
+            'backgroundColor': '#198754',
+            'borderColor': '#198754'
+        })
+
+    context = {
+        'aufgaben_offen': offene_aufgaben,
+        'aufgaben_erledigt': erledigte_aufgaben,
+        'aufgaben_pending': pending_aufgaben,
+        'len_erledigt': len_erledigt,
+        'erledigt_prozent': round(len_erledigt / gesamt * 100) if gesamt > 0 else 0,
+        'len_pending': len_pending,
+        'pending_prozent': round(len_pending / gesamt * 100) if gesamt > 0 else 0,
+        'len_offen': len_offen,
+        'offen_prozent': round(len_offen / gesamt * 100) if gesamt > 0 else 0,
+        'show_confetti': request.GET.get('show_confetti') == 'true',
+        'calendar_events': json.dumps(calendar_events)
+    }
+    return render(request, 'aufgaben.html', context=context)
+
+
+@login_required
+@required_person_cluster('aufgaben')
+def aufgabe(request, aufgabe_id):
+
+    user_aufgabe_exists = UserAufgaben.objects.filter(id=aufgabe_id).exists()
+    if not user_aufgabe_exists:
+        return redirect('aufgaben')
+    user_aufgabe = UserAufgaben.objects.get(id=aufgabe_id)
+    
+    if request.method == 'POST':
+        file = request.FILES.get('file')
+        
+        if file and user_aufgabe.aufgabe.mitupload:
+            user_aufgabe.file = file
+        
+        action = request.POST.get('action')
+        if action == 'unpend':
+            user_aufgabe.pending = False
+            user_aufgabe.erledigt = False
+            user_aufgabe.erledigt_am = None
+        else:  # action == 'pending'
+            if user_aufgabe.aufgabe.requires_submission:
+                user_aufgabe.pending = True
+                user_aufgabe.erledigt = False
+            else:
+                user_aufgabe.pending = False
+                user_aufgabe.erledigt = True
+
+            from ORG.tasks import send_aufgabe_erledigt_email_task
+            send_aufgabe_erledigt_email_task.delay(user_aufgabe.id)
+
+            user_aufgabe.erledigt_am = datetime.now()
+
+
+        user_aufgabe.save()
+        base_url = reverse('aufgaben')
+        if action == 'pending':
+            return redirect(f'{base_url}?show_confetti=true')
+        return redirect(base_url)
+
+
+    context = {
+        'freiwilliger_aufgabe': user_aufgabe
+    }
+    return render(request, 'aufgabe.html', context=context)

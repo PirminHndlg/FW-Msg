@@ -1,26 +1,12 @@
 from datetime import datetime
-import mimetypes
-import os
-import subprocess
-import json
-
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
-from django.conf import settings
-from functools import wraps
-from django.urls import reverse
 from django.utils.translation import gettext as _
-from .forms import BilderForm, BilderGalleryForm#, ProfilUserForm
 from Global.models import (
-    Freiwilliger, Aufgabe, 
-    UserAufgaben, Post, Bilder, CustomUser,
-    BilderGallery, Ampel, ProfilUser, Notfallkontakt, Referenten
+    Freiwilliger, 
+    UserAufgaben, Post,
+    Referenten
 )
-
-from ORG.forms import AddNotfallkontaktForm
 
 from FWMsg.decorators import required_role
 from .templatetags.base_fw_filter import get_auswaeriges_amt_link, format_text_with_link
@@ -32,32 +18,37 @@ from Global.views import get_bilder
 def home(request):
     """Dashboard view showing tasks, images and posts."""
     # Get task statistics
-    task_queryset = UserAufgaben.objects.filter(user=request.user)
+    user_aufgaben = None
+    if request.user.customuser.person_cluster and request.user.customuser.person_cluster.aufgaben:
+        task_queryset = UserAufgaben.objects.filter(user=request.user)
     
-    erledigte_aufgaben = task_queryset.filter(erledigt=True).order_by('faellig')
-    offene_aufgaben = task_queryset.filter(erledigt=False, pending=False).order_by('faellig')
-    pending_aufgaben = task_queryset.filter(erledigt=False, pending=True).order_by('faellig')
+        erledigte_aufgaben = task_queryset.filter(erledigt=True).order_by('faellig')
+        offene_aufgaben = task_queryset.filter(erledigt=False, pending=False).order_by('faellig')
+        pending_aufgaben = task_queryset.filter(erledigt=False, pending=True).order_by('faellig')
 
-    len_erledigt = erledigte_aufgaben.count()
-    len_offen = offene_aufgaben.count() 
-    len_pending = pending_aufgaben.count()
-    gesamt = len_erledigt + len_offen + len_pending
+        len_erledigt = erledigte_aufgaben.count()
+        len_offen = offene_aufgaben.count() 
+        len_pending = pending_aufgaben.count()
+        gesamt = len_erledigt + len_offen + len_pending
 
-    # Calculate percentages safely
-    def safe_percentage(part, total):
-        return round(part / total * 100) if total > 0 else 0
+        # Calculate percentages safely
+        def safe_percentage(part, total):
+            return round(part / total * 100) if total > 0 else 0
 
-    user_aufgaben = {
-        'erledigt': erledigte_aufgaben,
-        'erledigt_prozent': safe_percentage(len_erledigt, gesamt),
-        'pending': pending_aufgaben,
-        'pending_prozent': safe_percentage(len_pending, gesamt),
-        'offen': offene_aufgaben[:3],
-        'offen_prozent': safe_percentage(len_offen, gesamt),
-    }
+        user_aufgaben = {
+            'erledigt': erledigte_aufgaben,
+            'erledigt_prozent': safe_percentage(len_erledigt, gesamt),
+            'pending': pending_aufgaben,
+            'pending_prozent': safe_percentage(len_pending, gesamt),
+            'offen': offene_aufgaben[:3],
+            'offen_prozent': safe_percentage(len_offen, gesamt),
+        }
 
     # Get recent images
-    gallery_images = get_bilder(request.user.org)
+    if request.user.customuser.person_cluster and request.user.customuser.person_cluster.bilder:
+        gallery_images = get_bilder(request.user.org)
+    else:
+        gallery_images = []
 
     freiwilliger = Freiwilliger.objects.get(user=request.user) if Freiwilliger.objects.filter(user=request.user).exists() else None
 
@@ -75,147 +66,6 @@ def home(request):
     }
 
     return render(request, 'home.html', context=context)
-
-
-@login_required
-@required_role('F')
-def ampel(request):
-    ampel = request.POST.get('ampel', None)
-    if ampel and ampel.upper() in ['R', 'G', 'Y']:
-        ampel = ampel.upper()
-        comment = request.POST.get('ampel_comment', None)
-        ampel_object = Ampel.objects.create(
-            user=request.user, 
-            status=ampel, 
-            org=request.user.org,
-            comment=comment
-        )
-        ampel_object.save()
-
-        msg_text = 'Ampel erfolgreich auf ' + (
-            'Grün' if ampel == 'G' else 'Rot' if ampel == 'R' else 'Gelb' if ampel == 'Y' else 'error') + ' gesetzt'
-
-        messages.success(request, msg_text)
-        return redirect('fw_home')
-
-    last_ampel = Ampel.objects.filter(user=request.user).order_by('-date').first()
-
-    return render(request, 'ampel.html', context={'last_ampel': last_ampel})
-
-
-
-@login_required
-@required_role('F')
-def aufgaben(request):
-    erledigte_aufgaben = UserAufgaben.objects.filter(user=request.user, erledigt=True).order_by(
-        'faellig')
-    offene_aufgaben = UserAufgaben.objects.filter(user=request.user, erledigt=False,
-                                                          pending=False).order_by('faellig')
-    pending_aufgaben = UserAufgaben.objects.filter(user=request.user, erledigt=False,
-                                                           pending=True).order_by('faellig')
-
-    len_erledigt = erledigte_aufgaben.count()
-    len_offen = offene_aufgaben.count()
-    len_pending = pending_aufgaben.count()
-
-    gesamt = len_erledigt + len_offen + len_pending
-
-    # Create calendar events
-    calendar_events = []
-    
-    # Add open tasks (blue)
-    for aufgabe in offene_aufgaben:
-        calendar_events.append({
-            'title': aufgabe.aufgabe.name,
-            'start': aufgabe.faellig.strftime('%Y-%m-%d') if aufgabe.faellig else '',
-            'url': reverse('aufgaben_detail', args=[aufgabe.id]),
-            'backgroundColor': '#0d6efd',
-            'borderColor': '#0d6efd'
-        })
-    
-    # Add pending tasks (yellow)
-    for aufgabe in pending_aufgaben:
-        calendar_events.append({
-            'title': aufgabe.aufgabe.name,
-            'start': aufgabe.faellig.strftime('%Y-%m-%d') if aufgabe.faellig else '',
-            'url': reverse('aufgaben_detail', args=[aufgabe.id]),
-            'backgroundColor': '#ffc107',
-            'borderColor': '#ffc107',
-            'textColor': '#000'
-        })
-    
-    # Add completed tasks (green)
-    for aufgabe in erledigte_aufgaben:
-        calendar_events.append({
-            'title': aufgabe.aufgabe.name,
-            'start': aufgabe.faellig.strftime('%Y-%m-%d') if aufgabe.faellig else '',
-            'url': reverse('aufgaben_detail', args=[aufgabe.id]),
-            'backgroundColor': '#198754',
-            'borderColor': '#198754'
-        })
-
-    context = {
-        'aufgaben_offen': offene_aufgaben,
-        'aufgaben_erledigt': erledigte_aufgaben,
-        'aufgaben_pending': pending_aufgaben,
-        'len_erledigt': len_erledigt,
-        'erledigt_prozent': round(len_erledigt / gesamt * 100) if gesamt > 0 else 0,
-        'len_pending': len_pending,
-        'pending_prozent': round(len_pending / gesamt * 100) if gesamt > 0 else 0,
-        'len_offen': len_offen,
-        'offen_prozent': round(len_offen / gesamt * 100) if gesamt > 0 else 0,
-        'show_confetti': request.GET.get('show_confetti') == 'true',
-        'calendar_events': json.dumps(calendar_events)
-    }
-    return render(request, 'aufgaben.html', context=context)
-
-
-@login_required
-@required_role('F')
-def aufgabe(request, aufgabe_id):
-
-    user_aufgabe_exists = UserAufgaben.objects.filter(id=aufgabe_id).exists()
-    if not user_aufgabe_exists:
-        return redirect('aufgaben')
-    user_aufgabe = UserAufgaben.objects.get(id=aufgabe_id)
-    
-    if request.method == 'POST':
-        file = request.FILES.get('file')
-        
-        if file and user_aufgabe.aufgabe.mitupload:
-            user_aufgabe.file = file
-        
-        action = request.POST.get('action')
-        if action == 'unpend':
-            user_aufgabe.pending = False
-            user_aufgabe.erledigt = False
-            user_aufgabe.erledigt_am = None
-        else:  # action == 'pending'
-            if user_aufgabe.aufgabe.requires_submission:
-                user_aufgabe.pending = True
-                user_aufgabe.erledigt = False
-            else:
-                user_aufgabe.pending = False
-                user_aufgabe.erledigt = True
-
-            from ORG.tasks import send_aufgabe_erledigt_email_task
-            send_aufgabe_erledigt_email_task.delay(user_aufgabe.id)
-
-            user_aufgabe.erledigt_am = datetime.now()
-
-
-        user_aufgabe.save()
-        base_url = reverse('aufgaben')
-        if action == 'pending':
-            return redirect(f'{base_url}?show_confetti=true')
-        return redirect(base_url)
-
-
-    context = {
-        'freiwilliger_aufgabe': user_aufgabe
-    }
-    return render(request, 'aufgabe.html', context=context)
-
 
 @login_required
 @required_role('F')
@@ -358,19 +208,3 @@ def laenderinfo(request):
         'general_cards': general_cards
     }
     return render(request, 'laenderinfo.html', context=context)
-
-@login_required
-@required_role('F')
-def notfallkontakte(request):
-    if request.method == 'POST':
-        form = AddNotfallkontaktForm(request.POST)
-        if form.is_valid():
-            form.instance.org = request.user.org
-            form.instance.user = request.user
-            form.save()
-            return redirect('notfallkontakte')
-        else:
-            messages.error(request, 'Fehler beim Hinzufügen des Notfallkontakts')
-    form = AddNotfallkontaktForm()
-    notfallkontakte = Notfallkontakt.objects.filter(user=request.user)
-    return render(request, 'notfallkontakte.html', context={'form': form, 'notfallkontakte': notfallkontakte})
