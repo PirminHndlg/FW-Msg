@@ -21,9 +21,7 @@
             <div class="card-body">
                 {% if gallery_images %}
                     <div class="row g-4">
-
-                        {% include 'bilder_show.html' with gallery_images=gallery_images is_org=True small=True %}
-
+                        {% include 'bilder_show.html' with gallery_images=gallery_images small=True %}
                     </div>
                 {% else %}
                     <div class="text-center py-4">

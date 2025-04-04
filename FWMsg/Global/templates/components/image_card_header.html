@@ -12,11 +12,11 @@
       </div>
     </div>
   </div>
-  {% if is_org or request.user == bild.user %}
+  {% if request.user.customuser.person_cluster.view == 'O' or request.user == bild.user %}
     <div class="d-flex justify-content-end mt-2">
       <div class="btn-group">
         <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#deleteBildModal-{{ bild.id }}" data-tooltip="{% trans 'Löschen' %}"><i class="bi bi-trash"></i></button>
-        {% if is_org %}
+        {% if request.user.customuser.person_cluster.view == 'O' %}
           <a href="{% url 'download_bild_as_zip' bild.id %}" download class="btn btn-sm btn-outline-primary d-flex align-items-center" data-tooltip="{% trans 'Download' %}"><i class="bi bi-download"></i></a>
         {% endif %}
       </div>

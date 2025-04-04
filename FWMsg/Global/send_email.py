@@ -212,6 +212,9 @@ def get_logo_base64(org):
     return base64_image
 
 def send_aufgaben_email(aufgabe, org):
+    if not aufgabe.user.customuser.mail_notifications:
+        return False
+    
     # Get the organization logo URL
     action_url = 'https://volunteer.solutions/fw/aufgaben/' + str(aufgabe.aufgabe.id) + "/"
     

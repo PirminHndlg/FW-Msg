@@ -60,6 +60,7 @@ from .models import (
 )
 from ORG.views import base_template as org_base_template
 from TEAM.views import base_template as team_base_template
+from FW.views import base_template as fw_base_template
 from FWMsg.celery import send_email_aufgaben_daily
 from FWMsg.decorators import required_person_cluster
 from .forms import FeedbackForm
@@ -156,6 +157,11 @@ def check_organization_context(request, context=None):
         context.update({
             'extends_base': team_base_template,
             'is_team': True
+        })
+    elif request.user.customuser.person_cluster.view == 'F':
+        context.update({
+            'extends_base': fw_base_template,
+            'is_freiwilliger': True
         })
 
     return context
@@ -657,9 +663,30 @@ def serve_profil_picture(request, user_id):
 
     return get_bild(requested_user.customuser.profil_picture.path, requested_user.customuser.profil_picture.name)
 
+
+def unsubscribe_mail_notifications(request, user_id, auth_key):
+    try:
+        custom_user = CustomUser.objects.get(user=user_id)
+
+        if custom_user.mail_notifications_unsubscribe_auth_key == auth_key or custom_user.mail_notifications_unsubscribe_auth_key == None:
+            if request.GET.get('value') == 'false':
+                custom_user.mail_notifications = False
+            else:
+                custom_user.mail_notifications = True
+            custom_user.save()
+            messages.success(request, 'Mail-Benachrichtigungen wurden deaktiviert')
+        else:
+            messages.error(request, 'Ungültige Abmelde-URL')
+        
+        if not request.user.is_authenticated:
+            login(request, custom_user.user)
+
+    except CustomUser.DoesNotExist:
+        messages.error(request, 'Benutzer nicht gefunden')
+    return redirect('index_home')
+
 @login_required
 def view_profil(request, user_id=None):
-
     if request.POST:
         attribut = request.POST.get('attribut')
         value = request.POST.get('value')
