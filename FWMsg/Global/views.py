@@ -28,6 +28,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.contrib.auth.models import User
+from django.contrib.auth import login
 from django.conf import settings
 from django.http import (
     HttpResponseRedirect, 
@@ -668,17 +669,18 @@ def unsubscribe_mail_notifications(request, user_id, auth_key):
     try:
         custom_user = CustomUser.objects.get(user=user_id)
 
-        if custom_user.mail_notifications_unsubscribe_auth_key == auth_key or custom_user.mail_notifications_unsubscribe_auth_key == None:
+        if custom_user.mail_notifications_unsubscribe_auth_key == auth_key or request.user.id == user_id:
             if request.GET.get('value') == 'false':
                 custom_user.mail_notifications = False
+                messages.success(request, 'Mail-Benachrichtigungen wurden deaktiviert')
             else:
                 custom_user.mail_notifications = True
+                messages.success(request, 'Mail-Benachrichtigungen wurden aktiviert')
             custom_user.save()
-            messages.success(request, 'Mail-Benachrichtigungen wurden deaktiviert')
         else:
             messages.error(request, 'Ungültige Abmelde-URL')
         
-        if not request.user.is_authenticated:
+        if not request.user.is_authenticgated:
             login(request, custom_user.user)
 
     except CustomUser.DoesNotExist:
