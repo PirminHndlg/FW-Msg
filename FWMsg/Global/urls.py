@@ -27,6 +27,7 @@ urlpatterns = [
     path('profil/', views.view_profil, name='profil'),
     path('profil/<int:user_id>', views.view_profil, name='profil'),
     path('profil/remove/<int:profil_id>', views.remove_profil_attribut, name='remove_profil_attribut'),
+    path('unsubscribe_mail_notifications/<int:user_id>/<str:auth_key>', views.unsubscribe_mail_notifications, name='unsubscribe_mail_notifications'),
 
     path('feedback/', views.feedback, name='feedback'),
 

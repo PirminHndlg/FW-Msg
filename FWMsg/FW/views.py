@@ -11,12 +11,15 @@ from Global.models import (
 from FWMsg.decorators import required_role
 from .templatetags.base_fw_filter import get_auswaeriges_amt_link, format_text_with_link
 
-from Global.views import get_bilder
+
+base_template = 'baseFw.html'
 
 @login_required
 @required_role('F')
 def home(request):
     """Dashboard view showing tasks, images and posts."""
+    from Global.views import get_bilder
+    
     # Get task statistics
     user_aufgaben = None
     if request.user.customuser.person_cluster and request.user.customuser.person_cluster.aufgaben:

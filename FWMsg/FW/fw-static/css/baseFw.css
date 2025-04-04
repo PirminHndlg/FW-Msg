@@ -141,24 +141,3 @@ p {
     margin: 2px 0;
     color: var(--text_color);
 }
-
-a {
-
-}
-
-a:link {
-    color: var(--color);
-    text-decoration: none;
-}
-
-a:visited {
-    color: var(--color);
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
-a:active {
-    color: var(--secondary_color);
-}

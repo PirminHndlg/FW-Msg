@@ -118,6 +118,9 @@ class CustomUser(OrgModel):
     profil_picture = models.ImageField(upload_to='profil_picture/', blank=True, null=True, verbose_name='Profilbild')
     geburtsdatum = models.DateField(blank=True, null=True, verbose_name='Geburtsdatum')
 
+    mail_notifications = models.BooleanField(default=True, verbose_name='Mail-Benachrichtigungen')
+    mail_notifications_unsubscribe_auth_key = models.CharField(max_length=255, blank=True, null=True, verbose_name='Mail-Benachrichtigung Abmelde-Key')
+
     einmalpasswort = models.CharField(max_length=20, blank=True, null=True, verbose_name='Einmalpasswort', help_text='Wird automatisch erzeugt, wenn leer')
 
     history = HistoricalRecords()
