@@ -1,0 +1,65 @@
+{% load base_fw_filter %}
+
+<div class="card h-100 border-0 rounded-4 shadow-sm position-relative overflow-hidden">
+    <div class="position-absolute bg-primary opacity-10" style="height: 60px; width: 100%; top: 0; left: 0;"></div>
+    <div class="card-body position-relative p-3">
+        <div class="mb-3">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary rounded-circle text-white d-flex justify-content-center align-items-center me-2" style="width: 42px; height: 42px; flex-shrink: 0;">
+                    <i class="bi bi-person-rolodex fs-5"></i>
+                </div>
+                <h5 class="mb-0 text-on-org-color">{{ contact.name }}</h5>
+            </div>
+        </div>
+        
+        <div class="contact-details">
+            {% if contact.telephone %}
+                <div class="d-flex align-items-start mb-2">
+                    <div class="bg-light rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px; flex-shrink: 0;">
+                        <i class="bi bi-telephone text-primary"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Telefon</small>
+                        <a href="tel:{{ contact.telephone }}" class="text-decoration-none text-body">
+                            {{ contact.telephone }}
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if contact.mobile %}
+                <div class="d-flex align-items-start mb-2">
+                    <div class="bg-light rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px; flex-shrink: 0;">
+                        <i class="bi bi-phone text-primary"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Mobiltelefon</small>
+                        <a href="tel:{{ contact.mobile }}" class="text-decoration-none text-body">
+                            {{ contact.mobile }}
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if contact.email %}
+                <div class="d-flex align-items-start">
+                    <div class="bg-light rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px; flex-shrink: 0;">
+                        <i class="bi bi-envelope text-primary"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">E-Mail</small>
+                        <a href="mailto:{{ contact.email }}" class="text-decoration-none text-body text-truncate d-block" style="max-width: 190px;">
+                            {{ contact.email }}
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if not contact.telephone and not contact.mobile and not contact.email %}
+                <div class="text-muted text-center py-2">
+                    <i class="bi bi-info-circle me-2"></i>Keine Kontaktdaten verfügbar
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div> 

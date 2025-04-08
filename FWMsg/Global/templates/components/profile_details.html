@@ -6,7 +6,9 @@
     {% if freiwilliger %}
         {% if this_user %}
             <div class="d-flex justify-content-between gap-2 mb-2 align-items-center">
-                <p class="mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ freiwilliger.geburtsdatum|date:"d.m.Y" }}</p>
+                {% if freiwilliger.geburtsdatum %}
+                    <p class="mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ freiwilliger.geburtsdatum|date:"d.m.Y" }}</p>
+                {% endif %}
                 <a href="mailto:{{ user.org.email|default:'' }}" class="btn btn-sm"><i class="bi bi-envelope-fill me-1"></i>{% trans "Änderungen melden" %}</a>
             </div>
             <p class="mb-2"><strong>{% trans "Telefon" %}:</strong> {{ freiwilliger.phone|default:"" }}</p>
