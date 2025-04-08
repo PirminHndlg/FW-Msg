@@ -21,9 +21,11 @@ def get_attribute(obj, field):
             except ValueError:
                 return attr
         return attr
-    elif hasattr(obj, 'get_%s_display' % field.get('name')):
-        print('2', getattr(obj, 'get_%s_display' % field.get('name'))())
-        return getattr(obj, 'get_%s_display' % field.name)()
+    elif hasattr(obj, 'get_%s_display' % field.get('name').replace(' ', '_')):
+        return getattr(obj, 'get_%s_display' % field.get('name').replace(' ', '_'))()
+    elif hasattr(obj, field.get('name').replace(' ', '_')):
+        return getattr(obj, field.get('name').replace(' ', '_'))
+    
     return None
 
 @register.filter

@@ -127,6 +127,7 @@
                             {% else %}
                             {% with field_type=object|get_field_type:field %}
                             {% with field_attribute=object|get_attribute:field %}
+
                                 {% if field_type == 'BooleanField' %}
                                 <div class="text-center">
                                     {% if field_attribute == True or field_attribute == 'True' %}
@@ -156,14 +157,14 @@
                                     {% endif %}
                                 {% elif field_type == 'PhoneNumberField' %}
                                     {% if field_attribute %}
-                                    <div class="d-flex align-items-center gap-1">
+                                    <div class="d-flex align-items-center gap-1 text-nowrap">
                                             <i class="bi bi-phone"></i>
                                             <a href="tel:{{ field_attribute }}">{{ field_attribute }}</a>
                                         </div>  
                                     {% endif %}
                                 {% elif field_type == 'EmailField' %}
                                     {% if field_attribute %}
-                                        <div class="d-flex align-items-center gap-1">
+                                        <div class="d-flex align-items-center gap-1 text-nowrap">
                                             <i class="bi bi-envelope"></i>
                                             <a href="mailto:{{ field_attribute }}">{{ field_attribute }}</a>
                                         </div>
@@ -191,7 +192,7 @@
                             {% if model_name == 'user' %}
                             {% csrf_token %}
                             <button type="button" id="sendRegistrationMailButton-{{ object.pk }}"
-                                    class="btn btn-sm btn-outline-info"
+                                    class="btn btn-sm btn-outline-info d-flex align-items-center gap-1"
                                     onclick="sendRegistrationMail({{ object.pk }})"
                                     data-bs-toggle="tooltip"
                                     title="{% trans 'Send Registration Mail' %}">

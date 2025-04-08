@@ -1,37 +1,74 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.contrib.auth.models import User
-from .forms import PasswordResetForm
+from .forms import PasswordResetForm, EmailAuthenticationForm
+from django.contrib.auth import get_user_model
+import re
 
 def index(request):
+    def redirect_to_home(user):
+        if user.customuser.person_cluster.view == 'O':
+            return redirect('org_home')
+        elif user.customuser.person_cluster.view == 'T':
+            return redirect('team_home')
+        elif user.customuser.person_cluster.view == 'F':
+            return redirect('fw_home')
+        else:
+            messages.error(request, _('Ungültige Personengruppe.'))
+            return redirect('index')
+        
+    def is_email(value):
+        """
+        Check if the given value is an email address.
+        
+        Args:
+            value (str): The string to check
+            
+        Returns:
+            bool: True if the value is an email address, False otherwise
+        """
+        email_pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+        return bool(re.match(email_pattern, value))
+    
+    # Handle login form
+    form = EmailAuthenticationForm()
+    if request.method == 'POST':
+        form = EmailAuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+
+            # Try to authenticate with the provided credentials
+            user = None
+            
+            # First check if input is an email
+            if is_email(username):
+                try:
+                    # Get the user by email
+                    email_user = get_user_model().objects.get(email=username)
+                    # Then authenticate with the username and password
+                    user = authenticate(username=email_user.username, password=password)
+                except get_user_model().DoesNotExist:
+                    user = None
+            else:
+                # Standard username authentication
+                user = authenticate(username=username, password=password)
+
+            if user is not None:
+                login(request, user)
+                return redirect_to_home(user)
+            else:
+                # Add non-field error if authentication fails
+                messages.error(request, _('Ungültiger Benutzername oder Passwort.'))
+                return redirect('index')
+    
     # Redirect if user is already authenticated
     if request.path != '/index':
         if request.user.is_authenticated and hasattr(request.user, 'customuser'):
-            if request.user.customuser.person_cluster.view == 'O':
-                return redirect('org_home')
-            elif request.user.customuser.person_cluster.view == 'T':
-                return redirect('team_home')
-            return redirect('fw_home')
-
-    # Handle login form
-    form = AuthenticationForm()
-    if request.method == 'POST':
-        form_login = AuthenticationForm(request, data=request.POST)
-        if form_login.is_valid():
-            username = form_login.cleaned_data.get('username')
-            password = form_login.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                # Redirect based on user type
-                if hasattr(user, 'org'):
-                    return redirect('org_home')
-                return redirect('fw_home')
-            else:
-                messages.error(request, _('Ungültiger Benutzername oder Passwort.'))
+            return redirect_to_home(request.user)
 
     return render(request, 'index.html', {'form': form})
 

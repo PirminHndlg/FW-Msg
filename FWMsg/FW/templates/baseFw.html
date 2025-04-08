@@ -43,8 +43,8 @@
 
     <!-- Mobile Navigation Collapse Content -->
     <div class="collapse bg-primary d-lg-none" id="mobileNavContent">
-      <div class="container-fluid py-3">
-        <ul class="nav flex-column text-white">
+      <div class="container-fluid py-3 d-flex justify-content-between align-items-start">
+        <ul class="nav flex-column text-on-org-color mt-0">
           {% if user.customuser.person_cluster.ampel %}
             <li class="nav-item">
               <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'ampel' %}"><i class="bi bi-circle-fill me-1"></i>{% trans 'Ampelmeldung' %}</a>
@@ -65,49 +65,56 @@
           {% endif %}
         </ul>
         <!-- Language Selector -->
-        <div class="dropdown">
-          <button class="btn btn-link nav-link dropdown-toggle text-on-org-color p-0" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            {% get_current_language as CURRENT_LANGUAGE %}
-            <span class="fi fi-{% if CURRENT_LANGUAGE == 'de' %}
-                de
-              {% else %}
-                gb
-              {% endif %}">
-
-            </span>
-            {% if CURRENT_LANGUAGE == 'de' %}
-              {% trans 'Deutsch' %}
-            {% else %}
-              {% trans 'English' %}(Beta)
-            {% endif %}
-          </button>
-
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
-            <form action="{% url 'set_language' %}" method="post" id="language-form">
-              {% csrf_token %}
-              <input type="hidden" name="next" value="{{ request.path }}" />
-
-              {% get_available_languages as LANGUAGES %}
-              {% for lang_code, lang_name in LANGUAGES %}
-                <li>
-                  <button type="submit" name="language" value="{{ lang_code }}" class="dropdown-item {% if CURRENT_LANGUAGE == lang_code %}active{% endif %}">
-                    <span class="fi fi-{% if lang_code == 'de' %}
-                        de
-                      {% else %}
-                        gb
-                      {% endif %}">
-
-                    </span>
-                    {% if lang_code == 'de' %}
-                      {% trans 'Deutsch' %}
-                    {% else %}
-                      {% trans 'English' %}(Beta)
-                    {% endif %}
-                  </button>
-                </li>
-              {% endfor %}
-            </form>
+        <div class="">
+          <ul class="nav flex-column text-on-org-color mt-0">
+            <li class="nav-item">
+              <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'datenschutz' %}"><i class="bi bi-file-earmark-text me-1"></i>{% trans 'Datenschutz' %}</a>
+            </li>
           </ul>
+          <div class="dropdown m-2">
+            <button class="btn btn-link nav-link dropdown-toggle text-on-org-color p-0" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              {% get_current_language as CURRENT_LANGUAGE %}
+              <span class="fi {% if CURRENT_LANGUAGE == 'de' %}
+                  fi-de
+                {% else %}
+                  fi-gb
+                {% endif %}">
+
+              </span>
+              {% if CURRENT_LANGUAGE == 'de' %}
+                {% trans 'Deutsch' %}
+              {% else %}
+                {% trans 'English' %}(Beta)
+              {% endif %}
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+              <form action="{% url 'set_language' %}" method="post" id="language-form">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}" />
+
+                {% get_available_languages as LANGUAGES %}
+                {% for lang_code, lang_name in LANGUAGES %}
+                  <li>
+                    <button type="submit" name="language" value="{{ lang_code }}" class="dropdown-item {% if CURRENT_LANGUAGE == lang_code %}active{% endif %}">
+                      <span class="fi {% if lang_code == 'de' %}
+                          fi-de
+                        {% else %}
+                          fi-gb
+                        {% endif %}">
+
+                      </span>
+                      {% if lang_code == 'de' %}
+                        {% trans 'Deutsch' %}
+                      {% else %}
+                        {% trans 'English' %}(Beta)
+                      {% endif %}
+                    </button>
+                  </li>
+                {% endfor %}
+              </form>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -127,53 +134,53 @@
           <div class="overflow-y-auto overflow-x-hidden flex-grow-1" style="min-height: 0;">
             <ul class="nav flex-column gap-2">
               <li class="nav-item">
-                <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'fw_home' %}"><i class="bi bi-house"></i> {% trans 'Home' %}</a>
+                <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'fw_home' %}"><i class="bi bi-house me-1"></i>{% trans 'Home' %}</a>
               </li>
               {% if user.customuser.person_cluster.aufgaben %}
                 <li class="nav-item">
-                  <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'aufgaben' %}"><i class="bi bi-list-check"></i> {% trans 'Aufgaben' %}</a>
+                  <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'aufgaben' %}"><i class="bi bi-list-check me-1"></i>{% trans 'Aufgaben' %}</a>
                 </li>
               {% endif %}
               {% if user.customuser.person_cluster.calendar %}
                 <li class="nav-item">
-                  <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'kalender' %}"><i class="bi bi-calendar-date"></i> {% trans 'Kalender' %}</a>
+                  <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'kalender' %}"><i class="bi bi-calendar-date me-1"></i>{% trans 'Kalender' %}</a>
                 </li>
               {% endif %}
               {% if user.customuser.person_cluster.bilder %}
                 <li class="nav-item">
-                  <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'bilder' %}"><i class="bi bi-image"></i> {% trans 'Bilder' %}</a>
+                  <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'bilder' %}"><i class="bi bi-image me-1"></i>{% trans 'Bilder' %}</a>
                 </li>
               {% endif %}
               {% if user.customuser.person_cluster.dokumente %}
                 <li class="nav-item">
-                  <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'dokumente' %}"><i class="bi bi-file-earmark-text"></i> {% trans 'Dokumente' %}</a>
+                  <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'dokumente' %}"><i class="bi bi-file-earmark-text me-1"></i>{% trans 'Dokumente' %}</a>
                 </li>
               {% endif %}
               {% if user.customuser.person_cluster.ampel %}
                 <li class="nav-item">
-                  <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'ampel' %}"><i class="bi bi-circle-fill"></i> {% trans 'Ampelmeldung' %}</a>
+                  <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'ampel' %}"><i class="bi bi-circle-fill me-1"></i>{% trans 'Ampelmeldung' %}</a>
                 </li>
               {% endif %}
               <li class="nav-item">
-                <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'laenderinfo' %}"><i class="bi bi-people me-1"></i> {% trans 'Mein Einsatzland' %}</a>
+                <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'laenderinfo' %}"><i class="bi bi-people me-1"></i>{% trans 'Mein Einsatzland' %}</a>
               </li>
               {% if user.customuser.person_cluster.notfallkontakt %}
                 <li class="nav-item">
-                  <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'notfallkontakte' %}"><i class="bi bi-person-rolodex"></i> {% trans 'Notfallkontakte' %}</a>
+                  <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'notfallkontakte' %}"><i class="bi bi-person-rolodex me-1"></i>{% trans 'Notfallkontakte' %}</a>
                 </li>
               {% endif %}
               <li class="nav-item">
-                <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'profil' %}"><i class="bi bi-person"></i> {% trans 'Profil' %}</a>
+                <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'profil' %}"><i class="bi bi-person me-1"></i>{% trans 'Profil' %}</a>
               </li>
               <li class="nav-item" style="z-index: 9999;">
                 <button class="btn btn-link nav-link dropdown-toggle text-on-org-color p-0" type="button" id="moreDropdown" data-bs-toggle="dropdown" aria-expanded="false">{% trans 'Mehr' %}</button>
 
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreDropdown">
                   <li>
-                    <a class="dropdown-item" href="{% url 'datenschutz' %}"><i class="bi bi-file-earmark-text"></i> {% trans 'Datenschutz' %}</a>
+                    <a class="dropdown-item" href="{% url 'datenschutz' %}"><i class="bi bi-file-earmark-text me-1"></i>{% trans 'Datenschutz' %}</a>
                   </li>
                   <li>
-                    <a class="dropdown-item" href="{% url 'feedback' %}"><i class="bi bi-chat-dots"></i> {% trans 'Feedback' %}</a>
+                    <a class="dropdown-item" href="{% url 'feedback' %}"><i class="bi bi-chat-dots me-1"></i>{% trans 'Feedback' %}</a>
                   </li>
                 </ul>
               </li>

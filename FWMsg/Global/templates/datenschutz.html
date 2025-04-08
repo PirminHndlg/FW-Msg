@@ -101,9 +101,39 @@
             border-radius: 0.5rem;
             margin: 1.5rem 0;
         }
+        .home-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bs-primary);
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .home-button:hover {
+            background-color: #0b5ed7;
+            transform: scale(1.05);
+            color: white;
+        }
+        .home-button i {
+            font-size: 1.5rem;
+        }
     </style>
 </head>
 <body>
+    <!-- Home Button -->
+    <a href="{% url 'index_home' %}" class="home-button" title="Zurück zur Startseite">
+        <i class="bi bi-house-fill"></i>
+    </a>
+    
     <div class="container">
         <div class="privacy-content">
             <h1>Datenschutzerklärung</h1>

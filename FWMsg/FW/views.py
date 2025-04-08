@@ -87,18 +87,18 @@ def laenderinfo(request):
                 {'icon': 'telephone-fill', 'value': freiwilliger.org.telefon},
                 {'icon': 'globe', 'type': 'link', 'value': freiwilliger.org.website, 'url': freiwilliger.org.website, 'external': True} if freiwilliger.org.website else None,
                 {'icon': 'envelope-fill', 'type': 'email', 'value': freiwilliger.org.email},
-                {'icon': 'file-earmark-text-fill', 'value': freiwilliger.entsendeform.name if hasattr(freiwilliger, 'entsendeform') and freiwilliger.entsendeform else None, 'label': 'Entsendeform'}
+                # {'icon': 'file-earmark-text-fill', 'value': freiwilliger.entsendeform.name if hasattr(freiwilliger, 'entsendeform') and freiwilliger.entsendeform else None, 'label': 'Entsendeform'}
             ]
         })
 
     # Add referent cards
     for referent in referenten:
         org_cards.append({
-            'title': f"Referent:in {referent.first_name} {referent.last_name}",
+            'title': f"Ansprechpartner:in {referent.user.first_name} {referent.user.last_name}",
             'items': [
-                {'icon': 'telephone-fill', 'value': f"{referent.phone_work} (Arbeit)" if referent.phone_work else None},
-                {'icon': 'telephone-fill', 'value': f"{referent.phone_mobil} (Mobil)" if referent.phone_mobil else None},
-                {'icon': 'envelope-fill', 'type': 'email', 'value': referent.email},
+                # {'icon': 'telephone-fill', 'value': f"{referent.user.phone_work} (Arbeit)" if referent.user.phone_work else None},
+                # {'icon': 'telephone-fill', 'value': f"{referent.user.phone_mobil} (Mobil)" if referent.user.phone_mobil else None},
+                {'icon': 'envelope-fill', 'type': 'email', 'value': referent.user.email},
                 {'icon': 'globe', 'value': ', '.join(land.name for land in referent.land.all()) if referent.land.exists() else None}
             ]
         })
@@ -111,7 +111,7 @@ def laenderinfo(request):
                 'title': _('Reisehinweise'),
                 'items': [
                     {
-                        'icon': 'box-arrow-up-right',
+                        'icon': 'link',
                         'type': 'link',
                         'value': 'Auswärtiges Amt',
                         'url': get_auswaeriges_amt_link(land.name),
