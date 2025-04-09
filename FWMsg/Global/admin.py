@@ -1,9 +1,11 @@
+from datetime import datetime, timedelta
+import random
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.urls import path
 from django.contrib import messages
 from django.utils.html import format_html
-from .models import CustomUser, Feedback, KalenderEvent, PersonCluster
+from .models import Ampel2, Attribute, CustomUser, Einsatzland2, Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, Organisation, Aufgabe2, DokumentColor2, Dokument2, Referenten2, Ordner2, Freiwilliger2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, AufgabenCluster, Jahrgang2, Bilder2, BilderGallery2, ProfilUser2
 from FWMsg.celery import send_email_aufgaben_daily
 from simple_history.admin import SimpleHistoryAdmin
 
@@ -64,3 +66,181 @@ class KalenderEventAdmin(SimpleHistoryAdmin):
     list_display = ['title', 'start', 'end', 'description']
     search_fields = ['title', 'description']
     list_filter = ['start']
+
+
+@admin.register(Organisation)
+class OrganisationAdmin(SimpleHistoryAdmin):
+    search_fields = ['name']
+
+@admin.register(Ordner2)
+class OrdnerAdmin(SimpleHistoryAdmin):
+    search_fields = ['ordner_name']
+    actions = ['all_to_incoming', 'all_to_outgoing']
+
+    def all_to_incoming(self, request, queryset):
+        for ordner in queryset:
+            ordner.typ = PersonCluster.objects.get(name='Incoming')
+            ordner.save()
+            
+    def all_to_outgoing(self, request, queryset):
+        for ordner in queryset:
+            ordner.typ = PersonCluster.objects.get(name='Outgoing')
+            ordner.save()
+
+@admin.register(Dokument2)
+class DokumentAdmin(SimpleHistoryAdmin):
+    search_fields = ['ordner', 'dokument', 'beschreibung']
+
+@admin.register(DokumentColor2)
+class DokumentColorAdmin(SimpleHistoryAdmin):
+    search_fields = ['name']
+
+@admin.register(Referenten2)
+class ReferentenAdmin(SimpleHistoryAdmin):
+    search_fields = ['first_name', 'last_name', 'email', 'phone']
+    actions = ['anonymize_user']
+
+    def anonymize_user(self, request, queryset):
+        for referent in queryset:
+            referent.email = f'{referent.first_name[0]}.{referent.last_name[0]}@p0k.de'
+            referent.user.email = f'{referent.first_name[0]}.{referent.last_name[0]}@p0k.de'
+            referent.phone_work = None
+            referent.phone_mobil = None
+            referent.save()
+            referent.user.save()
+
+
+@admin.register(Freiwilliger2)
+class FreiwilligerAdmin(SimpleHistoryAdmin):
+    search_fields = ['first_name', 'last_name']
+    actions = ['send_register_email', 'give_user_name', 'anonymize_user']
+
+    def send_register_email(self, request, queryset):
+        for freiwilliger in queryset:
+            from FW.tasks import send_register_email_task
+            send_register_email_task.delay(freiwilliger.id)
+
+    def give_user_name(self, request, queryset):
+        for freiwilliger in queryset:
+            freiwilliger.user.first_name = freiwilliger.first_name
+            freiwilliger.user.last_name = freiwilliger.last_name
+            freiwilliger.user.save()
+
+    def anonymize_user(self, request, queryset):
+        for freiwilliger in queryset:
+            random_date_in_2007 = datetime(2007, 1, 1).date() + timedelta(days=random.randint(0, 365))
+            # Replace umlauts in name parts
+            first = freiwilliger.first_name.replace('ä','ae').replace('ö','oe').replace('ü','ue').replace('ß','ss')
+            last = freiwilliger.last_name.replace('ä','ae').replace('ö','oe').replace('ü','ue').replace('ß','ss')
+            freiwilliger.user.email = f'{first}.{last}@p0k.de'
+            freiwilliger.email = f'{first}.{last}@p0k.de'
+            freiwilliger.geburtsdatum = random_date_in_2007
+            freiwilliger.phone = None
+            freiwilliger.phone_einsatzland = None
+            freiwilliger.strasse = None
+            freiwilliger.plz = None
+            freiwilliger.ort = None
+            freiwilliger.country = None
+            freiwilliger.save()
+            freiwilliger.user.save()
+    
+
+@admin.register(Attribute)
+class AttributeAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+@admin.register(UserAttribute)
+class UserAttributeAdmin(admin.ModelAdmin):
+    search_fields = ['user__first_name', 'user__last_name', 'attribute__name']
+
+
+@admin.register(Einsatzland2)
+class EinsatzlandAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+
+@admin.register(Einsatzstelle2)
+class EinsatzstelleAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+
+@admin.register(Notfallkontakt2)
+class NotfallkontaktAdmin(admin.ModelAdmin):
+    search_fields = ['first_name', 'last_name']
+    actions = ['anonymize_user']
+
+    def anonymize_user(self, request, queryset):
+        for notfallkontakt in queryset:
+            notfallkontakt.first_name = f'{notfallkontakt.first_name[0]} anonymisiert'
+            notfallkontakt.last_name = f'{notfallkontakt.last_name[0]} anonymisiert'
+            notfallkontakt.phone = None
+            notfallkontakt.phone_work = None
+            notfallkontakt.email = f'{notfallkontakt.first_name}.{notfallkontakt.last_name}@p0k.de'
+            notfallkontakt.save()
+
+
+@admin.register(Post2)
+class PostAdmin(admin.ModelAdmin):
+    search_fields = ['title']
+
+
+@admin.register(Aufgabe2)
+class AufgabeAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+    actions = ['set_person_cluster_typ_incoming', 'set_person_cluster_typ_outgoing']
+
+    def set_person_cluster_typ_incoming(self, request, queryset):
+        for aufgabe in queryset:
+            aufgabe.person_cluster = PersonCluster.objects.get(name='Incoming')
+            aufgabe.save()
+    
+    def set_person_cluster_typ_outgoing(self, request, queryset):
+        for aufgabe in queryset:
+            aufgabe.person_cluster = PersonCluster.objects.get(name='Outgoing')
+            aufgabe.save()
+
+
+@admin.register(AufgabeZwischenschritte2)
+class AufgabeZwischenschritteAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+
+@admin.register(UserAufgabenZwischenschritte)
+class UserAufgabenZwischenschritteAdmin(admin.ModelAdmin):
+    search_fields = ['user_aufgabe__freiwilliger__user__first_name', 'user_aufgabe__freiwilliger__user__last_name', 'aufgabe_zwischenschritt__name']
+
+
+@admin.register(Ampel2)
+class AmpelAdmin(admin.ModelAdmin):
+    search_fields = ['status']
+
+@admin.register(UserAufgaben)
+class UserAufgabenAdmin(admin.ModelAdmin):
+    search_fields = ['freiwilliger__user__first_name', 'freiwilliger__user__last_name', 'aufgabe__name'] 
+    actions = ['send_aufgaben_email']
+
+    def send_aufgaben_email(self, request, queryset):
+        for freiwilliger_aufgabe in queryset:
+            freiwilliger_aufgabe.send_reminder_email()
+        msg = f"Erinnerungen wurden gesendet"
+        self.message_user(request, msg)
+
+
+@admin.register(AufgabenCluster)
+class AufgabenClusterAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+
+@admin.register(Jahrgang2)
+class JahrgangAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+
+@admin.register(Bilder2)
+class BilderAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+    list_display = ('titel', 'user', 'date_created')
+
+@admin.register(BilderGallery2)
+class BilderGalleryAdmin(admin.ModelAdmin):
+    search_fields = ['bilder']

@@ -1,7 +1,7 @@
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from Global.models import Einsatzland, Freiwilliger, Referenten, Einsatzstelle, Ampel, UserAttribute
+from Global.models import Einsatzland2, Freiwilliger2, Referenten2, Einsatzstelle2, Ampel2, UserAttribute
 from django.contrib import messages
 
 from ORG.views import filter_person_cluster, _get_ampel_matrix
@@ -16,14 +16,14 @@ def home(request):
 
 def _get_team_member(request):
     """Helper function to get the team member record for the current user."""
-    return Referenten.objects.filter(user=request.user).first()
+    return Referenten2.objects.filter(user=request.user).first()
 
 def _get_Freiwillige(request):
     """Get all volunteers that are assigned to countries this team member manages."""
     team_member = _get_team_member(request)
     if team_member:
         countries = team_member.land.all()
-        return Freiwilliger.objects.filter(einsatzland__in=countries)
+        return Freiwilliger2.objects.filter(einsatzland__in=countries)
     return []
 
 @filter_person_cluster
@@ -119,7 +119,7 @@ def einsatzstellen(request):
         return render(request, 'teamEinsatzstellen.html', {'einsatzstellen': []})
     
     # Get placement locations for assigned countries
-    einsatzstellen = Einsatzstelle.objects.filter(land__in=team_member.land.all()).order_by('name')
+    einsatzstellen = Einsatzstelle2.objects.filter(land__in=team_member.land.all()).order_by('name')
     
     # Check if there are any placement locations
     if not einsatzstellen.exists():
@@ -131,7 +131,7 @@ def einsatzstellen(request):
         try:
             saved_stelle = einsatzstellen.get(id=saved_id)
             messages.success(request, f'Die Informationen für {saved_stelle.name} wurden erfolgreich gespeichert.')
-        except Einsatzstelle.DoesNotExist:
+        except Einsatzstelle2.DoesNotExist:
             pass  # Ignore if the placement location doesn't exist
     
     return render(request, 'teamEinsatzstellen.html', {'einsatzstellen': einsatzstellen})
@@ -155,7 +155,7 @@ def save_einsatzstelle_info(request, stelle_id):
     
     try:
         # Get the placement location and verify the team member has access to it via country
-        stelle = Einsatzstelle.objects.get(id=stelle_id)
+        stelle = Einsatzstelle2.objects.get(id=stelle_id)
         if stelle.land not in assigned_countries:
             messages.error(request, f'Sie haben keine Berechtigung, Informationen für {stelle.name} zu bearbeiten.')
             return redirect('einsatzstellen')
@@ -172,7 +172,7 @@ def save_einsatzstelle_info(request, stelle_id):
         # Redirect with success parameter that includes the ID
         return redirect(f'/team/einsatzstellen/?saved={stelle.id}')
     
-    except Einsatzstelle.DoesNotExist:
+    except Einsatzstelle2.DoesNotExist:
         messages.error(request, 'Die angegebene Einsatzstelle wurde nicht gefunden.')
         return redirect('einsatzstellen')
     except Exception as e:
@@ -204,7 +204,7 @@ def laender(request):
         try:
             saved_land = laender.get(id=saved_id)
             messages.success(request, f'Die Informationen für {saved_land.name} wurden erfolgreich gespeichert.')
-        except Einsatzland.DoesNotExist:
+        except Einsatzland2.DoesNotExist:
             pass  # Ignore if the country doesn't exist
     
     return render(request, 'teamLaender.html', {'laender': laender})
@@ -228,7 +228,7 @@ def save_land_info(request, land_id):
     
     try:
         # Get the country and verify the team member has access to it
-        land = Einsatzland.objects.get(id=land_id)
+        land = Einsatzland2.objects.get(id=land_id)
         if land not in assigned_countries:
             messages.error(request, f'Sie haben keine Berechtigung, Informationen für {land.name} zu bearbeiten.')
             return redirect('laender')
@@ -243,7 +243,7 @@ def save_land_info(request, land_id):
         # Redirect with success parameter that includes the ID
         return redirect(f'/team/laender/?saved={land.id}')
     
-    except Einsatzland.DoesNotExist:
+    except Einsatzland2.DoesNotExist:
         messages.error(request, 'Das angegebene Einsatzland wurde nicht gefunden.')
         return redirect('laender')
     except Exception as e:

@@ -1,12 +1,8 @@
 from django.contrib import admin
-from Global.models import Organisation, Ordner, Dokument, Referenten, PersonCluster, DokumentColor
+from .models import Ordner, Dokument, Referenten, JahrgangTyp, DokumentColor
 from simple_history.admin import SimpleHistoryAdmin
 
-
 # Register your models here.
-@admin.register(Organisation)
-class OrganisationAdmin(SimpleHistoryAdmin):
-    search_fields = ['name']
 
 @admin.register(Ordner)
 class OrdnerAdmin(SimpleHistoryAdmin):
@@ -15,12 +11,12 @@ class OrdnerAdmin(SimpleHistoryAdmin):
 
     def all_to_incoming(self, request, queryset):
         for ordner in queryset:
-            ordner.typ = PersonCluster.objects.get(name='Incoming')
+            ordner.typ = JahrgangTyp.objects.get(name='Incoming')
             ordner.save()
             
     def all_to_outgoing(self, request, queryset):
         for ordner in queryset:
-            ordner.typ = PersonCluster.objects.get(name='Outgoing')
+            ordner.typ = JahrgangTyp.objects.get(name='Outgoing')
             ordner.save()
 
 @admin.register(Dokument)
@@ -45,3 +41,6 @@ class ReferentenAdmin(SimpleHistoryAdmin):
             referent.save()
             referent.user.save()
 
+@admin.register(JahrgangTyp)
+class JahrgangTypAdmin(SimpleHistoryAdmin):
+    search_fields = ['name']

@@ -7,11 +7,11 @@ from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
 
 from Global.models import (
-    Attribute, Freiwilliger, Aufgabe, 
-    UserAufgaben, Post, Bilder, CustomUser,
-    BilderGallery, Ampel, ProfilUser, Notfallkontakt, Referenten, UserAttribute, 
-    PersonCluster, Einsatzland, Einsatzstelle,
-    AufgabeZwischenschritte
+    Attribute, Freiwilliger2, Aufgabe2, 
+    UserAufgaben, Post2, Bilder2, CustomUser,
+    BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2, Referenten2, UserAttribute, 
+    PersonCluster, Einsatzland2, Einsatzstelle2,
+    AufgabeZwischenschritte2
 )
 
 
@@ -184,7 +184,7 @@ def save_person_cluster_field(self):
 
 class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = Freiwilliger
+        model = Freiwilliger2
         fields = '__all__'
         exclude = ['user', 'org']
 
@@ -233,7 +233,7 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
 
 class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = Aufgabe
+        model = Aufgabe2
         fields = '__all__'
         exclude = ['org']
 
@@ -261,8 +261,8 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
 
 # Create the formset for AufgabeZwischenschritte
 AufgabeZwischenschritteFormSet = inlineformset_factory(
-    Aufgabe,
-    AufgabeZwischenschritte,
+    Aufgabe2,
+    AufgabeZwischenschritte2,
     fields=['name', 'beschreibung'],
     extra=0,
     can_delete=True,
@@ -318,21 +318,21 @@ class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
 
 class AddEinsatzlandForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = Einsatzland
+        model = Einsatzland2
         fields = '__all__'
         exclude = ['org']
 
 
 class AddEinsatzstelleForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = Einsatzstelle
+        model = Einsatzstelle2
         fields = '__all__'
         exclude = ['org']
 
 
 class AddNotfallkontaktForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = Notfallkontakt
+        model = Notfallkontakt2
         fields = '__all__'
         exclude = ['org', 'user']
 
@@ -393,10 +393,10 @@ class AddUserForm(OrgFormMixin, forms.ModelForm):
 
 # Define which fields should be filterable for each model
 filterable_fields = {
-    Freiwilliger: ['person_cluster', 'einsatzland', 'einsatzstelle'],
-    Aufgabe: ['faellig_art', 'mitupload'],
-    Einsatzstelle: ['einsatzland'],
-    Notfallkontakt: ['freiwilliger'],
+    Freiwilliger2: ['person_cluster', 'einsatzland', 'einsatzstelle'],
+    Aufgabe2: ['faellig_art', 'mitupload'],
+    Einsatzstelle2: ['einsatzland'],
+    Notfallkontakt2: ['freiwilliger'],
     UserAufgaben: ['freiwilliger', 'aufgabe', 'erledigt'],
     CustomUser: ['person_cluster'],
     # Aufgabenprofil: ['aufgaben__aufgabe'],
@@ -461,35 +461,38 @@ class FilterForm(forms.Form):
 
 
 class AddReferentenForm(OrgFormMixin, forms.ModelForm):
-    class Meta:
-        model = Referenten
-        fields = '__all__'
-        exclude = ['org', 'user']
+    def bla():
+        pass
+    
+    # class Meta:
+    #     model = Referenten2
+    #     fields = '__all__'
+    #     exclude = ['org', 'user']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['land'].queryset = Einsatzland.objects.filter(org=self.request.user.org)
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self.fields['land'].queryset = Einsatzland2.objects.filter(org=self.request.user.org)
 
-        add_customuser_fields(self, 'T')
+    #     add_customuser_fields(self, 'T')
 
-        order_fields = ['first_name', 'last_name', 'email', 'person_cluster']
-        self.order_fields(order_fields)
+    #     order_fields = ['first_name', 'last_name', 'email', 'person_cluster']
+    #     self.order_fields(order_fields)
         
-        add_person_cluster_field(self)          
+    #     add_person_cluster_field(self)          
         
-    def save(self, commit=True):
-        if not self.instance.pk:
-            save_and_create_customuser(self)
-            self.instance.save()
-        else:
-            self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
-            self.instance.user.customuser.save()
+    # def save(self, commit=True):
+    #     if not self.instance.pk:
+    #         save_and_create_customuser(self)
+    #         self.instance.save()
+    #     else:
+    #         self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
+    #         self.instance.user.customuser.save()
 
-        instance = super().save(commit=commit)
+    #     instance = super().save(commit=commit)
 
-        save_person_cluster_field(self)
+    #     save_person_cluster_field(self)
         
-        return instance
+    #     return instance
     
 
 class AddPersonClusterForm(OrgFormMixin, forms.ModelForm):
@@ -500,13 +503,13 @@ class AddPersonClusterForm(OrgFormMixin, forms.ModelForm):
         
 
 model_to_form_mapping = {
-    Einsatzland: AddEinsatzlandForm,
-    Einsatzstelle: AddEinsatzstelleForm,
-    Freiwilliger: AddFreiwilligerForm,
-    Aufgabe: AddAufgabeForm,
-    Notfallkontakt: AddNotfallkontaktForm,
+    Einsatzland2: AddEinsatzlandForm,
+    Einsatzstelle2: AddEinsatzstelleForm,
+    Freiwilliger2: AddFreiwilligerForm,
+    Aufgabe2: AddAufgabeForm,
+    Notfallkontakt2: AddNotfallkontaktForm,
     UserAufgaben: AddFreiwilligerAufgabenForm,
-    Referenten: AddReferentenForm,
+    Referenten2: AddReferentenForm,
     CustomUser: AddUserForm,
     Attribute: AddAttributeForm,
     PersonCluster: AddPersonClusterForm

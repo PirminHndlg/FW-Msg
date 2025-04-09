@@ -3,9 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.utils.translation import gettext as _
 from Global.models import (
-    Freiwilliger, 
-    UserAufgaben, Post,
-    Referenten
+    Freiwilliger2, 
+    UserAufgaben, Post2,
+    Referenten2
 )
 
 from FWMsg.decorators import required_role
@@ -53,7 +53,7 @@ def home(request):
     else:
         gallery_images = []
 
-    freiwilliger = Freiwilliger.objects.get(user=request.user) if Freiwilliger.objects.filter(user=request.user).exists() else None
+    freiwilliger = Freiwilliger2.objects.get(user=request.user) if Freiwilliger2.objects.filter(user=request.user).exists() else None
 
     if freiwilliger and (freiwilliger.start_real or freiwilliger.start_geplant):
         days_until_start = ((freiwilliger.start_real or freiwilliger.start_geplant) - datetime.now().date()).days
@@ -63,7 +63,7 @@ def home(request):
     context = {
         'aufgaben': user_aufgaben,
         'gallery_images': gallery_images,
-        'posts': Post.objects.all().order_by('date')[:3],
+        'posts': Post2.objects.all().order_by('date')[:3],
         'freiwilliger': freiwilliger,
         'days_until_start': days_until_start,
     }
@@ -74,9 +74,9 @@ def home(request):
 @required_role('F')
 def laenderinfo(request):
     user = request.user
-    freiwilliger = Freiwilliger.objects.get(user=user)
+    freiwilliger = Freiwilliger2.objects.get(user=user)
     land = freiwilliger.einsatzland
-    referenten = Referenten.objects.filter(org=user.org, land=land) if land else []
+    referenten = Referenten2.objects.filter(org=user.org, land=land) if land else []
 
     # Prepare organization cards
     org_cards = []
