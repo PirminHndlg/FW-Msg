@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
 import random
 from django.contrib import admin
-from Global.models import AufgabenCluster, Freiwilliger, Einsatzland, Einsatzstelle, Notfallkontakt, Post, Aufgabe, \
-    Ampel, Jahrgang, Attribute, \
-    Bilder, BilderGallery, AufgabeZwischenschritte, UserAufgabenZwischenschritte, PersonCluster, UserAttribute, UserAufgaben
+from .models import Freiwilliger, Entsendeform, Einsatzland, Einsatzstelle, Notfallkontakt, Post, Aufgabe, \
+    Aufgabenprofil, FreiwilligerAufgabenprofil, Ampel, FreiwilligerAufgaben, Jahrgang, \
+    CustomUser, Bilder, BilderGallery, AufgabeZwischenschritte, FreiwilligerAufgabenZwischenschritte
 from simple_history.admin import SimpleHistoryAdmin
+from ORG.models import JahrgangTyp
 
 
 # Register your models here.
@@ -13,43 +14,52 @@ class FreiwilligerAdmin(SimpleHistoryAdmin):
     search_fields = ['first_name', 'last_name']
     actions = ['send_register_email', 'give_user_name', 'anonymize_user']
 
-    def send_register_email(self, request, queryset):
-        for freiwilliger in queryset:
-            from FW.tasks import send_register_email_task
-            send_register_email_task.delay(freiwilliger.id)
+    def move_to_new(self, request, queryset):
+        from Global.models import Organisation, PersonCluster, UserAttribute, Freiwilliger2
 
-    def give_user_name(self, request, queryset):
-        for freiwilliger in queryset:
-            freiwilliger.user.first_name = freiwilliger.first_name
-            freiwilliger.user.last_name = freiwilliger.last_name
-            freiwilliger.user.save()
+        person_cluster = PersonCluster.objects.get(name='Freiwilliger')
+        org = Organisation.objects.get(name=queryset.first().org.name)
 
-    def anonymize_user(self, request, queryset):
-        for freiwilliger in queryset:
-            random_date_in_2007 = datetime(2007, 1, 1).date() + timedelta(days=random.randint(0, 365))
-            # Replace umlauts in name parts
-            first = freiwilliger.first_name.replace('ä','ae').replace('ö','oe').replace('ü','ue').replace('ß','ss')
-            last = freiwilliger.last_name.replace('ä','ae').replace('ö','oe').replace('ü','ue').replace('ß','ss')
-            freiwilliger.user.email = f'{first}.{last}@p0k.de'
-            freiwilliger.email = f'{first}.{last}@p0k.de'
-            freiwilliger.geburtsdatum = random_date_in_2007
-            freiwilliger.phone = None
-            freiwilliger.phone_einsatzland = None
-            freiwilliger.strasse = None
-            freiwilliger.plz = None
-            freiwilliger.ort = None
-            freiwilliger.country = None
-            freiwilliger.save()
-            freiwilliger.user.save()
-    
+        def create_attributes(name):
+            from Global.models import Attribute
+            attribute, created = Attribute.objects.get_or_create(name=name, type='T', org=org, person_cluster=person_cluster)
+            return attribute
+        
+        attributes = [
+            create_attributes('geburtsdatum'),
+            create_attributes('geschlecht'),
+            create_attributes('kirchenzugehoerigkeit'),
+            create_attributes('strasse'),
+            create_attributes('plz'),
+            create_attributes('ort'),
+            create_attributes('country'),
+            create_attributes('phone'),
+            create_attributes('phone_einsatzland'),
+        ]
 
-@admin.register(Attribute)
-class AttributeAdmin(admin.ModelAdmin):
+        for freiwilliger in queryset:
+
+            fw2, created = Freiwilliger2.objects.get_or_create(
+                user=freiwilliger.user,
+                org=org,
+            )
+
+            fw2.customuser.geburtsdatum = freiwilliger.geburtsdatum
+            fw2.customuser.person_cluster = person_cluster
+            fw2.customuser.save()
+
+            for attribute in attributes:
+                UserAttribute.objects.get_or_create(
+                    user=freiwilliger.user,
+                    attribute=attribute,
+                    value=getattr(freiwilliger, attribute.name),
+                )
+
+
+
+@admin.register(Entsendeform)
+class EntsendeformAdmin(admin.ModelAdmin):
     search_fields = ['name']
-
-@admin.register(UserAttribute)
-class UserAttributeAdmin(admin.ModelAdmin):
-    search_fields = ['user__first_name', 'user__last_name', 'attribute__name']
 
 
 @admin.register(Einsatzland)
@@ -85,16 +95,16 @@ class PostAdmin(admin.ModelAdmin):
 @admin.register(Aufgabe)
 class AufgabeAdmin(admin.ModelAdmin):
     search_fields = ['name']
-    actions = ['set_person_cluster_typ_incoming', 'set_person_cluster_typ_outgoing']
+    actions = ['set_jahrgang_typ_incoming', 'set_jahrgang_typ_outgoing']
 
-    def set_person_cluster_typ_incoming(self, request, queryset):
+    def set_jahrgang_typ_incoming(self, request, queryset):
         for aufgabe in queryset:
-            aufgabe.person_cluster = PersonCluster.objects.get(name='Incoming')
+            aufgabe.jahrgang_typ = JahrgangTyp.objects.get(name='Incoming')
             aufgabe.save()
     
-    def set_person_cluster_typ_outgoing(self, request, queryset):
+    def set_jahrgang_typ_outgoing(self, request, queryset):
         for aufgabe in queryset:
-            aufgabe.person_cluster = PersonCluster.objects.get(name='Outgoing')
+            aufgabe.jahrgang_typ = JahrgangTyp.objects.get(name='Outgoing')
             aufgabe.save()
 
 
@@ -103,17 +113,27 @@ class AufgabeZwischenschritteAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
 
-@admin.register(UserAufgabenZwischenschritte)
-class UserAufgabenZwischenschritteAdmin(admin.ModelAdmin):
-    search_fields = ['user_aufgabe__freiwilliger__user__first_name', 'user_aufgabe__freiwilliger__user__last_name', 'aufgabe_zwischenschritt__name']
+@admin.register(FreiwilligerAufgabenZwischenschritte)
+class FreiwilligerAufgabenZwischenschritteAdmin(admin.ModelAdmin):
+    search_fields = ['freiwilliger_aufgabe__freiwilliger__user__first_name', 'freiwilliger_aufgabe__freiwilliger__user__last_name', 'aufgabe_zwischenschritt__name']
+
+
+@admin.register(Aufgabenprofil)
+class AufgabenprofilAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+
+@admin.register(FreiwilligerAufgabenprofil)
+class FreiwilligerAufgabenprofilAdmin(admin.ModelAdmin):
+    search_fields = ['freiwilliger__user__first_name', 'freiwilliger__user__last_name', 'aufgabenprofil__name']
 
 
 @admin.register(Ampel)
 class AmpelAdmin(admin.ModelAdmin):
     search_fields = ['status']
 
-@admin.register(UserAufgaben)
-class UserAufgabenAdmin(admin.ModelAdmin):
+@admin.register(FreiwilligerAufgaben)
+class FreiwilligerAufgabenAdmin(admin.ModelAdmin):
     search_fields = ['freiwilliger__user__first_name', 'freiwilliger__user__last_name', 'aufgabe__name'] 
     actions = ['send_aufgaben_email']
 
@@ -122,11 +142,6 @@ class UserAufgabenAdmin(admin.ModelAdmin):
             freiwilliger_aufgabe.send_reminder_email()
         msg = f"Erinnerungen wurden gesendet"
         self.message_user(request, msg)
-
-
-@admin.register(AufgabenCluster)
-class AufgabenClusterAdmin(admin.ModelAdmin):
-    search_fields = ['name']
 
 
 @admin.register(Jahrgang)

@@ -44,20 +44,20 @@ from django.urls import reverse
 # Local application imports
 from FW.forms import BilderForm, BilderGalleryForm, ProfilUserForm
 from .models import (
-    Ampel, 
-    Bilder, 
-    BilderGallery, 
-    Freiwilliger, 
-    ProfilUser, 
+    Ampel2, 
+    Bilder2, 
+    BilderGallery2, 
+    Freiwilliger2, 
+    ProfilUser2, 
     UserAufgaben,
     KalenderEvent,
     CustomUser,
-    Dokument,
-    Ordner,
+    Dokument2,
+    Ordner2,
     Organisation,
     PersonCluster,
-    Notfallkontakt,
-    DokumentColor
+    Notfallkontakt2,
+    DokumentColor2
 )
 from ORG.views import base_template as org_base_template
 from TEAM.views import base_template as team_base_template
@@ -117,16 +117,16 @@ def get_bilder(org, filter_user=None, filter_person_cluster=None):
 
     if filter_person_cluster:
         user_set = User.objects.filter(customuser__person_cluster=filter_person_cluster)
-        bilder = Bilder.objects.filter(org=org, user__in=user_set).order_by('-date_created')
+        bilder = Bilder2.objects.filter(org=org, user__in=user_set).order_by('-date_created')
     elif filter_user:
-        bilder = Bilder.objects.filter(org=org, user=filter_user).order_by('-date_created')
+        bilder = Bilder2.objects.filter(org=org, user=filter_user).order_by('-date_created')
     else:
-        bilder = Bilder.objects.filter(org=org).order_by('-date_created')
+        bilder = Bilder2.objects.filter(org=org).order_by('-date_created')
 
     gallery_images = []
     for bild in bilder:
         gallery_images.append({
-            bild: BilderGallery.objects.filter(bilder=bild)
+            bild: BilderGallery2.objects.filter(bilder=bild)
         })
     return gallery_images
 
@@ -226,11 +226,11 @@ def serve_bilder(request, image_id):
         HttpResponseNotFound: If the image doesn't exist
         HttpResponseNotAllowed: If user doesn't have permission
     """
-    bild_exists = BilderGallery.objects.filter(id=image_id).exists()
+    bild_exists = BilderGallery2.objects.filter(id=image_id).exists()
     if not bild_exists:
         return HttpResponseNotFound('Bild nicht gefunden')
 
-    bild = BilderGallery.objects.get(id=image_id)
+    bild = BilderGallery2.objects.get(id=image_id)
     if not bild.org == request.user.org:
         return HttpResponseNotAllowed('Nicht erlaubt')
     
@@ -251,11 +251,11 @@ def serve_small_bilder(request, image_id):
         HttpResponseNotFound: If the image doesn't exist
         HttpResponseNotAllowed: If user doesn't have permission
     """
-    bild_exists = BilderGallery.objects.filter(id=image_id).exists()
+    bild_exists = BilderGallery2.objects.filter(id=image_id).exists()
     if not bild_exists:
         return HttpResponseNotFound('Bild nicht gefunden')
 
-    bild = BilderGallery.objects.get(id=image_id)
+    bild = BilderGallery2.objects.get(id=image_id)
     if not bild.org == request.user.org:
         return HttpResponseNotAllowed('Nicht erlaubt')
 
@@ -282,11 +282,11 @@ def serve_dokument(request, dokument_id):
     img = request.GET.get('img', None)
     download = request.GET.get('download', None)
 
-    dokument_exists = Dokument.objects.filter(id=dokument_id).exists()
+    dokument_exists = Dokument2.objects.filter(id=dokument_id).exists()
     if not dokument_exists:
         return HttpResponseNotFound('Dokument nicht gefunden')
 
-    dokument = Dokument.objects.get(id=dokument_id)
+    dokument = Dokument2.objects.get(id=dokument_id)
     if not dokument.org == request.user.org:
         return HttpResponseNotAllowed('Nicht erlaubt')
 
@@ -364,7 +364,7 @@ def bild(request):
         if bilder_form.is_valid() and len(images) > 0:
             bilder_form_data = bilder_form.cleaned_data
 
-            bilder, created = Bilder.objects.get_or_create(
+            bilder, created = Bilder2.objects.get_or_create(
                 org=request.user.org,
                 user=request.user,
                 titel=bilder_form_data['titel'],
@@ -379,7 +379,7 @@ def bild(request):
             # Save each image with a reference to the product
             for image in images:
                 try:
-                    BilderGallery.objects.create(
+                    BilderGallery2.objects.create(
                         org=request.user.org,
                         bilder=bilder,
                         image=image
@@ -416,19 +416,19 @@ def remove_bild(request):
         return redirect('profil')
 
     try:
-        gallery_image_exists = BilderGallery.objects.filter(id=gallery_image_id).exists()
+        gallery_image_exists = BilderGallery2.objects.filter(id=gallery_image_id).exists()
         if not gallery_image_exists:
             messages.error(request, 'Bild nicht gefunden')
             return redirect('profil')
         
-        gallery_image = BilderGallery.objects.get(id=gallery_image_id)
+        gallery_image = BilderGallery2.objects.get(id=gallery_image_id)
         
         if gallery_image.bilder.user != request.user:
             messages.error(request, 'Nicht erlaubt')
             return redirect('profil')
 
         # Check if this is the last image in the gallery
-        related_gallery_images = BilderGallery.objects.filter(bilder=gallery_image.bilder)
+        related_gallery_images = BilderGallery2.objects.filter(bilder=gallery_image.bilder)
         if related_gallery_images.count() == 1:
             # Delete the parent Bilder object if this is the last image
             gallery_image.bilder.delete()
@@ -438,7 +438,7 @@ def remove_bild(request):
 
         messages.success(request, 'Bild erfolgreich gelöscht')
         
-    except BilderGallery.DoesNotExist:
+    except BilderGallery2.DoesNotExist:
         messages.error(request, 'Bild nicht gefunden')
 
     return redirect('profil')
@@ -451,17 +451,17 @@ def remove_bild_all(request):
         messages.error(request, 'Kein Bild gefunden')
         return redirect('profil')
     
-    bild_exists = Bilder.objects.filter(id=bild_id).exists()
+    bild_exists = Bilder2.objects.filter(id=bild_id).exists()
     if not bild_exists:
         messages.error(request, 'Bild nicht gefunden')
         return redirect('profil')
     
-    bild = Bilder.objects.get(id=bild_id)
+    bild = Bilder2.objects.get(id=bild_id)
     if bild.user != request.user:
         messages.error(request, 'Nicht erlaubt')
         return redirect('profil')
     
-    bilder_gallery = BilderGallery.objects.filter(bilder=bild)
+    bilder_gallery = BilderGallery2.objects.filter(bilder=bild)
     for bild_gallery in bilder_gallery:
         bild_gallery.delete()
     bild.delete()
@@ -487,19 +487,19 @@ def dokumente(request, ordner_id=None):
 
     if person_cluster_typ:
         if person_cluster_typ.dokumente:
-            ordners = Ordner.objects.filter(org=request.user.org).filter(Q(typ=None) | Q(typ=person_cluster_typ)).order_by('color', 'ordner_name')
+            ordners = Ordner2.objects.filter(org=request.user.org).filter(Q(typ=None) | Q(typ=person_cluster_typ)).order_by('color', 'ordner_name')
         else:
             error = f'{person_cluster_typ.name} hat keine Dokumenten-Funktion aktiviert'
     else:
-        ordners = Ordner.objects.filter(org=request.user.org).order_by('color', 'ordner_name')
+        ordners = Ordner2.objects.filter(org=request.user.org).order_by('color', 'ordner_name')
     
     for ordner in ordners:
         folder_structure.append({
             'ordner': ordner,
-            'dokumente': Dokument.objects.filter(org=request.user.org, ordner=ordner).order_by('-date_created')
+            'dokumente': Dokument2.objects.filter(org=request.user.org, ordner=ordner).order_by('-date_created')
         })
 
-    colors = DokumentColor.objects.all()
+    colors = DokumentColor2.objects.all()
 
     context = {
         'ordners': ordners,
@@ -527,8 +527,8 @@ def add_dokument(request):
 
         file = request.FILES.get('dokument')
 
-        if dokument_id and Dokument.objects.filter(id=dokument_id).exists():
-            dokument = Dokument.objects.get(id=dokument_id)
+        if dokument_id and Dokument2.objects.filter(id=dokument_id).exists():
+            dokument = Dokument2.objects.get(id=dokument_id)
             if dokument.org != request.user.org:
                 messages.error(request, 'Nicht erlaubt')
                 return redirect('dokumente')
@@ -542,8 +542,8 @@ def add_dokument(request):
             dokument.save()
             dokument.darf_bearbeiten.set(darf_bearbeiten)
         else:
-            ordner = Ordner.objects.get(id=request.POST.get('ordner'))
-            dokument = Dokument.objects.create(
+            ordner = Ordner2.objects.get(id=request.POST.get('ordner'))
+            dokument = Dokument2.objects.create(
                 org=request.user.org,
                 ordner=ordner,
                 titel=titel,
@@ -577,13 +577,13 @@ def add_ordner(request):
         color = None
         if color_id:
             try:
-                color = DokumentColor.objects.get(id=color_id)
-            except DokumentColor.DoesNotExist:
+                color = DokumentColor2.objects.get(id=color_id)
+            except DokumentColor2.DoesNotExist:
                 messages.error(request, 'Ausgewählte Farbe existiert nicht.')
                 return redirect('dokumente')
 
-        if ordner_id and Ordner.objects.filter(id=ordner_id).exists():
-            ordner = Ordner.objects.get(id=ordner_id)
+        if ordner_id and Ordner2.objects.filter(id=ordner_id).exists():
+            ordner = Ordner2.objects.get(id=ordner_id)
             if ordner.org != request.user.org:
                 messages.error(request, 'Nicht erlaubt')
                 return redirect('dokumente')
@@ -592,7 +592,7 @@ def add_ordner(request):
             ordner.color = color
             ordner.save()
         else:
-            ordner = Ordner.objects.create(
+            ordner = Ordner2.objects.create(
                 org=request.user.org, 
                 ordner_name=ordner_name,
                 typ=typ,
@@ -607,12 +607,12 @@ def remove_dokument(request):
     if request.method == 'POST':
         dokument_id = request.POST.get('dokument_id')
         try:
-            dokument = Dokument.objects.get(id=dokument_id, org=request.user.org)
+            dokument = Dokument2.objects.get(id=dokument_id, org=request.user.org)
             if request.user.customuser.person_cluster.view == 'O' or request.user.customuser.person_cluster in dokument.darf_bearbeiten.all():
                 dokument.delete()
             else:
                 messages.error(request, 'Dokument kann nicht gelöscht werden, da du nicht der Ersteller bist.')
-        except Dokument.DoesNotExist:
+        except Dokument2.DoesNotExist:
             pass
 
     return redirect('dokumente')
@@ -623,14 +623,14 @@ def remove_ordner(request):
     if request.method == 'POST':
         ordner_id = request.POST.get('ordner_id')
         try:
-            ordner = Ordner.objects.get(id=ordner_id, org=request.user.org)
+            ordner = Ordner2.objects.get(id=ordner_id, org=request.user.org)
             # Only delete if folder is empty
-            if not Dokument.objects.filter(ordner=ordner).exists():
+            if not Dokument2.objects.filter(ordner=ordner).exists():
                 ordner.delete()
                 messages.success(request, 'Ordner wurde gelöscht.')
             else:
                 messages.error(request, f'Ordner {ordner.ordner_name} konnte nicht gelöscht werden, da er nicht leer ist.')
-        except Ordner.DoesNotExist:
+        except Ordner2.DoesNotExist:
             pass
 
     return redirect('dokumente')
@@ -692,7 +692,7 @@ def view_profil(request, user_id=None):
     if request.POST:
         attribut = request.POST.get('attribut')
         value = request.POST.get('value')
-        ProfilUser.objects.create(
+        ProfilUser2.objects.create(
             org=request.user.org,
             user=request.user,
             attribut=attribut,
@@ -731,17 +731,17 @@ def view_profil(request, user_id=None):
             profil_user.save()
             return redirect('profil')
 
-    profil_users = ProfilUser.objects.filter(user=user)
+    profil_users = ProfilUser2.objects.filter(user=user)
     gallery_images = get_bilder(request.user.org, user)
 
     ampel_of_user = None
     if this_user:
-        ampel_of_user = Ampel.objects.filter(user=user).order_by('-date').first()
+        ampel_of_user = Ampel2.objects.filter(user=user).order_by('-date').first()
 
     profil_user_form = ProfilUserForm()
 
-    if Freiwilliger.objects.filter(user=user).exists():
-        freiwilliger = Freiwilliger.objects.get(user=user)
+    if Freiwilliger2.objects.filter(user=user).exists():
+        freiwilliger = Freiwilliger2.objects.get(user=user)
     else:
         freiwilliger = None
 
@@ -761,7 +761,7 @@ def view_profil(request, user_id=None):
 
 @login_required
 def remove_profil_attribut(request, profil_id):
-    profil_user = ProfilUser.objects.get(id=profil_id)
+    profil_user = ProfilUser2.objects.get(id=profil_id)
     if profil_user.user == request.user:
         profil_user.delete()
     return redirect('profil')
@@ -881,7 +881,7 @@ def notfallkontakte(request):
         else:
             messages.error(request, 'Fehler beim Hinzufügen des Notfallkontakts')
     form = AddNotfallkontaktForm()
-    notfallkontakte = Notfallkontakt.objects.filter(user=request.user)
+    notfallkontakte = Notfallkontakt2.objects.filter(user=request.user)
     context = {
         'form': form,
         'notfallkontakte': notfallkontakte
@@ -898,7 +898,7 @@ def ampel(request):
     if ampel and ampel.upper() in ['R', 'G', 'Y']:
         ampel = ampel.upper()
         comment = request.POST.get('ampel_comment', None)
-        ampel_object = Ampel.objects.create(
+        ampel_object = Ampel2.objects.create(
             user=request.user, 
             status=ampel, 
             org=request.user.org,
@@ -912,7 +912,7 @@ def ampel(request):
         messages.success(request, msg_text)
         return redirect('fw_home')
 
-    last_ampel = Ampel.objects.filter(user=request.user).order_by('-date').first()
+    last_ampel = Ampel2.objects.filter(user=request.user).order_by('-date').first()
 
     context = {
         'last_ampel': last_ampel

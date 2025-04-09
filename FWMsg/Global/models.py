@@ -190,10 +190,10 @@ class KalenderEvent(OrgModel):
 
     history = HistoricalRecords()
 
-class Ordner(OrgModel):
+class Ordner2(OrgModel):
     ordner_name = models.CharField(max_length=100)
     typ = models.ForeignKey(PersonCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Typ')
-    color = models.ForeignKey('DokumentColor', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Farbe')
+    color = models.ForeignKey('DokumentColor2', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Farbe')
 
     history = HistoricalRecords()
 
@@ -201,13 +201,13 @@ class Ordner(OrgModel):
         return self.ordner_name
 
 
-@receiver(post_save, sender=Ordner)
+@receiver(post_save, sender=Ordner2)
 def create_folder(sender, instance, **kwargs):
     path = os.path.join(instance.ordner_name)
     os.makedirs(os.path.join('dokument', instance.org.name, path), exist_ok=True)
 
 
-@receiver(post_delete, sender=Ordner)
+@receiver(post_delete, sender=Ordner2)
 def remove_folder(sender, instance, **kwargs):
     path = os.path.join(instance.ordner_name)
     path = os.path.join('dokument', instance.org.name, path)
@@ -229,9 +229,9 @@ def upload_to_preview_image(instance, filename):
     return os.path.join(folder, filename + '.jpg')
 
 
-class Dokument(models.Model):
+class Dokument2(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    ordner = models.ForeignKey(Ordner, on_delete=models.CASCADE)
+    ordner = models.ForeignKey(Ordner2, on_delete=models.CASCADE)
     dokument = models.FileField(upload_to=upload_to_folder, max_length=255, null=True, blank=True)
     link = models.URLField(null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -393,7 +393,7 @@ class Dokument(models.Model):
         else:
             return None
         
-@receiver(post_save, sender=Dokument)
+@receiver(post_save, sender=Dokument2)
 def create_preview_image(sender, instance, **kwargs):
     # Skip if we're already processing the preview image
     if hasattr(instance, '_creating_preview'):
@@ -410,7 +410,7 @@ def create_preview_image(sender, instance, **kwargs):
             # Always remove the flag, even if an error occurs
             delattr(instance, '_creating_preview')
 
-@receiver(post_delete, sender=Dokument)
+@receiver(post_delete, sender=Dokument2)
 def remove_file(sender, instance, **kwargs):
     if instance.dokument and os.path.isfile(instance.dokument.path):
         os.remove(instance.dokument.path)
@@ -418,7 +418,7 @@ def remove_file(sender, instance, **kwargs):
     if instance.preview_image and os.path.isfile(instance.preview_image.path):
         os.remove(instance.preview_image.path)
 
-class DokumentColor(models.Model):
+class DokumentColor2(models.Model):
     name = models.CharField(max_length=50, verbose_name='Farbname')
     color = models.CharField(max_length=7, verbose_name='Farbcodes')
 
@@ -427,9 +427,9 @@ class DokumentColor(models.Model):
     def __str__(self):
         return self.name
 
-class Referenten(OrgModel):
+class Referenten2(OrgModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Benutzer:in')
-    land = models.ManyToManyField('Einsatzland', verbose_name='Länderzuständigkeit', blank=True, null=True)
+    land = models.ManyToManyField('Einsatzland2', verbose_name='Länderzuständigkeit', blank=True, null=True)
 
     history = HistoricalRecords()
 
@@ -440,7 +440,7 @@ class Referenten(OrgModel):
     def __str__(self):
         return f'{self.user.last_name}, {self.user.first_name}'
 
-@receiver(post_save, sender=Referenten)
+@receiver(post_save, sender=Referenten2)
 def create_user(sender, instance, **kwargs):
     return
     if not instance.user:
@@ -488,7 +488,7 @@ def calculate_small_image(image, size=(750, 750)):
     return ContentFile(img_io.getvalue(), name=image.name.split('/')[-1])
 
 
-class Einsatzland(OrgModel):
+class Einsatzland2(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Einsatzland')
     code = models.CharField(max_length=2, verbose_name='Einsatzland-Code')
 
@@ -505,9 +505,9 @@ class Einsatzland(OrgModel):
     def __str__(self):
         return self.name
 
-class Einsatzstelle(OrgModel):
+class Einsatzstelle2(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Einsatzstelle')
-    land = models.ForeignKey(Einsatzland, on_delete=models.CASCADE, verbose_name='Einsatzland', null=True, blank=True)
+    land = models.ForeignKey(Einsatzland2, on_delete=models.CASCADE, verbose_name='Einsatzland', null=True, blank=True)
 
     partnerorganisation = models.TextField(verbose_name='Partnerorganisation', null=True, blank=True)
     arbeitsvorgesetzter = models.TextField(verbose_name='Arbeitsvorgesetzte:r', null=True, blank=True)
@@ -549,7 +549,7 @@ class Attribute(OrgModel):
     def __str__(self):
         return self.name
 
-class Jahrgang(OrgModel):
+class Jahrgang2(OrgModel):
     name = models.CharField(max_length=50, verbose_name='Jahrgang')
     start = models.DateField(verbose_name='Startdatum')
     ende = models.DateField(verbose_name='Enddatum')
@@ -571,7 +571,7 @@ class Jahrgang(OrgModel):
             return super().get_queryset().filter(org=self.request.user.org)
 
 
-class Freiwilliger(OrgModel):
+class Freiwilliger2(OrgModel):
     GESCHLECHT_CHOICES = [
         ('M', 'Männlich'),
         ('W', 'Weiblich'),
@@ -580,8 +580,8 @@ class Freiwilliger(OrgModel):
     ]
 
     user = models.OneToOneField(User, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name='Benutzer:in')
-    einsatzland = models.ForeignKey(Einsatzland, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzland')
-    einsatzstelle = models.ForeignKey(Einsatzstelle, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzstelle')
+    einsatzland = models.ForeignKey(Einsatzland2, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzland')
+    einsatzstelle = models.ForeignKey(Einsatzstelle2, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzstelle')
     start_geplant = models.DateField(blank=True, null=True, verbose_name='Start geplant')
     start_real = models.DateField(blank=True, null=True, verbose_name='Start real')
     ende_geplant = models.DateField(blank=True, null=True, verbose_name='Ende geplant')
@@ -611,7 +611,7 @@ class Freiwilliger(OrgModel):
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name
 
-Freiwilliger.add_to_class('person_cluster', property(lambda self: self.user.customuser.person_cluster))
+Freiwilliger2.add_to_class('person_cluster', property(lambda self: self.user.customuser.person_cluster))
 
 class UserAttribute(OrgModel):
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name='Benutzer:in')
@@ -625,7 +625,7 @@ class UserAttribute(OrgModel):
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.attribute.name
 
-@receiver(post_save, sender=Freiwilliger)
+@receiver(post_save, sender=Freiwilliger2)
 def post_save_handler(sender, instance, created, **kwargs):
     if instance.user and not instance.user.customuser:
 
@@ -654,12 +654,12 @@ def post_save_handler(sender, instance, created, **kwargs):
                 task.save()
 
 
-@receiver(post_delete, sender=Freiwilliger)
+@receiver(post_delete, sender=Freiwilliger2)
 def post_delete_handler(sender, instance, **kwargs):
     instance.user.delete()
 
 
-class Notfallkontakt(OrgModel):
+class Notfallkontakt2(OrgModel):
     first_name = models.CharField(max_length=50, verbose_name='Vorname')
     last_name = models.CharField(max_length=50, verbose_name='Nachname')
     phone_work = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon (Arbeit)')
@@ -675,7 +675,7 @@ class Notfallkontakt(OrgModel):
         return self.first_name + ' ' + self.last_name
 
 
-class Ampel(OrgModel):
+class Ampel2(OrgModel):
     CHOICES = [
         ('G', 'Grün'),
         ('Y', 'Gelb'),
@@ -705,7 +705,7 @@ class AufgabenCluster(OrgModel):
     def __str__(self):
         return self.name + ' - ' + self.person_cluster.name
 
-class Aufgabe(OrgModel):
+class Aufgabe2(OrgModel):
 
     name = models.CharField(max_length=50, verbose_name='Aufgabenname')
     beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung')
@@ -728,8 +728,8 @@ class Aufgabe(OrgModel):
         return self.name
     
 
-class AufgabeZwischenschritte(OrgModel):
-    aufgabe = models.ForeignKey(Aufgabe, on_delete=models.CASCADE, verbose_name='Aufgabe')
+class AufgabeZwischenschritte2(OrgModel):
+    aufgabe = models.ForeignKey(Aufgabe2, on_delete=models.CASCADE, verbose_name='Aufgabe')
     name = models.CharField(max_length=50, verbose_name='Name')
     beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung', max_length=100)
 
@@ -742,7 +742,7 @@ class AufgabeZwischenschritte(OrgModel):
     
     def save(self, *args, **kwargs):
         # First save the instance so it has an ID
-        super(AufgabeZwischenschritte, self).save(*args, **kwargs)
+        super(AufgabeZwischenschritte2, self).save(*args, **kwargs)
         
         # Now we can safely filter related objects
         user_aufgaben = UserAufgaben.objects.filter(aufgabe=self.aufgabe)
@@ -767,7 +767,7 @@ class UserAufgaben(OrgModel):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer:in')
-    aufgabe = models.ForeignKey(Aufgabe, on_delete=models.CASCADE, verbose_name='Aufgabe')
+    aufgabe = models.ForeignKey(Aufgabe2, on_delete=models.CASCADE, verbose_name='Aufgabe')
     personalised_description = models.TextField(blank=True, null=True, verbose_name='Persönliche Beschreibung')
     erledigt = models.BooleanField(default=False, verbose_name='Erledigt')
     pending = models.BooleanField(default=False, verbose_name='Wird bearbeitet')
@@ -840,14 +840,14 @@ class UserAufgaben(OrgModel):
 
 class UserAufgabenZwischenschritte(OrgModel):
     user_aufgabe = models.ForeignKey(UserAufgaben, on_delete=models.CASCADE, verbose_name='User Aufgabe')
-    aufgabe_zwischenschritt = models.ForeignKey(AufgabeZwischenschritte, on_delete=models.CASCADE, verbose_name='Aufgabe Zwischenschritt')
+    aufgabe_zwischenschritt = models.ForeignKey(AufgabeZwischenschritte2, on_delete=models.CASCADE, verbose_name='Aufgabe Zwischenschritt')
     erledigt = models.BooleanField(default=False, verbose_name='Erledigt')
 
     class Meta:
         verbose_name = 'Freiwilliger Aufgaben Zwischenschritt'
         verbose_name_plural = 'Freiwilliger Aufgaben Zwischenschritte'
 
-class Post(OrgModel):
+class Post2(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
     title = models.CharField(max_length=50, verbose_name='Post-Titel')
     text = models.TextField(verbose_name='Text')
@@ -864,7 +864,7 @@ class Post(OrgModel):
         return self.title
 
 
-class Bilder(OrgModel):
+class Bilder2(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
     titel = models.CharField(max_length=50, verbose_name='Bildtitel')
     beschreibung = models.TextField(blank=True, null=True, verbose_name='Beschreibung')
@@ -881,11 +881,11 @@ class Bilder(OrgModel):
         return self.titel
 
 
-class BilderGallery(OrgModel):
+class BilderGallery2(OrgModel):
     image = models.ImageField(upload_to='bilder/', verbose_name='Bild')
 
     small_image = models.ImageField(upload_to='bilder/small/', blank=True, null=True, verbose_name='Kleines Bild')
-    bilder = models.ForeignKey(Bilder, on_delete=models.CASCADE, verbose_name='Bild')
+    bilder = models.ForeignKey(Bilder2, on_delete=models.CASCADE, verbose_name='Bild')
 
     history = HistoricalRecords()
 
@@ -897,7 +897,7 @@ class BilderGallery(OrgModel):
         return self.image.name
 
 
-@receiver(post_save, sender=BilderGallery)
+@receiver(post_save, sender=BilderGallery2)
 def create_small_image(sender, instance, created, **kwargs):
     """Create small version of uploaded image on save."""
     print(instance.image.name)
@@ -950,7 +950,7 @@ def create_small_image(sender, instance, created, **kwargs):
             print(f"Error creating small image: {str(e)}")
 
 
-@receiver(pre_delete, sender=BilderGallery)
+@receiver(pre_delete, sender=BilderGallery2)
 def delete_bilder_files(sender, instance, **kwargs):
     """Delete image files when BilderGallery instance is deleted."""
     try:
@@ -968,7 +968,7 @@ def delete_bilder_files(sender, instance, **kwargs):
 
 
 
-class ProfilUser(OrgModel):
+class ProfilUser2(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
     attribut = models.CharField(max_length=50, verbose_name='Attribut')
     value = models.TextField(verbose_name='Wert')

@@ -1,5 +1,5 @@
 from django import forms
-from Global.models import Bilder, BilderGallery, ProfilUser
+from Global.models import Bilder2, BilderGallery2, ProfilUser2
 
 
 class MultipleFileInput(forms.ClearableFileInput):
@@ -22,7 +22,7 @@ class MultipleFileField(forms.FileField):
 
 class BilderForm(forms.ModelForm):
     class Meta:
-        model = Bilder
+        model = Bilder2
         fields = ['titel', 'beschreibung']
         widgets = {
             'beschreibung': forms.Textarea(attrs={'rows': 3}),
@@ -31,7 +31,7 @@ class BilderForm(forms.ModelForm):
 
 class BilderGalleryForm(forms.ModelForm):
     class Meta:
-        model = BilderGallery
+        model = BilderGallery2
         fields = ['image']
         widgets = {
             'image': MultipleFileInput(),
@@ -40,7 +40,7 @@ class BilderGalleryForm(forms.ModelForm):
 
 class ProfilUserForm(forms.ModelForm):
     class Meta:
-        model = ProfilUser
+        model = ProfilUser2
         fields = ['attribut', 'value']
         widgets = {
             'attribut': forms.TextInput(attrs={'placeholder': 'Attribut'}),
