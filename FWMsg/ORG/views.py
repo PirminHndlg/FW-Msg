@@ -26,10 +26,11 @@ from django.template.loader import render_to_string
 from Global.models import (
     Attribute, AufgabenCluster, Freiwilliger2, Aufgabe2, Maintenance, PersonCluster, UserAttribute, 
     UserAufgaben, Post2, Bilder2, CustomUser,
-    BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2, Referenten2,
+    BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2,
     Einsatzland2, Einsatzstelle2,
     AufgabeZwischenschritte2, UserAufgabenZwischenschritte
 )
+from TEAM.models import Team
 from django.contrib.auth.models import User
 
 from django.db import models
@@ -147,7 +148,7 @@ allowed_models_to_edit = {
     'aufgabe': Aufgabe2,
     'notfallkontakt': Notfallkontakt2,
     'freiwilligeraufgaben': UserAufgaben,
-    'referenten': Referenten2,
+    'team': Team,
     'user': CustomUser,
     'personcluster': PersonCluster
 }
@@ -832,8 +833,10 @@ def list_aufgaben_table(request, scroll_to=None):
                         'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
                         'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
                     })
-                else:
+                elif user.customuser.person_cluster in aufgabe.person_cluster.all():
                     user_aufgaben_matrix[user].append(aufgabe.id)
+                else:
+                    user_aufgaben_matrix[user].append(None)
 
         # Get countries for users
         countries = Einsatzland2.objects.filter(org=request.user.org)
