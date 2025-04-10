@@ -24,7 +24,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.template.loader import render_to_string
 
 from Global.models import (
-    Attribute, AufgabenCluster, Freiwilliger2, Aufgabe2, PersonCluster, UserAttribute, 
+    Attribute, AufgabenCluster, Freiwilliger2, Aufgabe2, Maintenance, PersonCluster, UserAttribute, 
     UserAufgaben, Post2, Bilder2, CustomUser,
     BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2, Referenten2,
     Einsatzland2, Einsatzstelle2,
@@ -133,7 +133,6 @@ def get_filtered_user_queryset(request, requested_view=None):
 
 def org_context_processor(request):
     """Context processor to add jahrgaenge to all templates."""
-    return {}
     if hasattr(request, 'user') and request.user.is_authenticated and (request.user.customuser.person_cluster.view == 'O' or request.user.customuser.person_cluster.view == 'T'):
         return {
             'person_cluster': PersonCluster.objects.filter(org=request.user.org)

@@ -54,11 +54,11 @@ from .models import (
     CustomUser,
     Dokument2,
     Ordner2,
-    Organisation,
     PersonCluster,
     Notfallkontakt2,
     DokumentColor2
 )
+from ORG.models import Organisation
 from ORG.views import base_template as org_base_template
 from TEAM.views import base_template as team_base_template
 from FW.views import base_template as fw_base_template
