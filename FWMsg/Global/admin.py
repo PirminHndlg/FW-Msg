@@ -5,8 +5,9 @@ from django.http import HttpResponseRedirect
 from django.urls import path
 from django.contrib import messages
 from django.utils.html import format_html
-from .models import Ampel2, Attribute, CustomUser, Einsatzland2, Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, Organisation, Aufgabe2, DokumentColor2, Dokument2, Ordner2, Freiwilliger2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, AufgabenCluster, Bilder2, BilderGallery2, ProfilUser2, Maintenance
+from .models import Ampel2, Attribute, CustomUser, Einsatzland2, Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, Organisation, Aufgabe2, DokumentColor2, Dokument2, Ordner2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, AufgabenCluster, Bilder2, BilderGallery2, ProfilUser2, Maintenance
 from TEAM.models import Team
+from FW.models import Freiwilliger
 from FWMsg.celery import send_email_aufgaben_daily
 from simple_history.admin import SimpleHistoryAdmin
 
@@ -95,41 +96,6 @@ class DokumentAdmin(SimpleHistoryAdmin):
 @admin.register(DokumentColor2)
 class DokumentColorAdmin(SimpleHistoryAdmin):
     search_fields = ['name']
-
-
-@admin.register(Freiwilliger2)
-class FreiwilligerAdmin(SimpleHistoryAdmin):
-    search_fields = ['first_name', 'last_name']
-    actions = ['send_register_email', 'give_user_name', 'anonymize_user']
-
-    def send_register_email(self, request, queryset):
-        for freiwilliger in queryset:
-            from FW.tasks import send_register_email_task
-            send_register_email_task.delay(freiwilliger.id)
-
-    def give_user_name(self, request, queryset):
-        for freiwilliger in queryset:
-            freiwilliger.user.first_name = freiwilliger.first_name
-            freiwilliger.user.last_name = freiwilliger.last_name
-            freiwilliger.user.save()
-
-    def anonymize_user(self, request, queryset):
-        for freiwilliger in queryset:
-            random_date_in_2007 = datetime(2007, 1, 1).date() + timedelta(days=random.randint(0, 365))
-            # Replace umlauts in name parts
-            first = freiwilliger.first_name.replace('ä','ae').replace('ö','oe').replace('ü','ue').replace('ß','ss')
-            last = freiwilliger.last_name.replace('ä','ae').replace('ö','oe').replace('ü','ue').replace('ß','ss')
-            freiwilliger.user.email = f'{first}.{last}@p0k.de'
-            freiwilliger.email = f'{first}.{last}@p0k.de'
-            freiwilliger.geburtsdatum = random_date_in_2007
-            freiwilliger.phone = None
-            freiwilliger.phone_einsatzland = None
-            freiwilliger.strasse = None
-            freiwilliger.plz = None
-            freiwilliger.ort = None
-            freiwilliger.country = None
-            freiwilliger.save()
-            freiwilliger.user.save()
     
 
 @admin.register(Attribute)

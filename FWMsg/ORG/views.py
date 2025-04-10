@@ -24,13 +24,14 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.template.loader import render_to_string
 
 from Global.models import (
-    Attribute, AufgabenCluster, Freiwilliger2, Aufgabe2, Maintenance, PersonCluster, UserAttribute, 
+    Attribute, AufgabenCluster, Aufgabe2, Maintenance, PersonCluster, UserAttribute, 
     UserAufgaben, Post2, Bilder2, CustomUser,
     BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2,
     Einsatzland2, Einsatzstelle2,
     AufgabeZwischenschritte2, UserAufgabenZwischenschritte
 )
 from TEAM.models import Team
+from FW.models import Freiwilliger
 from django.contrib.auth.models import User
 
 from django.db import models
@@ -57,7 +58,7 @@ class PersonenClusterFilteredQuerySet(QuerySet):
 
     def filter(self, *args, **kwargs):
         queryset = super().filter(*args, **kwargs)
-        if self._person_cluster_id and self.model == Freiwilliger2:
+        if self._person_cluster_id and self.model == Freiwilliger:
             queryset = queryset.filter(person_cluster=self._person_cluster_id)
         return queryset
 
@@ -80,7 +81,7 @@ def filter_person_cluster(view_func):
     def _wrapped_view(request, *args, **kwargs):
         person_cluster = get_person_cluster(request)
 
-        original_get_queryset_freiwilliger = Freiwilliger2.objects.get_queryset
+        original_get_queryset_freiwilliger = Freiwilliger.objects.get_queryset
         original_get_queryset_aufgabe = Aufgabe2.objects.get_queryset
 
         def get_person_cluster_queryset(manager):
@@ -95,14 +96,14 @@ def filter_person_cluster(view_func):
                 return base_qs.filter(Q(person_cluster=person_cluster) | Q(person_cluster=None))
             return base_qs
     
-        Freiwilliger2.objects.get_queryset = get_person_cluster_queryset.__get__(Freiwilliger2.objects)
+        Freiwilliger.objects.get_queryset = get_person_cluster_queryset.__get__(Freiwilliger.objects)
         Aufgabe2.objects.get_queryset = get_person_cluster_queryset_aufgabe.__get__(Aufgabe2.objects)
         #CustomUser.objects.get_queryset = get_person_cluster_queryset_user.__get__(CustomUser.objects)
 
         try:
             return view_func(request, *args, **kwargs)
         finally:
-            Freiwilliger2.objects.get_queryset = original_get_queryset_freiwilliger
+            Freiwilliger.objects.get_queryset = original_get_queryset_freiwilliger
             Aufgabe2.objects.get_queryset = original_get_queryset_aufgabe
             
     return _wrapped_view
@@ -143,7 +144,7 @@ def org_context_processor(request):
 allowed_models_to_edit = {
     'einsatzland': Einsatzland2,
     'einsatzstelle': Einsatzstelle2,
-    'freiwilliger': Freiwilliger2,
+    'freiwilliger': Freiwilliger,
     'attribute': Attribute,
     'aufgabe': Aufgabe2,
     'notfallkontakt': Notfallkontakt2,
@@ -245,7 +246,7 @@ def add_object(request, model_name):
     freiwilliger_id = request.GET.get('freiwilliger')
     aufgabe_id = request.GET.get('aufgabe')
     if freiwilliger_id and aufgabe_id:
-        freiwilliger = Freiwilliger2.objects.get(pk=freiwilliger_id)
+        freiwilliger = Freiwilliger.objects.get(pk=freiwilliger_id)
         aufgabe = Aufgabe2.objects.get(pk=aufgabe_id)
 
         if not freiwilliger.org == request.user.org or not aufgabe.org == request.user.org:
@@ -672,14 +673,14 @@ def list_ampel(request):
 def get_ampel_date_range(org):
     """Helper function to determine the date range for ampel entries."""
     # Get earliest start date
-    start_dates = Freiwilliger2.objects.filter(org=org).aggregate(
+    start_dates = Freiwilliger.objects.filter(org=org).aggregate(
         real_start=Min('start_real'),
         planned_start=Min('start_geplant')
     )
     start_date = start_dates['real_start'] or start_dates['planned_start']
 
     # Get latest end date
-    end_dates = Freiwilliger2.objects.filter(org=org).aggregate(
+    end_dates = Freiwilliger.objects.filter(org=org).aggregate(
         real_end=Max('ende_real'),
         planned_end=Max('ende_geplant')
     )
@@ -978,17 +979,17 @@ def statistik(request):
             stats = UserAttribute.objects.filter(
                 org=request.user.org,
                 attribute=attribute,
-                user__in=Freiwilliger2.objects.filter(org=request.user.org).values('user')
+                user__in=Freiwilliger.objects.filter(org=request.user.org).values('user')
             ).values('value').annotate(count=Count('id')).order_by('value')
             
             data = {str(item['value']) if item['value'] is not None else 'Nicht angegeben': item['count'] for item in stats}
             return JsonResponse(data)
         
         # Original code for Freiwilliger fields
-        if field_name not in [f.name for f in Freiwilliger2._meta.fields]:
+        if field_name not in [f.name for f in Freiwilliger._meta.fields]:
             return JsonResponse({'error': 'Invalid field'}, status=400)
         
-        stats = Freiwilliger2.objects.filter(org=request.user.org)\
+        stats = Freiwilliger.objects.filter(org=request.user.org)\
             .values(field_name)\
             .annotate(count=Count('id'))\
             .order_by(field_name)
@@ -997,8 +998,8 @@ def statistik(request):
         data = {}
         for item in stats:
             value = item[field_name]
-            if isinstance(value, int) and any(f.name == field_name and isinstance(f, ForeignKey) for f in Freiwilliger2._meta.fields):
-                related_obj = Freiwilliger2._meta.get_field(field_name).related_model.objects.get(id=value)
+            if isinstance(value, int) and any(f.name == field_name and isinstance(f, ForeignKey) for f in Freiwilliger._meta.fields):
+                related_obj = Freiwilliger._meta.get_field(field_name).related_model.objects.get(id=value)
                 key = str(related_obj)
             else:
                 key = str(value) if value is not None else 'Nicht angegeben'
@@ -1006,13 +1007,13 @@ def statistik(request):
         
         return JsonResponse(data)
 
-    freiwillige = Freiwilliger2.objects.filter(org=request.user.org)
+    freiwillige = Freiwilliger.objects.filter(org=request.user.org)
     filter_for_fields = ['einsatzland', 'einsatzstelle', 'kirchenzugehoerigkeit', 'geschlecht', 'ort', 'geburtsdatum']
     if not 'selectedPersonCluster' in request.COOKIES:
         filter_for_fields.append('personen_cluster')
     
     # Get regular fields
-    all_fields = Freiwilliger2._meta.fields
+    all_fields = Freiwilliger._meta.fields
     fields = [field for field in all_fields if field.name in filter_for_fields]
     
     # Get UserAttribute fields

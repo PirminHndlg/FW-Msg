@@ -5,7 +5,7 @@ from PIL import Image  # Make sure this is from PIL, not Django models
 from django.contrib.auth.models import User, AbstractUser
 from django.db import models
 from ORG.models import JahrgangTyp
-from Global.models import CustomUser, OrgModel, Organisation
+from Global.models import CustomUser, OrgModel, Organisation, Einsatzland2, Einsatzstelle2
 from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 from django.core.files.base import ContentFile
@@ -174,7 +174,9 @@ class Freiwilliger(models.Model):
     phone_einsatzland = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon Einsatzland')
     entsendeform = models.ForeignKey(Entsendeform, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Entsendeform')
     einsatzland = models.ForeignKey(Einsatzland, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzland')
+    einsatzland2 = models.ForeignKey(Einsatzland2, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzland')
     einsatzstelle = models.ForeignKey(Einsatzstelle, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzstelle')
+    einsatzstelle2 = models.ForeignKey(Einsatzstelle2, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzstelle')
     kirchenzugehoerigkeit = models.ForeignKey(Kirchenzugehoerigkeit, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Kirchenzugehörigkeit')
     start_geplant = models.DateField(blank=True, null=True, verbose_name='Start geplant')
     start_real = models.DateField(blank=True, null=True, verbose_name='Start real')
@@ -650,4 +652,4 @@ class ProfilUser(OrgModel):
         verbose_name_plural = 'Profil User'
 
     def __str__(self):
-        return self.user + self.attribut
+        return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.attribut

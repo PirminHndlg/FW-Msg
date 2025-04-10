@@ -1,7 +1,8 @@
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from Global.models import Einsatzland2, Freiwilliger2, Einsatzstelle2, UserAttribute
+from Global.models import Einsatzland2, Einsatzstelle2, UserAttribute
+from FW.models import Freiwilliger
 from TEAM.models import Team
 from django.contrib import messages
 
@@ -24,7 +25,7 @@ def _get_Freiwillige(request):
     team_member = _get_team_member(request)
     if team_member:
         countries = team_member.land.all()
-        return Freiwilliger2.objects.filter(einsatzland__in=countries)
+        return Freiwilliger.objects.filter(einsatzland2__in=countries)
     return []
 
 @filter_person_cluster

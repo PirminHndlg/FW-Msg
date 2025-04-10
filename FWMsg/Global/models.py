@@ -470,48 +470,6 @@ class Attribute(OrgModel):
         return self.name
 
 
-class Freiwilliger2(OrgModel):
-    GESCHLECHT_CHOICES = [
-        ('M', 'Männlich'),
-        ('W', 'Weiblich'),
-        ('D', 'Divers'),
-        ('N', 'Keine Angabe')
-    ]
-
-    user = models.OneToOneField(User, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name='Benutzer:in')
-    einsatzland = models.ForeignKey(Einsatzland2, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzland')
-    einsatzstelle = models.ForeignKey(Einsatzstelle2, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzstelle')
-    start_geplant = models.DateField(blank=True, null=True, verbose_name='Start geplant')
-    start_real = models.DateField(blank=True, null=True, verbose_name='Start real')
-    ende_geplant = models.DateField(blank=True, null=True, verbose_name='Ende geplant')
-    ende_real = models.DateField(blank=True, null=True, verbose_name='Ende real')
-
-    history = HistoricalRecords()
-
-    class Meta:
-        verbose_name = 'Freiwillige:r'
-        verbose_name_plural = 'Freiwillige'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._original_start_real = self.start_real
-        self._original_ende_real = self.ende_real
-
-    def has_field_changed(self, field_name):
-        """Helper to check if a field has changed."""
-        original_value = getattr(self, f"_original_{field_name}")
-        current_value = getattr(self, field_name)
-        return original_value != current_value
-    
-    def send_register_email(self):
-        from FW.tasks import send_register_email_task
-        send_register_email_task.delay(self)
-
-    def __str__(self):
-        return self.user.first_name + ' ' + self.user.last_name
-
-Freiwilliger2.add_to_class('person_cluster', property(lambda self: self.user.customuser.person_cluster))
-
 class UserAttribute(OrgModel):
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name='Benutzer:in')
     attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE, verbose_name='Attribut')
@@ -523,39 +481,6 @@ class UserAttribute(OrgModel):
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.attribute.name
-
-@receiver(post_save, sender=Freiwilliger2)
-def post_save_handler(sender, instance, created, **kwargs):
-    if instance.user and not instance.user.customuser:
-
-        einmalpasswort = random.randint(100000, 999999)
-
-        CustomUser.objects.create(
-            user=instance.user,
-            org=instance.org,
-            einmalpasswort=einmalpasswort,
-        )
-
-    else:
-        if instance.has_field_changed('ende_real'):
-            tasks = UserAufgaben.objects.filter(user=instance.user, faellig__isnull=False,
-                                                        aufgabe__faellig_tage_vor_ende__isnull=False, erledigt=False, pending=False)
-            start_date = instance.start_real or instance.start_geplant or instance.jahrgang.start
-            for task in tasks:
-                task.faellig = start_date - timedelta(days=task.aufgabe.faellig_tage_vor_ende)
-                task.save()
-        if instance.has_field_changed('start_real'):
-            tasks = UserAufgaben.objects.filter(user=instance.user, faellig__isnull=False,
-                                                        aufgabe__faellig_tage_nach_start__isnull=False, erledigt=False, pending=False)
-            start_date = instance.start_real or instance.start_geplant or instance.jahrgang.start
-            for task in tasks:
-                task.faellig = start_date + timedelta(days=task.aufgabe.faellig_tage_nach_start)
-                task.save()
-
-
-@receiver(post_delete, sender=Freiwilliger2)
-def post_delete_handler(sender, instance, **kwargs):
-    instance.user.delete()
 
 
 class Notfallkontakt2(OrgModel):
