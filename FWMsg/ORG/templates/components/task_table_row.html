@@ -168,12 +168,18 @@
                     </ul>
                 </div>
             {% endif %}
-        {% else %}
+        {% elif user_aufgabe is not None %}
         <div class="p-0 m-0">
             <a class="btn btn-sm" 
                 href="{% url 'list_aufgaben_table' %}?u={{user.id}}&a={{user_aufgabe}}"
                 data-tooltip="{% trans 'Aufgabe zuweisen' %}">
                 <i class="bi bi-plus-circle"></i>
+            </a>
+        </div>
+        {% else %}
+        <div class="p-0 m-0">
+            <a data-tooltip="{% trans 'Aufgabe nicht für diesen Personencluster' %}" style="cursor: help;">
+                <i class="bi bi-x-lg text-danger"></i>
             </a>
         </div>
         {% endif %}
