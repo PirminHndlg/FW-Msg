@@ -1,5 +1,5 @@
 .venv
-migrations
+migrations*
 db.sqlite3
 FWMsg/FW/__pycache__/
 FWMsg/FW/**/__pycache__/
@@ -68,5 +68,6 @@ FWMsg/dump.rdb
 media/
 gdpr-log.sqlite3
 media_old/
-old_db_2.sqlite3
+*.sqlite3
 convert_dump.py
+update-reihenfolge.md
