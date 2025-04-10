@@ -501,7 +501,7 @@ class FreiwilligerAufgaben(OrgModel):
         verbose_name_plural = 'Freiwillige:r Aufgaben'
 
     def __str__(self):
-        return self.freiwilliger.first_name + ' ' + self.freiwilliger.last_name + ' - ' + self.aufgabe.name
+        return self.freiwilliger.user.first_name + ' ' + self.freiwilliger.user.last_name + ' - ' + self.aufgabe.name + ' - ' + str(self.file)
 
 
 class FreiwilligerAufgabenZwischenschritte(OrgModel):

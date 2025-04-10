@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
@@ -7,8 +8,14 @@ from django.contrib.auth.models import User
 from .forms import PasswordResetForm, EmailAuthenticationForm
 from django.contrib.auth import get_user_model
 import re
+from Global.models import Maintenance
+from django.utils import timezone
 
 def index(request):
+    maintenance = Maintenance.objects.filter(id=1)
+    if maintenance.exists():
+        return redirect('maintenance')
+
     def redirect_to_home(user):
         if user.customuser.person_cluster.view == 'O':
             return redirect('org_home')
@@ -71,6 +78,67 @@ def index(request):
             return redirect_to_home(request.user)
 
     return render(request, 'index.html', {'form': form})
+
+def maintenance(request):
+    try:
+        maintenance = Maintenance.objects.get(id=1)
+        maintenance_start_time = maintenance.maintenance_start_time
+        maintenance_end_time = maintenance.maintenance_end_time
+    except Maintenance.DoesNotExist:
+        return render(request, 'maintenance.html', {'maintenance_end_time': 'Maintenance not found'})
+    
+    # Calculate progress percentage
+    # Use timezone-aware current time if maintenance times are timezone-aware
+    if timezone.is_aware(maintenance_start_time):
+        current_time = timezone.now()
+    else:
+        # If maintenance times are naive, use naive current time
+        current_time = datetime.now()
+    
+    if current_time < maintenance_start_time:
+        progress_percentage = 0
+    elif current_time > maintenance_end_time:
+        progress_percentage = 100
+    else:
+        # Calculate percentage of time elapsed
+        total_duration = (maintenance_end_time - maintenance_start_time).total_seconds()
+        elapsed_duration = (current_time - maintenance_start_time).total_seconds()
+        progress_percentage = min(round((elapsed_duration / total_duration) * 100), 99)
+
+    # Format datetime for display in local timezone
+    if hasattr(maintenance_end_time, 'strftime'):
+        # Convert to local timezone if it's timezone-aware
+        if timezone.is_aware(maintenance_end_time):
+            local_end_time = timezone.localtime(maintenance_end_time)
+        else:
+            local_end_time = maintenance_end_time
+            
+        # Format the time in German
+        try:
+            import locale
+            # Try to set German locale for date formatting
+            try:
+                locale.setlocale(locale.LC_TIME, 'de_DE.UTF-8')
+            except locale.Error:
+                try:
+                    locale.setlocale(locale.LC_TIME, 'de_DE')
+                except locale.Error:
+                    # Fallback if German locale is not available
+                    pass
+                    
+            # Format date in German style
+            formatted_end_time = local_end_time.strftime("%d. %B %Y, %H:%M")
+            
+        except ImportError:
+            # Simple fallback if locale module is not available
+            formatted_end_time = local_end_time.strftime("%d. %m. %Y, %H:%M")
+    else:
+        formatted_end_time = maintenance_end_time
+    
+    return render(request, 'maintenance.html', {
+        'maintenance_end_time': formatted_end_time,
+        'progress_percentage': progress_percentage
+    })
 
 def first_login(request):
     if request.method == 'POST':

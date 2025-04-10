@@ -7,7 +7,55 @@ from django.contrib.auth.models import User
 import random
 import string
 from simple_history.models import HistoricalRecords
-from Global.models import Organisation
+# Create your models here.
+class Organisation(models.Model):
+    name = models.CharField(max_length=100)
+    kurzname = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField()
+    adress = models.TextField(null=True, blank=True)
+    telefon = models.CharField(max_length=20, null=True, blank=True)
+    website = models.URLField(null=True, blank=True)
+    logo = models.ImageField(upload_to='logos/')
+    farbe = models.CharField(max_length=7, default='#007bff')
+    text_color_on_org_color = models.CharField(max_length=7, default='#000000')
+
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = 'Organisation'
+        verbose_name_plural = 'Organisationen'
+
+    def __str__(self):
+        return self.name
+    
+@receiver(post_save, sender=Organisation)
+def create_folder(sender, instance, created, **kwargs):
+    if created:
+        from Global.models import CustomUser
+        from ORG.tasks import send_register_email_task
+
+        path = os.path.join(instance.name)
+        os.makedirs(os.path.join('dokument', instance.name), exist_ok=True)
+
+        if instance.kurzname:
+            user_name = instance.kurzname.lower().replace(' ', '_')
+        else:
+            user_name = instance.name.lower().replace(' ', '_')
+
+        user = User.objects.create(username=user_name, email=instance.email)
+
+        import random
+        import string
+        
+        # Generate random string with letters and digits
+        random_password = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
+        einmalpasswort = random.randint(10000000, 99999999)
+        user.set_password(random_password)
+        user.save()
+
+        customuser = CustomUser.objects.create(user=user, org=instance, role='O', einmalpasswort=einmalpasswort)
+
+        send_register_email_task.s(customuser.id).apply_async(countdown=10)
 
 
 class MailBenachrichtigungen(models.Model):

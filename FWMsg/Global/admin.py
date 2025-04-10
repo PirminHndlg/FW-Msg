@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 from django.urls import path
 from django.contrib import messages
 from django.utils.html import format_html
-from .models import Ampel2, Attribute, CustomUser, Einsatzland2, Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, Organisation, Aufgabe2, DokumentColor2, Dokument2, Referenten2, Ordner2, Freiwilliger2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, AufgabenCluster, Jahrgang2, Bilder2, BilderGallery2, ProfilUser2
+from .models import Ampel2, Attribute, CustomUser, Einsatzland2, Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, Organisation, Aufgabe2, DokumentColor2, Dokument2, Referenten2, Ordner2, Freiwilliger2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, AufgabenCluster, Bilder2, BilderGallery2, ProfilUser2, Maintenance
 from FWMsg.celery import send_email_aufgaben_daily
 from simple_history.admin import SimpleHistoryAdmin
 
@@ -231,11 +231,6 @@ class AufgabenClusterAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
 
-@admin.register(Jahrgang2)
-class JahrgangAdmin(admin.ModelAdmin):
-    search_fields = ['name']
-
-
 @admin.register(Bilder2)
 class BilderAdmin(admin.ModelAdmin):
     search_fields = ['name']
@@ -244,3 +239,8 @@ class BilderAdmin(admin.ModelAdmin):
 @admin.register(BilderGallery2)
 class BilderGalleryAdmin(admin.ModelAdmin):
     search_fields = ['bilder']
+
+@admin.register(Maintenance)
+class MaintenanceAdmin(admin.ModelAdmin):
+    list_display = ['maintenance_start_time', 'maintenance_end_time']
+    search_fields = ['maintenance_start_time', 'maintenance_end_time']

@@ -8,7 +8,7 @@ import os.path
 from django.db.models.signals import post_save, post_delete, pre_delete
 from FWMsg.middleware import get_current_request
 import os
-
+from ORG.models import Organisation
 from datetime import datetime, timedelta
 
 from PIL import Image  # Make sure this is from PIL, not Django models
@@ -23,55 +23,6 @@ class OrgManager(models.Manager):
             return super().get_queryset().filter(org=request.user.org)
         return super().get_queryset()
 
-
-class Organisation(models.Model):
-    name = models.CharField(max_length=100)
-    kurzname = models.CharField(max_length=50, blank=True, null=True)
-    email = models.EmailField()
-    adress = models.TextField(null=True, blank=True)
-    telefon = models.CharField(max_length=20, null=True, blank=True)
-    website = models.URLField(null=True, blank=True)
-    logo = models.ImageField(upload_to='logos/')
-    farbe = models.CharField(max_length=7, default='#007bff')
-    text_color_on_org_color = models.CharField(max_length=7, default='#000000')
-
-    history = HistoricalRecords()
-
-    class Meta:
-        verbose_name = 'Organisation'
-        verbose_name_plural = 'Organisationen'
-
-    def __str__(self):
-        return self.name
-    
-@receiver(post_save, sender=Organisation)
-def create_folder(sender, instance, created, **kwargs):
-    if created:
-        from Global.models import CustomUser
-        from ORG.tasks import send_register_email_task
-
-        path = os.path.join(instance.name)
-        os.makedirs(os.path.join('dokument', instance.name), exist_ok=True)
-
-        if instance.kurzname:
-            user_name = instance.kurzname.lower().replace(' ', '_')
-        else:
-            user_name = instance.name.lower().replace(' ', '_')
-
-        user = User.objects.create(username=user_name, email=instance.email)
-
-        import random
-        import string
-        
-        # Generate random string with letters and digits
-        random_password = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
-        einmalpasswort = random.randint(10000000, 99999999)
-        user.set_password(random_password)
-        user.save()
-
-        customuser = CustomUser.objects.create(user=user, org=instance, role='O', einmalpasswort=einmalpasswort)
-
-        send_register_email_task.s(customuser.id).apply_async(countdown=10)
 
 
 class OrgModel(models.Model):
@@ -538,7 +489,7 @@ class Attribute(OrgModel):
     ]
 
     name = models.CharField(max_length=50, verbose_name='Attribut')
-    type = models.CharField(max_length=1, choices=TYPE_CHOICES, verbose_name='Feldtyp')
+    type = models.CharField(max_length=1, choices=TYPE_CHOICES, verbose_name='Feldtyp', default='T')
     value_for_choices = models.CharField(null=True, blank=True, max_length=250, help_text='Nur für Feldtyp Auswahl, kommagetrennt die Auswahlmöglichkeiten eintragen. Z.B. "Vegan, Vegetarisch, Konventionell" für Attribut "Essen"')
     person_cluster = models.ManyToManyField(PersonCluster, verbose_name='Person Cluster')
 
@@ -548,27 +499,6 @@ class Attribute(OrgModel):
 
     def __str__(self):
         return self.name
-
-class Jahrgang2(OrgModel):
-    name = models.CharField(max_length=50, verbose_name='Jahrgang')
-    start = models.DateField(verbose_name='Startdatum')
-    ende = models.DateField(verbose_name='Enddatum')
-    typ = models.ForeignKey(PersonCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Typ')
-
-    history = HistoricalRecords()
-
-    class Meta:
-        verbose_name = 'Jahrgang'
-        verbose_name_plural = 'Jahrgänge'
-
-    def __str__(self):
-        return self.name
-    
-    def get_queryset(self):
-        if self.request.user.org == self.org:
-            return super().get_queryset()
-        else:
-            return super().get_queryset().filter(org=self.request.user.org)
 
 
 class Freiwilliger2(OrgModel):
@@ -616,7 +546,7 @@ Freiwilliger2.add_to_class('person_cluster', property(lambda self: self.user.cus
 class UserAttribute(OrgModel):
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name='Benutzer:in')
     attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE, verbose_name='Attribut')
-    value = models.TextField(verbose_name='Wert')
+    value = models.TextField(verbose_name='Wert', null=True, blank=True)
 
     class Meta:
         verbose_name = 'Freiwilliger Attribut'
@@ -981,3 +911,12 @@ class ProfilUser2(OrgModel):
 
     def __str__(self):
         return self.user + self.attribut
+
+
+class Maintenance(models.Model):
+    maintenance_start_time = models.DateTimeField(verbose_name='Wartung startet am')
+    maintenance_end_time = models.DateTimeField(verbose_name='Wartung endet am')
+
+    class Meta:
+        verbose_name = 'Wartung'
+        verbose_name_plural = 'Wartungen'
