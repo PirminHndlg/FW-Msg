@@ -41,14 +41,14 @@
     <!-- Country Header -->
     <div class="card-header rounded-4 d-flex align-items-center flex-wrap gap-3">
       <h3 class="mb-0 me-auto">{% trans 'Länderinfo' %}</h3>
-      {% if freiwilliger.einsatzland %}
+      {% if freiwilliger.einsatzland2 %}
         <div class="d-flex align-items-center">
-          <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }} me-3" style="width: 3rem; height: auto; font-size: 2rem;"></span>
+          <span class="fi fi-{{ freiwilliger.einsatzland2.code|lower }} me-3" style="width: 3rem; height: auto; font-size: 2rem;"></span>
           <div>
-            <div class="fw-bold">{{ freiwilliger.einsatzland.name|default:'' }}</div>
+            <div class="fw-bold">{{ freiwilliger.einsatzland2.name|default:'' }}</div>
             <div class="d-flex gap-2 text-muted small">
-              {% if freiwilliger.einsatzstelle %}
-                <span><i class="bi bi-buildings me-1"></i>{{ freiwilliger.einsatzstelle|default:'' }}</span>
+              {% if freiwilliger.einsatzstelle2 %}
+                <span><i class="bi bi-buildings me-1"></i>{{ freiwilliger.einsatzstelle2.name|default:'' }}</span>
               {% endif %}
             </div>
           </div>
@@ -62,13 +62,13 @@
         {% include 'components/info_section.html' with section_title=_('Entsendende Organisation') cards=org_cards %}
 
         {# Country Information Section #}
-        {% if freiwilliger.einsatzland %}
-          {% include 'components/info_section.html' with section_title=_('Länderinformationen')|add:' '|add:freiwilliger.einsatzland.name cards=country_cards %}
+        {% if freiwilliger.einsatzland2 %}
+          {% include 'components/info_section.html' with section_title=_('Länderinformationen')|add:' '|add:freiwilliger.einsatzland2.name cards=country_cards %}
         {% endif %}
 
         {# Assignment Location Information #}
-        {% if freiwilliger.einsatzstelle %}
-          {% include 'components/info_section.html' with section_title=_('Informationen Einsatzstelle')|add:' '|add:freiwilliger.einsatzstelle.name cards=location_cards %}
+        {% if freiwilliger.einsatzstelle2 %}
+          {% include 'components/info_section.html' with section_title=_('Informationen Einsatzstelle')|add:' '|add:freiwilliger.einsatzstelle2.name cards=location_cards %}
           {% include 'components/info_section.html' with section_title=_('Generelle Informationen') cards=general_cards %}
         {% endif %}
       </div>

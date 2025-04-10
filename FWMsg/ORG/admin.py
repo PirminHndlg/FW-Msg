@@ -30,7 +30,7 @@ class OrdnerAdmin(SimpleHistoryAdmin):
                 ordner_name=ordner.ordner_name,
             )
             if created:
-                ordner2.typ = set([ordner.typ])
+                ordner2.typ = person_cluster
                 ordner2.save()
                 
 
@@ -40,12 +40,12 @@ class DokumentAdmin(SimpleHistoryAdmin):
     actions = ['move_to_new']
 
     def move_to_new(self, request, queryset):
-        from Global.models import Dokument2
+        from Global.models import Dokument2, Ordner2
 
         for dokument in queryset:
             dokument2, created = Dokument2.objects.get_or_create(
                 org=dokument.org,
-                ordner=dokument.ordner,
+                ordner=Ordner2.objects.get(ordner_name=dokument.ordner.ordner_name),
                 dokument=dokument.dokument,
                 link=dokument.link,
                 titel=dokument.titel,

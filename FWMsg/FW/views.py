@@ -3,9 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.utils.translation import gettext as _
 from Global.models import (
-    Freiwilliger2, 
     UserAufgaben, Post2,
 )
+from FW.models import Freiwilliger
 from TEAM.models import Team
 
 from FWMsg.decorators import required_role
@@ -53,7 +53,7 @@ def home(request):
     else:
         gallery_images = []
 
-    freiwilliger = Freiwilliger2.objects.get(user=request.user) if Freiwilliger2.objects.filter(user=request.user).exists() else None
+    freiwilliger = Freiwilliger.objects.get(user=request.user) if Freiwilliger.objects.filter(user=request.user).exists() else None
 
     if freiwilliger and (freiwilliger.start_real or freiwilliger.start_geplant):
         days_until_start = ((freiwilliger.start_real or freiwilliger.start_geplant) - datetime.now().date()).days
@@ -74,8 +74,8 @@ def home(request):
 @required_role('F')
 def laenderinfo(request):
     user = request.user
-    freiwilliger = Freiwilliger2.objects.get(user=user)
-    land = freiwilliger.einsatzland
+    freiwilliger = Freiwilliger.objects.get(user=user)
+    land = freiwilliger.einsatzland2
     referenten = Team.objects.filter(org=user.org, land=land) if land else []
 
     # Prepare organization cards
@@ -130,47 +130,47 @@ def laenderinfo(request):
             })
 
     # Add embassy and consulate cards if einsatzstelle exists and has the data
-    if freiwilliger.einsatzstelle:
-        if freiwilliger.einsatzstelle.botschaft:
+    if freiwilliger.einsatzstelle2:
+        if freiwilliger.einsatzstelle2.botschaft:
             country_cards.append({
                 'title': _('Botschaft'),
                 'items': [
-                    {'icon': 'building', 'value': format_text_with_link(freiwilliger.einsatzstelle.botschaft)}
+                    {'icon': 'building', 'value': format_text_with_link(freiwilliger.einsatzstelle2.botschaft)}
                 ]
             })
         
-        if freiwilliger.einsatzstelle.konsulat:
+        if freiwilliger.einsatzstelle2.konsulat:
             country_cards.append({
                 'title': _('Konsulat'),
                 'items': [
-                    {'icon': 'building', 'value': format_text_with_link(freiwilliger.einsatzstelle.konsulat)}
+                    {'icon': 'building', 'value': format_text_with_link(freiwilliger.einsatzstelle2.konsulat)}
                 ]
             })
 
     # Prepare location cards
     location_cards = []
-    if freiwilliger.einsatzstelle:
-        if freiwilliger.einsatzstelle.arbeitsvorgesetzter:
+    if freiwilliger.einsatzstelle2:
+        if freiwilliger.einsatzstelle2.arbeitsvorgesetzter:
             location_cards.append({
                 'title': _('Arbeitsvorgesetzte:r'),
                 'items': [
-                    {'icon': 'person', 'value': format_text_with_link(freiwilliger.einsatzstelle.arbeitsvorgesetzter)}
+                    {'icon': 'person', 'value': format_text_with_link(freiwilliger.einsatzstelle2.arbeitsvorgesetzter)}
                 ]
             })
         
-        if freiwilliger.einsatzstelle.partnerorganisation:
+        if freiwilliger.einsatzstelle2.partnerorganisation:
             location_cards.append({
                 'title': _('Partnerorganisation'),
                 'items': [
-                    {'icon': 'building', 'value': format_text_with_link(freiwilliger.einsatzstelle.partnerorganisation)}
+                    {'icon': 'building', 'value': format_text_with_link(freiwilliger.einsatzstelle2.partnerorganisation)}
                 ]
             })
         
-        if freiwilliger.einsatzstelle.mentor:
+        if freiwilliger.einsatzstelle2.mentor:
             location_cards.append({
                 'title': _('Mentor:in'),
                 'items': [
-                    {'icon': 'person', 'value': format_text_with_link(freiwilliger.einsatzstelle.mentor)}
+                    {'icon': 'person', 'value': format_text_with_link(freiwilliger.einsatzstelle2.mentor)}
                 ]
             })
 

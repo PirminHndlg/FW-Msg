@@ -3,7 +3,7 @@ import random
 from django.contrib import admin
 from .models import Freiwilliger, Entsendeform, Einsatzland, Einsatzstelle, Notfallkontakt, Post, Aufgabe, \
     Aufgabenprofil, FreiwilligerAufgabenprofil, Ampel, FreiwilligerAufgaben, Jahrgang, \
-    CustomUser, Bilder, BilderGallery, AufgabeZwischenschritte, FreiwilligerAufgabenZwischenschritte
+    CustomUser, Bilder, BilderGallery, AufgabeZwischenschritte, FreiwilligerAufgabenZwischenschritte, ProfilUser
 from simple_history.admin import SimpleHistoryAdmin
 from ORG.models import JahrgangTyp
 
@@ -16,7 +16,7 @@ class FreiwilligerAdmin(SimpleHistoryAdmin):
 
     def move_to_new(self, request, queryset):
         from ORG.models import Organisation
-        from Global.models import PersonCluster, UserAttribute
+        from Global.models import PersonCluster, UserAttribute, Einsatzland2, Einsatzstelle2
 
         person_cluster = PersonCluster.objects.get(name='Freiwilliger')
         org = Organisation.objects.get(name=queryset.first().org.name)
@@ -41,10 +41,19 @@ class FreiwilligerAdmin(SimpleHistoryAdmin):
         ]
 
         for freiwilliger in queryset:
-
+            freiwilliger.user.customuser.first_name = freiwilliger.first_name
+            freiwilliger.user.customuser.last_name = freiwilliger.last_name
             freiwilliger.user.customuser.geburtsdatum = freiwilliger.geburtsdatum
             freiwilliger.user.customuser.person_cluster = person_cluster
             freiwilliger.user.customuser.save()
+
+            if freiwilliger.einsatzland:
+                freiwilliger.einsatzland2 = Einsatzland2.objects.get(name=freiwilliger.einsatzland.name)
+                freiwilliger.save()
+
+            if freiwilliger.einsatzstelle:
+                freiwilliger.einsatzstelle2 = Einsatzstelle2.objects.get(name=freiwilliger.einsatzstelle.name)
+                freiwilliger.save()
 
             for attribute in attributes:
                 UserAttribute.objects.get_or_create(
@@ -106,7 +115,7 @@ class EinsatzstelleAdmin(admin.ModelAdmin):
                 einsatzstelle2.botschaft = einsatzstelle.botschaft
                 einsatzstelle2.konsulat = einsatzstelle.konsulat
                 einsatzstelle2.informationen = einsatzstelle.informationen
-                
+
             einsatzstelle2.save()
 
 
@@ -248,3 +257,19 @@ class BilderAdmin(admin.ModelAdmin):
 @admin.register(BilderGallery)
 class BilderGalleryAdmin(admin.ModelAdmin):
     search_fields = ['bilder']
+
+@admin.register(ProfilUser)
+class ProfilUserAdmin(admin.ModelAdmin):
+    search_fields = ['user__first_name', 'user__last_name']
+    actions = ['move_to_new']
+
+    def move_to_new(self, request, queryset):
+        from Global.models import ProfilUser2
+
+        for profiluser in queryset:
+            profiluser2, created = ProfilUser2.objects.get_or_create(
+                user=profiluser.user,
+                attribut=profiluser.attribut,
+                value=profiluser.value,
+            )
+            profiluser2.save()

@@ -9,7 +9,7 @@
     data-link="{{ dokument.link|default:'' }}"
     data-dokument="{{ dokument|get_document_name|default:'' }}"
     data-folder_id="{{ structure.ordner.id }}"
-    data-folder_name="{{ structure.ordner }}"
+    data-folder_name="{{ structure.ordner }}">
     {% for person_cluster in dokument.darf_bearbeiten.all %}
         <input type="hidden" name="darf_bearbeiten" value="{{ person_cluster.id }}">
     {% endfor %}

@@ -47,7 +47,6 @@ from .models import (
     Ampel2, 
     Bilder2, 
     BilderGallery2, 
-    Freiwilliger2, 
     ProfilUser2, 
     UserAufgaben,
     KalenderEvent,
@@ -59,6 +58,7 @@ from .models import (
     DokumentColor2
 )
 from ORG.models import Organisation
+from FW.models import Freiwilliger
 from ORG.views import base_template as org_base_template
 from TEAM.views import base_template as team_base_template
 from FW.views import base_template as fw_base_template
@@ -740,8 +740,8 @@ def view_profil(request, user_id=None):
 
     profil_user_form = ProfilUserForm()
 
-    if Freiwilliger2.objects.filter(user=user).exists():
-        freiwilliger = Freiwilliger2.objects.get(user=user)
+    if Freiwilliger.objects.filter(user=user).exists():
+        freiwilliger = Freiwilliger.objects.get(user=user)
     else:
         freiwilliger = None
 

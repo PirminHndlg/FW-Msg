@@ -7,12 +7,13 @@ from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
 
 from Global.models import (
-    Attribute, Freiwilliger2, Aufgabe2, 
+    Attribute, Aufgabe2, 
     UserAufgaben, Post2, Bilder2, CustomUser,
     BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2, UserAttribute, 
     PersonCluster, Einsatzland2, Einsatzstelle2,
     AufgabeZwischenschritte2
 )
+from FW.models import Freiwilliger
 from TEAM.models import Team
 
 
@@ -185,7 +186,7 @@ def save_person_cluster_field(self):
 
 class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = Freiwilliger2
+        model = Freiwilliger
         fields = '__all__'
         exclude = ['user', 'org']
 
@@ -394,7 +395,7 @@ class AddUserForm(OrgFormMixin, forms.ModelForm):
 
 # Define which fields should be filterable for each model
 filterable_fields = {
-    Freiwilliger2: ['person_cluster', 'einsatzland', 'einsatzstelle'],
+    Freiwilliger: ['person_cluster', 'einsatzland', 'einsatzstelle'],
     Aufgabe2: ['faellig_art', 'mitupload'],
     Einsatzstelle2: ['einsatzland'],
     Notfallkontakt2: ['freiwilliger'],
@@ -506,7 +507,7 @@ class AddPersonClusterForm(OrgFormMixin, forms.ModelForm):
 model_to_form_mapping = {
     Einsatzland2: AddEinsatzlandForm,
     Einsatzstelle2: AddEinsatzstelleForm,
-    Freiwilliger2: AddFreiwilligerForm,
+    Freiwilliger: AddFreiwilligerForm,
     Aufgabe2: AddAufgabeForm,
     Notfallkontakt2: AddNotfallkontaktForm,
     UserAufgaben: AddFreiwilligerAufgabenForm,
