@@ -76,18 +76,24 @@ class ReferentenAdmin(SimpleHistoryAdmin):
             referent.user.save()
 
     def move_to_new(self, request, queryset):
-        from Global.models import Referenten2, Einsatzland2
+        from Global.models import Einsatzland2, PersonCluster
+        from TEAM.models import Team
+
+        person_cluster = PersonCluster.objects.get(name='Team')
 
         for referent in queryset:
-            referent2, created = Referenten2.objects.get_or_create(
+            team, created = Team.objects.get_or_create(
                 org=referent.org,
                 user=referent.user,
             )
+            print(created)
             if created:
+                team.user.customuser.person_cluster = person_cluster
+                team.user.customuser.save()
                 land = referent.land.all()
                 for l in land:
-                    referent2.land.add(Einsatzland2.objects.get(name=l.name))
-            referent2.save()
+                    team.land.add(Einsatzland2.objects.get(name=l.name))
+            team.save()
 
 @admin.register(JahrgangTyp)
 class JahrgangTypAdmin(SimpleHistoryAdmin):

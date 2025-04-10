@@ -9,10 +9,11 @@ from django.forms import inlineformset_factory
 from Global.models import (
     Attribute, Freiwilliger2, Aufgabe2, 
     UserAufgaben, Post2, Bilder2, CustomUser,
-    BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2, Referenten2, UserAttribute, 
+    BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2, UserAttribute, 
     PersonCluster, Einsatzland2, Einsatzstelle2,
     AufgabeZwischenschritte2
 )
+from TEAM.models import Team
 
 
 class OrgFormMixin:
@@ -463,7 +464,7 @@ class FilterForm(forms.Form):
 class AddReferentenForm(OrgFormMixin, forms.ModelForm):
     def bla():
         pass
-    
+
     # class Meta:
     #     model = Referenten2
     #     fields = '__all__'
@@ -509,7 +510,7 @@ model_to_form_mapping = {
     Aufgabe2: AddAufgabeForm,
     Notfallkontakt2: AddNotfallkontaktForm,
     UserAufgaben: AddFreiwilligerAufgabenForm,
-    Referenten2: AddReferentenForm,
+    Team: AddReferentenForm,
     CustomUser: AddUserForm,
     Attribute: AddAttributeForm,
     PersonCluster: AddPersonClusterForm

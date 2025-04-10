@@ -1,7 +1,8 @@
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from Global.models import Einsatzland2, Freiwilliger2, Referenten2, Einsatzstelle2, Ampel2, UserAttribute
+from Global.models import Einsatzland2, Freiwilliger2, Einsatzstelle2, UserAttribute
+from TEAM.models import Team
 from django.contrib import messages
 
 from ORG.views import filter_person_cluster, _get_ampel_matrix
@@ -16,7 +17,7 @@ def home(request):
 
 def _get_team_member(request):
     """Helper function to get the team member record for the current user."""
-    return Referenten2.objects.filter(user=request.user).first()
+    return Team.objects.filter(user=request.user).first()
 
 def _get_Freiwillige(request):
     """Get all volunteers that are assigned to countries this team member manages."""

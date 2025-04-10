@@ -5,8 +5,8 @@ from django.utils.translation import gettext as _
 from Global.models import (
     Freiwilliger2, 
     UserAufgaben, Post2,
-    Referenten2
 )
+from TEAM.models import Team
 
 from FWMsg.decorators import required_role
 from .templatetags.base_fw_filter import get_auswaeriges_amt_link, format_text_with_link
@@ -76,7 +76,7 @@ def laenderinfo(request):
     user = request.user
     freiwilliger = Freiwilliger2.objects.get(user=user)
     land = freiwilliger.einsatzland
-    referenten = Referenten2.objects.filter(org=user.org, land=land) if land else []
+    referenten = Team.objects.filter(org=user.org, land=land) if land else []
 
     # Prepare organization cards
     org_cards = []
