@@ -5,7 +5,8 @@ from django.http import HttpResponseRedirect
 from django.urls import path
 from django.contrib import messages
 from django.utils.html import format_html
-from .models import Ampel2, Attribute, CustomUser, Einsatzland2, Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, Organisation, Aufgabe2, DokumentColor2, Dokument2, Referenten2, Ordner2, Freiwilliger2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, AufgabenCluster, Bilder2, BilderGallery2, ProfilUser2, Maintenance
+from .models import Ampel2, Attribute, CustomUser, Einsatzland2, Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, Organisation, Aufgabe2, DokumentColor2, Dokument2, Ordner2, Freiwilliger2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, AufgabenCluster, Bilder2, BilderGallery2, ProfilUser2, Maintenance
+from TEAM.models import Team
 from FWMsg.celery import send_email_aufgaben_daily
 from simple_history.admin import SimpleHistoryAdmin
 
@@ -94,20 +95,6 @@ class DokumentAdmin(SimpleHistoryAdmin):
 @admin.register(DokumentColor2)
 class DokumentColorAdmin(SimpleHistoryAdmin):
     search_fields = ['name']
-
-@admin.register(Referenten2)
-class ReferentenAdmin(SimpleHistoryAdmin):
-    search_fields = ['first_name', 'last_name', 'email', 'phone']
-    actions = ['anonymize_user']
-
-    def anonymize_user(self, request, queryset):
-        for referent in queryset:
-            referent.email = f'{referent.first_name[0]}.{referent.last_name[0]}@p0k.de'
-            referent.user.email = f'{referent.first_name[0]}.{referent.last_name[0]}@p0k.de'
-            referent.phone_work = None
-            referent.phone_mobil = None
-            referent.save()
-            referent.user.save()
 
 
 @admin.register(Freiwilliger2)
