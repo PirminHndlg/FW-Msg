@@ -105,7 +105,7 @@ class DokumentAdmin(SimpleHistoryAdmin):
 
         for dokument in queryset:
             error_list = []
-            if dokument.dokument:
+            if dokument.dokument and os.path.exists(dokument.dokument.path):
                 try:
                     dokument2, created = Dokument2.objects.get_or_create(
                         org=dokument.org,
