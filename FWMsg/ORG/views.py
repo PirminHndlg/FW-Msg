@@ -532,7 +532,7 @@ def list_object(request, model_name, highlight_id=None):
 
         objects = extend_fields(objects, field_metadata, model_fields, user_fields, position=0)
 
-    elif model._meta.object_name == 'Freiwilliger' or model._meta.object_name == 'Referenten':
+    elif model._meta.object_name == 'Freiwilliger' or model._meta.object_name == 'Team':
         objects = objects.order_by('user__first_name', 'user__last_name')
         
         objects = extend_fields(objects, field_metadata, model_fields, user_fields, 0)
@@ -542,7 +542,7 @@ def list_object(request, model_name, highlight_id=None):
             attributes = Attribute.objects.filter(org=request.user.org, person_cluster=person_cluster)
             if not person_cluster.view == 'F' and model._meta.object_name == 'Freiwilliger':
                 error = f'{person_cluster.name} sind keine Freiwillige'
-            elif not person_cluster.view == 'T' and model._meta.object_name == 'Referenten':
+            elif not person_cluster.view == 'T' and model._meta.object_name == 'Team':
                 error = f'{person_cluster.name} sind keine Teammitglieder'
 
         for attr in attributes:
