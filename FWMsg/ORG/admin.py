@@ -39,35 +39,46 @@ class DokumentAdmin(SimpleHistoryAdmin):
     search_fields = ['ordner', 'dokument', 'beschreibung']
     actions = ['move_to_new', 'move_to_new_2']
 
-    def save_model(dokument):
-        from Global.models import Dokument2, Ordner2
-        dokument2, created = Dokument2.objects.get_or_create(
-            org=dokument.org,
-            ordner=Ordner2.objects.get(ordner_name=dokument.ordner.ordner_name),
-            dokument=dokument.dokument,
-            link=dokument.link,
-            titel=(dokument.titel or dokument.dokument.name)[:100],
-            beschreibung=dokument.beschreibung,
-            date_created=dokument.date_created,
-            date_modified=dokument.date_modified,
-            preview_image=dokument.preview_image,
-        )
-        dokument2.save()
 
     def move_to_new(self, request, queryset):
 
         for dokument in queryset:
             import os
+            from Global.models import Dokument2, Ordner2
+
 
             if dokument.dokument and os.path.exists(dokument.dokument.path):
-                self.save_model(dokument)
+                dokument2, created = Dokument2.objects.get_or_create(
+                    org=dokument.org,
+                    ordner=Ordner2.objects.get(ordner_name=dokument.ordner.ordner_name),
+                    dokument=dokument.dokument,
+                    link=dokument.link,
+                    titel=(dokument.titel or dokument.dokument.name)[:100],
+                    beschreibung=dokument.beschreibung,
+                    date_created=dokument.date_created,
+                    date_modified=dokument.date_modified,
+                    preview_image=dokument.preview_image,
+                )
+                dokument2.save()
                 
 
     def move_to_new_2(self, request, queryset):
+        from Global.models import Dokument2, Ordner2
 
         for dokument in queryset:
             if not dokument.dokument and (dokument.link or dokument.titel or dokument.beschreibung):
-                self.save_model(dokument)
+                dokument2, created = Dokument2.objects.get_or_create(
+                    org=dokument.org,
+                    ordner=Ordner2.objects.get(ordner_name=dokument.ordner.ordner_name),
+                    dokument=dokument.dokument,
+                    link=dokument.link,
+                    titel=(dokument.titel or dokument.dokument.name)[:100],
+                    beschreibung=dokument.beschreibung,
+                    date_created=dokument.date_created,
+                    date_modified=dokument.date_modified,
+                    preview_image=dokument.preview_image,
+                )
+                dokument2.save()
         
 
 @admin.register(DokumentColor)
