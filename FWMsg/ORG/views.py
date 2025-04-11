@@ -151,7 +151,8 @@ allowed_models_to_edit = {
     'freiwilligeraufgaben': UserAufgaben,
     'team': Team,
     'user': CustomUser,
-    'personcluster': PersonCluster
+    'personcluster': PersonCluster,
+    'aufg-filter': AufgabenCluster
 }
 
 
@@ -796,10 +797,9 @@ def list_aufgaben_table(request, scroll_to=None):
     users, person_cluster = get_filtered_user_queryset(request, 'aufgaben')
 
     if not person_cluster or person_cluster.aufgaben:
+        aufgaben = Aufgabe2.objects.filter(org=request.user.org)
         if person_cluster:
-            aufgaben = Aufgabe2.objects.filter(org=request.user.org, person_cluster=person_cluster).distinct()
-        else:
-            aufgaben = Aufgabe2.objects.filter(org=request.user.org)
+            aufgaben = aufgaben.filter(person_cluster=person_cluster).distinct()
 
         # Apply ordering
         aufgaben = aufgaben.order_by(
@@ -817,8 +817,14 @@ def list_aufgaben_table(request, scroll_to=None):
             filter_type = request.COOKIES.get('filter_aufgaben_table') or 'None'
 
         # Apply filter if provided
-        if filter_type and filter_type != 'None':
-            aufgaben = aufgaben.filter(faellig_art=filter_type)
+        if filter_type and filter_type.isdigit() and filter_type != 'None':
+            aufgaben_cluster = AufgabenCluster.objects.filter(id=filter_type)
+            if person_cluster:
+                aufgaben_cluster = aufgaben_cluster.filter(person_cluster=person_cluster)
+            if aufgaben_cluster:
+                aufgaben = aufgaben.filter(faellig_art__in=aufgaben_cluster)
+                filter_type = aufgaben_cluster.first()
+
 
         user_aufgaben_matrix = {}
         for user in users:
@@ -844,13 +850,17 @@ def list_aufgaben_table(request, scroll_to=None):
         # Get countries for users
         countries = Einsatzland2.objects.filter(org=request.user.org)
 
+        aufgaben_cluster = AufgabenCluster.objects.filter(org=request.user.org)
+        if person_cluster:
+            aufgaben_cluster = aufgaben_cluster.filter(person_cluster=person_cluster)
+
         context = {
             'current_person_cluster': get_person_cluster(request),
             'users': users,
             'aufgaben': aufgaben,
             'today': date.today(),
             'user_aufgaben_matrix': user_aufgaben_matrix,
-            'aufgaben_cluster': AufgabenCluster.objects.filter(org=request.user.org),
+            'aufgaben_cluster': aufgaben_cluster,
             'filter': filter_type,
             'scroll_to': scroll_to,
             'countries': countries
@@ -869,7 +879,7 @@ def list_aufgaben_table(request, scroll_to=None):
         if request.GET.get('f') == 'None':
             response.delete_cookie('filter_aufgaben_table')
         else:
-            response.set_cookie('filter_aufgaben_table', request.GET.get('f'))
+            response.set_cookie('filter_aufgaben_table', request.GET.get('f'), max_age=7 * 24 * 60 * 60)  # 7 days in seconds
 
     return response
 

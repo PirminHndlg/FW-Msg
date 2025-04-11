@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
 
 from Global.models import (
-    Attribute, Aufgabe2, 
+    Attribute, Aufgabe2, AufgabenCluster,
     UserAufgaben, Post2, Bilder2, CustomUser,
     BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2, UserAttribute, 
     PersonCluster, Einsatzland2, Einsatzstelle2,
@@ -231,6 +231,16 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
         
         return instance
 
+
+class AddAufgabenClusterForm(OrgFormMixin, forms.ModelForm):
+    class Meta:
+        model = AufgabenCluster
+        fields = '__all__'
+        exclude = ['org']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.request.user.org)
 
 
 class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
@@ -517,5 +527,6 @@ model_to_form_mapping = {
     Team: AddReferentenForm,
     CustomUser: AddUserForm,
     Attribute: AddAttributeForm,
-    PersonCluster: AddPersonClusterForm
+    PersonCluster: AddPersonClusterForm,
+    AufgabenCluster: AddAufgabenClusterForm
 }

@@ -527,15 +527,15 @@ class AufgabenCluster(OrgModel):
         ('N', 'Nach Einsatz'),
     ]
 
-    name = models.CharField(max_length=50, verbose_name='Aufgaben Cluster')
-    person_cluster = models.ForeignKey(PersonCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Person Cluster')
-    type = models.CharField(max_length=1, choices=TYPE_CHOICES, verbose_name='Fällig Art', help_text='Nur für Freiwillige', null=True, blank=True)
+    name = models.CharField(max_length=50, verbose_name='Aufgaben Filter')
+    person_cluster = models.ManyToManyField(PersonCluster, verbose_name='Person Cluster')
+    type = models.CharField(max_length=1, choices=TYPE_CHOICES, verbose_name='Fällig Zeitraum', help_text='Nur für Freiwillige', null=True, blank=True)
     class Meta:
         verbose_name = 'Aufgaben Cluster'
         verbose_name_plural = 'Aufgaben Cluster'
 
     def __str__(self):
-        return self.name + ' - ' + self.person_cluster.name
+        return self.name + ' - ' + ', '.join([pc.name for pc in self.person_cluster.all()])
 
 class Aufgabe2(OrgModel):
 
