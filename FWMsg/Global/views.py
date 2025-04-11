@@ -600,9 +600,10 @@ def add_ordner(request):
             ordner = Ordner2.objects.create(
                 org=request.user.org, 
                 ordner_name=ordner_name,
-                typ=person_clusters,
                 color=color
             )
+            ordner.typ.set(person_clusters)
+            ordner.save()
 
     return redirect('dokumente', ordner_id=ordner.id)
 
