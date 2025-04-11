@@ -104,7 +104,6 @@ class DokumentAdmin(SimpleHistoryAdmin):
         import os
 
         for dokument in queryset:
-            error_list = []
             if dokument.dokument and os.path.exists(dokument.dokument.path):
                 try:
                     dokument2, created = Dokument2.objects.get_or_create(
@@ -120,7 +119,7 @@ class DokumentAdmin(SimpleHistoryAdmin):
                     )
                     dokument2.save()
                 except Exception as e:
-                    error_list.append(f'{dokument.dokument.name}: {e}')
+                    messages.error(request, f'{dokument.dokument.name}: exception caught')
             elif not dokument.dokument:
                 dokument2, created = Dokument2.objects.get_or_create(
                     org=dokument.org,
@@ -134,9 +133,7 @@ class DokumentAdmin(SimpleHistoryAdmin):
                 )
                 dokument2.save()
             else:
-                error_list.append(f'{dokument.dokument.name}: Kein Dokument gefunden')
-        if error_list:
-            messages.error(request, '\n'.join(error_list))
+                messages.error(request, f'{dokument.dokument.name}: Kein Dokument gefunden')
 
 @admin.register(DokumentColor)
 class DokumentColorAdmin(SimpleHistoryAdmin):
