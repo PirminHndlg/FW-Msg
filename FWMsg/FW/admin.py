@@ -268,6 +268,7 @@ class ProfilUserAdmin(admin.ModelAdmin):
 
         for profiluser in queryset:
             profiluser2, created = ProfilUser2.objects.get_or_create(
+                org=profiluser.org,
                 user=profiluser.user,
                 attribut=profiluser.attribut,
                 value=profiluser.value,
