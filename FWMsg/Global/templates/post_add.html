@@ -1,0 +1,91 @@
+{% extends extends_base|default:'baseFw.html' %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block title %}{% trans "Neuer Beitrag" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="card rounded-4 shadow-sm">
+                <div class="card-header bg-light rounded-top-4 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <span class="post-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                                <i class="bi bi-file-earmark-plus text-white"></i>
+                            </span>
+                            {% if post %}
+                                <h3 class="card-title mb-0 fw-semibold">{% trans "Beitrag bearbeiten" %}</h3>
+                            {% else %}
+                                <h3 class="card-title mb-0 fw-semibold">{% trans "Neuen Beitrag erstellen" %}</h3>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger rounded-3">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-4">
+                            <h5 class="form-label fw-semibold text-primary">{% trans "Titel" %} <span class="text-danger">*</span></h5>
+                            {{ form.title|add_class:"form-control form-control-lg rounded-3" }}
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback d-block">{{ form.title.errors }}</div>
+                            {% endif %}
+                            <div class="p-2 bg-light rounded-3 border-start border-primary border-3 mt-2">
+                                <p class="form-text mb-0">{% trans "Geben Sie einen aussagekräftigen Titel für Ihren Beitrag ein" %}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h5 class="form-label fw-semibold text-primary">{% trans "Inhalt" %} <span class="text-danger">*</span></h5>
+                            {{ form.text|add_class:"form-control rounded-3"|attr:"rows:15" }}
+                            {% if form.text.errors %}
+                                <div class="invalid-feedback d-block">{{ form.text.errors }}</div>
+                            {% endif %}
+                            <div class="p-2 bg-light rounded-3 border-start border-primary border-3 mt-2">
+                                <p class="form-text mb-0">{% trans "Schreiben Sie hier den Inhalt Ihres Beitrags" %}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2 mt-4">
+                            <a href="{% url 'posts_overview' %}" class="btn btn-outline-secondary rounded-3 px-4">
+                                <i class="bi bi-x-circle me-1"></i>{% trans "Abbrechen" %}
+                            </a>
+                            <button type="submit" class="btn btn-primary rounded-3 px-4">
+                                <i class="bi bi-check-circle me-1"></i>{% trans "Veröffentlichen" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .post-icon {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+    }
+    
+    .form-control {
+        border-color: #dee2e6;
+    }
+    
+    .form-control:focus {
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+    }
+</style>
+{% endblock %} 

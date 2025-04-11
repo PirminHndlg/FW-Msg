@@ -67,11 +67,13 @@
     {# Posts Section #}
     <div class="card rounded-4 mb-2">
         <div class="card-header rounded-4">
-            <h3 class="mb-0">{% trans "Neue Posts" %} ⟩</h3>
+            <a href="{% url 'posts_overview' %}" class="text-decoration-none text-body">
+                <h3 class="mb-0">{% trans "Neue Posts" %} ⟩</h3>
+            </a>
         </div>
         <div class="card-body">
             {% if posts %}
-                {% include "components/post_list.html" with posts=posts %}
+                {% include "components/post_card.html" with posts=posts %}
             {% else %}
             <div class="px-4">
                 <div class="alert alert-info" role="alert">

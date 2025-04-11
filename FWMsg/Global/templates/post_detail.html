@@ -1,0 +1,110 @@
+{% extends extends_base|default:'baseFw.html' %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-10">
+        <div class="card rounded-4 shadow-sm">
+          <div class="card-header bg-light rounded-top-4 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="d-flex align-items-center">
+                <span class="post-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                  <i class="bi bi-file-earmark-text text-white"></i>
+                </span>
+                <h3 class="card-title mb-0 fw-semibold">{{ post.title }}</h3>
+              </div>
+              <div>
+                {% if request.user == post.user or request.user.role == 'A' %}
+                  <a href="{% url 'post_edit' post.id %}" class="btn btn-sm btn-outline-primary rounded-3 me-2">
+                    <i class="bi bi-pencil me-1"></i> {% trans 'Bearbeiten' %}
+                  </a>
+                  <a href="{% url 'post_delete' post.id %}" class="btn btn-sm btn-outline-danger rounded-3" onclick="return confirm('{% trans 'Sind Sie sicher, dass Sie diesen Beitrag löschen möchten?' %}')">
+                    <i class="bi bi-trash me-1"></i> {% trans 'Löschen' %}
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="card-body p-4">
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="author-card p-3 rounded-3 bg-light border-start border-primary border-3 h-100">
+                  <a href="{% url 'profil' post.user.id %}" class="text-decoration-none text-dark">
+                    <div class="d-flex align-items-center">
+                      <img src="{% if post.user.customuser.profil_picture %}{% url 'serve_profil_picture' post.user.id %}{% endif %}" 
+                           alt="{{ post.user.first_name }} {{ post.user.last_name }}" 
+                           class="rounded-circle me-3" 
+                           style="height: 48px; width: 48px; object-fit: cover;" />
+                      <div>
+                        <small class="text-muted">{% trans 'Erstellt von' %}</small>
+                        <div class="fw-medium">{{ post.user.first_name }} {{ post.user.last_name }}</div>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+              <div class="col-md-6 mt-3 mt-md-0">
+                <div class="date-card p-3 rounded-3 bg-light border-start border-primary border-3 h-100">
+                  <div class="d-flex align-items-center">
+                    <span class="date-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                      <i class="bi bi-calendar-date text-white"></i>
+                    </span>
+                    <div>
+                      <small class="text-muted">{% trans 'Erstellt am' %}</small>
+                      <div class="fw-medium">{{ post.date|date:'d.m.Y H:i' }}</div>
+                      {% if post.date_updated and post.date_updated != post.date %}
+                        <small class="text-muted">{% trans 'Aktualisiert' %}: {{ post.date_updated|date:'d.m.Y H:i' }}</small>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <h5 class="form-label fw-semibold text-primary">{% trans 'Inhalt' %}</h5>
+              <div class="p-4 bg-light rounded-3 border-start border-primary border-3">
+                <div class="post-content">
+                  {{ post.text|linebreaks }}
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+              <a href="{% url 'posts_overview' %}" class="btn btn-outline-secondary rounded-3 px-4">
+                <i class="bi bi-arrow-left me-1"></i>{% trans 'Zurück zur Übersicht' %}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<style>
+  .post-icon,
+  .date-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+  
+  .author-card,
+  .date-card {
+    min-height: 80px;
+  }
+  
+  .post-content {
+    white-space: pre-line;
+    line-height: 1.6;
+  }
+  
+  .post-content p {
+    margin-bottom: 1rem;
+  }
+</style>
+{% endblock %}
