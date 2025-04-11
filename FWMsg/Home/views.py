@@ -13,6 +13,7 @@ from django.utils import timezone
 
 def index(request):
     maintenance = Maintenance.objects.order_by('-id').first()
+    print(maintenance)
     if maintenance:
         return redirect('maintenance')
 
@@ -81,7 +82,7 @@ def index(request):
 
 def maintenance(request):
     try:
-        maintenance = Maintenance.objects.get(id=1)
+        maintenance = Maintenance.objects.order_by('-id').first()
         maintenance_start_time = maintenance.maintenance_start_time
         maintenance_end_time = maintenance.maintenance_end_time
     except Maintenance.DoesNotExist:
