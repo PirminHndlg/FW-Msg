@@ -733,6 +733,7 @@ def list_aufgaben_table(request, scroll_to=None):
             users = User.objects.filter(id=user_id)
 
         aufgabe = Aufgabe2.objects.get(pk=aufgabe_id)
+        users = users.filter(customuser__person_cluster__in=aufgabe.person_cluster.all())
 
         user_aufgabe = None
         
@@ -760,7 +761,6 @@ def list_aufgaben_table(request, scroll_to=None):
     
     if request.method == 'POST':
         aufgabe_id = request.POST.get('aufgabe_id')
-        print(request.POST)
         country_id = request.POST.get('country_id')
         delete_file_of_aufgabe = request.POST.get('delete_file_of_aufgabe')
 
@@ -772,14 +772,16 @@ def list_aufgaben_table(request, scroll_to=None):
         if request.POST.get('reminder') == 'True':
             user_aufgabe.send_reminder_email()
         elif country_id:
-            users = User.objects.filter(org=request.user.org, einsatzland=country_id)
             aufgabe = Aufgabe2.objects.get(pk=aufgabe_id)
-            for user in users:
-                user_aufgabe, created = UserAufgaben.objects.get_or_create(
-                    org=request.user.org,
-                    user=user,
-                    aufgabe=aufgabe
-                )
+            users, _ = get_filtered_user_queryset(request, 'aufgaben')
+            custom_users = CustomUser.objects.filter(org=request.user.org, user__in=users, person_cluster__in=aufgabe.person_cluster.all())
+            for custom_user in custom_users:
+                if (Freiwilliger.objects.filter(org=request.user.org, user=custom_user.user, einsatzland2=country_id).exists() or Team.objects.filter(org=request.user.org, user=custom_user.user, land=country_id).exists()):
+                    user_aufgabe, created = UserAufgaben.objects.get_or_create(
+                        org=request.user.org,
+                        user=custom_user.user,
+                        aufgabe=aufgabe
+                    )
         elif delete_file_of_aufgabe and UserAufgaben.objects.filter(pk=delete_file_of_aufgabe, org=request.user.org).exists():
             user_aufgabe.file.delete()
             user_aufgabe.save()
