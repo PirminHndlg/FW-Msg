@@ -711,7 +711,7 @@ def create_ampel_matrix(freiwillige, months, ampel_entries):
     for entry in ampel_entries:
         month_key = entry.date.strftime("%b %y")
         if month_key in months:
-            matrix[entry.freiwilliger][month_key].append({
+            matrix[entry.user][month_key].append({
                 'status': entry.status,
                 'comment': entry.comment,
                 'date': entry.date.strftime("%d.%m.%y %H:%M")

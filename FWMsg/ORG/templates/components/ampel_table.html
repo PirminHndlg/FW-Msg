@@ -2,9 +2,9 @@
 {% load ampel_tags %}
 
 <div class="table-responsive" style="height: 80vh; min-height: 400px;">
-    <table class="table table-hover mb-0 align-middle m-1">
+    <table class="table mb-0 align-middle m-1">
         <tr class="sticky-top bg-white">
-            <th class="border-end sticky-col bg-transparent">{% trans "Freiwilliger" %}</th>
+            <th class="border-end sticky-col bg-transparent"></th>
             {% for month in months %}
             <th class="text-center {% if month == current_month %}table-active{% endif %}"
                 style="min-width: 100px;">
@@ -13,13 +13,13 @@
             {% endfor %}
         </tr>
         <tbody>
-            {% for jahrgang, fw_matrix in ampel_matrix.items %}
-            {% for freiwilliger, months_data in fw_matrix.items %}
+            {% for jahrgang, user_matrix in ampel_matrix.items %}
+            {% for user, months_data in user_matrix.items %}
             <tr>
                 <th class="border-end sticky-col">
                     <a class="text-decoration-none text-body" data-bs-toggle="tooltip"
                         title="{% trans 'Historie anzeigen' %}">
-                        {{ freiwilliger }}
+                        {{ user.first_name }} {{   user.last_name }}
                     </a>
                 </th>
                 {% for month in months %}
