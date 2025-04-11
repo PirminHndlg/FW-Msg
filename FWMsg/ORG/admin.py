@@ -43,19 +43,22 @@ class DokumentAdmin(SimpleHistoryAdmin):
         from Global.models import Dokument2, Ordner2
 
         for dokument in queryset:
+            import os
 
-            dokument2, created = Dokument2.objects.get_or_create(
-                org=dokument.org,
-                ordner=Ordner2.objects.get(ordner_name=dokument.ordner.ordner_name),
-                dokument=dokument.dokument,
-                link=dokument.link,
-                titel=(dokument.titel or dokument.dokument.name)[:100],
-                beschreibung=dokument.beschreibung,
-                date_created=dokument.date_created,
-                date_modified=dokument.date_modified,
-                preview_image=dokument.preview_image,
-            )
-            dokument2.save()
+            if dokument.dokument and os.path.exists(dokument.dokument.path):
+
+                dokument2, created = Dokument2.objects.get_or_create(
+                    org=dokument.org,
+                    ordner=Ordner2.objects.get(ordner_name=dokument.ordner.ordner_name),
+                    dokument=dokument.dokument,
+                    link=dokument.link,
+                    titel=(dokument.titel or dokument.dokument.name)[:100],
+                    beschreibung=dokument.beschreibung,
+                    date_created=dokument.date_created,
+                    date_modified=dokument.date_modified,
+                    preview_image=dokument.preview_image,
+                )
+                dokument2.save()
         
 
 @admin.register(DokumentColor)
