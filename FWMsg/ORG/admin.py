@@ -133,6 +133,8 @@ class DokumentAdmin(SimpleHistoryAdmin):
                     preview_image=dokument.preview_image,
                 )
                 dokument2.save()
+            else:
+                error_list.append(f'{dokument.dokument.name}: Kein Dokument gefunden')
         if error_list:
             messages.error(request, '\n'.join(error_list))
 
