@@ -1,0 +1,261 @@
+{% extends 'baseTeam.html' %}
+{% load i18n %}
+
+{% block title %}
+  {% trans 'Einsatzstellen' %}| {{ user.org.name }}
+{% endblock %}
+
+{% block head %}
+  <style>
+    /* Minimal custom styles to augment Bootstrap */
+    .card {
+      transition: all 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    .info-content {
+      padding-left: 1.5rem;
+    }
+    .empty-info {
+      color: var(--bs-secondary);
+      font-style: italic;
+    }
+    .country-badge {
+      background-color: rgba(var(--bs-primary-rgb), 0.1);
+      color: var(--bs-primary);
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <h2 class="mb-4">{% trans 'Einsatzstellen' %}</h2>
+
+  {% if einsatzstellen %}
+    <div class="row row-cols-1 row-cols-lg-2 g-4">
+      {% for stelle in einsatzstellen %}
+        <div class="col">
+          <div class="card h-100 border-0 rounded-4 shadow-sm position-relative" data-placement-id="{{ stelle.id }}">
+            <!-- Edit Button -->
+            <button class="btn btn-sm btn-light rounded-circle shadow-sm position-absolute top-0 end-0 m-3 z-3" 
+                    data-bs-toggle="modal" data-bs-target="#editModal-{{ stelle.id }}" 
+                    title="{% trans 'Bearbeiten' %}">
+              <i class="bi bi-pencil"></i>
+            </button>
+
+            <!-- Placement Header -->
+            <div class="card-header bg-primary text-white border-0 rounded-top-4 p-3">
+              <h5 class="card-title mb-0 fw-bold text-on-org-color">{{ stelle.name }}</h5>
+              {% if stelle.land %}
+                <div class="country-badge badge mt-2 fw-normal text-on-org-color">
+                  <i class="bi bi-geo-alt-fill me-1"></i>{{ stelle.land.name }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Placement Information -->
+            <div class="card-body p-4">
+              <!-- Partner Organization Section -->
+              <div class="mb-4">
+                <h5 class="border-bottom pb-2 mb-3 d-flex align-items-center text-primary">
+                  <i class="bi bi-building me-2"></i> {% trans 'Partnerorganisation' %}
+                </h5>
+                <div class="info-content">
+                  {% if stelle.partnerorganisation %}
+                    <div class="small">{{ stelle.partnerorganisation|linebreaks }}</div>
+                  {% else %}
+                    <div class="empty-info small">
+                      <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine Partnerorganisation hinterlegt' %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Supervisor Section -->
+              <div class="mb-4">
+                <h5 class="border-bottom pb-2 mb-3 d-flex align-items-center text-primary">
+                  <i class="bi bi-person-badge me-2"></i> {% trans 'Arbeitsvorgesetzte:r' %}
+                </h5>
+                <div class="info-content">
+                  {% if stelle.arbeitsvorgesetzter %}
+                    <div class="small">{{ stelle.arbeitsvorgesetzter|linebreaks }}</div>
+                  {% else %}
+                    <div class="empty-info small">
+                      <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine Arbeitsvorgesetzte:r hinterlegt' %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Mentor Section -->
+              <div class="mb-4">
+                <h5 class="border-bottom pb-2 mb-3 d-flex align-items-center text-primary">
+                  <i class="bi bi-person-check me-2"></i> {% trans 'Mentor:in' %}
+                </h5>
+                <div class="info-content">
+                  {% if stelle.mentor %}
+                    <div class="small">{{ stelle.mentor|linebreaks }}</div>
+                  {% else %}
+                    <div class="empty-info small">
+                      <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine Mentor:in hinterlegt' %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Embassy Section -->
+              <div class="mb-4">
+                <h5 class="border-bottom pb-2 mb-3 d-flex align-items-center text-primary">
+                  <i class="bi bi-bank me-2"></i> {% trans 'Botschaft' %}
+                </h5>
+                <div class="info-content">
+                  {% if stelle.botschaft %}
+                    <div class="small">{{ stelle.botschaft|linebreaks }}</div>
+                  {% else %}
+                    <div class="empty-info small">
+                      <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine Botschaftsinformationen hinterlegt' %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Consulate Section -->
+              <div class="mb-4">
+                <h5 class="border-bottom pb-2 mb-3 d-flex align-items-center text-primary">
+                  <i class="bi bi-building-fill me-2"></i> {% trans 'Konsulat' %}
+                </h5>
+                <div class="info-content">
+                  {% if stelle.konsulat %}
+                    <div class="small">{{ stelle.konsulat|linebreaks }}</div>
+                  {% else %}
+                    <div class="empty-info small">
+                      <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine Konsulatsinformationen hinterlegt' %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Additional Information Section -->
+              <div class="mb-0">
+                <h5 class="border-bottom pb-2 mb-3 d-flex align-items-center text-primary">
+                  <i class="bi bi-info-circle me-2"></i> {% trans 'Weitere Informationen' %}
+                </h5>
+                <div class="info-content">
+                  {% if stelle.informationen %}
+                    <div class="small">{{ stelle.informationen|linebreaks }}</div>
+                  {% else %}
+                    <div class="empty-info small">
+                      <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine weiteren Informationen hinterlegt' %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Edit Modal -->
+          <div class="modal fade" id="editModal-{{ stelle.id }}" tabindex="-1" aria-labelledby="editModalLabel-{{ stelle.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content rounded-4 border-0">
+                <div class="modal-header bg-primary text-white border-0">
+                  <h5 class="modal-title" id="editModalLabel-{{ stelle.id }}">
+                    <i class="bi bi-pencil-square me-2"></i>{% trans 'Informationen bearbeiten' %}: {{ stelle.name }}
+                  </h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                  <form method="post" action="{% url 'save_einsatzstelle_info' stelle.id %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                      <label for="partnerorganisation-{{ stelle.id }}" class="form-label fw-medium d-flex align-items-center">
+                        <i class="bi bi-building me-2 text-primary"></i> {% trans 'Partnerorganisation' %}
+                      </label>
+                      <textarea class="form-control rounded-3" rows="4" id="partnerorganisation-{{ stelle.id }}" name="partnerorganisation" placeholder="{% trans 'Partnerorganisation hier eingeben...' %}">{{ stelle.partnerorganisation|default:'' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                      <label for="arbeitsvorgesetzter-{{ stelle.id }}" class="form-label fw-medium d-flex align-items-center">
+                        <i class="bi bi-person-badge me-2 text-primary"></i> {% trans 'Arbeitsvorgesetzte:r' %}
+                      </label>
+                      <textarea class="form-control rounded-3" rows="4" id="arbeitsvorgesetzter-{{ stelle.id }}" name="arbeitsvorgesetzter" placeholder="{% trans 'Arbeitsvorgesetzte:r hier eingeben...' %}">{{ stelle.arbeitsvorgesetzter|default:'' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                      <label for="mentor-{{ stelle.id }}" class="form-label fw-medium d-flex align-items-center">
+                        <i class="bi bi-person-check me-2 text-primary"></i> {% trans 'Mentor:in' %}
+                      </label>
+                      <textarea class="form-control rounded-3" rows="4" id="mentor-{{ stelle.id }}" name="mentor" placeholder="{% trans 'Mentor:in hier eingeben...' %}">{{ stelle.mentor|default:'' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                      <label for="botschaft-{{ stelle.id }}" class="form-label fw-medium d-flex align-items-center">
+                        <i class="bi bi-bank me-2 text-primary"></i> {% trans 'Botschaft' %}
+                      </label>
+                      <textarea class="form-control rounded-3" rows="4" id="botschaft-{{ stelle.id }}" name="botschaft" placeholder="{% trans 'Botschaftsinformationen hier eingeben...' %}">{{ stelle.botschaft|default:'' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                      <label for="konsulat-{{ stelle.id }}" class="form-label fw-medium d-flex align-items-center">
+                        <i class="bi bi-building-fill me-2 text-primary"></i> {% trans 'Konsulat' %}
+                      </label>
+                      <textarea class="form-control rounded-3" rows="4" id="konsulat-{{ stelle.id }}" name="konsulat" placeholder="{% trans 'Konsulatsinformationen hier eingeben...' %}">{{ stelle.konsulat|default:'' }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                      <label for="informationen-{{ stelle.id }}" class="form-label fw-medium d-flex align-items-center">
+                        <i class="bi bi-info-circle me-2 text-primary"></i> {% trans 'Weitere Informationen' %}
+                      </label>
+                      <textarea class="form-control rounded-3" rows="4" id="informationen-{{ stelle.id }}" name="informationen" placeholder="{% trans 'Weitere Informationen hier eingeben...' %}">{{ stelle.informationen|default:'' }}</textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                      <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>{% trans 'Abbrechen' %}
+                      </button>
+                      <button type="submit" class="btn btn-primary rounded-3">
+                        <i class="bi bi-save me-2"></i>{% trans 'Änderungen speichern' %}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info rounded-3">
+      <i class="bi bi-info-circle me-2"></i>
+      {% if msg %}
+        {{ msg }}
+      {% else %}
+        {% trans 'Keine Einsatzstellen gefunden. Bitte wenden Sie sich an den Administrator.' %}
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <script>
+    // Auto-highlight saved placement from URL parameter
+    document.addEventListener('DOMContentLoaded', function () {
+      const urlParams = new URLSearchParams(window.location.search)
+      const savedId = urlParams.get('saved')
+    
+      if (savedId && savedId !== 'true') {
+        // Find the placement card and highlight it temporarily
+        const placementCard = document.querySelector(`.card[data-placement-id="${savedId}"]`)
+        if (placementCard) {
+          placementCard.classList.add('border-success')
+          setTimeout(() => {
+            placementCard.classList.remove('border-success')
+          }, 3000)
+    
+          // Scroll to the saved placement
+          placementCard.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }
+    })
+  </script>
+{% endblock %} 

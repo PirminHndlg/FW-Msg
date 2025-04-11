@@ -11,12 +11,21 @@ register = template.Library()
 
 
 @register.filter
-def get_attribute(obj, attr):
+def get_attribute(obj, field):
     """Get an attribute of an object dynamically from a string name"""
-    if hasattr(obj, str(attr)):
-        return getattr(obj, attr)
-    elif hasattr(obj, 'get_%s_display' % attr):
-        return getattr(obj, 'get_%s_display' % attr)()
+    if hasattr(obj, str(field.get('name'))):
+        attr = getattr(obj, field.get('name'))
+        if field.get('type') == 'D':
+            try:
+                return datetime.datetime.strptime(attr, '%Y-%m-%d').date()
+            except ValueError:
+                return attr
+        return attr
+    elif hasattr(obj, 'get_%s_display' % field.get('name').replace(' ', '_')):
+        return getattr(obj, 'get_%s_display' % field.get('name').replace(' ', '_'))()
+    elif hasattr(obj, field.get('name').replace(' ', '_')):
+        return getattr(obj, field.get('name').replace(' ', '_'))
+    
     return None
 
 @register.filter
@@ -56,12 +65,40 @@ def get_fields(obj):
 @register.filter
 def is_many_to_many(obj, field_name):
     """Check if a field is a many-to-many relationship"""
-    return isinstance(obj._meta.get_field(field_name), models.ManyToManyField)
+    try:
+        return isinstance(obj._meta.get_field(field_name), models.ManyToManyField)
+    except:
+        return False
 
 @register.filter
-def get_field_type(obj, field_name):
+def get_field_type(obj, field):
     """Get the field type of a model field"""
-    return obj._meta.get_field(field_name).get_internal_type()
+    try:
+        return obj._meta.get_field(field.get('name')).get_internal_type()
+    except:
+        match field.get('type'):
+            case 'T':
+                return 'CharField'
+            case 'L':
+                return 'TextField'
+            case 'N':
+                return 'IntegerField'
+            case 'B':
+                return 'BooleanField'
+            case 'E':
+                return 'EmailField'
+            case 'P':
+                return 'PhoneNumberField'
+            case 'C':
+                return 'ChoiceField'
+            case 'D':
+                return 'DateField'
+            case 'P':
+                return 'PhoneNumberField'
+            case _:
+                return None
+
+        
 
 @register.filter
 def include(value, substring):
@@ -76,14 +113,19 @@ def class_name(value):
     return value.__class__.__name__
 
 @register.filter
-def has_choices(obj, field_name):
+def has_choices(obj, field):
     """Check if a field has choices defined"""
-    field = obj._meta.get_field(field_name)
-    return bool(field.choices)
+    try:
+        field = obj._meta.get_field(field.get('name'))
+        return bool(field.choices)
+    except:
+        if field.get('type'):
+            return field.get('type') == 'B'
+        return False
 
 @register.filter
-def get_choice_label(obj, field_name):
+def get_choice_label(obj, field):
     """Get the display label for a choice field"""
-    if hasattr(obj, f'get_{field_name}_display'):
-        return getattr(obj, f'get_{field_name}_display')()
-    return get_attribute(obj, field_name)
+    if hasattr(obj, f'get_{field.get("name")}_display'):
+        return getattr(obj, f'get_{field.get("name")}_display')()
+    return get_attribute(obj, field)

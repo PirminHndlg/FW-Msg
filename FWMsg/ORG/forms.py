@@ -1,3 +1,4 @@
+from datetime import datetime
 import random
 import string
 from django import forms
@@ -5,9 +6,16 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
 
-from FW import models as FWmodels
-from Global import models as Globalmodels
-from . import models as ORGmodels
+from Global.models import (
+    Attribute, Aufgabe2, 
+    UserAufgaben, Post2, Bilder2, CustomUser,
+    BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2, UserAttribute, 
+    PersonCluster, Einsatzland2, Einsatzstelle2,
+    AufgabeZwischenschritte2
+)
+from FW.models import Freiwilliger
+from TEAM.models import Team
+
 
 class OrgFormMixin:
     def __init__(self, *args, **kwargs):
@@ -24,9 +32,161 @@ class OrgFormMixin:
                         field.queryset = field.queryset.filter(org=self.request.user.org)
 
 
+class AddAttributeForm(OrgFormMixin, forms.ModelForm):
+    class Meta:
+        model = Attribute
+        fields = '__all__'
+        exclude = ['org']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.request.user.org)
+
+
+def add_customuser_fields(self, view):
+    self.fields['first_name'] = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        required=True,
+        label='Vorname'
+    )
+    if self.instance and self.instance.pk:
+        self.fields['first_name'].initial = self.instance.user.first_name
+
+    self.fields['last_name'] = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        required=True,
+        label='Nachname'
+    )
+    if self.instance and self.instance.pk:
+        self.fields['last_name'].initial = self.instance.user.last_name
+
+    self.fields['email'] = forms.EmailField(
+        widget=forms.EmailInput(attrs={'class': 'form-control'}),
+        required=True,
+        label='E-Mail'
+    )
+    if self.instance and self.instance.pk:
+        self.fields['email'].initial = self.instance.user.email
+
+    self.fields['person_cluster'] = forms.ModelChoiceField(
+        queryset=PersonCluster.objects.filter(org=self.request.user.org, view=view),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        required=True,
+        label='Person Cluster'
+    )
+    if self.instance and self.instance.pk:
+        self.fields['person_cluster'].initial = self.instance.user.customuser.person_cluster
+
+
+def add_person_cluster_field(self):
+    person_cluster_typ = self.instance.user.customuser.person_cluster if self.instance and self.instance.pk else None
+    if person_cluster_typ:
+        attributes = Attribute.objects.filter(org=self.request.user.org, person_cluster=person_cluster_typ)
+        for attribute in attributes:
+            print(attribute.type)
+            if attribute.type == 'T':
+                self.fields[attribute.name] = forms.CharField(
+                    widget=forms.TextInput(attrs={'class': 'form-control'}),
+                    required=False
+                )
+            elif attribute.type == 'L':
+                self.fields[attribute.name] = forms.CharField(
+                    widget=forms.Textarea(attrs={'class': 'form-control'}),
+                    required=False
+                )
+            elif attribute.type == 'N':
+                self.fields[attribute.name] = forms.IntegerField(
+                    widget=forms.NumberInput(attrs={'class': 'form-control'}),
+                    required=False
+                )
+            elif attribute.type == 'E':
+                self.fields[attribute.name] = forms.EmailField(
+                    widget=forms.EmailInput(attrs={'class': 'form-control'}),
+                    required=False
+                )
+            elif attribute.type == 'B':
+                self.fields[attribute.name] = forms.BooleanField(
+                    widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+                    required=False
+                )
+            elif attribute.type == 'F':
+                self.fields[attribute.name] = forms.FileField(
+                    widget=forms.FileInput(attrs={'class': 'form-control'}),
+                    required=False
+                )
+            elif attribute.type == 'P':
+                self.fields[attribute.name] = forms.CharField(
+                    widget=forms.TextInput(attrs={'class': 'form-control'}),
+                    required=False
+                )
+            elif attribute.type == 'D':
+                self.fields[attribute.name] = forms.DateField(
+                    widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+                    required=False
+                )
+            elif attribute.type == 'C':
+                choices = [(x.strip(), x.strip()) for x in (attribute.value_for_choices or '').split(',') if x.strip()]
+                choices.insert(0, ('', '---'))
+                self.fields[attribute.name] = forms.ChoiceField(
+                    widget=forms.Select(attrs={'class': 'form-control'}),
+                    choices=choices,
+                    required=False
+                )
+
+            
+            freiwlliger_attribute = UserAttribute.objects.filter(user=self.instance.user, attribute=attribute).first()
+            if freiwlliger_attribute:
+                if attribute.type == 'B':
+                    self.fields[attribute.name].initial = freiwlliger_attribute.value == 'True'
+                elif attribute.type == 'D':
+                    #format datestring to date
+                    if freiwlliger_attribute.value:
+                        try:
+                            self.fields[attribute.name].initial = datetime.strptime(freiwlliger_attribute.value, '%Y-%m-%d').date()
+                        except ValueError:
+                            self.fields[attribute.name].initial = None
+                    else:
+                        self.fields[attribute.name].initial = None
+                else:
+                    self.fields[attribute.name].initial = freiwlliger_attribute.value
+
+
+def save_and_create_customuser(self):
+    base_username = self.cleaned_data['first_name'].split(' ')[0].lower()
+    username = base_username
+    counter = 1
+    
+    while User.objects.filter(username=username).exists():
+        username = f"{base_username}{counter}"
+        counter += 1
+
+    self.instance.user = User.objects.create_user(
+        username=username,
+        email=self.cleaned_data['email'],
+        first_name=self.cleaned_data['first_name'],
+        last_name=self.cleaned_data['last_name']
+    )
+    self.instance.org = self.request.user.org
+
+    self.instance.user.customuser = CustomUser.objects.create(
+        user=self.instance.user,
+        org=self.request.user.org,
+        person_cluster=self.cleaned_data['person_cluster']
+    )
+    self.instance.user.customuser.save()
+    self.instance.user.save()
+
+
+def save_person_cluster_field(self):
+    for attribute in Attribute.objects.filter(org=self.request.user.org, person_cluster=self.instance.user.customuser.person_cluster):
+        freiwlliger_attribute, created = UserAttribute.objects.get_or_create(org=self.request.user.org, user=self.instance.user, attribute=attribute)
+        if attribute.name in self.cleaned_data:
+            freiwlliger_attribute.value = self.cleaned_data[attribute.name]
+            freiwlliger_attribute.save()
+
 class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = FWmodels.Freiwilliger
+        model = Freiwilliger
         fields = '__all__'
         exclude = ['user', 'org']
 
@@ -36,17 +196,46 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
             widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             required=False
         )
-        self.fields['geburtsdatum'] = date_field
+
         self.fields['start_geplant'] = date_field
         self.fields['start_real'] = date_field
         self.fields['ende_geplant'] = date_field
         self.fields['ende_real'] = date_field
 
+        add_customuser_fields(self, 'F')
+
+        self.fields['geburtsdatum'] = forms.DateField(
+            widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            required=False
+        )
+        if self.instance and self.instance.pk:
+            self.fields['geburtsdatum'].initial = self.instance.user.customuser.geburtsdatum
+        
+        order_fields = ['first_name', 'last_name', 'email', 'person_cluster', 'geburtsdatum']
+        self.order_fields(order_fields)
+
+        add_person_cluster_field(self)
+                    
+                
+    def save(self, commit=True):
+        if not self.instance.pk:
+            save_and_create_customuser(self)
+            self.instance.save()
+        else:
+            self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
+            self.instance.user.customuser.save()
+
+        instance = super().save(commit=commit)
+
+        save_person_cluster_field(self)
+        
+        return instance
+
 
 
 class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = FWmodels.Aufgabe
+        model = Aufgabe2
         fields = '__all__'
         exclude = ['org']
 
@@ -56,12 +245,15 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
         formset_kwargs = kwargs.copy()
         formset_kwargs.pop('request', None)
         self.zwischenschritte = AufgabeZwischenschritteFormSet(*args, **formset_kwargs)
-        
+
 
     def is_valid(self):
         return super().is_valid() and self.zwischenschritte.is_valid()
 
     def save(self, commit=True):
+        from ORG.views import get_person_cluster
+
+        # self.instance.person_cluster = get_person_cluster(self.request)
         instance = super().save(commit=commit)
         if commit:
             self.zwischenschritte.instance = instance
@@ -71,8 +263,8 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
 
 # Create the formset for AufgabeZwischenschritte
 AufgabeZwischenschritteFormSet = inlineformset_factory(
-    FWmodels.Aufgabe,
-    FWmodels.AufgabeZwischenschritte,
+    Aufgabe2,
+    AufgabeZwischenschritte2,
     fields=['name', 'beschreibung'],
     extra=0,
     can_delete=True,
@@ -82,16 +274,9 @@ AufgabeZwischenschritteFormSet = inlineformset_factory(
 )
 
 
-class AddAufgabenprofilForm(OrgFormMixin, forms.ModelForm):
-    class Meta:
-        model = FWmodels.Aufgabenprofil
-        fields = '__all__'
-        exclude = ['org']
-
-
 class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
-    freiwilliger_display = forms.CharField(
-        label='Freiwillige:r',
+    user_display = forms.CharField(
+        label='User',
         required=False,
         widget=forms.TextInput(attrs={'readonly': True, 'class': 'form-control-plaintext fw-bold row w-75 ms-3', 'style': 'display: inline-block;'})
     )
@@ -102,7 +287,7 @@ class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
     )
 
     class Meta:
-        model = FWmodels.FreiwilligerAufgaben
+        model = UserAufgaben
         fields = ['personalised_description', 'faellig', 'wiederholung', 'wiederholung_ende', 'file', 'benachrichtigung_cc']
         exclude = ['org']
 
@@ -122,64 +307,36 @@ class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
         if self.instance and self.instance.pk:
             
             # Set initial values for display fields
-            self.fields['freiwilliger_display'].initial = str(self.instance.freiwilliger)
+            self.fields['user_display'].initial = str(self.instance.user.first_name) + ' ' + str(self.instance.user.last_name)
             self.fields['aufgabe_display'].initial = str(self.instance.aufgabe)
 
             # Reorder fields to show display fields first
-            field_order = ['freiwilliger_display', 'aufgabe_display', 'personalised_description', 
+            field_order = ['user_display', 'aufgabe_display', 'personalised_description', 
                           'faellig', 'wiederholung', 'wiederholung_ende', 'file', 
                           'benachrichtigung_cc']
             self.order_fields(field_order)
 
 
-class AddKirchenzugehoerigkeitForm(OrgFormMixin, forms.ModelForm):
-    class Meta:
-        model = FWmodels.Kirchenzugehoerigkeit
-        fields = '__all__'
-        exclude = ['org']
-
-
-class AddEntsendeformForm(OrgFormMixin, forms.ModelForm):
-    class Meta:
-        model = FWmodels.Entsendeform
-        fields = '__all__'
-        exclude = ['org']
-
 
 class AddEinsatzlandForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = FWmodels.Einsatzland
+        model = Einsatzland2
         fields = '__all__'
         exclude = ['org']
 
 
 class AddEinsatzstelleForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = FWmodels.Einsatzstelle
+        model = Einsatzstelle2
         fields = '__all__'
         exclude = ['org']
 
-
-class AddJahrgangForm(OrgFormMixin, forms.ModelForm):
-    class Meta:
-        model = FWmodels.Jahrgang
-        fields = '__all__'
-        exclude = ['org']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        date_field = forms.DateField(
-            widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            required=False
-        )
-        self.fields['start'] = date_field
-        self.fields['ende'] = date_field
 
 class AddNotfallkontaktForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = FWmodels.Notfallkontakt
+        model = Notfallkontakt2
         fields = '__all__'
-        exclude = ['org']
+        exclude = ['org', 'user']
 
 
 class AddUserForm(OrgFormMixin, forms.ModelForm):
@@ -189,8 +346,8 @@ class AddUserForm(OrgFormMixin, forms.ModelForm):
     email = forms.EmailField(required=False, label='Email')
 
     class Meta:
-        model = Globalmodels.CustomUser
-        fields = ['username', 'first_name', 'last_name', 'email', 'role', 'einmalpasswort', 'profil_picture']
+        model = CustomUser
+        fields = ['username', 'first_name', 'last_name', 'person_cluster', 'email', 'einmalpasswort', 'profil_picture']
         exclude = ['org']
 
     def __init__(self, *args, **kwargs):
@@ -238,13 +395,13 @@ class AddUserForm(OrgFormMixin, forms.ModelForm):
 
 # Define which fields should be filterable for each model
 filterable_fields = {
-    FWmodels.Freiwilliger: ['jahrgang', 'einsatzland', 'entsendeform', 'kirchenzugehoerigkeit'],
-    FWmodels.Aufgabe: ['faellig_art', 'mitupload'],
-    FWmodels.Einsatzstelle: ['einsatzland'],
-    FWmodels.Notfallkontakt: ['freiwilliger'],
-    FWmodels.FreiwilligerAufgaben: ['freiwilliger', 'aufgabe', 'erledigt'],
-    Globalmodels.CustomUser: ['role'],
-    # FWmodels.Aufgabenprofil: ['aufgaben__aufgabe'],
+    Freiwilliger: ['person_cluster', 'einsatzland', 'einsatzstelle'],
+    Aufgabe2: ['faellig_art', 'mitupload'],
+    Einsatzstelle2: ['einsatzland'],
+    Notfallkontakt2: ['freiwilliger'],
+    UserAufgaben: ['freiwilliger', 'aufgabe', 'erledigt'],
+    CustomUser: ['person_cluster'],
+    # Aufgabenprofil: ['aufgaben__aufgabe'],
 }
 
 class FilterForm(forms.Form):    
@@ -306,22 +463,56 @@ class FilterForm(forms.Form):
 
 
 class AddReferentenForm(OrgFormMixin, forms.ModelForm):
+    def bla():
+        pass
+
+    # class Meta:
+    #     model = Referenten2
+    #     fields = '__all__'
+    #     exclude = ['org', 'user']
+
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self.fields['land'].queryset = Einsatzland2.objects.filter(org=self.request.user.org)
+
+    #     add_customuser_fields(self, 'T')
+
+    #     order_fields = ['first_name', 'last_name', 'email', 'person_cluster']
+    #     self.order_fields(order_fields)
+        
+    #     add_person_cluster_field(self)          
+        
+    # def save(self, commit=True):
+    #     if not self.instance.pk:
+    #         save_and_create_customuser(self)
+    #         self.instance.save()
+    #     else:
+    #         self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
+    #         self.instance.user.customuser.save()
+
+    #     instance = super().save(commit=commit)
+
+    #     save_person_cluster_field(self)
+        
+    #     return instance
+    
+
+class AddPersonClusterForm(OrgFormMixin, forms.ModelForm):
     class Meta:
-        model = ORGmodels.Referenten
+        model = PersonCluster
         fields = '__all__'
-        exclude = ['org', 'user']
+        exclude = ['org']
+        
 
 model_to_form_mapping = {
-    FWmodels.Einsatzland: AddEinsatzlandForm,
-    FWmodels.Einsatzstelle: AddEinsatzstelleForm,
-    FWmodels.Freiwilliger: AddFreiwilligerForm,
-    FWmodels.Aufgabe: AddAufgabeForm,
-    FWmodels.Aufgabenprofil: AddAufgabenprofilForm,
-    FWmodels.Jahrgang: AddJahrgangForm,
-    FWmodels.Kirchenzugehoerigkeit: AddKirchenzugehoerigkeitForm,
-    FWmodels.Notfallkontakt: AddNotfallkontaktForm,
-    FWmodels.Entsendeform: AddEntsendeformForm,
-    FWmodels.FreiwilligerAufgaben: AddFreiwilligerAufgabenForm,
-    ORGmodels.Referenten: AddReferentenForm,
-    Globalmodels.CustomUser: AddUserForm
+    Einsatzland2: AddEinsatzlandForm,
+    Einsatzstelle2: AddEinsatzstelleForm,
+    Freiwilliger: AddFreiwilligerForm,
+    Aufgabe2: AddAufgabeForm,
+    Notfallkontakt2: AddNotfallkontaktForm,
+    UserAufgaben: AddFreiwilligerAufgabenForm,
+    Team: AddReferentenForm,
+    CustomUser: AddUserForm,
+    Attribute: AddAttributeForm,
+    PersonCluster: AddPersonClusterForm
 }

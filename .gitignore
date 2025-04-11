@@ -1,5 +1,6 @@
 .venv
 migrations*
+migrations*
 db.sqlite3
 FWMsg/FW/__pycache__/
 FWMsg/FW/**/__pycache__/
@@ -66,7 +67,6 @@ logos/
 static/
 FWMsg/dump.rdb
 media/
-gdpr-log.sqlite3
 media_old/
 *.sqlite3
 convert_dump.py

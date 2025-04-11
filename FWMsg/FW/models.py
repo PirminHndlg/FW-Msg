@@ -4,8 +4,8 @@ from datetime import datetime, timedelta
 from PIL import Image  # Make sure this is from PIL, not Django models
 from django.contrib.auth.models import User, AbstractUser
 from django.db import models
-from ORG.models import Organisation, JahrgangTyp
-from Global.models import CustomUser, OrgModel
+from ORG.models import JahrgangTyp
+from Global.models import CustomUser, OrgModel, Organisation, Einsatzland2, Einsatzstelle2
 from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 from django.core.files.base import ContentFile
@@ -161,20 +161,22 @@ class Freiwilliger(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
     jahrgang = models.ForeignKey(Jahrgang, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Jahrgang')
     user = models.OneToOneField(User, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name='Benutzer:in')
-    first_name = models.CharField(max_length=50, verbose_name='Vorname')
-    last_name = models.CharField(max_length=50, verbose_name='Nachname')
+    first_name = models.CharField(max_length=50, verbose_name='Vorname', default='')
+    last_name = models.CharField(max_length=50, verbose_name='Nachname', default='')
     geschlecht = models.CharField(max_length=1, blank=True, null=True, choices=GESCHLECHT_CHOICES, verbose_name='Geschlecht')
     geburtsdatum = models.DateField(blank=True, null=True, verbose_name='Geburtsdatum')
     strasse = models.CharField(max_length=100, blank=True, null=True, verbose_name='Straße')
     plz = models.CharField(max_length=10, blank=True, null=True, verbose_name='PLZ')
     ort = models.CharField(max_length=100, blank=True, null=True, verbose_name='Ort')
     country = models.CharField(max_length=100, blank=True, null=True, verbose_name='Land', default='Deutschland')
-    email = models.EmailField(max_length=100, verbose_name='E-Mail')
+    email = models.EmailField(max_length=100, verbose_name='E-Mail', default='')
     phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon')
     phone_einsatzland = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon Einsatzland')
     entsendeform = models.ForeignKey(Entsendeform, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Entsendeform')
     einsatzland = models.ForeignKey(Einsatzland, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzland')
+    einsatzland2 = models.ForeignKey(Einsatzland2, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzland')
     einsatzstelle = models.ForeignKey(Einsatzstelle, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzstelle')
+    einsatzstelle2 = models.ForeignKey(Einsatzstelle2, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzstelle')
     kirchenzugehoerigkeit = models.ForeignKey(Kirchenzugehoerigkeit, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Kirchenzugehörigkeit')
     start_geplant = models.DateField(blank=True, null=True, verbose_name='Start geplant')
     start_real = models.DateField(blank=True, null=True, verbose_name='Start real')
@@ -501,7 +503,7 @@ class FreiwilligerAufgaben(OrgModel):
         verbose_name_plural = 'Freiwillige:r Aufgaben'
 
     def __str__(self):
-        return self.freiwilliger.first_name + ' ' + self.freiwilliger.last_name + ' - ' + self.aufgabe.name
+        return self.freiwilliger.user.first_name + ' ' + self.freiwilliger.user.last_name + ' - ' + self.aufgabe.name + ' - ' + str(self.file)
 
 
 class FreiwilligerAufgabenZwischenschritte(OrgModel):
@@ -650,4 +652,4 @@ class ProfilUser(OrgModel):
         verbose_name_plural = 'Profil User'
 
     def __str__(self):
-        return self.user + self.attribut
+        return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.attribut

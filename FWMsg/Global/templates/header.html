@@ -22,10 +22,15 @@
 {# Flag Icons #}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@6.11.0/css/flag-icons.min.css">
 
+{# Masonry #}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+
 {# Dynamic color scheme based on user settings #}
 <style>
     :root {
         --color: {{ user|get_color }};
+        --color-primary: {{ user|get_color }};
         --secondary_color: {{ user|get_secondary_color }};
         --text_color: {{ user|get_text_color }};
         --text_color_on_org_color: {{ user|get_text_color_on_org_color }};
@@ -34,17 +39,18 @@
         --ampel_green: #00FF00;
 
         --bs-primary-rgb: {{ user|get_color|hex_to_rgb }};
+        --bs-btn-bg: {{ user|get_color }};
         --bs-primary: {{ user|get_color }};
         --bs-secondary-bg-rgb: {{ user|get_secondary_color|hex_to_rgb }};
         --bs-secondary: {{ user|get_secondary_color }};
     }
-
-    .text-on-org-color, .nav-item.text-on-org-color {
-        color: var(--text_color_on_org_color);
-    }
 </style>
+
+{# Custom button overrides - must be loaded AFTER Bootstrap and color variables #}
+<link rel="stylesheet" href="{% static 'css/button-overrides.css' %}">
 
 {# JavaScript dependencies #}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+<script src="https://masonry.desandro.com/masonry.pkgd.js"></script>

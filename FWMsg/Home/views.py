@@ -1,39 +1,144 @@
+from datetime import datetime, timedelta
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.contrib.auth.models import User
-from .forms import PasswordResetForm
+from .forms import PasswordResetForm, EmailAuthenticationForm
+from django.contrib.auth import get_user_model
+import re
+from Global.models import Maintenance
+from django.utils import timezone
 
 def index(request):
+    maintenance = Maintenance.objects.filter(id=1)
+    if maintenance.exists():
+        return redirect('maintenance')
+
+    def redirect_to_home(user):
+        if user.customuser.person_cluster.view == 'O':
+            return redirect('org_home')
+        elif user.customuser.person_cluster.view == 'T':
+            return redirect('team_home')
+        elif user.customuser.person_cluster.view == 'F':
+            return redirect('fw_home')
+        else:
+            messages.error(request, _('Ungültige Personengruppe.'))
+            return redirect('index')
+        
+    def is_email(value):
+        """
+        Check if the given value is an email address.
+        
+        Args:
+            value (str): The string to check
+            
+        Returns:
+            bool: True if the value is an email address, False otherwise
+        """
+        email_pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+        return bool(re.match(email_pattern, value))
+    
+    # Handle login form
+    form = EmailAuthenticationForm()
+    if request.method == 'POST':
+        form = EmailAuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+
+            # Try to authenticate with the provided credentials
+            user = None
+            
+            # First check if input is an email
+            if is_email(username):
+                try:
+                    # Get the user by email
+                    email_user = get_user_model().objects.get(email=username)
+                    # Then authenticate with the username and password
+                    user = authenticate(username=email_user.username, password=password)
+                except get_user_model().DoesNotExist:
+                    user = None
+            else:
+                # Standard username authentication
+                user = authenticate(username=username, password=password)
+
+            if user is not None:
+                login(request, user)
+                return redirect_to_home(user)
+            else:
+                # Add non-field error if authentication fails
+                messages.error(request, _('Ungültiger Benutzername oder Passwort.'))
+                return redirect('index')
+    
     # Redirect if user is already authenticated
     if request.path != '/index':
         if request.user.is_authenticated and hasattr(request.user, 'customuser'):
-            if request.user.customuser.role == 'O':
-                return redirect('org_home')
-            elif request.user.customuser.role == 'T':
-                return redirect('team_home')
-            return redirect('fw_home')
-
-    # Handle login form
-    form = AuthenticationForm()
-    if request.method == 'POST':
-        form_login = AuthenticationForm(request, data=request.POST)
-        if form_login.is_valid():
-            username = form_login.cleaned_data.get('username')
-            password = form_login.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                # Redirect based on user type
-                if hasattr(user, 'org'):
-                    return redirect('org_home')
-                return redirect('fw_home')
-            else:
-                messages.error(request, _('Ungültiger Benutzername oder Passwort.'))
+            return redirect_to_home(request.user)
 
     return render(request, 'index.html', {'form': form})
+
+def maintenance(request):
+    try:
+        maintenance = Maintenance.objects.get(id=1)
+        maintenance_start_time = maintenance.maintenance_start_time
+        maintenance_end_time = maintenance.maintenance_end_time
+    except Maintenance.DoesNotExist:
+        return render(request, 'maintenance.html', {'maintenance_end_time': 'Maintenance not found'})
+    
+    # Calculate progress percentage
+    # Use timezone-aware current time if maintenance times are timezone-aware
+    if timezone.is_aware(maintenance_start_time):
+        current_time = timezone.now()
+    else:
+        # If maintenance times are naive, use naive current time
+        current_time = datetime.now()
+    
+    if current_time < maintenance_start_time:
+        progress_percentage = 0
+    elif current_time > maintenance_end_time:
+        progress_percentage = 100
+    else:
+        # Calculate percentage of time elapsed
+        total_duration = (maintenance_end_time - maintenance_start_time).total_seconds()
+        elapsed_duration = (current_time - maintenance_start_time).total_seconds()
+        progress_percentage = min(round((elapsed_duration / total_duration) * 100), 99)
+
+    # Format datetime for display in local timezone
+    if hasattr(maintenance_end_time, 'strftime'):
+        # Convert to local timezone if it's timezone-aware
+        if timezone.is_aware(maintenance_end_time):
+            local_end_time = timezone.localtime(maintenance_end_time)
+        else:
+            local_end_time = maintenance_end_time
+            
+        # Format the time in German
+        try:
+            import locale
+            # Try to set German locale for date formatting
+            try:
+                locale.setlocale(locale.LC_TIME, 'de_DE.UTF-8')
+            except locale.Error:
+                try:
+                    locale.setlocale(locale.LC_TIME, 'de_DE')
+                except locale.Error:
+                    # Fallback if German locale is not available
+                    pass
+                    
+            # Format date in German style
+            formatted_end_time = local_end_time.strftime("%d. %B %Y, %H:%M")
+            
+        except ImportError:
+            # Simple fallback if locale module is not available
+            formatted_end_time = local_end_time.strftime("%d. %m. %Y, %H:%M")
+    else:
+        formatted_end_time = maintenance_end_time
+    
+    return render(request, 'maintenance.html', {
+        'maintenance_end_time': formatted_end_time,
+        'progress_percentage': progress_percentage
+    })
 
 def first_login(request):
     if request.method == 'POST':

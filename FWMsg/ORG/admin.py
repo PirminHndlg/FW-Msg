@@ -1,16 +1,13 @@
 from django.contrib import admin
-from .models import Organisation, Ordner, Dokument, Referenten, JahrgangTyp, DokumentColor
+from .models import Ordner, Dokument, Referenten, JahrgangTyp, DokumentColor
 from simple_history.admin import SimpleHistoryAdmin
 
 # Register your models here.
-@admin.register(Organisation)
-class OrganisationAdmin(SimpleHistoryAdmin):
-    search_fields = ['name']
 
 @admin.register(Ordner)
 class OrdnerAdmin(SimpleHistoryAdmin):
     search_fields = ['ordner_name']
-    actions = ['all_to_incoming', 'all_to_outgoing']
+    actions = ['all_to_incoming', 'all_to_outgoing', 'move_to_new']
 
     def all_to_incoming(self, request, queryset):
         for ordner in queryset:
@@ -22,9 +19,43 @@ class OrdnerAdmin(SimpleHistoryAdmin):
             ordner.typ = JahrgangTyp.objects.get(name='Outgoing')
             ordner.save()
 
+    def move_to_new(self, request, queryset):
+        from Global.models import Ordner2, PersonCluster
+
+        person_cluster = PersonCluster.objects.get(name='Freiwilliger')
+
+        for ordner in queryset:
+            ordner2, created = Ordner2.objects.get_or_create(
+                org=ordner.org,
+                ordner_name=ordner.ordner_name,
+            )
+            if created:
+                ordner2.typ = person_cluster
+                ordner2.save()
+                
+
 @admin.register(Dokument)
 class DokumentAdmin(SimpleHistoryAdmin):
     search_fields = ['ordner', 'dokument', 'beschreibung']
+    actions = ['move_to_new']
+
+    def move_to_new(self, request, queryset):
+        from Global.models import Dokument2, Ordner2
+
+        for dokument in queryset:
+            dokument2, created = Dokument2.objects.get_or_create(
+                org=dokument.org,
+                ordner=Ordner2.objects.get(ordner_name=dokument.ordner.ordner_name),
+                dokument=dokument.dokument,
+                link=dokument.link,
+                titel=dokument.titel,
+                beschreibung=dokument.beschreibung,
+                date_created=dokument.date_created,
+                date_modified=dokument.date_modified,
+                preview_image=dokument.preview_image,
+            )
+            dokument2.save()
+        
 
 @admin.register(DokumentColor)
 class DokumentColorAdmin(SimpleHistoryAdmin):
@@ -33,7 +64,7 @@ class DokumentColorAdmin(SimpleHistoryAdmin):
 @admin.register(Referenten)
 class ReferentenAdmin(SimpleHistoryAdmin):
     search_fields = ['first_name', 'last_name', 'email', 'phone']
-    actions = ['anonymize_user']
+    actions = ['anonymize_user', 'move_to_new']
 
     def anonymize_user(self, request, queryset):
         for referent in queryset:
@@ -43,6 +74,26 @@ class ReferentenAdmin(SimpleHistoryAdmin):
             referent.phone_mobil = None
             referent.save()
             referent.user.save()
+
+    def move_to_new(self, request, queryset):
+        from Global.models import Einsatzland2, PersonCluster
+        from TEAM.models import Team
+
+        person_cluster = PersonCluster.objects.get(name='Team')
+
+        for referent in queryset:
+            team, created = Team.objects.get_or_create(
+                org=referent.org,
+                user=referent.user,
+            )
+            print(created)
+            if created:
+                team.user.customuser.person_cluster = person_cluster
+                team.user.customuser.save()
+                land = referent.land.all()
+                for l in land:
+                    team.land.add(Einsatzland2.objects.get(name=l.name))
+            team.save()
 
 @admin.register(JahrgangTyp)
 class JahrgangTypAdmin(SimpleHistoryAdmin):

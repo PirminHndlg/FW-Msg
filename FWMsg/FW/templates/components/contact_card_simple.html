@@ -1,32 +1,64 @@
 {% load base_fw_filter %}
 {% load i18n %}
 
-<div class="card h-100 border-0 shadow-sm card-hover">
-    <div class="card-body">
-        <h5 class="fw-bold mb-3">{{ contact.first_name }} {{ contact.last_name }}</h5>
-        {% if contact.phone %}
-        <div class="d-flex align-items-center text-body-secondary mb-2">
-            <i class="bi bi-telephone-fill me-2 text-primary"></i>
-            <a href="tel:{{ contact.phone }}" class="text-decoration-none text-body-secondary">
-                {{ contact.phone }}
-            </a>
+<div class="card h-100 border-0 rounded-4 shadow-sm overflow-hidden">
+    <div class="card-header bg-primary bg-opacity-10 border-0 py-2">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary rounded-circle text-white d-flex justify-content-center align-items-center me-2" style="width: 42px; height: 42px; flex-shrink: 0;">
+                <i class="bi bi-person-rolodex fs-5"></i>
+            </div>
+            <h5 class="mb-0 text-on-org-color">{{ contact.first_name }} {{ contact.last_name }}</h5>
         </div>
-        {% endif %}
-        {% if contact.phone_work %}
-        <div class="d-flex align-items-center text-body-secondary mb-2">
-            <i class="bi bi-telephone-fill me-2 text-primary"></i>
-            <a href="tel:{{ contact.phone_work }}" class="text-decoration-none text-body-secondary">
-                {{ contact.phone_work }} ({% trans "Arbeit" %})
-            </a>
+    </div>
+    <div class="card-body p-3 pt-2">
+        <div class="contact-details">
+            {% if contact.phone %}
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-light rounded-circle d-flex justify-content-center align-items-center me-2">
+                        <i class="bi bi-telephone text-primary"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Telefon (Privat)</small>
+                        <a href="tel:{{ contact.phone }}" class="text-decoration-none text-body">
+                            {{ contact.phone }}
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if contact.phone_work %}
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-light rounded-circle d-flex justify-content-center align-items-center me-2">
+                        <i class="bi bi-phone text-primary"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Telefon (Arbeit)</small>
+                        <a href="tel:{{ contact.phone_work }}" class="text-decoration-none text-body">
+                            {{ contact.phone_work }}
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if contact.email %}
+                <div class="d-flex align-items-center">
+                    <div class="bg-light rounded-circle d-flex justify-content-center align-items-center me-2">
+                        <i class="bi bi-envelope text-primary"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">E-Mail</small>
+                        <a href="mailto:{{ contact.email }}" class="text-decoration-none text-body text-truncate d-block" style="max-width: 190px;">
+                            {{ contact.email }}
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if not contact.telephone and not contact.mobile and not contact.email %}
+                <div class="text-muted text-center py-2">
+                    <i class="bi bi-info-circle me-2"></i>Keine Kontaktdaten verfügbar
+                </div>
+            {% endif %}
         </div>
-        {% endif %}
-        {% if contact.email %}
-        <div class="d-flex align-items-center text-body-secondary">
-            <i class="bi bi-envelope-fill me-2 text-primary"></i>
-            <a href="mailto:{{ contact.email }}" class="text-decoration-none text-body-secondary">
-                {{ contact.email }}
-            </a>
-        </div>
-        {% endif %}
     </div>
 </div>

@@ -3,28 +3,26 @@ from datetime import datetime, timedelta
 from django.db.models import Q
 from celery import shared_task
 
-from FW.models import FreiwilligerAufgaben
-
+from django.contrib.auth.models import User
 from Global.send_email import send_mail_smtp, format_register_email_fw
 
 
 
 @shared_task
-def send_register_email_task(freiwilliger_id):
-    from FW.models import Freiwilliger
-    freiwilliger = Freiwilliger.objects.get(id=freiwilliger_id)
-    org = freiwilliger.user.org
+def send_register_email_task(user_id):
+    user = User.objects.get(id=user_id)
+    org = user.customuser.org
 
     with open(org.logo.path, "rb") as org_logo:
         base64_image = base64.b64encode(org_logo.read()).decode('utf-8')
     action_url = 'https://volunteer.solutions/first_login'
     org_name = org.name
-    einmalpasswort = freiwilliger.user.customuser.einmalpasswort
-    freiwilliger_name = f"{freiwilliger.first_name} {freiwilliger.last_name}"
-    username = freiwilliger.user.username
+    einmalpasswort = user.customuser.einmalpasswort
+    user_name = f"{user.first_name} {user.last_name}"
+    username = user.username
     
-    email_content = format_register_email_fw(einmalpasswort, action_url, base64_image, org_name, freiwilliger_name, username)
-    subject = f'Account erstellt: {freiwilliger_name}'
-    if send_mail_smtp(freiwilliger.email, subject, email_content, reply_to=org.email):
+    email_content = format_register_email_fw(einmalpasswort, action_url, base64_image, org_name, user_name, username)
+    subject = f'Account erstellt: {user_name}'
+    if send_mail_smtp(user.email, subject, email_content, reply_to=org.email):
         return True
     return False

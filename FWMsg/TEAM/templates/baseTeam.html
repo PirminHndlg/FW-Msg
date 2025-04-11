@@ -2,7 +2,7 @@
 {% load base_filter %}
 {% load base_fw_filter %}
 {% load i18n %}
-
+{% load team_filter %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
   <head>
@@ -31,32 +31,50 @@
         <nav class="navbar bg-primary navbar-expand-md">
           <div class="container-fluid">
             {# Organization Logo and Name #}
-            <a class="navbar-brand" href="{% url 'org_home' %}">
-                {% with org=user|get_org %}
-                    <img src="{% url 'serve_image' org.id %}" alt="{% if org.kurzname %}{{ org.kurzname }}{% else %}{{ org.name }}{% endif %}-Logo" height="30"
-                         class="d-inline-block align-text-top">
-                {% endwith %}
+            <a class="navbar-brand" href="{% url 'index_home' %}">
+              {% with org=user|get_org %}
+                <img src="{% url 'serve_image' org.id %}"
+                  alt="{% if org.kurzname %}
+                    {{ org.kurzname }}
+                  {% else %}
+                    {{ org.name }}
+                  {% endif %}-Logo"
+                  height="30"
+                  class="d-inline-block align-text-top" />
+              {% endwith %}
             </a>
+
+            <!-- Hamburger Button for Mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
 
             <div class="collapse navbar-collapse" id="navbarResponsive">
               <ul class="navbar-nav me-auto mb-2 mb-md-0">
                 <li class="nav-item">
                   <a class="nav-link text-white" href="{% url 'team_home' %}"><i class="bi bi-house"></i> {% trans 'Home' %}</a>
                 </li>
-                <li class="nav-item">
-                  <a class="nav-link text-white" href="{% url 'team_home' %}"><i class="bi bi-list-check"></i> {% trans 'Aufgaben' %}</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link text-white" href="{% url 'team_home' %}"><i class="bi bi-calendar-date"></i> {% trans 'Kalender' %}</a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-white" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Ländermanagement</a>
-                    <div class="dropdown-menu dropdown-menu-start" aria-labelledby="navbarDropdown">
-                      <a href="{% url 'team_home' %}" class="dropdown-item">Einsatzländer</a>
-                      <a href="{% url 'team_home' %}" class="dropdown-item">Einsatzstellen</a>
-                      <a href="{% url 'team_home' %}" class="dropdown-item">Protokolle</a>
-                    </div>
+                {% if user.customuser.person_cluster.aufgaben %}
+                  <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'aufgaben' %}"><i class="bi bi-list-check"></i> {% trans 'Aufgaben' %}</a>
                   </li>
+                {% endif %}
+                {% if user.customuser.person_cluster.calendar %}
+                  <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'kalender' %}"><i class="bi bi-calendar-date"></i> {% trans 'Kalender' %}</a>
+                  </li>
+                {% endif %}
+                {% if user.customuser.person_cluster.dokumente %}
+                  <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'dokumente' %}"><i class="bi bi-file-earmark-text"></i> {% trans 'Dokumente' %}</a>
+                  </li>
+                {% endif %}
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle text-white" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Ländermanagement</a>
+                  <div class="dropdown-menu dropdown-menu-start" aria-labelledby="navbarDropdown">
+                    <a href="{% url 'laender' %}" class="dropdown-item">Einsatzländer</a>
+                    <a href="{% url 'einsatzstellen' %}" class="dropdown-item">Einsatzstellen</a>
+                    <a href="{% url 'team_home' %}" class="dropdown-item">Protokolle</a>
+                  </div>
+                </li>
                 <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle text-white" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Freiwillige</a>
                   <div class="dropdown-menu dropdown-menu-start" aria-labelledby="navbarDropdown">
@@ -67,12 +85,14 @@
                 </li>
               </ul>
 
-              <!-- Jahrgang Selector -->
-              {% include 'components/jahrgang_selector.html' %}
-
-              <!-- Profile Button -->
               <div class="d-flex">
-                <a href="{% url 'profil' %}" class="btn btn-light"><i class="bi bi-person me-1"></i></a>
+                <!-- Jahrgang Selector -->
+                {% include 'components/jahrgang_selector.html' with person_cluster=person_cluster|filter_person_cluster %}
+
+                <!-- Profile Button -->
+                <div class="d-flex">
+                  <a href="{% url 'profil' %}" class="btn btn-light"><i class="bi bi-person me-1"></i></a>
+                </div>
               </div>
             </div>
           </div>
@@ -89,24 +109,24 @@
     </div>
     <script>
       document.addEventListener('DOMContentLoaded', function () {
-        // Handle jahrgang selection
-        document.querySelectorAll('[data-jahrgang]').forEach((item) => {
+        // Handle personen_cluster selection
+        document.querySelectorAll('[data-person-cluster]').forEach((item) => {
           item.addEventListener('click', function (e) {
             e.preventDefault()
-            const jahrgangId = this.dataset.jahrgang
-            const jahrgangName = this.textContent.trim()
+            const personClusterId = this.dataset.personCluster
+            const personClusterName = this.textContent.trim()
       
             // Save to cookies
-            if (jahrgangId) {
-              Cookies.set('selectedJahrgang', jahrgangId, { expires: 365 })
-              Cookies.set('selectedJahrgangName', jahrgangName, { expires: 365 })
+            if (personClusterId) {
+              Cookies.set('selectedPersonCluster', personClusterId, { expires: 365 })
+              Cookies.set('selectedPersonClusterName', personClusterName, { expires: 365 })
             } else {
-              Cookies.remove('selectedJahrgang')
-              Cookies.remove('selectedJahrgangName')
+              Cookies.remove('selectedPersonCluster')
+              Cookies.remove('selectedPersonClusterName')
             }
       
             // Update dropdown text
-            document.getElementById('selectedJahrgang').textContent = jahrgangName
+            document.getElementById('selectedPersonCluster').textContent = personClusterName
       
             // Reload current page
             window.location.reload()
@@ -114,9 +134,9 @@
         })
       
         // Set initial dropdown text from cookie
-        const savedJahrgangName = Cookies.get('selectedJahrgangName')
-        if (savedJahrgangName) {
-          document.getElementById('selectedJahrgang').textContent = savedJahrgangName
+        const savedPersonClusterName = Cookies.get('selectedPersonClusterName')
+        if (savedPersonClusterName) {
+          document.getElementById('selectedPersonCluster').textContent = savedPersonClusterName
         }
       })
     </script>

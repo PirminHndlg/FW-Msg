@@ -54,7 +54,7 @@
                         {% include 'error_message.html' %}
 
                         <!-- Login Form -->
-                        <form method="post" action="{% url 'login' %}">
+                        <form method="post" action="{% url 'index_home' %}">
                             {% csrf_token %}
                             
                             {% if form.errors %}
@@ -64,13 +64,23 @@
                             {% endif %}
                             
                             <div class="form-floating mb-3">
-                                <input type="text" name="username" class="form-control rounded-3" id="username" placeholder="{% trans 'Benutzername' %}" required>
-                                <label for="username">{% trans "Benutzername" %}</label>
+                                {{ form.username }}
+                                <label for="{{ form.username.id_for_label }}">{% trans "Benutzername oder E-Mail" %}</label>
+                                {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.username.errors }}
+                                </div>
+                                {% endif %}
                             </div>
                             
                             <div class="form-floating mb-4">
-                                <input type="password" name="password" class="form-control rounded-3" id="password" placeholder="{% trans 'Passwort' %}" required>
-                                <label for="password">{% trans "Passwort" %}</label>
+                                {{ form.password }}
+                                <label for="{{ form.password.id_for_label }}">{% trans "Passwort" %}</label>
+                                {% if form.password.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password.errors }}
+                                </div>
+                                {% endif %}
                             </div>
 
                             <input type="hidden" name="next" value="{{ next }}">

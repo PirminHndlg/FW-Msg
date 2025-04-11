@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <form method="post" class="needs-validation" novalidate>
+    <form method="post" class="needs-validation" novalidate enctype="multipart/form-data" enctype="multipart/form-data">
         {% csrf_token %}
         
         <div class="card mb-4 rounded-4">
