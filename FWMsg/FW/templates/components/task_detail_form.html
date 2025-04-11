@@ -34,7 +34,7 @@
                  style="z-index: 1; pointer-events: none;">
                  {% if task.file %}
                 <i class="bi bi-file-earmark-check display-4 text-success mb-2"></i>
-                <p class="mb-1 fw-semibold">{{ task.file.name|cut:"uploads/" }}</p>
+                <p class="mb-1 fw-semibold text-break">{{ task.file.name|cut:"uploads/" }}</p>
                 <p class="mb-0 text-muted small"><i class="bi bi-arrow-repeat me-1"></i>{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</p>
                 {% else %}
                 <i class="bi bi-cloud-upload display-4 text-primary mb-2"></i>
@@ -46,7 +46,7 @@
         <div class="p-3 bg-light rounded-3 d-flex align-items-center">
             <i class="bi bi-file-earmark-check fs-3 text-success me-3"></i>
             <div>
-                <p class="mb-0 fw-medium">{{ task.file.name|cut:"uploads/" }}</p>
+                <p class="mb-0 fw-medium text-break">{{ task.file.name|cut:"uploads/" }}</p>
                 <small class="text-muted">{% trans "Hochgeladen" %}</small>
             </div>
         </div>
