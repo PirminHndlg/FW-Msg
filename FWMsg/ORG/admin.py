@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import Ordner, Dokument, Referenten, JahrgangTyp, DokumentColor
 from simple_history.admin import SimpleHistoryAdmin
-
+from django.contrib import messages
 # Register your models here.
 
 @admin.register(Ordner)
@@ -98,17 +98,33 @@ class DokumentAdmin(SimpleHistoryAdmin):
                         )
                         dokument2.dokument.save(os.path.basename(path), File(f))
                         dokument2.save()
-                
 
     def move_to_new_2(self, request, queryset):
         from Global.models import Dokument2, Ordner2
+        import os
 
         for dokument in queryset:
-            if not dokument.dokument and (dokument.link or dokument.titel or dokument.beschreibung):
+            error_list = []
+            if dokument.dokument:
+                try:
+                    dokument2, created = Dokument2.objects.get_or_create(
+                        org=dokument.org,
+                        ordner=Ordner2.objects.get(ordner_name=dokument.ordner.ordner_name),
+                        dokument=dokument.dokument,
+                        link=dokument.link,
+                    titel=(dokument.titel or dokument.dokument.name)[:100],
+                    beschreibung=dokument.beschreibung,
+                    date_created=dokument.date_created,
+                    date_modified=dokument.date_modified,
+                    preview_image=dokument.preview_image,
+                    )
+                    dokument2.save()
+                except Exception as e:
+                    error_list.append(f'{dokument.dokument.name}: {e}')
+            elif not dokument.dokument:
                 dokument2, created = Dokument2.objects.get_or_create(
                     org=dokument.org,
                     ordner=Ordner2.objects.get(ordner_name=dokument.ordner.ordner_name),
-                    dokument=dokument.dokument,
                     link=dokument.link,
                     titel=(dokument.titel or dokument.dokument.name)[:100],
                     beschreibung=dokument.beschreibung,
@@ -117,7 +133,8 @@ class DokumentAdmin(SimpleHistoryAdmin):
                     preview_image=dokument.preview_image,
                 )
                 dokument2.save()
-        
+        if error_list:
+            messages.error(request, '\n'.join(error_list))
 
 @admin.register(DokumentColor)
 class DokumentColorAdmin(SimpleHistoryAdmin):
