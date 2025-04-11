@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 # Create your models here.
 class Team(OrgModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Benutzer:in')
-    land = models.ManyToManyField(Einsatzland2, verbose_name='Länderzuständigkeit', blank=True, null=True)
+    land = models.ManyToManyField(Einsatzland2, verbose_name='Länderzuständigkeit')
 
     history = HistoricalRecords()
 
