@@ -690,6 +690,7 @@ class Post2(OrgModel):
     text = models.TextField(verbose_name='Text', help_text='Text des Posts')
     date = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
     date_updated = models.DateTimeField(auto_now=True, verbose_name='Aktualisiert am')
+    has_survey = models.BooleanField(default=False, verbose_name='Umfrage', help_text='Post enthält eine Umfrage')
 
     history = HistoricalRecords()
 
@@ -699,6 +700,31 @@ class Post2(OrgModel):
 
     def __str__(self):
         return self.title
+
+
+class PostSurveyQuestion(OrgModel):
+    post = models.OneToOneField(Post2, on_delete=models.CASCADE, related_name='survey_question', verbose_name='Post')
+    question_text = models.CharField(max_length=200, verbose_name='Frage', help_text='Text der Umfragefrage')
+    
+    class Meta:
+        verbose_name = 'Umfragefrage'
+        verbose_name_plural = 'Umfragefragen'
+        
+    def __str__(self):
+        return self.question_text
+
+
+class PostSurveyAnswer(OrgModel):
+    question = models.ForeignKey(PostSurveyQuestion, on_delete=models.CASCADE, related_name='survey_answers', verbose_name='Frage')
+    answer_text = models.CharField(max_length=100, verbose_name='Antwort', help_text='Text der Antwortmöglichkeit')
+    votes = models.ManyToManyField(User, verbose_name='Benutzer, die an der Umfrage teilgenommen haben', blank=True)
+    
+    class Meta:
+        verbose_name = 'Umfrageantwort'
+        verbose_name_plural = 'Umfrageantworten'
+        
+    def __str__(self):
+        return self.answer_text
 
 
 class Bilder2(OrgModel):

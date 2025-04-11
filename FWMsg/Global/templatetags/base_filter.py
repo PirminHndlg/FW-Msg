@@ -64,3 +64,25 @@ def get_base_template(user):
         else:
             return 'baseFw.html'
     return 'base.html'
+
+@register.filter
+def mul(value, arg):
+    """Multiply the value by the argument"""
+    return value * arg
+
+@register.filter
+def intdiv(value, arg):
+    """Integer division: value // arg"""
+    return value // arg
+
+@register.filter
+def divided_by(value, arg):
+    """Divide the value by the argument"""
+    try:
+        return int(float(value) / float(arg))
+    except (ValueError, ZeroDivisionError):
+        return 0
+
+@register.filter
+def reverse(value):
+    return value[::-1]

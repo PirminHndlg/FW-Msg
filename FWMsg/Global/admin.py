@@ -5,7 +5,15 @@ from django.http import HttpResponseRedirect
 from django.urls import path
 from django.contrib import messages
 from django.utils.html import format_html
-from .models import Ampel2, Attribute, CustomUser, Einsatzland2, Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, Organisation, Aufgabe2, DokumentColor2, Dokument2, Ordner2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, AufgabenCluster, Bilder2, BilderGallery2, ProfilUser2, Maintenance
+from .models import (
+    Ampel2, Attribute, CustomUser, Einsatzland2, 
+    Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, 
+    Organisation, Aufgabe2, DokumentColor2, Dokument2, 
+    Ordner2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, 
+    UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, 
+    AufgabenCluster, Bilder2, BilderGallery2, ProfilUser2, Maintenance,
+    PostSurveyAnswer, PostSurveyQuestion
+)
 from TEAM.models import Team
 from FW.models import Freiwilliger
 from FWMsg.celery import send_email_aufgaben_daily
@@ -192,3 +200,11 @@ class BilderGalleryAdmin(admin.ModelAdmin):
 class MaintenanceAdmin(admin.ModelAdmin):
     list_display = ['maintenance_start_time', 'maintenance_end_time']
     search_fields = ['maintenance_start_time', 'maintenance_end_time']
+
+@admin.register(PostSurveyAnswer)
+class PostSurveyAnswerAdmin(admin.ModelAdmin):
+    search_fields = ['answer_text']
+
+@admin.register(PostSurveyQuestion)
+class PostSurveyQuestionAdmin(admin.ModelAdmin):
+    search_fields = ['question_text']

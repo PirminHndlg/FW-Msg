@@ -34,6 +34,19 @@
     {# Image Gallery Section #}
     {% include "components/gallery_grid.html" %}
 
+    {# Posts Section #}
+    <div class="card rounded-4 mb-2">
+        <div class="card-header rounded-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">{% trans 'Beiträge' %}</h3>
+                <a href="{% url 'post_add' %}" class="btn btn-sm btn-primary rounded-4"><i class="bi bi-plus-circle me-2"></i>{% trans 'Neuer Beitrag' %}</a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% include 'components/post_card.html' %}
+        </div>
+    </div>
+
     {% if this_user %}
     {# Profile Picture Upload Modal #}
     <div class="modal fade" id="profilPictureModal" tabindex="-1" aria-labelledby="profilPictureModalLabel" aria-hidden="true">

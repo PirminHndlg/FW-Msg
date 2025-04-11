@@ -13,6 +13,11 @@
                   <i class="bi bi-file-text text-white"></i>
                 </span>
                 <h5 class="card-title mb-0 fw-semibold">{{ post.title }}</h5>
+                {% if post.has_survey %}
+                <span class="badge bg-info ms-2" title="{% trans 'Enthält eine Umfrage' %}">
+                  <i class="bi bi-bar-chart-fill"></i>
+                </span>
+                {% endif %}
               </div>
               {% if request.user == post.user or request.user.role == 'A' %}
                 <div class="dropdown">
@@ -21,7 +26,7 @@
                   </button>
                   <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
                     <li>
-                      <a class="dropdown-item" href="{% url 'post_detail' post.id %}">
+                      <a class="dropdown-item" href="{% url 'post_edit' post.id %}">
                         <i class="bi bi-pencil-square me-2 text-primary"></i>{% trans 'Bearbeiten' %}
                       </a>
                     </li>
@@ -41,17 +46,26 @@
               <p class="card-text mb-0">{{ post.text|truncatewords:30 }}</p>
             </div>
             
-            <div class="d-flex justify-content-between align-items-center mt-3">
+            {% if post.has_survey %}
+            <div class="survey-preview mt-3 rounded-3 p-2 bg-info bg-opacity-10 border-start border-info border-3">
               <div class="d-flex align-items-center">
+                <i class="bi bi-bar-chart-fill text-info me-2"></i>
+                <p class="mb-0">{% trans "Dieser Beitrag enthält eine Umfrage" %}</p>
+              </div>
+            </div>
+            {% endif %}
+            
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <a href="{% url 'profil' post.user.id %}" class="text-dark d-flex align-items-center">
                 <img src="{% if post.user.customuser.profil_picture %}{% url 'serve_profil_picture' post.user.id %}{% endif %}" 
                      alt="{{ post.user.first_name }} {{ post.user.last_name }}" 
                      class="rounded-circle me-2" 
                      style="height: 32px; width: 32px; object-fit: cover;">
                 <div>
                   <small class="text-muted mb-0">{% trans "Von" %}</small>
-                  <p class="mb-0 fw-medium">{{ post.user.first_name }} {{ post.user.last_name }}</p>
+                  <p class="mb-0 fw-medium">{{ post.user.first_name|default:'' }} {{ post.user.last_name|default:post.user.username }}</p>
                 </div>
-              </div>
+                </a>
               <div class="text-end">
                 <small class="text-muted mb-0">{% trans "Erstellt am" %}</small>
                 <p class="mb-0 fw-medium">{{ post.date|date:'d.m.Y' }}</p>
@@ -61,6 +75,11 @@
           <div class="card-footer bg-transparent p-3 border-0">
             <a href="{% url 'post_detail' post.id %}" class="btn btn-primary rounded-3 w-100">
               <i class="bi bi-book me-2"></i>{% trans 'Weiterlesen' %}
+              {% if post.has_survey %}
+              <span class="ms-1 badge bg-light text-primary">
+                <i class="bi bi-bar-chart-fill"></i>
+              </span>
+              {% endif %}
             </a>
           </div>
         </div>
@@ -99,5 +118,9 @@
   
   .card-body .bg-light {
     background-color: rgba(var(--bs-light-rgb), 0.5) !important;
+  }
+  
+  .survey-preview {
+    font-size: 0.9rem;
   }
 </style>

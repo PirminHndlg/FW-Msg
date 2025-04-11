@@ -1,8 +1,11 @@
 {% extends extends_base|default:'baseFw.html' %}
 {% load i18n %}
 {% load widget_tweaks %}
+{% load base_filter %}
 
-{% block title %}{{ post.title }}{% endblock %}
+{% block title %}
+  {{ post.title }}
+{% endblock %}
 
 {% block content %}
   <div class="container py-4">
@@ -12,19 +15,13 @@
           <div class="card-header bg-light rounded-top-4 py-3">
             <div class="d-flex justify-content-between align-items-center">
               <div class="d-flex align-items-center">
-                <span class="post-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
-                  <i class="bi bi-file-earmark-text text-white"></i>
-                </span>
+                <span class="post-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"><i class="bi bi-file-earmark-text text-white"></i></span>
                 <h3 class="card-title mb-0 fw-semibold">{{ post.title }}</h3>
               </div>
               <div>
                 {% if request.user == post.user or request.user.role == 'A' %}
-                  <a href="{% url 'post_edit' post.id %}" class="btn btn-sm btn-outline-primary rounded-3 me-2">
-                    <i class="bi bi-pencil me-1"></i> {% trans 'Bearbeiten' %}
-                  </a>
-                  <a href="{% url 'post_delete' post.id %}" class="btn btn-sm btn-outline-danger rounded-3" onclick="return confirm('{% trans 'Sind Sie sicher, dass Sie diesen Beitrag löschen möchten?' %}')">
-                    <i class="bi bi-trash me-1"></i> {% trans 'Löschen' %}
-                  </a>
+                  <a href="{% url 'post_edit' post.id %}" class="btn btn-sm btn-outline-primary rounded-3 me-2"><i class="bi bi-pencil me-1"></i> {% trans 'Bearbeiten' %}</a>
+                  <a href="{% url 'post_delete' post.id %}" class="btn btn-sm btn-outline-danger rounded-3" onclick="return confirm('{% trans 'Bist Du sicher, dass Du diesen Beitrag löschen möchtest?' %}')"><i class="bi bi-trash me-1"></i> {% trans 'Löschen' %}</a>
                 {% endif %}
               </div>
             </div>
@@ -35,10 +32,7 @@
                 <div class="author-card p-3 rounded-3 bg-light border-start border-primary border-3 h-100">
                   <a href="{% url 'profil' post.user.id %}" class="text-decoration-none text-dark">
                     <div class="d-flex align-items-center">
-                      <img src="{% if post.user.customuser.profil_picture %}{% url 'serve_profil_picture' post.user.id %}{% endif %}" 
-                           alt="{{ post.user.first_name }} {{ post.user.last_name }}" 
-                           class="rounded-circle me-3" 
-                           style="height: 48px; width: 48px; object-fit: cover;" />
+                      <img src="{% if post.user.customuser.profil_picture %}{% url 'serve_profil_picture' post.user.id %}{% endif %}" alt="{{ post.user.first_name }} {{ post.user.last_name }}" class="rounded-circle me-3" style="height: 48px; width: 48px; object-fit: cover;" />
                       <div>
                         <small class="text-muted">{% trans 'Erstellt von' %}</small>
                         <div class="fw-medium">{{ post.user.first_name }} {{ post.user.last_name }}</div>
@@ -50,14 +44,12 @@
               <div class="col-md-6 mt-3 mt-md-0">
                 <div class="date-card p-3 rounded-3 bg-light border-start border-primary border-3 h-100">
                   <div class="d-flex align-items-center">
-                    <span class="date-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
-                      <i class="bi bi-calendar-date text-white"></i>
-                    </span>
+                    <span class="date-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"><i class="bi bi-calendar-date text-white"></i></span>
                     <div>
                       <small class="text-muted">{% trans 'Erstellt am' %}</small>
                       <div class="fw-medium">{{ post.date|date:'d.m.Y H:i' }}</div>
                       {% if post.date_updated and post.date_updated != post.date %}
-                        <small class="text-muted">{% trans 'Aktualisiert' %}: {{ post.date_updated|date:'d.m.Y H:i' }}</small>
+                        <small class="text-muted">{% trans 'Aktualisiert am' %} {{ post.date_updated|date:'d.m.Y H:i' }}</small>
                       {% endif %}
                     </div>
                   </div>
@@ -68,16 +60,83 @@
             <div class="mb-4">
               <h5 class="form-label fw-semibold text-primary">{% trans 'Inhalt' %}</h5>
               <div class="p-4 bg-light rounded-3 border-start border-primary border-3">
-                <div class="post-content">
-                  {{ post.text|linebreaks }}
-                </div>
+                <div class="post-content">{{ post.text|linebreaks }}</div>
               </div>
             </div>
 
+            {% if post.has_survey and post.survey_question %}
+              <div class="mt-5 mb-4">
+                <div class="survey-container">
+                  <h5 class="form-label fw-semibold text-primary d-flex align-items-center">
+                    <span class="survey-icon bg-info rounded-circle d-flex align-items-center justify-content-center me-2"><i class="bi bi-bar-chart-fill text-white"></i></span>
+                    {% trans 'Umfrage' %}
+                  </h5>
+
+                  <div class="card border-info rounded-3 shadow-sm">
+                    <div class="card-header bg-info bg-opacity-10 py-3">
+                      <h5 class="card-title mb-0 fw-semibold">{{ post.survey_question.question_text }}</h5>
+                    </div>
+                    <div class="card-body p-4">
+                      {% if has_voted %}
+                        <!-- Survey Results -->
+                        <div class="survey-results">
+                          {% for answer in post.survey_question.survey_answers.all %}
+                            <div class="mb-3">
+                              <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-medium">{{ answer.answer_text }}</span>
+                                <div class="d-flex align-items-center gap-1">
+                                  {% if answer == has_voted %}
+                                    <i class="bi bi-person-fill"></i>
+                                  {% endif %}
+                                  <span class="badge bg-info rounded-pill">{{ answer.votes.count }} {% trans 'Stimmen' %}</span>
+                                </div>
+                              </div>
+
+                              <div class="progress" style="height: 24px;">
+                                {% if total_votes > 0 %}
+                                  {% with raw_percentage=answer.votes.count|mul:100 %}
+                                    {% with percentage=raw_percentage|divided_by:total_votes %}
+                                      <div class="progress-bar bg-info" role="progressbar" style="width: {{ percentage }}%;" aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100">{{ percentage }}%</div>
+                                    {% endwith %}
+                                  {% endwith %}
+                                {% else %}
+                                  <div class="progress-bar bg-info" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                {% endif %}
+                              </div>
+                            </div>
+                          {% endfor %}
+
+                          <div class="text-muted text-center mt-3">
+                            <i class="bi bi-people me-1"></i> {% trans 'Insgesamt' %}: {{ total_votes }} {% trans 'Stimmen' %}
+                          </div>
+                        </div>
+                      {% else %}
+                        <!-- Survey Vote Form -->
+                        <form method="post" action="{% url 'post_vote' post.id %}" class="survey-vote-form">
+                          {% csrf_token %}
+                          <div class="survey-options">
+                            {% for answer in post.survey_question.survey_answers.all %}
+                              <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="answer_id" id="answer_{{ answer.id }}" value="{{ answer.id }}" required />
+                                <label class="form-check-label fw-medium" for="answer_{{ answer.id }}">{{ answer.answer_text }}</label>
+                              </div>
+                            {% endfor %}
+                          </div>
+                          <div class="text-muted small mb-3">
+                            <i class="bi bi-info-circle me-1"></i>
+                            {% trans 'Die Umfrage ist anonym. Sobald Du abgestimmt hast, kannst Du die Ergebnisse sehen.' %}
+                          </div>
+                          <button type="submit" class="btn btn-info"><i class="bi bi-check2-circle me-1"></i> {% trans 'Abstimmen' %}</button>
+                        </form>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+
             <div class="d-flex gap-2 mt-4">
-              <a href="{% url 'posts_overview' %}" class="btn btn-outline-secondary rounded-3 px-4">
-                <i class="bi bi-arrow-left me-1"></i>{% trans 'Zurück zur Übersicht' %}
-              </a>
+              <a href="{% url 'posts_overview' %}" class="btn btn-outline-secondary rounded-3 px-4"><i class="bi bi-arrow-left me-1"></i>{% trans 'Zurück zur Übersicht' %}</a>
             </div>
           </div>
         </div>
@@ -85,26 +144,40 @@
     </div>
   </div>
 
-<style>
-  .post-icon,
-  .date-icon {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-  }
-  
-  .author-card,
-  .date-card {
-    min-height: 80px;
-  }
-  
-  .post-content {
-    white-space: pre-line;
-    line-height: 1.6;
-  }
-  
-  .post-content p {
-    margin-bottom: 1rem;
-  }
-</style>
+  <style>
+    .post-icon,
+    .date-icon,
+    .survey-icon {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+    }
+    
+    .author-card,
+    .date-card {
+      min-height: 80px;
+    }
+    
+    .post-content {
+      white-space: pre-line;
+      line-height: 1.6;
+    }
+    
+    .post-content p {
+      margin-bottom: 1rem;
+    }
+    
+    .survey-container {
+      margin-bottom: 1.5rem;
+    }
+    
+    .survey-options .form-check-input:checked {
+      background-color: var(--bs-info);
+      border-color: var(--bs-info);
+    }
+    
+    .progress {
+      background-color: rgba(var(--bs-info-rgb), 0.1);
+    }
+  </style>
 {% endblock %}

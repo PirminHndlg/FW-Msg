@@ -56,7 +56,8 @@ from .models import (
     PersonCluster,
     Notfallkontakt2,
     DokumentColor2,
-    Post2
+    Post2,
+    PostSurveyAnswer
 )
 from ORG.models import Organisation
 from FW.models import Freiwilliger
@@ -754,6 +755,8 @@ def view_profil(request, user_id=None):
     else:
         freiwilliger = None
 
+    posts = Post2.objects.filter(user=user).order_by('-date')
+
     context = {
         'freiwilliger': freiwilliger,
         'user': user,
@@ -761,7 +764,8 @@ def view_profil(request, user_id=None):
         'profil_user_form': profil_user_form,
         'this_user': this_user,
         'ampel_of_user': ampel_of_user,
-        'gallery_images': gallery_images
+        'gallery_images': gallery_images,
+        'posts': posts
     }
 
     context = check_organization_context(request, context)
@@ -1064,7 +1068,36 @@ def posts_overview(request):
 @login_required
 def post_edit(request, post_id):
     post = Post2.objects.get(id=post_id)
-    return post_add(request, post=post)
+    
+    # Check permissions
+    if request.user != post.user and request.user.role != 'A':
+        messages.error(request, 'Sie haben keine Berechtigung, diesen Beitrag zu bearbeiten.')
+        return redirect('post_detail', post_id=post_id)
+    
+    if request.method == 'POST':
+        form = AddPostForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Beitrag erfolgreich aktualisiert.')
+            return redirect('post_detail', post_id=post.id)
+    else:
+        # Prepare initial data for survey fields
+        initial_data = {}
+        if post.has_survey and hasattr(post, 'survey_question'):
+            initial_data['survey_question'] = post.survey_question.question_text
+            
+            # Populate answer fields
+            for i, answer in enumerate(post.survey_question.survey_answers.all()[:5], 1):
+                initial_data[f'answer_{i}'] = answer.answer_text
+                
+        form = AddPostForm(instance=post, initial=initial_data)
+    
+    context = {
+        'form': form,
+        'post': post
+    }
+    context = check_organization_context(request, context)
+    return render(request, 'post_add.html', context=context)
 
 
 
@@ -1093,9 +1126,24 @@ def post_add(request, post=None):
 @login_required
 def post_detail(request, post_id):
     post = Post2.objects.get(id=post_id)
+    
+    # Track if user has voted in this survey
+    has_voted = False
+    total_votes = 0
+    
+    if post.has_survey and hasattr(post, 'survey_question'):
+        # Check if user has voted using the ManyToManyField
+        answers = PostSurveyAnswer.objects.filter(question=post.survey_question)
+        has_voted = False
+        for answer in answers:
+            total_votes += answer.votes.count()
+            if request.user in answer.votes.all():
+                has_voted = answer
 
     context = {
-        'post': post
+        'post': post,
+        'has_voted': has_voted,
+        'total_votes': total_votes
     }
 
     context = check_organization_context(request, context)
@@ -1110,3 +1158,34 @@ def post_delete(request, post_id):
         post.delete()
     
     return redirect('posts_overview')
+
+@login_required
+def post_vote(request, post_id):
+    if request.method != 'POST':
+        return redirect('post_detail', post_id=post_id)
+    
+    post = Post2.objects.get(id=post_id)
+    
+    # Check if post has a survey
+    if not post.has_survey or not hasattr(post, 'survey_question'):
+        messages.error(request, 'Diese Umfrage existiert nicht oder wurde entfernt.')
+        return redirect('post_detail', post_id=post_id)
+    
+    # Process the vote
+    answer_id = request.POST.get('answer_id')
+    if answer_id:
+        try:
+            answer = PostSurveyAnswer.objects.get(id=answer_id, question=post.survey_question)
+            if request.user in answer.votes.all():
+                messages.info(request, 'Du hast bereits an dieser Umfrage teilgenommen.')
+                return redirect('post_detail', post_id=post_id)
+            
+            # Add user to the votes ManyToManyField of this answer
+            answer.votes.add(request.user)
+            
+        except PostSurveyAnswer.DoesNotExist:
+            messages.error(request, 'Die gewählte Antwort existiert nicht.')
+    else:
+        messages.error(request, 'Bitte wählen Sie eine Antwort aus.')
+    
+    return redirect('post_detail', post_id=post_id)
