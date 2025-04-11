@@ -48,7 +48,7 @@ class DokumentAdmin(SimpleHistoryAdmin):
                 ordner=Ordner2.objects.get(ordner_name=dokument.ordner.ordner_name),
                 dokument=dokument.dokument,
                 link=dokument.link,
-                titel=dokument.titel,
+                titel=dokument.titel or dokument.dokument.name,
                 beschreibung=dokument.beschreibung,
                 date_created=dokument.date_created,
                 date_modified=dokument.date_modified,
