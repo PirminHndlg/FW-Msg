@@ -12,8 +12,8 @@ from Global.models import Maintenance
 from django.utils import timezone
 
 def index(request):
-    maintenance = Maintenance.objects.filter(id=1)
-    if maintenance.exists():
+    maintenance = Maintenance.objects.order_by('-id').first()
+    if maintenance:
         return redirect('maintenance')
 
     def redirect_to_home(user):
