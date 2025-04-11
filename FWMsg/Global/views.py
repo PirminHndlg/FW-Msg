@@ -593,7 +593,7 @@ def add_ordner(request):
                 messages.error(request, 'Nicht erlaubt')
                 return redirect('dokumente')
             ordner.ordner_name = ordner_name
-            ordner.typ.set(person_clusters)
+            ordner.typ.set(person_clusters or [])
             ordner.color = color
             ordner.save()
         else:
@@ -602,7 +602,7 @@ def add_ordner(request):
                 ordner_name=ordner_name,
                 color=color
             )
-            ordner.typ.set(person_clusters)
+            ordner.typ.set(person_clusters or [])
             ordner.save()
 
     return redirect('dokumente', ordner_id=ordner.id)
