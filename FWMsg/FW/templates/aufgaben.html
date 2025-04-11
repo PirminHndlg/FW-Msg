@@ -16,6 +16,12 @@
         {% include 'confetti.html' %}
     {% endif %}
 
+    <div class="card rounded-4 mb-3">
+        <div class="card-header rounded-4">
+            <h3 class="card-title mb-0">{% trans "Aufgaben" %}</h3>
+        </div>
+    </div>
+
     {# Progress Bar #}
     {% include "components/progress_bar.html" with offen_prozent=offen_prozent pending_prozent=pending_prozent erledigt_prozent=erledigt_prozent len_offen=len_offen len_pending=len_pending len_erledigt=len_erledigt show_count=True %}
 
