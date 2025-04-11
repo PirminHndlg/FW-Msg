@@ -63,7 +63,7 @@ from ORG.views import base_template as org_base_template
 from TEAM.views import base_template as team_base_template
 from FW.views import base_template as fw_base_template
 from FWMsg.celery import send_email_aufgaben_daily
-from FWMsg.decorators import required_person_cluster
+from FWMsg.decorators import required_person_cluster, required_role
 from .forms import FeedbackForm
 from ORG.forms import AddNotfallkontaktForm
 # Utility Functions
@@ -558,6 +558,7 @@ def add_dokument(request):
 
 @login_required
 @required_person_cluster('dokumente')
+@required_role('O')
 def add_ordner(request):
     if request.method == 'POST':
         ordner_id = request.POST.get('ordner_id')
