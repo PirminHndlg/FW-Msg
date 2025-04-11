@@ -26,11 +26,11 @@
                                         {% if item.external %}<i class="bi bi-box-arrow-up-right ms-1 small"></i>{% endif %}
                                     </a>
                                 {% elif item.type == 'email' %}
-                                    <a href="mailto:{{ item.value }}" class="text-decoration-underline text-body text-truncate d-block" style="max-width: 190px;">
+                                    <a href="mailto:{{ item.value }}" class="text-decoration-underline text-body d-block" style="max-width: 190px;">
                                         {{ item.value }}
                                     </a>
                                 {% elif item.type == 'phone' %}
-                                    <a href="tel:{{ item.value }}" class="text-decoration-underline text-body text-truncate d-block" style="max-width: 190px;">
+                                    <a href="tel:{{ item.value }}" class="text-decoration-underline text-body d-block" style="max-width: 190px;">
                                         {{ item.value }}
                                     </a>
                                 {% else %}
