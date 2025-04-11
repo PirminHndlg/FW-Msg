@@ -72,7 +72,7 @@ function editDokument(dokument_id) {
     document.getElementById('beschreibung').value = doc_data.beschreibung;
     document.getElementById('link').value = doc_data.link;
 
-    let darf_bearbeiten_inputs = document.querySelectorAll('input[name="darf_bearbeiten"]');
+    let darf_bearbeiten_inputs = doc_div.querySelectorAll('input[name="darf_bearbeiten"]');
     for (const darf_bearbeiten_input of darf_bearbeiten_inputs) {
         let darf_bearbeiten_id = darf_bearbeiten_input.value;
         let checkbox = document.getElementById(`person_cluster_${darf_bearbeiten_id}`);
@@ -88,7 +88,7 @@ function editDokument(dokument_id) {
     }
 
     document.getElementById('dokumentModalLabel').textContent = 'Dokument bearbeiten';
-    
+
     const modal = new bootstrap.Modal(document.getElementById('dokumentModal'));
     modal.show();
 
