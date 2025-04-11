@@ -21,7 +21,7 @@
                             {% if item.label %}<small class="text-muted d-block">{{ item.label }}</small>{% endif %}
                             <div class="contact-value">
                                 {% if item.type == 'link' %}
-                                    <a href="{{ item.url }}" {% if item.external %}target="_blank" rel="noopener"{% endif %} class="text-decoration-underline text-body">
+                                    <a href="{{ item.url }}" {% if item.external %}target="_blank" rel="noopener"{% endif %} class="text-decoration-underline text-body d-block text-break">
                                         {{ item.value }}
                                         {% if item.external %}<i class="bi bi-box-arrow-up-right ms-1 small"></i>{% endif %}
                                     </a>
