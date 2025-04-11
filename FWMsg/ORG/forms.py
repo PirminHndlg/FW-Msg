@@ -258,6 +258,7 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
 
         self.fields['wiederholung_ende'] = forms.DateField(
             widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            help_text='Datum, bis zu dem die Aufgabe wiederholt wird',
             required=False
         )
 

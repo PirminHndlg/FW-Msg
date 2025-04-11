@@ -34,6 +34,7 @@
           <div class="mb-3">
             <label for="link" class="form-label">{% trans 'Link' %}</label>
             <input type="text" class="form-control rounded-4" id="link" name="link" placeholder="https://www.example.com" />
+            <div class="form-text">{% trans 'Link zu einer externen Seite' %}</div>
           </div>
 
           <div id="existingDocumentWarning" class="text-danger d-none">
@@ -50,10 +51,11 @@
                     <i class="bi bi-cloud-upload display-4 text-primary"></i>
                 </div>
             </div>
+            <div class="form-text">{% trans 'Datei hochladen' %}</div>
           </div>
 
           <div id="darf_bearbeiten_container" class="mb-3">
-            <label class="form-label">{% trans 'Person Cluster dürfen dieses Dokument bearbeiten/löschen' %}</label>
+            <label class="form-label">{% trans 'Bearbeiten dürfen' %}</label>
             <div class="border rounded-3 p-3">
               {% for person_cluster in person_clusters %}
                 <div class="form-check">
@@ -64,6 +66,7 @@
                 </div>
               {% endfor %}
             </div>
+            <div class="form-text">{% trans 'Person Cluster, die dieses Dokument bearbeiten/löschen dürfen' %}</div>
           </div>
 
           <div class="d-flex justify-content-end gap-2">
