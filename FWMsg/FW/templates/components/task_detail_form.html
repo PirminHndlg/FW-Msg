@@ -2,37 +2,52 @@
 {% load base_fw_filter %}
 {% load i18n %}
 
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" class="p-1">
     {% csrf_token %}
 
     {% if task.aufgabe.beschreibung %}
-    <div class="mb-3">
-        <label class="form-label">{% trans "Beschreibung" %}:</label>
-        <p class="form-text">{{ task.aufgabe.beschreibung }}</p>
+    <div class="mb-4">
+        <h5 class="form-label fw-semibold text-primary">{% trans "Beschreibung" %}</h5>
+        <div class="p-3 bg-light rounded-3 border-start border-primary border-3">
+            <p class="form-text mb-0">{{ task.aufgabe.beschreibung }}</p>
+        </div>
         {% if task.personalised_description %}
-        <p class="form-text"><strong>{% trans "Persönliche Beschreibung" %}</strong>: {{ task.personalised_description }}</p>
+        <div class="mt-3 p-3 bg-light rounded-3 border-start border-success border-3">
+            <p class="form-text mb-0">
+                <span class="fw-semibold text-success">{% trans "Persönliche Beschreibung" %}:</span> 
+                {{ task.personalised_description }}
+            </p>
+        </div>
         {% endif %}
     </div>
     {% endif %}
 
     {% if task.aufgabe.mitupload %}
-    <div class="mb-3">
-        <label class="form-label">{% trans "Datei hochladen" %}</label>
+    <div class="mb-4">
+        <h5 class="form-label fw-semibold text-primary">{% trans "Datei hochladen" %}</h5>
         {% if not task.pending and not task.erledigt %}
-        <div class="upload-container position-relative">
-            <input type="file" class="form-control" name="file" id="fileInput" 
+        <div class="upload-container position-relative border rounded-3 bg-white shadow-sm">
+            <input type="file" class="form-control border-0 py-4" name="file" id="fileInput" 
                    {% if not task.file %} required {% endif %} 
-                   style="z-index: 2;">
+                   style="z-index: 2; opacity: 0; height: 150px;">
             <div class="upload-overlay d-flex flex-column align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100"
                  style="z-index: 1; pointer-events: none;">
                  {% if task.file %}
-                <i class="bi bi-file-earmark-check display-4 text-success"></i>
-                <p class="mb-0 text-muted">{{ task.file.name|cut:"uploads/" }}</p>
-                <p class="mb-0 text-muted">{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</p>
+                <i class="bi bi-file-earmark-check display-4 text-success mb-2"></i>
+                <p class="mb-1 fw-semibold">{{ task.file.name|cut:"uploads/" }}</p>
+                <p class="mb-0 text-muted small"><i class="bi bi-arrow-repeat me-1"></i>{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</p>
                 {% else %}
-                <i class="bi bi-cloud-upload display-4 text-primary"></i>
-                <p class="mb-0 text-muted">{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</p>
+                <i class="bi bi-cloud-upload display-4 text-primary mb-2"></i>
+                <p class="mb-0 text-muted"><i class="bi bi-plus-circle me-1"></i>{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</p>
                 {% endif %}
+            </div>
+        </div>
+        {% elif task.file %}
+        <div class="p-3 bg-light rounded-3 d-flex align-items-center">
+            <i class="bi bi-file-earmark-check fs-3 text-success me-3"></i>
+            <div>
+                <p class="mb-0 fw-medium">{{ task.file.name|cut:"uploads/" }}</p>
+                <small class="text-muted">{% trans "Hochgeladen" %}</small>
             </div>
         </div>
         {% endif %}
@@ -41,43 +56,89 @@
     {% include "components/fullscreen_drop_zone.html" %}
     {% endif %}
 
-    <div class="mb-3">
-        <label class="form-label">{% trans "Fällig" %}:</label>
-        <p class="form-text">{{ task.faellig|date:"d.m.Y" }}</p>
+    <div class="row">
+        <div class="col-12 col-md-6 mb-4">
+            <h5 class="form-label fw-semibold text-primary">{% trans "Fällig" %}</h5>
+            <div class="due-date-card p-3 rounded-3 shadow-sm">
+                <div class="d-flex align-items-center">
+                    <span class="due-date-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                        <i class="bi bi-calendar-event text-white"></i>
+                    </span>
+                    <div>
+                        {% if task.faellig %}
+                            <p class="mb-0 fw-medium">{{ task.faellig|date:"d.m.Y" }}</p>
+                            {% now "Y-m-d" as today_date %}
+                            {% if task.faellig|date:"Y-m-d" < today_date %}
+                                <small class="text-danger">{% trans "Überfällig" %}</small>
+                            {% elif task.faellig|date:"Y-m-d" == today_date %}
+                                <small class="text-warning">{% trans "Heute fällig" %}</small>
+                            {% else %}
+                                <small class="text-muted">{% trans "Termin einhalten" %}</small>
+                            {% endif %}
+                        {% else %}
+                            <p class="mb-0 fw-medium text-muted">{% trans "Kein Termin" %}</p>
+                            <small class="text-info">{% trans "Flexibel" %}</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 mb-4">
+            <h5 class="form-label fw-semibold text-primary">{% trans "Status" %}</h5>
+            <div class="status-card p-3 rounded-3 shadow-sm">
+                {% if task.erledigt %}
+                <div class="d-flex align-items-center">
+                    <span class="status-icon bg-success rounded-circle d-flex align-items-center justify-content-center me-3">
+                        <i class="bi bi-check-lg text-white"></i>
+                    </span>
+                    <div>
+                        <p class="mb-0 fw-medium">{% trans "Abgeschlossen" %}</p>
+                        <small class="text-muted">{% if task.erledigt_am %}{{ task.erledigt_am|date:"d.m.Y" }}{% endif %}</small>
+                    </div>
+                </div>
+                {% elif task.pending %}
+                <div class="d-flex align-items-center">
+                    <span class="status-icon bg-warning rounded-circle d-flex align-items-center justify-content-center me-3">
+                        <i class="bi bi-hourglass-split text-white"></i>
+                    </span>
+                    <div>
+                        <p class="mb-0 fw-medium">{% trans "Wird überprüft" %}</p>
+                        <small class="text-muted">{% trans "Warte auf Bestätigung" %}</small>
+                    </div>
+                </div>
+                {% else %}
+                <div class="d-flex align-items-center">
+                    <span class="status-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                        <i class="bi bi-clock text-white"></i>
+                    </span>
+                    <div>
+                        <p class="mb-0 fw-medium">{% trans "Offen" %}</p>
+                        <small class="text-muted">{% trans "Noch zu erledigen" %}</small>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">{% trans "Status" %}:</label>
-        <p class="form-text">
-            {% trans "Erledigt" %}: {% if task.erledigt %}
-            <span class="badge bg-success">{% trans "Ja" %}</span>
-            {% else %}
-            <span class="badge bg-danger">{% trans "Nein" %}</span>
-            {% endif %}
-            <br>
-            {% trans "Pending" %}: {% if task.pending %}
-            <span class="badge bg-warning">{% trans "Ja" %}</span>
-            {% else %}
-            <span class="badge bg-info">{% trans "Nein" %}</span>
-            {% endif %}
-        </p>
-    </div>
-
-    <div class="d-flex gap-2">
-        <a href="{% url 'aufgaben' %}" class="btn text-black border border-2">{% trans "Zurück" %}</a>
+    <div class="d-flex gap-2 mt-4">
+        <a href="{% url 'aufgaben' %}" class="btn btn-outline-secondary px-4">
+            <i class="bi bi-arrow-left me-1"></i>{% trans "Zurück" %}
+        </a>
         {% if task.pending %}
-        <button type="submit" name="action" value="unpend" class="btn btn-warning">
+        <button type="submit" name="action" value="unpend" class="btn btn-warning px-4">
             <i class="bi bi-arrow-counterclockwise me-1"></i>{% trans "Als nicht erledigt markieren" %}
         </button>
         {% elif task.erledigt %}
         {% with org=user|get_org %}
         <a href="mailto:{{ org.email }}?subject={% trans 'Problem mit Aufgabe' %}: {{ task.aufgabe.name }}&body={% blocktrans with name=task.aufgabe.name date=task.faellig|date:'d.m.Y' desc=task.aufgabe.beschreibung done_date=task.erledigt_am|date:'d.m.Y' profile=task.aufgabe.aufgabenprofil upload=task.aufgabe.mitupload|yesno:'Ja,Nein' %}Ich habe ein Problem mit der Aufgabe '{{ name }}' vom {{ date }}.%0D%0A%0D%0AAufgabendetails:%0D%0A%0D%0ABeschreibung: {{ desc }}%0D%0AFällig am: {{ date }}%0D%0AErledigt am: {{ done_date }}%0D%0AAufgabenprofil: {{ profile }}%0D%0AUpload erforderlich: {{ upload }}{% endblocktrans %}"
-            class="btn btn-danger text-white">
+            class="btn btn-danger px-4">
             <i class="bi bi-exclamation-triangle me-1"></i>{% trans "Problem melden" %}
         </a>
         {% endwith %}
         {% else %}
-        <button type="submit" name="action" value="pending" class="btn btn-primary">
+        <button type="submit" name="action" value="pending" class="btn btn-primary px-4">
             <i class="bi bi-check-circle me-1"></i>{% trans "Erledigt" %}
         </button>
         {% endif %}
@@ -87,26 +148,35 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-      const fileNameDisplay = document.getElementById('file-name')
+      const fileNameDisplay = document.getElementById('file-name');
     
       if (document.getElementById('fileInput')) {
         initFullscreenDropZone('fileInput', {
-          /*onFileSelect: function (file) {
-            if (fileNameDisplay) {
-              fileNameDisplay.style.display = 'none'
-              const overlay = uploadContainer.querySelector('.upload-overlay')
-              console.log(overlay)
-              if (overlay) {
-                overlay.innerHTML = `
-                          <i class="bi bi-file-earmark-check display-4 text-success"></i>
-                          <p class="mb-0 text-muted">${file.name}</p>
-                          <small class="text-muted">${formatFileSize(file.size)}</small>
-                      `
-              }
-            }
-          }
-          */
-        })
+          // Existing configuration
+        });
       }
-    })
-  </script>
+    });
+</script>
+
+<style>
+    .status-label {
+        min-width: 80px;
+        display: inline-block;
+    }
+    
+    .status-icon,
+    .due-date-icon {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+    }
+    
+    .status-card,
+    .due-date-card {
+        background-color: #f8f9fa;
+        border-left: 3px solid var(--bs-primary);
+        min-height: 80px;
+        display: flex;
+        align-items: center;
+    }
+</style>

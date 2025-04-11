@@ -116,28 +116,3 @@ footer {
     align-items: center;
     height: 100%;
 }
-
-h1 {
-    margin: 5px 0;
-    color: var(--text_color);
-}
-
-h2 {
-    margin: 5px 0;
-    color: var(--text_color);
-}
-
-h3 {
-    margin: 5px 0;
-    color: var(--text_color);
-}
-
-h4 {
-    margin: 2px 0;
-    color: var(--text_color);
-}
-
-p {
-    margin: 2px 0;
-    color: var(--text_color);
-}
