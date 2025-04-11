@@ -1,36 +1,53 @@
 {% load i18n %}
 
-{% for bild_gallery in gallery_images %}
-{% for bild, bilder_gallery in bild_gallery.items %}
-<div class="{% if small %}col-lg-6 col-md-12{% else %}col-lg-4 col-md-6{% endif %}">
-    <div class="card rounded-4 h-100">
-        <div class="card-header">
-            {% include "components/image_card_header.html" %}
-        </div>
+{% if gallery_images %}
+  {% for bild_gallery in gallery_images %}
+    {% for bild, bilder_gallery in bild_gallery.items %}
+      <div class="{% if small %}
+          
+          col-lg-6 col-md-12
 
-        <div class="card-body p-0">
-            {% include "components/image_carousel.html" %}
-            {% include "components/image_description.html" %}
-        </div>
-    </div>
-</div>
-{% endfor %}
-{% endfor %}
+        {% else %}
+          
+          col-lg-4 col-md-6
 
-<script>
+        {% endif %}">
+        <div class="card rounded-4 h-100">
+          <div class="card-header">
+            {% include 'components/image_card_header.html' %}
+          </div>
+
+          <div class="card-body p-0">
+            {% include 'components/image_carousel.html' %}
+            {% include 'components/image_description.html' %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% endfor %}
+
+  <script>
     function toggleDescription(link) {
-        const container = link.closest('p');
-        const preview = container.querySelector('.description-preview');
-        const full = container.querySelector('.description-full');
-        
-        if (preview.style.display !== 'none') {
-            preview.style.display = 'none';
-            full.style.display = 'inline';
-            link.textContent = '{% trans "weniger" %}';
-        } else {
-            preview.style.display = 'inline';
-            full.style.display = 'none';
-            link.textContent = '{% trans "mehr" %}';
-        }
+      const container = link.closest('p')
+      const preview = container.querySelector('.description-preview')
+      const full = container.querySelector('.description-full')
+    
+      if (preview.style.display !== 'none') {
+        preview.style.display = 'none'
+        full.style.display = 'inline'
+        link.textContent = '{% trans "weniger" %}'
+      } else {
+        preview.style.display = 'inline'
+        full.style.display = 'none'
+        link.textContent = '{% trans "mehr" %}'
+      }
     }
-</script>
+  </script>
+{% else %}
+  <div class="px-4">
+    <div class="alert alert-info" role="alert">
+      <i class="bi bi-info-circle-fill"></i>
+      {% trans 'Keine Bilder gefunden' %}
+    </div>
+  </div>
+{% endif %}

@@ -73,7 +73,12 @@
             {% if posts %}
                 {% include "components/post_list.html" with posts=posts %}
             {% else %}
-                <p class="card-text">{% trans "Noch keine Posts" %}</p>
+            <div class="px-4">
+                <div class="alert alert-info" role="alert">
+                  <i class="bi bi-info-circle-fill"></i>
+                  {% trans 'Keine Beiträge gefunden' %}
+                </div>
+              </div>
             {% endif %}
         </div>
     </div>
