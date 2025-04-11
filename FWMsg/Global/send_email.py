@@ -216,7 +216,7 @@ def send_aufgaben_email(aufgabe, org):
         return False
     
     # Get the organization logo URL
-    action_url = 'https://volunteer.solutions/fw/aufgaben/' + str(aufgabe.aufgabe.id) + "/"
+    action_url = 'https://volunteer.solutions/aufgaben/' + str(aufgabe.aufgabe.id) + "/"
     
     base64_image = get_logo_base64(org)
     
@@ -243,7 +243,7 @@ def send_aufgaben_email(aufgabe, org):
     return False
 
 def send_new_aufgaben_email(aufgaben, org):
-    action_url = 'https://volunteer.solutions/fw/aufgaben/'
+    action_url = 'https://volunteer.solutions/aufgaben/'
 
     base64_image = get_logo_base64(org)
 
