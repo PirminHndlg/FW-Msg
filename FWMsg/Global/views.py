@@ -55,7 +55,8 @@ from .models import (
     Ordner2,
     PersonCluster,
     Notfallkontakt2,
-    DokumentColor2
+    DokumentColor2,
+    Post2
 )
 from ORG.models import Organisation
 from FW.models import Freiwilliger
@@ -64,8 +65,10 @@ from TEAM.views import base_template as team_base_template
 from FW.views import base_template as fw_base_template
 from FWMsg.celery import send_email_aufgaben_daily
 from FWMsg.decorators import required_person_cluster, required_role
-from .forms import FeedbackForm
+from .forms import FeedbackForm, AddPostForm
 from ORG.forms import AddNotfallkontaktForm
+
+
 # Utility Functions
 def get_mimetype(doc_path):
     """
@@ -1047,3 +1050,63 @@ def aufgabe(request, aufgabe_id):
     }
     context = check_organization_context(request, context)
     return render(request, 'aufgabe.html', context=context)
+
+
+@login_required
+def posts_overview(request):
+    posts = Post2.objects.all()
+    context = {
+        'posts': posts
+    }
+    context = check_organization_context(request, context)
+    return render(request, 'posts_overview.html', context=context)
+
+@login_required
+def post_edit(request, post_id):
+    post = Post2.objects.get(id=post_id)
+    return post_add(request, post=post)
+
+
+
+@login_required
+def post_add(request, post=None):
+    if request.method == 'POST':
+        form = AddPostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.user = request.user
+            post.org = request.user.org
+            post.save()
+            return redirect('posts_overview')
+    elif post:
+        form = AddPostForm(instance=post)
+    else:
+        form = AddPostForm()
+    
+    context = {
+        'form': form,
+        'post': post
+    }
+    context = check_organization_context(request, context)
+    return render(request, 'post_add.html', context=context)
+
+@login_required
+def post_detail(request, post_id):
+    post = Post2.objects.get(id=post_id)
+
+    context = {
+        'post': post
+    }
+
+    context = check_organization_context(request, context)
+    return render(request, 'post_detail.html', context=context)
+
+@login_required
+def post_delete(request, post_id):
+    post = Post2.objects.get(id=post_id)
+    
+    # Check if user has permission to delete this post
+    if request.user == post.user or request.user.role == 'A':
+        post.delete()
+    
+    return redirect('posts_overview')

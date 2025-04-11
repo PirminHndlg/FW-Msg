@@ -9,6 +9,13 @@ urlpatterns = [
     path('bild/', views.bild, name='bild'),
     path('bild/remove/', views.remove_bild, name='remove_bild'),
     path('bild/remove/all/', views.remove_bild_all, name='remove_bild_all'),
+
+    path('posts/', views.posts_overview, name='posts_overview'),
+    path('posts/add/', views.post_add, name='post_add'),
+    path('posts/<int:post_id>/', views.post_detail, name='post_detail'),
+    path('posts/edit/<int:post_id>/', views.post_edit, name='post_edit'),
+    path('posts/delete/<int:post_id>/', views.post_delete, name='post_delete'),
+
     path('dokumente/', views.dokumente, name='dokumente'),
     path('dokumente/<int:ordner_id>/', views.dokumente, name='dokumente'),
     path('dokumente/add/', views.add_dokument, name='add_dokument'),
