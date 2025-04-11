@@ -46,8 +46,14 @@ class DokumentAdmin(SimpleHistoryAdmin):
             import os
             from Global.models import Dokument2, Ordner2
 
+            doc_pdf = dokument.dokument.path.replace('.doc', '.pdf')
+            docx_pdf = dokument.dokument.path.replace('.docx', '.pdf')
+            xls_pdf = dokument.dokument.path.replace('.xls', '.pdf')
+            xlsx_pdf = dokument.dokument.path.replace('.xlsx', '.pdf')
+            odt_pdf = dokument.dokument.path.replace('.odt', '.pdf')
 
             if dokument.dokument and os.path.exists(dokument.dokument.path):
+                pass
                 dokument2, created = Dokument2.objects.get_or_create(
                     org=dokument.org,
                     ordner=Ordner2.objects.get(ordner_name=dokument.ordner.ordner_name),
@@ -60,6 +66,38 @@ class DokumentAdmin(SimpleHistoryAdmin):
                     preview_image=dokument.preview_image,
                 )
                 dokument2.save()
+            elif dokument.dokument:
+                # Check for PDF versions of various document types
+                pdf_paths = {
+                    'doc': doc_pdf,
+                    'docx': docx_pdf, 
+                    'xls': xls_pdf,
+                    'xlsx': xlsx_pdf,
+                    'odt': odt_pdf
+                }
+                
+                # Find first existing PDF path
+                path = None
+                for pdf_path in pdf_paths.values():
+                    if pdf_path and os.path.exists(pdf_path):
+                        path = pdf_path
+                        break
+                        
+                if path:
+                    from django.core.files import File
+                    with open(path, 'rb') as f:
+                        dokument2, created = Dokument2.objects.get_or_create(
+                            org=dokument.org,
+                            ordner=Ordner2.objects.get(ordner_name=dokument.ordner.ordner_name),
+                            link=dokument.link,
+                            titel=(dokument.titel or dokument.dokument.name)[:100],
+                            beschreibung=dokument.beschreibung,
+                            date_created=dokument.date_created,
+                            date_modified=dokument.date_modified,
+                            preview_image=dokument.preview_image,
+                        )
+                        dokument2.dokument.save(os.path.basename(path), File(f))
+                        dokument2.save()
                 
 
     def move_to_new_2(self, request, queryset):
