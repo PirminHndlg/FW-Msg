@@ -331,7 +331,6 @@ class Referenten(models.Model):
     email = models.EmailField(verbose_name='E-Mail')
     phone_work = models.CharField(max_length=20, verbose_name='Telefon Arbeit', null=True, blank=True)
     phone_mobil = models.CharField(max_length=20, verbose_name='Telefon Mobil', null=True, blank=True)
-    land = models.ManyToManyField('FW.Einsatzland', verbose_name='Einsatzland', blank=True, null=True)
 
     history = HistoricalRecords()
 
