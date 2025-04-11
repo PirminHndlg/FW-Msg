@@ -32,9 +32,12 @@ class Freiwilliger(OrgModel):
 
     def has_field_changed(self, field_name):
         """Helper to check if a field has changed."""
-        original_value = getattr(self, f"_original_{field_name}")
-        current_value = getattr(self, field_name)
-        return original_value != current_value
+        try:
+            original_value = getattr(self, f"_original_{field_name}")
+            current_value = getattr(self, field_name)
+            return original_value != current_value
+        except:
+            return False
     
     def send_register_email(self):
         from FW.tasks import send_register_email_task
