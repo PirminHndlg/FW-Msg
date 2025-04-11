@@ -1,0 +1,131 @@
+/* Button Style Overrides
+   Uses CSS variables defined in the :root selector in header.html */
+
+/* Core Bootstrap component overrides */
+:root {
+    --bs-primary-rgb-value: var(--bs-primary-rgb);
+    --bs-primary-bg-subtle: rgba(var(--bs-primary-rgb), 0.1) !important;
+    --bs-primary-border-subtle: rgba(var(--bs-primary-rgb), 0.3) !important;
+    --bs-primary-text-emphasis: var(--bs-primary) !important;
+}
+
+/* Button styles */
+.btn-primary {
+    --bs-btn-bg: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+    --bs-btn-hover-bg: var(--bs-primary);
+    --bs-btn-hover-border-color: var(--bs-primary);
+    --bs-btn-active-bg: var(--bs-primary);
+    --bs-btn-active-border-color: var(--bs-primary);
+    --bs-btn-disabled-bg: var(--bs-primary);
+    --bs-btn-disabled-border-color: var(--bs-primary);
+    --bs-btn-color: var(--text_color_on_org_color);
+    --bs-btn-hover-color: var(--text_color_on_org_color);
+    --bs-btn-active-color: var(--text_color_on_org_color);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+    --bs-btn-hover-bg: var(--bs-primary);
+    --bs-btn-hover-border-color: var(--bs-primary);
+    --bs-btn-active-bg: var(--bs-primary);
+    --bs-btn-active-border-color: var(--bs-primary);
+    --bs-btn-disabled-color: var(--bs-primary);
+    --bs-btn-disabled-border-color: var(--bs-primary);
+    --bs-btn-hover-color: var(--text_color_on_org_color);
+    --bs-btn-active-color: var(--text_color_on_org_color);
+}
+
+/* Navbar styling */
+.bg-primary {
+    --bs-bg-opacity: 1;
+    background-color: var(--bs-primary) !important;
+}
+
+/* Text and links styling */
+.text-primary {
+    --bs-text-opacity: 1;
+    color: var(--bs-primary) !important;
+}
+
+.link-primary {
+    color: var(--bs-primary) !important;
+}
+
+.link-primary:hover,
+.link-primary:focus {
+    color: var(--bs-primary) !important;
+    filter: brightness(85%);
+}
+
+/* Border styling */
+.border-primary {
+    border-color: var(--bs-primary) !important;
+}
+
+/* Form controls */
+.form-control:focus {
+    border-color: var(--bs-primary) !important;
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25) !important;
+}
+
+.form-check-input:checked {
+    background-color: var(--bs-primary) !important;
+    border-color: var(--bs-primary) !important;
+}
+
+/* Progress bars */
+.progress-bar {
+    background-color: var(--bs-primary) !important;
+}
+
+/* Text on colored backgrounds */
+.text-bg-primary {
+    color: var(--text_color_on_org_color) !important;
+    background-color: var(--bs-primary) !important;
+}
+
+/* Fix for nav links on colored backgrounds */
+.bg-primary .nav-link, 
+.navbar-dark .nav-link {
+    color: var(--text_color_on_org_color) !important;
+}
+
+/* Helper class for text on organization color */
+.text-on-org-color, 
+.nav-item.text-on-org-color {
+    color: var(--text_color_on_org_color) !important;
+}
+
+/* Dropdown menu styling */
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: var(--bs-primary) !important;
+    color: var(--text_color_on_org_color) !important;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: rgba(var(--bs-primary-rgb), 0.1) !important;
+    color: var(--bs-primary) !important;
+}
+
+/* Nav pills (tab-like navigation) styling */
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+    background-color: var(--bs-primary) !important;
+    color: var(--text_color_on_org_color) !important;
+}
+
+.nav-pills .nav-link:hover:not(.active) {
+    color: var(--bs-primary) !important;
+    background-color: rgba(var(--bs-primary-rgb), 0.1) !important;
+}
+
+/* List group styling */
+.list-group-item.active {
+    background-color: var(--bs-primary) !important;
+    border-color: var(--bs-primary) !important;
+    color: var(--text_color_on_org_color) !important;
+}
