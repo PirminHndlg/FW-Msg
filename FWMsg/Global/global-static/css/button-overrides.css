@@ -75,11 +75,6 @@
     border-color: var(--bs-primary) !important;
 }
 
-/* Progress bars */
-.progress-bar {
-    background-color: var(--bs-primary) !important;
-}
-
 /* Text on colored backgrounds */
 .text-bg-primary {
     color: var(--text_color_on_org_color) !important;
