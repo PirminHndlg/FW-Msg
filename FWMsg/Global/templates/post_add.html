@@ -57,6 +57,74 @@
                             </div>
                         </div>
                         
+                        <!-- Survey Section -->
+                        <div class="mb-4">
+                            <div class="form-check form-switch mb-3">
+                                {{ form.has_survey|add_class:"form-check-input" }}
+                                <label class="form-check-label fw-semibold" for="{{ form.has_survey.id_for_label }}">
+                                    {% trans "Umfrage hinzufügen" %}
+                                </label>
+                            </div>
+                            
+                            <div id="survey-section" class="border rounded-3 p-3 mt-2 bg-light-subtle{% if not form.has_survey.value %} d-none{% endif %}">
+                                <div class="mb-3">
+                                    <h5 class="form-label fw-semibold text-primary">{% trans "Umfragefrage" %}</h5>
+                                    {{ form.survey_question|add_class:"form-control rounded-3" }}
+                                    {% if form.survey_question.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.survey_question.errors }}</div>
+                                    {% endif %}
+                                    <div class="form-text">{% trans "Geben Sie die Frage für Ihre Umfrage ein" %}</div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" for="{{ form.answer_1.id_for_label }}">
+                                            {% trans "Antwort 1" %} <span class="text-danger">*</span>
+                                        </label>
+                                        {{ form.answer_1|add_class:"form-control rounded-3" }}
+                                        {% if form.answer_1.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.answer_1.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" for="{{ form.answer_2.id_for_label }}">
+                                            {% trans "Antwort 2" %} <span class="text-danger">*</span>
+                                        </label>
+                                        {{ form.answer_2|add_class:"form-control rounded-3" }}
+                                        {% if form.answer_2.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.answer_2.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label" for="{{ form.answer_3.id_for_label }}">
+                                            {% trans "Antwort 3" %}
+                                        </label>
+                                        {{ form.answer_3|add_class:"form-control rounded-3" }}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label" for="{{ form.answer_4.id_for_label }}">
+                                            {% trans "Antwort 4" %}
+                                        </label>
+                                        {{ form.answer_4|add_class:"form-control rounded-3" }}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label" for="{{ form.answer_5.id_for_label }}">
+                                            {% trans "Antwort 5" %}
+                                        </label>
+                                        {{ form.answer_5|add_class:"form-control rounded-3" }}
+                                    </div>
+                                </div>
+                                
+                                <div class="text-muted small">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    {% trans "Die Umfrage wird anonym durchgeführt. Es werden nur die Anzahl der Antworten gezählt." %}
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="d-flex gap-2 mt-4">
                             <a href="{% url 'posts_overview' %}" class="btn btn-outline-secondary rounded-3 px-4">
                                 <i class="bi bi-x-circle me-1"></i>{% trans "Abbrechen" %}
@@ -88,4 +156,19 @@
         box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const hasSurveyCheckbox = document.getElementById('{{ form.has_survey.id_for_label }}');
+        const surveySection = document.getElementById('survey-section');
+        
+        hasSurveyCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                surveySection.classList.remove('d-none');
+            } else {
+                surveySection.classList.add('d-none');
+            }
+        });
+    });
+</script>
 {% endblock %} 
