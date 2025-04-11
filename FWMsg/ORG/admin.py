@@ -65,13 +65,15 @@ class DokumentAdmin(SimpleHistoryAdmin):
                 xls_pdf = dokument.dokument.path.replace('.xls', '.pdf')
                 xlsx_pdf = dokument.dokument.path.replace('.xlsx', '.pdf')
                 odt_pdf = dokument.dokument.path.replace('.odt', '.pdf')
+                pdf_pdf = dokument.dokument.path.replace('.pdf', '.pdf')
                 # Check for PDF versions of various document types
                 pdf_paths = {
                     'doc': doc_pdf,
                     'docx': docx_pdf, 
                     'xls': xls_pdf,
                     'xlsx': xlsx_pdf,
-                    'odt': odt_pdf
+                    'odt': odt_pdf,
+                    'pdf': pdf_pdf
                 }
                 
                 # Find first existing PDF path
