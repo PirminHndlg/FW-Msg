@@ -103,7 +103,7 @@ class DokumentAdmin(SimpleHistoryAdmin):
         from Global.models import Dokument2, Ordner2
         import os
 
-        file = open('dokumente-error.txt', 'w')
+        file = open('dokumente-error.txt', 'a')
 
         for dokument in queryset:
             if dokument.dokument and os.path.exists(dokument.dokument.path):
@@ -121,6 +121,7 @@ class DokumentAdmin(SimpleHistoryAdmin):
                     )
                     dokument2.save()
                 except Exception as e:
+                    messages.error(request, f'{dokument.dokument.name.replace("Dokument/Berliner Missionswerk/", "")}')
                     file.write(f'{dokument.dokument.name.replace("Dokument/Berliner Missionswerk/", "")}\n')
             elif not dokument.dokument:
                 dokument2, created = Dokument2.objects.get_or_create(
@@ -135,6 +136,7 @@ class DokumentAdmin(SimpleHistoryAdmin):
                 )
                 dokument2.save()
             else:
+                messages.error(request, f'{dokument.dokument.name.replace("Dokument/Berliner Missionswerk/", "")}')
                 file.write(f'{dokument.dokument.name.replace("Dokument/Berliner Missionswerk/", "")}\n')
         file.close()
 @admin.register(DokumentColor)
