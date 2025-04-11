@@ -463,38 +463,36 @@ class FilterForm(forms.Form):
 
 
 class AddReferentenForm(OrgFormMixin, forms.ModelForm):
-    def bla():
-        pass
 
-    # class Meta:
-    #     model = Referenten2
-    #     fields = '__all__'
-    #     exclude = ['org', 'user']
+    class Meta:
+        model = Team
+        fields = '__all__'
+        exclude = ['org', 'user']
 
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     self.fields['land'].queryset = Einsatzland2.objects.filter(org=self.request.user.org)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['land'].queryset = Einsatzland2.objects.filter(org=self.request.user.org)
 
-    #     add_customuser_fields(self, 'T')
+        add_customuser_fields(self, 'T')
 
-    #     order_fields = ['first_name', 'last_name', 'email', 'person_cluster']
-    #     self.order_fields(order_fields)
+        order_fields = ['first_name', 'last_name', 'email', 'person_cluster']
+        self.order_fields(order_fields)
+
+        add_person_cluster_field(self)          
         
-    #     add_person_cluster_field(self)          
-        
-    # def save(self, commit=True):
-    #     if not self.instance.pk:
-    #         save_and_create_customuser(self)
-    #         self.instance.save()
-    #     else:
-    #         self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
-    #         self.instance.user.customuser.save()
+    def save(self, commit=True):
+        if not self.instance.pk:
+            save_and_create_customuser(self)
+            self.instance.save()
+        else:
+            self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
+            self.instance.user.customuser.save()
 
-    #     instance = super().save(commit=commit)
+        instance = super().save(commit=commit)
 
-    #     save_person_cluster_field(self)
+        save_person_cluster_field(self)
         
-    #     return instance
+        return instance
     
 
 class AddPersonClusterForm(OrgFormMixin, forms.ModelForm):
