@@ -46,12 +46,6 @@ class DokumentAdmin(SimpleHistoryAdmin):
             import os
             from Global.models import Dokument2, Ordner2
 
-            doc_pdf = dokument.dokument.path.replace('.doc', '.pdf')
-            docx_pdf = dokument.dokument.path.replace('.docx', '.pdf')
-            xls_pdf = dokument.dokument.path.replace('.xls', '.pdf')
-            xlsx_pdf = dokument.dokument.path.replace('.xlsx', '.pdf')
-            odt_pdf = dokument.dokument.path.replace('.odt', '.pdf')
-
             if dokument.dokument and os.path.exists(dokument.dokument.path):
                 pass
                 dokument2, created = Dokument2.objects.get_or_create(
@@ -67,6 +61,11 @@ class DokumentAdmin(SimpleHistoryAdmin):
                 )
                 dokument2.save()
             elif dokument.dokument:
+                doc_pdf = dokument.dokument.path.replace('.doc', '.pdf')
+                docx_pdf = dokument.dokument.path.replace('.docx', '.pdf')
+                xls_pdf = dokument.dokument.path.replace('.xls', '.pdf')
+                xlsx_pdf = dokument.dokument.path.replace('.xlsx', '.pdf')
+                odt_pdf = dokument.dokument.path.replace('.odt', '.pdf')
                 # Check for PDF versions of various document types
                 pdf_paths = {
                     'doc': doc_pdf,
