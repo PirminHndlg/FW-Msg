@@ -4,11 +4,11 @@
     <div class="d-flex gap-1 mb-2 justify-content-center align-items-center">
         <strong>{% trans "Filter" %}</strong>
         <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center">
-            <a class="btn btn-sm btn-outline-primary {% if filter == 'None' %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f=None">
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if filter == 'None' %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f=None">
                 {% trans "Alle" %}
             </a>
             {% for aufgaben_cluster in aufgaben_cluster %}
-            <a class="btn btn-sm btn-outline-primary {% if filter == aufgaben_cluster.id %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f={{ aufgaben_cluster.id }}">
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if filter == aufgaben_cluster.id %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f={{ aufgaben_cluster.id }}">
                 {{ aufgaben_cluster.name }}
             </a>
             {% endfor %}
