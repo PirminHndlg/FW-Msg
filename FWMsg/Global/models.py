@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.dispatch import receiver
+from django.core import validators
 import random
 import string
 from simple_history.models import HistoricalRecords
@@ -520,8 +521,15 @@ class Ampel2(OrgModel):
 
 
 class AufgabenCluster(OrgModel):
+    TYPE_CHOICES = [
+        ('V', 'Vor Einsatz'),
+        ('W', 'Während Einsatz'),
+        ('N', 'Nach Einsatz'),
+    ]
+
     name = models.CharField(max_length=50, verbose_name='Aufgaben Cluster')
     person_cluster = models.ForeignKey(PersonCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Person Cluster')
+    type = models.CharField(max_length=1, choices=TYPE_CHOICES, verbose_name='Fällig Art', help_text='Nur für Freiwillige', null=True, blank=True)
     class Meta:
         verbose_name = 'Aufgaben Cluster'
         verbose_name_plural = 'Aufgaben Cluster'
@@ -536,12 +544,15 @@ class Aufgabe2(OrgModel):
     mitupload = models.BooleanField(default=True, verbose_name='Upload möglich')
     requires_submission = models.BooleanField(default=True, verbose_name='Bestätigung erforderlich')
     faellig_art = models.ForeignKey(AufgabenCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Fällig Art')
-    faellig_tag = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tag')
-    faellig_monat = models.IntegerField(blank=True, null=True, verbose_name='Fällig Monat')
-    faellig_tage_nach_start = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage nach Einsatzstart')
-    faellig_tage_vor_ende = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage vor Einsatzende')
+    faellig_tag = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tag', validators=[validators.MinValueValidator(1), validators.MaxValueValidator(31)])
+    faellig_monat = models.IntegerField(blank=True, null=True, verbose_name='Fällig Monat', validators=[validators.MinValueValidator(1), validators.MaxValueValidator(12)])
+    faellig_tage_nach_start = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage nach Einsatzstart', validators=[validators.MinValueValidator(0)], help_text='Nur für Freiwillige')
+    faellig_tage_vor_ende = models.IntegerField(blank=True, null=True, verbose_name='Fällig Tage vor Einsatzende', validators=[validators.MinValueValidator(0)], help_text='Nur für Freiwillige')
     person_cluster = models.ManyToManyField(PersonCluster, verbose_name='Person Cluster')
-    
+    wiederholung = models.BooleanField(default=False, verbose_name='Wiederholung')
+    wiederholung_interval_wochen = models.IntegerField(blank=True, null=True, verbose_name='Wiederholung Intervall in Wochen', validators=[validators.MinValueValidator(0)])
+    wiederholung_ende = models.DateField(blank=True, null=True, verbose_name='Wiederholung bis')
+
     history = HistoricalRecords()
 
     class Meta:
@@ -599,52 +610,54 @@ class UserAufgaben(OrgModel):
     faellig = models.DateField(blank=True, null=True, verbose_name='Fällig am')
     last_reminder = models.DateField(blank=True, null=True, verbose_name='Letzte Erinnerung')
     erledigt_am = models.DateField(blank=True, null=True, verbose_name='Erledigt am')
-    wiederholung = models.CharField(max_length=1, choices=WIEDERHOLUNG_CHOICES, default='N', verbose_name='Wiederholung')
-    wiederholung_ende = models.DateField(blank=True, null=True, verbose_name='Wiederholung bis')
     file = models.FileField(upload_to='uploads/', max_length=255, blank=True, null=True, verbose_name='Datei')
     benachrichtigung_cc = models.CharField(max_length=255, blank=True, null=True, verbose_name='CC an Mailadressen', help_text='Komma-getrennte E-Mail-Adressen')
     history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
-        if self.wiederholung != 'N' and not self.wiederholung_ende:
-            self.wiederholung_ende = self.freiwilliger.ende_geplant
+        from FW.models import Freiwilliger
+
+        if self.aufgabe.wiederholung and (self.aufgabe.wiederholung_ende == None or datetime.now().date() < self.aufgabe.wiederholung_ende) and self.erledigt:
+            self.faellig = max(datetime.now().date(), self.faellig) + timedelta(days=self.aufgabe.wiederholung_interval_wochen * 7)
+            self.erledigt = False
+            self.pending = False
+
         if not self.faellig:
 
-            if self.aufgabe.faellig_tage_nach_start:
-                self.faellig = (self.freiwilliger.start_geplant or self.freiwilliger.jahrgang.start) + timedelta(days=self.aufgabe.faellig_tage_nach_start)
-            elif self.aufgabe.faellig_tage_vor_ende:
-                self.faellig = (self.freiwilliger.ende_geplant or self.freiwilliger.jahrgang.ende) - timedelta(days=self.aufgabe.faellig_tage_vor_ende)
+            if Freiwilliger.objects.filter(org=self.org, user=self.user, user__customuser__person_cluster__in=self.aufgabe.person_cluster.all()).exists():
+                freiwilliger = Freiwilliger.objects.get(org=self.org, user=self.user, user__customuser__person_cluster__in=self.aufgabe.person_cluster.all())
+
+                start_date = freiwilliger.start_real or freiwilliger.start_geplant
+                end_date = freiwilliger.ende_real or freiwilliger.ende_geplant
+
+                if self.aufgabe.faellig_tage_nach_start:
+                    self.faellig = start_date + timedelta(days=self.aufgabe.faellig_tage_nach_start)
+                elif self.aufgabe.faellig_tage_vor_ende:
+                    self.faellig = end_date - timedelta(days=self.aufgabe.faellig_tage_vor_ende)
+                elif self.aufgabe.faellig_monat:
+                    year = start_date.year
+
+                    faellig_date = datetime(year, self.aufgabe.faellig_monat, self.aufgabe.faellig_tag or 1).date()
+
+                    while self.aufgabe.faellig_art.type == 'V' and faellig_date > start_date:
+                        faellig_date = faellig_date.replace(year=year-1)
+
+                    while self.aufgabe.faellig_art.type == 'W' and faellig_date < start_date:
+                        faellig_date = faellig_date.replace(year=year+1)
+                    while self.aufgabe.faellig_art.type == 'W' and faellig_date > end_date:
+                        faellig_date = faellig_date.replace(year=year-1)
+
+                    while self.aufgabe.faellig_art.type == 'N' and faellig_date < end_date:
+                        faellig_date = faellig_date.replace(year=year+1)
+
+                    self.faellig = faellig_date
+
             elif self.aufgabe.faellig_monat:
-                # self.faellig = self.aufgabe.faellig
-                month = self.aufgabe.faellig_monat or 1
-                day = self.aufgabe.faellig_tag or 1
+                faellig_date = datetime(datetime.now().year, self.aufgabe.faellig_monat or 1, self.aufgabe.faellig_tag or 1).date()
+                while faellig_date < datetime.now().date():
+                    faellig_date = faellig_date.replace(year=faellig_date.year+1)
+                self.faellig = faellig_date
 
-                try:
-                    if self.aufgabe.faellig_art == 'V':
-                        start_date = self.freiwilliger.start_real or self.freiwilliger.start_geplant or self.freiwilliger.jahrgang.start
-                        year = start_date.year
-                        if start_date.month < month or (start_date.month == month and start_date.day <= day):
-                            year -= 1
-                    elif self.aufgabe.faellig_art == 'W':
-                        start_date = self.freiwilliger.start_real or self.freiwilliger.start_geplant or self.freiwilliger.jahrgang.start
-                        year = start_date.year
-                        if start_date.month > month or (start_date.month == month and start_date.day >= day):
-                            year = (self.freiwilliger.ende_geplant or self.freiwilliger.jahrgang.ende).year
-                    elif self.aufgabe.faellig_art == 'N':
-                        end_date = self.freiwilliger.ende_geplant or self.freiwilliger.jahrgang.ende
-                        year = end_date.year
-                        if end_date.month > month or (end_date.month == month and end_date.day >= day):
-                            year += 1
-                    elif self.aufgabe.faellig_art == 'A':
-                        year = datetime.now().year
-                        if datetime.now().month > month or (datetime.now().month == month and datetime.now().day >= day):
-                            year -= 1
-                    
-                    self.faellig = datetime(year, month, day).date()
-
-                except Exception as e:
-                    print(e)
-                    pass
         
         super(UserAufgaben, self).save(*args, **kwargs)
 

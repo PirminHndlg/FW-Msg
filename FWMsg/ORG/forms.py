@@ -246,6 +246,12 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
         formset_kwargs.pop('request', None)
         self.zwischenschritte = AufgabeZwischenschritteFormSet(*args, **formset_kwargs)
 
+        self.fields['wiederholung_ende'] = forms.DateField(
+            widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            required=False
+        )
+
+        self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.request.user.org)
 
     def is_valid(self):
         return super().is_valid() and self.zwischenschritte.is_valid()
@@ -288,7 +294,7 @@ class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
 
     class Meta:
         model = UserAufgaben
-        fields = ['personalised_description', 'faellig', 'wiederholung', 'wiederholung_ende', 'file', 'benachrichtigung_cc']
+        fields = ['personalised_description', 'faellig', 'file', 'benachrichtigung_cc']
         exclude = ['org']
 
     def __init__(self, *args, **kwargs):
@@ -298,7 +304,6 @@ class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
             required=False
         )
         self.fields['faellig'] = date_field
-        self.fields['wiederholung_ende'] = date_field
 
         self.fields['benachrichtigung_cc'].widget.attrs['placeholder'] = 'E-Mail-Adressen mit Komma getrennt'
         self.fields['benachrichtigung_cc'].help_text = 'Geben Sie hier E-Mail-Adressen ein, die eine Kopie der Benachrichtigungen erhalten sollen'
@@ -312,7 +317,7 @@ class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
 
             # Reorder fields to show display fields first
             field_order = ['user_display', 'aufgabe_display', 'personalised_description', 
-                          'faellig', 'wiederholung', 'wiederholung_ende', 'file', 
+                          'faellig', 'file', 
                           'benachrichtigung_cc']
             self.order_fields(field_order)
 

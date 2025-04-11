@@ -8,7 +8,7 @@
                 {% trans "Alle" %}
             </a>
             {% for aufgaben_cluster in aufgaben_cluster %}
-            <a class="btn btn-sm rounded-4 btn-outline-primary {% if filter == aufgaben_cluster.id %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f={{ aufgaben_cluster.id }}">
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if filter|stringformat:"s" == aufgaben_cluster.id|stringformat:"s" %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f={{ aufgaben_cluster.id }}">
                 {{ aufgaben_cluster.name }}
             </a>
             {% endfor %}
