@@ -292,7 +292,7 @@ def serve_dokument(request, dokument_id):
 
     doc_path = dokument.dokument.path
     if not os.path.exists(doc_path):
-        return HttpResponseNotFound('Dokument nicht gefunden')
+        return HttpResponseNotFound('Dokument nicht gefunden' + doc_path)
 
     mimetype = get_mimetype(doc_path)
     
