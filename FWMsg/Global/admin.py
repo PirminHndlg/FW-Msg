@@ -77,16 +77,11 @@ class OrganisationAdmin(SimpleHistoryAdmin):
 @admin.register(Ordner2)
 class OrdnerAdmin(SimpleHistoryAdmin):
     search_fields = ['ordner_name']
-    actions = ['all_to_incoming', 'all_to_outgoing']
+    actions = ['set_person_cluster_freiwilliger']
 
-    def all_to_incoming(self, request, queryset):
+    def set_person_cluster_freiwilliger(self, request, queryset):
         for ordner in queryset:
-            ordner.typ = PersonCluster.objects.get(name='Incoming')
-            ordner.save()
-            
-    def all_to_outgoing(self, request, queryset):
-        for ordner in queryset:
-            ordner.typ = PersonCluster.objects.get(name='Outgoing')
+            ordner.typ.set(PersonCluster.objects.filter(name='Freiwilliger'))
             ordner.save()
 
 @admin.register(Dokument2)
