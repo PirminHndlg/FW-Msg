@@ -64,7 +64,7 @@ class DokumentColorAdmin(SimpleHistoryAdmin):
 @admin.register(Referenten)
 class ReferentenAdmin(SimpleHistoryAdmin):
     search_fields = ['first_name', 'last_name', 'email', 'phone']
-    actions = ['anonymize_user', 'move_to_new']
+    actions = ['anonymize_user', 'set_name', 'move_to_new']
 
     def anonymize_user(self, request, queryset):
         for referent in queryset:
@@ -73,6 +73,12 @@ class ReferentenAdmin(SimpleHistoryAdmin):
             referent.phone_work = None
             referent.phone_mobil = None
             referent.save()
+            referent.user.save()
+        
+    def set_name(self, request, queryset):
+        for referent in queryset:
+            referent.user.first_name = referent.first_name
+            referent.user.last_name = referent.last_name
             referent.user.save()
 
     def move_to_new(self, request, queryset):
