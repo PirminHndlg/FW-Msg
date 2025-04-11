@@ -540,7 +540,9 @@ def add_dokument(request):
             dokument.beschreibung = beschreibung
             dokument.link = link
             dokument.save()
-            dokument.darf_bearbeiten.set(darf_bearbeiten)
+
+            if request.user.customuser.person_cluster.view == 'O':
+                dokument.darf_bearbeiten.set(darf_bearbeiten)
         else:
             ordner = Ordner2.objects.get(id=request.POST.get('ordner'))
             dokument = Dokument2.objects.create(
@@ -552,7 +554,9 @@ def add_dokument(request):
                 link=link,
                 date_created=datetime.now()
             )
-            dokument.darf_bearbeiten.set(darf_bearbeiten)
+
+            if request.user.customuser.person_cluster.view == 'O':
+                dokument.darf_bearbeiten.set(darf_bearbeiten)
 
     return redirect('dokumente', ordner_id=dokument.ordner.id)
 

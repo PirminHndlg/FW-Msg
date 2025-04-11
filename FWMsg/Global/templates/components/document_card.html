@@ -39,7 +39,7 @@
                 {% endif %}
             </div>
 
-            {% if user.customuser.person_cluster.view == 'O' or user.customuser.person_cluster in dokument.darf_bearbeiten %}
+            {% if user.customuser.person_cluster.view == 'O' or user.customuser.person_cluster in dokument.darf_bearbeiten.all %}
             <div class="card-footer">
                 <button onclick="removeDokument({{ dokument.id }}, '{{ dokument.titel|default:dokument_name }}', '{% url 'remove_dokument' %}')"
                         class="btn btn-outline-danger btn-sm rounded-4">
