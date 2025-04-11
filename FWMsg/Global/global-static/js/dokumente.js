@@ -27,15 +27,19 @@ function addOrdner() {
 }
 
 function editOrdner(ordner_id, ordner_name, typ_id=null, color_id=null) {
-    console.log(typ_id, color_id);
     document.getElementById('ordnerIdInput').value = ordner_id;
     document.getElementById('ordner_name').value = ordner_name;
     document.getElementById('ordnerModalLabel').textContent = 'Ordner bearbeiten';
-    if (typ_id) {
-        document.getElementById('typ').value = typ_id;
-    } else {
-        document.getElementById('typ').value = '';
+
+    let person_cluster_ids = typ_id.split(',');
+
+    for (const person_cluster_id of person_cluster_ids) {
+        let checkbox = document.getElementById('ordner_person_cluster_' + person_cluster_id);
+        if (checkbox) {
+            checkbox.checked = true;
+        }
     }
+
     if (color_id) {
         document.getElementById('color').value = color_id;
     } else {

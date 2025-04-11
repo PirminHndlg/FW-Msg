@@ -143,7 +143,7 @@ class KalenderEvent(OrgModel):
 
 class Ordner2(OrgModel):
     ordner_name = models.CharField(max_length=100)
-    typ = models.ForeignKey(PersonCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Typ')
+    typ = models.ManyToManyField(PersonCluster, verbose_name='Typ')
     color = models.ForeignKey('DokumentColor2', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Farbe')
 
     history = HistoricalRecords()

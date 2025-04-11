@@ -16,15 +16,19 @@
                         <input type="text" class="form-control rounded-4" id="ordner_name" name="ordner_name">
                     </div>
 
-                    <div class="mb-3">
-                        <label for="typ" class="form-label">{% trans "Anzeigen für" %}</label>
-                        <select class="form-select rounded-4" id="typ" name="typ">
-                            <option value="">{% trans "Alle" %}</option>
-                            {% for typ in person_clusters %}
-                                <option value="{{ typ.id }}">{{ typ.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    <div class="mb-3" id="ordner_person_cluster_container">
+                        <label class="form-label">{% trans 'Person Cluster, die diesen Ordner sehen können' %}</label>
+                        <div class="border rounded-3 p-3">
+                          {% for person_cluster in person_clusters %}
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" name="ordner_person_cluster" value="{{ person_cluster.id }}" id="ordner_person_cluster_{{ person_cluster.id }}">
+                              <label class="form-check-label" for="ordner_person_cluster_{{ person_cluster.id }}">
+                                {{ person_cluster.name }}
+                              </label>
+                            </div>
+                          {% endfor %}
+                        </div>
+                      </div>
 
                     <div class="mb-3">
                         <label for="color" class="form-label">{% trans "Farbe" %}</label>

@@ -30,7 +30,7 @@ class OrdnerAdmin(SimpleHistoryAdmin):
                 ordner_name=ordner.ordner_name,
             )
             if created:
-                ordner2.typ = person_cluster
+                ordner2.typ.add(person_cluster)
                 ordner2.save()
                 
 

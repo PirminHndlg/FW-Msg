@@ -562,14 +562,14 @@ def add_ordner(request):
     if request.method == 'POST':
         ordner_id = request.POST.get('ordner_id')
         ordner_name = request.POST.get('ordner_name')
-        typ_id = request.POST.get('typ')
+        person_cluster_ids = request.POST.getlist('ordner_person_cluster')
         color_id = request.POST.get('color')
         
         # Get the PersonenCluster instance if typ_id is provided
-        typ = None
-        if typ_id:
+        person_clusters = None
+        if person_cluster_ids:
             try:
-                typ = PersonCluster.objects.get(id=typ_id)
+                person_clusters = PersonCluster.objects.filter(id__in=person_cluster_ids)
             except PersonCluster.DoesNotExist:
                 messages.error(request, 'Ausgewählter PersonenCluster existiert nicht.')
                 return redirect('dokumente')
@@ -588,14 +588,14 @@ def add_ordner(request):
                 messages.error(request, 'Nicht erlaubt')
                 return redirect('dokumente')
             ordner.ordner_name = ordner_name
-            ordner.typ = typ
+            ordner.typ.set(person_clusters)
             ordner.color = color
             ordner.save()
         else:
             ordner = Ordner2.objects.create(
                 org=request.user.org, 
                 ordner_name=ordner_name,
-                typ=typ,
+                typ=person_clusters,
                 color=color
             )
 
