@@ -1,84 +1,89 @@
-{% extends "baseFw.html" %}
+{% extends 'baseFw.html' %}
 {% load static %}
 {% load base_fw_filter %}
 {% load i18n %}
 
 {% block head %}
-<style>
+  <style>
     .card-hover {
-        transition: transform 0.2s;
+      transition: transform 0.2s;
     }
     .card-hover:hover {
-        transform: translateY(-2px);
+      transform: translateY(-2px);
     }
     .info-icon {
-        font-size: 1.2rem;
-        margin-right: 0.5rem;
+      font-size: 1.2rem;
+      margin-right: 0.5rem;
     }
     .contact-info {
-        display: flex;
-        align-items: center;
-        margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.75rem;
     }
     .contact-info:last-child {
-        margin-bottom: 0;
+      margin-bottom: 0;
     }
     .contact-info i {
-        min-width: 1.5rem;
+      min-width: 1.5rem;
     }
     .section-title {
-        margin: 1.5rem 0 1rem;
+      margin: 1.5rem 0 1rem;
     }
     .section-title:first-child {
-        margin-top: 0;
+      margin-top: 0;
     }
-</style>
+  </style>
 {% endblock %}
 
 {% block content %}
-<!-- Header Card -->
-<div class="card rounded-4">
+  <!-- Header Card -->
+  <div class="card rounded-4">
     <!-- Country Header -->
     <div class="card-header rounded-4 d-flex align-items-center flex-wrap gap-3">
-        <h3 class="mb-0 me-auto">{% trans "Länderinfo" %}</h3>
-        {% if freiwilliger.einsatzland %}
-            <span class="fi fi-{{ freiwilliger.einsatzland.code|lower }} border my-0" style="font-size: 2.5rem;"></span>
+      <h3 class="mb-0 me-auto">{% trans 'Länderinfo' %}</h3>
+      {% if freiwilliger.einsatzland2 %}
+        <div class="d-flex align-items-center">
+          <span class="fi fi-{{ freiwilliger.einsatzland2.code|lower }} me-3" style="width: 3rem; height: auto; font-size: 2rem;"></span>
+          <div>
+            <div class="fw-bold">{{ freiwilliger.einsatzland2.name|default:'' }}</div>
             <div class="d-flex gap-2 text-muted small">
-                <span>{{ freiwilliger.einsatzland.name|default:"" }}</span>
-                <span>{{ freiwilliger.einsatzstelle|default:"" }}</span>
-                <span>{{ freiwilliger.jahrgang|default:"" }}</span>
+              {% if freiwilliger.einsatzstelle2 %}
+                <span><i class="bi bi-buildings me-1"></i>{{ freiwilliger.einsatzstelle2.name|default:'' }}</span>
+              {% endif %}
             </div>
-        {% endif %}
+          </div>
+        </div>
+      {% endif %}
     </div>
 
     <div class="card-body">
-        <div class="row g-4 p-2">
-            {# Organization Section #}
-            {% include "components/info_section.html" with section_title=_("Entsendende Organisation") cards=org_cards %}
+      <div class="row g-4 p-2">
+        {# Organization Section #}
+        {% include 'components/info_section.html' with section_title=_('Entsendende Organisation') cards=org_cards %}
 
-            {# Country Information Section #}
-            {% if freiwilliger.einsatzland %}
-                {% include "components/info_section.html" with section_title=_("Länderinformationen")|add:" "|add:freiwilliger.einsatzland.name cards=country_cards %}
-            {% endif %}
+        {# Country Information Section #}
+        {% if freiwilliger.einsatzland2 %}
+          {% include 'components/info_section.html' with section_title=_('Länderinformationen')|add:' '|add:freiwilliger.einsatzland2.name cards=country_cards %}
+        {% endif %}
 
-            {# Assignment Location Information #}
-            {% if freiwilliger.einsatzstelle %}
-                {% include "components/info_section.html" with section_title=_("Informationen Einsatzstelle")|add:" "|add:freiwilliger.einsatzstelle.name cards=location_cards %}
-                {% include "components/info_section.html" with section_title=_("Generelle Informationen") cards=general_cards %}
-            {% endif %}
-        </div>
+        {# Assignment Location Information #}
+        {% if freiwilliger.einsatzstelle2 %}
+          {% include 'components/info_section.html' with section_title=_('Informationen Einsatzstelle')|add:' '|add:freiwilliger.einsatzstelle2.name cards=location_cards %}
+          {% include 'components/info_section.html' with section_title=_('Generelle Informationen') cards=general_cards %}
+        {% endif %}
+      </div>
     </div>
-</div>
+  </div>
 {% endblock %}
 
 {% block scripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize all tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
-        });
-    });
-</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Initialize all tooltips
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+      tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+      })
+    })
+  </script>
 {% endblock %}

@@ -56,7 +56,7 @@ def hex_to_rgb(hex_code):
 @register.filter
 def get_base_template(user):
     if user.is_authenticated:
-        role = user.customuser.role
+        role = user.person_cluster.view
         if role == 'O':
             return 'baseOrg.html'
         elif role == 'T':

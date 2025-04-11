@@ -49,13 +49,13 @@ def format_text_with_link(text):
         return ''
     links = re.findall(r'https?://\S+', text)
     for link in links:
-        text = text.replace(link, f'<a href="{link}" target="_blank">{link}</a>')
+        text = text.replace(link, f'<a href="{link}" class="text-decoration-underline text-body" target="_blank">{link}</a>')
     links_2 = re.findall(r'www\.\S+', text)
     for link in links_2:
-        text = text.replace(link, f'<a href="https://{link}" target="_blank">{link}</a>')
+        text = text.replace(link, f'<a href="https://{link}" class="text-decoration-underline text-body" target="_blank">{link}</a>')
     emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b', text)
     for email in emails:
-        text = text.replace(email, f'<a href="mailto:{email}" target="_blank">{email}</a>')
+        text = text.replace(email, f'<a href="mailto:{email}" class="text-decoration-underline text-body" target="_blank">{email}</a>')
     # Remove spaces, parentheses and hyphens before searching for phone numbers
     cleaned_text = re.sub(r'[\s\(\)\-]', '', text)
     tel_numbers = re.findall(r'\+\d{10,15}', cleaned_text)
@@ -69,7 +69,7 @@ def format_text_with_link(text):
                 digit_pos += 1
             elif char in ' ()-' and digit_pos > 0 and digit_pos < len(tel_number):
                 original_number += char
-        text = text.replace(original_number, f'<a href="tel:{tel_number}" target="_blank">{original_number}</a>')
+        text = text.replace(original_number, f'<a href="tel:{tel_number}" class="text-decoration-underline text-body" target="_blank">{original_number}</a>')
     line_breaks = re.findall(r'\n', text)
     for line_break in line_breaks:
         text = text.replace(line_break, '<br>')

@@ -1,4 +1,4 @@
-{% extends 'baseFw.html' %}
+{% extends extends_base|default:'baseFw.html' %}
 {% load static %}
 {% load aufgaben_filter %}
 {% load i18n %}
@@ -19,8 +19,6 @@
     {# Progress Bar #}
     {% include "components/progress_bar.html" with offen_prozent=offen_prozent pending_prozent=pending_prozent erledigt_prozent=erledigt_prozent len_offen=len_offen len_pending=len_pending len_erledigt=len_erledigt show_count=True %}
 
-    {# Calendar Section #}
-    {% include "components/calendar.html" with initial_view="dayGridWeek" %}
 
     {# Task Sections #}
     {% if aufgaben_offen %}

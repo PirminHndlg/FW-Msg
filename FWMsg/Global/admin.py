@@ -1,9 +1,13 @@
+from datetime import datetime, timedelta
+import random
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.urls import path
 from django.contrib import messages
 from django.utils.html import format_html
-from .models import CustomUser, Feedback, KalenderEvent
+from .models import Ampel2, Attribute, CustomUser, Einsatzland2, Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, Organisation, Aufgabe2, DokumentColor2, Dokument2, Ordner2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, AufgabenCluster, Bilder2, BilderGallery2, ProfilUser2, Maintenance
+from TEAM.models import Team
+from FW.models import Freiwilliger
 from FWMsg.celery import send_email_aufgaben_daily
 from simple_history.admin import SimpleHistoryAdmin
 
@@ -13,8 +17,8 @@ class CustomUserAdmin(SimpleHistoryAdmin):
     search_fields = ['user__username', 'user__email']
     actions = ['send_registration_email', 'create_small_image']
     list_filter = [('einmalpasswort', admin.EmptyFieldListFilter)]
-    list_display = ('user', 'org', 'role')
-    list_filter = ('org', 'role')
+    list_display = ('user', 'org')
+    list_filter = ('org',)
 
     def get_urls(self):
         urls = super().get_urls()
@@ -46,6 +50,13 @@ class CustomUserAdmin(SimpleHistoryAdmin):
         extra_context['show_send_emails_button'] = True
         return super().changelist_view(request, extra_context=extra_context)
 
+@admin.register(PersonCluster)
+class PersonClusterAdmin(admin.ModelAdmin):
+    list_display = ['name', 'view']
+    search_fields = ['name']
+    list_filter = ['view']
+
+
 @admin.register(Feedback)
 class FeedbackAdmin(admin.ModelAdmin):
     list_display = ['user', 'text', 'anonymous']
@@ -57,3 +68,132 @@ class KalenderEventAdmin(SimpleHistoryAdmin):
     list_display = ['title', 'start', 'end', 'description']
     search_fields = ['title', 'description']
     list_filter = ['start']
+
+
+@admin.register(Organisation)
+class OrganisationAdmin(SimpleHistoryAdmin):
+    search_fields = ['name']
+
+@admin.register(Ordner2)
+class OrdnerAdmin(SimpleHistoryAdmin):
+    search_fields = ['ordner_name']
+    actions = ['all_to_incoming', 'all_to_outgoing']
+
+    def all_to_incoming(self, request, queryset):
+        for ordner in queryset:
+            ordner.typ = PersonCluster.objects.get(name='Incoming')
+            ordner.save()
+            
+    def all_to_outgoing(self, request, queryset):
+        for ordner in queryset:
+            ordner.typ = PersonCluster.objects.get(name='Outgoing')
+            ordner.save()
+
+@admin.register(Dokument2)
+class DokumentAdmin(SimpleHistoryAdmin):
+    search_fields = ['ordner', 'dokument', 'beschreibung']
+
+@admin.register(DokumentColor2)
+class DokumentColorAdmin(SimpleHistoryAdmin):
+    search_fields = ['name']
+    
+
+@admin.register(Attribute)
+class AttributeAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+@admin.register(UserAttribute)
+class UserAttributeAdmin(admin.ModelAdmin):
+    search_fields = ['user__first_name', 'user__last_name', 'attribute__name']
+
+
+@admin.register(Einsatzland2)
+class EinsatzlandAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+
+@admin.register(Einsatzstelle2)
+class EinsatzstelleAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+
+@admin.register(Notfallkontakt2)
+class NotfallkontaktAdmin(admin.ModelAdmin):
+    search_fields = ['first_name', 'last_name']
+    actions = ['anonymize_user']
+
+    def anonymize_user(self, request, queryset):
+        for notfallkontakt in queryset:
+            notfallkontakt.first_name = f'{notfallkontakt.first_name[0]} anonymisiert'
+            notfallkontakt.last_name = f'{notfallkontakt.last_name[0]} anonymisiert'
+            notfallkontakt.phone = None
+            notfallkontakt.phone_work = None
+            notfallkontakt.email = f'{notfallkontakt.first_name}.{notfallkontakt.last_name}@p0k.de'
+            notfallkontakt.save()
+
+
+@admin.register(Post2)
+class PostAdmin(admin.ModelAdmin):
+    search_fields = ['title']
+
+
+@admin.register(Aufgabe2)
+class AufgabeAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+    actions = ['set_person_cluster_typ_incoming', 'set_person_cluster_typ_outgoing']
+
+    def set_person_cluster_typ_incoming(self, request, queryset):
+        for aufgabe in queryset:
+            aufgabe.person_cluster = PersonCluster.objects.get(name='Incoming')
+            aufgabe.save()
+    
+    def set_person_cluster_typ_outgoing(self, request, queryset):
+        for aufgabe in queryset:
+            aufgabe.person_cluster = PersonCluster.objects.get(name='Outgoing')
+            aufgabe.save()
+
+
+@admin.register(AufgabeZwischenschritte2)
+class AufgabeZwischenschritteAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+
+@admin.register(UserAufgabenZwischenschritte)
+class UserAufgabenZwischenschritteAdmin(admin.ModelAdmin):
+    search_fields = ['user_aufgabe__freiwilliger__user__first_name', 'user_aufgabe__freiwilliger__user__last_name', 'aufgabe_zwischenschritt__name']
+
+
+@admin.register(Ampel2)
+class AmpelAdmin(admin.ModelAdmin):
+    search_fields = ['status']
+
+@admin.register(UserAufgaben)
+class UserAufgabenAdmin(admin.ModelAdmin):
+    search_fields = ['freiwilliger__user__first_name', 'freiwilliger__user__last_name', 'aufgabe__name'] 
+    actions = ['send_aufgaben_email']
+
+    def send_aufgaben_email(self, request, queryset):
+        for freiwilliger_aufgabe in queryset:
+            freiwilliger_aufgabe.send_reminder_email()
+        msg = f"Erinnerungen wurden gesendet"
+        self.message_user(request, msg)
+
+
+@admin.register(AufgabenCluster)
+class AufgabenClusterAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+
+@admin.register(Bilder2)
+class BilderAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+    list_display = ('titel', 'user', 'date_created')
+
+@admin.register(BilderGallery2)
+class BilderGalleryAdmin(admin.ModelAdmin):
+    search_fields = ['bilder']
+
+@admin.register(Maintenance)
+class MaintenanceAdmin(admin.ModelAdmin):
+    list_display = ['maintenance_start_time', 'maintenance_end_time']
+    search_fields = ['maintenance_start_time', 'maintenance_end_time']

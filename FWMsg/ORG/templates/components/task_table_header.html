@@ -1,15 +1,14 @@
 {% load i18n %}
 
 <tr class="">
-  <th class="p-0">
+  <th class="p-0 sticky-top with-border">
     <div class="d-flex gap-1 align-items-center justify-content-between pe-0">
-      {% trans 'Freiwillige' %}
-      <div class="vr border-dark m-0 ms-1" style="height: 70px;"></div>
+      {{current_person_cluster|default:'Person'}}
     </div>
     <hr class="border-dark m-0 mt-1" />
   </th>
   {% for aufgabe in aufgaben %}
-    <th class="text-center bg-white p-0">
+    <th class="text-center bg-white p-0 sticky-top with-border">
       <div class="d-flex gap-1 align-items-center">
         <div class="d-flex gap-0 align-items-center flex-column">
           {% if aufgabe.beschreibung %}
@@ -30,13 +29,11 @@
               <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#taskCountryModal" onclick="setTaskId({{ aufgabe.id }}, '{{ aufgabe.name }}')"><i class="bi bi-globe-americas"></i> {% trans 'Einem Einsatzland zuweisen' %}</a>
             </li>
             <li>
-              <a href="{% url 'list_aufgaben_table' %}?a={{ aufgabe.id }}&fw=all" class="dropdown-item"><i class="bi bi-people-fill"></i> {% trans 'Allen Freiwilligen zuweisen' %}</a>
+              <a href="{% url 'list_aufgaben_table' %}?a={{ aufgabe.id }}&u=all" class="dropdown-item"><i class="bi bi-people-fill"></i> {% trans 'Allen Freiwilligen zuweisen' %}</a>
             </li>
           </ul>
         </div>
-        <div class="vr border-dark m-0 ms-1 me-1" style="height: 70px;"></div>
       </div>
-
       <hr class="border-dark m-0 mt-1" />
     </th>
   {% endfor %}
@@ -67,17 +64,17 @@
     border-right-style: solid !important;
   }
   
-  /* Add shadow for better visual separation */
-  tr.sticky-top::after {
+  th.with-border::after {
     content: '';
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -1px;
-    height: 1px;
-    background-color: var(--bs-border-color-dark);
+    top: 0;
+    right: 1px;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
+    color: rgba(var(--bs-dark-rgb), var(--bs-border-opacity));
   }
-
+  
   .z-1000 {
     z-index: 1000;
   }

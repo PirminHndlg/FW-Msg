@@ -10,7 +10,14 @@
 {% endblock %}
 
 {% block content %}
-    {% include "components/gallery_grid.html" %}
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            {{ error }}
+        </div>
+    {% else %}
+        {% include "components/gallery_grid.html" %}
+    {% endif %}
 {% endblock %}
 
 {% block scripts %}

@@ -5,9 +5,19 @@
 <div id="profileAttributeForm" class="mb-3 d-none">
     <form method="post" class="needs-validation" novalidate>
         {% csrf_token %}
-        <div class="input-group mb-2">
-            {{ profil_user_form.attribut|add_class:"form-control me-2"|attr:"required:required"|attr:"placeholder:Attribut" }}
-            {{ profil_user_form.value|add_class:"form-control"|attr:"required:required"|attr:"placeholder:Wert" }}
+        <div class="row g-3 mb-3">
+            <div class="col-6">
+                <div class="form-floating">
+                    {{ profil_user_form.attribut|add_class:"form-control" }}
+                    <label for="{{ profil_user_form.attribut.id_for_label }}">{% trans "Bezeichnung" %}</label>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-floating">
+                    {{ profil_user_form.value|add_class:"form-control" }}
+                    <label for="{{ profil_user_form.value.id_for_label }}">{% trans "Wert" %}</label>
+                </div>
+            </div>
         </div>
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">

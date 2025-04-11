@@ -3,17 +3,15 @@
 
 <div class="table-responsive" style="height: 80vh; min-height: 400px;">
     <table class="table table-hover mb-0 align-middle m-1">
-        <thead class="sticky-top top-0 bg-white">
-            <tr>
-                <th class="border-end sticky-col bg-transparent">{% trans "Freiwilliger" %}</th>
-                {% for month in months %}
-                <th class="text-center {% if month == current_month %}table-active{% endif %}"
-                    style="min-width: 100px;">
-                    {{ month }}
-                </th>
-                {% endfor %}
-            </tr>
-        </thead>
+        <tr class="sticky-top bg-white">
+            <th class="border-end sticky-col bg-transparent">{% trans "Freiwilliger" %}</th>
+            {% for month in months %}
+            <th class="text-center {% if month == current_month %}table-active{% endif %}"
+                style="min-width: 100px;">
+                {{ month }}
+            </th>
+            {% endfor %}
+        </tr>
         <tbody>
             {% for jahrgang, fw_matrix in ampel_matrix.items %}
             {% for freiwilliger, months_data in fw_matrix.items %}
@@ -43,6 +41,14 @@
         </tbody>
     </table>
 </div>
+
+<style>
+    .sticky-top {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+    }
+</style>
 
 {% if not ampel_matrix %}
 <div class="alert alert-info mt-4">
