@@ -25,7 +25,7 @@
             data-bs-parent="#folderAccordion">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
+                <div class="d-flex gap-2">
                     <button class="btn btn-outline-danger btn-sm rounded-4" 
                             onclick="removeOrdner({{ structure.ordner.id }}, '{{ structure.ordner }}')"
                             {% if structure.dokumente|length > 0 %}
@@ -34,10 +34,19 @@
                             {% endif %}>
                         <i class="bi bi-trash"></i>
                     </button>
+
                     <button class="btn btn-sm rounded-4" 
-                            onclick="editOrdner({{ structure.ordner.id }}, '{{ structure.ordner }}', '{% if structure.ordner.typ %}{{ structure.ordner.typ.id }}{% endif %}', '{% if structure.ordner.color %}{{ structure.ordner.color.id }}{% endif %}')">
+                            onclick="editOrdner({{ structure.ordner.id }}, '{{ structure.ordner }}', '{% for typ in structure.ordner.typ.all %}{{ typ.id }},{% endfor %}', '{% if structure.ordner.color %}{{ structure.ordner.color.id }}{% endif %}')">
                         <i class="bi bi-pencil"></i>
                     </button>
+
+                    {% if user.customuser.person_cluster.view == 'O' %}
+                    <div class="d-flex gap-2 align-items-center flex-wrap" data-bs-toggle="tooltip" data-bs-title="Ordner ist sichtbar für:">
+                        {% for typ in structure.ordner.typ.all %}
+                            <span class="badge bg-secondary me-1 word-break">{{ typ.name }}</span>
+                        {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
                 <button class="btn btn-primary btn-sm rounded-4" 
                         onclick="addDokument({{ structure.ordner.id }})">
