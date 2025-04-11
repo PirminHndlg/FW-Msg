@@ -3,7 +3,7 @@
 <tr class="border-bottom">
     <th class="p-0 with-border" style="max-width: 30vw; height: 50px;">
         <div class="d-flex gap-1 align-items-center justify-content-between">
-            {{ user.first_name }} {{ user.last_name }}
+            {{ user.first_name|default:"" }} {{ user.last_name|default:user }}
         </div>
     </th>
     {% for user_aufgabe in user_aufgaben %}
