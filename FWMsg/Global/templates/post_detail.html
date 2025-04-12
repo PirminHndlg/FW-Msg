@@ -32,7 +32,7 @@
                 <div class="author-card p-3 rounded-3 bg-light border-start border-primary border-3 h-100">
                   <a href="{% url 'profil' post.user.id %}" class="text-decoration-none text-dark">
                     <div class="d-flex align-items-center">
-                      <img src="{% if post.user.customuser.profil_picture %}{% url 'serve_profil_picture' post.user.id %}{% endif %}" alt="{{ post.user.first_name }} {{ post.user.last_name }}" class="rounded-circle me-3" style="height: 48px; width: 48px; object-fit: cover;" />
+                      <img src="{% url 'serve_profil_picture' post.user.id %}" alt="{{ post.user.first_name }} {{ post.user.last_name }}" class="rounded-circle me-3" style="height: 48px; width: 48px; object-fit: cover;" />
                       <div>
                         <small class="text-muted">{% trans 'Erstellt von' %}</small>
                         <div class="fw-medium">{{ post.user.first_name }} {{ post.user.last_name }}</div>

@@ -12,6 +12,7 @@
 
 <div class="row" data-masonry='{"percentPosition": true }'>
     <!-- Newest Images -->
+     {% if request.user.customuser.person_cluster.bilder %}
     <div class="col-md-6 mb-4">
         <div class="card h-100 rounded-4">
             <div class="card-header d-flex justify-content-between align-items-center rounded-4">
@@ -32,7 +33,7 @@
             </div>
         </div>
     </div>
-
+    {% endif %}
     <!-- Pending Tasks -->
     <div class="col-md-6 mb-4">
         <div class="card h-100 rounded-4">
@@ -65,5 +66,45 @@
             </div>
         </div>
     </div>
+
+    <!-- My Tasks -->
+     {% if request.user.customuser.person_cluster.aufgaben %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 rounded-4">
+            <div class="card-header d-flex justify-content-between align-items-center rounded-4">
+                <h5 class="mb-0">Meine Aufgaben - {{ my_open_tasks.count }}</h5>
+                <a href="{% url 'aufgaben' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
+            </div>
+            <div class="card-body">
+                {% if my_open_tasks %}
+                    {% comment %} <div class="list-group list-group-flush">
+                        {% include 'components/task_item.html' with tasks=my_open_tasks %}
+                    </div> {% endcomment %}
+
+                    {% include 'components/task_grid.html' with tasks=my_open_tasks %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Posts -->
+    {% if request.user.customuser.person_cluster.posts %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 rounded-4">
+            <div class="card-header d-flex justify-content-between align-items-center rounded-4">
+                <h5 class="mb-0">Neueste Posts</h5>
+                <a href="{% url 'posts_overview' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
+            </div>
+            <div class="card-body">
+                {% if posts %}
+                    <div class="list-group list-group-flush">
+                        {% include 'components/post_card.html' with posts=posts %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -18,7 +18,7 @@ base_template = 'baseFw.html'
 @required_role('F')
 def home(request):
     """Dashboard view showing tasks, images and posts."""
-    from Global.views import get_bilder
+    from Global.views import get_bilder, get_posts
     
     # Get task statistics
     user_aufgaben = None
@@ -60,10 +60,12 @@ def home(request):
     else:
         days_until_start = None
 
+    posts = get_posts(request.user.org, filter_person_cluster=request.user.customuser.person_cluster)
+
     context = {
         'aufgaben': user_aufgaben,
         'gallery_images': gallery_images,
-        'posts': Post2.objects.all().order_by('date')[:3],
+        'posts': posts,
         'freiwilliger': freiwilliger,
         'days_until_start': days_until_start,
     }

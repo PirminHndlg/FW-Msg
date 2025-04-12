@@ -16,7 +16,7 @@
         {% endif %}
 
         <span class="badge badge-pill {% if not task.pending %}bg-danger{% elif task.pending %}bg-warning{% else %}bg-success{% endif %}">
-          {{ task.faellig|date:'d.m.y' }}
+          {{ task.faellig|date:'d.m.y'|default:'flexibel' }}
         </span>
       </div>
     </div>

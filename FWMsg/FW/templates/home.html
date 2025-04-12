@@ -15,7 +15,7 @@
     {% include "components/start_counter.html" %}
 
     {# Tasks Section #}
-    {% if aufgaben %}
+    {% if request.user.customuser.person_cluster.aufgaben %}
         <div class="card rounded-4 mb-2">
             <div class="card-header rounded-4">
                 <a href="{% url 'aufgaben' %}" class="text-decoration-none text-body">
@@ -43,6 +43,7 @@
     {% endif %}
 
     {# Images Section #}
+    {% if request.user.customuser.person_cluster.bilder %}
     <div class="card rounded-4 mb-2">
         <div class="card-header rounded-4">
             <a href="{% url 'bilder' %}" class="text-decoration-none text-body">
@@ -63,8 +64,10 @@
             {% endif %}
         </div>
     </div>
+    {% endif %}
 
     {# Posts Section #}
+    {% if request.user.customuser.person_cluster.posts %}
     <div class="card rounded-4 mb-2">
         <div class="card-header rounded-4">
             <a href="{% url 'posts_overview' %}" class="text-decoration-none text-body">
@@ -84,4 +87,5 @@
             {% endif %}
         </div>
     </div>
+    {% endif %}
 {% endblock %}

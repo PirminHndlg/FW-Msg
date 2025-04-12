@@ -107,7 +107,7 @@ def get_bild(image_path, image_name):
         response['Content-Disposition'] = f'inline; filename="{image_name}"'
         return response
 
-def get_bilder(org, filter_user=None, filter_person_cluster=None):
+def get_bilder(org, filter_user=None, filter_person_cluster=None, limit=None):
     """
     Retrieve gallery images, optionally filtered by user.
     
@@ -127,12 +127,39 @@ def get_bilder(org, filter_user=None, filter_person_cluster=None):
     else:
         bilder = Bilder2.objects.filter(org=org).order_by('-date_created')
 
+    if limit:
+        bilder = bilder[:limit]
+
     gallery_images = []
     for bild in bilder:
         gallery_images.append({
             bild: BilderGallery2.objects.filter(bilder=bild)
         })
     return gallery_images
+
+
+def get_posts(org, filter_user=None, filter_person_cluster=None, limit=None):
+    """
+    Retrieve posts, optionally filtered by organization.
+    
+    Args:
+        org: The organization object
+        limit (int, optional): Maximum number of posts to return. Defaults to None.
+    
+    Returns:
+        list: List of dictionaries containing posts and their metadata
+    """
+    posts = Post2.objects.filter(org=org).order_by('-date_updated')
+    if filter_user and filter_person_cluster:
+        posts = posts.filter(Q(user=filter_user) | Q(person_cluster=filter_person_cluster))
+    elif filter_user:
+        posts = posts.filter(user=filter_user)
+    elif filter_person_cluster:
+        posts = posts.filter(person_cluster=filter_person_cluster)
+    if limit:
+        posts = posts[:limit]
+    return posts
+
 
 def check_organization_context(request, context=None):
     """
@@ -755,7 +782,7 @@ def view_profil(request, user_id=None):
     else:
         freiwilliger = None
 
-    posts = Post2.objects.filter(user=user).order_by('-date')
+    posts = get_posts(request.user.org, filter_user=user)
 
     context = {
         'freiwilliger': freiwilliger,
@@ -1057,8 +1084,19 @@ def aufgabe(request, aufgabe_id):
 
 
 @login_required
+@required_person_cluster('posts')
 def posts_overview(request):
-    posts = Post2.objects.all()
+    # Get the user's person_cluster
+    user_person_cluster = request.user.customuser.person_cluster
+    
+    # For organization users, they can see all posts
+    if user_person_cluster.view == 'O':
+        posts = get_posts(request.user.org)
+    else:
+        # For regular users, only show posts assigned to their person_cluster
+        # or posts that don't have any specific person_cluster assigned
+        posts = get_posts(request.user.org, filter_person_cluster=user_person_cluster, filter_user=request.user)
+    
     context = {
         'posts': posts
     }
@@ -1066,6 +1104,7 @@ def posts_overview(request):
     return render(request, 'posts_overview.html', context=context)
 
 @login_required
+@required_person_cluster('posts')
 def post_edit(request, post_id):
     post = Post2.objects.get(id=post_id)
     
@@ -1075,9 +1114,17 @@ def post_edit(request, post_id):
         return redirect('post_detail', post_id=post_id)
     
     if request.method == 'POST':
+        print(request.POST)
         form = AddPostForm(request.POST, instance=post)
         if form.is_valid():
-            form.save()
+            # Save with commit=False to handle the post object
+            post = form.save(commit=False)
+            post.save()
+
+            # Explicitly save the ManyToManyField
+            form.save_m2m()
+            if not post.person_cluster:
+                post.person_cluster.set([request.user.customuser.person_cluster])
             messages.success(request, 'Beitrag erfolgreich aktualisiert.')
             return redirect('post_detail', post_id=post.id)
     else:
@@ -1102,14 +1149,26 @@ def post_edit(request, post_id):
 
 
 @login_required
+@required_person_cluster('posts')
 def post_add(request, post=None):
     if request.method == 'POST':
         form = AddPostForm(request.POST)
         if form.is_valid():
+            # Save with commit=False to set user and org
             post = form.save(commit=False)
             post.user = request.user
             post.org = request.user.org
             post.save()
+
+            # Save person_cluster
+            person_cluster = form.cleaned_data.get('person_cluster')
+            print(person_cluster)
+            if person_cluster:
+                post.person_cluster.set(person_cluster)
+
+            # Explicitly save the ManyToManyField after saving the post
+            form.save_m2m()
+            messages.success(request, 'Beitrag erfolgreich erstellt.')
             return redirect('posts_overview')
     elif post:
         form = AddPostForm(instance=post)
@@ -1124,8 +1183,17 @@ def post_add(request, post=None):
     return render(request, 'post_add.html', context=context)
 
 @login_required
+@required_person_cluster('posts')
 def post_detail(request, post_id):
     post = Post2.objects.get(id=post_id)
+    
+    # Check if user has permission to view this post based on person_cluster
+    user_person_cluster = request.user.customuser.person_cluster
+    if user_person_cluster.view != 'O' and post.person_cluster.exists():
+        # Check if the user's cluster is in the post's allowed clusters
+        if user_person_cluster not in post.person_cluster.all():
+            messages.error(request, 'Sie haben keine Berechtigung, diesen Beitrag anzusehen.')
+            return redirect('posts_overview')
     
     # Track if user has voted in this survey
     has_voted = False
@@ -1150,6 +1218,7 @@ def post_detail(request, post_id):
     return render(request, 'post_detail.html', context=context)
 
 @login_required
+@required_person_cluster('posts')
 def post_delete(request, post_id):
     post = Post2.objects.get(id=post_id)
     
@@ -1160,6 +1229,7 @@ def post_delete(request, post_id):
     return redirect('posts_overview')
 
 @login_required
+@required_person_cluster('posts')
 def post_vote(request, post_id):
     if request.method != 'POST':
         return redirect('post_detail', post_id=post_id)

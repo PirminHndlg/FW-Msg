@@ -161,15 +161,10 @@ allowed_models_to_edit = {
 @required_role('O')
 @filter_person_cluster
 def home(request):
-    from Global.views import get_bilder
-
-    # Get latest images
-    latest_images = Bilder2.objects.filter(
-        org=request.user.org
-    ).order_by('-date_created')[:6]  # Show last 6 images
+    from Global.views import get_bilder, get_posts
 
     # Get all gallery images and group by bilder
-    gallery_images = get_bilder(request.user.org)[:6]
+    gallery_images = get_bilder(request.user.org, limit=6)
 
     # Get pending tasks
     now = timezone.now().date()
@@ -186,10 +181,21 @@ def home(request):
         faellig__lte=now
     ).order_by('faellig')
 
+    my_open_tasks = UserAufgaben.objects.filter(
+        org=request.user.org,
+        user=request.user,
+        erledigt=False,
+        pending=False
+    ).order_by('faellig')
+
+    posts = get_posts(request.user.org, limit=4)
+
     context = {
         'gallery_images': gallery_images,
         'pending_tasks': pending_tasks,
-        'open_tasks': open_tasks
+        'open_tasks': open_tasks,
+        'my_open_tasks': my_open_tasks,
+        'posts': posts
     }
     
     return render(request, 'homeOrg.html', context)
@@ -218,12 +224,6 @@ def nginx_statistic(request):
         })
 
 
-def get_model(model_name):
-    if model_name in allowed_models_to_edit:
-        return allowed_models_to_edit[model_name]
-    return None
-
-
 @login_required
 @required_role('O')
 @filter_person_cluster
@@ -246,12 +246,16 @@ def save_form(request, form):
 def add_object(request, model_name):
     freiwilliger_id = request.GET.get('freiwilliger')
     aufgabe_id = request.GET.get('aufgabe')
+    
     if freiwilliger_id and aufgabe_id:
-        freiwilliger = Freiwilliger.objects.get(pk=freiwilliger_id)
-        aufgabe = Aufgabe2.objects.get(pk=aufgabe_id)
-
-        if not freiwilliger.org == request.user.org or not aufgabe.org == request.user.org:
-            return HttpResponse('Nicht erlaubt')
+        # Get freiwilliger and aufgabe objects and check organization
+        freiwilliger, response = _get_object_with_org_check(Freiwilliger, freiwilliger_id, request)
+        if response:
+            return response
+            
+        aufgabe, response = _get_object_with_org_check(Aufgabe2, aufgabe_id, request)
+        if response:
+            return response
 
         obj, created = UserAufgaben.objects.get_or_create(
             org=request.user.org,
@@ -259,6 +263,7 @@ def add_object(request, model_name):
             aufgabe=aufgabe
         )
         return edit_object(request, model_name, obj.id)
+    
     return edit_object(request, model_name, None)
 
 @login_required
@@ -268,7 +273,9 @@ def add_objects_from_excel(request, model_name):
     if request.method == 'POST':
         excel_file = request.FILES['excel_file']
         df = pd.read_excel(excel_file)
-        model = get_model(model_name)
+        model, response = _check_model_exists(model_name)
+        if response:
+            return response
 
         personen_cluster_id = request.COOKIES.get('selectedPersonCluster')
         if PersonCluster.objects.filter(id=personen_cluster_id).exists():
@@ -374,41 +381,40 @@ def get_zwischenschritt_form(request):
 @required_role('O')
 @filter_person_cluster
 def edit_object(request, model_name, id):
-    model = get_model(model_name.lower())
-    if not model or not model in ORGforms.model_to_form_mapping:
+    # Check if model exists and has a form mapping
+    model, response = _check_model_exists(model_name.lower())
+    if response:
+        return response
+    
+    if not model in ORGforms.model_to_form_mapping:
         return HttpResponse(f'Kein Formular für {model_name} gefunden')
 
-    if not id == None:
-        instance = get_object_or_404(model, id=id)
-        if not instance.org == request.user.org:
-            return HttpResponse('Nicht erlaubt')
+    # Get instance if ID is provided and check organization
+    instance = None
+    if id is not None:
+        instance, response = _get_object_with_org_check(model, id, request)
+        if response:
+            return response
 
         form = ORGforms.model_to_form_mapping[model](
             request.POST or None,
             request.FILES or None,
             instance=instance,
-            request=request  # Pass request to form
+            request=request
         )
     else:
         form = ORGforms.model_to_form_mapping[model](
             request.POST or None,
             request.FILES or None,
-            request=request  # Pass request to form
+            request=request
         )
 
     if form.is_valid():
         save_form(request, form)
-        obj = form.instance.id
-        highlight_id = obj
-
-        next = request.GET.get('next')
-        if next:
-            return redirect(next)
-
-        if model_name == 'freiwilligeraufgaben':
-            return redirect('list_aufgaben_table')
+        obj_id = form.instance.id
         
-        return redirect('list_object_highlight', model_name=model_name, highlight_id=highlight_id)
+        # Use the helper function for redirection
+        return _redirect_after_action(request, model_name, obj_id)
 
     return render(request, 'edit_object.html', {'form': form, 'object': model_name})
 
@@ -457,10 +463,10 @@ def _check_filter_form(filter_form, model, objects):
 @required_role('O')
 @filter_person_cluster
 def list_object(request, model_name, highlight_id=None):
-    model = get_model(model_name)
-
-    if not model:
-        return HttpResponse(f'Kein Model für {model_name} gefunden')
+    # Check if model exists using the helper function
+    model, response = _check_model_exists(model_name)
+    if response:
+        return response
 
     # Start with all objects for this organization
     objects = model.objects.filter(org=request.user.org)
@@ -605,21 +611,21 @@ def list_object(request, model_name, highlight_id=None):
 @required_role('O')
 @filter_person_cluster
 def delete_object(request, model_name, id):
-    model = get_model(model_name)
-    if not model:
-        return HttpResponse(f'Kein Model für {model_name} gefunden')
+    # Check if model exists
+    model, response = _check_model_exists(model_name)
+    if response:
+        return response
 
-    instance = get_object_or_404(model, id=id)
-    if not instance.org == request.user.org:
-        return HttpResponse('Nicht erlaubt')
+    # Get the object and check organization
+    instance, response = _get_object_with_org_check(model, id, request)
+    if response:
+        return response
 
+    # Delete the object
     instance.delete()
-
-    next = request.GET.get('next')
-    if next:
-        return redirect(next)
     
-    return redirect('list_object', model_name=model_name)
+    # Use the helper function for redirection
+    return _redirect_after_action(request, model_name)
 
 def _get_ampel_matrix(request, users):
         # Get date range for ampel entries
@@ -1079,3 +1085,66 @@ def send_registration_mail(request):
             'success': False,
             'error': str(e)
         }, status=500)
+
+def _check_model_exists(model_name, model=None):
+    """
+    Verify if a model exists for the given model_name.
+    
+    Args:
+        model_name (str): The name of the model to check
+        model (Model, optional): A model instance if already retrieved
+        
+    Returns:
+        tuple: (model, response) where response is None if model exists or HttpResponse if not
+    """
+    if model is None and model_name in allowed_models_to_edit:
+        return allowed_models_to_edit[model_name], None
+    else:
+        return None, HttpResponse(f'Kein Model für {model_name} gefunden')
+    
+
+def _get_object_with_org_check(model, object_id, request):
+    """
+    Get an object and verify it belongs to the user's organization.
+    
+    Args:
+        model (Model): The model class
+        object_id (int): The ID of the object to retrieve
+        request: The HTTP request object
+        
+    Returns:
+        tuple: (object, response) where response is None if check passes or HttpResponse if not
+    """
+    instance = get_object_or_404(model, id=object_id)
+    
+    if not instance.org == request.user.org:
+        return None, HttpResponse('Nicht erlaubt')
+    
+    return instance, None
+
+def _redirect_after_action(request, model_name, object_id=None):
+    """
+    Handle redirection after an object action (create/edit/delete).
+    
+    Args:
+        request: The HTTP request object
+        model_name (str): The name of the model
+        object_id (int, optional): The ID of the object for highlighting
+        
+    Returns:
+        HttpResponseRedirect: Redirect response
+    """
+    # Check for next parameter in GET
+    next_url = request.GET.get('next')
+    if next_url:
+        return redirect(next_url)
+    
+    # Special case for freiwilligeraufgaben
+    if model_name.lower() == 'freiwilligeraufgaben':
+        return redirect('list_aufgaben_table')
+    
+    # Standard case: redirect to list view with optional highlighting
+    if object_id:
+        return redirect('list_object_highlight', model_name=model_name, highlight_id=object_id)
+    else:
+        return redirect('list_object', model_name=model_name)
