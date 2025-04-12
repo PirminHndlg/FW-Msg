@@ -11,7 +11,7 @@ from simple_history.models import HistoricalRecords
 
 # Create your models here.
 class Freiwilliger(OrgModel):
-    user = models.OneToOneField(User, on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name='Benutzer:in')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Benutzer:in')
     einsatzland2 = models.ForeignKey(Einsatzland2, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzland')
     einsatzstelle2 = models.ForeignKey(Einsatzstelle2, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Einsatzstelle')
     start_geplant = models.DateField(blank=True, null=True, verbose_name='Start geplant')
@@ -42,6 +42,11 @@ class Freiwilliger(OrgModel):
     def send_register_email(self):
         from FW.tasks import send_register_email_task
         send_register_email_task.delay(self)
+
+    def save(self, *args, **kwargs):
+        if not self.customuser:
+            self.customuser = self.user.customuser
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name

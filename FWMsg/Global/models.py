@@ -67,7 +67,7 @@ class PersonCluster(OrgModel):
 
 class CustomUser(OrgModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Benutzer:in')
-    person_cluster = models.ForeignKey(PersonCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Person Cluster')
+    person_cluster = models.ForeignKey(PersonCluster, on_delete=models.CASCADE, blank=True, verbose_name='Person Cluster')
     profil_picture = models.ImageField(upload_to='profil_picture/', blank=True, null=True, verbose_name='Profilbild')
     geburtsdatum = models.DateField(blank=True, null=True, verbose_name='Geburtsdatum')
 
