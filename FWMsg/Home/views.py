@@ -18,11 +18,11 @@ def index(request):
         return redirect('maintenance')
 
     def redirect_to_home(user):
-        if user.customuser.person_cluster.view == 'O':
+        if user.role == 'O':
             return redirect('org_home')
-        elif user.customuser.person_cluster.view == 'T':
+        elif user.role == 'T':
             return redirect('team_home')
-        elif user.customuser.person_cluster.view == 'F':
+        elif user.role == 'F':
             return redirect('fw_home')
         else:
             messages.error(request, _('Ungültige Personengruppe.'))

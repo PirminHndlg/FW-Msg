@@ -5,11 +5,11 @@ register = template.Library()
 
 @register.filter
 def get_person_cluster(user):
-    return user.customuser.person_cluster
+    return user.person_cluster
 
 @register.filter
 def get_person_cluster_name(user):
-    return user.customuser.person_cluster.name
+    return user.person_cluster.name
 
 
 @register.filter
