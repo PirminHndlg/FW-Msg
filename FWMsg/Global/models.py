@@ -115,6 +115,7 @@ def post_save_handler(sender, instance, created, **kwargs):
 User.add_to_class('org', property(lambda self: self.customuser.org if hasattr(self, 'customuser') else None))
 User.add_to_class('view', property(lambda self: self.customuser.person_cluster.view if hasattr(self, 'customuser') and self.customuser.person_cluster else None))
 User.add_to_class('role', property(lambda self: self.customuser.person_cluster.view if hasattr(self, 'customuser') and self.customuser.person_cluster else None))
+User.add_to_class('person_cluster', property(lambda self: self.customuser.person_cluster if hasattr(self, 'customuser') and self.customuser.person_cluster else None))
 
 class Feedback(models.Model):
     text = models.TextField(verbose_name='Feedback-Text')
@@ -606,12 +607,13 @@ class UserAufgaben(OrgModel):
     aufgabe = models.ForeignKey(Aufgabe2, on_delete=models.CASCADE, verbose_name='Aufgabe', help_text='Die zugewiesene Aufgabe')
     personalised_description = models.TextField(blank=True, null=True, verbose_name='Persönliche Notizen', help_text='Individuelle Anmerkungen zu dieser Aufgabe')
     erledigt = models.BooleanField(default=False, verbose_name='Abgeschlossen', help_text='Zeigt an, ob die Aufgabe abgeschlossen ist')
-    pending = models.BooleanField(default=False, verbose_name='In Bearbeitung', help_text='Zeigt an, dass die Aufgabe begonnen aber noch nicht abgeschlossen wurde')
+    pending = models.BooleanField(default=False, verbose_name='Pending', help_text='Zeigt an, dass die Aufgabe begonnen aber noch nicht abgeschlossen wurde')
     datetime = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
     faellig = models.DateField(blank=True, null=True, verbose_name='Fälligkeitsdatum', help_text='Datum, bis zu dem die Aufgabe erledigt sein sollte')
     last_reminder = models.DateField(blank=True, null=True, verbose_name='Letzte Erinnerung', help_text='Datum der letzten versendeten Erinnerung')
     erledigt_am = models.DateField(blank=True, null=True, verbose_name='Abgeschlossen am', help_text='Datum, an dem die Aufgabe abgeschlossen wurde')
     file = models.FileField(upload_to='uploads/', max_length=255, blank=True, null=True, verbose_name='Angehängte Datei', help_text='Datei, die für diese Aufgabe hochgeladen wurde')
+    file_list = models.JSONField(blank=True, null=True, verbose_name='Angehängte Dateien', help_text='Dateien, die für diese Aufgabe hochgeladen wurden')
     benachrichtigung_cc = models.CharField(max_length=255, blank=True, null=True, verbose_name='E-Mail-Kopie an', help_text='Weitere E-Mail-Adressen, die Benachrichtigungen erhalten sollen (kommagetrennt)')
     history = HistoricalRecords()
 

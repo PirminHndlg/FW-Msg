@@ -22,7 +22,7 @@ def home(request):
     
     # Get task statistics
     user_aufgaben = None
-    if request.user.customuser.person_cluster and request.user.customuser.person_cluster.aufgaben:
+    if request.user.person_cluster and request.user.person_cluster.aufgaben:
         task_queryset = UserAufgaben.objects.filter(user=request.user)
     
         erledigte_aufgaben = task_queryset.filter(erledigt=True).order_by('faellig')
@@ -48,7 +48,7 @@ def home(request):
         }
 
     # Get recent images
-    if request.user.customuser.person_cluster and request.user.customuser.person_cluster.bilder:
+    if request.user.person_cluster and request.user.person_cluster.bilder:
         gallery_images = get_bilder(request.user.org)
     else:
         gallery_images = []
@@ -60,7 +60,7 @@ def home(request):
     else:
         days_until_start = None
 
-    posts = get_posts(request.user.org, filter_person_cluster=request.user.customuser.person_cluster)
+    posts = get_posts(request.user.org, filter_person_cluster=request.user.person_cluster)
 
     context = {
         'aufgaben': user_aufgaben,

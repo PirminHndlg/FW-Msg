@@ -59,19 +59,20 @@ class AddPostForm(forms.ModelForm):
         if request and hasattr(request, 'user') and hasattr(request.user, 'customuser'):
             
             # Filter queryset based on user role
-            if request.user.customuser.person_cluster.view == 'O':
+            if request.user.role == 'O':
                 self.fields['person_cluster'].queryset = PersonCluster.objects.filter(
                     org=request.user.org
                 ).order_by('name')
                 self.fields['person_cluster'].required = False
             else:
                 # For non-admin users, just show their own person_cluster
+                person_cluster_id = request.user.person_cluster.id
                 self.fields['person_cluster'].queryset = PersonCluster.objects.filter(
-                    id=request.user.customuser.person_cluster.id
+                    id=person_cluster_id
                 )
                 # Pre-select their cluster
                 if not self.instance.pk:  # Only for new instances
-                    self.initial['person_cluster'] = [request.user.customuser.person_cluster.id]
+                    self.initial['person_cluster'] = [person_cluster_id]
             
                 self.fields['person_cluster'].widget.attrs.update({'disabled': 'true'})
             

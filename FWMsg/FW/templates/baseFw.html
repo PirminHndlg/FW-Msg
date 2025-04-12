@@ -45,12 +45,12 @@
     <div class="collapse bg-primary d-lg-none" id="mobileNavContent">
       <div class="container-fluid py-3 d-flex justify-content-between align-items-start">
         <ul class="nav flex-column text-on-org-color mt-0">
-          {% if user.customuser.person_cluster.ampel %}
+          {% if user.person_cluster.ampel %}
             <li class="nav-item">
               <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'ampel' %}"><i class="bi bi-circle-fill me-1"></i>{% trans 'Ampelmeldung' %}</a>
             </li>
           {% endif %}
-          {% if user.customuser.person_cluster.calendar %}
+          {% if user.person_cluster.calendar %}
             <li class="nav-item">
               <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'kalender' %}"><i class="bi bi-calendar-date me-1"></i>{% trans 'Kalender' %}</a>
             </li>
@@ -58,7 +58,7 @@
           <li class="nav-item">
             <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'laenderinfo' %}"><i class="bi bi-people me-1"></i>{% trans 'Mein Einsatzland' %}</a>
           </li>
-          {% if user.customuser.person_cluster.notfallkontakt %}
+          {% if user.person_cluster.notfallkontakt %}
             <li class="nav-item">
               <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'notfallkontakte' %}"><i class="bi bi-person-rolodex me-1"></i>{% trans 'Notfallkontakte' %}</a>
             </li>
@@ -136,27 +136,27 @@
               <li class="nav-item">
                 <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'fw_home' %}"><i class="bi bi-house me-1"></i>{% trans 'Home' %}</a>
               </li>
-              {% if user.customuser.person_cluster.aufgaben %}
+              {% if user.person_cluster.aufgaben %}
                 <li class="nav-item">
                   <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'aufgaben' %}"><i class="bi bi-list-check me-1"></i>{% trans 'Aufgaben' %}</a>
                 </li>
               {% endif %}
-              {% if user.customuser.person_cluster.calendar %}
+              {% if user.person_cluster.calendar %}
                 <li class="nav-item">
                   <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'kalender' %}"><i class="bi bi-calendar-date me-1"></i>{% trans 'Kalender' %}</a>
                 </li>
               {% endif %}
-              {% if user.customuser.person_cluster.bilder %}
+              {% if user.person_cluster.bilder %}
                 <li class="nav-item">
                   <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'bilder' %}"><i class="bi bi-image me-1"></i>{% trans 'Bilder' %}</a>
                 </li>
               {% endif %}
-              {% if user.customuser.person_cluster.dokumente %}
+              {% if user.person_cluster.dokumente %}
                 <li class="nav-item">
                   <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'dokumente' %}"><i class="bi bi-file-earmark-text me-1"></i>{% trans 'Dokumente' %}</a>
                 </li>
               {% endif %}
-              {% if user.customuser.person_cluster.ampel %}
+              {% if user.person_cluster.ampel %}
                 <li class="nav-item">
                   <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'ampel' %}"><i class="bi bi-circle-fill me-1"></i>{% trans 'Ampelmeldung' %}</a>
                 </li>
@@ -164,7 +164,7 @@
               <li class="nav-item">
                 <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'laenderinfo' %}"><i class="bi bi-people me-1"></i>{% trans 'Mein Einsatzland' %}</a>
               </li>
-              {% if user.customuser.person_cluster.notfallkontakt %}
+              {% if user.person_cluster.notfallkontakt %}
                 <li class="nav-item">
                   <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'notfallkontakte' %}"><i class="bi bi-person-rolodex me-1"></i>{% trans 'Notfallkontakte' %}</a>
                 </li>

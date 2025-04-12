@@ -75,11 +75,11 @@ def add_customuser_fields(self, view):
         label='Person Cluster'
     )
     if self.instance and self.instance.pk:
-        self.fields['person_cluster'].initial = self.instance.user.customuser.person_cluster
+        self.fields['person_cluster'].initial = self.instance.user.person_cluster
 
 
 def add_person_cluster_field(self):
-    person_cluster_typ = self.instance.user.customuser.person_cluster if self.instance and self.instance.pk else None
+    person_cluster_typ = self.instance.user.person_cluster if self.instance and self.instance.pk else None
     if person_cluster_typ:
         attributes = Attribute.objects.filter(org=self.request.user.org, person_cluster=person_cluster_typ)
         for attribute in attributes:
@@ -178,7 +178,7 @@ def save_and_create_customuser(self):
 
 
 def save_person_cluster_field(self):
-    for attribute in Attribute.objects.filter(org=self.request.user.org, person_cluster=self.instance.user.customuser.person_cluster):
+    for attribute in Attribute.objects.filter(org=self.request.user.org, person_cluster=self.instance.user.person_cluster):
         freiwlliger_attribute, created = UserAttribute.objects.get_or_create(org=self.request.user.org, user=self.instance.user, attribute=attribute)
         if attribute.name in self.cleaned_data:
             freiwlliger_attribute.value = self.cleaned_data[attribute.name]

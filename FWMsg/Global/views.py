@@ -180,17 +180,17 @@ def check_organization_context(request, context=None):
         return context
 
     # Add organization-specific template settings if user is an organization
-    if request.user.customuser.person_cluster.view == 'O':
+    if request.user.role == 'O':
         context.update({
             'extends_base': org_base_template,
             'is_org': True
         })
-    elif request.user.customuser.person_cluster.view == 'T':
+    elif request.user.role == 'T':
         context.update({
             'extends_base': team_base_template,
             'is_team': True
         })
-    elif request.user.customuser.person_cluster.view == 'F':
+    elif request.user.role == 'F':
         context.update({
             'extends_base': fw_base_template,
             'is_freiwilliger': True
@@ -352,13 +352,10 @@ def serve_dokument(request, dokument_id):
 @login_required
 @required_person_cluster('bilder')
 def bilder(request):
-    if not request.user.customuser.person_cluster.bilder:
-        messages.error(request, 'Du hast keine Berechtigung, Bilder anzusehen')
-        return redirect('index_home')
     
     error = None
 
-    if request.user.customuser.person_cluster.view == 'O':
+    if request.user.role == 'O':
         from ORG.views import get_person_cluster
         person_cluster = get_person_cluster(request)
         if person_cluster:
@@ -382,9 +379,6 @@ def bilder(request):
 @login_required
 @required_person_cluster('bilder')
 def bild(request):
-    if not request.user.customuser.person_cluster.bilder:
-        messages.error(request, 'Du hast keine Berechtigung, Bilder hochladen')
-        return redirect('index_home')
     
     form_errors = None
 
@@ -504,11 +498,11 @@ def remove_bild_all(request):
 def dokumente(request, ordner_id=None):
     folder_structure = []
 
-    if request.user.customuser.person_cluster.view == 'O':
+    if request.user.role == 'O':
         from ORG.views import get_person_cluster
         person_cluster_typ = get_person_cluster(request)
-    elif request.user.customuser.person_cluster.dokumente:
-        person_cluster_typ = request.user.customuser.person_cluster
+    elif request.user.role == 'T':
+        person_cluster_typ = request.user.person_cluster
     else:
         messages.error(request, 'Keine Dokumentenansicht verfügbar')
         return redirect('index_home')
@@ -572,7 +566,7 @@ def add_dokument(request):
             dokument.link = link
             dokument.save()
 
-            if request.user.customuser.person_cluster.view == 'O':
+            if request.user.role == 'O':
                 dokument.darf_bearbeiten.set(darf_bearbeiten)
         else:
             ordner = Ordner2.objects.get(id=request.POST.get('ordner'))
@@ -586,7 +580,7 @@ def add_dokument(request):
                 date_created=datetime.now()
             )
 
-            if request.user.customuser.person_cluster.view == 'O':
+            if request.user.role == 'O':
                 dokument.darf_bearbeiten.set(darf_bearbeiten)
 
     return redirect('dokumente', ordner_id=dokument.ordner.id)
@@ -645,7 +639,7 @@ def remove_dokument(request):
         dokument_id = request.POST.get('dokument_id')
         try:
             dokument = Dokument2.objects.get(id=dokument_id, org=request.user.org)
-            if request.user.customuser.person_cluster.view == 'O' or request.user.customuser.person_cluster in dokument.darf_bearbeiten.all():
+            if request.user.role== 'O' or request.user.person_cluster in dokument.darf_bearbeiten.all():
                 dokument.delete()
             else:
                 messages.error(request, 'Dokument kann nicht gelöscht werden, da du nicht der Ersteller bist.')
@@ -693,7 +687,7 @@ def update_profil_picture(request):
 def serve_profil_picture(request, user_id):
     requested_user = User.objects.get(id=user_id)
 
-    if not requested_user.customuser.org == request.user.org:
+    if not requested_user.org == request.user.org:
         return 'not allowed'
     
     if not requested_user.customuser.profil_picture:
@@ -835,14 +829,6 @@ def feedback(request):
 @login_required
 @required_person_cluster('calendar')
 def kalender(request):
-    if request.user.customuser.person_cluster.view == 'O':
-        person_cluster_typ = PersonCluster.objects.get(id=request.COOKIES.get('selectedPersonCluster')) if request.COOKIES.get('selectedPersonCluster') else None
-    elif request.user.customuser.person_cluster.calendar:
-        person_cluster_typ = request.user.customuser.person_cluster
-    else:
-        messages.error(request, 'Keine Kalenderansicht verfügbar')
-        return redirect('index_home')
-
     calendar_events = get_calendar_events(request)
 
     context = {
@@ -877,7 +863,7 @@ def get_calendar_events(request):
     if request.user.is_staff:
         custom_users = CustomUser.objects.filter(org=request.user.org)
     else:
-        custom_users = CustomUser.objects.filter(person_cluster=request.user.customuser.person_cluster)
+        custom_users = CustomUser.objects.filter(person_cluster=request.user.person_cluster)
 
     birthday_events = custom_users.filter(geburtsdatum__isnull=False)
     for birthday_event in birthday_events:
@@ -1087,7 +1073,7 @@ def aufgabe(request, aufgabe_id):
 @required_person_cluster('posts')
 def posts_overview(request):
     # Get the user's person_cluster
-    user_person_cluster = request.user.customuser.person_cluster
+    user_person_cluster = request.user.person_cluster
     
     # For organization users, they can see all posts
     if user_person_cluster.view == 'O':
@@ -1124,7 +1110,7 @@ def post_edit(request, post_id):
             # Explicitly save the ManyToManyField
             form.save_m2m()
             if not post.person_cluster:
-                post.person_cluster.set([request.user.customuser.person_cluster])
+                post.person_cluster.set([request.user.person_cluster])
             messages.success(request, 'Beitrag erfolgreich aktualisiert.')
             return redirect('post_detail', post_id=post.id)
     else:
@@ -1188,7 +1174,7 @@ def post_detail(request, post_id):
     post = Post2.objects.get(id=post_id)
     
     # Check if user has permission to view this post based on person_cluster
-    user_person_cluster = request.user.customuser.person_cluster
+    user_person_cluster = request.user.person_cluster
     if user_person_cluster.view != 'O' and post.person_cluster.exists():
         # Check if the user's cluster is in the post's allowed clusters
         if user_person_cluster not in post.person_cluster.all():

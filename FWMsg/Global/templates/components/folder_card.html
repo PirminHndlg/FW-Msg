@@ -26,7 +26,7 @@
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div class="d-flex gap-2">
-                    {% if user.customuser.person_cluster.view == 'O' %}
+                    {% if user.role == 'O' %}
 
                     <button class="btn btn-outline-danger btn-sm rounded-4" 
                             onclick="removeOrdner({{ structure.ordner.id }}, '{{ structure.ordner }}')"

@@ -135,7 +135,7 @@ def get_filtered_user_queryset(request, requested_view=None):
 
 def org_context_processor(request):
     """Context processor to add jahrgaenge to all templates."""
-    if hasattr(request, 'user') and request.user.is_authenticated and (request.user.customuser.person_cluster.view == 'O' or request.user.customuser.person_cluster.view == 'T'):
+    if hasattr(request, 'user') and request.user.is_authenticated and (request.user.role == 'O' or request.user.role == 'T'):
         return {
             'person_cluster': PersonCluster.objects.filter(org=request.user.org)
         }
@@ -648,9 +648,9 @@ def _get_ampel_matrix(request, users):
     # Group users by personen_cluster for template
     grouped_matrix = {}
     for user in users:
-        if user.customuser.person_cluster not in grouped_matrix:
-            grouped_matrix[user.customuser.person_cluster] = {}
-        grouped_matrix[user.customuser.person_cluster][user] = ampel_matrix[user]
+        if user.person_cluster not in grouped_matrix:
+            grouped_matrix[user.person_cluster] = {}
+        grouped_matrix[user.person_cluster][user] = ampel_matrix[user]
 
     return grouped_matrix, months
 
@@ -748,9 +748,9 @@ def list_aufgaben_table(request, scroll_to=None):
             if not user.org == request.user.org or not aufgabe.org == request.user.org:
                 continue
                 
-            if aufgabe.person_cluster and user.customuser.person_cluster and not user.customuser.person_cluster in aufgabe.person_cluster.all():
+            if aufgabe.person_cluster and user.person_cluster and not user.person_cluster in aufgabe.person_cluster.all():
                 name = f'{user.first_name + " " if user.first_name else ""}{user.last_name + " " if user.last_name else ""}{user.username if not user.first_name and not user.last_name else ""}'
-                message = f'{name} ({user.customuser.person_cluster.name}) hat keine Aufgabe {aufgabe.name}'
+                message = f'{name} ({user.person_cluster.name}) hat keine Aufgabe {aufgabe.name}'
                 messages.error(request, message)
                 continue
 
@@ -848,7 +848,7 @@ def list_aufgaben_table(request, scroll_to=None):
                         'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
                         'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
                     })
-                elif user.customuser.person_cluster in aufgabe.person_cluster.all():
+                elif user.person_cluster in aufgabe.person_cluster.all():
                     user_aufgaben_matrix[user].append(aufgabe.id)
                 else:
                     user_aufgaben_matrix[user].append(None)
