@@ -8,7 +8,7 @@ import json
 
 from django.db.models import ForeignKey
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http404, HttpResponseNotAllowed, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
 from django.db.models import Max, F, Min
 from django.contrib.auth.decorators import login_required
@@ -626,6 +626,79 @@ def delete_object(request, model_name, id):
     
     # Use the helper function for redirection
     return _redirect_after_action(request, model_name)
+
+@login_required
+@required_role('O')
+def get_cascade_info(request):
+    """
+    Get information about objects that would be deleted in a cascade operation.
+    """
+    model_name = request.GET.get('model')
+    object_id = request.GET.get('id')
+    
+    # Check if model exists
+    model, response = _check_model_exists(model_name)
+    if response:
+        return JsonResponse({'error': 'Model not found'}, status=404)
+    
+    # Get the object and check organization
+    instance, response = _get_object_with_org_check(model, object_id, request)
+    if isinstance(response, HttpResponse):
+        return JsonResponse({'error': 'Object not found or access denied'}, status=403)
+    
+    # Use Django's collector to find objects that would be deleted
+    from django.db.models.deletion import Collector
+    from django.db import router
+    
+    collector = Collector(using=router.db_for_write(model))
+    collector.collect([instance], keep_parents=False)
+    
+    # We don't want to include the object itself in the list
+    for model_obj, instances in collector.data.items():
+        if instance in instances:
+            instances.remove(instance)
+    
+    # Format the related objects
+    related_objects = []
+    for model_obj, instances in collector.data.items():
+        # Skip empty lists after removing the instance itself
+        if not instances:
+            continue
+            
+        for obj in instances:
+            # Skip objects from other organizations for security
+            # if hasattr(obj, 'org') and obj.org != request.user.org:
+            #     continue
+                
+            # Get a display name for the object
+            display_name = str(obj)
+            
+            # # Try to get a user-friendly name for the object
+            # for field_name in ['name', 'title', 'username', 'ordner_name', 'titel']:
+            #     if hasattr(obj, field_name) and getattr(obj, field_name):
+            #         display_name = getattr(obj, field_name)
+            #         break
+            
+            # # Handle user names specially
+            # if hasattr(obj, 'first_name') and hasattr(obj, 'last_name'):
+            #     if obj.first_name and obj.last_name:
+            #         display_name = f"{obj.first_name} {obj.last_name}"
+            
+            # # Handle user relation
+            # if hasattr(obj, 'user'):
+            #     if hasattr(obj.user, 'first_name') and hasattr(obj.user, 'last_name'):
+            #         if obj.user.first_name and obj.user.last_name:
+            #             display_name = f"{obj.user.first_name} {obj.user.last_name}"
+            
+            related_objects.append({
+                'id': obj.pk,
+                'model': model_obj._meta.verbose_name,
+                'display_name': display_name
+            })
+    
+    return JsonResponse({
+        'cascade_objects': related_objects
+    })
 
 def _get_ampel_matrix(request, users):
         # Get date range for ampel entries

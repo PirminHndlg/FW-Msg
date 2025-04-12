@@ -27,4 +27,5 @@ urlpatterns = [
     path('nginx-statistic/', views.nginx_statistic, name='nginx_statistic'),
 
     path('send-registration-mail/', views.send_registration_mail, name='send_registration_mail'),
+    path('get-cascade-info/', views.get_cascade_info, name='get_cascade_info'),
 ]

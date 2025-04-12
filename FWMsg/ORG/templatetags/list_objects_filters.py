@@ -129,3 +129,31 @@ def get_choice_label(obj, field):
     if hasattr(obj, f'get_{field.get("name")}_display'):
         return getattr(obj, f'get_{field.get("name")}_display')()
     return get_attribute(obj, field)
+
+@register.filter
+def get_display_name(obj):
+    """Get a user-friendly display name for an object"""
+    # Try common name fields first
+    for field in ['name', 'title', 'username', 'ordner_name', 'question_text', 'titel']:
+        if hasattr(obj, field) and getattr(obj, field):
+            return getattr(obj, field)
+    
+    # Try name combinations for users
+    if hasattr(obj, 'first_name') and hasattr(obj, 'last_name'):
+        first_name = getattr(obj, 'first_name')
+        last_name = getattr(obj, 'last_name')
+        if first_name and last_name:
+            return f"{first_name} {last_name}"
+        elif first_name:
+            return first_name
+        elif last_name:
+            return last_name
+    
+    # Try user relation
+    if hasattr(obj, 'user'):
+        user = getattr(obj, 'user')
+        if hasattr(user, 'first_name') and hasattr(user, 'last_name'):
+            return f"{user.first_name} {user.last_name}" if user.first_name and user.last_name else user.username
+    
+    # Fall back to string representation
+    return str(obj)
