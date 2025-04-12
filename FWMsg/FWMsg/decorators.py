@@ -18,7 +18,10 @@ def required_role(roles):
     def decorator(view_func):
         # @user_passes_test(lambda u: u.is_authenticated and hasattr(u, 'customuser'))
         def _wrapped_view(request, *args, **kwargs):
-            if not request.user.customuser.person_cluster.view in roles and roles != '':
+            try:
+                if not request.user.customuser.person_cluster.view in roles and roles != '':
+                    raise PermissionDenied
+            except:
                 raise PermissionDenied
             return view_func(request, *args, **kwargs)
         return _wrapped_view
@@ -27,7 +30,11 @@ def required_role(roles):
 def required_person_cluster(person_cluster_attribute):
     def decorator(view_func):
         def _wrapped_view(request, *args, **kwargs):
-            if not request.user.customuser.person_cluster or not getattr(request.user.customuser.person_cluster, person_cluster_attribute):
+            try:
+                if not request.user.customuser.person_cluster or not getattr(request.user.customuser.person_cluster, person_cluster_attribute):
+                    messages.error(request, 'Du hast keine Berechtigung, diese Seite zu sehen')
+                    return redirect('index_home')
+            except:
                 messages.error(request, 'Du hast keine Berechtigung, diese Seite zu sehen')
                 return redirect('index_home')
             return view_func(request, *args, **kwargs)
