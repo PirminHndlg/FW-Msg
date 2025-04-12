@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 import random
 import string
 from simple_history.models import HistoricalRecords
+
 # Create your models here.
 class Organisation(models.Model):
     name = models.CharField(max_length=100)
@@ -31,7 +32,7 @@ class Organisation(models.Model):
 @receiver(post_save, sender=Organisation)
 def create_folder(sender, instance, created, **kwargs):
     if created:
-        from Global.models import CustomUser
+        from Global.models import CustomUser, PersonCluster
         from ORG.tasks import send_register_email_task
 
         path = os.path.join(instance.name)
@@ -43,6 +44,10 @@ def create_folder(sender, instance, created, **kwargs):
             user_name = instance.name.lower().replace(' ', '_')
 
         user = User.objects.create(username=user_name, email=instance.email)
+        user.is_superuser = True
+        user.is_staff = True
+        user.save()
+        person_cluster = PersonCluster.objects.create(name=instance.name, org=instance, view='O')
 
         import random
         import string
@@ -53,7 +58,7 @@ def create_folder(sender, instance, created, **kwargs):
         user.set_password(random_password)
         user.save()
 
-        customuser = CustomUser.objects.create(user=user, org=instance, role='O', einmalpasswort=einmalpasswort)
+        customuser = CustomUser.objects.create(user=user, org=instance, einmalpasswort=einmalpasswort, person_cluster=person_cluster)
 
         send_register_email_task.s(customuser.id).apply_async(countdown=10)
 

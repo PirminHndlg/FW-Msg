@@ -601,7 +601,7 @@ def add_ordner(request):
             try:
                 person_clusters = PersonCluster.objects.filter(id__in=person_cluster_ids)
             except PersonCluster.DoesNotExist:
-                messages.error(request, 'Ausgewählter PersonenCluster existiert nicht.')
+                messages.error(request, 'Ausgewählte Benutzergruppe existiert nicht.')
                 return redirect('dokumente')
             
         color = None
