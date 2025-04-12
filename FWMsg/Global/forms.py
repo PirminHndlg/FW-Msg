@@ -1,5 +1,7 @@
 from django import forms
-from .models import Feedback, Post2, Notfallkontakt2, PostSurveyQuestion, PostSurveyAnswer
+
+from FWMsg.middleware import get_current_request
+from .models import Feedback, PersonCluster, Post2, Notfallkontakt2, PostSurveyQuestion, PostSurveyAnswer
 from django.utils.translation import gettext_lazy as _
 
 class FeedbackForm(forms.ModelForm):
@@ -38,16 +40,41 @@ class AddPostForm(forms.ModelForm):
     
     class Meta:
         model = Post2
-        fields = ['title', 'text', 'has_survey']
+        fields = ['title', 'text', 'has_survey', 'person_cluster']
         widgets = {
             'text': forms.Textarea(attrs={'rows': 10}),
+            'person_cluster': forms.CheckboxSelectMultiple(),
         }
+
+        
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['title'].widget.attrs.update({'placeholder': _('Titel des Beitrags')})
         self.fields['text'].widget.attrs.update({'placeholder': _('Inhalt des Beitrags')})
-        
+        self.fields['person_cluster'].widget.attrs.update({'class': 'form-check-input'})
+
+        # Get all person clusters
+        request = get_current_request()
+        if request and hasattr(request, 'user') and hasattr(request.user, 'customuser'):
+            
+            # Filter queryset based on user role
+            if request.user.customuser.person_cluster.view == 'O':
+                self.fields['person_cluster'].queryset = PersonCluster.objects.filter(
+                    org=request.user.org
+                ).order_by('name')
+                self.fields['person_cluster'].required = False
+            else:
+                # For non-admin users, just show their own person_cluster
+                self.fields['person_cluster'].queryset = PersonCluster.objects.filter(
+                    id=request.user.customuser.person_cluster.id
+                )
+                # Pre-select their cluster
+                if not self.instance.pk:  # Only for new instances
+                    self.initial['person_cluster'] = [request.user.customuser.person_cluster.id]
+            
+                self.fields['person_cluster'].widget.attrs.update({'disabled': 'true'})
+            
     def clean(self):
         cleaned_data = super().clean()
         has_survey = cleaned_data.get('has_survey')
@@ -71,10 +98,13 @@ class AddPostForm(forms.ModelForm):
     
     def save(self, commit=True):
         post = super().save(commit=False)
+
         post.has_survey = self.cleaned_data.get('has_survey', False)
         
         if commit:
             post.save()
+            # Save the ManyToManyField
+            self.save_m2m()
             
             # Create survey question and answers if has_survey is checked
             if post.has_survey:
@@ -100,5 +130,5 @@ class AddPostForm(forms.ModelForm):
                                 org=post.org,
                                 answer_text=answer_text
                             )
-                            
+        
         return post

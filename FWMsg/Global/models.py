@@ -51,6 +51,7 @@ class PersonCluster(OrgModel):
     ampel = models.BooleanField(default=False, verbose_name='Ampel anzeigen', help_text='Aktivieren, um die Ampelfunktion für diese Gruppe anzuzeigen')
     notfallkontakt = models.BooleanField(default=False, verbose_name='Notfallkontakt anzeigen', help_text='Aktivieren, um Notfallkontakte für diese Gruppe anzuzeigen')
     bilder = models.BooleanField(default=False, verbose_name='Bilder anzeigen', help_text='Aktivieren, um Bilder für diese Gruppe anzuzeigen')
+    posts = models.BooleanField(default=False, verbose_name='Posts anzeigen', help_text='Aktivieren, um Posts für diese Gruppe anzuzeigen')
 
     view = models.CharField(max_length=1, choices=view_choices, default='F', verbose_name='Standardansicht', help_text='Bestimmt die Standardansicht für Mitglieder dieser Gruppe')
 
@@ -691,6 +692,7 @@ class Post2(OrgModel):
     date = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
     date_updated = models.DateTimeField(auto_now=True, verbose_name='Aktualisiert am')
     has_survey = models.BooleanField(default=False, verbose_name='Umfrage', help_text='Post enthält eine Umfrage')
+    person_cluster = models.ManyToManyField(PersonCluster, verbose_name='Für Benutzergruppen', help_text='Benutzergruppen, für die dieser Post relevant ist', blank=True)
 
     history = HistoricalRecords()
 
