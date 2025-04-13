@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load widget_tweaks %}
 {% load base_filter %}
+{% load base_fw_filter %}
 
 {% block title %}
   {{ post.title }}
@@ -60,13 +61,13 @@
             <div class="mb-4">
               <h5 class="form-label fw-semibold text-primary">{% trans 'Inhalt' %}</h5>
               <div class="p-4 bg-light rounded-3 border-start border-primary border-3">
-                <div class="post-content">{{ post.text|linebreaks }}</div>
+                <div class="post-content">{{ post.text|format_text_with_link|safe }}</div>
               </div>
             </div>
 
             {% if post.has_survey and post.survey_question %}
               <div class="mt-5 mb-4">
-                <div class="survey-container">
+                <div class="mb-3">
                   <h5 class="form-label fw-semibold text-primary d-flex align-items-center">
                     <span class="survey-icon bg-info rounded-circle d-flex align-items-center justify-content-center me-2"><i class="bi bi-bar-chart-fill text-white"></i></span>
                     {% trans 'Umfrage' %}
@@ -158,19 +159,6 @@
     .author-card,
     .date-card {
       min-height: 80px;
-    }
-    
-    .post-content {
-      white-space: pre-line;
-      line-height: 1.6;
-    }
-    
-    .post-content p {
-      margin-bottom: 1rem;
-    }
-    
-    .survey-container {
-      margin-bottom: 1.5rem;
     }
     
     .survey-options .form-check-input:checked {
