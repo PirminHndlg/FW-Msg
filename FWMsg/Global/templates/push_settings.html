@@ -65,7 +65,7 @@
         <div class="card-body">
           <h5 class="card-title">{% trans 'Push-Benachrichtigungen einrichten' %}</h5>
           <p class="card-text text-muted">
-            {% trans 'Push-Benachrichtigungen ermöglichen es uns, Sie sofort über wichtige Ereignisse zu informieren, auch wenn Sie die Website nicht geöffnet haben.' %}
+            {% trans 'Push-Benachrichtigungen ermöglichen es uns, dich sofort über wichtige Ereignisse zu informieren, auch wenn du die Website nicht geöffnet hast.' %}
           </p>
 
           <div id="pushStatus" class="alert alert-info d-flex align-items-center mb-4">
@@ -91,10 +91,10 @@
                 {% trans 'Push-Benachrichtigungen funktionieren nur in modernen Browsern.' %}
               </li>
               <li>
-                {% trans 'Sie müssen Push-Benachrichtigungen für jedes Gerät und jeden Browser separat aktivieren.' %}
+                {% trans 'Du musst Push-Benachrichtigungen für jedes Gerät und jeden Browser separat aktivieren.' %}
               </li>
               <li>
-                {% trans 'Sie können Push-Benachrichtigungen jederzeit in den Browser-Einstellungen deaktivieren.' %}
+                {% trans 'Du kannst Push-Benachrichtigungen jederzeit in den Browser-Einstellungen deaktivieren.' %}
               </li>
               <li>
                 {% trans 'Auf mobilen Geräten können Push-Benachrichtigungen nur in Chrome oder Firefox empfangen werden.' %}
@@ -130,7 +130,7 @@
                           {% endif %}
                         </small>
                       </div>
-                      <a href="{% url 'remove_subscription' subscription.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% trans 'Sind Sie sicher, dass Sie dieses Gerät entfernen möchten?' %}')"><i class="bi bi-trash"></i></a>
+                      <a href="{% url 'remove_subscription' subscription.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% trans 'Bist du sicher, dass du dieses Gerät entfernen möchtest?' %}')"><i class="bi bi-trash"></i></a>
                     </div>
                   </li>
                 {% endfor %}
@@ -162,7 +162,7 @@
     
       if (!isPushNotificationSupported()) {
         statusIndicator.className = 'push-status-indicator disabled'
-        statusText.textContent = '{% trans "Push-Benachrichtigungen werden von Ihrem Browser nicht unterstützt." %}'
+        statusText.textContent = '{% trans "Push-Benachrichtigungen werden von deinem Browser nicht unterstützt." %}'
         statusContainer.className = 'alert alert-warning d-flex align-items-center mb-4'
         enableBtn.disabled = true
         return
@@ -180,7 +180,7 @@
     
         if (permission === 'denied') {
           statusIndicator.className = 'push-status-indicator disabled'
-          statusText.innerHTML = '{% trans "Push-Benachrichtigungen sind blockiert. Bitte erlauben Sie Benachrichtigungen in Ihren" %} <a href="https://support.google.com/chrome/answer/3220216" target="_blank">{% trans "Browser-Einstellungen" %}</a>.'
+          statusText.innerHTML = '{% trans "Push-Benachrichtigungen sind blockiert. Bitte erlaube die Benachrichtigungen in deinen" %} <a href="https://support.google.com/chrome/answer/3220216" target="_blank">{% trans "Browser-Einstellungen" %}</a>.'
           statusContainer.className = 'alert alert-danger d-flex align-items-center mb-4'
         } else {
           statusIndicator.className = 'push-status-indicator disabled'
