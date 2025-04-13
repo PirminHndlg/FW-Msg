@@ -1,0 +1,53 @@
+{% load i18n %}
+
+<!-- Delete Post Modal -->
+<div class="modal fade" id="deletePostModal{{ post.id|default:'' }}" tabindex="-1" aria-labelledby="deletePostModalLabel{{ post.id|default:'' }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow">
+      <div class="modal-header bg-danger text-white rounded-top-4">
+        <h5 class="modal-title" id="deletePostModalLabel{{ post.id|default:'' }}">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          {% trans 'Beitrag löschen' %}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="text-center mb-4">
+          <span class="object-icon bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3">
+            <i class="bi bi-trash text-danger fs-3"></i>
+          </span>
+          <h5 class="fw-bold">{% trans 'Bist Du sicher, dass Du diesen Beitrag löschen möchtest?' %}</h5>
+          <p class="text-muted">{% trans 'Diese Aktion kann nicht rückgängig gemacht werden!' %}</p>
+        </div>
+        
+        <div class="border-start border-danger border-3 rounded p-3 bg-light mb-4">
+          <div class="fw-semibold">{{ post.title }}</div>
+          <div class="text-muted small">
+            <i class="bi bi-person me-1"></i> {{ post.user.first_name }} {{ post.user.last_name }}
+            <i class="bi bi-calendar ms-2 me-1"></i> {{ post.date|date:'d.m.Y' }}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light rounded-bottom-4">
+        <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i>
+          {% trans 'Abbrechen' %}
+        </button>
+        <a href="{% url 'post_delete' post.id %}" class="btn btn-danger rounded-3">
+          <i class="bi bi-trash me-1"></i>
+          {% trans 'Beitrag löschen' %}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .object-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style> 

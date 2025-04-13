@@ -10,7 +10,7 @@
             <div class="d-flex justify-content-between align-items-center">
               <a href="{% url 'post_detail' post.id %}" class="text-decoration-none text-dark">
                 <div class="d-flex align-items-center">
-                  <span class="post-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"><i class="bi bi-file-text text-white"></i></span>
+                  <span class="post-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"><i class="bi bi-journal-text text-white"></i></span>
                   <h5 class="card-title mb-0 fw-semibold">{{ post.title }}</h5>
                   {% if post.has_survey %}
                     <span class="badge bg-info ms-2" title="{% trans 'Enthält eine Umfrage' %}"><i class="bi bi-bar-chart-fill"></i></span>
@@ -28,7 +28,7 @@
                       <hr class="dropdown-divider" />
                     </li>
                     <li>
-                      <a class="dropdown-item text-danger" href="{% url 'post_delete' post.id %}" onclick="return confirm('{% trans 'Sind Sie sicher, dass Sie diesen Beitrag löschen möchten?' %}')"><i class="bi bi-trash me-2"></i>{% trans 'Löschen' %}</a>
+                      <button class="dropdown-item text-danger" type="button" data-bs-toggle="modal" data-bs-target="#deletePostModal{{ post.id }}"><i class="bi bi-trash me-2"></i>{% trans 'Löschen' %}</button>
                     </li>
                   </ul>
                 </div>
@@ -74,6 +74,9 @@
             </a>
           </div>
         </div>
+        
+        <!-- Include the delete modal for this post -->
+        {% include 'components/post_delete_modal.html' with post=post %}
       </div>
     {% endfor %}
   </div>
