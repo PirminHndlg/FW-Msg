@@ -698,25 +698,28 @@ def serve_profil_picture(request, user_id):
 
 def unsubscribe_mail_notifications(request, user_id, auth_key):
     try:
-        custom_user = CustomUser.objects.get(user=user_id)
+        custom_user = CustomUser.objects.get(user__id=user_id)
 
+        # Check if the auth key matches or the user is already authenticated as this user
         if custom_user.mail_notifications_unsubscribe_auth_key == auth_key or request.user.id == user_id:
-            if request.GET.get('value') == 'false':
-                custom_user.mail_notifications = False
-                messages.success(request, 'Mail-Benachrichtigungen wurden deaktiviert')
-            else:
+            if request.GET.get('value') == 'true':
                 custom_user.mail_notifications = True
                 messages.success(request, 'Mail-Benachrichtigungen wurden aktiviert')
-            custom_user.save()
+            else:
+                custom_user.mail_notifications = False
+                messages.success(request, 'Mail-Benachrichtigungen wurden deaktiviert')
         else:
             messages.error(request, 'Ungültige Abmelde-URL')
         
-        if not request.user.is_authenticgated:
+        custom_user.save()
+        
+        # Fix typo in is_authenticated check
+        if not request.user.is_authenticated:
             login(request, custom_user.user)
 
     except CustomUser.DoesNotExist:
         messages.error(request, 'Benutzer nicht gefunden')
-    return redirect('index_home')
+    return redirect('profil')
 
 @login_required
 def view_profil(request, user_id=None):

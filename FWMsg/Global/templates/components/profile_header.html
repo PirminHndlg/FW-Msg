@@ -1,5 +1,5 @@
 {% load i18n %}
-
+{% load static %}
 <div class="d-flex align-items-center gap-2 justify-content-between">
   <div class="d-flex align-items-center gap-2">
     <h3 class="card-title mb-0">
@@ -31,14 +31,15 @@
   </div>
   {% if this_user %}
     <div class="d-flex align-items-center gap-2">
+      <a id="pushStatusIndicator" href="{% url 'push_settings' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-bell me-1"></i></a>
       {% if user.customuser.mail_notifications %}
-        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#unsubscribeModal">
-          <i class="bi bi-envelope-x me-1"></i>
-        </button>
+      <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#unsubscribeModal">
+        <i class="bi bi-envelope-check me-1"></i>
+      </button>
       {% else %}
-        <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#unsubscribeModal">
-          <i class="bi bi-envelope-check me-1"></i>
-        </button>
+      <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#unsubscribeModal">
+        <i class="bi bi-envelope-x me-1"></i>
+      </button>
       {% endif %}
       <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-box-arrow-right me-1"></i>{% trans 'Abmelden' %}</a>
     </div>
@@ -78,3 +79,21 @@
     </div>
   {% endif %}
 </div>
+
+{% if this_user %}
+    <script src="{% static 'js/push-notifications.js' %}"></script>
+    <script>
+        async function updatePushStatus() {
+            const subscription = await checkPushSubscription()
+            if (subscription) {
+                document.getElementById('pushStatusIndicator').classList.add('btn-outline-success');
+                document.getElementById('pushStatusIndicator').classList.remove('btn-outline-primary');
+            } else {
+                document.getElementById('pushStatusIndicator').classList.add('btn-outline-danger');
+                document.getElementById('pushStatusIndicator').classList.remove('btn-outline-primary');
+                document.getElementById('pushStatusIndicator').innerHTML = '<i class="bi bi-bell-slash me-1"></i>';
+            }
+        }
+        updatePushStatus()
+    </script>
+{% endif %}
