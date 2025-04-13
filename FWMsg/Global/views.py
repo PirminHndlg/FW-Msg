@@ -1041,47 +1041,25 @@ def aufgabe(request, aufgabe_id):
 
         if user_aufgabe.aufgabe.mitupload:
             if files and len(files) > 1:
-               
-                tmp_folder = os.path.join(settings.MEDIA_ROOT, 'tmp')
-                os.makedirs(tmp_folder, exist_ok=True)
-                for file in files:
-                    print(file.name)
-                    with open(os.path.join(tmp_folder, file.name), 'wb') as f:
-                        f.write(file.read())
-                    
-                #alternative way to save the file
+                # Create a zip file in memory
                 zip_buffer = io.BytesIO()
                 with zipfile.ZipFile(zip_buffer, 'w') as zipf:
                     for i, file in enumerate(files):
-                        # TemporaryUploadedFile doesn't have a path attribute, so we need to handle the file directly
-                        # file_name = f"{user_aufgabe.aufgabe.name.replace(' ', '_')}-{user_aufgabe.faellig.strftime('%Y-%m-%d')}_{i}"
-                        # zipf.writestr(file_name, file.read())
                         file_suffix = os.path.splitext(file.name)[1]
-                        print(file_suffix)
-                        print(os.path.join(tmp_folder, file.name))
-                        zipf.write(os.path.join(tmp_folder, file.name), f"{user_aufgabe.user.username}-{user_aufgabe.aufgabe.name.replace(' ', '_')}-{user_aufgabe.faellig.strftime('%Y-%m-%d')}_{i}{file_suffix}")
+                        # Create a unique filename within the zip
+                        zip_filename = f"{user_aufgabe.user.username}-{user_aufgabe.aufgabe.name.replace(' ', '_')}-{user_aufgabe.faellig.strftime('%Y-%m-%d')}_{i}{file_suffix}"
+                        # Add the file directly to the zip without creating temp files
+                        zipf.writestr(zip_filename, file.read())
 
+                # Reset buffer position to beginning
                 zip_buffer.seek(0)
-
-                # user_aufgabe.file.upload_to as folder 
-                upload_to_path = os.path.join(settings.MEDIA_ROOT, user_aufgabe._meta.get_field('file').upload_to)
-                #create file and save the zip file to the tmp folder
+                
+                # Create filename for the zip file
                 file_name = f"{user_aufgabe.aufgabe.name.replace(' ', '_')}-{user_aufgabe.faellig.strftime('%Y-%m-%d')}.zip"
-                # Write to a temporary file path
-                temp_path = os.path.join(upload_to_path, file_name)
-                with open(temp_path, 'wb') as f:
-                    f.write(zip_buffer.getvalue())
                 
-                # Open the file and save it to the FileField properly
-                with open(temp_path, 'rb') as f:
-                    # This will save the file to the correct location based on the upload_to parameter
-                    user_aufgabe.file.save(file_name, ContentFile(f.read()), save=False)
-                
-                # Now save the model instance
-                user_aufgabe.save()
-                
-                # Optionally remove the temporary file
-                os.remove(temp_path)
+                # Save the zip file directly to the FileField using ContentFile
+                # This properly handles the upload_to parameter and file storage
+                user_aufgabe.file.save(file_name, ContentFile(zip_buffer.getvalue()), save=True)
 
             elif files:
                 user_aufgabe.file = files[0]
