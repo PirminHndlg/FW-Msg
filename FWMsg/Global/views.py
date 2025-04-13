@@ -1103,11 +1103,10 @@ def post_edit(request, post_id):
         return redirect('post_detail', post_id=post_id)
     
     if request.method == 'POST':
-        print(request.POST)
         form = AddPostForm(request.POST, instance=post)
         if form.is_valid():
             # Save with commit=False to handle the post object
-            post = form.save(commit=False)
+            post = form.save(commit=True)
             post.save()
 
             # Explicitly save the ManyToManyField
@@ -1149,9 +1148,11 @@ def post_add(request, post=None):
             post.org = request.user.org
             post.save()
 
+            # Save the survey question and answers
+            form.save_answers()
+
             # Save person_cluster
             person_cluster = form.cleaned_data.get('person_cluster')
-            print(person_cluster)
             if person_cluster:
                 post.person_cluster.set(person_cluster)
 

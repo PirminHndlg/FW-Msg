@@ -106,30 +106,32 @@ class AddPostForm(forms.ModelForm):
             post.save()
             # Save the ManyToManyField
             self.save_m2m()
-            
-            # Create survey question and answers if has_survey is checked
-            if post.has_survey:
-                question_text = self.cleaned_data.get('survey_question')
-                if question_text:
-                    # Create or update the survey question
-                    question, created = PostSurveyQuestion.objects.update_or_create(
-                        post=post,
-                        org=post.org,
-                        defaults={'question_text': question_text}
-                    )
-                    
-                    # Delete existing answers if updating
-                    if not created:
-                        PostSurveyAnswer.objects.filter(question=question).delete()
-                    
-                    # Create answers
-                    for i in range(1, 6):
-                        answer_text = self.cleaned_data.get(f'answer_{i}')
-                        if answer_text:
-                            PostSurveyAnswer.objects.create(
-                                question=question,
-                                org=post.org,
-                                answer_text=answer_text
-                            )
+            self.save_answers()
         
         return post
+    
+    def save_answers(self):
+        # Create survey question and answers if has_survey is checked
+        if self.instance.has_survey:
+            question_text = self.cleaned_data.get('survey_question')
+            if question_text:
+                # Create or update the survey question
+                question, created = PostSurveyQuestion.objects.update_or_create(
+                    post=self.instance,
+                    org=self.instance.org,
+                    defaults={'question_text': question_text}
+                )
+
+                if not created:
+                    PostSurveyAnswer.objects.filter(question=question).delete()
+
+                # Create answers
+                for i in range(1, 6):
+                    answer_text = self.cleaned_data.get(f'answer_{i}')
+                    if answer_text:
+                        PostSurveyAnswer.objects.create(
+                            question=question,
+                            org=self.instance.org,
+                            answer_text=answer_text
+                        )
+                
