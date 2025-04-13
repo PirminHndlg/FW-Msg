@@ -878,7 +878,7 @@ class ProfilUser2(OrgModel):
         verbose_name_plural = 'Profil User'
 
     def __str__(self):
-        return self.user + self.attribut
+        return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.attribut
 
 
 class Maintenance(models.Model):
