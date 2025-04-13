@@ -88,6 +88,11 @@
                             {% include 'components/task_card.html' with task=task %}
                         {% endfor %}
                     </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-check2-circle text-muted mb-2" style="font-size: 2rem;"></i>
+                    <p class="text-muted mb-0">Keine Aufgaben</p>
+                </div>
                 {% endif %}
             </div>
         </div>
