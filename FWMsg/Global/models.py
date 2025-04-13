@@ -658,6 +658,10 @@ class UserAufgaben(OrgModel):
 
         if not self.faellig:
 
+            faellig_date = datetime(datetime.now().year, self.aufgabe.faellig_monat or 1, self.aufgabe.faellig_tag or 1).date()
+            while faellig_date < datetime.now().date():
+                faellig_date = faellig_date.replace(year=faellig_date.year+1)
+
             if Freiwilliger.objects.filter(org=self.org, user=self.user, user__customuser__person_cluster__in=self.aufgabe.person_cluster.all()).exists():
                 freiwilliger = Freiwilliger.objects.get(org=self.org, user=self.user, user__customuser__person_cluster__in=self.aufgabe.person_cluster.all())
 
@@ -671,25 +675,23 @@ class UserAufgaben(OrgModel):
                 elif self.aufgabe.faellig_monat:
                     year = start_date.year
 
-                    faellig_date = datetime(year, self.aufgabe.faellig_monat, self.aufgabe.faellig_tag or 1).date()
+                    try:
+                        while self.aufgabe.faellig_art.type == 'V' and faellig_date > start_date:
+                            faellig_date = faellig_date.replace(year=year-1)
 
-                    while self.aufgabe.faellig_art.type == 'V' and faellig_date > start_date:
-                        faellig_date = faellig_date.replace(year=year-1)
+                        while self.aufgabe.faellig_art.type == 'W' and faellig_date < start_date:
+                            faellig_date = faellig_date.replace(year=year+1)
+                        while self.aufgabe.faellig_art.type == 'W' and faellig_date > end_date:
+                            faellig_date = faellig_date.replace(year=year-1)
 
-                    while self.aufgabe.faellig_art.type == 'W' and faellig_date < start_date:
-                        faellig_date = faellig_date.replace(year=year+1)
-                    while self.aufgabe.faellig_art.type == 'W' and faellig_date > end_date:
-                        faellig_date = faellig_date.replace(year=year-1)
-
-                    while self.aufgabe.faellig_art.type == 'N' and faellig_date < end_date:
-                        faellig_date = faellig_date.replace(year=year+1)
+                        while self.aufgabe.faellig_art.type == 'N' and faellig_date < end_date:
+                                faellig_date = faellig_date.replace(year=year+1)
+                    except:
+                        pass
 
                     self.faellig = faellig_date
 
             elif self.aufgabe.faellig_monat:
-                faellig_date = datetime(datetime.now().year, self.aufgabe.faellig_monat or 1, self.aufgabe.faellig_tag or 1).date()
-                while faellig_date < datetime.now().date():
-                    faellig_date = faellig_date.replace(year=faellig_date.year+1)
                 self.faellig = faellig_date
 
         

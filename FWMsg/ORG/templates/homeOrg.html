@@ -81,7 +81,13 @@
                         {% include 'components/task_item.html' with tasks=my_open_tasks %}
                     </div> {% endcomment %}
 
-                    {% include 'components/task_grid.html' with tasks=my_open_tasks %}
+                    {% comment %} {% include 'components/task_grid.html' with tasks=my_open_tasks %} {% endcomment %}
+
+                    <div class="row row-cols-1 row-cols-xxl-2 g-4">
+                        {% for task in my_open_tasks %}
+                            {% include 'components/task_card.html' with task=task %}
+                        {% endfor %}
+                    </div>
                 {% endif %}
             </div>
         </div>
