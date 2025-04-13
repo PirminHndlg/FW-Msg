@@ -2,7 +2,6 @@
 {% load i18n %}
 
 {% if posts %}
-  <div class="row row-cols-1 row-cols-md-2 g-4">
     {% for post in posts %}
       <div class="col">
         <div class="card h-100 shadow-sm rounded-4">
@@ -83,7 +82,6 @@
         {% include 'components/post_delete_modal.html' with post=post %}
       </div>
     {% endfor %}
-  </div>
 {% else %}
   <div class="text-center py-4">
     <i class="bi bi-journal-text text-muted mb-2" style="font-size: 2rem;"></i>

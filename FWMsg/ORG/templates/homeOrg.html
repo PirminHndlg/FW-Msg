@@ -110,7 +110,9 @@
             <div class="card-body">
                 {% if posts %}
                     <div class="list-group list-group-flush">
-                        {% include 'components/post_card.html' with posts=posts %}
+                        <div class="row row-cols-1 row-cols-xxl-2 g-4">
+                            {% include 'components/post_card.html' with posts=posts %}
+                        </div>
                     </div>
                 {% endif %}
             </div>
