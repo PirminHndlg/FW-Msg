@@ -123,15 +123,46 @@ class AddPostForm(forms.ModelForm):
                 )
 
                 if not created:
-                    PostSurveyAnswer.objects.filter(question=question).delete()
-
-                # Create answers
-                for i in range(1, 6):
-                    answer_text = self.cleaned_data.get(f'answer_{i}')
-                    if answer_text:
-                        PostSurveyAnswer.objects.create(
-                            question=question,
-                            org=self.instance.org,
-                            answer_text=answer_text
-                        )
+                    # Get existing answers to compare with new ones
+                    existing_answers = {answer.answer_text: answer for answer in 
+                                      PostSurveyAnswer.objects.filter(question=question)}
+                    
+                    # Collect new answers
+                    new_answers = []
+                    for i in range(1, 6):
+                        answer_text = self.cleaned_data.get(f'answer_{i}')
+                        if answer_text:
+                            new_answers.append(answer_text)
+                    
+                    # Check if answers have changed
+                    answers_changed = len(existing_answers) != len(new_answers)
+                    if not answers_changed:
+                        for answer_text in new_answers:
+                            if answer_text not in existing_answers:
+                                answers_changed = True
+                                break
+                    
+                    # Only delete old answers if there were changes
+                    if answers_changed:
+                        PostSurveyAnswer.objects.filter(question=question).delete()
+                        # Create new answers
+                        for answer_text in new_answers:
+                            PostSurveyAnswer.objects.create(
+                                question=question,
+                                org=self.instance.org,
+                                answer_text=answer_text
+                            )
+                    else:
+                        # No changes to answers, do nothing
+                        pass
+                else:
+                    # This is a new question, create all answers
+                    for i in range(1, 6):
+                        answer_text = self.cleaned_data.get(f'answer_{i}')
+                        if answer_text:
+                            PostSurveyAnswer.objects.create(
+                                question=question,
+                                org=self.instance.org,
+                                answer_text=answer_text
+                            )
                 
