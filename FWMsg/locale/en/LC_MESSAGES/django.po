@@ -862,7 +862,7 @@ msgstr "Completed on"
 
 #: Global/templates/components/post_card.html:70
 msgid "Weiterlesen"
-msgstr "Complete task"
+msgstr "Read more"
 
 #: Global/templates/components/profile_details.html:10
 #: Global/templates/components/profile_details.html:18
