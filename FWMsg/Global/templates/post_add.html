@@ -144,7 +144,13 @@
                                         {{ form.answer_5|add_class:"form-control rounded-3" }}
                                     </div>
                                 </div>
-                                
+
+                                {% if post %}
+                                <div class="text-danger small">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                    {% trans "Wenn du Antworten bearbeitest, werden die bereits abgegebenen Antworten gelöscht und die Umfrage wird neu gestartet." %}
+                                </div>
+                                {% endif %}
                                 <div class="text-muted small">
                                     <i class="bi bi-info-circle me-1"></i>
                                     {% trans "Die Umfrage wird anonym durchgeführt. Es werden nur die Anzahl der Antworten gezählt." %}
