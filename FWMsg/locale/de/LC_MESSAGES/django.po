@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-19 12:13+0100\n"
+"POT-Creation-Date: 2025-04-13 18:25+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,14 +19,14 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: FW/templates/ampel.html:10
-#: Global/templates/components/profile_header.html:10
+#: Global/templates/components/profile_header.html:16
 msgid "Ampel"
 msgstr "Ampel"
 
-#: FW/templates/ampel.html:18 FW/templates/base.html:67
-#: FW/templates/base.html:148 FW/templates/base.html:273
-#: FW/templates/baseFw.html:49 FW/templates/baseFw.html:141
-#: FW/templates/baseFw.html:252 TEAM/templates/teamAmpelmeldung.html:5
+#: FW/templates/ampel.html:18 FW/templates/base.html:68
+#: FW/templates/base.html:149 FW/templates/base.html:274
+#: FW/templates/baseFw.html:50 FW/templates/baseFw.html:110
+#: FW/templates/baseFw.html:183 TEAM/templates/teamAmpelmeldung.html:5
 msgid "Ampelmeldung"
 msgstr "Ampelmeldung"
 
@@ -44,7 +44,8 @@ msgstr "Anmerkungen"
 msgid "Deine Anmerkungen hier..."
 msgstr "Deine Anmerkungen hier..."
 
-#: FW/templates/ampel.html:41 FW/templates/components/task_detail_form.html:54
+#: FW/templates/ampel.html:41 FW/templates/components/task_detail_form.html:127
+#: ORG/templates/components/form_buttons.html:6
 msgid "Zurück"
 msgstr "Zurück"
 
@@ -56,140 +57,164 @@ msgstr "Abschicken"
 msgid "Bitte wählen Sie eine Farbe aus"
 msgstr "Bitte wählen Sie eine Farbe aus"
 
-#: FW/templates/aufgabe.html:11 ORG/templates/list_aufgaben.html:46
-#: ORG/templates/list_aufgaben.html:113 ORG/templates/list_aufgaben.html:172
+#: FW/templates/aufgabe.html:10
+#: ORG/templates/components/task_zwischenschritte_modal.html:13
+#: ORG/templates/list_aufgaben.html:46 ORG/templates/list_aufgaben.html:113
+#: ORG/templates/list_aufgaben.html:172
 #, fuzzy
 #| msgid "Aufgaben"
 msgid "Aufgabe"
 msgstr "Aufgaben"
 
-#: FW/templates/aufgaben.html:11 FW/templates/base.html:138
-#: FW/templates/base.html:260 FW/templates/baseFw.html:135
-#: FW/templates/baseFw.html:235 FW/templates/home.html:23
-#: ORG/templates/aufgaben_assign.html:82 ORG/templates/list_aufgaben.html:5
-#: ORG/templates/list_aufgaben_table.html:4 TEAM/templates/baseTeam.html:47
+#: FW/templates/aufgaben.html:11 FW/templates/aufgaben.html:21
+#: FW/templates/base.html:139 FW/templates/base.html:261
+#: FW/templates/baseFw.html:90 FW/templates/baseFw.html:169
+#: FW/templates/homeFw.html:22 ORG/templates/aufgaben_assign.html:82
+#: ORG/templates/list_aufgaben.html:5 ORG/templates/list_aufgaben_table.html:5
+#: TEAM/templates/baseTeam.html:55
 msgid "Aufgaben"
 msgstr "Aufgaben"
 
-#: FW/templates/aufgaben.html:27
+#: FW/templates/aufgaben.html:31
 #, fuzzy
 #| msgid "Aufgaben"
 msgid "Offene Aufgaben"
 msgstr "Aufgaben"
 
-#: FW/templates/aufgaben.html:27
+#: FW/templates/aufgaben.html:31
 msgid "Offene Aufgaben sind Aufgaben, die noch nicht abgeschlossen sind."
 msgstr ""
 
-#: FW/templates/aufgaben.html:31 ORG/templates/list_aufgaben.html:23
+#: FW/templates/aufgaben.html:35 ORG/templates/list_aufgaben.html:23
 #, fuzzy
 #| msgid "Aufgaben"
 msgid "Pending Aufgaben"
 msgstr "Pending Aufgaben"
 
-#: FW/templates/aufgaben.html:31
+#: FW/templates/aufgaben.html:35
 msgid ""
 "Pending Aufgaben sind abgeschlossene Aufgaben, die zur Überprüfung "
 "eingereicht wurden und auf Bestätigung warten."
 msgstr ""
 
-#: FW/templates/aufgaben.html:35 ORG/templates/list_aufgaben.html:30
+#: FW/templates/aufgaben.html:39 ORG/templates/list_aufgaben.html:30
 #, fuzzy
 #| msgid "Aufgaben"
 msgid "Erledigte Aufgaben"
 msgstr "Aufgaben"
 
-#: FW/templates/aufgaben.html:35
+#: FW/templates/aufgaben.html:39
 msgid "Erledigte Aufgaben sind Aufgaben, die abgeschlossen wurden."
 msgstr ""
 
-#: FW/templates/base.html:72 FW/templates/base.html:169
-#: FW/templates/baseFw.html:52 FW/templates/baseFw.html:154
+#: FW/templates/base.html:73 FW/templates/base.html:170
+#: FW/templates/baseFw.html:55 FW/templates/baseFw.html:95
 #: FW/templates/components/calendar.html:8 Global/templates/kalender.html:6
-#: TEAM/templates/baseTeam.html:50
+#: TEAM/templates/baseTeam.html:60
 msgid "Kalender"
 msgstr "Kalender"
 
-#: FW/templates/base.html:77 FW/templates/base.html:174
-#: FW/templates/baseFw.html:55 FW/templates/baseFw.html:157
+#: FW/templates/base.html:78 FW/templates/base.html:175
+#: FW/templates/baseFw.html:59 FW/templates/baseFw.html:114
 #, fuzzy
 msgid "Mein Einsatzland"
 msgstr "Mein Einsatzland"
 
-#: FW/templates/base.html:82 FW/templates/base.html:179
-#: FW/templates/baseFw.html:58 FW/templates/baseFw.html:160
+#: FW/templates/base.html:83 FW/templates/base.html:180
+#: FW/templates/baseFw.html:63 FW/templates/baseFw.html:118
 #: FW/templates/notfallkontakte.html:6 FW/templates/notfallkontakte.html:22
 msgid "Notfallkontakte"
 msgstr "Notfallkontakte"
 
-#: FW/templates/base.html:91 FW/templates/base.html:105
-#: FW/templates/base.html:209 FW/templates/base.html:221
-#: FW/templates/baseFw.html:77 FW/templates/baseFw.html:104
-#: FW/templates/baseFw.html:187 FW/templates/baseFw.html:198
-#: Home/templates/first_login.html:108 Home/templates/index.html:98
-#: Home/templates/password_reset.html:92
+#: FW/templates/base.html:92 FW/templates/base.html:106
+#: FW/templates/base.html:210 FW/templates/base.html:222
+#: Global/templates/components/language_selector.html:10
+#: Global/templates/components/language_selector.html:25
+#: Home/templates/first_login.html:115 Home/templates/index.html:115
+#: Home/templates/password_reset.html:99
 msgid "Deutsch"
 msgstr "Deutsch"
 
-#: FW/templates/base.html:91 FW/templates/base.html:105
-#: FW/templates/base.html:211 FW/templates/base.html:226
-#: FW/templates/baseFw.html:79 FW/templates/baseFw.html:106
-#: FW/templates/baseFw.html:189 FW/templates/baseFw.html:201
-#: Home/templates/first_login.html:108 Home/templates/index.html:98
-#: Home/templates/password_reset.html:92
+#: FW/templates/base.html:92 FW/templates/base.html:106
+#: FW/templates/base.html:212 FW/templates/base.html:227
+#: Global/templates/components/language_selector.html:10
+#: Global/templates/components/language_selector.html:25
+#: Home/templates/first_login.html:115 Home/templates/index.html:115
+#: Home/templates/password_reset.html:99
 msgid "English"
 msgstr "Englisch"
 
-#: FW/templates/base.html:133 FW/templates/base.html:254
-#: FW/templates/baseFw.html:132 FW/templates/baseFw.html:227
-#: TEAM/templates/baseTeam.html:44
+#: FW/templates/base.html:134 FW/templates/base.html:255
+#: FW/templates/baseFw.html:86 FW/templates/baseFw.html:161
+#: TEAM/templates/baseTeam.html:51
 msgid "Home"
 msgstr "Home"
 
-#: FW/templates/base.html:143 FW/templates/base.html:271
-#: FW/templates/baseFw.html:138 FW/templates/baseFw.html:246
-#: Global/templates/bild.html:18
+#: FW/templates/base.html:144 FW/templates/base.html:272
+#: FW/templates/baseFw.html:180 Global/templates/bild.html:17
 msgid "Bilder hochladen"
 msgstr "Bilder hochladen"
 
-#: FW/templates/base.html:153 FW/templates/base.html:280
-#: FW/templates/baseFw.html:144 FW/templates/baseFw.html:263
-#: Global/templates/dokumente.html:40
+#: FW/templates/base.html:154 FW/templates/base.html:281
+#: FW/templates/baseFw.html:105 FW/templates/baseFw.html:194
+#: Global/templates/dokumente.html:45 Global/templates/dokumente.html:59
+#: TEAM/templates/baseTeam.html:65
 msgid "Dokumente"
 msgstr "Dokumente"
 
-#: FW/templates/base.html:158 FW/templates/base.html:286
-#: FW/templates/baseFw.html:147 FW/templates/baseFw.html:271
+#: FW/templates/base.html:159 FW/templates/base.html:287
+#: FW/templates/baseFw.html:122 FW/templates/baseFw.html:202
 #: Global/templates/profil.html:12
 msgid "Profil"
 msgstr "Profil"
 
-#: FW/templates/base.html:163 FW/templates/baseFw.html:150
+#: FW/templates/base.html:164 FW/templates/baseFw.html:125
 msgid "Mehr"
 msgstr ""
 
-#: FW/templates/base.html:184 FW/templates/base.html:274
-#: FW/templates/baseFw.html:163 FW/templates/baseFw.html:255
+#: FW/templates/base.html:185 FW/templates/base.html:275
+#: FW/templates/baseFw.html:132 FW/templates/baseFw.html:186
 #: Global/templates/feedback.html:28
 msgid "Feedback"
 msgstr "Feedback"
 
-#: FW/templates/base.html:272 FW/templates/baseFw.html:249
+#: FW/templates/base.html:273
 msgid "Aufgabe erledigen"
 msgstr "Aufgabe erledigen"
 
+#: FW/templates/baseFw.html:100 Global/templates/bild.html:11
+#: Global/templates/bilder.html:9
+#: Global/templates/components/gallery_grid.html:6
+msgid "Bilder"
+msgstr "Bilder"
+
+#: FW/templates/baseFw.html:129 Home/templates/first_login.html:125
+#: Home/templates/index.html:122 Home/templates/password_reset.html:109
+msgid "Datenschutz"
+msgstr "Datenschutz"
+
 #: FW/templates/components/add_contact_form.html:23
-#: Global/templates/bilder.html:59
-#: Global/templates/components/profile_details.html:64
-#: Global/templates/dokumente.html:267 Global/templates/dokumente.html:304
-#: Global/templates/feedback.html:73 Global/templates/profil.html:55
-#: Global/templates/profil.html:137
+#: Global/templates/bilder.html:65
+#: Global/templates/components/document_modal.html:73
+#: Global/templates/components/folder_modal.html:47
+#: Global/templates/components/image_card_header.html:50
+#: Global/templates/components/profile_edit_controls.html:29
+#: Global/templates/components/profile_header.html:70
+#: Global/templates/feedback.html:73 Global/templates/post_add.html:164
+#: Global/templates/post_add.html:168 Global/templates/profil.html:68
+#: Global/templates/profil.html:148
+#: ORG/templates/components/delete_modal.html:18
+#: ORG/templates/components/form_buttons.html:37
+#: ORG/templates/components/task_country_modal.html:28
+#: ORG/templates/list_aufgaben_table.html:114
+#: ORG/templates/list_objects.html:380
+#: TEAM/templates/teamEinsatzstellen.html:215
+#: TEAM/templates/teamLaender.html:209
 msgid "Abbrechen"
 msgstr "Abbrechen"
 
 #: FW/templates/components/add_contact_form.html:27
-#: Global/templates/components/profile_details.html:58
-#: Global/templates/components/profile_gallery.html:10
+#: ORG/templates/list_objects.html:79
 msgid "Hinzufügen"
 msgstr "Hinzufügen"
 
@@ -206,7 +231,7 @@ msgid "Grün - Alles in Ordnung"
 msgstr "Grün - Alles in Ordnung"
 
 #: FW/templates/components/ampel_status.html:5
-#: ORG/templates/list_aufgaben_table.html:258
+#: ORG/templates/components/task_table_row.html:138
 msgid "Zuletzt"
 msgstr "Zuletzt"
 
@@ -224,148 +249,176 @@ msgstr "abgegeben"
 msgid "Keine Ampelmeldung vorhanden"
 msgstr "Ampelmeldung"
 
-#: FW/templates/components/calendar.html:58
+#: FW/templates/components/calendar.html:59
 msgid "Heute"
 msgstr ""
 
-#: FW/templates/components/contact_card_simple.html:19
-#, fuzzy
-#| msgid "Bearbeiten"
-msgid "Arbeit"
-msgstr "Bearbeiten"
-
-#: FW/templates/components/post_list.html:8
-#, fuzzy
-#| msgid "Aufgabe erledigen"
-msgid "Weiterlesen"
-msgstr "Jetzt erledigen"
-
 #: FW/templates/components/progress_bar.html:35
+#: FW/templates/components/task_card.html:88
+#: FW/templates/components/task_detail_form.html:116
 #: FW/templates/components/task_progress.html:11
 #: FW/templates/components/task_progress.html:34
+#: ORG/templates/components/task_zwischenschritte_modal.html:110
 msgid "Offen"
 msgstr "Offen"
 
 #: FW/templates/components/progress_bar.html:36
-#: FW/templates/components/task_detail_form.html:45
 #: FW/templates/components/task_progress.html:20
 #: FW/templates/components/task_progress.html:35
-#: ORG/templates/list_aufgaben_table.html:85
-#: ORG/templates/list_aufgaben_table.html:206
+#: ORG/templates/components/task_legend.html:8
+#: ORG/templates/components/task_table_row.html:80
 msgid "Pending"
 msgstr "Pending"
 
 #: FW/templates/components/progress_bar.html:37
-#: FW/templates/components/task_card.html:29
-#: FW/templates/components/task_detail_form.html:39
-#: FW/templates/components/task_detail_form.html:68
+#: FW/templates/components/task_detail_form.html:142
 #: FW/templates/components/task_progress.html:29
 #: FW/templates/components/task_progress.html:36
+#: ORG/templates/components/task_legend.html:5
+#: ORG/templates/components/task_table_row.html:42
+#: ORG/templates/components/task_zwischenschritte_modal.html:110
 #: ORG/templates/list_aufgaben.html:91 ORG/templates/list_aufgaben.html:150
-#: ORG/templates/list_aufgaben_table.html:82
-#: ORG/templates/list_aufgaben_table.html:175
 msgid "Erledigt"
 msgstr "Erledigt"
 
-#: FW/templates/components/start_counter.html:8
+#: FW/templates/components/start_counter.html:7
 msgid "Tage bis Ausreise"
 msgstr ""
 
-#: FW/templates/components/start_counter.html:18
+#: FW/templates/components/start_counter.html:17
 msgid "Tage"
 msgstr ""
 
-#: FW/templates/components/start_counter.html:26
+#: FW/templates/components/start_counter.html:25
 msgid "Heute geht's los!"
 msgstr ""
 
-#: FW/templates/components/start_counter.html:38
+#: FW/templates/components/start_counter.html:37
 msgid "Gute Reise!"
 msgstr ""
 
-#: FW/templates/components/start_counter.html:43
+#: FW/templates/components/start_counter.html:42
 msgid "Wir wünschen dir einen guten Start in dein Auslandsjahr!"
 msgstr ""
 
-#: FW/templates/components/task_card.html:11
-#: FW/templates/components/task_detail_form.html:12
+#: FW/templates/components/task_card.html:20
+#: FW/templates/components/task_detail_form.html:17
 #, fuzzy
 #| msgid "Beschreibung"
 msgid "Persönliche Beschreibung"
 msgstr "Beschreibung"
 
-#: FW/templates/components/task_card.html:16
-#: FW/templates/components/task_detail_form.html:32
-#: ORG/templates/list_aufgaben.html:47 ORG/templates/list_aufgaben.html:114
-msgid "Fällig"
-msgstr "Fällig"
+#: FW/templates/components/task_card.html:31
+#, fuzzy
+#| msgid "Dokumente hochladen"
+msgid "Datei hochgeladen"
+msgstr "Datei hochladen"
 
-#: FW/templates/components/task_card.html:23
-#: ORG/templates/list_aufgaben_table.html:88
+#: FW/templates/components/task_card.html:48
+#: FW/templates/components/task_detail_form.html:72
+#: ORG/templates/components/task_legend.html:11
 msgid "Überfällig"
 msgstr "Überfällig"
 
-#: FW/templates/components/task_card.html:35
+#: FW/templates/components/task_card.html:50
+#: FW/templates/components/task_detail_form.html:74
 #, fuzzy
-#| msgid "Bearbeiten"
-msgid "Wird bearbeitet"
-msgstr "Bearbeiten"
+#| msgid "Überfällig"
+msgid "Heute fällig"
+msgstr "Überfällig"
 
-#: FW/templates/components/task_card.html:43
+#: FW/templates/components/task_card.html:54
+#: FW/templates/components/task_detail_form.html:79
+msgid "Kein Termin"
+msgstr ""
+
+#: FW/templates/components/task_card.html:69
+#: FW/templates/components/task_detail_form.html:96
+msgid "Abgeschlossen"
+msgstr ""
+
+#: FW/templates/components/task_card.html:79
+#: FW/templates/components/task_detail_form.html:106
+msgid "Wird überprüft"
+msgstr ""
+
+#: FW/templates/components/task_card.html:102
 msgid "Anzeigen"
 msgstr "Anzeigen"
 
-#: FW/templates/components/task_card.html:45
-#: Global/templates/components/profile_details.html:61
-#: ORG/templates/list_aufgaben_table.html:180
-#: ORG/templates/list_aufgaben_table.html:211
-#: ORG/templates/list_aufgaben_table.html:247
-msgid "Bearbeiten"
-msgstr "Bearbeiten"
-
-#: FW/templates/components/task_card.html:47
+#: FW/templates/components/task_card.html:104
 #, fuzzy
 #| msgid "Aufgabe erledigen"
 msgid "Jetzt erledigen"
 msgstr "Jetzt erledigen"
 
-#: FW/templates/components/task_detail_form.html:9
-#: Global/templates/dokumente.html:243 ORG/templates/list_aufgaben.html:48
-#: ORG/templates/list_aufgaben.html:115 ORG/templates/list_aufgaben.html:173
+#: FW/templates/components/task_detail_form.html:10
+#: Global/templates/components/document_modal.html:30
+#: ORG/templates/components/task_table_header.html:15
+#: ORG/templates/components/zwischenschritt_form.html:70
+#: ORG/templates/list_aufgaben.html:48 ORG/templates/list_aufgaben.html:115
+#: ORG/templates/list_aufgaben.html:173
 msgid "Beschreibung"
 msgstr "Beschreibung"
 
-#: FW/templates/components/task_detail_form.html:19
+#: FW/templates/components/task_detail_form.html:27
+#: Global/templates/components/document_modal.html:54
 #, fuzzy
 #| msgid "Dokumente hochladen"
 msgid "Datei hochladen"
 msgstr "Datei hochladen"
 
-#: FW/templates/components/task_detail_form.html:37
+#: FW/templates/components/task_detail_form.html:38
+#: FW/templates/components/task_detail_form.html:41
+#: Global/templates/bild.html:65 Global/templates/bild.html:68
+#: Global/templates/components/fullscreen_drop_zone.html:57
+msgid "Datei hierher ziehen oder klicken zum Auswählen"
+msgstr ""
+
+#: FW/templates/components/task_detail_form.html:50
+#, fuzzy
+#| msgid "Dokumente hochladen"
+msgid "Hochgeladen"
+msgstr "Datei hochladen"
+
+#: FW/templates/components/task_detail_form.html:61
+#: ORG/templates/list_aufgaben.html:47 ORG/templates/list_aufgaben.html:114
+msgid "Fällig"
+msgstr "Fällig"
+
+#: FW/templates/components/task_detail_form.html:76
+msgid "Termin einhalten"
+msgstr ""
+
+#: FW/templates/components/task_detail_form.html:80
+msgid "Flexibel"
+msgstr ""
+
+#: FW/templates/components/task_detail_form.html:88
 #: ORG/templates/components/ampel_modal.html:16
 msgid "Status"
 msgstr "Status"
 
-#: FW/templates/components/task_detail_form.html:40
-#: FW/templates/components/task_detail_form.html:46
-msgid "Ja"
-msgstr "Ja"
+#: FW/templates/components/task_detail_form.html:107
+msgid "Warte auf Bestätigung"
+msgstr ""
 
-#: FW/templates/components/task_detail_form.html:42
-#: FW/templates/components/task_detail_form.html:48
-msgid "Nein"
-msgstr "Nein"
+#: FW/templates/components/task_detail_form.html:117
+#, fuzzy
+#| msgid "Aufgabe erledigen"
+msgid "Noch zu erledigen"
+msgstr "Jetzt erledigen"
 
-#: FW/templates/components/task_detail_form.html:57
-#: ORG/templates/list_aufgaben_table.html:221
+#: FW/templates/components/task_detail_form.html:131
+#: ORG/templates/components/task_table_row.html:100
 msgid "Als nicht erledigt markieren"
 msgstr "Als nicht erledigt markieren"
 
-#: FW/templates/components/task_detail_form.html:61
+#: FW/templates/components/task_detail_form.html:135
 msgid "Problem mit Aufgabe"
 msgstr "Problem mit Aufgabe"
 
-#: FW/templates/components/task_detail_form.html:61
+#: FW/templates/components/task_detail_form.html:135
 #, python-format
 msgid ""
 "Ich habe ein Problem mit der Aufgabe '%(name)s' vom %(date)s."
@@ -375,61 +428,57 @@ msgid ""
 "%(upload)s"
 msgstr ""
 
-#: FW/templates/components/task_detail_form.html:63
+#: FW/templates/components/task_detail_form.html:137
 msgid "Problem melden"
 msgstr "Problem melden"
 
-#: FW/templates/home.html:12
+#: FW/templates/homeFw.html:10
 msgid "FW Msg"
 msgstr "FW Msg"
 
-#: FW/templates/home.html:33
+#: FW/templates/homeFw.html:32
 msgid "Keine offenen Aufgaben!"
 msgstr "Keine offenen Aufgaben!"
 
-#: FW/templates/home.html:39
+#: FW/templates/homeFw.html:38
 #, fuzzy
 #| msgid "Aufgabe erledigen"
 msgid "Alle Aufgaben anzeigen"
 msgstr "Alle Aufgaben anzeigen"
 
-#: FW/templates/home.html:49
+#: FW/templates/homeFw.html:50
 #, fuzzy
 #| msgid "Bilder"
 msgid "Neue Bilder"
 msgstr "Neue Bilder"
 
-#: FW/templates/home.html:60
+#: FW/templates/homeFw.html:61
 #, fuzzy
 #| msgid "Alle Bilder löschen"
 msgid "Alle Bilder anzeigen"
 msgstr "Alle Bilder anzeigen"
 
-#: FW/templates/home.html:70
+#: FW/templates/homeFw.html:74
 msgid "Neue Posts"
 msgstr "Neue Beiträge"
-
-#: FW/templates/home.html:76
-msgid "Noch keine Posts"
-msgstr "Noch keine Beiträge"
 
 #: FW/templates/laenderinfo.html:43
 msgid "Länderinfo"
 msgstr ""
 
-#: FW/templates/laenderinfo.html:57
+#: FW/templates/laenderinfo.html:62
 msgid "Entsendende Organisation"
 msgstr ""
 
-#: FW/templates/laenderinfo.html:61
+#: FW/templates/laenderinfo.html:66
 msgid "Länderinformationen"
 msgstr ""
 
-#: FW/templates/laenderinfo.html:66
+#: FW/templates/laenderinfo.html:71
 msgid "Informationen Einsatzstelle"
 msgstr ""
 
-#: FW/templates/laenderinfo.html:67
+#: FW/templates/laenderinfo.html:72
 msgid "Generelle Informationen"
 msgstr ""
 
@@ -445,119 +494,349 @@ msgid ""
 "werden. Melde dich bei"
 msgstr ""
 
-#: FW/views.py:259
+#: FW/views.py:113
 msgid "Reisehinweise"
 msgstr ""
 
-#: FW/views.py:274
+#: FW/views.py:128 TEAM/templates/teamLaender.html:121
+#: TEAM/templates/teamLaender.html:189
 #, fuzzy
 #| msgid "Notfallkontakte"
 msgid "Notfallnummern"
 msgstr "Notfallkontakte"
 
-#: FW/views.py:284
+#: FW/views.py:138 TEAM/templates/teamEinsatzstellen.html:110
+#: TEAM/templates/teamEinsatzstellen.html:194
 msgid "Botschaft"
 msgstr ""
 
-#: FW/views.py:292
+#: FW/views.py:146 TEAM/templates/teamEinsatzstellen.html:126
+#: TEAM/templates/teamEinsatzstellen.html:201
 msgid "Konsulat"
 msgstr ""
 
-#: FW/views.py:303
+#: FW/views.py:157 TEAM/templates/teamEinsatzstellen.html:78
+#: TEAM/templates/teamEinsatzstellen.html:180
 msgid "Arbeitsvorgesetzte:r"
 msgstr ""
 
-#: FW/views.py:311
+#: FW/views.py:165 TEAM/templates/teamEinsatzstellen.html:62
+#: TEAM/templates/teamEinsatzstellen.html:173
 msgid "Partnerorganisation"
 msgstr ""
 
-#: FW/views.py:319
+#: FW/views.py:173 TEAM/templates/teamEinsatzstellen.html:94
+#: TEAM/templates/teamEinsatzstellen.html:187
 msgid "Mentor:in"
 msgstr ""
 
-#: FW/views.py:330
+#: FW/views.py:184 TEAM/templates/teamLaender.html:135
+#: TEAM/templates/teamLaender.html:194
 msgid "Arztpraxen"
 msgstr ""
 
-#: FW/views.py:338
+#: FW/views.py:192 TEAM/templates/teamLaender.html:149
+#: TEAM/templates/teamLaender.html:199
 msgid "Apotheken"
 msgstr ""
 
-#: FW/views.py:346
+#: FW/views.py:200 TEAM/templates/teamEinsatzstellen.html:142
+#: TEAM/templates/teamEinsatzstellen.html:208
+#: TEAM/templates/teamLaender.html:163 TEAM/templates/teamLaender.html:204
 msgid "Weitere Informationen"
+msgstr ""
+
+#: Global/forms.py:18 Global/templates/post_add.html:92
+#, fuzzy
+#| msgid "Hinzufügen"
+msgid "Umfrage hinzufügen"
+msgstr "Bilder hinzufügen"
+
+#: Global/forms.py:19
+msgid "Aktivieren, um eine einfache Umfrage zum Beitrag hinzuzufügen"
+msgstr ""
+
+#: Global/forms.py:21 Global/templates/post_add.html:98
+msgid "Umfragefrage"
+msgstr ""
+
+#: Global/forms.py:22 Global/templates/post_add.html:103
+msgid "Geben Sie die Frage für Ihre Umfrage ein"
+msgstr ""
+
+#: Global/forms.py:26 Global/templates/post_add.html:109
+msgid "Antwort 1"
+msgstr ""
+
+#: Global/forms.py:27
+msgid "Erste Antwortmöglichkeit"
+msgstr ""
+
+#: Global/forms.py:29 Global/templates/post_add.html:118
+msgid "Antwort 2"
+msgstr ""
+
+#: Global/forms.py:30
+msgid "Zweite Antwortmöglichkeit"
+msgstr ""
+
+#: Global/forms.py:32 Global/templates/post_add.html:130
+msgid "Antwort 3"
+msgstr ""
+
+#: Global/forms.py:33
+msgid "Dritte Antwortmöglichkeit (optional)"
+msgstr ""
+
+#: Global/forms.py:35 Global/templates/post_add.html:136
+msgid "Antwort 4"
+msgstr ""
+
+#: Global/forms.py:36
+msgid "Vierte Antwortmöglichkeit (optional)"
+msgstr ""
+
+#: Global/forms.py:38 Global/templates/post_add.html:142
+msgid "Antwort 5"
+msgstr ""
+
+#: Global/forms.py:39
+msgid "Fünfte Antwortmöglichkeit (optional)"
+msgstr ""
+
+#: Global/forms.py:53
+msgid "Titel des Beitrags"
+msgstr ""
+
+#: Global/forms.py:54
+msgid "Inhalt des Beitrags"
+msgstr ""
+
+#: Global/forms.py:87
+#, fuzzy
+#| msgid "Bitte wählen Sie eine Farbe aus"
+msgid "Bitte geben Sie eine Frage für die Umfrage ein"
+msgstr "Bitte wählen Sie eine Farbe aus"
+
+#: Global/forms.py:94 Global/forms.py:96
+msgid "Mindestens zwei Antwortmöglichkeiten sind erforderlich"
 msgstr ""
 
 #: Global/templates/admin/global/customuser/change_list.html:8
 msgid "Send Daily Task Emails"
 msgstr ""
 
-#: Global/templates/bild.html:12 Global/templates/bilder.html:10
-#: Global/templates/components/gallery_header.html:4
-#: Global/templates/components/profile_gallery.html:6
-msgid "Bilder"
-msgstr "Bilder"
-
-#: Global/templates/bild.html:67
-#: Global/templates/components/profile_details.html:35
-#: Global/templates/components/profile_details.html:52
-#: Global/templates/dokumente.html:268 Global/templates/dokumente.html:305
-#: Global/templates/profil.html:56
+#: Global/templates/bild.html:90
+#: Global/templates/components/document_modal.html:74
+#: Global/templates/components/folder_modal.html:48
+#: Global/templates/components/profile_edit_controls.html:25
+#: Global/templates/profil.html:69
+#: ORG/templates/components/form_buttons.html:16
 msgid "Speichern"
 msgstr "Speichern"
 
-#: Global/templates/bilder.html:29 Global/templates/profil.html:107
+#: Global/templates/bilder.html:35
+#: Global/templates/components/image_card_header.html:31
+#: Global/templates/profil.html:118
 msgid "Bild löschen"
 msgstr "Bild löschen"
 
-#: Global/templates/bilder.html:30 Global/templates/profil.html:108
+#: Global/templates/bilder.html:36 Global/templates/profil.html:119
 msgid "Möchten Sie dieses Bild wirklich löschen?"
 msgstr "Möchten Sie dieses Bild wirklich löschen?"
 
-#: Global/templates/bilder.html:34 Global/templates/profil.html:112
+#: Global/templates/bilder.html:40
+#: Global/templates/components/image_card_header.html:18
+#: Global/templates/components/image_card_header.html:51
+#: Global/templates/components/post_card.html:31
+#: Global/templates/profil.html:123
+#: ORG/templates/components/delete_modal.html:19
+#: ORG/templates/components/form_buttons.html:12
+#: ORG/templates/components/form_buttons.html:38
+#: ORG/templates/list_aufgaben_table.html:118
 msgid "Löschen"
 msgstr "Löschen"
 
-#: Global/templates/bilder.html:40 Global/templates/profil.html:118
+#: Global/templates/bilder.html:46 Global/templates/profil.html:129
 msgid "Alle Bilder löschen"
 msgstr "Alle Bilder löschen"
 
-#: Global/templates/bilder.html:41 Global/templates/profil.html:119
+#: Global/templates/bilder.html:47 Global/templates/profil.html:130
 msgid "Möchten Sie wirklich alle Bilder dieser Galerie löschen?"
 msgstr "Möchten Sie wirklich alle Bilder dieser Galerie löschen?"
 
-#: Global/templates/bilder.html:42 Global/templates/profil.html:120
+#: Global/templates/bilder.html:48 Global/templates/profil.html:131
 msgid "Alle löschen"
 msgstr "Alle löschen"
 
-#: Global/templates/bilder_show.html:29
+#: Global/templates/bilder_show.html:30
 msgid "weniger"
 msgstr "weniger"
 
-#: Global/templates/bilder_show.html:33
+#: Global/templates/bilder_show.html:34
+#: Global/templates/components/document_description.html:6
 #: Global/templates/components/image_description.html:8
-#: Global/templates/dokumente.html:163
 msgid "mehr"
 msgstr "mehr"
 
-#: Global/templates/components/gallery_header.html:6
+#: Global/templates/components/document_card.html:36
+#: Global/templates/components/image_card_header.html:20
+msgid "Download"
+msgstr "Herunterladen"
+
+#: Global/templates/components/document_modal.html:8
+#, fuzzy
+#| msgid "Dokumente"
+msgid "Neues Dokument hinzufügen"
+msgstr "Dokumente"
+
+#: Global/templates/components/document_modal.html:21
+msgid "Alle Felder sind optional und können weggelassen werden."
+msgstr ""
+
+#: Global/templates/components/document_modal.html:25
+#: Global/templates/post_add.html:40
+msgid "Titel"
+msgstr ""
+
+#: Global/templates/components/document_modal.html:35
+msgid "Link"
+msgstr ""
+
+#: Global/templates/components/document_modal.html:37
+msgid "Link zu einer externen Seite"
+msgstr ""
+
+#: Global/templates/components/document_modal.html:41
+#: Global/templates/components/folder_card.html:54
+#, fuzzy
+#| msgid "Dokumente"
+msgid "Neues Dokument"
+msgstr "Dokumente"
+
+#: Global/templates/components/document_modal.html:41
+msgid "wird gelöscht, wenn ein neues Dokument hochgeladen wird."
+msgstr ""
+
+#: Global/templates/components/document_modal.html:45
+#, fuzzy
+#| msgid "Dokumente"
+msgid "Dokument"
+msgstr "Dokumente"
+
+#: Global/templates/components/document_modal.html:58
+#, fuzzy
+#| msgid "Bearbeiten"
+msgid "Bearbeiten dürfen"
+msgstr "Bearbeiten"
+
+#: Global/templates/components/document_modal.html:69
+msgid "Person Cluster, die dieses Dokument bearbeiten/löschen dürfen"
+msgstr ""
+
+#: Global/templates/components/folder_card.html:35
+msgid "Ordner nicht leer"
+msgstr ""
+
+#: Global/templates/components/folder_modal.html:7
+#: Global/templates/dokumente.html:62
+#, fuzzy
+#| msgid "Bilder"
+msgid "Neuer Ordner"
+msgstr "Neue Bilder"
+
+#: Global/templates/components/folder_modal.html:15
+#, fuzzy
+#| msgid "Benutzername"
+msgid "Ordnername"
+msgstr "Benutzername"
+
+#: Global/templates/components/folder_modal.html:17
+#, fuzzy
+#| msgid "Bilder"
+msgid "Name des Ordners"
+msgstr "Neue Bilder"
+
+#: Global/templates/components/folder_modal.html:21
+msgid "Sichtbar für"
+msgstr ""
+
+#: Global/templates/components/folder_modal.html:32
+msgid "Benutzergruppen, die diesen Ordner sehen können"
+msgstr ""
+
+#: Global/templates/components/folder_modal.html:36
+msgid "Farbe"
+msgstr ""
+
+#: Global/templates/components/folder_modal.html:38
+msgid "Ohne Farbe"
+msgstr ""
+
+#: Global/templates/components/folder_modal.html:43
+msgid "Farbliche Markierung des Ordners"
+msgstr ""
+
+#: Global/templates/components/fullscreen_drop_zone.html:6
+#: Global/templates/components/fullscreen_drop_zone.html:55
+#, fuzzy
+#| msgid "Datei herunterladen"
+msgid "Datei hier ablegen"
+msgstr "Datei herunterladen"
+
+#: Global/templates/components/fullscreen_drop_zone.html:8
+#: Global/templates/components/fullscreen_drop_zone.html:56
+msgid "Loslassen zum Hochladen"
+msgstr ""
+
+#: Global/templates/components/gallery_grid.html:8
 #, fuzzy
 #| msgid "Hinzufügen"
 msgid "Bilder hinzufügen"
 msgstr "Bilder hinzufügen"
 
-#: Global/templates/components/image_card_header.html:7
+#: Global/templates/components/image_card_header.html:5
 #: Global/templates/components/profile_image.html:7
 msgid "Profilbild"
 msgstr "Profilbild"
 
-#: Global/templates/components/image_card_header.html:23
-#: Global/templates/dokumente.html:177
-msgid "Download"
-msgstr "Herunterladen"
+#: Global/templates/components/image_card_header.html:42
+#: Global/templates/components/image_card_header.html:72
+#, fuzzy
+#| msgid "Dieses Bild löschen"
+msgid "Dieses Bild wirklich löschen?"
+msgstr "Dieses Bild löschen"
 
+#: Global/templates/components/image_card_header.html:45
+#: ORG/templates/components/delete_modal.html:12
+#: ORG/templates/components/form_buttons.html:33
+#: ORG/templates/list_aufgaben_table.html:110
+msgid "Diese Aktion kann nicht rückgängig gemacht werden!"
+msgstr ""
+
+#: Global/templates/components/image_card_header.html:66
 #: Global/templates/components/image_carousel.html:9
 msgid "Bild"
 msgstr "Bild"
+
+#: Global/templates/components/image_card_header.html:74
+#: Global/templates/components/image_card_header.html:76
+#, fuzzy
+#| msgid "Dieses Bild löschen"
+msgid "Dieses Bild und"
+msgstr "Dieses Bild löschen"
+
+#: Global/templates/components/image_card_header.html:74
+#, fuzzy
+#| msgid "Dieses Bild löschen"
+msgid "weiteres Bild löschen?"
+msgstr "Dieses Bild löschen"
+
+#: Global/templates/components/image_card_header.html:76
+#, fuzzy
+#| msgid "Alle Bilder löschen"
+msgid "weitere Bilder löschen?"
+msgstr "Alle Bilder löschen"
 
 #: Global/templates/components/image_carousel.html:19
 msgid "Vorheriges"
@@ -571,103 +850,131 @@ msgstr "Nächstes"
 msgid "Slide"
 msgstr "Folie"
 
-#: Global/templates/components/profile_details.html:9
-#: Global/templates/components/profile_details.html:16
+#: Global/templates/components/image_fullscreen.html:8
+#, fuzzy
+#| msgid "Profilbild"
+msgid "Vollbild"
+msgstr "Profilbild"
+
+#: Global/templates/components/image_fullscreen.html:16
+#: ORG/templates/components/task_zwischenschritte_modal.html:23
+msgid "Schließen"
+msgstr ""
+
+#: Global/templates/components/post_card.html:16
+msgid "Enthält eine Umfrage"
+msgstr ""
+
+#: Global/templates/components/post_card.html:25
+#: ORG/templates/components/task_table_header.html:26
+#: ORG/templates/components/task_table_row.html:47
+#: ORG/templates/components/task_table_row.html:85
+#: ORG/templates/components/task_table_row.html:126
+#: TEAM/templates/teamEinsatzstellen.html:43
+#: TEAM/templates/teamLaender.html:108
+msgid "Bearbeiten"
+msgstr "Bearbeiten"
+
+#: Global/templates/components/post_card.html:31
+msgid "Sind Sie sicher, dass Sie diesen Beitrag löschen möchten?"
+msgstr ""
+
+#: Global/templates/components/post_card.html:48
+msgid "Dieser Beitrag enthält eine Umfrage"
+msgstr ""
+
+#: Global/templates/components/post_card.html:58
+msgid "Von"
+msgstr ""
+
+#: Global/templates/components/post_card.html:63
+#: Global/templates/post_detail.html:49
+#, fuzzy
+#| msgid "Erledigt am"
+msgid "Erstellt am"
+msgstr "Erledigt am"
+
+#: Global/templates/components/post_card.html:70
+#, fuzzy
+#| msgid "Aufgabe erledigen"
+msgid "Weiterlesen"
+msgstr "Jetzt erledigen"
+
+#: Global/templates/components/profile_details.html:10
+#: Global/templates/components/profile_details.html:18
 msgid "Geburtsdatum"
 msgstr "Geburtsdatum"
 
-#: Global/templates/components/profile_details.html:10
+#: Global/templates/components/profile_details.html:12
 msgid "Änderungen melden"
 msgstr "Änderungen melden"
 
-#: Global/templates/components/profile_details.html:12
+#: Global/templates/components/profile_details.html:14
 msgid "Telefon"
 msgstr "Telefon"
 
-#: Global/templates/components/profile_details.html:13
+#: Global/templates/components/profile_details.html:15
 msgid "Telefon Einsatzland"
 msgstr "Telefon Einsatzland"
 
-#: Global/templates/components/profile_details.html:14
-#: Home/templates/password_reset.html:70 Home/templates/password_reset.html:71
+#: Global/templates/components/profile_details.html:16
+#: Home/templates/password_reset.html:77 Home/templates/password_reset.html:78
 msgid "Email"
 msgstr "E-Mail"
 
-#: Global/templates/components/profile_details.html:28
-#: Global/templates/components/profile_details.html:36
-msgid "Entfernen"
-msgstr "Entfernen"
+#: Global/templates/components/profile_details.html:32
+#, fuzzy
+#| msgid "Bild löschen"
+msgid "Attribut löschen"
+msgstr "Bild löschen"
 
-#: Global/templates/components/profile_header.html:19
+#: Global/templates/components/profile_edit_controls.html:12
+msgid "Bezeichnung"
+msgstr ""
+
+#: Global/templates/components/profile_edit_controls.html:18
+msgid "Wert"
+msgstr ""
+
+#: Global/templates/components/profile_edit_controls.html:106
+msgid "Fertig"
+msgstr ""
+
+#: Global/templates/components/profile_header.html:44
 #, fuzzy
 #| msgid "Ampelmeldung"
 msgid "Abmelden"
 msgstr "Anmelden"
 
-#: Global/templates/dokumente.html:81
-msgid "Ordner nicht leer"
+#: Global/templates/components/profile_header.html:55
+msgid "Mail-Benachrichtigungen deaktivieren"
 msgstr ""
 
-#: Global/templates/dokumente.html:94 Global/templates/dokumente.html:253
-#, fuzzy
-#| msgid "Dokumente"
-msgid "Neues Dokument"
-msgstr "Dokumente"
-
-#: Global/templates/dokumente.html:210 Global/templates/dokumente.html:281
-#, fuzzy
-#| msgid "Bilder"
-msgid "Neuer Ordner"
-msgstr "Neue Bilder"
-
-#: Global/templates/dokumente.html:221
-#, fuzzy
-#| msgid "Dokumente"
-msgid "Neues Dokument hinzufügen"
-msgstr "Dokumente"
-
-#: Global/templates/dokumente.html:234
-msgid "Alle Felder sind optional und können weggelassen werden."
+#: Global/templates/components/profile_header.html:57
+msgid "Mail-Benachrichtigungen aktivieren"
 msgstr ""
 
-#: Global/templates/dokumente.html:238
-msgid "Titel"
+#: Global/templates/components/profile_header.html:64
+msgid ""
+"Du erhältst dann keine E-Mails, wenn du Aufgaben erledigt hast oder neue "
+"Aufgaben zugewiesen werden."
 msgstr ""
 
-#: Global/templates/dokumente.html:248
-msgid "Link"
+#: Global/templates/components/profile_header.html:66
+msgid ""
+"Du erhältst dann E-Mails, wenn du Aufgaben erledigt hast oder neue Aufgaben "
+"zugewiesen werden."
 msgstr ""
 
-#: Global/templates/dokumente.html:253
-msgid "wird gelöscht, wenn ein neues Dokument hochgeladen wird."
+#: Global/templates/components/profile_header.html:72
+msgid "Deaktivieren"
 msgstr ""
 
-#: Global/templates/dokumente.html:257
+#: Global/templates/components/profile_header.html:74
 #, fuzzy
-#| msgid "Dokumente"
-msgid "Dokument"
-msgstr "Dokumente"
-
-#: Global/templates/dokumente.html:262
-msgid "Freiwillige dürfen dieses Dokument bearbeiten/löschen"
-msgstr ""
-
-#: Global/templates/dokumente.html:289
-#, fuzzy
-#| msgid "Benutzername"
-msgid "Ordnername"
-msgstr "Benutzername"
-
-#: Global/templates/dokumente.html:294
-#, fuzzy
-#| msgid "Anzeigen"
-msgid "Anzeigen für"
-msgstr "Anzeigen"
-
-#: Global/templates/dokumente.html:296
-#: ORG/templates/list_aufgaben_table.html:101
-msgid "Alle"
-msgstr "Alle"
+#| msgid "Aktion"
+msgid "Aktivieren"
+msgstr "Aktion"
 
 #: Global/templates/feedback.html:76
 #, fuzzy
@@ -687,74 +994,265 @@ msgstr ""
 msgid "Hinweis"
 msgstr ""
 
-#: Global/templates/profil.html:43
+#: Global/templates/post_add.html:6 Global/templates/posts_overview.html:13
+#: Global/templates/profil.html:42
+#, fuzzy
+#| msgid "Bilder"
+msgid "Neuer Beitrag"
+msgstr "Neue Bilder"
+
+#: Global/templates/post_add.html:20
+#, fuzzy
+#| msgid "Bearbeiten"
+msgid "Beitrag bearbeiten"
+msgstr "Bearbeiten"
+
+#: Global/templates/post_add.html:22
+#, fuzzy
+#| msgid "Aufgabe erledigen"
+msgid "Neuen Beitrag erstellen"
+msgstr "Aufgabe erledigen"
+
+#: Global/templates/post_add.html:46
+msgid "Geben Sie einen aussagekräftigen Titel für Ihren Beitrag ein"
+msgstr ""
+
+#: Global/templates/post_add.html:51 Global/templates/post_detail.html:61
+msgid "Inhalt"
+msgstr ""
+
+#: Global/templates/post_add.html:57
+msgid "Schreiben Sie hier den Inhalt Ihres Beitrags"
+msgstr ""
+
+#: Global/templates/post_add.html:63
+msgid "Für Benutzergruppen"
+msgstr ""
+
+#: Global/templates/post_add.html:82
+msgid ""
+"Wählen Sie aus, für welche Benutzergruppen dieser Beitrag sichtbar sein soll"
+msgstr ""
+
+#: Global/templates/post_add.html:151
+msgid ""
+"Wenn du Antworten bearbeitest, werden die bereits abgegebenen Antworten "
+"gelöscht und die Umfrage wird neu gestartet."
+msgstr ""
+
+#: Global/templates/post_add.html:156
+msgid ""
+"Die Umfrage wird anonym durchgeführt. Es werden nur die Anzahl der Antworten "
+"gezählt."
+msgstr ""
+
+#: Global/templates/post_add.html:172
+msgid "Veröffentlichen"
+msgstr ""
+
+#: Global/templates/post_detail.html:24
+msgid "Bist Du sicher, dass Du diesen Beitrag löschen möchtest?"
+msgstr ""
+
+#: Global/templates/post_detail.html:37
+msgid "Erstellt von"
+msgstr ""
+
+#: Global/templates/post_detail.html:52
+msgid "Aktualisiert am"
+msgstr ""
+
+#: Global/templates/post_detail.html:72
+msgid "Umfrage"
+msgstr ""
+
+#: Global/templates/post_detail.html:91 Global/templates/post_detail.html:110
+msgid "Stimmen"
+msgstr ""
+
+#: Global/templates/post_detail.html:110
+msgid "Insgesamt"
+msgstr ""
+
+#: Global/templates/post_detail.html:127
+msgid ""
+"Die Umfrage ist anonym. Sobald Du abgestimmt hast, kannst Du die Ergebnisse "
+"sehen."
+msgstr ""
+
+#: Global/templates/post_detail.html:129
+msgid "Abstimmen"
+msgstr ""
+
+#: Global/templates/post_detail.html:139
+#, fuzzy
+#| msgid "Zurück zur Startseite"
+msgid "Zurück zur Übersicht"
+msgstr "Zurück zur Startseite"
+
+#: Global/templates/posts_overview.html:5
+#: Global/templates/posts_overview.html:12 Global/templates/profil.html:41
+msgid "Beiträge"
+msgstr ""
+
+#: Global/templates/profil.html:56
 #, fuzzy
 #| msgid "Profilbild"
 msgid "Profilbild ändern"
 msgstr "Profilbild"
 
-#: Global/templates/profil.html:50
+#: Global/templates/profil.html:63
 msgid "Neues Profilbild auswählen"
 msgstr "Neues Profilbild auswählen"
 
-#: Home/templates/first_login.html:43 Home/templates/password_reset.html:42
+#: Global/templates/push_settings.html:50
+msgid "Push-Benachrichtigungen"
+msgstr ""
+
+#: Global/templates/push_settings.html:59
+msgid ""
+"Durch Push-Benachrichtigungen erhältst du sofortige "
+"Aufgabenbenachrichtigungen, auch wenn du die Website nicht geöffnet hast."
+msgstr ""
+
+#: Global/templates/push_settings.html:65
+msgid "Prüfe Push-Benachrichtigungen Status..."
+msgstr ""
+
+#: Global/templates/push_settings.html:70
+msgid "Push-Benachrichtigungen aktivieren"
+msgstr ""
+
+#: Global/templates/push_settings.html:74
+msgid "Test-Benachrichtigung senden"
+msgstr ""
+
+#: Global/templates/push_settings.html:79
+msgid "Hinweise"
+msgstr ""
+
+#: Global/templates/push_settings.html:82
+msgid "Push-Benachrichtigungen funktionieren nur in modernen Browsern."
+msgstr ""
+
+#: Global/templates/push_settings.html:85
+msgid ""
+"Du musst Push-Benachrichtigungen für jedes Gerät und jeden Browser separat "
+"aktivieren."
+msgstr ""
+
+#: Global/templates/push_settings.html:88
+msgid ""
+"Du kannst Push-Benachrichtigungen jederzeit in den Browser-Einstellungen "
+"deaktivieren."
+msgstr ""
+
+#: Global/templates/push_settings.html:91
+msgid ""
+"Auf mobilen Geräten können Push-Benachrichtigungen nur in Chrome oder "
+"Firefox empfangen werden."
+msgstr ""
+
+#: Global/templates/push_settings.html:102
+msgid "Registrierte Geräte"
+msgstr ""
+
+#: Global/templates/push_settings.html:120
+msgid "Noch nicht verwendet"
+msgstr ""
+
+#: Global/templates/push_settings.html:124
+msgid "Bist du sicher, dass du dieses Gerät entfernen möchtest?"
+msgstr ""
+
+#: Global/templates/push_settings.html:133
+msgid "Keine Geräte registriert"
+msgstr ""
+
+#: Global/templates/push_settings.html:156
+msgid "Push-Benachrichtigungen werden von deinem Browser nicht unterstützt."
+msgstr ""
+
+#: Global/templates/push_settings.html:166
+msgid "Push-Benachrichtigungen sind aktiviert."
+msgstr ""
+
+#: Global/templates/push_settings.html:168
+msgid "Push-Benachrichtigungen erneuern"
+msgstr ""
+
+#: Global/templates/push_settings.html:174
+msgid ""
+"Push-Benachrichtigungen sind blockiert. Bitte erlaube die Benachrichtigungen "
+"in deinen"
+msgstr ""
+
+#: Global/templates/push_settings.html:174
+msgid "Browser-Einstellungen"
+msgstr ""
+
+#: Global/templates/push_settings.html:178
+msgid "Push-Benachrichtigungen sind nicht aktiviert."
+msgstr ""
+
+#: Home/forms.py:15 Home/templates/index.html:68
+#, fuzzy
+#| msgid "Benutzername oder Passwort falsch."
+msgid "Benutzername oder E-Mail"
+msgstr "Benutzername oder Passwort falsch."
+
+#: Home/forms.py:19 Home/templates/index.html:78
+msgid "Passwort"
+msgstr "Passwort"
+
+#: Home/templates/first_login.html:50 Home/templates/password_reset.html:49
 msgid "Zurück zur Startseite"
 msgstr "Zurück zur Startseite"
 
-#: Home/templates/first_login.html:46 Home/templates/index.html:43
+#: Home/templates/first_login.html:53 Home/templates/index.html:50
 msgid "Willkommen"
 msgstr "Willkommen"
 
-#: Home/templates/first_login.html:47
+#: Home/templates/first_login.html:54
 msgid "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
 msgstr "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
 
-#: Home/templates/first_login.html:64 Home/templates/index.html:55
+#: Home/templates/first_login.html:71 Home/templates/index.html:62
 msgid "Benutzername oder Passwort falsch."
 msgstr "Benutzername oder Passwort falsch."
 
-#: Home/templates/first_login.html:69 Home/templates/first_login.html:70
-#: Home/templates/index.html:60 Home/templates/index.html:61
-#: Home/templates/password_reset.html:65 Home/templates/password_reset.html:66
+#: Home/templates/first_login.html:76 Home/templates/first_login.html:77
+#: Home/templates/password_reset.html:72 Home/templates/password_reset.html:73
 msgid "Benutzername"
 msgstr "Benutzername"
 
-#: Home/templates/first_login.html:74 Home/templates/first_login.html:75
+#: Home/templates/first_login.html:81 Home/templates/first_login.html:82
 msgid "Einmalpasswort"
 msgstr "Einmalpasswort"
 
-#: Home/templates/first_login.html:79 Home/templates/first_login.html:80
+#: Home/templates/first_login.html:86 Home/templates/first_login.html:87
 msgid "Neues Passwort"
 msgstr "Neues Passwort"
 
-#: Home/templates/first_login.html:84 Home/templates/first_login.html:85
+#: Home/templates/first_login.html:91 Home/templates/first_login.html:92
 msgid "Neues Passwort wiederholen"
 msgstr "Neues Passwort wiederholen"
 
-#: Home/templates/first_login.html:91 Home/templates/index.html:72
+#: Home/templates/first_login.html:98 Home/templates/index.html:89
 #, fuzzy
 #| msgid "Ampelmeldung"
 msgid "Anmelden"
 msgstr "Anmelden"
 
-#: Home/templates/first_login.html:118 Home/templates/index.html:105
-#: Home/templates/password_reset.html:102
-msgid "Datenschutz"
-msgstr "Datenschutz"
-
-#: Home/templates/index.html:44
+#: Home/templates/index.html:51
 msgid "Bitte melden Sie sich an"
 msgstr "Bitte melden Sie sich an"
 
-#: Home/templates/index.html:65 Home/templates/index.html:66
-msgid "Passwort"
-msgstr "Passwort"
-
-#: Home/templates/index.html:78
+#: Home/templates/index.html:95
 msgid "Anmelden mit Einmalpasswort"
 msgstr "Anmelden mit Einmalpasswort"
 
-#: Home/templates/index.html:81
+#: Home/templates/index.html:98
 msgid "Passwort vergessen?"
 msgstr ""
 
@@ -764,43 +1262,47 @@ msgstr ""
 msgid "Password Reset"
 msgstr "Passwort"
 
-#: Home/templates/password_reset.html:47 Home/templates/password_reset.html:75
+#: Home/templates/password_reset.html:54 Home/templates/password_reset.html:82
 msgid "Passwort zurücksetzen"
 msgstr ""
 
-#: Home/templates/password_reset.html:48
+#: Home/templates/password_reset.html:55
 #, fuzzy
 #| msgid "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
 msgid "Bitte geben Sie Ihren Benutzernamen und Ihre E-Mail-Adresse ein"
 msgstr "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
 
-#: Home/views.py:34
+#: Home/views.py:28
+msgid "Ungültige Personengruppe."
+msgstr ""
+
+#: Home/views.py:73
 msgid "Ungültiger Benutzername oder Passwort."
 msgstr "Ungültiger Benutzername oder Passwort."
 
-#: Home/views.py:48
+#: Home/views.py:154
 msgid "Benutzername nicht gefunden."
 msgstr "Benutzername nicht gefunden."
 
-#: Home/views.py:54
+#: Home/views.py:160
 msgid ""
 "Interner Fehler: Benutzer nicht gefunden. Kontaktiere den Administrator."
 msgstr ""
 "Interner Fehler: Benutzer nicht gefunden. Kontaktiere den Administrator."
 
-#: Home/views.py:58
+#: Home/views.py:164
 msgid "Passwörter stimmen nicht überein."
 msgstr "Passwörter stimmen nicht überein."
 
-#: Home/views.py:62
+#: Home/views.py:168
 msgid "Einmalpasswort bereits verwendet."
 msgstr "Einmalpasswort bereits verwendet."
 
-#: Home/views.py:66
+#: Home/views.py:172
 msgid "Ungültiges Einmalpasswort."
 msgstr "Ungültiges Einmalpasswort."
 
-#: Home/views.py:81
+#: Home/views.py:187
 msgid "Fehler beim Login. Bitte versuchen Sie es erneut."
 msgstr "Fehler beim Login. Bitte versuchen Sie es erneut."
 
@@ -812,7 +1314,6 @@ msgid "Aufgaben zuweisen"
 msgstr "Aufgabe erledigen"
 
 #: ORG/templates/aufgaben_assign.html:22 ORG/templates/list_aufgaben.html:112
-#: ORG/templates/list_aufgaben_table.html:116
 #: TEAM/templates/teamContacts.html:26
 msgid "Freiwillige"
 msgstr "Freiwillige"
@@ -863,27 +1364,236 @@ msgstr "Gelb"
 msgid "Rot"
 msgstr "Rot"
 
-#: ORG/templates/components/ampel_table.html:8
-#: ORG/templates/list_aufgaben.html:45 ORG/templates/list_aufgaben.html:171
-msgid "Freiwilliger"
-msgstr "Freiwilliger"
-
-#: ORG/templates/components/ampel_table.html:23
+#: ORG/templates/components/ampel_table.html:21
 msgid "Historie anzeigen"
 msgstr "Historie anzeigen"
 
-#: ORG/templates/components/ampel_table.html:49
+#: ORG/templates/components/ampel_table.html:55
 msgid "Keine Ampelmeldungen gefunden."
 msgstr "Keine Ampelmeldungen gefunden."
 
+#: ORG/templates/components/delete_modal.html:7
+#, fuzzy
+#| msgid "Dieses Bild löschen"
+msgid "Zwischenschritt löschen"
+msgstr "Dieses Bild löschen"
+
+#: ORG/templates/components/delete_modal.html:11
+#, fuzzy
+#| msgid "Möchten Sie dieses Bild wirklich löschen?"
+msgid "Möchten Sie den Zwischenschritt"
+msgstr "Möchten Sie dieses Bild wirklich löschen?"
+
+#: ORG/templates/components/delete_modal.html:11
+#, fuzzy
+#| msgid "Löschen"
+msgid "löschen?"
+msgstr "Löschen"
+
+#: ORG/templates/components/form_buttons.html:26
+#: ORG/templates/list_objects.html:338
+#, fuzzy
+#| msgid "Alle löschen"
+msgid "Objekt löschen"
+msgstr "Alle löschen"
+
+#: ORG/templates/components/form_buttons.html:30
+#, fuzzy
+#| msgid "Möchten Sie dieses Bild wirklich löschen?"
+msgid "Möchten Sie dieses Objekt wirklich löschen?"
+msgstr "Möchten Sie dieses Bild wirklich löschen?"
+
+#: ORG/templates/components/form_field.html:6 ORG/templates/edit_object.html:25
+#, fuzzy
+#| msgid "Gelb - Aufmerksamkeit erforderlich"
+msgid "Dieses Feld ist erforderlich"
+msgstr "Gelb - Aufmerksamkeit erforderlich"
+
 #: ORG/templates/components/jahrgang_selector.html:9
 #: ORG/templates/components/jahrgang_selector.html:14
-msgid "Alle Jahrgänge"
-msgstr "Alle Jahrgänge"
+#, fuzzy
+#| msgid "Alle Bilder löschen"
+msgid "Alle Benutzergruppen"
+msgstr "Alle Bilder anzeigen"
 
-#: ORG/templates/filter_form.html:10 ORG/templates/list_aufgaben_table.html:98
+#: ORG/templates/components/task_country_modal.html:7
+#: ORG/templates/components/task_table_header.html:29
+#, fuzzy
+msgid "Einem Einsatzland zuweisen"
+msgstr "Mein Einsatzland"
+
+#: ORG/templates/components/task_country_modal.html:14
+#, fuzzy
+#| msgid "Aufgaben"
+msgid "Aufgabe:"
+msgstr "Aufgaben"
+
+#: ORG/templates/components/task_country_modal.html:17
+msgid "Einsatzland auswählen"
+msgstr ""
+
+#: ORG/templates/components/task_country_modal.html:19
+msgid "Bitte wählen..."
+msgstr ""
+
+#: ORG/templates/components/task_country_modal.html:31
+msgid "Zuweisen"
+msgstr ""
+
+#: ORG/templates/components/task_filter.html:6
+#: ORG/templates/filter_form.html:10
 msgid "Filter"
 msgstr "Filter"
+
+#: ORG/templates/components/task_filter.html:9
+msgid "Alle"
+msgstr "Alle"
+
+#: ORG/templates/components/task_item.html:14
+#: ORG/templates/components/task_table_row.html:35
+#: ORG/templates/components/task_table_row.html:74
+msgid "Datei herunterladen"
+msgstr "Datei herunterladen"
+
+#: ORG/templates/components/task_legend.html:14
+#, fuzzy
+#| msgid "Nicht zugewiesen"
+msgid "Zugewiesen"
+msgstr "Nicht zugewiesen"
+
+#: ORG/templates/components/task_table_header.html:18
+msgid "Diese Aufgabe erfordert eine Datei"
+msgstr ""
+
+#: ORG/templates/components/task_table_header.html:32
+msgid "Allen Freiwilligen zuweisen"
+msgstr "Allen Freiwilligen zuweisen"
+
+#: ORG/templates/components/task_table_header.html:42
+#, fuzzy
+#| msgid "Aufgabe erledigen"
+msgid "Neue Aufgabe erstellen"
+msgstr "Aufgabe erledigen"
+
+#: ORG/templates/components/task_table_row.html:41
+#: ORG/templates/list_aufgaben.html:174
+msgid "Erledigt am"
+msgstr "Erledigt am"
+
+#: ORG/templates/components/task_table_row.html:57
+#: ORG/templates/components/task_table_row.html:153
+#: ORG/templates/list_aufgaben.html:215
+msgid "Als pending markieren"
+msgstr "Als pending markieren"
+
+#: ORG/templates/components/task_table_row.html:64
+#, fuzzy
+#| msgid "Bild löschen"
+msgid "Datei löschen"
+msgstr "Bild löschen"
+
+#: ORG/templates/components/task_table_row.html:90
+#, fuzzy
+#| msgid "Historie anzeigen"
+msgid "Zwischenschritte anzeigen"
+msgstr "Historie anzeigen"
+
+#: ORG/templates/components/task_table_row.html:111
+#: ORG/templates/components/task_table_row.html:164
+#: ORG/templates/components/task_zwischenschritte_modal.html:116
+msgid "Als erledigt markieren"
+msgstr "Als erledigt markieren"
+
+#: ORG/templates/components/task_table_row.html:120
+msgid "Fällig am"
+msgstr "Fällig am"
+
+#: ORG/templates/components/task_table_row.html:136
+msgid "Erinnern"
+msgstr "Erinnern"
+
+#: ORG/templates/components/task_table_row.html:141
+msgid "hat E-Mail-Benachrichtigungen deaktiviert"
+msgstr ""
+
+#: ORG/templates/components/task_table_row.html:175
+#, fuzzy
+#| msgid "Aufgabe erledigen"
+msgid "Aufgabe zuweisen"
+msgstr "Aufgabe erledigen"
+
+#: ORG/templates/components/task_table_row.html:181
+msgid "Aufgabe nicht für diesen Benutzergruppe"
+msgstr ""
+
+#: ORG/templates/components/task_zwischenschritte_modal.html:7
+msgid "Zwischenschritte"
+msgstr ""
+
+#: ORG/templates/components/task_zwischenschritte_modal.html:14
+#, fuzzy
+#| msgid "Freiwilliger"
+msgid "Freiwillige:r"
+msgstr "Freiwilliger"
+
+#: ORG/templates/components/task_zwischenschritte_modal.html:59
+#: ORG/templates/components/task_zwischenschritte_modal.html:64
+msgid "Fehler beim Aktualisieren des Status"
+msgstr ""
+
+#: ORG/templates/components/task_zwischenschritte_modal.html:84
+#, fuzzy
+#| msgid "Ampelmeldung"
+msgid "Keine Zwischenschritte vorhanden"
+msgstr "Ampelmeldung"
+
+#: ORG/templates/components/task_zwischenschritte_modal.html:116
+#: ORG/templates/list_aufgaben.html:204
+msgid "Als unerledigt markieren"
+msgstr "Als unerledigt markieren"
+
+#: ORG/templates/components/task_zwischenschritte_modal.html:142
+msgid "Fehler beim Laden der Zwischenschritte"
+msgstr ""
+
+#: ORG/templates/components/zwischenschritt_form.html:11
+#: ORG/templates/components/zwischenschritt_form.html:58
+msgid "Zwischenschritt"
+msgstr ""
+
+#: ORG/templates/components/zwischenschritt_form.html:49
+#, fuzzy
+#| msgid "Hinzufügen"
+msgid "Zwischenschritt hinzufügen"
+msgstr "Bilder hinzufügen"
+
+#: ORG/templates/components/zwischenschritt_form.html:64
+msgid "Name"
+msgstr ""
+
+#: ORG/templates/edit_object.html:14
+#, fuzzy
+#| msgid "Bearbeiten"
+msgid " bearbeiten"
+msgstr "Bearbeiten"
+
+#: ORG/templates/edit_object.html:16
+msgid "Neues Objekt in "
+msgstr ""
+
+#: ORG/templates/edit_object.html:16
+#, fuzzy
+#| msgid "Aufgabe erledigen"
+msgid " erstellen"
+msgstr "Aufgabe erledigen"
+
+#: ORG/templates/edit_object.html:25
+msgid "Muss ausgefüllt werden"
+msgstr ""
+
+#: ORG/templates/edit_object.html:33
+msgid "Zwischenschritte (optional)"
+msgstr ""
 
 #: ORG/templates/filter_form.html:16
 #, fuzzy
@@ -899,14 +1609,16 @@ msgstr "Filter anwenden"
 msgid "Active filters:"
 msgstr "Aktive Filter:"
 
-#: ORG/templates/list_ampel.html:6
+#: ORG/templates/list_ampel.html:7
 #, fuzzy
 #| msgid "Ampelmeldung"
 msgid "Ampelmeldungen"
 msgstr "Ampelmeldung"
 
-#: ORG/templates/list_ampel.html:15 TEAM/templates/teamAmpelmeldung.html:11
-msgid "Ampel Übersicht"
+#: ORG/templates/list_ampel.html:16
+#, fuzzy
+#| msgid "Ampel Übersicht"
+msgid "Ampelübersicht"
 msgstr "Ampel Übersicht"
 
 #: ORG/templates/list_aufgaben.html:16
@@ -914,6 +1626,10 @@ msgstr "Ampel Übersicht"
 #| msgid "Aufgaben"
 msgid "Fällige Aufgaben"
 msgstr "Aufgaben"
+
+#: ORG/templates/list_aufgaben.html:45 ORG/templates/list_aufgaben.html:171
+msgid "Freiwilliger"
+msgstr "Freiwilliger"
 
 #: ORG/templates/list_aufgaben.html:49 ORG/templates/list_aufgaben.html:116
 #: ORG/templates/list_aufgaben.html:175
@@ -933,77 +1649,103 @@ msgstr "Erinnerung"
 msgid "Herunterladen"
 msgstr "Herunterladen"
 
-#: ORG/templates/list_aufgaben.html:174
-#: ORG/templates/list_aufgaben_table.html:174
-msgid "Erledigt am"
-msgstr "Erledigt am"
-
-#: ORG/templates/list_aufgaben.html:204
-msgid "Als unerledigt markieren"
-msgstr "Als unerledigt markieren"
-
-#: ORG/templates/list_aufgaben.html:215
-#: ORG/templates/list_aufgaben_table.html:190
-msgid "Als pending markieren"
-msgstr "Als pending markieren"
-
-#: ORG/templates/list_aufgaben_table.html:77
+#: ORG/templates/list_aufgaben_table.html:78
 #, fuzzy
 #| msgid "Aufgabe erledigen"
-msgid "Aufgaben Übersicht"
+msgid "Aufgabenübersicht"
 msgstr "Aufgabe erledigen"
 
-#: ORG/templates/list_aufgaben_table.html:91
-msgid "Nicht zugewiesen"
-msgstr "Nicht zugewiesen"
-
-#: ORG/templates/list_aufgaben_table.html:122
+#: ORG/templates/list_aufgaben_table.html:102
 #, fuzzy
-#| msgid "Aufgabe erledigen"
-msgid "Aufgabe bearbeiten"
-msgstr "Aufgabe erledigen"
+#| msgid "Aufgaben"
+msgid "Aufgabe löschen"
+msgstr "Aufgaben"
 
-#: ORG/templates/list_aufgaben_table.html:127
-msgid "Allen Freiwilligen zuweisen"
-msgstr "Allen Freiwilligen zuweisen"
-
-#: ORG/templates/list_aufgaben_table.html:135
+#: ORG/templates/list_aufgaben_table.html:107
 #, fuzzy
-#| msgid "Aufgabe erledigen"
-msgid "Neue Aufgabe erstellen"
-msgstr "Aufgabe erledigen"
+#| msgid "Dateien"
+msgid "Die Datei"
+msgstr "Dateien"
 
-#: ORG/templates/list_aufgaben_table.html:168
-#: ORG/templates/list_aufgaben_table.html:200
-msgid "Datei herunterladen"
-msgstr "Datei herunterladen"
-
-#: ORG/templates/list_aufgaben_table.html:232
-#: ORG/templates/list_aufgaben_table.html:270
-msgid "Als erledigt markieren"
-msgstr "Als erledigt markieren"
-
-#: ORG/templates/list_aufgaben_table.html:241
-msgid "Fällig am"
-msgstr "Fällig am"
-
-#: ORG/templates/list_aufgaben_table.html:256
-msgid "Erinnern"
-msgstr "Erinnern"
-
-#: ORG/templates/list_aufgaben_table.html:281
+#: ORG/templates/list_aufgaben_table.html:107
 #, fuzzy
-#| msgid "Aufgabe erledigen"
-msgid "Aufgabe zuweisen"
-msgstr "Aufgabe erledigen"
+#| msgid "Aufgaben"
+msgid "der Aufgabe"
+msgstr "Aufgaben"
 
-#: ORG/templates/list_objects.html:120
-msgid "Are you sure you want to delete this item?"
-msgstr "Sind Sie sicher, dass Sie diesen Eintrag löschen möchten?"
+#: ORG/templates/list_aufgaben_table.html:107
+msgid "für"
+msgstr ""
 
-#: ORG/templates/list_objects.html:129
+#: ORG/templates/list_aufgaben_table.html:107
+#, fuzzy
+#| msgid "Bild löschen"
+msgid "wirklich löschen?"
+msgstr "Bild löschen"
+
+#: ORG/templates/list_objects.html:214
+msgid "Send Registration Mail"
+msgstr ""
+
+#: ORG/templates/list_objects.html:232
 msgid "No items found"
 msgstr "Keine Einträge gefunden"
+
+#: ORG/templates/list_objects.html:265
+msgid "Erfolgreich gesendet!"
+msgstr ""
+
+#: ORG/templates/list_objects.html:274
+msgid "Fehler beim Senden der Registrierungsmail:"
+msgstr ""
+
+#: ORG/templates/list_objects.html:279
+msgid "Error sending registration mail"
+msgstr ""
+
+#: ORG/templates/list_objects.html:349
+msgid "Achtung: Löschen nicht rückgängig machbar!"
+msgstr ""
+
+#: ORG/templates/list_objects.html:350
+msgid ""
+"Sind Sie sicher, dass Sie dieses Objekt löschen möchten? Diese Aktion kann "
+"nicht rückgängig gemacht werden."
+msgstr ""
+
+#: ORG/templates/list_objects.html:355
+msgid "Zu löschendes Objekt:"
+msgstr ""
+
+#: ORG/templates/list_objects.html:368
+msgid "Folgende Objekte werden auch gelöscht:"
+msgstr ""
+
+#: ORG/templates/list_objects.html:383
+#, fuzzy
+#| msgid "Bild löschen"
+msgid "Endgültig löschen"
+msgstr "Bild löschen"
+
+#: ORG/templates/list_objects.html:485
+msgid "Keine weiteren Objekte werden gelöscht"
+msgstr ""
+
+#: ORG/templates/list_objects.html:495
+msgid "Fehler beim Laden der Informationen"
+msgstr ""
+
+#: ORG/templates/nginx_statistic.html:5
+msgid "Nginx Statistics"
+msgstr ""
+
+#: ORG/templates/nginx_statistic.html:11
+msgid "Error"
+msgstr ""
+
+#: TEAM/templates/teamAmpelmeldung.html:11
+msgid "Ampel Übersicht"
+msgstr "Ampel Übersicht"
 
 #: TEAM/templates/teamContacts.html:5
 #, fuzzy
@@ -1021,6 +1763,148 @@ msgid ""
 "Einsatzland tätig sind."
 msgstr ""
 
+#: TEAM/templates/teamEinsatzstellen.html:5
+#: TEAM/templates/teamEinsatzstellen.html:33
+#, fuzzy
+msgid "Einsatzstellen"
+msgstr "Mein Einsatzland"
+
+#: TEAM/templates/teamEinsatzstellen.html:69
+msgid "Keine Partnerorganisation hinterlegt"
+msgstr ""
+
+#: TEAM/templates/teamEinsatzstellen.html:85
+msgid "Keine Arbeitsvorgesetzte:r hinterlegt"
+msgstr ""
+
+#: TEAM/templates/teamEinsatzstellen.html:101
+msgid "Keine Mentor:in hinterlegt"
+msgstr ""
+
+#: TEAM/templates/teamEinsatzstellen.html:117
+msgid "Keine Botschaftsinformationen hinterlegt"
+msgstr ""
+
+#: TEAM/templates/teamEinsatzstellen.html:133
+msgid "Keine Konsulatsinformationen hinterlegt"
+msgstr ""
+
+#: TEAM/templates/teamEinsatzstellen.html:149
+#: TEAM/templates/teamLaender.html:169
+msgid "Keine weiteren Informationen hinterlegt"
+msgstr ""
+
+#: TEAM/templates/teamEinsatzstellen.html:163
+#: TEAM/templates/teamLaender.html:182
+#, fuzzy
+#| msgid "Aufgabe erledigen"
+msgid "Informationen bearbeiten"
+msgstr "Aufgabe erledigen"
+
+#: TEAM/templates/teamEinsatzstellen.html:175
+msgid "Partnerorganisation hier eingeben..."
+msgstr ""
+
+#: TEAM/templates/teamEinsatzstellen.html:182
+msgid "Arbeitsvorgesetzte:r hier eingeben..."
+msgstr ""
+
+#: TEAM/templates/teamEinsatzstellen.html:189
+msgid "Mentor:in hier eingeben..."
+msgstr ""
+
+#: TEAM/templates/teamEinsatzstellen.html:196
+msgid "Botschaftsinformationen hier eingeben..."
+msgstr ""
+
+#: TEAM/templates/teamEinsatzstellen.html:203
+msgid "Konsulatsinformationen hier eingeben..."
+msgstr ""
+
+#: TEAM/templates/teamEinsatzstellen.html:210
+#: TEAM/templates/teamLaender.html:205
+msgid "Weitere Informationen hier eingeben..."
+msgstr ""
+
+#: TEAM/templates/teamEinsatzstellen.html:218
+#: TEAM/templates/teamLaender.html:210
+#, fuzzy
+#| msgid "Änderungen melden"
+msgid "Änderungen speichern"
+msgstr "Änderungen melden"
+
+#: TEAM/templates/teamEinsatzstellen.html:235
+msgid ""
+"Keine Einsatzstellen gefunden. Bitte wenden Sie sich an den Administrator."
+msgstr ""
+
+#: TEAM/templates/teamLaender.html:5 TEAM/templates/teamLaender.html:100
+#, fuzzy
+msgid "Einsatzländer"
+msgstr "Mein Einsatzland"
+
+#: TEAM/templates/teamLaender.html:127
+#, fuzzy
+#| msgid "Notfallkontakte"
+msgid "Keine Notfallnummern hinterlegt"
+msgstr "Notfallkontakte"
+
+#: TEAM/templates/teamLaender.html:141
+msgid "Keine Arztpraxen hinterlegt"
+msgstr ""
+
+#: TEAM/templates/teamLaender.html:155
+msgid "Keine Apotheken hinterlegt"
+msgstr ""
+
+#: TEAM/templates/teamLaender.html:190
+#, fuzzy
+#| msgid "Notfallkontakte"
+msgid "Notfallnummern hier eingeben..."
+msgstr "Notfallkontakte"
+
+#: TEAM/templates/teamLaender.html:195
+msgid "Arztpraxen hier eingeben..."
+msgstr ""
+
+#: TEAM/templates/teamLaender.html:200
+msgid "Apotheken hier eingeben..."
+msgstr ""
+
+#: TEAM/templates/teamLaender.html:222
+msgid ""
+"Keine Einsatzländer gefunden. Bitte wenden Sie sich an den Administrator, um "
+"Einsatzländer zugewiesen zu bekommen."
+msgstr ""
+
+#, fuzzy
+#~| msgid "Bearbeiten"
+#~ msgid "Arbeit"
+#~ msgstr "Bearbeiten"
+
+#~ msgid "Ja"
+#~ msgstr "Ja"
+
+#~ msgid "Nein"
+#~ msgstr "Nein"
+
+#~ msgid "Noch keine Posts"
+#~ msgstr "Noch keine Beiträge"
+
+#~ msgid "Entfernen"
+#~ msgstr "Entfernen"
+
+#, fuzzy
+#~| msgid "Anzeigen"
+#~ msgid "Anzeigen für"
+#~ msgstr "Anzeigen"
+
+#~ msgid "Alle Jahrgänge"
+#~ msgstr "Alle Jahrgänge"
+
+#~ msgid "Are you sure you want to delete this item?"
+#~ msgstr "Sind Sie sicher, dass Sie diesen Eintrag löschen möchten?"
+
 #, fuzzy
 #~| msgid "Dokumente"
 #~ msgid "Das Dokument"
@@ -1031,11 +1915,3 @@ msgstr ""
 
 #~ msgid "Add"
 #~ msgstr "Hinzufügen"
-
-#, fuzzy
-#~| msgid "Profilbild"
-#~ msgid "Vollbild"
-#~ msgstr "Profilbild"
-
-#~ msgid "Dieses Bild löschen"
-#~ msgstr "Dieses Bild löschen"
