@@ -143,7 +143,7 @@ class PostAdmin(admin.ModelAdmin):
 @admin.register(Aufgabe2)
 class AufgabeAdmin(admin.ModelAdmin):
     search_fields = ['name']
-    actions = ['set_person_cluster_typ_incoming', 'set_person_cluster_typ_outgoing']
+    actions = ['set_person_cluster_typ_incoming', 'set_person_cluster_typ_outgoing', 'set_aufg_cluster_before_operation', 'set_aufg_cluster_during_operation', 'set_aufg_cluster_after_operation']
 
     def set_person_cluster_typ_incoming(self, request, queryset):
         for aufgabe in queryset:
@@ -154,6 +154,24 @@ class AufgabeAdmin(admin.ModelAdmin):
         for aufgabe in queryset:
             aufgabe.person_cluster = PersonCluster.objects.get(name='Outgoing')
             aufgabe.save()
+
+    def set_aufg_cluster_before_operation(self, request, queryset):
+        for aufgabe in queryset:
+            aufgabe.faellig_art = AufgabenCluster.objects.filter(type='V').first()
+            aufgabe.save()
+
+    def set_aufg_cluster_during_operation(self, request, queryset):
+        for aufgabe in queryset:
+            aufgabe.faellig_art = AufgabenCluster.objects.filter(type='W').first()
+            aufgabe.save()
+
+    def set_aufg_cluster_after_operation(self, request, queryset):
+        for aufgabe in queryset:
+            aufgabe.faellig_art = AufgabenCluster.objects.filter(type='N').first()
+            aufgabe.save()
+
+
+
 
 
 @admin.register(AufgabeZwischenschritte2)
