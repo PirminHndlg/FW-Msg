@@ -75,16 +75,7 @@
             </a>
         </div>
         <div class="card-body">
-            {% if posts %}
-                {% include "components/post_card.html" with posts=posts %}
-            {% else %}
-            <div class="px-4">
-                <div class="alert alert-info" role="alert">
-                  <i class="bi bi-info-circle-fill"></i>
-                  {% trans 'Keine Beiträge gefunden' %}
-                </div>
-              </div>
-            {% endif %}
+            {% include "components/post_card.html" with posts=posts %}
         </div>
     </div>
     {% endif %}

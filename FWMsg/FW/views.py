@@ -70,7 +70,7 @@ def home(request):
         'days_until_start': days_until_start,
     }
 
-    return render(request, 'home.html', context=context)
+    return render(request, 'homeFw.html', context=context)
 
 @login_required
 @required_role('F')
