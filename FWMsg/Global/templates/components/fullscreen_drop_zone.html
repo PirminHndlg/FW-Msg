@@ -121,15 +121,51 @@
         updateUploadContainer(file)
       }
     }
-  
+  g
     function updateUploadContainer(file) {
       const overlay = uploadContainer.querySelector('.upload-overlay')
+  
       if (overlay) {
-        overlay.innerHTML = `
-                    <i class="bi bi-file-earmark-check display-4 text-success"></i>
-                    <p class="mb-0 text-muted text-break text-center">${file.name}</p>
-                    <small class="text-muted">${formatFileSize(file.size)}</small>
-                `
+        if (options.multiple) {
+          overlay.classList.remove('flex-column')
+
+          let innerHTML = `
+            <div class="d-flex align-items-center">
+              <i class="bi bi-file-earmark-check display-4 text-success me-3"></i>
+              <div class="d-flex flex-column">
+          `
+  
+          for (let i = 0; i < file.length; i++) {
+            if (i >= 2) {
+              let moreFiles = file.length - 2
+              innerHTML += `
+                <div class="mb-1">
+                  <p class="mb-0 text-muted text-break">${moreFiles} weitere Dateien</p>
+                </div>
+              `
+              i = file.length
+              break
+            }
+
+            innerHTML += `
+                <div class="mb-1">
+                  <p class="mb-0 text-muted fw-semibold text-break">${file[i].name}</p>
+                  <small class="text-muted">${formatFileSize(file[i].size)}</small>
+                </div>
+            `
+          }
+          innerHTML += `
+              </div>
+            </div>
+          `
+          overlay.innerHTML = innerHTML
+        } else {
+          overlay.innerHTML = `
+                          <i class="bi bi-file-earmark-check display-4 text-success"></i>
+                          <p class="mb-0 text-muted text-break text-center">${file.name}</p>
+                          <small class="text-muted">${formatFileSize(file.size)}</small>
+                      `
+        }
       }
     }
   
