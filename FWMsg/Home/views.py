@@ -141,7 +141,7 @@ def maintenance(request):
         'progress_percentage': progress_percentage
     })
 
-def first_login(request):
+def first_login(request, username=None, einmalpasswort=None):
     if request.method == 'POST':
         user_name = request.POST['username']
         password = request.POST['password']
@@ -162,15 +162,15 @@ def first_login(request):
         
         if password != password_repeat:
             messages.error(request, _('Passwörter stimmen nicht überein.'))
-            return redirect('first_login')
+            return redirect('first_login_with_params', username=user_name, einmalpasswort=einmalpasswort)
         
         if not user.customuser.einmalpasswort:
             messages.error(request, _('Einmalpasswort bereits verwendet.'))
-            return redirect('first_login')
+            return redirect('first_login_with_params', username=user_name, einmalpasswort='')
         
         if user.customuser.einmalpasswort != einmalpasswort:
             messages.error(request, _('Ungültiges Einmalpasswort.'))
-            return redirect('first_login')
+            return redirect('first_login_with_params', username=user_name, einmalpasswort='')
         
         user.customuser.einmalpasswort = None
         user.customuser.save()
@@ -186,8 +186,11 @@ def first_login(request):
         else:
             messages.error(request, _('Fehler beim Login. Bitte versuchen Sie es erneut.'))
             return redirect('first_login')
+    
+    username = username or request.GET.get('username')
+    einmalpasswort = einmalpasswort or request.GET.get('einmalpasswort')
 
-    return render(request, 'first_login.html')
+    return render(request, 'first_login.html', {'username': username, 'einmalpasswort': einmalpasswort})
 
 def password_reset(request):
     if request.method == 'POST':

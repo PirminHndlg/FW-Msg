@@ -72,12 +72,12 @@
                                 {% endif %}
                                 
                                 <div class="form-floating mb-3">
-                                    <input type="text" name="username" class="form-control rounded-3" id="username" placeholder="{% trans 'Benutzername' %}" required>
+                                    <input type="text" name="username" class="form-control rounded-3" id="username" placeholder="{% trans 'Benutzername' %}" required value="{{ username|default:'' }}">
                                     <label for="username">{% trans "Benutzername" %}</label>
                                 </div>
 
                                 <div class="form-floating mb-4">
-                                    <input type="password" name="einmalpasswort" class="form-control rounded-3" id="einmalpasswort" placeholder="{% trans 'Einmalpasswort' %}" required>
+                                    <input type="text" name="einmalpasswort" class="form-control rounded-3" id="einmalpasswort" placeholder="{% trans 'Einmalpasswort' %}" required value="{{ einmalpasswort|default:'' }}">
                                     <label for="einmalpasswort">{% trans "Einmalpasswort" %}</label>
                                 </div>
 

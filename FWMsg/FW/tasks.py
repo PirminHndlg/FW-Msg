@@ -15,11 +15,11 @@ def send_register_email_task(user_id):
 
     with open(org.logo.path, "rb") as org_logo:
         base64_image = base64.b64encode(org_logo.read()).decode('utf-8')
-    action_url = 'https://volunteer.solutions/first_login'
     org_name = org.name
     einmalpasswort = user.customuser.einmalpasswort
     user_name = f"{user.first_name} {user.last_name}"
     username = user.username
+    action_url = f'https://volunteer.solutions/first_login?username={username}&einmalpasswort={einmalpasswort}'
     
     email_content = format_register_email_fw(einmalpasswort, action_url, base64_image, org_name, user_name, username)
     subject = f'Account erstellt: {user_name}'
