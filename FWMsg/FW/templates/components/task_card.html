@@ -4,18 +4,18 @@
 
 <div class="col">
   <div class="card h-100 rounded-4 shadow-sm border border-1 border-light-subtle">
-    <div class="card-body p-4">
+    <div class="card-body p-3">
       <a href="{% url 'aufgaben_detail' task.id %}" class="text-decoration-none text-body">
         <h4 class="card-title fw-semibold text-primary mb-3">{{ task.aufgabe.name }}</h4>
         
         {% if task.aufgabe.beschreibung %}
-        <div class="p-3 bg-light rounded-3 border-start border-primary border-3 mb-3">
+        <div class="p-2 bg-light rounded-3 border-start border-primary border-3 mb-3">
           <p class="card-text mb-0 text-truncate">{{ task.aufgabe.beschreibung }}</p>
         </div>
         {% endif %}
         
         {% if task.personalised_description %}
-        <div class="p-3 bg-light rounded-3 border-start border-success border-3 mb-3">
+        <div class="p-2 bg-light rounded-3 border-start border-success border-3 mb-3">
           <p class="card-text mb-0 text-truncate">
             <span class="fw-semibold text-success">{% trans 'Persönliche Beschreibung' %}:</span> 
             {{ task.personalised_description }}
@@ -24,18 +24,18 @@
         {% endif %}
         
         {% if task.file and task.aufgabe.mitupload and task.erledigt or task.pending %}
-        <div class="p-3 bg-light rounded-3 border-start border-info border-3 mb-3 d-flex align-items-center">
+        <div class="p-2 bg-light rounded-3 border-start border-info border-3 mb-3 d-flex align-items-center">
           <i class="bi bi-file-earmark-check fs-3 text-info me-3"></i>
-          <div>
-            <p class="mb-0 fw-medium text-break">{{ task.file.name|cut:"uploads/" }}</p>
+          <div class="overflow-x-hidden">
+            <p class="mb-0 fw-medium text-truncate">{{ task.file.name|cut:"uploads/" }}</p>
             <small class="text-muted">{% trans "Datei hochgeladen" %}</small>
           </div>
         </div>
         {% endif %}
 
-        <div class="row g-3 mt-1">
-          <div class="col-12 col-lg-6" style="min-width: 170px;">
-            <div class="due-date-card p-3 rounded-3 shadow-sm">
+        <div class="row g-3">
+          <div class="col-12 col-lg-6">
+            <div class="due-date-card p-2 rounded-3 shadow-sm overflow-x-auto">
               <div class="d-flex align-items-center">
                 <span class="due-date-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
                   <i class="bi bi-calendar-event text-white"></i>
@@ -49,19 +49,17 @@
                     {% elif task.faellig|date:"Y-m-d" == today_date %}
                       <small class="text-warning">{% trans "Heute fällig" %}</small>
                     {% else %}
-                      <small class="text-muted">{% trans "Termin einhalten" %}</small>
                     {% endif %}
                   {% else %}
                     <p class="mb-0 fw-medium text-muted">{% trans "Kein Termin" %}</p>
-                    <small class="text-info">{% trans "Flexibel" %}</small>
                   {% endif %}
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="col-12 col-lg-6" style="min-width: 170px;">
-            <div class="status-card p-3 rounded-3 shadow-sm">
+          <div class="col-12 col-lg-6">
+            <div class="status-card p-2 rounded-3 shadow-sm overflow-x-auto">
               {% if task.erledigt %}
               <div class="d-flex align-items-center">
                 <span class="status-icon bg-success rounded-circle d-flex align-items-center justify-content-center me-3">
@@ -79,7 +77,6 @@
                 </span>
                 <div>
                   <p class="mb-0 fw-medium">{% trans "Wird überprüft" %}</p>
-                  <small class="text-muted">{% trans "Warte auf Bestätigung" %}</small>
                 </div>
               </div>
               {% else %}
@@ -89,7 +86,6 @@
                 </span>
                 <div>
                   <p class="mb-0 fw-medium">{% trans "Offen" %}</p>
-                  <small class="text-muted">{% trans "Noch zu erledigen" %}</small>
                 </div>
               </div>
               {% endif %}
@@ -125,7 +121,7 @@
     background-color: #f8f9fa;
     border-left: 3px solid var(--bs-primary);
     height: 100%;
-    min-height: 80px;
+    min-height: 60px;
     display: flex;
     align-items: center;
   }
