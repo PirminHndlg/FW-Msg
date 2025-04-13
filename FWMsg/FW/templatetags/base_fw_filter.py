@@ -49,10 +49,10 @@ def format_text_with_link(text):
         return ''
     links = re.findall(r'https?://\S+', text)
     for link in links:
-        text = text.replace(link, f'<a href="{link}" class="text-decoration-underline text-body" target="_blank">{link}</a>')
+        text = text.replace(link, f'<a href="{link}" class="text-decoration-underline text-body" {"target=_blank" if not link.startswith("https://volunteer.solutions") else ""}>{link}</a>')
     links_2 = re.findall(r'www\.\S+', text)
     for link in links_2:
-        text = text.replace(link, f'<a href="https://{link}" class="text-decoration-underline text-body" target="_blank">{link}</a>')
+        text = text.replace(link, f'<a href="https://{link}" class="text-decoration-underline text-body" {"target=_blank" if not link.startswith("www.volunteer.solutions") else ""}>{link}</a>')
     emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b', text)
     for email in emails:
         text = text.replace(email, f'<a href="mailto:{email}" class="text-decoration-underline text-body" target="_blank">{email}</a>')
