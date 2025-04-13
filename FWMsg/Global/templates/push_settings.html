@@ -45,17 +45,9 @@
 {% endblock %}
 
 {% block content %}
-  <div class="row mb-4">
-    <div class="col-12">
-      <h1 class="h3 mb-3">{% trans 'Push-Benachrichtigungen (Beta)' %}</h1>
-
-      {% if success_message %}
-        <div class="alert alert-success" role="alert">{{ success_message }}</div>
-      {% endif %}
-
-      {% if error_message %}
-        <div class="alert alert-danger" role="alert">{{ error_message }}</div>
-      {% endif %}
+  <div class="card rounded-4 mb-4">
+    <div class="card-header rounded-4">
+      <h3 class="mb-0">{% trans 'Push-Benachrichtigungen' %}</h3>
     </div>
   </div>
 
@@ -63,9 +55,8 @@
     <div class="col-lg-8">
       <div class="card rounded-4 mb-4">
         <div class="card-body">
-          <h5 class="card-title">{% trans 'Push-Benachrichtigungen einrichten' %}</h5>
           <p class="card-text text-muted">
-            {% trans 'Push-Benachrichtigungen ermöglichen es uns, dich sofort über wichtige Ereignisse zu informieren, auch wenn du die Website nicht geöffnet hast.' %}
+            {% trans 'Durch Push-Benachrichtigungen erhältst du sofortige Aufgabenbenachrichtigungen, auch wenn du die Website nicht geöffnet hast.' %}
           </p>
 
           <div id="pushStatus" class="alert alert-info d-flex align-items-center mb-4">
@@ -75,7 +66,7 @@
             </div>
           </div>
 
-          <div class="d-grid gap-2 d-md-flex justify-content-md-start mb-4">
+          <div class="d-grid gap-2 d-md-flex justify-content-center mb-4">
             <button class="btn btn-primary" id="enablePushBtn" type="button"><i class="bi bi-bell-fill me-2"></i>{% trans 'Push-Benachrichtigungen aktivieren' %}</button>
 
             <form method="post" class="d-inline">
