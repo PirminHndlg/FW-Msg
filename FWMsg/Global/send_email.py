@@ -8,6 +8,8 @@ from email.utils import formatdate
 
 from django.conf import settings
 
+from .push_notification import send_push_notification_to_user
+
 aufgaben_email_template = """
 <html>
 <body>
@@ -21,7 +23,7 @@ aufgaben_email_template = """
     </div>
 
     <div>
-        <p>Hallo {freiwilliger_name},</p>
+        <p>Hallo {user_name},</p>
         
         <p>dies ist eine automatische Erinnerung an die folgende Aufgabe:</p>
         
@@ -42,6 +44,10 @@ aufgaben_email_template = """
         <p>Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions - es wird keine Antwort erwartet.</p>
     </div>
 
+    <div>
+        <p>Um keine weiteren E-Mails zu erhalten, klicke <a href="{unsubscribe_url}">hier</a></p>
+    </div>
+
     <br><br>
 
     <div>
@@ -49,7 +55,7 @@ aufgaben_email_template = """
     </div>
 
     <div>
-        <p>Hello {freiwilliger_name},</p>
+        <p>Hello {user_name},</p>
         
         <p>This is a reminder for the following task:</p>
         
@@ -70,6 +76,10 @@ aufgaben_email_template = """
     <div>
         <p>This is an automatically generated email from Volunteer.Solutions - no replies expected.</p>
     </div>
+
+    <div>
+        <p>To unsubscribe from these emails, click <a href="{unsubscribe_url}">here</a></p>
+    </div>
 </body>
 </html>
 """
@@ -87,7 +97,7 @@ new_aufgaben_email_template = """
     </div>
 
     <div>
-        <p>Hallo {freiwilliger_name},</p>
+        <p>Hallo {user_name},</p>
         <p>es gibt neue Aufgaben für Dich:</p>
         <div>
             <strong>{aufgaben_name}</strong><br>
@@ -97,7 +107,13 @@ new_aufgaben_email_template = """
             <a href="{action_url}">{action_url}</a>
         </div>
 
-        <p>Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions - es wird keine Antwort erwartet.</p>
+        <div>
+            <p>Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions - es wird keine Antwort erwartet.</p>
+        </div>
+
+        <div>
+            <p>Um keine weiteren E-Mails zu erhalten, klicke <a href="{unsubscribe_url}">hier</a></p>
+        </div>
 
         <br><br>
 
@@ -105,7 +121,7 @@ new_aufgaben_email_template = """
             <strong>- English version -</strong>
         </div>
         <div>
-            <p>Hello {freiwilliger_name},</p>
+            <p>Hello {user_name},</p>
             <p>there are new tasks for you:</p>
             <div>
                 <strong>{aufgaben_name}</strong><br>
@@ -113,6 +129,9 @@ new_aufgaben_email_template = """
         </div>
         <div>
             <p>This is an automatically generated email from Volunteer.Solutions - no replies expected.</p>
+        </div>
+        <div>
+            <p>To unsubscribe from these emails, click <a href="{unsubscribe_url}">here</a></p>
         </div>
     </div>
 </body>
@@ -129,7 +148,7 @@ register_email_fw_template = """
         <h2>{org_name}</h2>
     </div>
 
-    <a>Hallo {freiwilliger_name},</a><br>
+    <a>Hallo {user_name},</a><br>
     <a>Es wurde ein Account für Dich bei <a href="{action_url}">Volunteer.Solutions</a> von der Organisation {org_name} erstellt.</a><br>
     <a>Volunteer.Solutions ist eine Plattform zur Organisation von Freiwilligenarbeit.</a><br>
     <br>
@@ -141,7 +160,7 @@ register_email_fw_template = """
     <br><br>
 
     <strong>- English version -</strong><br>
-    <a>Hello {freiwilliger_name},</a><br>
+    <a>Hello {user_name},</a><br>
     <a>An account has been created for you at <a href="{action_url}">Volunteer.Solutions</a> by the organisation {org_name}.</a><br>
     <a>Volunteer.Solutions is a platform for organising volunteer work.</a><br>
     <br>
@@ -166,43 +185,45 @@ register_email_org_template = """
 </html>
 """
 
-def format_aufgaben_email(aufgabe_name, aufgabe_deadline, base64_image, org_name, freiwilliger_name, action_url, aufgabe_beschreibung='',):
+def format_aufgaben_email(aufgabe_name, aufgabe_deadline, base64_image, org_name, user_name, action_url, aufgabe_beschreibung='', unsubscribe_url=None):
     return aufgaben_email_template.format(
         aufgabe_name=aufgabe_name,
         aufgabe_beschreibung=aufgabe_beschreibung,
         aufgabe_deadline=aufgabe_deadline.strftime('%d.%m.%Y') if aufgabe_deadline else '',
         base64_image=base64_image,
         org_name=org_name,
-        freiwilliger_name=freiwilliger_name,
-        action_url=action_url
+        user_name=user_name,
+        action_url=action_url,
+        unsubscribe_url=unsubscribe_url
     )
 
-def format_new_aufgaben_email(aufgaben, base64_image, org_name, freiwilliger_name, action_url):
+def format_new_aufgaben_email(aufgaben, base64_image, org_name, user_name, action_url, unsubscribe_url=None):
     aufgaben_name = ', '.join([aufgabe.aufgabe.name for aufgabe in aufgaben])
     return new_aufgaben_email_template.format(
         aufgaben_name=aufgaben_name,
         base64_image=base64_image,
         org_name=org_name,
-        freiwilliger_name=freiwilliger_name,
-        action_url=action_url
+        user_name=user_name,
+        action_url=action_url,
+        unsubscribe_url=unsubscribe_url
     )
 
-def format_register_email_fw(einmalpasswort, action_url, base64_image, org_name, freiwilliger_name, username):
+def format_register_email_fw(einmalpasswort, action_url, base64_image, org_name, user_name, username):
     return register_email_fw_template.format(
         einmalpasswort=einmalpasswort,
         action_url=action_url,
         base64_image=base64_image,
         org_name=org_name,
-        freiwilliger_name=freiwilliger_name,
+        user_name=user_name,
         username=username
     )
 
-def format_register_email_org(einmalpasswort, action_url, org_name, freiwilliger_name, username):
+def format_register_email_org(einmalpasswort, action_url, org_name, user_name, username):
     return register_email_org_template.format(
         einmalpasswort=einmalpasswort,
         action_url=action_url,
         org_name=org_name,
-        freiwilliger_name=freiwilliger_name,
+        user_name=user_name,
         username=username
     )
 
@@ -212,27 +233,33 @@ def get_logo_base64(org):
     return base64_image
 
 def send_aufgaben_email(aufgabe, org):
-    if not aufgabe.user.customuser.mail_notifications:
-        return False
-    
     # Get the organization logo URL
     action_url = 'https://volunteer.solutions/aufgaben/' + str(aufgabe.aufgabe.id) + "/"
-    
+    unsubscribe_url = aufgabe.user.customuser.get_unsubscribe_url()
     base64_image = get_logo_base64(org)
+    aufg_name = aufgabe.aufgabe.name
+    aufg_deadline = aufgabe.faellig.strftime("%d.%m.%Y")
+    aufg_beschreibung = aufgabe.aufgabe.beschreibung if aufgabe.aufgabe.beschreibung else ''
+    user_name = f"{aufgabe.user.first_name} {aufgabe.user.last_name}"
     
     email_content = format_aufgaben_email(
-        aufgabe_name=aufgabe.aufgabe.name,
-        aufgabe_deadline=aufgabe.faellig,
+        aufgabe_name=aufg_name,
+        aufgabe_deadline=aufg_deadline,
         base64_image=base64_image,
         org_name=org.name,
-        freiwilliger_name=f"{aufgabe.user.first_name} {aufgabe.user.last_name}",
+        user_name=user_name,
         action_url=action_url,
-        aufgabe_beschreibung=aufgabe.aufgabe.beschreibung if aufgabe.aufgabe.beschreibung else ''
+        aufgabe_beschreibung=aufg_beschreibung,
+        unsubscribe_url=unsubscribe_url
     )   
     
     subject = f'Erinnerung: {aufgabe.aufgabe.name}'
+
+    push_content = f'Die Aufgabe "{aufgabe.aufgabe.name}" ist am {aufgabe.faellig.strftime("%d.%m.%Y")} fällig.'
+
+    send_push_notification_to_user(aufgabe.user, subject, push_content, url=action_url)
     
-    if send_mail_smtp(aufgabe.user.email, subject, email_content, reply_to=org.email):
+    if aufgabe.user.customuser.mail_notifications and send_mail_smtp(aufgabe.user.email, subject, email_content, reply_to=org.email):
         aufgabe.last_reminder = timezone.now()
         aufgabe.currently_sending = False
         aufgabe.save()
@@ -251,8 +278,9 @@ def send_new_aufgaben_email(aufgaben, org):
         aufgaben=aufgaben,
         base64_image=base64_image,
         org_name=org.name,
-        freiwilliger_name=f"{aufgaben[0].user.first_name} {aufgaben[0].user.last_name}",
-        action_url=action_url
+        user_name=f"{aufgaben[0].user.first_name} {aufgaben[0].user.last_name}",
+        action_url=action_url,
+        unsubscribe_url=aufgaben[0].user.customuser.get_unsubscribe_url()
     )
 
     subject = f'Neue Aufgaben: {aufgaben[0].aufgabe.name}... und mehr'

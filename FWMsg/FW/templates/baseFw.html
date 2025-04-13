@@ -64,58 +64,7 @@
             </li>
           {% endif %}
         </ul>
-        <!-- Language Selector -->
-        <div class="">
-          <ul class="nav flex-column text-on-org-color mt-0">
-            <li class="nav-item">
-              <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'datenschutz' %}"><i class="bi bi-file-earmark-text me-1"></i>{% trans 'Datenschutz' %}</a>
-            </li>
-          </ul>
-          <div class="dropdown m-2">
-            <button class="btn btn-link nav-link dropdown-toggle text-on-org-color p-0" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-              {% get_current_language as CURRENT_LANGUAGE %}
-              <span class="fi {% if CURRENT_LANGUAGE == 'de' %}
-                  fi-de
-                {% else %}
-                  fi-gb
-                {% endif %}">
-
-              </span>
-              {% if CURRENT_LANGUAGE == 'de' %}
-                {% trans 'Deutsch' %}
-              {% else %}
-                {% trans 'English' %}(Beta)
-              {% endif %}
-            </button>
-
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
-              <form action="{% url 'set_language' %}" method="post" id="language-form">
-                {% csrf_token %}
-                <input type="hidden" name="next" value="{{ request.path }}" />
-
-                {% get_available_languages as LANGUAGES %}
-                {% for lang_code, lang_name in LANGUAGES %}
-                  <li>
-                    <button type="submit" name="language" value="{{ lang_code }}" class="dropdown-item {% if CURRENT_LANGUAGE == lang_code %}active{% endif %}">
-                      <span class="fi {% if lang_code == 'de' %}
-                          fi-de
-                        {% else %}
-                          fi-gb
-                        {% endif %}">
-
-                      </span>
-                      {% if lang_code == 'de' %}
-                        {% trans 'Deutsch' %}
-                      {% else %}
-                        {% trans 'English' %}(Beta)
-                      {% endif %}
-                    </button>
-                  </li>
-                {% endfor %}
-              </form>
-            </ul>
-          </div>
-        </div>
+        {% include 'components/language_selector.html' %}
       </div>
     </div>
 
@@ -188,31 +137,7 @@
           </div>
 
           <!-- Fixed language selector at bottom -->
-          <div class="mt-3">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" style="color: var(--text_color_on_org_color);" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                {% get_current_language as CURRENT_LANGUAGE %}
-                {% if CURRENT_LANGUAGE == 'de' %}
-                  <span class="fi fi-de"></span> {% trans 'Deutsch' %}
-                {% else %}
-                  <span class="fi fi-gb"></span> {% trans 'English' %}(Beta)
-                {% endif %}
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="languageDropdown">
-                <form action="{% url 'set_language' %}" method="post" id="language-form">
-                  {% csrf_token %}
-                  <input type="hidden" name="next" value="{{ request.path }}" />
-
-                  <li>
-                    <button type="submit" name="language" value="de" class="dropdown-item {% if CURRENT_LANGUAGE == 'de' %}active{% endif %}"><span class="fi fi-de"></span> {% trans 'Deutsch' %}</button>
-                  </li>
-                  <li>
-                    <button type="submit" name="language" value="en" class="dropdown-item {% if CURRENT_LANGUAGE == 'en' %}active{% endif %}"><span class="fi fi-gb"></span> {% trans 'English' %}(Beta)</button>
-                  </li>
-                </form>
-              </ul>
-            </div>
-          </div>
+          {% include 'components/language_selector.html' with label=True %}
         </nav>
 
         <!-- Main content -->

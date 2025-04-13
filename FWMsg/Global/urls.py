@@ -1,5 +1,6 @@
 from . import views
 from django.urls import path 
+from . import views_push
 
 urlpatterns = [
     path('logos/<int:org_id>', views.serve_logo, name='serve_image'),
@@ -45,4 +46,14 @@ urlpatterns = [
     path('datenschutz/', views.datenschutz, name='datenschutz'),
 
     # path('test_email/', views.test_email, name='test_email'),
+]
+
+# Add these new URL patterns
+urlpatterns += [
+    path('push/', views_push.push_settings, name='push_settings'),
+    path('push/save-subscription/', views_push.save_subscription, name='save_subscription'),
+    path('push/remove-subscription/<int:subscription_id>/', views_push.remove_subscription, name='remove_subscription'),
+    path('push/vapid-public-key/', views_push.vapid_public_key, name='vapid_public_key'),
+    path('push/test-notification/', views_push.test_notification, name='test_notification'),
+    path('service-worker.js', views_push.service_worker, name='service_worker'),
 ]

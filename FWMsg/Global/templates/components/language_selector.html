@@ -1,0 +1,31 @@
+{% load i18n %}
+{% load base_filter %}
+
+<!-- Language Selector -->
+<div class="dropdown">
+    <button class="btn btn-link nav-link dropdown-toggle text-white p-0" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        {% get_current_language as CURRENT_LANGUAGE %}
+        <span class="fi fi-{% if CURRENT_LANGUAGE == 'de' %}de{% else %}gb{% endif %}"></span>
+        {% if label %}
+            {% if CURRENT_LANGUAGE == 'de' %}{% trans "Deutsch" %}{% else %}{% trans "English" %} (Beta){% endif %}
+        {% endif %}
+    </button>
+
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+        <form action="{% url 'set_language' %}" method="post" id="language-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+            
+            {% get_available_languages as LANGUAGES %}
+            {% for lang_code, lang_name in LANGUAGES %}
+                <li>
+                    <button type="submit" name="language" value="{{ lang_code }}" 
+                            class="dropdown-item {% if CURRENT_LANGUAGE == lang_code %}active{% endif %}">
+                        <span class="fi fi-{% if lang_code == 'de' %}de{% else %}gb{% endif %}"></span>
+                        {% if lang_code == 'de' %}{% trans "Deutsch" %}{% else %}{% trans "English" %} (Beta){% endif %}
+                    </button>
+                </li>
+            {% endfor %}
+        </form>
+    </ul>
+</div>

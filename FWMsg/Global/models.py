@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from PIL import Image  # Make sure this is from PIL, not Django models
 from django.core.files.base import ContentFile
 import io
+from django.urls import reverse
 
 
 class OrgManager(models.Manager):
@@ -67,7 +68,7 @@ class PersonCluster(OrgModel):
 
 class CustomUser(OrgModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Benutzer:in')
-    person_cluster = models.ForeignKey(PersonCluster, on_delete=models.CASCADE, blank=True, verbose_name='Person Cluster')
+    person_cluster = models.ForeignKey(PersonCluster, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Person Cluster')
     profil_picture = models.ImageField(upload_to='profil_picture/', blank=True, null=True, verbose_name='Profilbild')
     geburtsdatum = models.DateField(blank=True, null=True, verbose_name='Geburtsdatum')
 
@@ -89,6 +90,36 @@ class CustomUser(OrgModel):
         else:
             from ORG.tasks import send_register_email_task
             send_register_email_task.s(self.id).apply_async(countdown=2)
+
+    def get_unsubscribe_url(self):
+        try:
+            if not self.mail_notifications_unsubscribe_auth_key:
+                # Generate a secure hash token for unsubscribing
+                import secrets
+                import hashlib
+                import time
+                
+                # Combine user ID with current timestamp and a random token
+                unique_value = f"{self.user.id}_{time.time()}_{secrets.token_hex(16)}"
+                
+                # Create a SHA-256 hash of this value
+                hash_obj = hashlib.sha256(unique_value.encode())
+                self.mail_notifications_unsubscribe_auth_key = hash_obj.hexdigest()
+                self.save()
+            
+            # Use Django's reverse function instead of hardcoding the path
+            relative_url = reverse('unsubscribe_mail_notifications', kwargs={
+                'user_id': self.user.id,
+                'auth_key': self.mail_notifications_unsubscribe_auth_key
+            })
+            
+            # Add the base domain to the relative URL
+            base_url = "https://volunteer.solutions"
+            return base_url + relative_url
+        except Exception as e:
+            print(e)
+            # Fallback to profile page if there's an error
+            return "https://volunteer.solutions/profil"
 
     def create_small_image(self):
         if self.profil_picture:
@@ -857,3 +888,27 @@ class Maintenance(models.Model):
     class Meta:
         verbose_name = 'Wartung'
         verbose_name_plural = 'Wartungen'
+
+
+class PushSubscription(models.Model):
+    """
+    Model to store push notification subscription information for users.
+    This enables web push notifications to be sent to browsers.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, help_text="User who has subscribed to push notifications")
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, help_text="Organization the user belongs to")
+    endpoint = models.URLField(max_length=500, help_text="Push subscription endpoint URL")
+    p256dh = models.CharField(max_length=255, help_text="User's public key for encryption")
+    auth = models.CharField(max_length=255, help_text="Authentication secret")
+    name = models.CharField(max_length=100, blank=True, null=True, help_text="Optional name for this device/browser")
+    created_at = models.DateTimeField(auto_now_add=True, help_text="When this subscription was created")
+    last_used = models.DateTimeField(null=True, blank=True, help_text="When this subscription was last used successfully")
+    
+    class Meta:
+        verbose_name = "Push-Abonnement"
+        verbose_name_plural = "Push-Abonnements"
+        unique_together = ('user', 'endpoint')
+    
+    def __str__(self):
+        device_name = self.name or "Unbenanntes Gerät"
+        return f"{self.user.username} - {device_name}"

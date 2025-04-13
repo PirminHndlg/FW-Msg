@@ -83,12 +83,17 @@
                 </li>
               </ul>
 
-              <!-- Jahrgang Selector -->
-              {% include 'components/jahrgang_selector.html' with jahrgaenge=jahrgaenge %}
+              <div class="d-flex flex-wrap gap-2 justify-content-center align-items-center">
+                <!-- Language Selector -->
+                {% include 'components/language_selector.html' %}
 
-              <!-- Profil Button -->
-              <div class="d-flex">
-                <a href="{% url 'profil' %}" class="btn btn-light"><i class="bi bi-person me-1"></i></a>
+                <!-- Jahrgang Selector -->
+                {% include 'components/jahrgang_selector.html' with jahrgaenge=jahrgaenge %}
+
+                <!-- Profil Button -->
+                <div class="d-flex">
+                  <a href="{% url 'profil' %}" class="btn btn-light"><i class="bi bi-person me-1"></i></a>
+                </div>
               </div>
             </div>
           </div>

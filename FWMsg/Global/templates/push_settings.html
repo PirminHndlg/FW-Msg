@@ -1,0 +1,243 @@
+{% extends extends_base|default:'baseFw.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+  <style>
+    .device-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .device-card {
+      transition: all 0.2s ease;
+    }
+    
+    .device-card:hover {
+      box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .badge-device {
+      background-color: rgba(var(--bs-primary-rgb), 0.1);
+      color: var(--bs-primary);
+    }
+    
+    .push-status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+    
+    .push-status-indicator.enabled {
+      background-color: var(--bs-success);
+    }
+    
+    .push-status-indicator.disabled {
+      background-color: var(--bs-danger);
+    }
+  </style>
+{% endblock %}
+
+{% block title %}
+  Push-Benachrichtigungen
+{% endblock %}
+
+{% block content %}
+  <div class="row mb-4">
+    <div class="col-12">
+      <h1 class="h3 mb-3">{% trans 'Push-Benachrichtigungen (Beta)' %}</h1>
+
+      {% if success_message %}
+        <div class="alert alert-success" role="alert">{{ success_message }}</div>
+      {% endif %}
+
+      {% if error_message %}
+        <div class="alert alert-danger" role="alert">{{ error_message }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card rounded-4 mb-4">
+        <div class="card-body">
+          <h5 class="card-title">{% trans 'Push-Benachrichtigungen einrichten' %}</h5>
+          <p class="card-text text-muted">
+            {% trans 'Push-Benachrichtigungen ermöglichen es uns, Sie sofort über wichtige Ereignisse zu informieren, auch wenn Sie die Website nicht geöffnet haben.' %}
+          </p>
+
+          <div id="pushStatus" class="alert alert-info d-flex align-items-center mb-4">
+            <div class="push-status-indicator disabled me-2" id="pushStatusIndicator"></div>
+            <div id="pushStatusText">
+              {% trans 'Prüfe Push-Benachrichtigungen Status...' %}
+            </div>
+          </div>
+
+          <div class="d-grid gap-2 d-md-flex justify-content-md-start mb-4">
+            <button class="btn btn-primary" id="enablePushBtn" type="button"><i class="bi bi-bell-fill me-2"></i>{% trans 'Push-Benachrichtigungen aktivieren' %}</button>
+
+            <form method="post" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" name="send_test" value="1" class="btn btn-outline-secondary"><i class="bi bi-send me-2"></i>{% trans 'Test-Benachrichtigung senden' %}</button>
+            </form>
+          </div>
+
+          <div class="alert alert-light border">
+            <h6>{% trans 'Hinweise' %}:</h6>
+            <ul class="mb-0">
+              <li>
+                {% trans 'Push-Benachrichtigungen funktionieren nur in modernen Browsern.' %}
+              </li>
+              <li>
+                {% trans 'Sie müssen Push-Benachrichtigungen für jedes Gerät und jeden Browser separat aktivieren.' %}
+              </li>
+              <li>
+                {% trans 'Sie können Push-Benachrichtigungen jederzeit in den Browser-Einstellungen deaktivieren.' %}
+              </li>
+              <li>
+                {% trans 'Auf mobilen Geräten können Push-Benachrichtigungen nur in Chrome oder Firefox empfangen werden.' %}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card rounded-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">{% trans 'Registrierte Geräte' %}</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="device-list">
+            {% if subscriptions %}
+              <ul class="list-group list-group-flush">
+                {% for subscription in subscriptions %}
+                  <li class="list-group-item device-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <div class="d-flex align-items-center">
+                          <i class="bi bi-laptop me-2 text-muted"></i>
+                          <span>{{ subscription.name|default:'Unbenanntes Gerät' }}</span>
+                        </div>
+                        <small class="text-muted d-block">
+                          {% if subscription.last_used %}
+                            {{ subscription.last_used|date:'d.m.Y H:i' }}
+                          {% else %}
+                            {% trans 'Noch nicht verwendet' %}
+                          {% endif %}
+                        </small>
+                      </div>
+                      <a href="{% url 'remove_subscription' subscription.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% trans 'Sind Sie sicher, dass Sie dieses Gerät entfernen möchten?' %}')"><i class="bi bi-trash"></i></a>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="text-center py-4">
+                <i class="bi bi-bell-slash fs-2 text-muted"></i>
+                <p class="mt-2 text-muted">
+                  {% trans 'Keine Geräte registriert' %}
+                </p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% csrf_token %}
+
+  <script src="{% static 'js/push-notifications.js' %}"></script>
+  <script>
+    // Update UI based on push notification status
+    async function updatePushUI() {
+      const statusIndicator = document.getElementById('pushStatusIndicator')
+      const statusText = document.getElementById('pushStatusText')
+      const statusContainer = document.getElementById('pushStatus')
+      const enableBtn = document.getElementById('enablePushBtn')
+    
+      if (!isPushNotificationSupported()) {
+        statusIndicator.className = 'push-status-indicator disabled'
+        statusText.textContent = '{% trans "Push-Benachrichtigungen werden von Ihrem Browser nicht unterstützt." %}'
+        statusContainer.className = 'alert alert-warning d-flex align-items-center mb-4'
+        enableBtn.disabled = true
+        return
+      }
+    
+      const subscription = await checkPushSubscription()
+    
+      if (subscription) {
+        statusIndicator.className = 'push-status-indicator enabled'
+        statusText.textContent = '{% trans "Push-Benachrichtigungen sind aktiviert." %}'
+        statusContainer.className = 'alert alert-success d-flex align-items-center mb-4'
+        enableBtn.textContent = '{% trans "Push-Benachrichtigungen erneuern" %}'
+      } else {
+        const permission = Notification.permission
+    
+        if (permission === 'denied') {
+          statusIndicator.className = 'push-status-indicator disabled'
+          statusText.innerHTML = '{% trans "Push-Benachrichtigungen sind blockiert. Bitte erlauben Sie Benachrichtigungen in Ihren" %} <a href="https://support.google.com/chrome/answer/3220216" target="_blank">{% trans "Browser-Einstellungen" %}</a>.'
+          statusContainer.className = 'alert alert-danger d-flex align-items-center mb-4'
+        } else {
+          statusIndicator.className = 'push-status-indicator disabled'
+          statusText.textContent = '{% trans "Push-Benachrichtigungen sind nicht aktiviert." %}'
+          statusContainer.className = 'alert alert-info d-flex align-items-center mb-4'
+        }
+      }
+    }
+    
+    // Setup event listeners when the page loads
+    document.addEventListener('DOMContentLoaded', function () {
+      // Update the UI
+      updatePushUI()
+    
+      // Handle enable push button click
+      document.getElementById('enablePushBtn').addEventListener('click', async function () {
+        const publicKey = '{{ vapid_public_key }}'
+        const result = await subscribeToPushNotifications(publicKey)
+    
+        if (result.success) {
+          // Show success message and update UI
+          const statusContainer = document.getElementById('pushStatus')
+          statusContainer.className = 'alert alert-success d-flex align-items-center mb-4'
+          document.getElementById('pushStatusIndicator').className = 'push-status-indicator enabled'
+          document.getElementById('pushStatusText').textContent = result.message
+    
+          // Reload the page after a short delay to show the new device
+          setTimeout(() => {
+            window.location.reload()
+          }, 3000)
+        } else {
+          // Show error message
+          const statusContainer = document.getElementById('pushStatus')
+          statusContainer.className = 'alert alert-danger d-flex align-items-center mb-4'
+          document.getElementById('pushStatusText').textContent = result.message
+        }
+      })
+    })
+    
+    // Front-end **Service Worker** listening for events
+    document.addEventListener('push', (event) => {
+      const data = event.data.json() // Payload from the server, assumed to be in JSON format
+    
+      event.waitUntil(
+        // Upon receiving the push event, call **Notifications API** to push the notification
+        self.registration.showNotification(data.title ? data.title : 'New Message', {
+          body: data.body,
+          badge: 'images/badge_icon.png',
+          vibrate: [200, 100, 200],
+          timestamp: Date.now(),
+          data: { use_to_open_specific_page: data.props } // Custom data sent from the server
+        })
+      )
+    })
+  </script>
+{% endblock %}
+
+{% block scripts %}
+
+{% endblock %}
