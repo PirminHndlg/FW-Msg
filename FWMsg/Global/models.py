@@ -900,7 +900,7 @@ class PushSubscription(models.Model):
     endpoint = models.URLField(max_length=500, help_text="Push subscription endpoint URL")
     p256dh = models.CharField(max_length=500, help_text="User's public key for encryption")
     auth = models.CharField(max_length=500, help_text="Authentication secret")
-    name = models.CharField(max_length=100, blank=True, null=True, help_text="Optional name for this device/browser")
+    name = models.CharField(max_length=255, blank=True, null=True, help_text="Optional name for this device/browser")
     created_at = models.DateTimeField(auto_now_add=True, help_text="When this subscription was created")
     last_used = models.DateTimeField(null=True, blank=True, help_text="When this subscription was last used successfully")
     
