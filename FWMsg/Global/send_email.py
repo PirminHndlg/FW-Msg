@@ -238,7 +238,7 @@ def send_aufgaben_email(aufgabe, org):
     unsubscribe_url = aufgabe.user.customuser.get_unsubscribe_url()
     base64_image = get_logo_base64(org)
     aufg_name = aufgabe.aufgabe.name
-    aufg_deadline = aufgabe.faellig.strftime("%d.%m.%Y")
+    aufg_deadline = aufgabe.faellig
     aufg_beschreibung = aufgabe.aufgabe.beschreibung if aufgabe.aufgabe.beschreibung else ''
     user_name = f"{aufgabe.user.first_name} {aufgabe.user.last_name}"
     
