@@ -641,6 +641,11 @@ def get_cascade_info(request):
     if response:
         return JsonResponse({'error': 'Model not found'}, status=404)
     
+    if model_name == 'user':
+        model = User
+        object_id = CustomUser.objects.get(id=object_id).user.id
+    
+    
     # Get the object and check organization
     instance, response = _get_object_with_org_check(model, object_id, request)
     if isinstance(response, HttpResponse):
