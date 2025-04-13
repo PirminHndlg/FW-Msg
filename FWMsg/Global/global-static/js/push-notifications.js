@@ -52,7 +52,7 @@ async function subscribeToPushNotifications(publicKey) {
             console.error('Notification permission denied');
             return {
                 success: false,
-                message: 'Berechtigung für Benachrichtigungen verweigert. Bitte erlauben Sie Benachrichtigungen in Ihren Browser-Einstellungen.'
+                message: 'Berechtigung für Benachrichtigungen verweigert. Bitte erlaube die Benachrichtigungen in deinen Browser-Einstellungen.'
             };
         }
 
@@ -90,7 +90,7 @@ async function subscribeToPushNotifications(publicKey) {
         
         return {
             success: true,
-            message: 'Sie haben sich erfolgreich für Push-Benachrichtigungen angemeldet.'
+            message: 'Du hast dich erfolgreich für Push-Benachrichtigungen angemeldet.'
         };
     } catch (error) {
         console.error('Error subscribing to push notifications:', error);
