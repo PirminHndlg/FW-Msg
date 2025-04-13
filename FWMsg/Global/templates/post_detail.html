@@ -15,13 +15,13 @@
           <div class="card-header bg-light rounded-top-4 py-3">
             <div class="d-flex justify-content-between align-items-center">
               <div class="d-flex align-items-center">
-                <span class="post-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"><i class="bi bi-file-earmark-text text-white"></i></span>
+                <span class="post-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"><i class="bi bi-journal-text text-white"></i></span>
                 <h3 class="card-title mb-0 fw-semibold">{{ post.title }}</h3>
               </div>
               <div>
                 {% if request.user == post.user or request.user.role == 'A' %}
                   <a href="{% url 'post_edit' post.id %}" class="btn btn-outline-primary rounded-3"><i class="bi bi-pencil"></i></a>
-                  <a href="{% url 'post_delete' post.id %}" class="btn btn-outline-danger rounded-3" onclick="return confirm('{% trans 'Bist Du sicher, dass Du diesen Beitrag löschen möchtest?' %}')"><i class="bi bi-trash"></i></a>
+                  <button type="button" class="btn btn-outline-danger rounded-3" data-bs-toggle="modal" data-bs-target="#deletePostModal{{ post.id }}"><i class="bi bi-trash"></i></button>
                 {% endif %}
               </div>
             </div>
@@ -143,6 +143,8 @@
       </div>
     </div>
   </div>
+
+  {% include 'components/post_delete_modal.html' with post=post %}
 
   <style>
     .post-icon,
