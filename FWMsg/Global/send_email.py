@@ -11,178 +11,216 @@ from django.conf import settings
 from .push_notification import send_push_notification_to_user
 
 aufgaben_email_template = """
-<html>
-<body>
-    <p>- English version below -</p>
-
-    <br>
-
-    <div style="display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap;">
-        <img style="width: 50px;" src="data:image/png;base64,{base64_image}" alt="{org_name} Logo">
-        <h2>{org_name}</h2>
-    </div>
-
-    <div>
-        <p>Hallo {user_name},</p>
-        
-        <p>dies ist eine automatische Erinnerung an die folgende Aufgabe:</p>
-        
-        <div>
-            <strong>{aufgabe_name}</strong><br>
-            Beschreibung: {aufgabe_beschreibung}<br>
-            Fällig am: {aufgabe_deadline}
+<body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #333333; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+    <div style="padding: 20px; background-color: #ffffff;">
+        <!-- Organization Header -->
+        <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #eeeeee; margin-bottom: 20px;">
+            <img style="width: 60px; height: auto; margin-bottom: 10px;" src="data:image/png;base64,{base64_image}" alt="{org_name} Logo">
+            <h2 style="color: #3273dc; margin: 0; font-weight: 600;">{org_name}</h2>
         </div>
         
-        <p>Bitte schaue dir die Aufgabe an und bearbeite diese zeitnah.</p>
-    </div>
-    
-    <div>
-        Link zur Aufgabe: <a href="{action_url}">{action_url}</a>
-    </div>
-    
-    <div>
-        <p>Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions - es wird keine Antwort erwartet.</p>
-    </div>
-
-    <div>
-        <p>Um keine weiteren E-Mails zu erhalten, klicke <a href="{unsubscribe_url}">hier</a></p>
-    </div>
-
-    <br><br>
-
-    <div>
-        <strong>- English version -</strong>
-    </div>
-
-    <div>
-        <p>Hello {user_name},</p>
-        
-        <p>This is a reminder for the following task:</p>
-        
-        <div>
-            <strong>{aufgabe_name}</strong><br>
-            Description: {aufgabe_beschreibung}<br>
-            Deadline: {aufgabe_deadline}
+        <!-- German Version -->
+        <div style="margin-bottom: 30px;">
+            <p style="font-size: 16px; margin-bottom: 15px;">Hallo {user_name},</p>
+            
+            <p>Dies ist eine automatische Erinnerung an die folgende Aufgabe:</p>
+            
+            <div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+                <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{aufgabe_name}</p>
+                <p style="margin: 5px 0;"><span style="color: #666666;">Beschreibung:</span> {aufgabe_beschreibung}</p>
+                <p style="margin: 5px 0;"><span style="color: #666666;">Fällig am:</span> <span style="font-weight: 500;">{aufgabe_deadline}</span></p>
+            </div>
+            
+            <p>Bitte schaue dir die Aufgabe an und bearbeite diese zeitnah.</p>
+            
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{action_url}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">Zur Aufgabe</a>
+            </div>
         </div>
         
-        <p>Please check the task and complete it as soon as possible.</p>
-    </div>
-    
-    <div>
-        Check the task:
-        <a href="{action_url}">{action_url}</a>
-    </div>
-
-    <div>
-        <p>This is an automatically generated email from Volunteer.Solutions - no replies expected.</p>
-    </div>
-
-    <div>
-        <p>To unsubscribe from these emails, click <a href="{unsubscribe_url}">here</a></p>
+        <!-- Divider -->
+        <div style="border-top: 1px solid #eeeeee; margin: 20px 0;"></div>
+        
+        <!-- English Version -->
+        <div style="margin-bottom: 25px;">
+            <p style="font-size: 15px; color: #444444; margin-bottom: 15px;"><strong>English version</strong></p>
+            
+            <p>Hello {user_name},</p>
+            
+            <p>This is a reminder for the following task:</p>
+            
+            <div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+                <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{aufgabe_name}</p>
+                <p style="margin: 5px 0;"><span style="color: #666666;">Description:</span> {aufgabe_beschreibung}</p>
+                <p style="margin: 5px 0;"><span style="color: #666666;">Deadline:</span> <span style="font-weight: 500;">{aufgabe_deadline}</span></p>
+            </div>
+            
+            <p>Please check the task and complete it as soon as possible.</p>
+            
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{action_url}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">View Task</a>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="text-align: center; font-size: 13px; color: #666666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eeeeee;">
+            <p style="margin: 5px 0;">Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions</p>
+            <p style="margin: 5px 0;">Um keine weiteren E-Mails zu erhalten, <a href="{unsubscribe_url}" style="color: #3273dc; text-decoration: none;">klicke hier</a></p>
+            <p style="margin: 5px 0; color: #999999;">This is an automatically generated email - no reply expected</p>
+        </div>
     </div>
 </body>
-</html>
 """
 
 new_aufgaben_email_template = """
-<html>
-<body>
-    <p>- English version below -</p>
-
-    <br>
-
-    <div style="display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap;">
-        <img style="width: 50px;" src="data:image/png;base64,{base64_image}" alt="{org_name} Logo">
-        <h2>{org_name}</h2>
-    </div>
-
-    <div>
-        <p>Hallo {user_name},</p>
-        <p>es gibt neue Aufgaben für Dich:</p>
-        <div>
-            <strong>{aufgaben_name}</strong><br>
+<body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #333333; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+    <div style="padding: 20px; background-color: #ffffff;">
+        <!-- Organization Header -->
+        <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #eeeeee; margin-bottom: 20px;">
+            <img style="width: 60px; height: auto; margin-bottom: 10px;" src="data:image/png;base64,{base64_image}" alt="{org_name} Logo">
+            <h2 style="color: #3273dc; margin: 0; font-weight: 600;">{org_name}</h2>
         </div>
-        <p>Bitte schaue dir die Aufgaben an und bearbeite diese zeitnah.</p>
-        <div>
-            <a href="{action_url}">{action_url}</a>
-        </div>
-
-        <div>
-            <p>Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions - es wird keine Antwort erwartet.</p>
-        </div>
-
-        <div>
-            <p>Um keine weiteren E-Mails zu erhalten, klicke <a href="{unsubscribe_url}">hier</a></p>
-        </div>
-
-        <br><br>
-
-        <div>
-            <strong>- English version -</strong>
-        </div>
-        <div>
-            <p>Hello {user_name},</p>
-            <p>there are new tasks for you:</p>
-            <div>
-                <strong>{aufgaben_name}</strong><br>
+        
+        <!-- German Version -->
+        <div style="margin-bottom: 30px;">
+            <p style="font-size: 16px; margin-bottom: 15px;">Hallo {user_name},</p>
+            
+            <p>Es gibt neue Aufgaben für Dich:</p>
+            
+            <div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+                <p style="font-weight: 600; margin: 0; font-size: 17px; color: #3273dc;">{aufgaben_name}</p>
+            </div>
+            
+            <p>Bitte schaue dir die Aufgaben an und bearbeite diese zeitnah.</p>
+            
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{action_url}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">Zu den Aufgaben</a>
             </div>
         </div>
-        <div>
-            <p>This is an automatically generated email from Volunteer.Solutions - no replies expected.</p>
+        
+        <!-- Divider -->
+        <div style="border-top: 1px solid #eeeeee; margin: 20px 0;"></div>
+        
+        <!-- English Version -->
+        <div style="margin-bottom: 25px;">
+            <p style="font-size: 15px; color: #444444; margin-bottom: 15px;"><strong>English version</strong></p>
+            
+            <p>Hello {user_name},</p>
+            
+            <p>There are new tasks for you:</p>
+            
+            <div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+                <p style="font-weight: 600; margin: 0; font-size: 17px; color: #3273dc;">{aufgaben_name}</p>
+            </div>
+            
+            <p>Please check the tasks and complete them as soon as possible.</p>
+            
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{action_url}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">View Tasks</a>
+            </div>
         </div>
-        <div>
-            <p>To unsubscribe from these emails, click <a href="{unsubscribe_url}">here</a></p>
+        
+        <!-- Footer -->
+        <div style="text-align: center; font-size: 13px; color: #666666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eeeeee;">
+            <p style="margin: 5px 0;">Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions</p>
+            <p style="margin: 5px 0;">Um keine weiteren E-Mails zu erhalten, <a href="{unsubscribe_url}" style="color: #3273dc; text-decoration: none;">klicke hier</a></p>
+            <p style="margin: 5px 0; color: #999999;">This is an automatically generated email - no reply expected</p>
         </div>
     </div>
 </body>
-</html>
 """
 
 register_email_fw_template = """
-<html>
-<body>
-    <a>- English version below -</a>
-
-    <div style="display: flex; align-items: center; gap: 10px; justify-content: center;">
-        <img style="width: 50px;" src="data:image/png;base64,{base64_image}" alt="{org_name} Logo">
-        <h2>{org_name}</h2>
+<body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #333333; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+    <div style="padding: 20px; background-color: #ffffff;">
+        <!-- Organization Header -->
+        <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #eeeeee; margin-bottom: 20px;">
+            <img style="width: 60px; height: auto; margin-bottom: 10px;" src="data:image/png;base64,{base64_image}" alt="{org_name} Logo">
+            <h2 style="color: #3273dc; margin: 0; font-weight: 600;">{org_name}</h2>
+        </div>
+        
+        <!-- German Version -->
+        <div style="margin-bottom: 30px;">
+            <p style="font-size: 16px; margin-bottom: 15px;">Hallo {user_name},</p>
+            
+            <p>Es wurde ein Account für Dich bei Volunteer.Solutions von der Organisation {org_name} erstellt.</p>
+            <p>Volunteer.Solutions ist eine Plattform zur Organisation von Freiwilligenarbeit.</p>
+            
+            <div style="background-color: #f7f9fc; border-radius: 4px; padding: 20px; margin: 20px 0;">
+                <p style="margin: 0 0 10px 0; font-weight: 500;">Bitte nutze für den Login die folgenden Daten:</p>
+                <p style="margin: 5px 0;"><span style="display: inline-block; width: 120px; color: #666666;">Benutzername:</span> <span style="font-weight: 500;">{username}</span></p>
+                <p style="margin: 5px 0;"><span style="display: inline-block; width: 120px; color: #666666;">Einmalpasswort:</span> <span style="font-weight: 500; font-family: monospace; font-size: 16px; letter-spacing: 1px;">{einmalpasswort}</span></p>
+            </div>
+            
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{action_url}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">Jetzt einloggen</a>
+            </div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="border-top: 1px solid #eeeeee; margin: 20px 0;"></div>
+        
+        <!-- English Version -->
+        <div style="margin-bottom: 25px;">
+            <p style="font-size: 15px; color: #444444; margin-bottom: 15px;"><strong>English version</strong></p>
+            
+            <p>Hello {user_name},</p>
+            
+            <p>An account has been created for you at Volunteer.Solutions by the organization {org_name}.</p>
+            <p>Volunteer.Solutions is a platform for organizing volunteer work.</p>
+            
+            <div style="background-color: #f7f9fc; border-radius: 4px; padding: 20px; margin: 20px 0;">
+                <p style="margin: 0 0 10px 0; font-weight: 500;">Please use the following data for login:</p>
+                <p style="margin: 5px 0;"><span style="display: inline-block; width: 120px; color: #666666;">Username:</span> <span style="font-weight: 500;">{username}</span></p>
+                <p style="margin: 5px 0;"><span style="display: inline-block; width: 120px; color: #666666;">One-time password:</span> <span style="font-weight: 500; font-family: monospace; font-size: 16px; letter-spacing: 1px;">{einmalpasswort}</span></p>
+            </div>
+            
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{action_url}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">Login now</a>
+            </div>
+        </div>
+        
+        <!-- Spam Note -->
+        <div style="font-size: 12px; color: #777777; margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 4px;">
+            <p style="margin: 0;">Falls diese E-Mail in Ihrem Spam-Ordner gelandet ist, ist es empfehlenswert, diese E-Mail in den Posteingang zu verschieben und eine leere E-Mail an <a href="mailto:admin@volunteer.solutions" style="color: #3273dc; text-decoration: none;">admin@volunteer.solutions</a> zu schreiben.</p>
+            <p style="margin: 5px 0 0 0;">If this email has landed in your spam folder, it is recommended to move it to your inbox and send an empty email to <a href="mailto:admin@volunteer.solutions" style="color: #3273dc; text-decoration: none;">admin@volunteer.solutions</a>.</p>
+        </div>
     </div>
-
-    <a>Hallo {user_name},</a><br>
-    <a>Es wurde ein Account für Dich bei <a href="{action_url}">Volunteer.Solutions</a> von der Organisation {org_name} erstellt.</a><br>
-    <a>Volunteer.Solutions ist eine Plattform zur Organisation von Freiwilligenarbeit.</a><br>
-    <br>
-    <a>Bitte nutze für den Login die folgenden Daten:<br>Benutzername: {username}<br>Einmalpasswort: {einmalpasswort}</a>
-    <p>Alternativ kannst Du dich auch über die folgende URL einloggen: <a href="{action_url}">{action_url}</a></p>
-    <br>
-    <small>Falls diese E-Mail in Ihrem Spam-Ordner gelandet ist, ist es empfehlenswert, diese E-Mail in den Posteingang zu verschieben und eine leere E-Mail an <a href="mailto:admin@volunteer.solutions">admin@volunteer.solutions</a> zu schreiben.</small>
-
-    <br><br>
-
-    <strong>- English version -</strong><br>
-    <a>Hello {user_name},</a><br>
-    <a>An account has been created for you at <a href="{action_url}">Volunteer.Solutions</a> by the organisation {org_name}.</a><br>
-    <a>Volunteer.Solutions is a platform for organising volunteer work.</a><br>
-    <br>
-    <a>Please use the following data for the login:<br>Username: {username}<br>One-time password: {einmalpasswort}</a>
-    <p>Alternatively, you can log in via the following URL: <a href="{action_url}">{action_url}</a></p>
-    <br>
-    <small>If this email has landed in your spam folder, it is recommended to move this email to the inbox and send an empty email to <a href="mailto:admin@volunteer.solutions">admin@volunteer.solutions</a>.</small>
 </body>
-</html>
 """
 
 register_email_org_template = """
-<html>
-<body>
-    <p>An {org_name}</p>
-    <p>Es wurde ein neuer Account auf Volunteer.Solutions erstellt.</p>
-    <p>Bitte nutze für den Login die folgenden Daten:<br>Benutzername: {username}<br>Einmalpasswort: {einmalpasswort}</p>
-    <p>Alternativ kannst Du dich auch über die folgende URL einloggen: <a href="{action_url}">{action_url}</a></p>
-    <br>
-    <small>Falls diese E-Mail in Ihrem Spam-Ordner gelandet ist, ist es empfehlenswert, diese E-Mail in den Posteingang zu verschieben und eine leere E-Mail an <a href="mailto:admin@volunteer.solutions">admin@volunteer.solutions</a> zu schreiben.</small>
+<body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #333333; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+    <div style="padding: 20px; background-color: #ffffff;">
+        <!-- Header -->
+        <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #eeeeee; margin-bottom: 20px;">
+            <h2 style="color: #3273dc; margin: 0; font-weight: 600;">Volunteer.Solutions</h2>
+            <p style="margin: 10px 0 0 0; color: #666666;">Plattform für {org_name}</p>
+        </div>
+        
+        <!-- Content -->
+        <div style="margin-bottom: 30px;">
+            <p style="font-size: 16px; margin-bottom: 15px;">An {org_name},</p>
+            
+            <p>Es wurde ein neuer Account auf Volunteer.Solutions erstellt.</p>
+            
+            <div style="background-color: #f7f9fc; border-radius: 4px; padding: 20px; margin: 20px 0;">
+                <p style="margin: 0 0 10px 0; font-weight: 500;">Bitte nutze für den Login die folgenden Daten:</p>
+                <p style="margin: 5px 0;"><span style="display: inline-block; width: 120px; color: #666666;">Benutzername:</span> <span style="font-weight: 500;">{username}</span></p>
+                <p style="margin: 5px 0;"><span style="display: inline-block; width: 120px; color: #666666;">Einmalpasswort:</span> <span style="font-weight: 500; font-family: monospace; font-size: 16px; letter-spacing: 1px;">{einmalpasswort}</span></p>
+            </div>
+            
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{action_url}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">Jetzt einloggen</a>
+            </div>
+        </div>
+        
+        <!-- Spam Note -->
+        <div style="font-size: 12px; color: #777777; margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 4px;">
+            <p style="margin: 0;">Falls diese E-Mail in Ihrem Spam-Ordner gelandet ist, ist es empfehlenswert, diese E-Mail in den Posteingang zu verschieben und eine leere E-Mail an <a href="mailto:admin@volunteer.solutions" style="color: #3273dc; text-decoration: none;">admin@volunteer.solutions</a> zu schreiben.</p>
+        </div>
+    </div>
 </body>
-</html>
 """
 
 def format_aufgaben_email(aufgabe_name, aufgabe_deadline, base64_image, org_name, user_name, action_url, aufgabe_beschreibung='', unsubscribe_url=None):

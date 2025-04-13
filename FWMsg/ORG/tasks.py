@@ -11,11 +11,11 @@ def send_register_email_task(customuser_id):
     user = customuser.user
     org = customuser.org
 
-    action_url = 'https://volunteer.solutions/first_login'
     org_name = org.name
     einmalpasswort = customuser.einmalpasswort
     freiwilliger_name = f"{user.first_name} {user.last_name}"
     username = user.username
+    action_url = f'https://volunteer.solutions/first_login?username={username}&einmalpasswort={einmalpasswort}'
     
     email_content = format_register_email_org(einmalpasswort, action_url, org_name, freiwilliger_name, username)
     subject = f'Account erstellt: {freiwilliger_name}'
