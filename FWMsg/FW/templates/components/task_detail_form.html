@@ -29,7 +29,7 @@
         <div class="upload-container position-relative border rounded-3 bg-white shadow-sm">
             <input type="file" class="form-control border-0 py-4" name="file" id="fileInput" 
                    {% if not task.file %} required {% endif %} 
-                   style="z-index: 2; opacity: 0; height: 150px;">
+                   style="z-index: 2; opacity: 0; height: 150px;" multiple>
             <div class="upload-overlay d-flex flex-column align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100"
                  style="z-index: 1; pointer-events: none;">
                  {% if task.file %}
@@ -152,7 +152,7 @@
     
       if (document.getElementById('fileInput')) {
         initFullscreenDropZone('fileInput', {
-          // Existing configuration
+          multiple: true
         });
       }
     });

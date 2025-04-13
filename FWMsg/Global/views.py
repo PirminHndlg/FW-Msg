@@ -19,9 +19,11 @@ The views are organized into logical sections:
 
 # Standard library imports
 from datetime import datetime
+import io
 import json
 import mimetypes
 import os
+import zipfile
 
 # Django imports
 from django.contrib import messages
@@ -40,6 +42,7 @@ from django.http import (
 )
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.core.files.base import ContentFile
 
 # Local application imports
 from FW.forms import BilderForm, BilderGalleryForm, ProfilUserForm
@@ -1034,10 +1037,55 @@ def aufgabe(request, aufgabe_id):
         return redirect('aufgaben')
     
     if request.method == 'POST':
-        file = request.FILES.get('file')
-        
-        if file and user_aufgabe.aufgabe.mitupload:
-            user_aufgabe.file = file
+        files = request.FILES.getlist('file')
+
+        if user_aufgabe.aufgabe.mitupload:
+            if files and len(files) > 1:
+               
+                tmp_folder = os.path.join(settings.MEDIA_ROOT, 'tmp')
+                os.makedirs(tmp_folder, exist_ok=True)
+                for file in files:
+                    print(file.name)
+                    with open(os.path.join(tmp_folder, file.name), 'wb') as f:
+                        f.write(file.read())
+                    
+                #alternative way to save the file
+                zip_buffer = io.BytesIO()
+                with zipfile.ZipFile(zip_buffer, 'w') as zipf:
+                    for i, file in enumerate(files):
+                        # TemporaryUploadedFile doesn't have a path attribute, so we need to handle the file directly
+                        # file_name = f"{user_aufgabe.aufgabe.name.replace(' ', '_')}-{user_aufgabe.faellig.strftime('%Y-%m-%d')}_{i}"
+                        # zipf.writestr(file_name, file.read())
+                        file_suffix = os.path.splitext(file.name)[1]
+                        print(file_suffix)
+                        print(os.path.join(tmp_folder, file.name))
+                        zipf.write(os.path.join(tmp_folder, file.name), f"{user_aufgabe.user.username}-{user_aufgabe.aufgabe.name.replace(' ', '_')}-{user_aufgabe.faellig.strftime('%Y-%m-%d')}_{i}{file_suffix}")
+
+                zip_buffer.seek(0)
+
+                # user_aufgabe.file.upload_to as folder 
+                upload_to_path = os.path.join(settings.MEDIA_ROOT, user_aufgabe._meta.get_field('file').upload_to)
+                #create file and save the zip file to the tmp folder
+                file_name = f"{user_aufgabe.aufgabe.name.replace(' ', '_')}-{user_aufgabe.faellig.strftime('%Y-%m-%d')}.zip"
+                # Write to a temporary file path
+                temp_path = os.path.join(upload_to_path, file_name)
+                with open(temp_path, 'wb') as f:
+                    f.write(zip_buffer.getvalue())
+                
+                # Open the file and save it to the FileField properly
+                with open(temp_path, 'rb') as f:
+                    # This will save the file to the correct location based on the upload_to parameter
+                    user_aufgabe.file.save(file_name, ContentFile(f.read()), save=False)
+                
+                # Now save the model instance
+                user_aufgabe.save()
+                
+                # Optionally remove the temporary file
+                os.remove(temp_path)
+
+            elif files:
+                user_aufgabe.file = files[0]
+                user_aufgabe.save()
         
         action = request.POST.get('action')
         if action == 'unpend':
