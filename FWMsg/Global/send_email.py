@@ -130,6 +130,54 @@ new_aufgaben_email_template = """
 </body>
 """
 
+aufgabe_erledigt_email_template = """
+<body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #333333; line-height: 1.6; max-width: 500px; margin: 0 auto;">
+    <div style="padding: 20px; background-color: #ffffff; border: 1px solid #eeeeee; border-radius: 5px;">
+        <!-- Header -->
+        <div style="text-align: center; padding-bottom: 15px; border-bottom: 1px solid #eeeeee; margin-bottom: 15px;">
+            <h2 style="color: #3273dc; margin: 0; font-weight: 600;">{org_name}</h2>
+        </div>
+        
+        <!-- Task Completion Info -->
+        <div style="margin-bottom: 20px;">
+            <h3 style="margin-top: 0; color: #4a4a4a;">✅ Aufgabe erledigt</h3>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold; width: 140px;">Aufgabe:</td>
+                    <td style="padding: 8px 0;">{aufgabe_name}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">Erledigt von:</td>
+                    <td style="padding: 8px 0;">{user_name}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">Fällig am:</td>
+                    <td style="padding: 8px 0;">{aufgabe_deadline}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">Bestätigung nötig:</td>
+                    <td style="padding: 8px 0;">{requires_confirmation}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">Datei hochgeladen:</td>
+                    <td style="padding: 8px 0;">{has_file_upload}</td>
+                </tr>
+            </table>
+
+            <!-- Action Button -->
+            {action_button}
+        </div>
+        
+        <!-- Footer -->
+        <div style="border-top: 1px solid #eeeeee; padding-top: 15px; text-align: center; font-size: 12px; color: #888888;">
+            Diese E-Mail wurde automatisch generiert.
+            {unsubscribe_text}
+        </div>
+    </div>
+</body>
+"""
+
 register_email_fw_template = """
 <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #333333; line-height: 1.6; max-width: 600px; margin: 0 auto;">
     <div style="padding: 20px; background-color: #ffffff;">
@@ -246,7 +294,31 @@ def format_new_aufgaben_email(aufgaben, base64_image, org_name, user_name, actio
         unsubscribe_url=unsubscribe_url
     )
 
-def format_register_email_fw(einmalpasswort, action_url, base64_image, org_name, user_name, username):
+def format_aufgabe_erledigt_email(aufgabe_name, aufgabe_deadline, org_name, user_name, action_url, requires_confirmation=False, has_file_upload=False, aufgabe_beschreibung='', unsubscribe_url=None):
+    unsubscribe_text = f'<p><a href="{unsubscribe_url}" style="color: #888888;">Abmelden</a></p>' if unsubscribe_url else ''
+    
+    # Convert boolean values to Yes/No text in German
+    requires_confirmation_text = "Ja" if requires_confirmation else "Nein"
+    has_file_upload_text = "Ja" if has_file_upload else "Nein"
+
+    if has_file_upload:
+        action_button = f'<div style="text-align: center; margin: 25px 0;"><a href="{action_url}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">Datei herunterladen</a></div>'
+    else:
+        action_button = ''
+    
+    return aufgabe_erledigt_email_template.format(
+        aufgabe_name=aufgabe_name,
+        aufgabe_beschreibung=aufgabe_beschreibung,
+        aufgabe_deadline=aufgabe_deadline.strftime('%d.%m.%Y') if aufgabe_deadline else '',
+        org_name=org_name,
+        user_name=user_name,
+        requires_confirmation=requires_confirmation_text,
+        has_file_upload=has_file_upload_text,
+        unsubscribe_text=unsubscribe_text,
+        action_button=action_button
+    )
+
+def format_register_email_fw(einmalpasswort, action_url, org_name, user_name, username):
     return register_email_fw_template.format(
         einmalpasswort=einmalpasswort,
         action_url=action_url,
