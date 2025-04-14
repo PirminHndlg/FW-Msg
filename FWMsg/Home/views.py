@@ -81,12 +81,15 @@ def index(request):
     return render(request, 'index.html', {'form': form})
 
 def maintenance(request):
-    try:
-        maintenance = Maintenance.objects.order_by('-id').first()
-        maintenance_start_time = maintenance.maintenance_start_time
-        maintenance_end_time = maintenance.maintenance_end_time
-    except Maintenance.DoesNotExist:
-        return render(request, 'maintenance.html', {'maintenance_end_time': 'Maintenance not found'})
+    maintenance = Maintenance.objects.order_by('-id').first()
+
+    if not maintenance:
+        messages.error(request, 'Keine Wartungsarbeiten geplant.')
+        return redirect('index_home')
+    
+    
+    maintenance_start_time = maintenance.maintenance_start_time
+    maintenance_end_time = maintenance.maintenance_end_time
     
     # Calculate progress percentage
     # Use timezone-aware current time if maintenance times are timezone-aware
