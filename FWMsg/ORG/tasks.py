@@ -1,7 +1,7 @@
 from celery import shared_task
 import base64
 
-from Global.send_email import send_mail_smtp, format_register_email_org
+from Global.send_email import send_mail_smtp, format_register_email_org, format_aufgabe_erledigt_email
 
 
 @shared_task
@@ -26,15 +26,35 @@ def send_register_email_task(customuser_id):
 @shared_task
 def send_aufgabe_erledigt_email_task(aufgabe_id):
     from Global.models import UserAufgaben
+    from django.urls import reverse
+    
     try:
         aufgabe = UserAufgaben.objects.get(id=aufgabe_id)
         mail_to = ','.join(aufgabe.benachrichtigung_cc.split(',')) if aufgabe.benachrichtigung_cc else None
-        subject = f'{aufgabe.user.first_name} {aufgabe.user.last_name} hat die Aufgabe {aufgabe.aufgabe.name} erledigt'
+        
+        # Create action URL
+        action_url = f"https://volunteer.solutions{reverse('download_aufgabe', args=[aufgabe.id])}"
+        
+        # Check if there's a file uploaded
+        has_file_upload = bool(aufgabe.file)
+        
+        # Format the email with our template
+        email_content = format_aufgabe_erledigt_email(
+            aufgabe_name=aufgabe.aufgabe.name,
+            aufgabe_deadline=aufgabe.faellig,
+            org_name=aufgabe.user.org.name,
+            user_name=f"{aufgabe.user.first_name} {aufgabe.user.last_name}",
+            action_url=action_url,
+            requires_confirmation=aufgabe.aufgabe.requires_submission,
+            has_file_upload=has_file_upload
+        )
+        
+        subject = f'Aufgabe erledigt: {aufgabe.aufgabe.name} von {aufgabe.user.first_name} {aufgabe.user.last_name}'
         org_email = aufgabe.user.org.email
-        email_content = f'{aufgabe.user.first_name} {aufgabe.user.last_name} hat die Aufgabe {aufgabe.aufgabe.name} erledigt. <br><br>Aufgabe braucht Bestätigung: {aufgabe.aufgabe.requires_submission}<br>Aufgabe hat Upload: {aufgabe.aufgabe.mitupload}'
+        
         return send_mail_smtp(org_email, subject, email_content, cc=mail_to)
     except Exception as e:
-        print(e)
+        print(f"Error sending task completion email: {e}")
         return False
 
 @shared_task

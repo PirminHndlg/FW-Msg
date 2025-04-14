@@ -651,14 +651,24 @@ class UserAufgaben(OrgModel):
     def save(self, *args, **kwargs):
         from FW.models import Freiwilliger
 
-        if self.aufgabe.wiederholung and (self.aufgabe.wiederholung_ende == None or datetime.now().date() < self.aufgabe.wiederholung_ende) and self.erledigt:
-            self.faellig = max(datetime.now().date(), self.faellig) + timedelta(days=self.aufgabe.wiederholung_interval_wochen * 7)
-            self.erledigt = False
-            self.pending = False
+        if self.aufgabe.wiederholung and self.erledigt:
+            # Check if there's no end date or if the current date is before the end date
+            if self.aufgabe.wiederholung_ende is None or datetime.now().date() < self.aufgabe.wiederholung_ende:
+                # Handle case where faellig might be None
+                current_date = datetime.now().date()
+                if self.faellig is None:
+                    new_date = current_date
+                else:
+                    new_date = max(current_date, self.faellig)
+                
+                self.faellig = new_date + timedelta(days=self.aufgabe.wiederholung_interval_wochen * 7)
+                self.erledigt = False
+                self.pending = False
 
         if not self.faellig:
 
             faellig_date = datetime(datetime.now().year, self.aufgabe.faellig_monat or 1, self.aufgabe.faellig_tag or 1).date()
+            print(faellig_date)
             while faellig_date < datetime.now().date():
                 faellig_date = faellig_date.replace(year=faellig_date.year+1)
 
