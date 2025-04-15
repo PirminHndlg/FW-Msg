@@ -9,7 +9,7 @@ from .models import (
     Ampel2, Attribute, CustomUser, Einsatzland2, 
     Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, 
     Organisation, Aufgabe2, DokumentColor2, Dokument2, 
-    Ordner2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, 
+    Ordner2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, PushSubscription, 
     UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, 
     AufgabenCluster, Bilder2, BilderGallery2, ProfilUser2, Maintenance,
     PostSurveyAnswer, PostSurveyQuestion
@@ -22,11 +22,21 @@ from simple_history.admin import SimpleHistoryAdmin
 # Register your models here.
 @admin.register(CustomUser)
 class CustomUserAdmin(SimpleHistoryAdmin):
-    search_fields = ['user__username', 'user__email']
+    search_fields = ['user__username', 'user__email', 'user__first_name', 'user__last_name']
     actions = ['send_registration_email', 'create_small_image']
-    list_filter = [('einmalpasswort', admin.EmptyFieldListFilter)]
-    list_display = ('user', 'org')
-    list_filter = ('org',)
+    list_display = ('user', 'person_cluster', 'mail_notifications', 'get_user_email', 'get_last_login')
+    list_filter = ('person_cluster', 'mail_notifications', ('einmalpasswort', admin.EmptyFieldListFilter))
+    readonly_fields = ('mail_notifications_unsubscribe_auth_key',)
+
+    def get_user_email(self, obj):
+        return obj.user.email
+    get_user_email.short_description = 'Email'
+    get_user_email.admin_order_field = 'user__email'
+    
+    def get_last_login(self, obj):
+        return obj.user.last_login
+    get_last_login.short_description = 'Last Login'
+    get_last_login.admin_order_field = 'user__last_login'
 
     def get_urls(self):
         urls = super().get_urls()
@@ -38,12 +48,21 @@ class CustomUserAdmin(SimpleHistoryAdmin):
         return custom_urls + urls
 
     def send_registration_email(self, request, queryset):
+        count = 0
         for customuser in queryset:
             customuser.send_registration_email()
+            count += 1
+        self.message_user(request, f"Registration emails sent to {count} users.", messages.SUCCESS)
+    send_registration_email.short_description = "Send registration email to selected users"
 
     def create_small_image(self, request, queryset):
+        count = 0
         for customuser in queryset:
-            customuser.create_small_image()
+            if customuser.profil_picture:
+                customuser.create_small_image()
+                count += 1
+        self.message_user(request, f"Small profile images created for {count} users.", messages.SUCCESS)
+    create_small_image.short_description = "Create small profile pictures for selected users"
 
     def send_daily_emails(self, request):
         try:
@@ -60,169 +79,463 @@ class CustomUserAdmin(SimpleHistoryAdmin):
 
 @admin.register(PersonCluster)
 class PersonClusterAdmin(admin.ModelAdmin):
-    list_display = ['name', 'view']
+    list_display = ['name', 'view', 'aufgaben', 'calendar', 'dokumente', 'ampel', 'notfallkontakt', 'bilder', 'posts']
     search_fields = ['name']
-    list_filter = ['view']
+    list_filter = ['view', 'aufgaben', 'calendar', 'dokumente', 'ampel', 'notfallkontakt', 'bilder', 'posts']
 
 
 @admin.register(Feedback)
 class FeedbackAdmin(admin.ModelAdmin):
-    list_display = ['user', 'text', 'anonymous']
+    list_display = ['user', 'get_feedback_preview', 'anonymous']
     search_fields = ['user__username', 'text']
     list_filter = ['anonymous']
+    readonly_fields = ['text', 'user', 'anonymous']
+    
+    def get_feedback_preview(self, obj):
+        if len(obj.text) > 100:
+            return obj.text[:100] + "..."
+        return obj.text
+    get_feedback_preview.short_description = 'Feedback'
+
 
 @admin.register(KalenderEvent)
 class KalenderEventAdmin(SimpleHistoryAdmin):
-    list_display = ['title', 'start', 'end', 'description']
+    list_display = ['title', 'start', 'end', 'get_participant_count']
     search_fields = ['title', 'description']
     list_filter = ['start']
+    filter_horizontal = ['user']
+    
+    def get_participant_count(self, obj):
+        return obj.user.count()
+    get_participant_count.short_description = 'Participants'
 
 
 @admin.register(Organisation)
 class OrganisationAdmin(SimpleHistoryAdmin):
-    search_fields = ['name']
+    list_display = ['name', 'email', 'get_user_count']
+    search_fields = ['name', 'email']
+    
+    def get_user_count(self, obj):
+        return CustomUser.objects.filter(org=obj).count()
+    get_user_count.short_description = 'User Count'
+
 
 @admin.register(Ordner2)
 class OrdnerAdmin(SimpleHistoryAdmin):
+    list_display = ['ordner_name', 'color', 'get_dokument_count', 'get_visible_to']
     search_fields = ['ordner_name']
+    list_filter = ['color', 'typ']
+    filter_horizontal = ['typ']
     actions = ['set_person_cluster_freiwilliger']
 
+    def get_dokument_count(self, obj):
+        return Dokument2.objects.filter(ordner=obj).count()
+    get_dokument_count.short_description = 'Documents'
+    
+    def get_visible_to(self, obj):
+        return ", ".join([cluster.name for cluster in obj.typ.all()[:3]]) + \
+               ("..." if obj.typ.count() > 3 else "")
+    get_visible_to.short_description = 'Visible To'
+
     def set_person_cluster_freiwilliger(self, request, queryset):
+        freiwilliger_clusters = PersonCluster.objects.filter(name='Freiwilliger')
+        count = 0
         for ordner in queryset:
-            ordner.typ.set(PersonCluster.objects.filter(name='Freiwilliger'))
+            ordner.typ.set(freiwilliger_clusters)
             ordner.save()
+            count += 1
+        self.message_user(request, f"Set cluster 'Freiwilliger' for {count} folders.", messages.SUCCESS)
+    set_person_cluster_freiwilliger.short_description = "Set person cluster to 'Freiwilliger'"
+
 
 @admin.register(Dokument2)
 class DokumentAdmin(SimpleHistoryAdmin):
-    search_fields = ['ordner', 'dokument', 'beschreibung']
+    list_display = ['get_title', 'ordner', 'date_created', 'date_modified', 'get_document_type']
+    search_fields = ['titel', 'ordner__ordner_name', 'beschreibung']
+    list_filter = ['date_created', 'ordner']
+    filter_horizontal = ['darf_bearbeiten']
+    readonly_fields = ['date_created', 'date_modified', 'preview_image']
+    
+    def get_title(self, obj):
+        return obj.titel or (obj.dokument.name.split('/')[-1] if obj.dokument else obj.link or "No title")
+    get_title.short_description = 'Title'
+    
+    def get_document_type(self, obj):
+        return obj.get_document_suffix().upper() if obj.dokument else "LINK" if obj.link else "NONE"
+    get_document_type.short_description = 'Type'
+
 
 @admin.register(DokumentColor2)
 class DokumentColorAdmin(SimpleHistoryAdmin):
+    list_display = ['name', 'color', 'color_preview']
     search_fields = ['name']
+    
+    def color_preview(self, obj):
+        return format_html('<div style="background-color:{}; width:30px; height:15px;"></div>', obj.color)
+    color_preview.short_description = 'Color Preview'
     
 
 @admin.register(Attribute)
 class AttributeAdmin(admin.ModelAdmin):
-    search_fields = ['name']
+    list_display = ['name', 'type', 'get_value_preview', 'get_person_clusters']
+    search_fields = ['name', 'value_for_choices']
+    list_filter = ['type', 'person_cluster']
+    filter_horizontal = ['person_cluster']
+    
+    def get_value_preview(self, obj):
+        if obj.value_for_choices and len(obj.value_for_choices) > 50:
+            return obj.value_for_choices[:50] + "..."
+        return obj.value_for_choices
+    get_value_preview.short_description = 'Choices'
+    
+    def get_person_clusters(self, obj):
+        return ", ".join([pc.name for pc in obj.person_cluster.all()[:3]]) + \
+               ("..." if obj.person_cluster.count() > 3 else "")
+    get_person_clusters.short_description = 'For Groups'
+
 
 @admin.register(UserAttribute)
 class UserAttributeAdmin(admin.ModelAdmin):
-    search_fields = ['user__first_name', 'user__last_name', 'attribute__name']
+    list_display = ['user', 'attribute', 'value']
+    search_fields = ['user__first_name', 'user__last_name', 'attribute__name', 'value']
+    list_filter = ['attribute']
 
 
 @admin.register(Einsatzland2)
 class EinsatzlandAdmin(admin.ModelAdmin):
-    search_fields = ['name']
+    list_display = ['name', 'code']
+    search_fields = ['name', 'code']
 
 
 @admin.register(Einsatzstelle2)
 class EinsatzstelleAdmin(admin.ModelAdmin):
-    search_fields = ['name']
+    list_display = ['name', 'land']
+    search_fields = ['name', 'partnerorganisation', 'arbeitsvorgesetzter']
+    list_filter = ['land']
 
 
 @admin.register(Notfallkontakt2)
 class NotfallkontaktAdmin(admin.ModelAdmin):
-    search_fields = ['first_name', 'last_name']
+    list_display = ['get_full_name', 'phone', 'email', 'user']
+    search_fields = ['first_name', 'last_name', 'email', 'phone']
     actions = ['anonymize_user']
 
+    def get_full_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}"
+    get_full_name.short_description = 'Full Name'
+
     def anonymize_user(self, request, queryset):
+        count = 0
         for notfallkontakt in queryset:
             notfallkontakt.first_name = f'{notfallkontakt.first_name[0]} anonymisiert'
             notfallkontakt.last_name = f'{notfallkontakt.last_name[0]} anonymisiert'
             notfallkontakt.phone = None
             notfallkontakt.phone_work = None
-            notfallkontakt.email = f'{notfallkontakt.first_name}.{notfallkontakt.last_name}@p0k.de'
+            notfallkontakt.email = f'{notfallkontakt.first_name}.{notfallkontakt.last_name}@anonymized.org'
             notfallkontakt.save()
+            count += 1
+        self.message_user(request, f"Anonymized {count} emergency contacts.", messages.SUCCESS)
+    anonymize_user.short_description = "Anonymize selected emergency contacts"
 
 
 @admin.register(Post2)
 class PostAdmin(admin.ModelAdmin):
-    search_fields = ['title']
+    list_display = ['title', 'user', 'date', 'date_updated', 'has_survey', 'get_cluster_count']
+    search_fields = ['title', 'text', 'user__username']
+    list_filter = ['has_survey', 'date', 'person_cluster']
+    readonly_fields = ['date', 'date_updated']
+    filter_horizontal = ['person_cluster']
+    
+    def get_cluster_count(self, obj):
+        return obj.person_cluster.count()
+    get_cluster_count.short_description = 'Audience Count'
 
 
 @admin.register(Aufgabe2)
 class AufgabeAdmin(admin.ModelAdmin):
-    search_fields = ['name']
-    actions = ['set_person_cluster_typ_incoming', 'set_person_cluster_typ_outgoing', 'set_aufg_cluster_before_operation', 'set_aufg_cluster_during_operation', 'set_aufg_cluster_after_operation']
+    list_display = ['name', 'faellig_art', 'mitupload', 'requires_submission', 'wiederholung', 'get_cluster_count']
+    search_fields = ['name', 'beschreibung']
+    list_filter = ['mitupload', 'wiederholung', 'faellig_art', 'requires_submission', 'person_cluster']
+    filter_horizontal = ['person_cluster']
+    actions = ['set_person_cluster_typ_incoming', 'set_person_cluster_typ_outgoing', 
+                'set_aufg_cluster_before_operation', 'set_aufg_cluster_during_operation', 
+                'set_aufg_cluster_after_operation']
+
+    def get_cluster_count(self, obj):
+        return obj.person_cluster.count()
+    get_cluster_count.short_description = 'Audience Count'
 
     def set_person_cluster_typ_incoming(self, request, queryset):
-        for aufgabe in queryset:
-            aufgabe.person_cluster = PersonCluster.objects.get(name='Incoming')
-            aufgabe.save()
+        try:
+            incoming_cluster = PersonCluster.objects.get(name='Incoming')
+            for aufgabe in queryset:
+                aufgabe.person_cluster = incoming_cluster
+                aufgabe.save()
+            self.message_user(request, f"Person cluster set to 'Incoming' for {queryset.count()} tasks")
+        except:
+            self.message_user(request, "Could not find PersonCluster 'Incoming'", level=messages.ERROR)
     
     def set_person_cluster_typ_outgoing(self, request, queryset):
-        for aufgabe in queryset:
-            aufgabe.person_cluster = PersonCluster.objects.get(name='Outgoing')
-            aufgabe.save()
+        try:
+            outgoing_cluster = PersonCluster.objects.get(name='Outgoing')
+            for aufgabe in queryset:
+                aufgabe.person_cluster = outgoing_cluster
+                aufgabe.save()
+            self.message_user(request, f"Person cluster set to 'Outgoing' for {queryset.count()} tasks")
+        except:
+            self.message_user(request, "Could not find PersonCluster 'Outgoing'", level=messages.ERROR)
 
     def set_aufg_cluster_before_operation(self, request, queryset):
+        before_cluster = AufgabenCluster.objects.filter(type='V').first()
+        if not before_cluster:
+            self.message_user(request, "Could not find 'Vor Einsatz' task cluster", level=messages.ERROR)
+            return
+            
         for aufgabe in queryset:
-            aufgabe.faellig_art = AufgabenCluster.objects.filter(type='V').first()
+            aufgabe.faellig_art = before_cluster
             aufgabe.save()
+        self.message_user(request, f"Task type set to 'Vor Einsatz' for {queryset.count()} tasks")
 
     def set_aufg_cluster_during_operation(self, request, queryset):
+        during_cluster = AufgabenCluster.objects.filter(type='W').first()
+        if not during_cluster:
+            self.message_user(request, "Could not find 'Während Einsatz' task cluster", level=messages.ERROR)
+            return
+            
         for aufgabe in queryset:
-            aufgabe.faellig_art = AufgabenCluster.objects.filter(type='W').first()
+            aufgabe.faellig_art = during_cluster
             aufgabe.save()
+        self.message_user(request, f"Task type set to 'Während Einsatz' for {queryset.count()} tasks")
 
     def set_aufg_cluster_after_operation(self, request, queryset):
+        after_cluster = AufgabenCluster.objects.filter(type='N').first()
+        if not after_cluster:
+            self.message_user(request, "Could not find 'Nach Einsatz' task cluster", level=messages.ERROR)
+            return
+            
         for aufgabe in queryset:
-            aufgabe.faellig_art = AufgabenCluster.objects.filter(type='N').first()
+            aufgabe.faellig_art = after_cluster
             aufgabe.save()
-
-
-
+        self.message_user(request, f"Task type set to 'Nach Einsatz' for {queryset.count()} tasks")
 
 
 @admin.register(AufgabeZwischenschritte2)
 class AufgabeZwischenschritteAdmin(admin.ModelAdmin):
-    search_fields = ['name']
+    list_display = ['name', 'aufgabe', 'get_description_preview']
+    search_fields = ['name', 'aufgabe__name', 'beschreibung']
+    list_filter = ['aufgabe']
+    
+    def get_description_preview(self, obj):
+        if obj.beschreibung and len(obj.beschreibung) > 50:
+            return obj.beschreibung[:50] + "..."
+        return obj.beschreibung or ""
+    get_description_preview.short_description = 'Description'
 
 
 @admin.register(UserAufgabenZwischenschritte)
 class UserAufgabenZwischenschritteAdmin(admin.ModelAdmin):
-    search_fields = ['user_aufgabe__freiwilliger__user__first_name', 'user_aufgabe__freiwilliger__user__last_name', 'aufgabe_zwischenschritt__name']
+    list_display = ['get_user_name', 'get_aufgabe_name', 'get_zwischenschritt_name', 'erledigt']
+    search_fields = ['user_aufgabe__user__first_name', 'user_aufgabe__user__last_name', 
+                    'aufgabe_zwischenschritt__name', 'user_aufgabe__aufgabe__name']
+    list_filter = ['erledigt', 'aufgabe_zwischenschritt', 'user_aufgabe__aufgabe']
+    
+    def get_user_name(self, obj):
+        user = obj.user_aufgabe.user
+        return f"{user.first_name} {user.last_name}"
+    get_user_name.short_description = 'User'
+    get_user_name.admin_order_field = 'user_aufgabe__user__first_name'
+    
+    def get_aufgabe_name(self, obj):
+        return obj.user_aufgabe.aufgabe.name
+    get_aufgabe_name.short_description = 'Task'
+    get_aufgabe_name.admin_order_field = 'user_aufgabe__aufgabe__name'
+    
+    def get_zwischenschritt_name(self, obj):
+        return obj.aufgabe_zwischenschritt.name
+    get_zwischenschritt_name.short_description = 'Step'
+    get_zwischenschritt_name.admin_order_field = 'aufgabe_zwischenschritt__name'
 
 
 @admin.register(Ampel2)
 class AmpelAdmin(admin.ModelAdmin):
-    search_fields = ['status']
+    list_display = ['user', 'get_user_full_name', 'status', 'get_comment_preview', 'date']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name', 'comment']
+    list_filter = ['status', 'date']
+    
+    def get_user_full_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+    get_user_full_name.short_description = 'Full Name'
+    
+    def get_comment_preview(self, obj):
+        if obj.comment and len(obj.comment) > 50:
+            return obj.comment[:50] + "..."
+        return obj.comment or ""
+    get_comment_preview.short_description = 'Comment'
+
 
 @admin.register(UserAufgaben)
 class UserAufgabenAdmin(admin.ModelAdmin):
-    search_fields = ['freiwilliger__user__first_name', 'freiwilliger__user__last_name', 'aufgabe__name'] 
-    actions = ['send_aufgaben_email']
+    list_display = ['get_user_name', 'aufgabe', 'faellig', 'erledigt', 'pending', 'erledigt_am', 'last_reminder', 'has_file']
+    search_fields = ['user__first_name', 'user__last_name', 'aufgabe__name', 'personalised_description'] 
+    list_filter = ['erledigt', 'pending', 'faellig', 'aufgabe', 'aufgabe__faellig_art']
+    readonly_fields = ['datetime', 'last_reminder']
+    actions = ['send_aufgaben_email', 'mark_as_completed', 'mark_as_pending']
+
+    def get_user_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+    get_user_name.short_description = 'User'
+    get_user_name.admin_order_field = 'user__first_name'
+    
+    def has_file(self, obj):
+        return bool(obj.file) or bool(obj.file_list)
+    has_file.boolean = True
+    has_file.short_description = 'Has File'
 
     def send_aufgaben_email(self, request, queryset):
+        count = 0
         for freiwilliger_aufgabe in queryset:
             freiwilliger_aufgabe.send_reminder_email()
-        msg = f"Erinnerungen wurden gesendet"
+            count += 1
+        msg = f"Reminders were sent for {count} tasks"
         self.message_user(request, msg)
+    
+    def mark_as_completed(self, request, queryset):
+        now = datetime.now().date()
+        count = queryset.filter(erledigt=False).update(erledigt=True, erledigt_am=now, pending=False)
+        self.message_user(request, f"{count} tasks marked as completed.")
+    mark_as_completed.short_description = "Mark selected tasks as completed"
+    
+    def mark_as_pending(self, request, queryset):
+        count = queryset.filter(pending=False, erledigt=False).update(pending=True)
+        self.message_user(request, f"{count} tasks marked as pending.")
+    mark_as_pending.short_description = "Mark selected tasks as pending"
 
 
 @admin.register(AufgabenCluster)
 class AufgabenClusterAdmin(admin.ModelAdmin):
+    list_display = ['name', 'type', 'get_person_clusters']
     search_fields = ['name']
+    list_filter = ['type', 'person_cluster']
+    filter_horizontal = ['person_cluster']
+    
+    def get_person_clusters(self, obj):
+        return ", ".join([pc.name for pc in obj.person_cluster.all()[:3]]) + \
+               ("..." if obj.person_cluster.count() > 3 else "")
+    get_person_clusters.short_description = 'For Groups'
 
 
 @admin.register(Bilder2)
 class BilderAdmin(admin.ModelAdmin):
-    search_fields = ['name']
-    list_display = ('titel', 'user', 'date_created')
+    list_display = ['titel', 'user', 'get_user_full_name', 'date_created', 'date_updated', 'get_image_count']
+    search_fields = ['titel', 'beschreibung', 'user__username', 'user__first_name', 'user__last_name']
+    list_filter = ['date_created', 'user']
+    
+    def get_user_full_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+    get_user_full_name.short_description = 'Full Name'
+    
+    def get_image_count(self, obj):
+        return BilderGallery2.objects.filter(bilder=obj).count()
+    get_image_count.short_description = 'Images'
+
 
 @admin.register(BilderGallery2)
 class BilderGalleryAdmin(admin.ModelAdmin):
-    search_fields = ['bilder']
+    list_display = ['get_image_name', 'bilder', 'get_bilder_title', 'has_small_image']
+    search_fields = ['bilder__titel', 'image']
+    list_filter = ['bilder']
+    
+    def get_image_name(self, obj):
+        return obj.image.name.split('/')[-1]
+    get_image_name.short_description = 'Image'
+    
+    def get_bilder_title(self, obj):
+        return obj.bilder.titel
+    get_bilder_title.short_description = 'Album Title'
+    get_bilder_title.admin_order_field = 'bilder__titel'
+    
+    def has_small_image(self, obj):
+        return bool(obj.small_image)
+    has_small_image.boolean = True
+    has_small_image.short_description = 'Has Small Image'
+
+
+@admin.register(ProfilUser2)
+class ProfilUserAdmin(admin.ModelAdmin):
+    list_display = ['user', 'get_user_full_name', 'attribut', 'get_value_preview']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name', 'attribut', 'value']
+    list_filter = ['attribut']
+    
+    def get_user_full_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+    get_user_full_name.short_description = 'Full Name'
+    
+    def get_value_preview(self, obj):
+        if len(obj.value) > 50:
+            return obj.value[:50] + "..."
+        return obj.value
+    get_value_preview.short_description = 'Value'
+
 
 @admin.register(Maintenance)
 class MaintenanceAdmin(admin.ModelAdmin):
-    list_display = ['maintenance_start_time', 'maintenance_end_time']
+    list_display = ['maintenance_start_time', 'maintenance_end_time', 'is_active', 'duration']
     search_fields = ['maintenance_start_time', 'maintenance_end_time']
+    
+    def is_active(self, obj):
+        now = datetime.now()
+        return obj.maintenance_start_time <= now <= obj.maintenance_end_time
+    is_active.boolean = True
+    is_active.short_description = 'Currently Active'
+    
+    def duration(self, obj):
+        delta = obj.maintenance_end_time - obj.maintenance_start_time
+        hours = delta.total_seconds() / 3600
+        return f"{hours:.1f} hours"
+    duration.short_description = 'Duration'
+
 
 @admin.register(PostSurveyAnswer)
 class PostSurveyAnswerAdmin(admin.ModelAdmin):
-    search_fields = ['answer_text']
+    list_display = ['answer_text', 'question', 'get_question_text', 'get_vote_count']
+    search_fields = ['answer_text', 'question__question_text']
+    list_filter = ['question']
+    filter_horizontal = ['votes']
+    
+    def get_question_text(self, obj):
+        return obj.question.question_text
+    get_question_text.short_description = 'Question Text'
+    get_question_text.admin_order_field = 'question__question_text'
+    
+    def get_vote_count(self, obj):
+        return obj.votes.count()
+    get_vote_count.short_description = 'Votes'
+
 
 @admin.register(PostSurveyQuestion)
 class PostSurveyQuestionAdmin(admin.ModelAdmin):
-    search_fields = ['question_text']
+    list_display = ['question_text', 'post', 'get_post_title', 'get_answer_count']
+    search_fields = ['question_text', 'post__title']
+    list_filter = ['post']
+    
+    def get_post_title(self, obj):
+        return obj.post.title
+    get_post_title.short_description = 'Post Title'
+    get_post_title.admin_order_field = 'post__title'
+    
+    def get_answer_count(self, obj):
+        return obj.survey_answers.count()
+    get_answer_count.short_description = 'Answers'
+
+
+@admin.register(PushSubscription)
+class PushSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ['user', 'get_user_full_name', 'name', 'created_at', 'last_used']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name', 'name', 'endpoint']
+    list_filter = ['created_at', 'last_used']
+    readonly_fields = ['created_at', 'endpoint', 'p256dh', 'auth']
+    
+    def get_user_full_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+    get_user_full_name.short_description = 'Full Name'
+    get_user_full_name.admin_order_field = 'user__first_name'
