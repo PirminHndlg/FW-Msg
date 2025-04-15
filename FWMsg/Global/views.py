@@ -501,14 +501,12 @@ def remove_bild_all(request):
 def dokumente(request, ordner_id=None):
     folder_structure = []
 
+
     if request.user.role == 'O':
         from ORG.views import get_person_cluster
         person_cluster_typ = get_person_cluster(request)
-    elif request.user.role == 'T':
-        person_cluster_typ = request.user.person_cluster
     else:
-        messages.error(request, 'Keine Dokumentenansicht verfügbar')
-        return redirect('index_home')
+        person_cluster_typ = request.user.person_cluster
 
     ordners = []
     error = None
