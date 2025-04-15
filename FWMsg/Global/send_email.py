@@ -318,7 +318,7 @@ def format_aufgabe_erledigt_email(aufgabe_name, aufgabe_deadline, org_name, user
         action_button=action_button
     )
 
-def format_register_email_fw(einmalpasswort, action_url, org_name, user_name, username):
+def format_register_email_fw(einmalpasswort, action_url, base64_image, org_name, user_name, username):
     return register_email_fw_template.format(
         einmalpasswort=einmalpasswort,
         action_url=action_url,
