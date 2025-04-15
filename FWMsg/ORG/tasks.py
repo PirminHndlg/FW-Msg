@@ -67,6 +67,8 @@ def send_feedback_email_task(feedback_id):
 
     feedback = Feedback.objects.get(id=feedback_id)
     subject = f'Feedback von {feedback.user.username}' if not feedback.anonymous else 'Anonymes Feedback'
-    if send_mail_smtp(secrets['feedback_email'], subject, feedback.text):
+    reply_to = feedback.user.email if not feedback.anonymous else None
+
+    if send_mail_smtp(secrets['feedback_email'], subject, feedback.text, reply_to=reply_to):
         return True
     return False
