@@ -40,16 +40,6 @@
         {% endfor %}
     </div>
 
-    <div id="zwischenschrittFormsContainer">
-        {# Forms will be dynamically added here #}
-    </div>
-
-    <div class="d-flex justify-content-center align-items-center mb-3">
-        <button type="button" class="btn btn-primary btn-sm" onclick="addZwischenschrittForm()">
-            <i class="bi bi-plus-circle me-1"></i>{% trans "Zwischenschritt hinzufügen" %}
-        </button>
-    </div>
-
     {# Template for new forms #}
     <template id="zwischenschrittFormTemplate">
         <div class="zwischenschritt-form card mb-3">
@@ -78,70 +68,8 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize the formset management form if not already present
-    if (!document.querySelector('[name="aufgabezwischenschritte_set-TOTAL_FORMS"]')) {
-        const management_form = document.createElement('div');
-        management_form.innerHTML = `
-            <input type="hidden" name="aufgabezwischenschritte_set-TOTAL_FORMS" value="0" id="id_aufgabezwischenschritte_set-TOTAL_FORMS">
-            <input type="hidden" name="aufgabezwischenschritte_set-INITIAL_FORMS" value="0" id="id_aufgabezwischenschritte_set-INITIAL_FORMS">
-            <input type="hidden" name="aufgabezwischenschritte_set-MIN_NUM_FORMS" value="0" id="id_aufgabezwischenschritte_set-MIN_NUM_FORMS">
-            <input type="hidden" name="aufgabezwischenschritte_set-MAX_NUM_FORMS" value="1000" id="id_aufgabezwischenschritte_set-MAX_NUM_FORMS">
-        `;
-        document.getElementById('zwischenschrittFormset').prepend(management_form);
-    }
-});
-
-function addZwischenschrittForm() {
-    const container = document.getElementById('zwischenschrittFormsContainer');
-    const template = document.getElementById('zwischenschrittFormTemplate');
-    const totalForms = document.querySelector('[name="aufgabezwischenschritte_set-TOTAL_FORMS"]');
-    const currentFormCount = parseInt(totalForms.value);
-
-    // Clone the template content
-    const newForm = template.content.cloneNode(true);
-    
-    // Replace INDEX placeholder with actual form number
-    newForm.querySelectorAll('[name*="INDEX"]').forEach(element => {
-        element.name = element.name.replace('INDEX', currentFormCount);
-        element.id = element.id.replace('INDEX', currentFormCount);
-    });
-    newForm.querySelectorAll('[for*="INDEX"]').forEach(element => {
-        element.setAttribute('for', element.getAttribute('for').replace('INDEX', currentFormCount));
-    });
-    
-    // Update form number display
-    newForm.querySelector('.zwischenschritt-number').textContent = currentFormCount + 1;
-
-    // Add the new form to container
-    container.appendChild(newForm);
-    
-    // Update total forms count
-    totalForms.value = currentFormCount + 1;
-}
-
 function removeZwischenschrittForm(button) {
     const form = button.closest('.zwischenschritt-form');
-    const container = document.getElementById('zwischenschrittFormsContainer');
-    const totalForms = document.querySelector('[name="aufgabezwischenschritte_set-TOTAL_FORMS"]');
-    
     form.remove();
-
-    /*
-    // Update form numbers for remaining forms
-    container.querySelectorAll('.zwischenschritt-form').forEach((form, index) => {
-        form.querySelector('.zwischenschritt-number').textContent = index + 1;
-        form.querySelectorAll('[name*="aufgabezwischenschritte_set-"]').forEach(element => {
-            const newName = element.name.replace(/aufgabezwischenschritte_set-\d+/, `aufgabezwischenschritte_set-${index}`);
-            element.name = newName;
-            element.id = `id_${newName}`;
-        });
-    });
-    
-    // Update total forms count
-    totalForms.value = container.children.length;
-    console.log(totalForms.value);
-    console.log(parseInt(totalForms.value));
-    */
 }
 </script> 

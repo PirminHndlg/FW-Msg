@@ -255,6 +255,11 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
         formset_kwargs = kwargs.copy()
         formset_kwargs.pop('request', None)
         self.zwischenschritte = AufgabeZwischenschritteFormSet(*args, **formset_kwargs)
+        # Count only forms with content, not empty extra forms
+        try:
+            self.zwischenschritte_count = sum(1 for form in self.zwischenschritte.forms if form.instance.pk or (form.is_bound and any(form.cleaned_data.values())))
+        except:
+            self.zwischenschritte_count = 0
 
         self.fields['wiederholung_ende'] = forms.DateField(
             widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -283,7 +288,7 @@ AufgabeZwischenschritteFormSet = inlineformset_factory(
     Aufgabe2,
     AufgabeZwischenschritte2,
     fields=['name', 'beschreibung'],
-    extra=0,
+    extra=3,
     can_delete=True,
     widgets={
         'beschreibung': forms.Textarea(attrs={'rows': 4}),
