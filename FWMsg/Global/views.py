@@ -1045,7 +1045,7 @@ def aufgabe(request, aufgabe_id):
                     for i, file in enumerate(files):
                         file_suffix = os.path.splitext(file.name)[1]
                         # Create a unique filename within the zip
-                        zip_filename = f"{user_aufgabe.user.username}-{user_aufgabe.aufgabe.name.replace(' ', '_')}-{user_aufgabe.faellig.strftime('%Y-%m-%d')}_{i}{file_suffix}"
+                        zip_filename = f"{user_aufgabe.user.username}-{user_aufgabe.aufgabe.name.replace(' ', '_')}-{datetime.now().strftime('%Y-%m-%d')}_{i}{file_suffix}"
                         # Add the file directly to the zip without creating temp files
                         zipf.writestr(zip_filename, file.read())
 
@@ -1053,7 +1053,7 @@ def aufgabe(request, aufgabe_id):
                 zip_buffer.seek(0)
                 
                 # Create filename for the zip file
-                file_name = f"{user_aufgabe.aufgabe.name.replace(' ', '_')}-{user_aufgabe.faellig.strftime('%Y-%m-%d')}.zip"
+                file_name = f"{user_aufgabe.aufgabe.name.replace(' ', '_')}-{datetime.now().strftime('%Y-%m-%d')}.zip"
                 
                 # Save the zip file directly to the FileField using ContentFile
                 # This properly handles the upload_to parameter and file storage
