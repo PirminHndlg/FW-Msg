@@ -43,11 +43,6 @@ class Freiwilliger(OrgModel):
         from FW.tasks import send_register_email_task
         send_register_email_task.delay(self)
 
-    def save(self, *args, **kwargs):
-        if not self.customuser:
-            self.customuser = self.user.customuser
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name
 
