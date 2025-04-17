@@ -22,6 +22,7 @@ from django.db.models import QuerySet, Subquery, OuterRef
 from django.db.models import Case, When, Value, Count, Q
 from django.contrib.admin.views.decorators import staff_member_required
 from django.template.loader import render_to_string
+from django.db.models.query import Prefetch
 
 from Global.models import (
     Attribute, AufgabenCluster, Aufgabe2, Maintenance, PersonCluster, UserAttribute, 
@@ -910,18 +911,38 @@ def list_aufgaben_table(request, scroll_to=None):
                 filter_type = aufgaben_cluster.first()
 
 
+        # Instead of querying in loops
+        user_aufgaben = UserAufgaben.objects.filter(
+            org=request.user.org,
+            user__in=users,
+            aufgabe__in=aufgaben
+        ).select_related('user', 'aufgabe').prefetch_related(
+            Prefetch(
+                'useraufgabenzwischenschritte_set',
+                queryset=UserAufgabenZwischenschritte.objects.all(),
+                to_attr='prefetched_zwischenschritte'
+            )
+        )
+
+        # Create a lookup dictionary for faster access
+        user_aufgaben_dict = {}
+        for ua in user_aufgaben:
+            if ua.user_id not in user_aufgaben_dict:
+                user_aufgaben_dict[ua.user_id] = {}
+            user_aufgaben_dict[ua.user_id][ua.aufgabe_id] = ua
+
+        # Then modify your matrix building to use the dictionary
         user_aufgaben_matrix = {}
         for user in users:
             user_aufgaben_matrix[user] = []
             for aufgabe in aufgaben:
-                user_aufgaben_exists = UserAufgaben.objects.filter(user=user, aufgabe=aufgabe).exists()
-                if user_aufgaben_exists:
-                    user_aufgabe = UserAufgaben.objects.get(user=user, aufgabe=aufgabe)
-                    zwischenschritte = UserAufgabenZwischenschritte.objects.filter(user_aufgabe=user_aufgabe)
-                    zwischenschritte_count = zwischenschritte.count()
-                    zwischenschritte_done_count = zwischenschritte.filter(erledigt=True).count()
+                ua = user_aufgaben_dict.get(user.id, {}).get(aufgabe.id, None)
+                if ua:
+                    zwischenschritte = ua.prefetched_zwischenschritte
+                    zwischenschritte_count = len(zwischenschritte)
+                    zwischenschritte_done_count = sum(1 for z in zwischenschritte if z.erledigt)
                     user_aufgaben_matrix[user].append({
-                        'user_aufgabe': user_aufgabe,
+                        'user_aufgabe': ua,
                         'zwischenschritte': zwischenschritte,
                         'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
                         'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
