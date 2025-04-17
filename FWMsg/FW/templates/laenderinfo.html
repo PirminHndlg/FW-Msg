@@ -58,6 +58,21 @@
 
     <div class="card-body">
       <div class="row g-4 p-2">
+        {# Planned Dates Section #}
+        <div class="col-12 p-1 m-0 d-flex flex-wrap gap-4 text-muted">
+        {% if freiwilliger.start_real %}
+            <p class="m-0 p-0">{% trans 'Start real' %}: {{ freiwilliger.start_real|date:'d.m.Y' }}</p>
+        {% elif freiwilliger.start_geplant %}
+            <p class="m-0 p-0">{% trans 'Geplanter Start' %}: {{ freiwilliger.start_geplant|date:'d.m.Y' }}</p>
+        {% endif %}
+
+        {% if freiwilliger.ende_real %}
+            <p class="m-0 p-0">{% trans 'Ende real' %}: {{ freiwilliger.ende_real|date:'d.m.Y' }}</p>
+        {% elif freiwilliger.ende_geplant %}
+            <p class="m-0 p-0">{% trans 'Geplantes Ende' %}: {{ freiwilliger.ende_geplant|date:'d.m.Y' }}</p>
+          {% endif %}
+        </div>
+
         {# Organization Section #}
         {% include 'components/info_section.html' with section_title=_('Entsendende Organisation') cards=org_cards %}
 
