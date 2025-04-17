@@ -634,8 +634,8 @@ class UserAufgaben(OrgModel):
         ('N', 'Nicht wiederholen')
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer:in', help_text='Benutzer:in, dem diese Aufgabe zugewiesen ist')
-    aufgabe = models.ForeignKey(Aufgabe2, on_delete=models.CASCADE, verbose_name='Aufgabe', help_text='Die zugewiesene Aufgabe')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer:in', help_text='Benutzer:in, dem diese Aufgabe zugewiesen ist', db_index=True)
+    aufgabe = models.ForeignKey(Aufgabe2, on_delete=models.CASCADE, verbose_name='Aufgabe', help_text='Die zugewiesene Aufgabe', db_index=True)
     personalised_description = models.TextField(blank=True, null=True, verbose_name='Persönliche Notizen', help_text='Individuelle Anmerkungen zu dieser Aufgabe')
     erledigt = models.BooleanField(default=False, verbose_name='Abgeschlossen', help_text='Zeigt an, ob die Aufgabe abgeschlossen ist')
     pending = models.BooleanField(default=False, verbose_name='Pending', help_text='Zeigt an, dass die Aufgabe begonnen aber noch nicht abgeschlossen wurde')
