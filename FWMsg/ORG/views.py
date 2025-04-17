@@ -23,6 +23,7 @@ from django.db.models import Case, When, Value, Count, Q
 from django.contrib.admin.views.decorators import staff_member_required
 from django.template.loader import render_to_string
 from django.db.models.query import Prefetch
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from Global.models import (
     Attribute, AufgabenCluster, Aufgabe2, Maintenance, PersonCluster, UserAttribute, 
@@ -45,11 +46,11 @@ base_template = 'baseOrg.html'
 class PersonenClusterFilteredQuerySet(QuerySet):
     """Custom QuerySet that automatically filters by personen_cluster from cookie."""
     def __init__(self, *args, **kwargs):
-        self._personen_cluster_id = None
+        self._person_cluster_id = None
         super().__init__(*args, **kwargs)
 
     def set_person_cluster_id(self, person_cluster_id):
-        self._personen_cluster_id = person_cluster_id
+        self._person_cluster_id = person_cluster_id
         return self
 
     def _clone(self):
@@ -598,14 +599,41 @@ def list_object(request, model_name, highlight_id=None):
     ]
     field_metadata.extend(m2m_fields)
     
+    # Count total objects before pagination for display
+    total_objects_count = objects.count()
+    
+    # Implement pagination
+    page = request.GET.get('page', 1)
+    items_per_page = 50  # You can make this configurable
+    paginator = Paginator(objects, items_per_page)
+    
+    try:
+        paginated_objects = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page
+        paginated_objects = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range, deliver last page
+        paginated_objects = paginator.page(paginator.num_pages)
+    
+    # Create query parameters for pagination links
+    query_params = request.GET.copy()
+    if 'page' in query_params:
+        del query_params['page']
+    query_string = query_params.urlencode()
+    
     return render(request, 'list_objects.html',
-                 {'objects': objects, 
+                 {'objects': paginated_objects, 
                   'field_metadata': field_metadata, 
                   'model_name': model_name,
                   'verbose_name': model._meta.verbose_name_plural,
                   'filter_form': filter_form,
                   'highlight_id': highlight_id,
-                  'error': error})
+                  'error': error,
+                  'paginator': paginator,
+                  'page_obj': paginated_objects,
+                  'total_count': total_objects_count,
+                  'query_string': query_string})
 
 
 @login_required
