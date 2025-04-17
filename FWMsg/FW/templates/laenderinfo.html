@@ -57,7 +57,6 @@
     </div>
 
     <div class="card-body">
-      <div class="row g-4 p-2">
         {# Planned Dates Section #}
         <div class="col-12 p-1 m-0 d-flex flex-wrap gap-4 text-muted">
         {% if freiwilliger.start_real %}
@@ -72,23 +71,22 @@
             <p class="m-0 p-0">{% trans 'Geplantes Ende' %}: {{ freiwilliger.ende_geplant|date:'d.m.Y' }}</p>
           {% endif %}
         </div>
-
-        {# Organization Section #}
-        {% include 'components/info_section.html' with section_title=_('Entsendende Organisation') cards=org_cards %}
-
-        {# Country Information Section #}
-        {% if freiwilliger.einsatzland2 %}
-          {% include 'components/info_section.html' with section_title=_('Länderinformationen')|add:' '|add:freiwilliger.einsatzland2.name cards=country_cards %}
-        {% endif %}
-
-        {# Assignment Location Information #}
-        {% if freiwilliger.einsatzstelle2 %}
-          {% include 'components/info_section.html' with section_title=_('Informationen Einsatzstelle')|add:' '|add:freiwilliger.einsatzstelle2.name cards=location_cards %}
-          {% include 'components/info_section.html' with section_title=_('Generelle Informationen') cards=general_cards %}
-        {% endif %}
-      </div>
     </div>
   </div>
+
+  {# Organization Section #}
+  {% include 'components/info_section.html' with section_title=_('Entsendende Organisation') cards=org_cards %}
+
+  {# Country Information Section #}
+  {% if freiwilliger.einsatzland2 %}
+    {% include 'components/info_section.html' with section_title=_('Länderinformationen')|add:' '|add:freiwilliger.einsatzland2.name cards=country_cards %}
+  {% endif %}
+
+  {# Assignment Location Information #}
+  {% if freiwilliger.einsatzstelle2 %}
+    {% include 'components/info_section.html' with section_title=_('Informationen Einsatzstelle')|add:' '|add:freiwilliger.einsatzstelle2.name cards=location_cards %}
+    {% include 'components/info_section.html' with section_title=_('Generelle Informationen') cards=general_cards %}
+  {% endif %}
 {% endblock %}
 
 {% block scripts %}
