@@ -209,9 +209,14 @@ def nginx_statistic(request):
         # Path to the pre-generated HTML file
         report_path = '/home/fwmsg/tmp/report.html'
         
-        # Read the HTML file
-        with open(report_path, 'r', encoding='utf-8') as file:
-            html_content = file.read()
+        # Read the HTML file with error handling for encoding issues
+        try:
+            with open(report_path, 'r', encoding='utf-8') as file:
+                html_content = file.read()
+        except UnicodeDecodeError:
+            # Try with a different encoding or fallback to latin-1 which rarely fails
+            with open(report_path, 'r', encoding='latin-1') as file:
+                html_content = file.read()
             
         # Return the HTML content directly
         return HttpResponse(html_content, content_type='text/html')
