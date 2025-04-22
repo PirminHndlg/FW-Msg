@@ -1,0 +1,14 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin and login pages
+Disallow: /admin/
+Disallow: /accounts/login/
+Disallow: /accounts/signup/
+
+# Sitemap location
+Sitemap: https://fw-msg.de/sitemap.xml
+
+# Crawl-delay to prevent server overload
+Crawl-delay: 10 
