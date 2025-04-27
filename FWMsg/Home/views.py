@@ -165,15 +165,15 @@ def first_login(request, username=None, einmalpasswort=None):
         
         if password != password_repeat:
             messages.error(request, _('Passwörter stimmen nicht überein.'))
-            return redirect('first_login_with_params', username=user_name, einmalpasswort=einmalpasswort)
+            return redirect('first_login_with_params', username=user_name or '', einmalpasswort=einmalpasswort or '')
         
         if not user.customuser.einmalpasswort:
             messages.error(request, _('Einmalpasswort bereits verwendet.'))
-            return redirect('first_login_with_params', username=user_name, einmalpasswort='')
+            return redirect('first_login_with_params', username=user_name or '', einmalpasswort='')
         
         if user.customuser.einmalpasswort != einmalpasswort:
             messages.error(request, _('Ungültiges Einmalpasswort.'))
-            return redirect('first_login_with_params', username=user_name, einmalpasswort='')
+            return redirect('first_login_with_params', username=user_name or '', einmalpasswort='')
         
         user.customuser.einmalpasswort = None
         user.customuser.save()
