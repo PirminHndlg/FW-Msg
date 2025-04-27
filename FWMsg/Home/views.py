@@ -158,6 +158,14 @@ def first_login(request, username=None, einmalpasswort=None):
             return redirect('first_login')
         else:
             user = User.objects.get(username=user_name)
+            
+        def redirect_to_first_login(username, einmalpasswort):
+            if username and einmalpasswort:
+                return redirect('first_login_with_params', username=username, einmalpasswort=einmalpasswort)
+            elif username:
+                return redirect('first_login_with_username', username=username)
+            else:
+                return redirect('first_login')
         
         if not user.customuser:
             messages.error(request, _('Interner Fehler: Benutzer nicht gefunden. Kontaktiere den Administrator.'))
@@ -165,15 +173,15 @@ def first_login(request, username=None, einmalpasswort=None):
         
         if password != password_repeat:
             messages.error(request, _('Passwörter stimmen nicht überein.'))
-            return redirect('first_login_with_params', username=user_name or '', einmalpasswort=einmalpasswort or '')
+            return redirect_to_first_login(user_name, einmalpasswort)
         
         if not user.customuser.einmalpasswort:
             messages.error(request, _('Einmalpasswort bereits verwendet.'))
-            return redirect('first_login_with_params', username=user_name or '', einmalpasswort='')
+            return redirect_to_first_login(user_name, einmalpasswort)
         
         if user.customuser.einmalpasswort != einmalpasswort:
             messages.error(request, _('Ungültiges Einmalpasswort.'))
-            return redirect('first_login_with_params', username=user_name or '', einmalpasswort='')
+            return redirect_to_first_login(user_name, einmalpasswort)
         
         user.customuser.einmalpasswort = None
         user.customuser.save()
