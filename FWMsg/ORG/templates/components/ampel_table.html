@@ -13,7 +13,7 @@
             {% endfor %}
         </tr>
         <tbody>
-            {% for jahrgang, user_matrix in ampel_matrix.items %}
+            {% for person_cluster, user_matrix in ampel_matrix.items %}
             {% for user, months_data in user_matrix.items %}
             <tr>
                 <th class="border-end sticky-col">
