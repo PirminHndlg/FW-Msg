@@ -701,7 +701,7 @@ def get_cascade_info(request):
     
     collector = Collector(using=router.db_for_write(model))
     collector.collect([instance], keep_parents=False)
-    
+
     # We don't want to include the object itself in the list
     for model_obj, instances in collector.data.items():
         if instance in instances:
