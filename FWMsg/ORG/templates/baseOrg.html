@@ -87,8 +87,8 @@
                 <!-- Language Selector -->
                 {% include 'components/language_selector.html' %}
 
-                <!-- Jahrgang Selector -->
-                {% include 'components/jahrgang_selector.html' with jahrgaenge=jahrgaenge %}
+                <!-- Person Cluster Selector -->
+                {% include 'components/person_cluster_selector.html' %}
 
                 <!-- Profil Button -->
                 <div class="d-flex">
@@ -138,13 +138,6 @@
             window.location.reload()
           })
         })
-      
-        // Set initial dropdown text from cookie
-        const savedPersonClusterName = Cookies.get('selectedPersonClusterName')
-        if (savedPersonClusterName) {
-          document.getElementById('selectedPersonCluster').textContent = savedPersonClusterName
-          document.getElementById('useraufgaben_link').innerHTML = `${savedPersonClusterName} Aufgaben`
-        }
       })
     </script>
   </body>

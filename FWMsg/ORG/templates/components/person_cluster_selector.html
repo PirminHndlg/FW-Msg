@@ -6,7 +6,7 @@
         <button class="btn btn-light dropdown-toggle" type="button" id="personenClusterDropdown" 
                 data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-people me-1"></i>
-            <span id="selectedPersonCluster">{% trans "Alle Benutzergruppen" %}</span>
+            <span id="selectedPersonCluster">{% if request.COOKIES.selectedPersonClusterName %}{{ request.COOKIES.selectedPersonClusterName }}{% else %}{% trans "Alle Benutzergruppen" %}{% endif %}</span>
         </button>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="personenClusterDropdown">
             <li>
