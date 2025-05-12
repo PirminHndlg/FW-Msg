@@ -713,10 +713,6 @@ def unsubscribe_mail_notifications(request, user_id, auth_key):
             messages.error(request, 'Ungültige Abmelde-URL')
         
         custom_user.save()
-        
-        # Fix typo in is_authenticated check
-        if not request.user.is_authenticated:
-            login(request, custom_user.user)
 
     except CustomUser.DoesNotExist:
         messages.error(request, 'Benutzer nicht gefunden')
