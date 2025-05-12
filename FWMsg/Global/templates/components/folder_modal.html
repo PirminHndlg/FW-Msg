@@ -13,7 +13,8 @@
                     <input type="hidden" name="ordner_id" id="ordnerIdInput">
                     <div class="mb-3">
                         <label for="ordner_name" class="form-label">{% trans "Ordnername" %}</label>
-                        <input type="text" class="form-control rounded-4" id="ordner_name" name="ordner_name">
+                        <span class="text-danger" title="{% trans 'Dieses Feld ist erforderlich' %}">*</span>
+                        <input type="text" class="form-control rounded-4" id="ordner_name" name="ordner_name" required>
                         <div class="form-text">{% trans 'Name des Ordners' %}</div>
                     </div>
 
