@@ -44,11 +44,57 @@
             </div>
         {% endif %}
 
-        {% include "components/form_buttons.html" with back_url=back_url delete_url=delete_url %}
+        <div class="d-flex justify-content-between mt-4">
+            <div>
+                <a href="{{ back_url }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> {% trans "Zurück" %}
+                </a>
+            </div>
+            <div>
+                {% if form.instance.id %}
+                    <button type="button" class="btn btn-danger me-2 delete-btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#deleteModal"
+                        data-model="{{ object }}"
+                        data-id="{{ form.instance.pk }}"
+                        data-name="{{ form.instance }}">
+                        <i class="bi bi-trash"></i> {% trans "Löschen" %}
+                    </button>
+                {% endif %}
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check2"></i> {% trans "Speichern" %}
+                </button>
+            </div>
+        </div>
+        
+        {% if form.instance.id %}
+        <div class="modal fade" id="deleteObjectModal" tabindex="-1" aria-labelledby="deleteObjectModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteObjectModalLabel">{% trans "Objekt löschen" %}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>{% trans "Möchten Sie dieses Objekt wirklich löschen?" %}</p>
+                        <p class="text-danger">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            {% trans "Diese Aktion kann nicht rückgängig gemacht werden!" %}
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
+                        <a href="{% url 'delete_object' object form.instance.id %}" type="submit" class="btn btn-danger">{% trans "Löschen" %}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %} 
     </form>
 </div>
 
 {% include "components/delete_modal.html" %}
+{% include "components/cascade_modal.html" %}
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
