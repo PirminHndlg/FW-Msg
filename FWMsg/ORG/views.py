@@ -423,7 +423,7 @@ def edit_object(request, model_name, id):
         # Use the helper function for redirection
         return _redirect_after_action(request, model_name, obj_id)
 
-    return render(request, 'edit_object.html', {'form': form, 'object': model_name})
+    return render(request, 'edit_object.html', {'form': form, 'object': model_name, 'verbose_name': model._meta.verbose_name})
 
 
 def _check_filter_form(filter_form, model, objects):
