@@ -72,7 +72,7 @@ def add_customuser_fields(self, view):
         queryset=PersonCluster.objects.filter(org=self.request.user.org, view=view),
         widget=forms.Select(attrs={'class': 'form-control'}),
         required=True,
-        label='Person Cluster'
+        label='Benutzergruppe'
     )
     if self.instance and self.instance.pk:
         self.fields['person_cluster'].initial = self.instance.user.person_cluster

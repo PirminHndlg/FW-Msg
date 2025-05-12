@@ -16,10 +16,15 @@ def get_attribute(obj, field):
     if hasattr(obj, str(field.get('name'))):
         attr = getattr(obj, field.get('name'))
         if field.get('type') == 'D':
-            try:
-                return datetime.datetime.strptime(attr, '%Y-%m-%d').date()
-            except ValueError:
-                return attr
+            if isinstance(attr, datetime.datetime):
+                return attr.date()
+            elif attr is None:
+                return ''
+            else:
+                try:
+                    return datetime.datetime.strptime(attr, '%Y-%m-%d').date()
+                except ValueError:
+                    return attr
         return attr
     elif hasattr(obj, 'get_%s_display' % field.get('name').replace(' ', '_')):
         return getattr(obj, 'get_%s_display' % field.get('name').replace(' ', '_'))()

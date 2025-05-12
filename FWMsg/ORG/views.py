@@ -541,10 +541,20 @@ def list_object(request, model_name, highlight_id=None):
         objects = filter_objects(objects, 'usr_aufg')
 
     elif model._meta.object_name == 'CustomUser':
+        #remove field mail_notifications_unsubscribe_auth_key from objects and model_fields
+        model._meta.fields = [field for field in model._meta.fields if field.name != 'mail_notifications_unsubscribe_auth_key']
+        model_fields = [field.name for field in model._meta.fields]
+        objects = objects.exclude(mail_notifications_unsubscribe_auth_key__isnull=False)
+        
         objects = filter_objects(objects)
         objects = objects.order_by('user__first_name', 'user__last_name')
-
+        
         objects = extend_fields(objects, field_metadata, model_fields, user_fields, position=0)
+        
+        user_fields = [
+            {'name': 'user_last_login', 'verbose_name': 'Letzter Login', 'type': 'D'}
+        ]
+        objects = extend_fields(objects, field_metadata, model_fields, user_fields)
 
     elif model._meta.object_name == 'Freiwilliger' or model._meta.object_name == 'Team':
         objects = objects.order_by('user__first_name', 'user__last_name')
