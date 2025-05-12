@@ -751,7 +751,7 @@ def get_cascade_info(request):
 
 def _get_ampel_matrix(request, users):
         # Get date range for ampel entries
-    date_range = get_ampel_date_range(request.user.org)
+    date_range = _get_ampel_date_range(request.user.org)
     start_date, end_date = date_range['start_date'], date_range['end_date']
     
     # Get ampel entries within date range
@@ -762,10 +762,10 @@ def _get_ampel_matrix(request, users):
     ).order_by('user', 'date')
     
     # Generate month labels
-    months = generate_month_labels(start_date, end_date)
+    months = _generate_month_labels(start_date, end_date)
     
     # Create and fill ampel matrix
-    ampel_matrix = create_ampel_matrix(users, months, ampel_entries)
+    ampel_matrix = _create_ampel_matrix(users, months, ampel_entries)
     
     # Group users by personen_cluster for template
     grouped_matrix = {}
@@ -799,7 +799,7 @@ def list_ampel(request):
     }
     return render(request, 'list_ampel.html', context=context)
 
-def get_ampel_date_range(org):
+def _get_ampel_date_range(org):
     """Helper function to determine the date range for ampel entries."""
     # Get earliest start date
     start_dates = Freiwilliger.objects.filter(org=org).aggregate(
@@ -822,7 +822,7 @@ def get_ampel_date_range(org):
         
     return {'start_date': start_date, 'end_date': end_date}
 
-def generate_month_labels(start_date, end_date):
+def _generate_month_labels(start_date, end_date):
     """Helper function to generate month labels between two dates."""
     months = []
     current = start_date
@@ -831,7 +831,7 @@ def generate_month_labels(start_date, end_date):
         current += relativedelta(months=1)
     return months
 
-def create_ampel_matrix(freiwillige, months, ampel_entries):
+def _create_ampel_matrix(freiwillige, months, ampel_entries):
     """Helper function to create and fill the ampel matrix."""
     # Initialize empty matrix
     matrix = {fw: {month: [] for month in months} for fw in freiwillige}
@@ -1083,20 +1083,6 @@ def download_aufgabe(request, id):
 @login_required
 @required_role('O')
 @filter_person_cluster
-def list_bilder(request):
-    bilder = Bilder2.objects.filter(org=request.user.org)
-
-    gallery_images = {}
-
-    for bild in bilder:
-        gallery_images[bild] = BilderGallery2.objects.filter(bilder=bild)
-
-    return render(request, 'list_bilder.html', context={'gallery_images': gallery_images})
-
-
-@login_required
-@required_role('O')
-@filter_person_cluster
 def download_bild_as_zip(request, id):
     bild = Bilder2.objects.get(pk=id)
     if not bild.org == request.user.org:
@@ -1109,13 +1095,6 @@ def download_bild_as_zip(request, id):
     response = HttpResponse(zip_buffer, content_type='application/zip')
     response['Content-Disposition'] = f'attachment; filename="{bild.user.username}_{bild.titel}_{bild.date_created.strftime("%Y-%m-%d")}.zip"'
     return response
-
-
-@login_required
-@required_role('O')
-@filter_person_cluster
-def dokumente(request):
-    return render(request, 'dokumente.html', context={'extends_base': base_template})
 
 
 @login_required
