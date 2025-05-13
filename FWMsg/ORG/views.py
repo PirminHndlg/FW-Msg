@@ -1064,37 +1064,43 @@ def get_aufgaben_zwischenschritte(request):
 @required_role('O')
 @filter_person_cluster
 def download_aufgabe(request, id):
-    aufgabe = UserAufgaben.objects.get(pk=id)
-    if not aufgabe.org == request.user.org:
-        return HttpResponse('Nicht erlaubt')
-    if not aufgabe.file:
-        return HttpResponse('Keine Datei gefunden')
-    if not aufgabe.file.path:
-        return HttpResponse('Datei nicht gefunden')
-    if not os.path.exists(aufgabe.file.path):
-        return HttpResponse('Datei nicht gefunden')
-    
-    response = HttpResponse(aufgabe.file.read(), content_type='application/octet-stream')
-    response['Content-Disposition'] = f'attachment; filename="{aufgabe.file.name.replace(" ", "_")}"'
+    try:
+        aufgabe = UserAufgaben.objects.get(pk=id)
+        if not aufgabe.org == request.user.org:
+            return HttpResponse('Nicht erlaubt')
+        if not aufgabe.file:
+            return HttpResponse('Keine Datei gefunden')
+        if not aufgabe.file.path:
+            return HttpResponse('Datei nicht gefunden')
+        if not os.path.exists(aufgabe.file.path):
+            return HttpResponse('Datei nicht gefunden')
+        
+        response = HttpResponse(aufgabe.file.read(), content_type='application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{aufgabe.file.name.replace(" ", "_")}"'
 
-    return response
+        return response
+    except UserAufgaben.DoesNotExist:
+        return HttpResponse('Nicht erlaubt')
 
 
 @login_required
 @required_role('O')
 @filter_person_cluster
 def download_bild_as_zip(request, id):
-    bild = Bilder2.objects.get(pk=id)
-    if not bild.org == request.user.org:
+    try:
+        bild = Bilder2.objects.get(pk=id)
+        if not bild.org == request.user.org:
+            return HttpResponse('Nicht erlaubt')
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w') as zipf:
+            for i, bild_gallery in enumerate(BilderGallery2.objects.filter(bilder=bild)):
+                zipf.write(bild_gallery.image.path, f"{bild.user.username}-{bild.titel.replace(' ', '_')}-{bild.date_created.strftime('%Y-%m-%d')}_{i}{os.path.splitext(bild_gallery.image.path)[1]}")
+        zip_buffer.seek(0)
+        response = HttpResponse(zip_buffer, content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename="{bild.user.username}_{bild.titel}_{bild.date_created.strftime("%Y-%m-%d")}.zip"'
+        return response
+    except Bilder2.DoesNotExist:
         return HttpResponse('Nicht erlaubt')
-    zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, 'w') as zipf:
-        for i, bild_gallery in enumerate(BilderGallery2.objects.filter(bilder=bild)):
-            zipf.write(bild_gallery.image.path, f"{bild.user.username}-{bild.titel.replace(' ', '_')}-{bild.date_created.strftime('%Y-%m-%d')}_{i}{os.path.splitext(bild_gallery.image.path)[1]}")
-    zip_buffer.seek(0)
-    response = HttpResponse(zip_buffer, content_type='application/zip')
-    response['Content-Disposition'] = f'attachment; filename="{bild.user.username}_{bild.titel}_{bild.date_created.strftime("%Y-%m-%d")}.zip"'
-    return response
 
 
 @login_required
