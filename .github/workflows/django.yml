@@ -29,5 +29,4 @@ jobs:
         pip install -r requirements_ci.txt
     - name: Run Tests
       run: |
-        ls -la
-        python manage.py test
+        python FWMsg/manage.py test
