@@ -27,6 +27,13 @@ jobs:
         # Create a temporary requirements file without appscript
         grep -v "appscript" requirements.txt > requirements_ci.txt
         pip install -r requirements_ci.txt
+    - name: Setup Django Settings
+      run: |
+        cd FWMsg
+        cp FWMsg/settings.py.example FWMsg/settings.py
+        # Update settings for CI environment
+        sed -i 's/DEBUG = True/DEBUG = False/' FWMsg/settings.py
+        sed -i 's/SECRET_KEY = .*/SECRET_KEY = "django-insecure-test-key-for-ci"/' FWMsg/settings.py
     - name: Run Tests
       run: |
         cd FWMsg
