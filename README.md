@@ -1,7 +1,7 @@
-# FW-Msg
+# Volunteer.solutions
 
 ## Description
-FW-Msg is a comprehensive tool for managing volunteer work. It enables organizations to efficiently manage volunteers, projects, and tasks while providing a user-friendly interface for all stakeholders.
+Volunteer.solutions is a comprehensive tool for managing volunteer work. It enables organizations to efficiently manage volunteers, projects, and tasks while providing a user-friendly interface for all stakeholders.
 
 ## Features
 - Volunteer management and tracking
@@ -124,7 +124,7 @@ Static files are organized in app-specific directories:
 - `logos/`
 
 ## License
-FW-Msg is licensed under the MIT License. This means you can do whatever you want with the code as long as you keep the license.
+Volunteer.solutions is licensed under the MIT License. This means you can do whatever you want with the code as long as you keep the license.
 
 ## Contact
 For questions or suggestions, you can reach me at [admin@volunteer.solutions](mailto:admin@volunteer.solutions).
