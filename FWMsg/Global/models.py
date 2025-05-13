@@ -809,7 +809,6 @@ class BilderGallery2(OrgModel):
 @receiver(post_save, sender=BilderGallery2)
 def create_small_image(sender, instance, created, **kwargs):
     """Create small version of uploaded image on save."""
-    print(instance.image.name)
     if created and instance.image and not instance.small_image:
         try:
             # Open the image
@@ -845,16 +844,10 @@ def create_small_image(sender, instance, created, **kwargs):
 
             filename = f"{os.path.basename(instance.image.name).rsplit('.', 1)[0]}.{extension}"
 
-            print(filename)
-            print('--------------------------------')
-            
             # Save small image
             instance.small_image = ContentFile(img_io.getvalue(), name=filename)
             instance.save()
 
-            print(instance.small_image.path)
-            print('--------------------------------')
-            
         except Exception as e:
             print(f"Error creating small image: {str(e)}")
 
