@@ -150,7 +150,7 @@ allowed_models_to_edit = {
     'attribute': Attribute,
     'aufgabe': Aufgabe2,
     'notfallkontakt': Notfallkontakt2,
-    'freiwilligeraufgaben': UserAufgaben,
+    'useraufgaben': UserAufgaben,
     'team': Team,
     'user': CustomUser,
     'personcluster': PersonCluster,
@@ -1260,8 +1260,8 @@ def _redirect_after_action(request, model_name, object_id=None):
     if next_url:
         return redirect(next_url)
     
-    # Special case for freiwilligeraufgaben
-    if model_name.lower() == 'freiwilligeraufgaben':
+    # Special case for useraufgaben
+    if model_name.lower() == 'useraufgaben':
         return redirect('list_aufgaben_table')
     
     # Standard case: redirect to list view with optional highlighting
