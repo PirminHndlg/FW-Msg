@@ -144,13 +144,13 @@ def einsatzstellen(request):
 def save_einsatzstelle_info(request, stelle_id):
     """Save updated placement location information from the team interface."""
     if request.method != 'POST':
-        return redirect('einsatzstellen')
+        return redirect('team_einsatzstellen')
     
     # Get the team member and verify they exist
     team_member = _get_team_member(request)
     if not team_member:
         messages.error(request, 'Sie haben keine Berechtigung, diese Änderungen vorzunehmen.')
-        return redirect('einsatzstellen')
+        return redirect('team_einsatzstellen')
     
     # Get assigned countries
     assigned_countries = team_member.land.all()
@@ -160,7 +160,7 @@ def save_einsatzstelle_info(request, stelle_id):
         stelle = Einsatzstelle2.objects.get(id=stelle_id)
         if stelle.land not in assigned_countries:
             messages.error(request, f'Sie haben keine Berechtigung, Informationen für {stelle.name} zu bearbeiten.')
-            return redirect('einsatzstellen')
+            return redirect('team_einsatzstellen')
         
         # Update the placement location information with form data
         stelle.partnerorganisation = request.POST.get('partnerorganisation', '')
@@ -176,10 +176,10 @@ def save_einsatzstelle_info(request, stelle_id):
     
     except Einsatzstelle2.DoesNotExist:
         messages.error(request, 'Die angegebene Einsatzstelle wurde nicht gefunden.')
-        return redirect('einsatzstellen')
+        return redirect('team_einsatzstellen')
     except Exception as e:
         messages.error(request, f'Fehler beim Speichern der Informationen: {str(e)}')
-        return redirect('einsatzstellen')
+        return redirect('team_einsatzstellen')
 
 @filter_person_cluster
 @login_required
@@ -217,13 +217,13 @@ def laender(request):
 def save_land_info(request, land_id):
     """Save updated country information from the team interface."""
     if request.method != 'POST':
-        return redirect('laender')
+        return redirect('team_laender')
     
     # Get the team member and verify they exist
     team_member = _get_team_member(request)
     if not team_member:
         messages.error(request, 'Sie haben keine Berechtigung, diese Änderungen vorzunehmen.')
-        return redirect('laender')
+        return redirect('team_laender')
     
     # Get assigned countries
     assigned_countries = team_member.land.all()
@@ -233,7 +233,7 @@ def save_land_info(request, land_id):
         land = Einsatzland2.objects.get(id=land_id)
         if land not in assigned_countries:
             messages.error(request, f'Sie haben keine Berechtigung, Informationen für {land.name} zu bearbeiten.')
-            return redirect('laender')
+            return redirect('team_laender')
         
         # Update the country information with form data
         land.notfallnummern = request.POST.get('notfallnummern', '')
@@ -247,9 +247,9 @@ def save_land_info(request, land_id):
     
     except Einsatzland2.DoesNotExist:
         messages.error(request, 'Das angegebene Einsatzland wurde nicht gefunden.')
-        return redirect('laender')
+        return redirect('team_laender')
     except Exception as e:
         messages.error(request, f'Fehler beim Speichern der Informationen: {str(e)}')
-        return redirect('laender')
+        return redirect('team_laender')
     
     
