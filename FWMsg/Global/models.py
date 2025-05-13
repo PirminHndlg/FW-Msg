@@ -668,7 +668,6 @@ class UserAufgaben(OrgModel):
         if not self.faellig:
 
             faellig_date = datetime(datetime.now().year, self.aufgabe.faellig_monat or 1, self.aufgabe.faellig_tag or 1).date()
-            print(faellig_date)
             while faellig_date < datetime.now().date():
                 faellig_date = faellig_date.replace(year=faellig_date.year+1)
 
