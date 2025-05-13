@@ -29,7 +29,7 @@ cd FW-Msg
 ### 2. Set Up Virtual Environment
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+source .venv/bin/activate
 ```
 
 ### 3. Install Dependencies
@@ -69,7 +69,13 @@ Edit the following files with your specific configuration:
 ```
 
 ### 3. Database Setup
+> **Note:** Migration files are not included in the repository. You will need to create them using the commands below.
+
 ```bash
+python manage.py makemigrations Global
+python manage.py makemigrations FW
+python manage.py makemigrations ORG
+python manage.py makemigrations TEAM
 python manage.py migrate
 python manage.py createsuperuser
 ```
@@ -85,6 +91,16 @@ python manage.py runserver
 ```bash
 celery -A FWMsg worker -l info
 ```
+
+### To add a new organization to the system:
+
+1. Go to `http://localhost:8000/admin/` (or your domain if in production)
+2. Log in with your superuser credentials
+3. Navigate to "ORG" > "Organisations"
+4. Click on "Add Organisation" button
+5. Fill in the required information
+6. Click "Save" to create the new organization
+7. An email with login credentials will be automatically sent to the email address you inserted
 
 ## Development
 
