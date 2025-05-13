@@ -28,6 +28,6 @@ jobs:
         grep -v "appscript" requirements.txt > requirements_ci.txt
         pip install -r requirements_ci.txt
     - name: Run Tests
-      working-directory: /home/runner/work/FW-Msg/FW-Msg
       run: |
+        ls -la
         python manage.py test
