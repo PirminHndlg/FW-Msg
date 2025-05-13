@@ -14,7 +14,7 @@ from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-class FWHomeTests(TestCase):
+class FWViewsTests(TestCase):
     def setUp(self):
         """Set up test data for home view tests"""
         self._create_organization()
@@ -22,6 +22,7 @@ class FWHomeTests(TestCase):
         self._create_test_users()
         self._create_test_tasks()
         self._create_test_posts()
+        self._create_test_country_data()
         
         # Login as volunteer by default
         self.client.login(username='volunteer', password='testpass123')
@@ -81,7 +82,18 @@ class FWHomeTests(TestCase):
             user=self.volunteer_user,
             person_cluster=self.person_cluster_fw
         )
-
+        
+        # Create referent user
+        self.referent_user = get_user_model().objects.create_user(
+            username='referent',
+            password='testpass123',
+            first_name='Test',
+            last_name='Referent',
+            email='referent@test.com'
+        )
+        
+        
+   
     def _create_test_tasks(self):
         """Create test tasks"""
         self.aufgabe = Aufgabe2.objects.create(
@@ -125,6 +137,41 @@ class FWHomeTests(TestCase):
             date=timezone.now()
         )
         self.post.person_cluster.add(self.person_cluster_fw)
+        
+    def _create_test_country_data(self):
+        """Create test country and location data"""
+        # Create country
+        self.land = Einsatzland2.objects.create(
+            org=self.org,
+            name='Test Country',
+            notfallnummern='Emergency: 112',
+            arztpraxen='Test Doctor: +1234567890',
+            apotheken='Test Pharmacy: +1234567890',
+            informationen='Test Information'
+        )
+        
+        # Create location
+        self.einsatzstelle = Einsatzstelle2.objects.create(
+            org=self.org,
+            name='Test Location',
+            botschaft='Test Embassy: +1234567890',
+            konsulat='Test Consulate: +1234567890',
+            arbeitsvorgesetzter='Test Supervisor: +1234567890',
+            partnerorganisation='Test Partner Org',
+            mentor='Test Mentor: +1234567890'
+        )
+        
+        # Update volunteer with country and location
+        self.freiwilliger.einsatzland2 = self.land
+        self.freiwilliger.einsatzstelle2 = self.einsatzstelle
+        self.freiwilliger.save()
+        
+        # Create referent
+        self.referent = Team.objects.create(
+            org=self.org,
+            user=self.referent_user
+        )
+        self.referent.land.add(self.land)
 
     def test_home_view(self):
         """Test that the home view loads correctly"""
@@ -169,107 +216,6 @@ class FWHomeTests(TestCase):
         self.assertIn('posts', response.context)
         self.assertEqual(len(response.context['posts']), 1)  # One test post
 
-
-class FWLaenderinfoTests(TestCase):
-    def setUp(self):
-        """Set up test data for laenderinfo view tests"""
-        self._create_organization()
-        self._create_person_clusters()
-        self._create_test_users()
-        self._create_test_country_data()
-        
-        # Login as volunteer by default
-        self.client.login(username='volunteer', password='testpass123')
-
-    def _create_organization(self):
-        """Create test organization"""
-        self.org = Organisation.objects.create(
-            name='Test Org',
-            email='test@test.com',
-            telefon='+1234567890',
-            website='https://test.org'
-        )
-
-    def _create_person_clusters(self):
-        """Create person clusters for organization and volunteers"""
-        self.person_cluster_fw = PersonCluster.objects.create(
-            org=self.org,
-            name='Test Person Cluster FW',
-            view='F',
-            aufgaben=True,
-            calendar=True,
-            dokumente=True,
-            ampel=True,
-            notfallkontakt=True,
-            bilder=True
-        )
-
-    def _create_test_users(self):
-        """Create test users and volunteers"""
-        # Create volunteer user
-        self.volunteer_user = get_user_model().objects.create_user(
-            username='volunteer',
-            password='testpass123',
-            first_name='Test',
-            last_name='Volunteer'
-        )
-        
-        # Create referent user
-        self.referent_user = get_user_model().objects.create_user(
-            username='referent',
-            password='testpass123',
-            first_name='Test',
-            last_name='Referent',
-            email='referent@test.com'
-        )
-        
-        # Create volunteer
-        self.freiwilliger = Freiwilliger.objects.create(
-            org=self.org,
-            user=self.volunteer_user
-        )
-        
-        # Create CustomUser for volunteer
-        self.custom_user = CustomUser.objects.create(
-            org=self.org,
-            user=self.volunteer_user,
-            person_cluster=self.person_cluster_fw
-        )
-
-    def _create_test_country_data(self):
-        """Create test country and location data"""
-        # Create country
-        self.land = Einsatzland2.objects.create(
-            org=self.org,
-            name='Test Country',
-            notfallnummern='Emergency: 112',
-            arztpraxen='Test Doctor: +1234567890',
-            apotheken='Test Pharmacy: +1234567890',
-            informationen='Test Information'
-        )
-        
-        # Create location
-        self.einsatzstelle = Einsatzstelle2.objects.create(
-            org=self.org,
-            name='Test Location',
-            botschaft='Test Embassy: +1234567890',
-            konsulat='Test Consulate: +1234567890',
-            arbeitsvorgesetzter='Test Supervisor: +1234567890',
-            partnerorganisation='Test Partner Org',
-            mentor='Test Mentor: +1234567890'
-        )
-        
-        # Update volunteer with country and location
-        self.freiwilliger.einsatzland2 = self.land
-        self.freiwilliger.einsatzstelle2 = self.einsatzstelle
-        self.freiwilliger.save()
-        
-        # Create referent
-        self.referent = Team.objects.create(
-            org=self.org,
-            user=self.referent_user
-        )
-        self.referent.land.add(self.land)
 
     def test_laenderinfo_view(self):
         """Test that the laenderinfo view loads correctly"""
