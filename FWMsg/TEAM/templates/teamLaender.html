@@ -183,7 +183,7 @@
                   <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                  <form method="post" action="{% url 'save_land_info' land.id %}" class="edit-form">
+                  <form method="post" action="{% url 'team_save_land_info' land.id %}" class="edit-form">
                     {% csrf_token %}
                     <div class="mb-3">
                       <label for="notfallnummern-{{ land.id }}" class="form-label fw-medium"><i class="bi bi-telephone-fill me-2 text-primary"></i> {% trans 'Notfallnummern' %}</label>

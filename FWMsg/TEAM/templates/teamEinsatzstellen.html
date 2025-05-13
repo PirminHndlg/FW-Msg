@@ -165,7 +165,7 @@
                   <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                  <form method="post" action="{% url 'save_einsatzstelle_info' stelle.id %}">
+                  <form method="post" action="{% url 'team_save_einsatzstelle_info' stelle.id %}">
                     {% csrf_token %}
                     
                     <div class="mb-3">
