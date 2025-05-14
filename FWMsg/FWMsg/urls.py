@@ -28,6 +28,7 @@ urlpatterns = [
     path('fw/', include('FW.urls')),
     path('org/', include('ORG.urls')),
     path('team/', include('TEAM.urls')),
+    path('administrator/', include('ADMIN.urls')),
     
     #path('login/', LoginView.as_view(), name='login'),
     path('login/', views.index, name='login'),

@@ -24,6 +24,8 @@ def index(request):
             return redirect('team_home')
         elif user.role == 'F':
             return redirect('fw_home')
+        elif user.role == 'A':
+            return redirect('admin_home')
         else:
             messages.error(request, _('Ungültige Personengruppe.'))
             return redirect('index')
