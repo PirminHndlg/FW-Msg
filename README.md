@@ -53,7 +53,6 @@ Edit the following files with your specific configuration:
 - Replace `SECRET_KEY` with your own secret key
 - Configure database settings if not using SQLite
 - Update `ADMINS` and `MANAGERS` with your contact information
-- Configure `IFRAMELY_API_KEY` if using Iframely
 - Set up `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` for web push notifications
 - Update `CSRF_TRUSTED_ORIGINS` with your domain
 
