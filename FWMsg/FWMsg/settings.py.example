@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'FW.apps.FwConfig',
     'ORG.apps.OrgConfig',
     'Home.apps.HomeConfig',
+    'ADMIN.apps.AdminConfig',
     'Global.apps.GlobalConfig',
     'TEAM.apps.TeamConfig',
     'widget_tweaks',
