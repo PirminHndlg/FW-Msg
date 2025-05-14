@@ -31,6 +31,7 @@ jobs:
       run: |
         cd FWMsg
         cp FWMsg/settings.py.example FWMsg/settings.py
+        cp FWMsg/.secrets.json.example FWMsg/.secrets.json
         # Update settings for CI environment
         sed -i 's/DEBUG = True/DEBUG = False/' FWMsg/settings.py
         sed -i 's/SECRET_KEY = .*/SECRET_KEY = "django-insecure-test-key-for-ci"/' FWMsg/settings.py
