@@ -1,13 +1,19 @@
 from django.shortcuts import redirect, render
 from ORG.models import Organisation
 from .forms import OrganisationForm
+from django.contrib.auth.decorators import login_required
+from FWMsg.decorators import required_role
 
 # Create your views here.
+@login_required
+@required_role('A')
 def admin_home(request):
     org_list = Organisation.objects.all()
     form = OrganisationForm()
     return render(request, 'admin_home.html', {'org_list': org_list, 'form': form})
 
+@login_required
+@required_role('A')
 def admin_org(request, org_id=None):
     if request.method == 'POST':
         if org_id:
