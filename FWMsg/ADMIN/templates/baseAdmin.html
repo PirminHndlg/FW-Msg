@@ -1,0 +1,26 @@
+{# Base template that all other templates inherit from #}
+{% load static %}
+{% load base_filter %}
+{% load i18n %}
+
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    {% include 'header.html' %}
+
+    <title>
+      Volunteer.Solutions{% block title %}
+
+      {% endblock %}
+    </title>
+
+    {% block head %}
+
+    {% endblock %}
+  </head>
+  <body>
+    {% block content %}
+
+    {% endblock %}
+  </body>
+</html>
