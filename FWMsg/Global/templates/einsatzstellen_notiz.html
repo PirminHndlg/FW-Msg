@@ -1,0 +1,204 @@
+{% extends extends_base %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                {% if einsatzstelle %}
+                    <h2 class="mb-0">Notizen für {{ einsatzstelle.name }}</h2>
+                {% else %}
+                    <h2 class="mb-0">Notizen für Einsatzstellen</h2>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Einsatzstelle Selector -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="get" class="d-flex align-items-center">
+                        <div class="flex-grow-1 me-3">
+                            <select name="es_id" class="form-select" onchange="this.form.submit()">
+                                <option value="">Einsatzstelle auswählen...</option>
+                                {% for es in einsatzstellen %}
+                                    <option value="{{ es.id }}" {% if es.id == einsatzstelle.id %}selected{% endif %}>
+                                        {{ es.land.name }} - {{ es.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if einsatzstelle %}
+    <!-- Add Note Form -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-plus-circle me-2"></i>Neue Notiz hinzufügen
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ form.notiz.errors }}
+                            {{ form.notiz|add_class:"form-control"|attr:"rows:3" }}
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Notiz speichern
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Existing Notes -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history me-2"></i>Vorherige Notizen
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if notizen %}
+                        {% for notiz in notizen %}
+                            <div class="border-bottom mb-3 pb-3" id="notiz-{{ notiz.id }}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-person-circle text-primary me-2"></i>
+                                            <strong>{{ notiz.user.get_full_name|default:notiz.user.username }}</strong>
+                                        </div>
+                                        <small class="text-muted ms-4">
+                                            <i class="bi bi-clock me-1"></i>
+                                            {{ notiz.date|date:"d.m.Y H:i" }}
+                                        </small>
+                                    </div>
+                                    {% if notiz.user == request.user %}
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-primary edit-notiz" 
+                                                data-notiz-id="{{ notiz.id }}"
+                                                data-notiz-text="{{ notiz.notiz }}">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-notiz"
+                                                data-notiz-id="{{ notiz.id }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="mt-2 ms-4">
+                                    <p class="mb-0 notiz-content">{{ notiz.notiz }}</p>
+                                    <form method="post" class="edit-form d-none" id="edit-form-{{ notiz.id }}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="notiz_id" value="{{ notiz.id }}">
+                                        <div class="mb-2">
+                                            <textarea name="notiz" class="form-control" rows="3">{{ notiz.notiz }}</textarea>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button type="submit" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-save me-1"></i>Speichern
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-secondary cancel-edit">
+                                                <i class="bi bi-x me-1"></i>Abbrechen
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-clipboard fa-3x mb-3"></i>
+                            <p class="mb-0">Noch keine Notizen vorhanden.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                Bitte wählen Sie eine Einsatzstelle aus, um deren Notizen anzuzeigen.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Edit functionality
+    document.querySelectorAll('.edit-notiz').forEach(button => {
+        button.addEventListener('click', function() {
+            const notizId = this.dataset.notizId;
+            const notizContent = document.querySelector(`#notiz-${notizId} .notiz-content`);
+            const editForm = document.querySelector(`#edit-form-${notizId}`);
+            
+            notizContent.classList.add('d-none');
+            editForm.classList.remove('d-none');
+        });
+    });
+
+    // Cancel edit
+    document.querySelectorAll('.cancel-edit').forEach(button => {
+        button.addEventListener('click', function() {
+            const notizId = this.closest('.edit-form').id.split('-')[2];
+            const notizContent = document.querySelector(`#notiz-${notizId} .notiz-content`);
+            const editForm = document.querySelector(`#edit-form-${notizId}`);
+            
+            notizContent.classList.remove('d-none');
+            editForm.classList.add('d-none');
+        });
+    });
+
+    // Delete functionality
+    document.querySelectorAll('.delete-notiz').forEach(button => {
+        button.addEventListener('click', function() {
+            if (confirm('Möchten Sie diese Notiz wirklich löschen?')) {
+                const notizId = this.dataset.notizId;
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = window.location.href;
+                
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                const notizIdInput = document.createElement('input');
+                notizIdInput.type = 'hidden';
+                notizIdInput.name = 'delete_notiz_id';
+                notizIdInput.value = notizId;
+                
+                form.appendChild(csrfInput);
+                form.appendChild(notizIdInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

@@ -916,3 +916,17 @@ class PushSubscription(models.Model):
     def __str__(self):
         device_name = self.name or "Unbenanntes Gerät"
         return f"{self.user.username} - {device_name}"
+
+
+class EinsatzstelleNotiz(OrgModel):
+    einsatzstelle = models.ForeignKey(Einsatzstelle2, on_delete=models.CASCADE, verbose_name='Einsatzstelle')
+    notiz = models.TextField(verbose_name='Notiz', null=True, blank=True, help_text='Notiz der Einsatzstelle')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
+    date = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
+    
+    class Meta:
+        verbose_name = 'Einsatzstellen Notiz'
+        verbose_name_plural = 'Einsatzstellen Notizen'
+
+    def __str__(self):
+        return f"{self.einsatzstelle.name} - {self.notiz[:10]}"
