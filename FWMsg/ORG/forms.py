@@ -541,6 +541,9 @@ class AddKalenderEventForm(OrgFormMixin, forms.ModelForm):
         self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.request.user.org)
         self.fields['user'].required = False
         
+        self.fields['start'].widget = forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'})
+        self.fields['end'].widget = forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'})
+        
         # Reorder fields to put person_cluster right after user
         field_order = ['title', 'user', 'person_cluster', 'start', 'end', 'description']
         self.order_fields(field_order)
