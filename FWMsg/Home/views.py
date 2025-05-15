@@ -13,7 +13,7 @@ from django.utils import timezone
 
 def index(request):
     maintenance = Maintenance.objects.order_by('-id').first()
-    print(maintenance)
+    
     if maintenance:
         return redirect('maintenance')
 
@@ -26,6 +26,8 @@ def index(request):
             return redirect('fw_home')
         elif user.role == 'A':
             return redirect('admin_home')
+        elif user.role == 'B':
+            return redirect('bw_home')
         else:
             messages.error(request, _('Ungültige Personengruppe.'))
             return redirect('index')

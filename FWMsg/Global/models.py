@@ -41,7 +41,8 @@ class PersonCluster(OrgModel):
         ('O', 'Organisation'),
         ('F', 'Freiwillige:r'),
         ('E', 'Ehemalige:r'),
-        ('T', 'Team')
+        ('T', 'Team'),
+        ('B', 'Bewerber:in')
     ]
 
     name = models.CharField(max_length=50, verbose_name='Benutzergruppe', help_text='Name der Benutzergruppe, z.B. "Freiwillige 2023" oder "Teamleitung"')
