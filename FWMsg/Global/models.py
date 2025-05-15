@@ -148,6 +148,13 @@ User.add_to_class('view', property(lambda self: self.customuser.person_cluster.v
 User.add_to_class('role', property(lambda self: self.customuser.person_cluster.view if hasattr(self, 'customuser') and self.customuser.person_cluster else None))
 User.add_to_class('person_cluster', property(lambda self: self.customuser.person_cluster if hasattr(self, 'customuser') and self.customuser.person_cluster else None))
 
+def user_str_method(self):
+    if hasattr(self, 'first_name') and hasattr(self, 'last_name') and self.first_name and self.last_name:
+        return f"{self.first_name} {self.last_name}"
+    return self.username
+
+User.__str__ = user_str_method
+
 class Feedback(models.Model):
     text = models.TextField(verbose_name='Feedback-Text')
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer:in', null=True, blank=True)
