@@ -41,6 +41,7 @@ urlpatterns = [
     path('feedback/', views.feedback, name='feedback'),
 
     path('kalender/', views.kalender, name='kalender'),
+    path('kalender/<int:kalender_id>/', views.kalender_event, name='kalender_event'),
     path('calendar_events/', views.get_calendar_events, name='get_calendar_events'),
 
     path('datenschutz/', views.datenschutz, name='datenschutz'),
