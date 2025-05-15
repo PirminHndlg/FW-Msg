@@ -170,11 +170,19 @@ class KalenderEvent(OrgModel):
     user = models.ManyToManyField(User, verbose_name='Teilnehmer:innen', help_text='Personen, die an diesem Termin teilnehmen')
     title = models.CharField(max_length=255, verbose_name='Titel', help_text='Titel des Termins')
     start = models.DateTimeField(verbose_name='Beginnt am', help_text='Startdatum und -uhrzeit des Termins')
-    end = models.DateTimeField(verbose_name='Endet am', null=True, blank=True, help_text='Enddatum und -uhrzeit des Termins (optional)')
+    end = models.DateTimeField(verbose_name='Endet am', help_text='Enddatum und -uhrzeit des Termins (optional)')
     description = models.TextField(verbose_name='Beschreibung', null=True, blank=True, help_text='Ausführliche Beschreibung des Termins (optional)')
 
     history = HistoricalRecords()
 
+    class Meta:
+        verbose_name = 'Kalender-Termin'
+        verbose_name_plural = 'Kalender-Termine'
+
+    def __str__(self):
+        return self.title
+    
+    
 class Ordner2(OrgModel):
     ordner_name = models.CharField(max_length=100, verbose_name='Ordnername', help_text='Name des Ordners')
     typ = models.ManyToManyField(PersonCluster, verbose_name='Sichtbar für', help_text='Benutzergruppen, die diesen Ordner sehen können')

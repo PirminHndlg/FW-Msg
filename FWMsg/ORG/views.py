@@ -26,7 +26,7 @@ from django.db.models.query import Prefetch
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from Global.models import (
-    Attribute, AufgabenCluster, Aufgabe2, Maintenance, PersonCluster, UserAttribute, 
+    Attribute, AufgabenCluster, Aufgabe2, KalenderEvent, Maintenance, PersonCluster, UserAttribute, 
     UserAufgaben, Post2, Bilder2, CustomUser,
     BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2,
     Einsatzland2, Einsatzstelle2,
@@ -154,7 +154,8 @@ allowed_models_to_edit = {
     'team': Team,
     'user': CustomUser,
     'personcluster': PersonCluster,
-    'aufg-filter': AufgabenCluster
+    'aufg-filter': AufgabenCluster,
+    'kalender': KalenderEvent
 }
 
 
@@ -235,16 +236,37 @@ def nginx_statistic(request):
 @required_role('O')
 @filter_person_cluster
 def save_form(request, form):
+    """
+    Save a form with proper organization assignment and handle related forms.
+    
+    Args:
+        request: The HTTP request object
+        form: The form to save
+        
+    Returns:
+        The saved form instance
+    """
+    # First save without committing to add organization
     obj = form.save(commit=False)
     obj.org = request.user.org
     obj.save()
+    
+    # Save many-to-many relationships
     form.save_m2m()
+    
+    # Handle nested zwischenschritte forms if they exist
     if hasattr(form, 'zwischenschritte'):
-        for form in form.zwischenschritte.forms:
-            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
-                zwischenschritt = form.save(commit=False)
+        for zwischenschritt_form in form.zwischenschritte.forms:
+            # Only save non-deleted forms with data
+            if (zwischenschritt_form.cleaned_data and 
+                not zwischenschritt_form.cleaned_data.get('DELETE', False)):
+                # Add organization to each zwischenschritt
+                zwischenschritt = zwischenschritt_form.save(commit=False)
                 zwischenschritt.org = request.user.org
                 zwischenschritt.save()
+    
+    # Final save to ensure everything is committed
+    return form.save(commit=True)
 
 
 @login_required
