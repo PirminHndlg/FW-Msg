@@ -177,7 +177,7 @@ class KalenderEvent(OrgModel):
     user = models.ManyToManyField(User, verbose_name='Teilnehmer:innen', help_text='Personen, die an diesem Termin teilnehmen')
     title = models.CharField(max_length=255, verbose_name='Titel', help_text='Titel des Termins')
     start = models.DateTimeField(verbose_name='Beginnt am', help_text='Startdatum und -uhrzeit des Termins')
-    end = models.DateTimeField(verbose_name='Endet am', help_text='Enddatum und -uhrzeit des Termins (optional)')
+    end = models.DateTimeField(verbose_name='Endet am', help_text='Enddatum und -uhrzeit des Termins')
     description = models.TextField(verbose_name='Beschreibung', null=True, blank=True, help_text='Ausführliche Beschreibung des Termins (optional)')
 
     history = HistoricalRecords()
