@@ -841,6 +841,19 @@ def kalender(request):
 
 @login_required
 @required_person_cluster('calendar')
+def kalender_event(request, kalender_id):
+    if request.user.role == 'O':
+        kalender_event = KalenderEvent.objects.get(id=kalender_id, org=request.user.org)
+    else:
+        kalender_event = KalenderEvent.objects.get(id=kalender_id, org=request.user.org, user__in=[request.user])
+    context = {
+        'kalender_event': kalender_event
+    }
+    context = check_organization_context(request, context)
+    return render(request, 'kalender_event.html', context=context)
+
+@login_required
+@required_person_cluster('calendar')
 def get_calendar_events(request):
     calendar_events = []
     
@@ -891,7 +904,7 @@ def get_calendar_events(request):
             'title': kalender_event.title,
             'start': kalender_event.start.strftime('%Y-%m-%d %H:%M') if kalender_event.start else '',
             'end': kalender_event.end.strftime('%Y-%m-%d %H:%M') if kalender_event.end else '',
-            'url': kalender_event.description,
+            'url': reverse('kalender_event', args=[kalender_event.id]),
             'backgroundColor': '#000',
             'borderColor': '#000',
             'textColor': '#fff'
