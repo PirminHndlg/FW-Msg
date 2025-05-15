@@ -881,7 +881,11 @@ def get_calendar_events(request):
                 'textColor': '#fff'
             })
         
-    kalender_events = KalenderEvent.objects.filter(org=request.user.org).filter(user__in=[request.user])
+    if request.user.role == 'O':
+        kalender_events = KalenderEvent.objects.filter(org=request.user.org)
+    else:
+        kalender_events = KalenderEvent.objects.filter(org=request.user.org).filter(user__in=[request.user])
+        
     for kalender_event in kalender_events:
         calendar_events.append({
             'title': kalender_event.title,
