@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
 
 from Global.models import (
-    Attribute, Aufgabe2, AufgabenCluster,
+    Attribute, Aufgabe2, AufgabenCluster, KalenderEvent,
     UserAufgaben, Post2, Bilder2, CustomUser,
     BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2, UserAttribute, 
     PersonCluster, Einsatzland2, Einsatzstelle2,
@@ -523,6 +523,48 @@ class AddPersonClusterForm(OrgFormMixin, forms.ModelForm):
         exclude = ['org']
         
 
+class AddKalenderEventForm(OrgFormMixin, forms.ModelForm):
+    person_cluster = forms.ModelMultipleChoiceField(
+        queryset=PersonCluster.objects.none(),
+        required=False,
+        label='Benutzergruppen',
+        help_text='Wählen Sie Benutzergruppen aus, deren Mitglieder automatisch zum Termin hinzugefügt werden sollen'
+    )
+
+    class Meta:
+        model = KalenderEvent
+        fields = '__all__'
+        exclude = ['org']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.request.user.org)
+        self.fields['user'].required = False
+        
+        # Reorder fields to put person_cluster right after user
+        field_order = ['title', 'user', 'person_cluster', 'start', 'end', 'description']
+        self.order_fields(field_order)
+        
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.org = self.request.user.org
+        
+        if commit:
+            instance.save()
+            # Save many-to-many relationships
+            self.save_m2m()
+            
+            # Add users from selected person clusters
+            if 'person_cluster' in self.cleaned_data:
+                selected_clusters = self.cleaned_data['person_cluster']
+                for cluster in selected_clusters:
+                    # Get all users from the cluster
+                    users = User.objects.filter(customuser__person_cluster=cluster, customuser__org=self.request.user.org)
+                    # Add them to the event's users
+                    instance.user.add(*users)
+        
+        return instance
+
 model_to_form_mapping = {
     Einsatzland2: AddEinsatzlandForm,
     Einsatzstelle2: AddEinsatzstelleForm,
@@ -534,5 +576,6 @@ model_to_form_mapping = {
     CustomUser: AddUserForm,
     Attribute: AddAttributeForm,
     PersonCluster: AddPersonClusterForm,
-    AufgabenCluster: AddAufgabenClusterForm
+    AufgabenCluster: AddAufgabenClusterForm,
+    KalenderEvent: AddKalenderEventForm
 }
