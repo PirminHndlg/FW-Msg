@@ -116,5 +116,14 @@
     </div>
     {% endif %}
 
+    <!-- Kalender -->
+    {% if request.user.customuser.person_cluster.calendar %}
+    <div class="col-md-6 mb-4">
+            <div class="card-body">
+                {% include 'components/calendar.html' %}
+            </div>
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}
