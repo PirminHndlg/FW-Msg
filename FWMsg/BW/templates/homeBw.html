@@ -1,0 +1,293 @@
+{% extends 'baseBw.html' %}
+{% load i18n %}
+
+{% block title %}
+  Dashboard
+{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <!-- Welcome Section -->
+    {% if application_text.welcome %}
+      <div class="row justify-content-center mb-4">
+        <div class="col-12 col-lg-10">
+          <div class="card rounded-4 shadow-sm border-1">
+            <div class="card-body p-4">
+              <div class="d-flex align-items-center mb-3">
+                <div class="welcome-icon bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                  <i class="bi bi-house-heart text-on-org-color fs-4"></i>
+                </div>
+                <div>
+                  <h3 class="card-title mb-0 fw-semibold">{{ request.user.org.name }}</h3>
+                  <p class="text-muted mb-0">Ihr Bewerbungsdashboard</p>
+                </div>
+              </div>
+              <div class="welcome-content mt-3">{{ application_text.welcome|safe }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Progress Section -->
+    <div class="row justify-content-center mb-4">
+      <div class="col-12 col-lg-10">
+        <div class="card rounded-4 shadow-sm border-1">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-4">
+              <div class="status-icon bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                <i class="bi bi-graph-up text-on-org-color fs-4"></i>
+              </div>
+              <div>
+                <h4 class="card-title mb-0 fw-semibold">Fortschritt</h4>
+                <p class="text-muted mb-0">Ihr Bewerbungsfortschritt</p>
+              </div>
+            </div>
+            <div class="progress-wrapper">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="fw-medium">Beantwortete Fragen</span>
+                <span class="badge bg-primary bg-opacity-10 text-on-org-color px-3 py-2">{{ answered_questions }} von {{ total_questions }}</span>
+              </div>
+              <div class="progress rounded-pill" style="height: 20px; background-color: var(--bs-gray-200);">
+                <div class="progress-bar bg-primary bg-gradient" role="progressbar" style="width: {{ answered_questions_percentage }}%;" aria-valuenow="{{ answered_questions }}" aria-valuemin="0" aria-valuemax="{{ total_questions }}"></div>
+              </div>
+
+              {% if answered_questions != total_questions %}
+                <div class="progress-wrapper mt-4">
+                  <div class="alert alert-info border-0 rounded-4">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-info-circle-fill me-3 fs-4"></i>
+                      <div>
+                        <h5 class="alert-heading mb-1">Bewerbung noch nicht vollständig</h5>
+                        <p class="mb-0">Bitte beantworten Sie alle Fragen, bevor Sie Ihre Bewerbung abschließen.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% elif user.bewerber.abgeschlossen %}
+                <div class="progress-wrapper mt-4">
+                  <div class="alert alert-success border-0 rounded-4">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-check-circle-fill me-3 fs-4"></i>
+                      <div>
+                        <h5 class="alert-heading mb-1">Bewerbung abgeschlossen</h5>
+                        <p class="mb-0">Ihre Bewerbung wurde am {{ user.bewerber.abgeschlossen_am }} erfolgreich eingereicht.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% else %}
+                <div class="progress-wrapper mt-4">
+                  <div class="alert alert-success border-0 rounded-4">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-check-circle-fill me-3 fs-4"></i>
+                      <div>
+                        <h5 class="alert-heading mb-1">Alle Fragen beantwortet</h5>
+                        <p class="mb-0">Sie können Ihre Bewerbung jetzt abschließen.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="d-grid gap-2 mt-3">
+                    <button type="button" class="btn btn-primary btn-lg rounded-4" data-bs-toggle="modal" data-bs-target="#submitConfirmationModal">
+                      <i class="bi bi-send-fill me-2"></i>Bewerbung abschicken
+                    </button>
+                  </div>
+                  <div class="alert alert-warning border-0 rounded-4 mt-3">
+                    <div class="d-flex">
+                      <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                      <div>
+                        <h5 class="alert-heading mb-1">Wichtiger Hinweis</h5>
+                        <p class="mb-0">Nach dem Abschließen der Bewerbung können keine Änderungen mehr vorgenommen werden. Dieser Vorgang kann nicht rückgängig gemacht werden.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Application Status -->
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-10">
+        <div class="card rounded-4 shadow-sm border-1">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-4">
+              <div class="status-icon bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                <i class="bi bi-file-earmark-text text-on-org-color fs-4"></i>
+              </div>
+              <div>
+                <h4 class="card-title mb-0 fw-semibold">Bewerbungsstatus</h4>
+                <p class="text-muted mb-0">Verwalten Sie Ihre Bewerbung</p>
+              </div>
+            </div>
+            <div class="row g-4">
+              <div class="col-md-6">
+                <a href="{% url 'bw_application_questions_list' %}" class="card h-100 text-decoration-none border-1 shadow-sm rounded-4 hover-card">
+                  <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                      <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                        <i class="bi bi-question-circle text-on-org-color fs-4"></i>
+                      </div>
+                      <h5 class="card-title mb-0 fw-semibold text-dark">Bewerbungsfragen</h5>
+                    </div>
+                    <p class="text-muted mb-0">Beantworten Sie die Fragen für Ihre Bewerbung und stellen Sie sicher, dass alle Informationen vollständig sind.</p>
+                  </div>
+                </a>
+              </div>
+              <div class="col-md-6">
+                <a href="{% url 'bw_application_answers_list' %}" class="card h-100 text-decoration-none border-1 shadow-sm rounded-4 hover-card">
+                  <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                      <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                        <i class="bi bi-list-check text-on-org-color fs-4"></i>
+                      </div>
+                      <h5 class="card-title mb-0 fw-semibold text-dark">Meine Antworten</h5>
+                    </div>
+                    <p class="text-muted mb-0">Überprüfen und bearbeiten Sie Ihre eingereichten Antworten. Stellen Sie sicher, dass alles korrekt ist.</p>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Section -->
+    {% if application_text.footer %}
+      <div class="row justify-content-center mt-4">
+        <div class="col-12 col-lg-10">
+          <div class="card rounded-4 shadow-sm border-1">
+            <div class="card-body p-4">
+              <div class="footer-content">{{ application_text.footer|safe }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Submit Confirmation Modal -->
+  <div class="modal fade" id="submitConfirmationModal" tabindex="-1" aria-labelledby="submitConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-semibold" id="submitConfirmationModalLabel">Bewerbung abschließen</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-flex align-items-center mb-4">
+            <div class="icon-wrapper bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+              <i class="bi bi-exclamation-triangle-fill text-warning fs-4"></i>
+            </div>
+            <div>
+              <h5 class="mb-1">Sind Sie sicher?</h5>
+              <p class="text-muted mb-0">Bitte überprüfen Sie Ihre Antworten vor dem Absenden.</p>
+            </div>
+          </div>
+          <div class="alert alert-warning border-0 rounded-4">
+            <div class="d-flex">
+              <i class="bi bi-info-circle-fill me-3 fs-4"></i>
+              <div>
+                <h6 class="alert-heading mb-1">Wichtige Hinweise:</h6>
+                <ul class="mb-0 ps-3">
+                  <li>Nach dem Absenden können keine Änderungen mehr vorgenommen werden</li>
+                  <li>Bitte stellen Sie sicher, dass alle Antworten vollständig sind</li>
+                  <li>Überprüfen Sie die Rechtschreibung und Grammatik</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-light rounded-4" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-2"></i>Abbrechen
+          </button>
+          <a href="{% url 'bw_application_complete' %}" class="btn btn-primary rounded-4">
+            <i class="bi bi-send-fill me-2"></i>Ja, Bewerbung absenden
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .welcome-content,
+    .footer-content {
+      color: var(--bs-gray-700);
+      line-height: 1.6;
+    }
+    
+    .progress {
+      background-color: var(--bs-gray-200);
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      transition: width 0.6s ease;
+      min-width: 2%;
+    }
+    
+    .badge {
+      font-size: 0.9rem;
+    }
+    
+    .bg-gradient {
+      background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+      background-size: 1rem 1rem;
+    }
+    
+    .hover-card {
+      transition: all 0.3s ease;
+    }
+    
+    .hover-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .alert {
+      margin-bottom: 0;
+    }
+    
+    .alert-heading {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    .btn-lg {
+      padding: 0.8rem 1.5rem;
+    }
+
+    .modal-content {
+      border: 1px solid var(--bs-gray-200);
+    }
+
+    .modal-header {
+      padding: 1.5rem 1.5rem 0.5rem;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    .modal-footer {
+      padding: 1rem 1.5rem 1.5rem;
+    }
+
+    .alert ul {
+      margin-bottom: 0;
+    }
+
+    .alert ul li {
+      margin-bottom: 0.25rem;
+    }
+
+    .alert ul li:last-child {
+      margin-bottom: 0;
+    }
+  </style>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'baseBw.html' %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block title %}Frage beantworten{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card rounded-4 shadow-sm">
+                <div class="card-header bg-light rounded-top-4 py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="question-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <i class="bi bi-question-circle text-white fs-5"></i>
+                            </div>
+                            <h3 class="card-title mb-0 fw-semibold">Frage beantworten</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="question-card p-4 bg-light rounded-3 border-start border-primary border-3 mb-4">
+                        <h4 class="mb-3">{{ question.question }}</h4>
+                        {% if question.description %}
+                            <p class="text-muted mb-0">{{ question.description }}</p>
+                        {% endif %}
+                    </div>
+
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% for field in form %}
+                        <div class="mb-4">
+                            <label for="{{ field.id_for_label }}" class="form-label fw-medium">
+                                {{ field.label }}
+                                {% if field.field.required %}
+                                <span class="text-danger">*</span>
+                                {% endif %}
+                            </label>
+                            {% if field.errors %}
+                                {% render_field field class="form-control is-invalid" %}
+                                <div class="invalid-feedback">
+                                    {{ field.errors|join:", " }}
+                                </div>
+                            {% else %}
+                                {% render_field field class="form-control" %}
+                            {% endif %}
+                            {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <div class="d-flex gap-2 mt-4 justify-content-end">
+                            <a href="{% url 'bw_application_questions_list' %}" class="btn btn-outline-secondary rounded-3">
+                                <i class="bi bi-x-circle me-2"></i>Abbrechen
+                            </a>
+                            <button type="submit" class="btn btn-primary rounded-3">
+                                <i class="bi bi-check2-circle me-2"></i>Antwort speichern
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus {
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+    }
+</style>
+{% endblock %} 
