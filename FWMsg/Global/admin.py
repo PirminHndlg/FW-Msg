@@ -12,7 +12,7 @@ from .models import (
     Ordner2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, PushSubscription, 
     UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, 
     AufgabenCluster, Bilder2, BilderGallery2, ProfilUser2, Maintenance,
-    PostSurveyAnswer, PostSurveyQuestion
+    PostSurveyAnswer, PostSurveyQuestion, EinsatzstelleNotiz
 )
 from TEAM.models import Team
 from FW.models import Freiwilliger
@@ -539,3 +539,11 @@ class PushSubscriptionAdmin(admin.ModelAdmin):
         return f"{obj.user.first_name} {obj.user.last_name}"
     get_user_full_name.short_description = 'Full Name'
     get_user_full_name.admin_order_field = 'user__first_name'
+
+
+@admin.register(EinsatzstelleNotiz)
+class EinsatzstelleNotizAdmin(admin.ModelAdmin):
+    list_display = ['einsatzstelle', 'user', 'date']
+    search_fields = ['einsatzstelle__name', 'notiz']
+    list_filter = ['date']
+

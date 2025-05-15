@@ -42,9 +42,12 @@ urlpatterns = [
 
     path('kalender/', views.kalender, name='kalender'),
     path('calendar_events/', views.get_calendar_events, name='get_calendar_events'),
-    
-    path('datenschutz/', views.datenschutz, name='datenschutz'),
 
+    path('datenschutz/', views.datenschutz, name='datenschutz'),
+    
+    # Einsatzstellen Notizen
+    path('einsatzstellen_notiz/', views.einsatzstellen_notiz, name='einsatzstellen_notiz'),
+    path('einsatzstellen_notiz/<int:es_id>/', views.einsatzstellen_notiz, name='einsatzstellen_notiz'),
     # path('test_email/', views.test_email, name='test_email'),
 ]
 

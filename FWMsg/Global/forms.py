@@ -1,7 +1,7 @@
 from django import forms
 
 from FWMsg.middleware import get_current_request
-from .models import Feedback, PersonCluster, Post2, Notfallkontakt2, PostSurveyQuestion, PostSurveyAnswer
+from .models import Feedback, PersonCluster, Post2, Notfallkontakt2, PostSurveyQuestion, PostSurveyAnswer, EinsatzstelleNotiz
 from django.utils.translation import gettext_lazy as _
 
 class FeedbackForm(forms.ModelForm):
@@ -166,3 +166,25 @@ class AddPostForm(forms.ModelForm):
                                 answer_text=answer_text
                             )
                 
+class EinsatzstelleNotizForm(forms.ModelForm):
+    class Meta:
+        model = EinsatzstelleNotiz
+        fields = ['notiz']
+        exclude = ['einsatzstelle']
+
+    def __init__(self, *args, **kwargs):
+        self.org = kwargs.pop('org', None)
+        self.einsatzstelle = kwargs.pop('einsatzstelle', None)
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+        self.fields['notiz'].widget.attrs.update({'placeholder': _('Notiz')})
+        self.fields['notiz'].required = True
+        
+    def save(self, commit=True):
+        notiz = super().save(commit=False)
+        notiz.user = self.request.user
+        notiz.org = self.org
+        notiz.einsatzstelle = self.einsatzstelle
+        if commit:
+            notiz.save()
+        return notiz

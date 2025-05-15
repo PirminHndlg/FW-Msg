@@ -49,7 +49,9 @@ from FW.forms import BilderForm, BilderGalleryForm, ProfilUserForm
 from .models import (
     Ampel2, 
     Bilder2, 
-    BilderGallery2, 
+    BilderGallery2,
+    Einsatzstelle2,
+    EinsatzstelleNotiz, 
     ProfilUser2, 
     UserAufgaben,
     KalenderEvent,
@@ -69,7 +71,7 @@ from TEAM.views import base_template as team_base_template
 from FW.views import base_template as fw_base_template
 from FWMsg.celery import send_email_aufgaben_daily
 from FWMsg.decorators import required_person_cluster, required_role
-from .forms import FeedbackForm, AddPostForm
+from .forms import EinsatzstelleNotizForm, FeedbackForm, AddPostForm
 from ORG.forms import AddNotfallkontaktForm
 
 
@@ -1269,3 +1271,69 @@ def post_vote(request, post_id):
         messages.error(request, 'Bitte wählen Sie eine Antwort aus.')
     
     return redirect('post_detail', post_id=post_id)
+
+
+@login_required
+@required_role('OT')
+def einsatzstellen_notiz(request, es_id=None):
+    # Get all Einsatzstellen for the selector, grouped by land
+    einsatzstellen = Einsatzstelle2.objects.filter(org=request.user.org).order_by('land__name', 'name')
+    
+    # Get the selected Einsatzstelle
+    einsatzstelle = None
+    
+    if request.GET.get('es_id'):
+        return redirect('einsatzstellen_notiz', es_id=request.GET.get('es_id'))
+    
+    if es_id:
+        try:
+            einsatzstelle = Einsatzstelle2.objects.get(id=es_id, org=request.user.org)
+        except Einsatzstelle2.DoesNotExist:
+            messages.error(request, 'Einsatzstelle nicht gefunden.')
+            return redirect('einsatzstellen_notiz')
+    
+    # Handle note deletion
+    if request.method == 'POST' and 'delete_notiz_id' in request.POST:
+        notiz_id = request.POST.get('delete_notiz_id')
+        try:
+            notiz = EinsatzstelleNotiz.objects.get(id=notiz_id, user=request.user)
+            notiz.delete()
+            messages.success(request, 'Notiz erfolgreich gelöscht.')
+        except EinsatzstelleNotiz.DoesNotExist:
+            messages.error(request, 'Notiz konnte nicht gelöscht werden.')
+        return redirect('einsatzstellen_notiz', es_id=es_id)
+    
+    # Handle note editing
+    if request.method == 'POST' and 'notiz_id' in request.POST:
+        notiz_id = request.POST.get('notiz_id')
+        try:
+            notiz = EinsatzstelleNotiz.objects.get(id=notiz_id, user=request.user)
+            notiz.notiz = request.POST.get('notiz')
+            notiz.date = datetime.now()
+            notiz.save()
+            messages.success(request, 'Notiz erfolgreich aktualisiert.')
+        except EinsatzstelleNotiz.DoesNotExist:
+            messages.error(request, 'Notiz konnte nicht aktualisiert werden.')
+        return redirect('einsatzstellen_notiz', es_id=es_id)
+    
+    # Handle new note creation
+    if request.method == 'POST' and einsatzstelle:
+        form = EinsatzstelleNotizForm(request.POST, einsatzstelle=einsatzstelle, request=request, org=request.user.org)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Notiz erfolgreich erstellt.')
+            return redirect('einsatzstellen_notiz', es_id=es_id)
+    else:
+        form = EinsatzstelleNotizForm(einsatzstelle=einsatzstelle, request=request, org=request.user.org) if einsatzstelle else None
+    
+    # Get notes for the selected Einsatzstelle
+    notizen = EinsatzstelleNotiz.objects.filter(einsatzstelle=einsatzstelle).order_by('-date') if einsatzstelle else None
+
+    context = {
+        'form': form,
+        'einsatzstelle': einsatzstelle,
+        'einsatzstellen': einsatzstellen,
+        'notizen': notizen
+    }
+    context = check_organization_context(request, context)
+    return render(request, 'einsatzstellen_notiz.html', context=context)
