@@ -1,5 +1,6 @@
 from django import template
 from Global.models import Attribute, PersonCluster, UserAttribute
+from urllib.parse import unquote
 
 register = template.Library()
 
@@ -11,6 +12,10 @@ def get_person_cluster(user):
 def get_person_cluster_name(user):
     return user.person_cluster.name
 
+@register.filter
+def decode_url(value):
+    """Decode URL-encoded text."""
+    return unquote(value)
 
 @register.filter
 def get_attribute(request):
