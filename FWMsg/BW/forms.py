@@ -36,22 +36,24 @@ class CreateAccountForm(forms.Form):
     def save(self):
         user = User.objects.create_user(
             username=self.cleaned_data['email'],
+            first_name=self.cleaned_data['first_name'],
+            last_name=self.cleaned_data['last_name'],
             email=self.cleaned_data['email'],
             password=self.cleaned_data['password']
         )
         
         person_cluster = PersonCluster.objects.filter(view='B').first()
-        custom_user = CustomUser.objects.create(
+        custom_user, created = CustomUser.objects.get_or_create(
             org=self.org,
             user=user,
             person_cluster=person_cluster
         )
         
-        Bewerber.objects.create(
+        bewerber, created = Bewerber.objects.get_or_create(
             user=user,
             org=self.org
         )
-        return user
+        return user, bewerber
        
         
         

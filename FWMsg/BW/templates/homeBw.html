@@ -20,7 +20,7 @@
                   <p class="text-muted mb-0">Ihr Bewerbungsdashboard</p>
                 </div>
               </div>
-              <div class="welcome-content mt-3">{{ application_text.welcome|safe }}</div>
+              <div class="welcome-content mt-3">{{ application_text.welcome|safe|linebreaksbr }}</div>
             </div>
           </div>
         </div>
@@ -181,7 +181,7 @@
         <div class="col-12 col-lg-10">
           <div class="card rounded-4 shadow-sm border-1">
             <div class="card-body p-4">
-              <div class="footer-content">{{ application_text.footer|safe }}</div>
+              <div class="footer-content">{{ application_text.footer|safe|linebreaksbr }}</div>
             </div>
           </div>
         </div>
@@ -243,7 +243,7 @@
     
     .progress-bar {
       transition: width 0.6s ease;
-      min-width: 2%;
+      min-width: 1%;
     }
     
     .badge {
