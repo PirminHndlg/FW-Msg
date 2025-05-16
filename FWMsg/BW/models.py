@@ -18,15 +18,20 @@ class Bewerber(OrgModel):
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name
+    
+    class Meta:
+        ordering = ['user__first_name', 'user__last_name']
+        verbose_name = 'Bewerber:in'
+        verbose_name_plural = 'Bewerber:innen'
 
 class ApplicationQuestion(OrgModel):
     ANSWER_TYPE_CHOICES = [
         ('t', 'Text'),
         ('f', 'Datei'),
     ]
-    question = models.TextField(verbose_name='Frage')
-    order = models.IntegerField(verbose_name='Reihenfolge', null=True, blank=True)
-    max_length = models.IntegerField(verbose_name='Maximale Länge', default=1000, null=True, blank=True)
+    question = models.TextField(verbose_name='Frage', help_text='Die Frage, die der Bewerber:in beantworten soll.')
+    order = models.IntegerField(verbose_name='Position', null=True, blank=True, help_text='Die Position der Frage in der Bewerbung. Wenn leer, wird hinten eingefügt.')
+    max_length = models.IntegerField(verbose_name='Maximale Länge', default=1000, null=True, blank=True, help_text='Die maximale Länge der Antwort.')
     
     def __str__(self):
         return self.question
@@ -39,29 +44,38 @@ class ApplicationQuestion(OrgModel):
     
     class Meta:
         ordering = ['order']
-        
+        verbose_name = 'Bewerbungsfrage'
+        verbose_name_plural = 'Bewerbungsfragen'
         
 
 class ApplicationAnswer(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer:in')
-    question = models.ForeignKey(ApplicationQuestion, on_delete=models.CASCADE, verbose_name='Frage')
-    answer = models.TextField(verbose_name='Antwort', null=True, blank=True)
+    question = models.ForeignKey(ApplicationQuestion, on_delete=models.CASCADE, verbose_name='Frage', help_text='Die Frage, die der Bewerber:in beantworten soll.')
+    answer = models.TextField(verbose_name='Antwort', null=True, blank=True, help_text='Die Antwort, die der Bewerber:in gegeben hat.')
     
     def __str__(self):
         return self.answer
+    
+    class Meta:
+        verbose_name = 'Bewerbungsantwort'
+        verbose_name_plural = 'Bewerbungsantworten'
 
 class ApplicationText(OrgModel):
-    welcome = models.TextField(verbose_name='Begrüßung')
-    footer = models.TextField(verbose_name='Fußzeile')
-    deadline = models.DateField(verbose_name='Abgabefrist', null=True, blank=True)
+    welcome = models.TextField(verbose_name='Begrüßung', help_text='Die Begrüßung, die der Bewerber:in beim Start der Bewerbung sieht.')
+    footer = models.TextField(verbose_name='Fußzeile', help_text='Die Fußzeile, die der Bewerber:in am Ende der Bewerbung sieht.')
+    deadline = models.DateField(verbose_name='Abgabefrist', null=True, blank=True, help_text='Die Abgabefrist, bis zu welcher die Bewerbung abgeschlossen werden muss.')
 
     def __str__(self):
         return self.org.name
     
+    class Meta:
+        verbose_name = 'Bewerbungstext'
+        verbose_name_plural = 'Bewerbungstexte'
+
 class ApplicationFileQuestion(OrgModel):
-    name = models.CharField(verbose_name='Name', max_length=255)
-    description = models.TextField(verbose_name='Beschreibung', null=True, blank=True)
-    order = models.IntegerField(verbose_name='Reihenfolge', null=True, blank=True)
+    name = models.CharField(verbose_name='Name', max_length=255, help_text='Der Name der Datei, die der Bewerber:in hochladen muss.')
+    description = models.TextField(verbose_name='Beschreibung', null=True, blank=True, help_text='Die Beschreibung der Datei, die der Bewerber:in hochladen muss.')
+    order = models.IntegerField(verbose_name='Position', null=True, blank=True, help_text='Die Position der Datei in der Bewerbung. Wenn leer, wird hinten eingefügt.')
     
     def save(self, *args, **kwargs):
         if not self.order:
@@ -69,11 +83,13 @@ class ApplicationFileQuestion(OrgModel):
             self.order = max_order + 1
         super().save(*args, **kwargs)
     
-    class Meta:
-        ordering = ['order']
-    
     def __str__(self):
         return self.org.name
+    
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Bewerbungsdatei'
+        verbose_name_plural = 'Bewerbungsdateien'
     
 class ApplicationAnswerFile(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer:in')
@@ -82,3 +98,7 @@ class ApplicationAnswerFile(OrgModel):
     
     def __str__(self):
         return self.org.name
+    
+    class Meta:
+        verbose_name = 'Bewerbungsdatei'
+        verbose_name_plural = 'Bewerbungsdateien'
