@@ -25,7 +25,7 @@ class CreateAccountForm(forms.Form):
         self.fields['password'].widget = forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'new-password'})
         self.fields['password2'].widget = forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'new-password'})
     
-    def clean(self):
+    def clean(self):            
         cleaned_data = super().clean()
         password = cleaned_data.get('password')
         password2 = cleaned_data.get('password2')
@@ -98,8 +98,8 @@ class ApplicationFileAnswerForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         
         self.fields['file'].required = True
-        self.fields['file'].help_text = 'Erlaubte Dateiformate: PDF, DOC, DOCX, TXT'
-        self.fields['file'].widget = forms.FileInput(attrs={'class': 'form-control'})
+        self.fields['file'].help_text = 'Erlaubte Dateiformate: ' + ', '.join(self.file_question.ALLOWED_EXTENSIONS)
+        self.fields['file'].widget = forms.FileInput(attrs={'class': 'form-control', 'accept': ','.join(self.file_question.ALLOWED_EXTENSIONS)})
     
     def clean(self):
         cleaned_data = super().clean()
@@ -111,9 +111,9 @@ class ApplicationFileAnswerForm(forms.ModelForm):
                 raise forms.ValidationError('Die Datei ist zu groß. Maximale Größe: 5MB')
             
             # Check file extension
-            ext = file.name.split('.')[-1].lower()
-            if ext not in ['pdf', 'doc', 'docx', 'txt']:
-                raise forms.ValidationError('Nicht unterstütztes Dateiformat. Erlaubte Formate: PDF, DOC, DOCX, TXT')
+            ext = '.' + file.name.split('.')[-1].lower()
+            if ext not in self.file_question.ALLOWED_EXTENSIONS:
+                raise forms.ValidationError('Nicht unterstütztes Dateiformat. Erlaubte Formate: ' + ', '.join(self.file_question.ALLOWED_EXTENSIONS))
         
         return cleaned_data
     
