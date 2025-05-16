@@ -155,10 +155,13 @@ def bw_application_file_answer(request, file_question_id):
     return render(request, 'bw_application_file_answer.html', {'form': form, 'file_question': file_question, 'answer': answer})
 
 @login_required
-@required_role('B')
+@required_role('BO')
 def bw_application_file_answer_download(request, file_answer_id):
     try:
-        file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, user=request.user)
+        if request.user.customuser.person_cluster.view == 'B':
+            file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, user=request.user)
+        elif request.user.customuser.person_cluster.view == 'O':
+            file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, file_question__org=request.user.org)
     except ApplicationAnswerFile.DoesNotExist:
         messages.error(request, 'Datei nicht gefunden')
         return redirect('bw_application_files_list')
@@ -172,7 +175,7 @@ def bw_application_file_answer_download(request, file_answer_id):
         return redirect('bw_application_files_list')
 
 @login_required
-@required_role('B')
+@required_role('BO')
 def bw_application_file_answer_delete(request, file_answer_id):
     file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, user=request.user)
     file_answer.delete()

@@ -1,0 +1,132 @@
+{% extends 'baseOrg.html' %}
+{% load i18n %}
+{% load base_org_filter %}
+
+{% block title %}
+  Bewerbungsdetails
+{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-10">
+        <div class="card rounded-4 shadow-sm">
+          <div class="card-header bg-light rounded-top-4 py-3">
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center">
+                <div class="question-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                  <i class="bi bi-person-vcard text-white fs-5"></i>
+                </div>
+                <h3 class="card-title mb-0 fw-semibold">Bewerbungsdetails</h3>
+              </div>
+              <div class="d-flex gap-2">
+                <a href="{% url 'application_list' %}" class="btn btn-outline-secondary rounded-3"><i class="bi bi-arrow-left me-2"></i>Zurück zur Liste</a>
+              </div>
+            </div>
+          </div>
+          <div class="card-body p-4">
+            <!-- Applicant Info -->
+            <div class="applicant-info p-4 bg-light rounded-3 border-start border-primary border-3 mb-4">
+              <div class="row">
+                <div class="col-md-6">
+                  <h5 class="mb-3">Bewerber</h5>
+                  <p class="mb-1">
+                    <strong>Name:</strong> {{ bewerber.user }}
+                  </p>
+                  <p class="mb-1">
+                    <strong>Email:</strong> <a href="mailto:{{ bewerber.user.email }}"><i class="bi bi-envelope me-1"></i>{{ bewerber.user.email }}</a>
+                  </p>
+                  <p class="mb-0">
+                    <strong>Bewerbung abgeschlossen:</strong>
+                    {% if bewerber.abgeschlossen %}
+                      <span class="badge bg-success">Ja</span>
+                    {% else %}
+                      <span class="badge bg-danger">Nein</span>
+                    {% endif %}
+                    <small class="text-muted ms-2">{{ bewerber.abgeschlossen_am|date:'d.m.Y H:i' }}</small>
+                  </p>
+                </div>
+
+                <div class="col-md-6">
+                  <h5 class="mb-3">Status</h5>
+                  <form method="post" action="{% url 'application_detail' bewerber.id %}" class="mb-3">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                      {% for choice in status_choices %}
+                        <button type="submit" name="status" value="{{ choice.0 }}" 
+                          class="btn btn-sm rounded-3" 
+                          style="border-color: {{ choice.0 }}; {% if choice.0 == bewerber.status %}background-color: {{ choice.0 }}; color: black;{% else %}background-color: white;{% endif %}">
+                          {{ choice.1 }}
+                        </button>
+                      {% endfor %}
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- Text Answers -->
+            {% if application_answers.exists %}
+              <h5 class="mb-3">Textantworten</h5>
+              <div class="list-group list-group-flush mb-4">
+                {% for answer in application_answers %}
+                  <div class="list-group-item px-0 py-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div class="flex-grow-1">
+                        <h6 class="mb-2">{{ answer.question.question }}</h6>
+                        {% if answer.question.description %}
+                          <p class="text-muted mb-2">{{ answer.question.description }}</p>
+                        {% endif %}
+                        <div class="answer-content p-3 bg-light rounded-3">{{ answer.answer|linebreaks }}</div>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <hr />
+
+            <!-- File Answers -->
+            {% if application_file_answers.exists %}
+              <h5 class="mb-3">Dateianhänge</h5>
+              <div class="list-group list-group-flush">
+                {% for answer in application_file_answers %}
+                  <div class="list-group-item px-0 py-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div class="flex-grow-1">
+                        <h6 class="mb-2">{{ answer.file_question.name }}</h6>
+                        <div class="d-flex align-items-center gap-2">
+                          <a href="{% url 'bw_application_file_answer_download' answer.id %}" class="btn btn-outline-primary rounded-3"><i class="bi bi-file-earmark-text me-2"></i>Datei anzeigen</a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .list-group-item {
+      border-left: none;
+      border-right: none;
+    }
+    
+    .list-group-item:first-child {
+      border-top: none;
+    }
+    
+    .list-group-item:last-child {
+      border-bottom: none;
+    }
+    
+    .answer-content {
+      white-space: pre-wrap;
+    }
+  </style>
+{% endblock %}

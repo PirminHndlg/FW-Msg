@@ -19,6 +19,10 @@ urlpatterns = [
     path('toggle-zwischenschritt-status/', views.toggle_zwischenschritt_status, name='toggle_zwischenschritt_status'),
     path('get-zwischenschritt-form/', views.get_zwischenschritt_form, name='get_zwischenschritt_form'),
     
+    path('bewerbung-overview/', views.application_overview, name='application_overview'),
+    path('bewerbung-liste/', views.application_list, name='application_list'),
+    path('bewerbung-detail/<int:id>', views.application_detail, name='application_detail'),
+    
     path('download-aufgabe/<int:id>', views.download_aufgabe, name='download_aufgabe'),
     path('download-bild/<int:id>', views.download_bild_as_zip, name='download_bild_as_zip'),
     path('statistik/', views.statistik, name='statistik'),

@@ -4,7 +4,14 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 class Bewerber(OrgModel):
+    STATUS_CHOICES = [
+        ('green', 'Grün'),
+        ('yellow', 'Gelb'),
+        ('red', 'Rot'),
+    ]
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Benutzer:in')
+    status = models.CharField(verbose_name='Status', max_length=20, choices=STATUS_CHOICES, null=True, blank=True)
     abgeschlossen = models.BooleanField(verbose_name='Abgeschlossen', default=False)
     abgeschlossen_am = models.DateTimeField(verbose_name='Abgeschlossen am', null=True, blank=True)
 
