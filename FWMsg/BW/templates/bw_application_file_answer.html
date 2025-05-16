@@ -39,12 +39,12 @@
                                 {% endif %}
                             </label>
                             {% if field.errors %}
-                                {% render_field field class="form-control is-invalid" accept=".pdf,.doc,.docx,.txt" %}
+                                {% render_field field class="form-control is-invalid" %}
                                 <div class="invalid-feedback">
                                     {{ field.errors|join:", " }}
                                 </div>
                             {% else %}
-                                {% render_field field class="form-control" accept=".pdf,.doc,.docx,.txt" %}
+                                {% render_field field class="form-control" %}
                             {% endif %}
                             {% if field.help_text %}
                             <div class="form-text">{{ field.help_text }}</div>

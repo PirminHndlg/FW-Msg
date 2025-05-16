@@ -81,6 +81,8 @@ class ApplicationText(OrgModel):
         verbose_name_plural = 'Bewerbungstexte'
 
 class ApplicationFileQuestion(OrgModel):
+    ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.txt', '.png', '.jpg', '.jpeg']
+    
     name = models.CharField(verbose_name='Name', max_length=255, help_text='Der Name der Datei, die der Bewerber:in hochladen muss.')
     description = models.TextField(verbose_name='Beschreibung', null=True, blank=True, help_text='Die Beschreibung der Datei, die der Bewerber:in hochladen muss.')
     order = models.IntegerField(verbose_name='Position', null=True, blank=True, help_text='Die Position der Datei in der Bewerbung. Wenn leer, wird hinten eingefügt.')
