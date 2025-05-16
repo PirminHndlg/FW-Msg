@@ -630,8 +630,6 @@ def list_object(request, model_name, highlight_id=None):
             objects = objects.order_by('last_name')
         elif 'name' in model_fields:
             objects = objects.order_by('name')
-        else:
-            objects = objects.order_by('id')
     
     # Add many-to-many fields
     m2m_fields = [
