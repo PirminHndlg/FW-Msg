@@ -25,6 +25,7 @@ from django.template.loader import render_to_string
 from django.db.models.query import Prefetch
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
+from BW.models import ApplicationAnswer, ApplicationAnswerFile, ApplicationText, ApplicationQuestion, ApplicationFileQuestion, Bewerber
 from Global.models import (
     Attribute, AufgabenCluster, Aufgabe2, KalenderEvent, Maintenance, PersonCluster, UserAttribute, 
     UserAufgaben, Post2, Bilder2, CustomUser,
@@ -155,7 +156,10 @@ allowed_models_to_edit = {
     'user': CustomUser,
     'personcluster': PersonCluster,
     'aufg-filter': AufgabenCluster,
-    'kalender': KalenderEvent
+    'kalender': KalenderEvent,
+    'bewerbung-text': ApplicationText,
+    'bewerbung-frage': ApplicationQuestion,
+    'bewerbung-datei': ApplicationFileQuestion,
 }
 
 
@@ -1297,3 +1301,81 @@ def _redirect_after_action(request, model_name, object_id=None):
         return redirect('list_object_highlight', model_name=model_name, highlight_id=object_id)
     else:
         return redirect('list_object', model_name=model_name)
+    
+@login_required
+@required_role('O')
+@filter_person_cluster
+def application_overview(request):
+    # Get or create application texts
+    application_texts, created = ApplicationText.objects.get_or_create(
+        org=request.user.org,
+        defaults={'welcome': '', 'footer': ''}
+    )
+    
+    # Get all application questions
+    text_questions = ApplicationQuestion.objects.filter(org=request.user.org).order_by('order')
+    file_questions = ApplicationFileQuestion.objects.filter(org=request.user.org).order_by('order')
+    
+    # Get application statistics
+    total_applications = Bewerber.objects.filter(org=request.user.org).count()
+    completed_applications = Bewerber.objects.filter(org=request.user.org, abgeschlossen=True).count()
+    
+    # Calculate completion percentage
+    completion_percentage = int(completed_applications / total_applications * 100) if total_applications > 0 else 0
+    
+    context = {
+        'application_texts': application_texts,
+        'text_questions': text_questions,
+        'file_questions': file_questions,
+        'total_applications': total_applications,
+        'completed_applications': completed_applications,
+        'completion_percentage': completion_percentage,
+    }
+    
+    return render(request, 'application_overview.html', context)
+
+@login_required
+@required_role('O')
+@filter_person_cluster
+def application_list(request):
+    bewerber = Bewerber.objects.filter(org=request.user.org, abgeschlossen=True)
+    
+    context = {
+        'bewerber': bewerber
+    }
+    
+    return render(request, 'application_list.html', context)
+
+
+@login_required
+@required_role('O')
+@filter_person_cluster
+def application_detail(request, id):
+    bewerber = Bewerber.objects.get(id=id)
+    
+    # Handle status change
+    if request.method == 'POST' and 'status' in request.POST:
+        new_status = request.POST.get('status')
+        if new_status in dict(Bewerber.STATUS_CHOICES):
+            if new_status == bewerber.status:
+                bewerber.status = None
+            else:
+                bewerber.status = new_status
+            bewerber.status_changed_at = timezone.now()
+            bewerber.save()
+            return redirect('application_detail', id=id)
+    
+    try:
+        bewerber = Bewerber.objects.get(id=id, org=request.user.org)
+        application_answers = ApplicationAnswer.objects.filter(user=bewerber.user)
+        application_file_answers = ApplicationAnswerFile.objects.filter(user=bewerber.user)
+        context = {
+            'bewerber': bewerber,
+            'application_answers': application_answers,
+            'application_file_answers': application_file_answers,
+            'status_choices': Bewerber.STATUS_CHOICES
+        }
+        return render(request, 'application_detail.html', context)
+    except Bewerber.DoesNotExist:
+        return redirect('application_list')
+

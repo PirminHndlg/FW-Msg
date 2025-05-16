@@ -1,0 +1,137 @@
+{% extends 'baseOrg.html' %}
+{% load i18n %}
+{% load base_org_filter %}
+
+{% block title %}Bewerbungsübersicht{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="card rounded-4 shadow-sm">
+                <div class="card-header bg-light rounded-top-4 py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="question-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <i class="bi bi-person-vcard text-white fs-5"></i>
+                            </div>
+                            <h3 class="card-title mb-0 fw-semibold">Bewerbungsübersicht</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Statistics Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-3">Bewerbungsstatistik</h5>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div>
+                                            <h6 class="mb-1">Gesamt Bewerbungen</h6>
+                                            <h3 class="mb-0">{{ total_applications }}</h3>
+                                        </div>
+                                        <div class="text-end">
+                                            <h6 class="mb-1">Abgeschlossen</h6>
+                                            <h3 class="mb-0">{{ completed_applications }}</h3>
+                                        </div>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar" role="progressbar" style="width: {{ completion_percentage }}%"></div>
+                                    </div>
+                                    <small class="text-muted mt-2 d-block">
+                                        {{ completion_percentage|floatformat:1 }}% abgeschlossen
+                                    </small>
+
+                                    <div class="d-flex gap-2 mt-3 justify-content-end">
+                                        <a href="{% url 'application_list' %}" class="btn btn-outline-primary rounded-3">
+                                            <i class="bi bi-arrow-right me-2"></i>Abgeschlossene Bewerbungen anzeigen
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-3">Fragen verwalten</h5>
+                                    <div class="d-grid gap-2">
+                                        <a href="{% url 'list_object' 'bewerbung-frage' %}" class="btn btn-primary rounded-3">
+                                            <i class="bi bi-pencil-square me-2"></i>Textfragen bearbeiten
+                                        </a>
+                                        <a href="{% url 'list_object' 'bewerbung-datei' %}" class="btn btn-primary rounded-3">
+                                            <i class="bi bi-file-earmark-text me-2"></i>Dateifragen bearbeiten
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Questions Overview -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="card-title mb-1">Willkommensnachricht</h5>
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="flex-grow-1">
+                                            <p class="mb-0">{{ application_texts.welcome }}</p>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <a href="{% url 'edit_object' 'application-text' application_texts.id %}" class="btn btn-primary rounded-3">
+                                                <i class="bi bi-pencil-square me-2"></i>Bearbeiten
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <h5 class="card-title mb-1">Fußzeile</h5>
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="flex-grow-1">
+                                            <p class="mb-0">{{ application_texts.footer }}</p>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <a href="{% url 'edit_object' 'application-text' application_texts.id %}" class="btn btn-primary rounded-3">
+                                                <i class="bi bi-pencil-square me-2"></i>Bearbeiten
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .progress {
+        background-color: var(--bs-gray-200);
+    }
+    
+    .progress-bar {
+        background-color: var(--bs-primary);
+    }
+    
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+    }
+    
+    .list-group-item:first-child {
+        border-top: none;
+    }
+    
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}

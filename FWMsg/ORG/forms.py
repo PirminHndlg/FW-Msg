@@ -15,6 +15,7 @@ from Global.models import (
 )
 from FW.models import Freiwilliger
 from TEAM.models import Team
+from BW.models import ApplicationText, ApplicationQuestion, ApplicationFileQuestion
 
 
 class OrgFormMixin:
@@ -567,6 +568,25 @@ class AddKalenderEventForm(OrgFormMixin, forms.ModelForm):
                     instance.user.add(*users)
         
         return instance
+    
+class AddApplicationTextForm(OrgFormMixin, forms.ModelForm):
+    class Meta:
+        model = ApplicationText
+        fields = '__all__'
+        exclude = ['org']
+        
+class AddApplicationQuestionForm(OrgFormMixin, forms.ModelForm):
+    class Meta:
+        model = ApplicationQuestion
+        fields = '__all__'
+        exclude = ['org']
+        
+class AddApplicationFileQuestionForm(OrgFormMixin, forms.ModelForm):
+    class Meta:
+        model = ApplicationFileQuestion
+        fields = '__all__'
+        exclude = ['org']
+
 
 model_to_form_mapping = {
     Einsatzland2: AddEinsatzlandForm,
@@ -580,5 +600,8 @@ model_to_form_mapping = {
     Attribute: AddAttributeForm,
     PersonCluster: AddPersonClusterForm,
     AufgabenCluster: AddAufgabenClusterForm,
-    KalenderEvent: AddKalenderEventForm
+    KalenderEvent: AddKalenderEventForm,
+    ApplicationText: AddApplicationTextForm,
+    ApplicationQuestion: AddApplicationQuestionForm,
+    ApplicationFileQuestion: AddApplicationFileQuestionForm
 }

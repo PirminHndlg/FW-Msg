@@ -1,0 +1,77 @@
+{% extends 'baseOrg.html' %}
+{% load i18n %}
+{% load base_org_filter %}
+
+{% block title %}Bewerbungen{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="card rounded-4 shadow-sm">
+                <div class="card-header bg-light rounded-top-4 py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="question-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <i class="bi bi-person-vcard text-white fs-5"></i>
+                            </div>
+                            <h3 class="card-title mb-0 fw-semibold">Abgeschlossene Bewerbungen</h3>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'application_overview' %}" class="btn btn-outline-secondary rounded-3">
+                                <i class="bi bi-arrow-left me-2"></i>Zurück
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    {% if bewerber %}
+                        <div class="list-group list-group-flush">
+                            {% for b in bewerber %}
+                                <div class="list-group-item px-0 py-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-1">{{ b.user.get_full_name }}</h5>
+                                            <p class="text-muted mb-0">
+                                                <i class="bi bi-envelope me-2"></i>{{ b.user.email }}
+                                            </p>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge rounded-pill" style="background-color: {{ b.status }}; color: black;">
+                                                Status
+                                            </span>
+                                            <a href="{% url 'application_detail' b.id %}" class="btn btn-primary rounded-3">
+                                                <i class="bi bi-eye me-2"></i>Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Keine abgeschlossenen Bewerbungen vorhanden.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+    }
+    
+    .list-group-item:first-child {
+        border-top: none;
+    }
+    
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %} 
