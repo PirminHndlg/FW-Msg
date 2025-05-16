@@ -40,10 +40,18 @@ class ApplicationQuestion(OrgModel):
         if not self.order:
             max_order = ApplicationQuestion.objects.filter(org=self.org).aggregate(models.Max('order'))['order__max'] or 0
             self.order = max_order + 1
+        
+        questions_same_order = ApplicationQuestion.objects.filter(org=self.org, order=self.order).exclude(id=self.id)
+        if questions_same_order.exists():
+            for question in questions_same_order:
+                question.order = question.order + 1
+                question.save()
+        
         super().save(*args, **kwargs)
     
     class Meta:
         ordering = ['order']
+        unique_together = ('org', 'order')
         verbose_name = 'Bewerbungsfrage'
         verbose_name_plural = 'Bewerbungsfragen'
         
