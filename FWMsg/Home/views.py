@@ -63,11 +63,27 @@ def index(request):
                     email_user = get_user_model().objects.get(email=username)
                     # Then authenticate with the username and password
                     user = authenticate(username=email_user.username, password=password)
+                    
+                    # Check if user exists but is not active (email not verified)
+                    if user is None and email_user is not None and not email_user.is_active:
+                        messages.error(request, _('Bitte verifizieren Sie zuerst Ihre E-Mail-Adresse.'))
+                        return redirect('index')
+                        
                 except get_user_model().DoesNotExist:
                     user = None
             else:
                 # Standard username authentication
                 user = authenticate(username=username, password=password)
+                
+                # Check if user exists but is not active
+                if user is None:
+                    try:
+                        username_user = get_user_model().objects.get(username=username)
+                        if not username_user.is_active:
+                            messages.error(request, _('Bitte verifizieren Sie zuerst Ihre E-Mail-Adresse.'))
+                            return redirect('index')
+                    except get_user_model().DoesNotExist:
+                        pass
 
             if user is not None:
                 login(request, user)
