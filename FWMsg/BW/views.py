@@ -63,7 +63,7 @@ def create_account(request, org_id):
     return render(request, 'bw_create_account.html', context)
 
 @login_required
-# @required_role('B')
+@required_role('B')
 def bw_application_questions_list(request):
     questions = ApplicationQuestion.objects.filter(org=request.user.org).order_by('order')
     answers = ApplicationAnswer.objects.filter(user=request.user, question__in=questions).exclude(answer='')
@@ -83,7 +83,7 @@ def bw_application_questions_list(request):
     return render(request, 'bw_application_questions_list.html', context)
 
 @login_required
-# @required_role('B')
+@required_role('B')
 def bw_application_answer(request, question_id):
     question = ApplicationQuestion.objects.get(org=request.user.org, id=question_id)
     answer = ApplicationAnswer.objects.filter(user=request.user, question=question).first()
@@ -105,14 +105,14 @@ def bw_application_answer(request, question_id):
     return render(request, 'bw_application_answer.html', {'form': form, 'question': question, 'answer': answer})
 
 @login_required
-# @required_role('B')
+@required_role('B')
 def bw_application_answers_list(request):
     answers = ApplicationAnswer.objects.filter(org=request.user.org)
     return render(request, 'bw_application_answers_list.html', {'answers': answers})
 
 
 @login_required
-# @required_role('B')
+@required_role('B')
 def bw_application_complete(request):
     bewerber = Bewerber.objects.get(user=request.user)
     bewerber.abgeschlossen = True
@@ -137,7 +137,7 @@ def bw_application_files_list(request):
     return render(request, 'bw_application_files_list.html', context)
 
 @login_required
-# @required_role('B')
+@required_role('B')
 def bw_application_file_answer(request, file_question_id):
     file_question = ApplicationFileQuestion.objects.get(org=request.user.org, id=file_question_id)
     answer = ApplicationAnswerFile.objects.filter(user=request.user, file_question=file_question).first()
@@ -155,7 +155,7 @@ def bw_application_file_answer(request, file_question_id):
     return render(request, 'bw_application_file_answer.html', {'form': form, 'file_question': file_question, 'answer': answer})
 
 @login_required
-# @required_role('B')
+@required_role('B')
 def bw_application_file_answer_download(request, file_answer_id):
     try:
         file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, user=request.user)
@@ -172,7 +172,7 @@ def bw_application_file_answer_download(request, file_answer_id):
         return redirect('bw_application_files_list')
 
 @login_required
-# @required_role('B')
+@required_role('B')
 def bw_application_file_answer_delete(request, file_answer_id):
     file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, user=request.user)
     file_answer.delete()
