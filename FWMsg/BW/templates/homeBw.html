@@ -14,9 +14,7 @@
           <div class="card rounded-4 shadow-sm border-1">
             <div class="card-body p-4">
               <div class="d-flex align-items-center mb-3">
-                <div class="welcome-icon bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
-                  <i class="bi bi-house-heart text-on-org-color fs-4"></i>
-                </div>
+                <img src="{% url 'serve_image' request.user.org.id %}" alt="{{ request.user.org.name }}" class="img-fluid rounded-circle border border-2 border-light shadow-sm me-3" style="height: 42px; object-fit: cover;" />
                 <div>
                   <h3 class="card-title mb-0 fw-semibold">{{ request.user.org.name }}</h3>
                   <p class="text-muted mb-0">Ihr Bewerbungsdashboard</p>
@@ -52,14 +50,24 @@
                 <div class="progress-bar bg-primary bg-gradient" role="progressbar" style="width: {{ answered_questions_percentage }}%;" aria-valuenow="{{ answered_questions }}" aria-valuemin="0" aria-valuemax="{{ total_questions }}"></div>
               </div>
 
-              {% if answered_questions != total_questions %}
+              <hr />
+
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="fw-medium">Hochgeladene Dateien</span>
+                <span class="badge bg-primary bg-opacity-10 text-on-org-color px-3 py-2">{{ answered_file_questions }} von {{ total_file_questions }}</span>
+              </div>
+              <div class="progress rounded-pill" style="height: 20px; background-color: var(--bs-gray-200);">
+                <div class="progress-bar bg-primary bg-gradient" role="progressbar" style="width: {{ answered_file_questions_percentage }}%;" aria-valuenow="{{ answered_file_questions }}" aria-valuemin="0" aria-valuemax="{{ total_file_questions }}"></div>
+              </div>
+
+              {% if answered_questions != total_questions or answered_file_questions != total_file_questions %}
                 <div class="progress-wrapper mt-4">
                   <div class="alert alert-info border-0 rounded-4">
                     <div class="d-flex align-items-center">
                       <i class="bi bi-info-circle-fill me-3 fs-4"></i>
                       <div>
                         <h5 class="alert-heading mb-1">Bewerbung noch nicht vollständig</h5>
-                        <p class="mb-0">Bitte beantworten Sie alle Fragen, bevor Sie Ihre Bewerbung abschließen.</p>
+                        <p class="mb-0">Bitte beantworten Sie alle Fragen und laden Sie alle Dateien hoch, bevor Sie Ihre Bewerbung abschließen.</p>
                       </div>
                     </div>
                   </div>
@@ -82,15 +90,13 @@
                     <div class="d-flex align-items-center">
                       <i class="bi bi-check-circle-fill me-3 fs-4"></i>
                       <div>
-                        <h5 class="alert-heading mb-1">Alle Fragen beantwortet</h5>
+                        <h5 class="alert-heading mb-1">Alle Fragen und Dateien hochgeladen</h5>
                         <p class="mb-0">Sie können Ihre Bewerbung jetzt abschließen.</p>
                       </div>
                     </div>
                   </div>
                   <div class="d-grid gap-2 mt-3">
-                    <button type="button" class="btn btn-primary btn-lg rounded-4" data-bs-toggle="modal" data-bs-target="#submitConfirmationModal">
-                      <i class="bi bi-send-fill me-2"></i>Bewerbung abschicken
-                    </button>
+                    <button type="button" class="btn btn-primary btn-lg rounded-4" data-bs-toggle="modal" data-bs-target="#submitConfirmationModal"><i class="bi bi-send-fill me-2"></i>Bewerbung abschicken</button>
                   </div>
                   <div class="alert alert-warning border-0 rounded-4 mt-3">
                     <div class="d-flex">
@@ -150,6 +156,19 @@
                   </div>
                 </a>
               </div>
+              <div class="col-md-6">
+                <a href="{% url 'bw_application_files_list' %}" class="card h-100 text-decoration-none border-1 shadow-sm rounded-4 hover-card">
+                  <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                      <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                        <i class="bi bi-file-earmark-text text-on-org-color fs-4"></i>
+                      </div>
+                      <h5 class="card-title mb-0 fw-semibold text-dark">Dateianhänge</h5>
+                    </div>
+                    <p class="text-muted mb-0">Hier können Sie Ihre Dateianhänge hochladen und verwalten.</p>
+                  </div>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -203,12 +222,8 @@
           </div>
         </div>
         <div class="modal-footer border-0">
-          <button type="button" class="btn btn-light rounded-4" data-bs-dismiss="modal">
-            <i class="bi bi-x-circle me-2"></i>Abbrechen
-          </button>
-          <a href="{% url 'bw_application_complete' %}" class="btn btn-primary rounded-4">
-            <i class="bi bi-send-fill me-2"></i>Ja, Bewerbung absenden
-          </a>
+          <button type="button" class="btn btn-light rounded-4" data-bs-dismiss="modal"><i class="bi bi-x-circle me-2"></i>Abbrechen</button>
+          <a href="{% url 'bw_application_complete' %}" class="btn btn-primary rounded-4"><i class="bi bi-send-fill me-2"></i>Ja, Bewerbung absenden</a>
         </div>
       </div>
     </div>
@@ -261,31 +276,31 @@
     .btn-lg {
       padding: 0.8rem 1.5rem;
     }
-
+    
     .modal-content {
       border: 1px solid var(--bs-gray-200);
     }
-
+    
     .modal-header {
       padding: 1.5rem 1.5rem 0.5rem;
     }
-
+    
     .modal-body {
       padding: 1.5rem;
     }
-
+    
     .modal-footer {
       padding: 1rem 1.5rem 1.5rem;
     }
-
+    
     .alert ul {
       margin-bottom: 0;
     }
-
+    
     .alert ul li {
       margin-bottom: 0.25rem;
     }
-
+    
     .alert ul li:last-child {
       margin-bottom: 0;
     }
