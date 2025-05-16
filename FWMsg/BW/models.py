@@ -14,6 +14,7 @@ class Bewerber(OrgModel):
     status = models.CharField(verbose_name='Status', max_length=20, choices=STATUS_CHOICES, null=True, blank=True)
     abgeschlossen = models.BooleanField(verbose_name='Abgeschlossen', default=False)
     abgeschlossen_am = models.DateTimeField(verbose_name='Abgeschlossen am', null=True, blank=True)
+    verification_token = models.CharField(verbose_name='Verifikationstoken', max_length=255, null=True, blank=True)
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name
@@ -52,6 +53,7 @@ class ApplicationAnswer(OrgModel):
 class ApplicationText(OrgModel):
     welcome = models.TextField(verbose_name='Begrüßung')
     footer = models.TextField(verbose_name='Fußzeile')
+    deadline = models.DateField(verbose_name='Abgabefrist', null=True, blank=True)
 
     def __str__(self):
         return self.org.name

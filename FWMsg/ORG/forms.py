@@ -575,6 +575,12 @@ class AddApplicationTextForm(OrgFormMixin, forms.ModelForm):
         fields = '__all__'
         exclude = ['org']
         
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['welcome'].widget = forms.Textarea(attrs={'rows': 4})
+        self.fields['deadline'].widget = forms.DateInput(attrs={'type': 'date'})
+        self.fields['footer'].widget = forms.Textarea(attrs={'rows': 4})
+        
 class AddApplicationQuestionForm(OrgFormMixin, forms.ModelForm):
     class Meta:
         model = ApplicationQuestion

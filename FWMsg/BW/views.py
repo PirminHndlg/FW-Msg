@@ -1,10 +1,15 @@
 from datetime import datetime
+import hashlib
 import os
+import secrets
+import time
+from celery import uuid
 from django.db import IntegrityError
 from django.http import FileResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from BW.tasks import send_account_created_email, send_application_complete_email
 from ORG.models import Organisation
 from .forms import CreateAccountForm, ApplicationAnswerForm, ApplicationFileAnswerForm
 from FWMsg.decorators import required_role
@@ -47,10 +52,21 @@ def create_account(request, org_id):
     
     if request.method == 'POST' and form.is_valid():
         try:
-            user = form.save()
+            user, bewerber = form.save()
             if user:
-                login(request, user)
-                return redirect('bw_home')
+                # Create a SHA-256 hash of this value
+                unique_value = f"{user.id}_{time.time()}_{secrets.token_hex(16)}"
+                hash_obj = hashlib.sha256(unique_value.encode())
+                verification_token = hash_obj.hexdigest()
+                
+                bewerber.verification_token = verification_token
+                bewerber.save()
+                
+                user.is_active = False
+                user.save()
+                
+                send_account_created_email.s(bewerber.id).apply_async(countdown=2)
+                return redirect('account_created')
             else:
                 form.add_error('email', 'User already exists')
         except IntegrityError:
@@ -61,6 +77,19 @@ def create_account(request, org_id):
         'org': org
     }
     return render(request, 'bw_create_account.html', context)
+
+def account_created(request):
+    return render(request, 'bw_account_created.html')
+
+def verify_account(request, token):
+    try:
+        bewerber = Bewerber.objects.get(verification_token=token)
+        bewerber.user.is_active = True
+        bewerber.user.save()
+        login(request, bewerber.user)
+        return redirect('bw_home')
+    except Bewerber.DoesNotExist:
+        return redirect('bw_home')
 
 @login_required
 @required_role('B')
@@ -118,6 +147,7 @@ def bw_application_complete(request):
     bewerber.abgeschlossen = True
     bewerber.abgeschlossen_am = datetime.now()
     bewerber.save()
+    send_application_complete_email.s(bewerber.id).apply_async(countdown=2)
     return redirect('bw_home')
 
 @login_required
