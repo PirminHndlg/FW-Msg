@@ -107,7 +107,10 @@
                     </div>
                   </div>
                   <div class="d-grid gap-2 mt-3">
-                    <button type="button" class="btn btn-primary btn-lg rounded-4" data-bs-toggle="modal" data-bs-target="#submitConfirmationModal"><i class="bi bi-send-fill me-2"></i>Bewerbung abschicken</button>
+                    <button type="button" class="btn btn-primary btn-lg rounded-4 {% if application_text.deadline and application_text.deadline < now %}disabled{% endif %}" data-bs-toggle="modal" data-bs-target="#submitConfirmationModal"><i class="bi bi-send-fill me-2"></i>Bewerbung abschicken</button>
+                    {% if application_text.deadline and application_text.deadline < now %}
+                      <p class="text-center text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Die Abgabefrist ist abgelaufen.</p>
+                    {% endif %}
                   </div>
                   <div class="alert alert-warning border-0 rounded-4 mt-3">
                     <div class="d-flex">
