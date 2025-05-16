@@ -66,7 +66,7 @@ class ApplicationAnswerForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         max_length = self.question.max_length
         if max_length:
-            self.fields['answer'].widget = forms.Textarea(attrs={'class': 'form-control', 'rows': max_length//50, 'maxlength': max_length})
+            self.fields['answer'].widget = forms.Textarea(attrs={'class': 'form-control', 'rows': max_length//100, 'maxlength': max_length})
         else:
             self.fields['answer'].widget = forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
     

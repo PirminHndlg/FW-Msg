@@ -27,57 +27,37 @@
                         {% endif %}
                     </div>
 
-                    <form method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
+                    <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
                         
                         {% for field in form %}
-                            {% if question.answer_type == 'f' and field.name == 'file' or question.answer_type == 't' and field.name == 'answer' %}
-                            <div class="mb-4">
-                                <label for="{{ field.id_for_label }}" class="form-label fw-medium">
-                                    {{ field.label }}
-                                    {% if field.field.required %}
-                                    <span class="text-danger">*</span>
-                                    {% endif %}
-                                </label>
-                                {% if field.errors %}
-                                    {% if question.answer_type == 'f' and field.name == 'file' %}
-                                        {% render_field field class="form-control is-invalid" accept=".pdf,.doc,.docx,.txt" %}
-                                    {% else %}
-                                        {% render_field field class="form-control is-invalid" %}
-                                    {% endif %}
-                                    <div class="invalid-feedback">
-                                        {{ field.errors|join:", " }}
-                                    </div>
-                                {% else %}
-                                    {% if question.answer_type == 'f' and field.name == 'file' %}
-                                        {% render_field field class="form-control" accept=".pdf,.doc,.docx,.txt" %}
-                                    {% else %}
-                                        {% render_field field class="form-control" %}
-                                    {% endif %}
-                                {% endif %}
-                                {% if field.help_text %}
-                                <div class="form-text">{{ field.help_text }}</div>
-                                {% endif %}
-                            </div>
-                            {% else %}
-                                {% render_field field %}
-                            {% endif %}
-                        {% endfor %}
-
-                        {% if question.answer_type == 'f' and answer.file %}
                         <div class="mb-4">
-                            <label class="form-label fw-medium">Aktuelle Datei</label>
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-file-earmark-text fs-4"></i>
-                                <span>{{ answer.file.name|slice:"10:" }}</span>
-                                <a href="{{ answer.file.url }}" class="btn btn-sm btn-outline-primary ms-2" target="_blank">
-                                    <i class="bi bi-download me-1"></i>Herunterladen
-                                </a>
+                            <label for="{{ field.id_for_label }}" class="form-label fw-medium">
+                                {{ field.label }}
+                                {% if field.field.required %}
+                                <span class="text-danger">*</span>
+                                {% endif %}
+                            </label>
+                            {% if field.errors %}
+                                {% render_field field class="form-control is-invalid" %}
+                                <div class="invalid-feedback">
+                                    {{ field.errors|join:", " }}
+                                </div>
+                            {% else %}
+                                {% render_field field class="form-control" %}
+                            {% endif %}
+                            {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            <div class="d-flex justify-content-end">
+                                <small class="text-muted">
+                                    <span id="charCount">0</span>/{{ question.max_length }} Zeichen
+                                </small>
                             </div>
                         </div>
-                        {% endif %}
+                        {% endfor %}
 
-                        <div class="d-flex gap-2 mt-4 justify-content-end">
+                        <div class="d-flex flex-column flex-sm-row gap-2 mt-4 justify-content-end">
                             <a href="{% url 'bw_application_questions_list' %}" class="btn btn-outline-secondary rounded-3">
                                 <i class="bi bi-x-circle me-2"></i>Abbrechen
                             </a>
@@ -97,26 +77,20 @@
         border-color: var(--bs-primary);
         box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
     }
-
-    .form-control[type="file"] {
-        padding: 0.375rem;
-    }
-
-    .form-control[type="file"]::-webkit-file-upload-button {
-        padding: 0.375rem 0.75rem;
-        margin: -0.375rem 0;
-        margin-right: 0.75rem;
-        color: var(--bs-primary);
-        background-color: transparent;
-        border: 0;
-        border-right: 1px solid #dee2e6;
-        border-radius: 0;
-        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    }
-
-    .form-control[type="file"]::-webkit-file-upload-button:hover {
-        color: var(--bs-primary);
-        background-color: var(--bs-gray-100);
-    }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const textarea = document.querySelector('textarea[name="answer"]');
+        const charCount = document.getElementById('charCount');
+        
+        // Set initial count
+        charCount.textContent = textarea.value.length;
+        
+        // Update count on input
+        textarea.addEventListener('input', function() {
+            charCount.textContent = this.value.length;
+        });
+    });
+</script>
 {% endblock %} 
