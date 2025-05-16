@@ -5,7 +5,7 @@ from django import forms
 from django.db import IntegrityError, models
 from django.contrib.auth.models import User
 from Global.models import CustomUser, PersonCluster
-from .models import ApplicationQuestion, ApplicationAnswer, Bewerber
+from .models import ApplicationQuestion, ApplicationAnswer, Bewerber, ApplicationAnswerFile
 
 
 class CreateAccountForm(forms.Form):
@@ -66,7 +66,7 @@ class ApplicationAnswerForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         max_length = self.question.max_length
         if max_length:
-            self.fields['answer'].widget = forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'maxlength': max_length})
+            self.fields['answer'].widget = forms.Textarea(attrs={'class': 'form-control', 'rows': max_length//50, 'maxlength': max_length})
         else:
             self.fields['answer'].widget = forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
     
@@ -83,7 +83,53 @@ class ApplicationAnswerForm(forms.ModelForm):
         instance.org = self.user.customuser.org
         instance.question = self.question
         instance.save()
-        print(instance)
         return instance
+        
+class ApplicationFileAnswerForm(forms.ModelForm):
+    class Meta:
+        model = ApplicationAnswerFile
+        fields = ['file']
+        
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        self.file_question = kwargs.pop('file_question', None)
+        super().__init__(*args, **kwargs)
+        
+        self.fields['file'].required = True
+        self.fields['file'].help_text = 'Erlaubte Dateiformate: PDF, DOC, DOCX, TXT'
+        self.fields['file'].widget = forms.FileInput(attrs={'class': 'form-control'})
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        file = cleaned_data.get('file')
+        
+        if file:
+            # Check file size (max 5MB)
+            if file.size > 5 * 1024 * 1024:
+                raise forms.ValidationError('Die Datei ist zu groß. Maximale Größe: 5MB')
+            
+            # Check file extension
+            ext = file.name.split('.')[-1].lower()
+            if ext not in ['pdf', 'doc', 'docx', 'txt']:
+                raise forms.ValidationError('Nicht unterstütztes Dateiformat. Erlaubte Formate: PDF, DOC, DOCX, TXT')
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.user = self.user
+        instance.org = self.user.customuser.org
+        instance.file_question = self.file_question
+        
+        # Delete old file if exists
+        if instance.pk:
+            old_instance = ApplicationAnswerFile.objects.get(pk=instance.pk)
+            if old_instance.file:
+                old_instance.file.delete()
+        
+        if commit:
+            instance.save()
+        return instance
+        
         
         

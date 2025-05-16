@@ -1,0 +1,138 @@
+{% extends 'baseBw.html' %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block title %}Datei hochladen{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card rounded-4 shadow-sm">
+                <div class="card-header bg-light rounded-top-4 py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="question-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <i class="bi bi-file-earmark-text text-white fs-5"></i>
+                            </div>
+                            <h3 class="card-title mb-0 fw-semibold">Datei hochladen</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="question-card p-4 bg-light rounded-3 border-start border-primary border-3 mb-4">
+                        <h4 class="mb-3">{{ file_question.name }}</h4>
+                        {% if file_question.description %}
+                            <p class="text-muted mb-0">{{ file_question.description }}</p>
+                        {% endif %}
+                    </div>
+
+                    <form method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        {% for field in form %}
+                        <div class="mb-4">
+                            <label for="{{ field.id_for_label }}" class="form-label fw-medium">
+                                {{ field.label }}
+                                {% if field.field.required %}
+                                <span class="text-danger">*</span>
+                                {% endif %}
+                            </label>
+                            {% if field.errors %}
+                                {% render_field field class="form-control is-invalid" accept=".pdf,.doc,.docx,.txt" %}
+                                <div class="invalid-feedback">
+                                    {{ field.errors|join:", " }}
+                                </div>
+                            {% else %}
+                                {% render_field field class="form-control" accept=".pdf,.doc,.docx,.txt" %}
+                            {% endif %}
+                            {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        {% if answer.file %}
+                        <div class="mb-4">
+                            <label class="form-label fw-medium">Aktuelle Datei</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-file-earmark-text fs-4"></i>
+                                <span>{{ answer.file.name|slice:"10:" }}</span>
+                                <a href="{% url 'bw_application_file_answer_download' answer.id %}" class="btn btn-sm btn-outline-primary ms-2" target="_blank">
+                                    <i class="bi bi-download me-1"></i>Herunterladen
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger ms-2" data-bs-toggle="modal" data-bs-target="#deleteFileModal">
+                                    <i class="bi bi-trash me-1"></i>Löschen
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex flex-column flex-sm-row gap-2 mt-4 justify-content-end">
+                            <a href="{% url 'bw_application_files_list' %}" class="btn btn-outline-secondary rounded-3">
+                                <i class="bi bi-x-circle me-2"></i>Abbrechen
+                            </a>
+                            <button type="submit" class="btn btn-primary rounded-3">
+                                <i class="bi bi-check2-circle me-2"></i>Datei speichern
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if answer.file %}
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteFileModal" tabindex="-1" aria-labelledby="deleteFileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteFileModalLabel">Datei löschen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Möchten Sie diese Datei wirklich löschen?</p>
+                <p class="text-muted mb-0">{{ answer.file.name|slice:"10:" }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Abbrechen
+                </button>
+                <a href="{% url 'bw_application_file_answer_delete' answer.id %}" class="btn btn-danger">
+                    <i class="bi bi-trash me-2"></i>Löschen
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+<style>
+    .form-control:focus {
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+    }
+
+    .form-control[type="file"] {
+        padding: 0.375rem;
+    }
+
+    .form-control[type="file"]::-webkit-file-upload-button {
+        padding: 0.375rem 0.75rem;
+        margin: -0.375rem 0;
+        margin-right: 0.75rem;
+        color: var(--bs-primary);
+        background-color: transparent;
+        border: 0;
+        border-right: 1px solid #dee2e6;
+        border-radius: 0;
+        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-control[type="file"]::-webkit-file-upload-button:hover {
+        color: var(--bs-primary);
+        background-color: var(--bs-gray-100);
+    }
+</style>
+{% endblock %} 

@@ -1,84 +1,96 @@
 {% extends 'baseBw.html' %}
 {% load i18n %}
 
-{% block title %}Meine Antworten{% endblock %}
+{% block title %}
+  Meine Antworten
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+  <div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-12 col-lg-10">
-            <div class="card rounded-4 shadow-sm">
-                <div class="card-header bg-light rounded-top-4 py-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center">
-                            <div class="answer-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                <i class="bi bi-list-check text-white fs-5"></i>
-                            </div>
-                            <h3 class="card-title mb-0 fw-semibold">Meine Antworten</h3>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <a href="{% url 'bw_home' %}" class="btn btn-primary rounded-3">
-                                <i class="bi bi-house me-2"></i>Zurück zur Startseite
-                            </a>
-                            <a href="{% url 'bw_application_questions_list' %}" class="btn btn-outline-primary rounded-3">
-                                <i class="bi bi-arrow-left me-2"></i>Zu den Fragen
-                            </a>
-                        </div>
-                    </div>
+      <div class="col-12 col-lg-10">
+        <div class="card rounded-4 shadow-sm">
+          <div class="card-header bg-light rounded-top-4 py-3">
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center">
+                <div class="answer-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                  <i class="bi bi-list-check text-white fs-5"></i>
                 </div>
-                <div class="card-body p-4">
-                    {% if answers %}
-                        <div class="list-group list-group-flush">
-                            {% for answer in answers %}
-                                <div class="list-group-item px-0 py-4">
-                                    <div class="d-flex align-items-start">
-                                        <div class="question-number bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
-                                            <span class="fw-semibold">{{ answer.question.order }}</span>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <h5 class="mb-1">{{ answer.question.question }}</h5>
-                                                <a href="{% url 'bw_application_answer' answer.question.id %}" class="btn btn-sm btn-outline-primary rounded-3 {% if user.bewerber.abgeschlossen %}disabled{% endif %}">
-                                                    <i class="bi bi-pencil me-1"></i>Bearbeiten
-                                                </a>
-                                            </div>
-                                            {% if answer.question.description %}
-                                                <p class="text-muted small mb-3">{{ answer.question.description }}</p>
-                                            {% endif %}
-                                            <div class="answer-content p-3 bg-light rounded-3">
-                                                {{ answer.answer|linebreaks }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info rounded-3">
-                            <div class="d-flex">
-                                <div class="me-3">
-                                    <i class="bi bi-info-circle-fill fs-4"></i>
-                                </div>
-                                <div>
-                                    <h5 class="alert-heading mb-2">Keine Antworten vorhanden</h5>
-                                    <p class="mb-0">Sie haben noch keine Fragen beantwortet. Gehen Sie zurück zur Fragenliste, um Ihre Bewerbung zu vervollständigen.</p>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
+                <h3 class="card-title mb-0 fw-semibold">Meine Antworten</h3>
+              </div>
+              <div class="d-flex gap-2">
+                <a href="{% url 'bw_home' %}" class="btn btn-primary rounded-3"><i class="bi bi-house me-2"></i>Zurück zur Startseite</a>
+              </div>
             </div>
+          </div>
+          <div class="card-body p-4">
+            {% if answers %}
+              <div class="list-group list-group-flush">
+                {% for answer in answers %}
+                  <div class="list-group-item px-0 py-4">
+                    <div class="d-flex align-items-start">
+                      <div class="question-number bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                        <span class="fw-semibold">{{ answer.question.order }}</span>
+                      </div>
+                      <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                          <h5 class="mb-1">{{ answer.question.question }}</h5>
+                          <a href="{% url 'bw_application_answer' answer.question.id %}" class="btn btn-sm btn-outline-primary rounded-3 {% if user.bewerber.abgeschlossen %}disabled{% endif %}"><i class="bi bi-pencil me-1"></i>Bearbeiten</a>
+                        </div>
+                        {% if answer.question.description %}
+                          <p class="text-muted small mb-3">{{ answer.question.description }}</p>
+                        {% endif %}
+                        <div class="answer-content p-3 bg-light rounded-3">{{ answer.answer|linebreaks }}</div>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="alert alert-info rounded-3">
+                <div class="d-flex">
+                  <div class="me-3">
+                    <i class="bi bi-info-circle-fill fs-4"></i>
+                  </div>
+                  <div>
+                    <h5 class="alert-heading mb-2">Keine Antworten vorhanden</h5>
+                    <p class="mb-0">Sie haben noch keine Fragen beantwortet. Gehen Sie zurück zur Fragenliste, um Ihre Bewerbung zu vervollständigen.</p>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+            {% if file_answers %}
+              <div class="list-group list-group-flush">
+                {% for answer in file_answers %}
+                  <div class="list-group-item px-0 py-4">
+                    <div class="d-flex align-items-start">
+                      <div class="question-number bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                        <span class="fw-semibold">{{ answer.file_question.order }}</span>
+                      </div>
+                      <div class="flex-grow-1">
+                        <h5 class="mb-1">{{ answer.file_question.name }}</h5>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+            <div class="d-flex gap-2 mt-4 justify-content-end">
+              <a href="{% url 'bw_application_questions_list' %}" class="btn btn-outline-primary rounded-3"><i class="bi bi-arrow-left me-2"></i>Zurück zu den Fragen</a>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
-</div>
+  </div>
 
-<style>
+  <style>
     .list-group-item:not(:last-child) {
-        border-bottom: 1px solid var(--bs-gray-200);
+      border-bottom: 1px solid var(--bs-gray-200);
     }
     
     .answer-content {
-        border-left: 3px solid var(--bs-primary);
+      border-left: 3px solid var(--bs-primary);
     }
-</style>
-{% endblock %} 
+  </style>
+{% endblock %}

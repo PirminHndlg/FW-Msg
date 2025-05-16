@@ -1,0 +1,85 @@
+{% extends 'baseBw.html' %}
+{% load i18n %}
+{% load bw_filters %}
+
+{% block title %}
+  Dateianhänge
+{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-8">
+        <div class="card rounded-4 shadow-sm">
+          <div class="card-header bg-light rounded-top-4 py-3">
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center">
+                <div class="question-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                  <i class="bi bi-file-earmark-text text-white fs-5"></i>
+                </div>
+                <h3 class="card-title mb-0 fw-semibold">Dateianhänge</h3>
+              </div>
+              <div class="d-flex align-items-center">
+                <a href="{% url 'bw_home' %}" class="btn btn-primary rounded-3"><i class="bi bi-house me-2"></i>Zurück zur Startseite</a>
+              </div>
+            </div>
+          </div>
+          <div class="card-body p-4">
+            {% if file_questions %}
+              <div class="list-group list-group-flush">
+                {% for question in file_questions %}
+                  <div class="list-group-item px-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                      {% with answer=file_answers|get_item:question.id %}
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="question-number bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                            <span class="fw-semibold">{{ question.order }}</span>
+                          </div>
+                          <h5 class="mb-1">{{ question.name }}</h5>
+                        </div>
+                        <div class="d-flex gap-2 align-items-center flex-wrap">
+                          {% if answer %}
+                            <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                              <span class="badge bg-success rounded-pill"><i class="bi bi-check-circle me-1"></i>Hochgeladen</span>
+                              <a href="{% url 'bw_application_file_answer_download' answer.id %}" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-download me-1"></i>Herunterladen</a>
+                              <a href="{% url 'bw_application_file_answer' question.id %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil me-1"></i>Bearbeiten</a>
+                            </div>
+                          {% else %}
+                            <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                              <span class="badge bg-warning rounded-pill"><i class="bi bi-exclamation-circle me-1"></i>Ausstehend</span>
+                              <a href="{% url 'bw_application_file_answer' question.id %}" class="btn btn-sm btn-primary"><i class="bi bi-upload me-1"></i>Datei hochladen</a>
+                            </div>
+                          {% endif %}
+                        </div>
+                      {% endwith %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="alert alert-info mb-0">
+                <i class="bi bi-info-circle me-2"></i>
+                Keine Dateianhänge verfügbar.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .list-group-item {
+      border-left: none;
+      border-right: none;
+    }
+    
+    .list-group-item:first-child {
+      border-top: none;
+    }
+    
+    .list-group-item:last-child {
+      border-bottom: none;
+    }
+  </style>
+{% endblock %}

@@ -8,4 +8,8 @@ urlpatterns = [
     path('questions/<int:question_id>/', views.bw_application_answer, name='bw_application_answer'),
     path('answers/', views.bw_application_answers_list, name='bw_application_answers_list'),
     path('complete/', views.bw_application_complete, name='bw_application_complete'),
+    path('files/', views.bw_application_files_list, name='bw_application_files_list'),
+    path('files/<int:file_question_id>/', views.bw_application_file_answer, name='bw_application_file_answer'),
+    path('files/download/<int:file_answer_id>/', views.bw_application_file_answer_download, name='bw_application_file_answer_download'),
+    path('files/delete/<int:file_answer_id>/', views.bw_application_file_answer_delete, name='bw_application_file_answer_delete'),
 ]
