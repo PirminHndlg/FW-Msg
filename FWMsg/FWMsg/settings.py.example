@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'ADMIN.apps.AdminConfig',
     'Global.apps.GlobalConfig',
     'TEAM.apps.TeamConfig',
+    'BW.apps.BwConfig',
     'widget_tweaks',
     'celery',
     'django_celery_results',
