@@ -37,7 +37,8 @@ def home(request):
         'total_file_questions': total_file_questions,
         'answered_file_questions': answered_file_questions,
         'answered_file_questions_percentage': int(answered_file_questions / total_file_questions * 100) if total_file_questions > 0 else 0,
-        'open_file_questions': total_file_questions - answered_file_questions
+        'open_file_questions': total_file_questions - answered_file_questions,
+        'now': datetime.now().date()
     }
     
     return render(request, 'homeBw.html', context)
@@ -143,6 +144,14 @@ def bw_application_answers_list(request):
 @login_required
 @required_role('B')
 def bw_application_complete(request):
+    try:
+        application_text = ApplicationText.objects.filter(org=request.user.org).first()
+        if application_text.deadline and application_text.deadline < datetime.now().date():
+            messages.error(request, 'Die Abgabefrist ist abgelaufen.')
+            return redirect('bw_home')
+    except ApplicationText.DoesNotExist:
+        pass
+    
     bewerber = Bewerber.objects.get(user=request.user)
     bewerber.abgeschlossen = True
     bewerber.abgeschlossen_am = datetime.now()
