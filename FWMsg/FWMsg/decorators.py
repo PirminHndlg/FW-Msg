@@ -19,7 +19,6 @@ def required_role(roles):
         # @user_passes_test(lambda u: u.is_authenticated and hasattr(u, 'customuser'))
         def _wrapped_view(request, *args, **kwargs):
             try:
-                print(request.user.customuser.person_cluster.view, roles)
                 if not request.user.customuser.person_cluster.view in roles and roles != '':
                     raise PermissionDenied
             except:
