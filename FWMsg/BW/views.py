@@ -137,7 +137,7 @@ def bw_application_answer(request, question_id):
 @login_required
 @required_role('B')
 def bw_application_answers_list(request):
-    answers = ApplicationAnswer.objects.filter(org=request.user.org)
+    answers = ApplicationAnswer.objects.filter(org=request.user.org, user=request.user)
     return render(request, 'bw_application_answers_list.html', {'answers': answers})
 
 
