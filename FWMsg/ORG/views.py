@@ -452,46 +452,6 @@ def edit_object(request, model_name, id):
     return render(request, 'edit_object.html', {'form': form, 'object': model_name, 'verbose_name': model._meta.verbose_name})
 
 
-def _check_filter_form(filter_form, model, objects):
-    # Apply filters if form is valid
-    if filter_form.is_valid():
-        # Handle search across all text fields
-        search_query = filter_form.cleaned_data.get('search')
-        if search_query:
-            search_filters = models.Q()
-            for field in model._meta.fields:
-                if isinstance(field, (models.CharField, models.TextField)):
-                    search_filters |= models.Q(**{f'{field.name}__icontains': search_query})
-            objects = objects.filter(search_filters)
-        
-        # Apply specific field filters
-        for field in model._meta.fields:
-            if field.name in ['org', 'id']:
-                continue
-                
-            if isinstance(field, (models.CharField, models.TextField)):
-                value = filter_form.cleaned_data.get(f'filter_{field.name}')
-                if value:
-                    objects = objects.filter(**{f'{field.name}__icontains': value})
-                    
-            elif isinstance(field, (models.BooleanField)):
-                value = filter_form.cleaned_data.get(f'filter_{field.name}')
-                if value:  # Only apply filter if a value is selected
-                    objects = objects.filter(**{field.name: value == 'true'})
-                    
-            elif isinstance(field, models.DateField):
-                date_from = filter_form.cleaned_data.get(f'filter_{field.name}_from')
-                date_to = filter_form.cleaned_data.get(f'filter_{field.name}_to')
-                if date_from:
-                    objects = objects.filter(**{f'{field.name}__gte': date_from})
-                if date_to:
-                    objects = objects.filter(**{f'{field.name}__lte': date_to})
-                    
-            elif isinstance(field, models.ForeignKey):
-                value = filter_form.cleaned_data.get(f'filter_{field.name}')
-                if value:
-                    objects = objects.filter(**{field.name: value})
-
 @login_required
 @required_role('O')
 @filter_person_cluster
@@ -501,100 +461,204 @@ def list_object(request, model_name, highlight_id=None):
     if response:
         return response
 
-    # Start with all objects for this organization
+    # Get base queryset with organization filter
     objects = model.objects.filter(org=request.user.org)
     
-    # Initialize the filter form
+    # Initialize the filter form and apply filters
     filter_form = ORGforms.FilterForm(model, request.GET, request=request)
-    # Apply filters if form is valid
-    _check_filter_form(filter_form, model, objects)
+    if filter_form.is_valid():
+        objects = _apply_filters(filter_form, model, objects)
     
-    error = None
-   
+    # Get person cluster and check permissions
+    person_cluster = get_person_cluster(request)
+    error = _check_person_cluster_permissions(model, person_cluster)
+    
+    # Get field metadata and model fields
+    field_metadata, model_fields = _get_field_metadata(model)
+    
+    # Apply model-specific logic
+    objects = _apply_model_specific_logic(model, objects, person_cluster, field_metadata, model_fields)
+    
+    # Add many-to-many fields
+    field_metadata.extend(_get_m2m_fields(model))
+    
+    # Count total objects before pagination
+    total_objects_count = objects.count()
+    
+    # Apply pagination
+    paginated_objects, query_string = _apply_pagination(objects, request)
+    
+    return render(request, 'list_objects.html',
+                 {'objects': paginated_objects, 
+                  'field_metadata': field_metadata, 
+                  'model_name': model_name,
+                  'verbose_name': model._meta.verbose_name_plural,
+                  'filter_form': filter_form,
+                  'highlight_id': highlight_id,
+                  'error': error,
+                  'paginator': paginated_objects.paginator,
+                  'page_obj': paginated_objects,
+                  'total_count': total_objects_count,
+                  'query_string': query_string})
+
+def _apply_filters(filter_form, model, objects):
+    """Apply filters from the filter form to the queryset."""
+    # Handle search across all text fields
+    search_query = filter_form.cleaned_data.get('search')
+    if search_query:
+        search_filters = models.Q()
+        for field in model._meta.fields:
+            if isinstance(field, (models.CharField, models.TextField)):
+                search_filters |= models.Q(**{f'{field.name}__icontains': search_query})
+        objects = objects.filter(search_filters)
+    
+    # Apply specific field filters
+    for field in model._meta.fields:
+        if field.name in ['org', 'id']:
+            continue
+            
+        if isinstance(field, (models.CharField, models.TextField)):
+            value = filter_form.cleaned_data.get(f'filter_{field.name}')
+            if value:
+                objects = objects.filter(**{f'{field.name}__icontains': value})
+                
+        elif isinstance(field, (models.BooleanField)):
+            value = filter_form.cleaned_data.get(f'filter_{field.name}')
+            if value:
+                objects = objects.filter(**{field.name: value == 'true'})
+                
+        elif isinstance(field, models.DateField):
+            date_from = filter_form.cleaned_data.get(f'filter_{field.name}_from')
+            date_to = filter_form.cleaned_data.get(f'filter_{field.name}_to')
+            if date_from:
+                objects = objects.filter(**{f'{field.name}__gte': date_from})
+            if date_to:
+                objects = objects.filter(**{f'{field.name}__lte': date_to})
+                
+        elif isinstance(field, models.ForeignKey):
+            value = filter_form.cleaned_data.get(f'filter_{field.name}')
+            if value:
+                objects = objects.filter(**{field.name: value})
+    
+    return objects
+
+def _check_person_cluster_permissions(model, person_cluster):
+    """Check if the person cluster has the required permissions for the model."""
+    if not person_cluster:
+        return None
+        
+    model_name = model._meta.object_name
+    if model_name == 'Aufgabe' and not person_cluster.aufgaben:
+        return f'{person_cluster.name} hat keine Aufgaben-Funktion aktiviert'
+    elif model_name == 'Notfallkontakt' and not person_cluster.notfallkontakt:
+        return f'{person_cluster.name} hat keine Notfallkontakt-Funktion aktiviert'
+    elif model_name == 'Freiwilliger' and not person_cluster.view == 'F':
+        return f'{person_cluster.name} sind keine Freiwillige'
+    elif model_name == 'Team' and not person_cluster.view == 'T':
+        return f'{person_cluster.name} sind keine Teammitglieder'
+    
+    return None
+
+def _get_field_metadata(model):
+    """Get field metadata and model fields."""
     field_metadata = [
         {'name': field.name, 'verbose_name': field.verbose_name}
-        for field in model._meta.fields if field.name != 'org' and field.name != 'id' #and (field.name != 'user' or model._meta.object_name == 'CustomUser')
+        for field in model._meta.fields if field.name not in ['org', 'id']
+    ]
+    
+    model_fields = [field.name for field in model._meta.fields]
+    
+    return field_metadata, model_fields
+
+def _get_m2m_fields(model):
+    """Get many-to-many fields metadata."""
+    return [
+        {'name': field.name, 'verbose_name': field.verbose_name}
+        for field in model._meta.many_to_many
     ]
 
-    model_fields = [field.name for field in model._meta.fields]
-
-    person_cluster = get_person_cluster(request)
-
-    def check_person_cluster(field_name):
-        if person_cluster:
-            if not getattr(person_cluster, field_name):
-                error = f'{person_cluster.name} hat keine {field_name[0].upper() + field_name[1:].replace("_", " ")}-Funktion aktiviert'
-                return error
-        return None
-
-    def filter_objects(objects, filter_name=None):
-        if person_cluster:
-            if filter_name == 'usr_aufg':
-                objects = objects.filter(aufgabe__person_cluster=person_cluster)
-            else:
-                objects = objects.filter(person_cluster=person_cluster)
-        return objects
-
-    def extend_fields(objects, field_metadata, model_fields, fields, position=None):
-        if position == 0:
-            field_metadata[0:0] = fields
-            model_fields[0:0] = [field['name'] for field in fields]
-            objects = objects.annotate(
-                **{field['name']: F(f'user__{field["name"].replace("user_", "")}') for field in fields}
-            )
-        else:
-            field_metadata.extend(fields)
-            model_fields.extend(field['name'] for field in fields)
-            objects = objects.annotate(
-                **{field['name']: F(f'user__{field["name"].replace("user_", "")}') for field in fields}
-            )
-        return objects
-
+def _apply_model_specific_logic(model, objects, person_cluster, field_metadata, model_fields):
+    """Apply model-specific logic to the queryset."""
+    model_name = model._meta.object_name
+    
+    # Common user fields
     user_fields = [
         {'name': 'user_first_name', 'verbose_name': 'Vorname', 'type': 'T'},
         {'name': 'user_last_name', 'verbose_name': 'Nachname', 'type': 'T'},
         {'name': 'user_email', 'verbose_name': 'Email', 'type': 'E'}
-    ]    
-
-    if model._meta.object_name == 'Aufgabe':
-        error = check_person_cluster('aufgaben')
-        objects = filter_objects(objects)
-
-        objects = objects.order_by('faellig_art', 'faellig_tag', 'faellig_monat', 'faellig_tage_nach_start', 'faellig_tage_vor_ende')
+    ]
     
-    elif model._meta.object_name == 'UserAufgaben':
-        error = check_person_cluster('aufgaben')
-        objects = filter_objects(objects, 'usr_aufg')
+    if model_name == 'Aufgabe':
+        objects = _handle_aufgabe_model(objects, person_cluster)
+    elif model_name == 'UserAufgaben':
+        objects = _handle_useraufgaben_model(objects, person_cluster)
+    elif model_name == 'CustomUser':
+        objects = _handle_customuser_model(model, objects, person_cluster, field_metadata, model_fields, user_fields)
+    elif model_name in ['Freiwilliger', 'Team']:
+        objects = _handle_freiwilliger_team_model(objects, person_cluster, field_metadata, model_fields, user_fields)
+    elif model_name == 'Notfallkontakt':
+        objects = _handle_notfallkontakt_model(objects, person_cluster)
+    else:
+        objects = _handle_default_model(objects, model_fields)
+    
+    return objects
 
-    elif model._meta.object_name == 'CustomUser':
-        #remove field mail_notifications_unsubscribe_auth_key from objects and model_fields
-        model._meta.fields = [field for field in model._meta.fields if field.name != 'mail_notifications_unsubscribe_auth_key']
-        model_fields = [field.name for field in model._meta.fields]
-        objects = objects.exclude(mail_notifications_unsubscribe_auth_key__isnull=False)
-        
-        objects = filter_objects(objects)
-        objects = objects.order_by('user__first_name', 'user__last_name')
-        
-        objects = extend_fields(objects, field_metadata, model_fields, user_fields, position=0)
-        
-        user_fields = [
-            {'name': 'user_last_login', 'verbose_name': 'Letzter Login', 'type': 'D'}
-        ]
-        objects = extend_fields(objects, field_metadata, model_fields, user_fields)
+def _handle_aufgabe_model(objects, person_cluster):
+    """Handle Aufgabe model specific logic."""
+    if person_cluster:
+        objects = objects.filter(person_cluster=person_cluster)
+    return objects.order_by('faellig_art', 'faellig_tag', 'faellig_monat', 
+                          'faellig_tage_nach_start', 'faellig_tage_vor_ende')
 
-    elif model._meta.object_name == 'Freiwilliger' or model._meta.object_name == 'Team':
-        objects = objects.order_by('user__first_name', 'user__last_name')
-        
-        objects = extend_fields(objects, field_metadata, model_fields, user_fields, 0)
+def _handle_useraufgaben_model(objects, person_cluster):
+    """Handle UserAufgaben model specific logic."""
+    if person_cluster:
+        objects = objects.filter(aufgabe__person_cluster=person_cluster)
+    return objects
 
-        attributes = []
-        if person_cluster:
-            attributes = Attribute.objects.filter(org=request.user.org, person_cluster=person_cluster)
-            if not person_cluster.view == 'F' and model._meta.object_name == 'Freiwilliger':
-                error = f'{person_cluster.name} sind keine Freiwillige'
-            elif not person_cluster.view == 'T' and model._meta.object_name == 'Team':
-                error = f'{person_cluster.name} sind keine Teammitglieder'
+def _handle_customuser_model(model, objects, person_cluster, field_metadata, model_fields, user_fields):
+    """Handle CustomUser model specific logic."""
+    # Remove sensitive field
+    model._meta.fields = [field for field in model._meta.fields 
+                         if field.name != 'mail_notifications_unsubscribe_auth_key']
+    model_fields = [field.name for field in model._meta.fields]
+    
+    if person_cluster:
+        objects = objects.filter(person_cluster=person_cluster)
+    
+    objects = objects.order_by('user__first_name', 'user__last_name')
+    
+    # Add user fields
+    field_metadata[0:0] = user_fields
+    model_fields[0:0] = [field['name'] for field in user_fields]
+    objects = objects.annotate(
+        **{field['name']: F(f'user__{field["name"].replace("user_", "")}') 
+           for field in user_fields}
+    )
+    
+    # Add last login field
+    last_login_field = {'name': 'user_last_login', 'verbose_name': 'Letzter Login', 'type': 'D'}
+    field_metadata.append(last_login_field)
+    model_fields.append(last_login_field['name'])
+    objects = objects.annotate(user_last_login=F('user__last_login'))
+    
+    return objects
 
+def _handle_freiwilliger_team_model(objects, person_cluster, field_metadata, model_fields, user_fields):
+    """Handle Freiwilliger and Team model specific logic."""
+    objects = objects.order_by('user__first_name', 'user__last_name')
+    
+    # Add user fields
+    field_metadata[0:0] = user_fields
+    model_fields[0:0] = [field['name'] for field in user_fields]
+    objects = objects.annotate(
+        **{field['name']: F(f'user__{field["name"].replace("user_", "")}') 
+           for field in user_fields}
+    )
+    
+    # Handle attributes
+    if person_cluster:
+        attributes = Attribute.objects.filter(org=objects.first().org, person_cluster=person_cluster)
         for attr in attributes:
             field_metadata.append({
                 'name': attr.name,
@@ -606,53 +670,42 @@ def list_object(request, model_name, highlight_id=None):
                     UserAttribute.objects.filter(
                         attribute__id=attr.id,
                         user_id=OuterRef('user_id'),
-                        org=request.user.org
+                        org=objects.first().org
                     ).values('value')[:1]
                 )
             })
+    
+    return objects
 
-        # Order objects by user name
-        objects = objects.order_by('user__first_name', 'user__last_name')
-    
-    elif model._meta.object_name == 'Notfallkontakt':
-        person_cluster = get_person_cluster(request)
-        if person_cluster:
-            objects = objects.filter(user__customuser__person_cluster=person_cluster)
-            if not person_cluster.notfallkontakt:
-                error = f'{person_cluster.name} hat keine Notfallkontakt-Funktion aktiviert'
+def _handle_notfallkontakt_model(objects, person_cluster):
+    """Handle Notfallkontakt model specific logic."""
+    if person_cluster:
+        objects = objects.filter(user__customuser__person_cluster=person_cluster)
+    return objects
 
-    else:
-        if 'freiwilliger' in model_fields:
-            objects = objects.order_by('freiwilliger__first_name', 'freiwilliger__last_name')
-        elif 'first_name' in model_fields:
-            objects = objects.order_by('first_name')
-        elif 'last_name' in model_fields:
-            objects = objects.order_by('last_name')
-        elif 'name' in model_fields:
-            objects = objects.order_by('name')
-    
-    # Add many-to-many fields
-    m2m_fields = [
-        {'name': field.name, 'verbose_name': field.verbose_name}
-        for field in model._meta.many_to_many
-    ]
-    field_metadata.extend(m2m_fields)
-    
-    # Count total objects before pagination for display
-    total_objects_count = objects.count()
-    
-    # Implement pagination
+def _handle_default_model(objects, model_fields):
+    """Handle default model ordering logic."""
+    if 'freiwilliger' in model_fields:
+        return objects.order_by('freiwilliger__first_name', 'freiwilliger__last_name')
+    elif 'first_name' in model_fields:
+        return objects.order_by('first_name')
+    elif 'last_name' in model_fields:
+        return objects.order_by('last_name')
+    elif 'name' in model_fields:
+        return objects.order_by('name')
+    return objects
+
+def _apply_pagination(objects, request):
+    """Apply pagination to the queryset."""
     page = request.GET.get('page', 1)
-    items_per_page = 50  # You can make this configurable
+    items_per_page = 50
     paginator = Paginator(objects, items_per_page)
     
     try:
         paginated_objects = paginator.page(page)
     except PageNotAnInteger:
-        # If page is not an integer, deliver first page
         paginated_objects = paginator.page(1)
     except EmptyPage:
-        # If page is out of range, deliver last page
         paginated_objects = paginator.page(paginator.num_pages)
     
     # Create query parameters for pagination links
@@ -661,19 +714,7 @@ def list_object(request, model_name, highlight_id=None):
         del query_params['page']
     query_string = query_params.urlencode()
     
-    return render(request, 'list_objects.html',
-                 {'objects': paginated_objects, 
-                  'field_metadata': field_metadata, 
-                  'model_name': model_name,
-                  'verbose_name': model._meta.verbose_name_plural,
-                  'filter_form': filter_form,
-                  'highlight_id': highlight_id,
-                  'error': error,
-                  'paginator': paginator,
-                  'page_obj': paginated_objects,
-                  'total_count': total_objects_count,
-                  'query_string': query_string})
-
+    return paginated_objects, query_string
 
 @login_required
 @required_role('O')
