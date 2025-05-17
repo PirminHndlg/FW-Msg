@@ -464,11 +464,6 @@ def list_object(request, model_name, highlight_id=None):
     # Get base queryset with organization filter
     objects = model.objects.filter(org=request.user.org)
     
-    # Initialize the filter form and apply filters
-    filter_form = ORGforms.FilterForm(model, request.GET, request=request)
-    if filter_form.is_valid():
-        objects = _apply_filters(filter_form, model, objects)
-    
     # Get person cluster and check permissions
     person_cluster = get_person_cluster(request)
     error = _check_person_cluster_permissions(model, person_cluster)
@@ -493,7 +488,6 @@ def list_object(request, model_name, highlight_id=None):
                   'field_metadata': field_metadata, 
                   'model_name': model_name,
                   'verbose_name': model._meta.verbose_name_plural,
-                  'filter_form': filter_form,
                   'highlight_id': highlight_id,
                   'error': error,
                   'paginator': paginated_objects.paginator,
@@ -501,46 +495,6 @@ def list_object(request, model_name, highlight_id=None):
                   'total_count': total_objects_count,
                   'query_string': query_string})
 
-def _apply_filters(filter_form, model, objects):
-    """Apply filters from the filter form to the queryset."""
-    # Handle search across all text fields
-    search_query = filter_form.cleaned_data.get('search')
-    if search_query:
-        search_filters = models.Q()
-        for field in model._meta.fields:
-            if isinstance(field, (models.CharField, models.TextField)):
-                search_filters |= models.Q(**{f'{field.name}__icontains': search_query})
-        objects = objects.filter(search_filters)
-    
-    # Apply specific field filters
-    for field in model._meta.fields:
-        if field.name in ['org', 'id']:
-            continue
-            
-        if isinstance(field, (models.CharField, models.TextField)):
-            value = filter_form.cleaned_data.get(f'filter_{field.name}')
-            if value:
-                objects = objects.filter(**{f'{field.name}__icontains': value})
-                
-        elif isinstance(field, (models.BooleanField)):
-            value = filter_form.cleaned_data.get(f'filter_{field.name}')
-            if value:
-                objects = objects.filter(**{field.name: value == 'true'})
-                
-        elif isinstance(field, models.DateField):
-            date_from = filter_form.cleaned_data.get(f'filter_{field.name}_from')
-            date_to = filter_form.cleaned_data.get(f'filter_{field.name}_to')
-            if date_from:
-                objects = objects.filter(**{f'{field.name}__gte': date_from})
-            if date_to:
-                objects = objects.filter(**{f'{field.name}__lte': date_to})
-                
-        elif isinstance(field, models.ForeignKey):
-            value = filter_form.cleaned_data.get(f'filter_{field.name}')
-            if value:
-                objects = objects.filter(**{field.name: value})
-    
-    return objects
 
 def _check_person_cluster_permissions(model, person_cluster):
     """Check if the person cluster has the required permissions for the model."""
