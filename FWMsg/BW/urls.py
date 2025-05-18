@@ -3,9 +3,9 @@ from django.urls import path, include
 
 urlpatterns = [
     path('', views.home, name='bw_home'),
-    path('create_account/<int:org_id>/', views.create_account, name='bw_create_account'),
-    path('account_created/', views.account_created, name='account_created'),
-    path('verify_account/<str:token>/', views.verify_account, name='verify_account'),
+    path('neue_bewerbung/<int:org_id>/', views.create_account, name='bw_create_account'),
+    path('bewerbung_erstellt/', views.account_created, name='account_created'),
+    path('bewerbung_verifiziert/<str:token>/', views.verify_account, name='verify_account'),
     
     path('questions/', views.bw_application_questions_list, name='bw_application_questions_list'),
     path('questions/<int:question_id>/', views.bw_application_answer, name='bw_application_answer'),
