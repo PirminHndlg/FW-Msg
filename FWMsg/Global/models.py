@@ -521,7 +521,7 @@ class Attribute(OrgModel):
 
 
 class UserAttribute(OrgModel):
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name='Benutzer:in')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer:in')
     attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE, verbose_name='Benutzerdatenfeld')
     value = models.TextField(verbose_name='Wert', null=True, blank=True)
 
