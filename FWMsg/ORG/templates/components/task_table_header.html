@@ -5,6 +5,11 @@
     <div class="d-flex gap-1 align-items-center justify-content-between pe-0">
       {{current_person_cluster|default:'Person'}}
     </div>
+    <div class="search-container mt-2">
+      <div class="input-group">
+        <input type="text" id="userSearch" class="form-control" placeholder="{% trans 'Suchen...' %}" aria-label="{% trans 'Benutzer suchen' %}">
+      </div>
+    </div>
     <hr class="border-dark m-0 mt-1" />
   </th>
   {% for aufgabe in aufgaben %}
@@ -77,5 +82,21 @@
   
   .z-1000 {
     z-index: 1000;
+  }
+
+  /* Search container styles */
+  .search-container {
+    position: sticky;
+    top: 0;
+    z-index: 1021;
+    background-color: var(--bs-body-bg);
+  }
+
+  .search-container .input-group {
+    width: 100%;
+  }
+
+  .search-container .input-group-text {
+    background-color: var(--bs-body-bg);
   }
 </style>
