@@ -29,15 +29,22 @@ def get_faellige_aufgaben():
     from Global.models import UserAufgaben
     
     current_time = datetime.now()
-    reminder_threshold = current_time - timedelta(days=14)
     
-    return UserAufgaben.objects.filter(
+    # Get all overdue tasks that haven't been completed or marked as pending
+    overdue_tasks = UserAufgaben.objects.filter(
         erledigt=False,
         pending=False,
         faellig__lt=current_time
-    ).filter(
-        Q(last_reminder__lt=reminder_threshold) | Q(last_reminder__isnull=True)
     )
+    
+    # For each task, check if enough days have passed since the last reminder
+    tasks_to_remind = []
+    for task in overdue_tasks:
+        reminder_threshold = current_time.date() - timedelta(days=task.aufgabe.repeat_push_days)
+        if task.last_reminder is None or task.last_reminder < reminder_threshold:
+            tasks_to_remind.append(task)
+    
+    return UserAufgaben.objects.filter(id__in=[task.id for task in tasks_to_remind])
 
 
 def get_new_aufgaben():

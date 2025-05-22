@@ -597,6 +597,7 @@ class Aufgabe2(OrgModel):
     faellig_monat = models.IntegerField(blank=True, null=True, verbose_name='Fällig im Monat', validators=[validators.MinValueValidator(1), validators.MaxValueValidator(12)], help_text='Monat, in dem die Aufgabe fällig ist (1-12)')
     faellig_tage_nach_start = models.IntegerField(blank=True, null=True, verbose_name='Tage nach Einsatzbeginn', validators=[validators.MinValueValidator(0)], help_text='Anzahl der Tage nach Einsatzbeginn, wann die Aufgabe fällig ist')
     faellig_tage_vor_ende = models.IntegerField(blank=True, null=True, verbose_name='Tage vor Einsatzende', validators=[validators.MinValueValidator(0)], help_text='Anzahl der Tage vor Einsatzende, wann die Aufgabe fällig ist')
+    repeat_push_days = models.IntegerField(default=7, verbose_name='Wartezeit bis nächste Benachrichtigung', validators=[validators.MinValueValidator(0)], help_text='Anzahl der Tage, die gewartet wird, bevor eine neue Benachrichtigung für eine nicht erledigte Aufgabe gesendet wird')
     person_cluster = models.ManyToManyField(PersonCluster, verbose_name='Für Benutzergruppen', help_text='Benutzergruppen, für die diese Aufgabe relevant ist')
     wiederholung = models.BooleanField(default=False, verbose_name='Regelmäßige Wiederholung', help_text='Wenn aktiviert, wird die Aufgabe regelmäßig wiederholt')
     wiederholung_interval_wochen = models.IntegerField(blank=True, null=True, verbose_name='Wiederholung alle x Wochen', validators=[validators.MinValueValidator(0)], help_text='Wiederholungsintervall in Wochen')
