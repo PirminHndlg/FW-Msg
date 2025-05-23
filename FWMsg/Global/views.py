@@ -209,7 +209,6 @@ def datenschutz(request):
     return render(request, 'datenschutz.html')
 
 
-@login_required
 def serve_logo(request, org_id):
     """
     Serve organization logo images.
@@ -229,9 +228,6 @@ def serve_logo(request, org_id):
 
     org = Organisation.objects.get(id=org_id)
 
-    if not request.user.org == org:
-        return HttpResponseNotAllowed('Nicht erlaubt')
-    
     if not org.logo:
         return HttpResponseNotFound('Logo nicht gefunden')
 
