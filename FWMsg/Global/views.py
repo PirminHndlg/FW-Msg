@@ -221,27 +221,21 @@ def serve_logo(request, org_id):
         HttpResponse: Response containing the logo image
         HttpResponseNotFound: If the image doesn't exist
     """
-
-    org_exists = Organisation.objects.filter(id=org_id).exists()
-    if not org_exists:
+    try:
+        org = Organisation.objects.get(id=org_id)
+    except Organisation.DoesNotExist:
         return HttpResponseNotFound('Organisation nicht gefunden')
-
-    org = Organisation.objects.get(id=org_id)
 
     if not org.logo:
         return HttpResponseNotFound('Logo nicht gefunden')
 
-    image_path = org.logo.path
-
-    if not os.path.exists(image_path):
+    try:
+        with open(org.logo.path, 'rb') as img_file:
+            response = HttpResponse(img_file.read(), content_type='image/jpeg')
+            response['Content-Disposition'] = f'inline; filename="{org.logo.name}"'
+            return response
+    except FileNotFoundError:
         return HttpResponseNotFound('Bild nicht gefunden')
-
-    with open(image_path, 'rb') as img_file:
-        content_type = 'image/jpeg'
-        response = HttpResponse(img_file.read(), content_type=content_type)
-        response['Content-Disposition'] = f'inline; filename="{org.logo.name}"'
-
-    return response
 
 @login_required
 @required_person_cluster('bilder')
