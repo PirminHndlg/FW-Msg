@@ -2,18 +2,29 @@ from datetime import datetime
 import random
 import string
 from django import forms
-from django.db import IntegrityError, models
 from django.contrib.auth.models import User
 from Global.models import CustomUser, PersonCluster
 from .models import ApplicationQuestion, ApplicationAnswer, Bewerber, ApplicationAnswerFile
+from django.contrib.auth import get_user_model
+from django.utils.translation import gettext_lazy as _
 
 
 class CreateAccountForm(forms.Form):
     first_name = forms.CharField(max_length=150, required=True, label='Vorname')
     last_name = forms.CharField(max_length=150, required=True, label='Nachname')
     email = forms.EmailField(required=True, label='Email')
-    password = forms.CharField(max_length=150, required=True, label='Password')
-    password2 = forms.CharField(max_length=150, required=True, label='Password2')
+    password = forms.CharField(
+        max_length=150, 
+        required=True, 
+        label='Passwort',
+        help_text=_('Ihr Passwort muss folgende Anforderungen erfüllen:<br>• Mindestens 8 Zeichen lang<br>• Mindestens ein Großbuchstabe (A-Z)<br>• Mindestens ein Kleinbuchstabe (a-z)<br>• Mindestens eine Zahl (0-9)<br>• Mindestens ein Sonderzeichen (!@#$%^&* etc.)<br>• Nicht zu ähnlich zu Ihren persönlichen Daten')
+    )
+    password2 = forms.CharField(
+        max_length=150, 
+        required=True, 
+        label='Passwort wiederholen',
+        help_text=_('Bitte geben Sie das Passwort erneut ein.')
+    )
     
     def __init__(self, *args, **kwargs):
         self.org = kwargs.pop('org', None)
@@ -24,13 +35,37 @@ class CreateAccountForm(forms.Form):
         self.fields['email'].widget = forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'email'})
         self.fields['password'].widget = forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'new-password'})
         self.fields['password2'].widget = forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'new-password'})
+        
+        # Add help text classes for styling
+        for field in self.fields.values():
+            if field.help_text:
+                field.widget.attrs['class'] = field.widget.attrs.get('class', '') + ' mb-1'
+                field.help_text = f'<small class="form-text text-muted">{field.help_text}</small>'
     
     def clean(self):            
         cleaned_data = super().clean()
         password = cleaned_data.get('password')
         password2 = cleaned_data.get('password2')
-        if password != password2:
-            raise forms.ValidationError('Passwords do not match')
+        email = cleaned_data.get('email')
+        
+        if password and password2 and password != password2:
+            self.add_error('password', forms.ValidationError(_('Passwörter stimmen nicht überein.')))
+            self.add_error('password2', forms.ValidationError(_('Passwörter stimmen nicht überein.')))
+
+        # Create a temporary user for password validation
+        if email and password:
+            temp_user = get_user_model()(
+                username=email,
+                email=email,
+                first_name=cleaned_data.get('first_name', ''),
+                last_name=cleaned_data.get('last_name', '')
+            )
+            from django.contrib.auth.password_validation import validate_password
+            try:
+                validate_password(password, temp_user)
+            except forms.ValidationError as e:
+                self.add_error('password', e)
+
         return cleaned_data
     
     def save(self):

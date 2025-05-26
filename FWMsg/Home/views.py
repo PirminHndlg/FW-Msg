@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.contrib.auth.models import User
-from .forms import PasswordResetForm, EmailAuthenticationForm
+from .forms import PasswordResetForm, EmailAuthenticationForm, FirstLoginForm
 from django.contrib.auth import get_user_model
 import re
 from Global.models import Maintenance
@@ -166,62 +166,63 @@ def maintenance(request):
 
 def first_login(request, username=None, einmalpasswort=None):
     if request.method == 'POST':
-        user_name = request.POST['username']
-        password = request.POST['password']
-        password_repeat = request.POST['password_repeat']
-        einmalpasswort = request.POST['einmalpasswort']
+        form = FirstLoginForm(request.POST)
+        if form.is_valid():
+            user_name = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            einmalpasswort = form.cleaned_data['einmalpasswort']
 
-        user_exists = User.objects.filter(username=user_name).exists()
+            user_exists = User.objects.filter(username=user_name).exists()
 
-        if not user_exists:
-            messages.error(request, _('Benutzername nicht gefunden.'))
-            return redirect('first_login')
-        else:
-            user = User.objects.get(username=user_name)
-            
-        def redirect_to_first_login(username, einmalpasswort):
-            if username and einmalpasswort:
-                return redirect('first_login_with_params', username=username, einmalpasswort=einmalpasswort)
-            elif username:
-                return redirect('first_login_with_username', username=username)
-            else:
+            if not user_exists:
+                messages.error(request, _('Benutzername nicht gefunden.'))
                 return redirect('first_login')
-        
-        if not user.customuser:
-            messages.error(request, _('Interner Fehler: Benutzer nicht gefunden. Kontaktiere den Administrator.'))
-            return redirect('first_login')
-        
-        if password != password_repeat:
-            messages.error(request, _('Passwörter stimmen nicht überein.'))
-            return redirect_to_first_login(user_name, einmalpasswort)
-        
-        if not user.customuser.einmalpasswort:
-            messages.error(request, _('Einmalpasswort bereits verwendet.'))
-            return redirect_to_first_login(user_name, einmalpasswort)
-        
-        if user.customuser.einmalpasswort != einmalpasswort:
-            messages.error(request, _('Ungültiges Einmalpasswort.'))
-            return redirect_to_first_login(user_name, einmalpasswort)
-        
-        user.customuser.einmalpasswort = None
-        user.customuser.save()
+            else:
+                user = User.objects.get(username=user_name)
+                
+            def redirect_to_first_login(username, einmalpasswort):
+                if username and einmalpasswort:
+                    return redirect('first_login_with_params', username=username, einmalpasswort=einmalpasswort)
+                elif username:
+                    return redirect('first_login_with_username', username=username)
+                else:
+                    return redirect('first_login')
+            
+            if not user.customuser:
+                messages.error(request, _('Interner Fehler: Benutzer nicht gefunden. Kontaktiere den Administrator.'))
+                return redirect('first_login')
+            
+            if not user.customuser.einmalpasswort:
+                messages.error(request, _('Einmalpasswort bereits verwendet.'))
+                return redirect_to_first_login(user_name, einmalpasswort)
+            
+            if user.customuser.einmalpasswort != einmalpasswort:
+                messages.error(request, _('Ungültiges Einmalpasswort.'))
+                return redirect_to_first_login(user_name, einmalpasswort)
+            
+            user.customuser.einmalpasswort = None
+            user.customuser.save()
 
-        user.set_password(password)
-        user.save()
+            user.set_password(password)
+            user.save()
 
-        # Re-authenticate with new password
-        user = authenticate(username=user_name, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect('index_home')
-        else:
-            messages.error(request, _('Fehler beim Login. Bitte versuchen Sie es erneut.'))
-            return redirect('first_login')
-    
-    username = username or request.GET.get('username')
-    einmalpasswort = einmalpasswort or request.GET.get('einmalpasswort')
+            # Re-authenticate with new password
+            user = authenticate(username=user_name, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('index_home')
+            else:
+                messages.error(request, _('Fehler beim Login. Bitte versuchen Sie es erneut.'))
+                return redirect('first_login')
+    else:
+        initial = {}
+        if username:
+            initial['username'] = username
+        if einmalpasswort:
+            initial['einmalpasswort'] = einmalpasswort
+        form = FirstLoginForm(initial=initial)
 
-    return render(request, 'first_login.html', {'username': username, 'einmalpasswort': einmalpasswort})
+    return render(request, 'first_login.html', {'form': form})
 
 def password_reset(request):
     if request.method == 'POST':

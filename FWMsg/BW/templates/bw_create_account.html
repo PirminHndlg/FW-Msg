@@ -65,7 +65,7 @@
                                 {% render_field field class="form-control" %}
                             {% endif %}
                             {% if field.help_text %}
-                            <div class="form-text">{{ field.help_text }}</div>
+                            <div class="form-text">{{ field.help_text|safe }}</div>
                             {% endif %}
                         </div>
                         {% endfor %}
