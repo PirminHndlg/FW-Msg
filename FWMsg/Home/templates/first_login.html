@@ -67,28 +67,47 @@
                                 
                                 {% if form.errors %}
                                 <div class="alert alert-danger" role="alert">
-                                    {% trans "Benutzername oder Passwort falsch." %}
+                                    {% for field in form %}
+                                        {% for error in field.errors %}
+                                            <p>{{ error }}</p>
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {% for error in form.non_field_errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
                                 </div>
                                 {% endif %}
                                 
                                 <div class="form-floating mb-3">
-                                    <input type="text" name="username" class="form-control rounded-3" id="username" placeholder="{% trans 'Benutzername' %}" required value="{{ username|default:'' }}">
-                                    <label for="username">{% trans "Benutzername" %}</label>
+                                    {{ form.username }}
+                                    <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
                                 </div>
 
                                 <div class="form-floating mb-4">
-                                    <input type="text" name="einmalpasswort" class="form-control rounded-3" id="einmalpasswort" placeholder="{% trans 'Einmalpasswort' %}" required value="{{ einmalpasswort|default:'' }}">
-                                    <label for="einmalpasswort">{% trans "Einmalpasswort" %}</label>
+                                    {{ form.einmalpasswort }}
+                                    <label for="{{ form.einmalpasswort.id_for_label }}">{{ form.einmalpasswort.label }}</label>
                                 </div>
 
                                 <div class="form-floating mb-4">
-                                    <input type="password" name="password" class="form-control rounded-3" id="password" placeholder="{% trans 'Neues Passwort' %}" required>
-                                    <label for="password">{% trans "Neues Passwort" %}</label>
+                                    {{ form.password }}
+                                    <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
                                 </div>
 
                                 <div class="form-floating mb-4">
-                                    <input type="password" name="password_repeat" class="form-control rounded-3" id="password_repeat" placeholder="{% trans 'Neues Passwort wiederholen' %}" required>
-                                    <label for="password_repeat">{% trans "Neues Passwort wiederholen" %}</label>
+                                    {{ form.password_repeat }}
+                                    <label for="{{ form.password_repeat.id_for_label }}">{{ form.password_repeat.label }}</label>
+                                </div>
+
+                                <div class="alert alert-info rounded-3 mb-4">
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <i class="bi bi-info-circle-fill fs-4"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="alert-heading mb-2">{% trans "Passwortanforderungen" %}</h5>
+                                            <div class="form-text">{{ form.password.help_text|safe }}</div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <input type="hidden" name="next" value="{{ next }}">
