@@ -27,7 +27,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from BW.models import ApplicationAnswer, ApplicationAnswerFile, ApplicationText, ApplicationQuestion, ApplicationFileQuestion, Bewerber
 from Global.models import (
-    Attribute, AufgabenCluster, Aufgabe2, KalenderEvent, Maintenance, PersonCluster, UserAttribute, 
+    Attribute, AufgabenCluster, Aufgabe2, KalenderEvent, Maintenance, PersonCluster, StickyNote, UserAttribute, 
     UserAufgaben, Post2, Bilder2, CustomUser,
     BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2,
     Einsatzland2, Einsatzstelle2,
@@ -209,6 +209,12 @@ def home(request):
         org=request.user.org,
         pinned=True
     ).order_by('-date')
+    
+    sticky_notes = StickyNote.objects.filter(
+        org=request.user.org,
+        user=request.user,
+        pinned=True
+    ).order_by('-date')
 
     context = {
         'gallery_images': gallery_images,
@@ -217,6 +223,7 @@ def home(request):
         'my_open_tasks': my_open_tasks,
         'posts': posts,
         'pinned_notizen': pinned_notizen,
+        'sticky_notes': sticky_notes,
         'large_container': True
     }
     
@@ -1561,4 +1568,46 @@ def application_answer_download_fields(request, bewerber_id):
     response.write(pdf)
     
     return response
+
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def create_sticky_note(request):
+    """Create a new sticky note."""
+    notiz = request.POST.get('notiz')
+    if not notiz:
+        messages.error(request, 'Bitte geben Sie eine Notiz ein.')
+        return redirect('org_home')
+    
+    StickyNote.objects.create(
+        org=request.user.org,
+        user=request.user,
+        notiz=notiz,
+        pinned=True,
+        date=timezone.now()
+    )
+    
+    return redirect('org_home')
+
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def delete_sticky_note(request):
+    """Delete a sticky note."""
+    notiz_id = request.POST.get('notiz_id')
+    if not notiz_id:
+        messages.error(request, 'Keine Notiz ID angegeben.')
+        return redirect('org_home')
+    
+    try:
+        notiz = StickyNote.objects.get(
+            id=notiz_id,
+            org=request.user.org,
+            user=request.user
+        )
+        notiz.delete()
+    except StickyNote.DoesNotExist:
+        messages.error(request, 'Notiz konnte nicht gefunden werden.')
+    
+    return redirect('org_home')
 
