@@ -15,6 +15,9 @@ from .forms import CreateAccountForm, ApplicationAnswerForm, ApplicationFileAnsw
 from FWMsg.decorators import required_role
 from .models import ApplicationQuestion, ApplicationAnswer, ApplicationText, Bewerber, ApplicationAnswerFile, ApplicationFileQuestion
 from django.contrib import messages
+
+base_template = 'baseBw.html'
+
 # Create your views here.
 @login_required
 @required_role('B')

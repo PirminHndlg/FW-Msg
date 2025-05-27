@@ -69,6 +69,7 @@ from FW.models import Freiwilliger
 from ORG.views import base_template as org_base_template
 from TEAM.views import base_template as team_base_template
 from FW.views import base_template as fw_base_template
+from BW.views import base_template as bw_base_template
 from FWMsg.celery import send_email_aufgaben_daily
 from FWMsg.decorators import required_person_cluster, required_role
 from .forms import EinsatzstelleNotizForm, FeedbackForm, AddPostForm
@@ -199,6 +200,11 @@ def check_organization_context(request, context=None):
         context.update({
             'extends_base': fw_base_template,
             'is_freiwilliger': True
+        })
+    elif request.user.role == 'B':
+        context.update({
+            'extends_base': bw_base_template,
+            'is_bewerber': True
         })
 
     return context
