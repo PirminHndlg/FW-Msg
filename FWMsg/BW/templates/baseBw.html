@@ -27,6 +27,33 @@
             background-color: var(--bs-light);
             border-top: 1px solid var(--bs-gray-200);
         }
+        .modal-content {
+            border: 1px solid var(--bs-gray-200);
+        }
+        
+        .modal-header {
+            padding: 1.5rem 1.5rem 0.5rem;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            padding: 1rem 1.5rem 1.5rem;
+        }
+        
+        .alert ul {
+            margin-bottom: 0;
+        }
+        
+        .alert ul li {
+            margin-bottom: 0.25rem;
+        }
+        
+        .alert ul li:last-child {
+            margin-bottom: 0;
+        }
     </style>
   </head>
   <body class="d-flex flex-column min-vh-100">
@@ -55,6 +82,8 @@
                                 <li><a class="dropdown-item" href="{% url 'bw_application_files_list' %}"><i class="bi bi-file-earmark-text me-2"></i>Dateianhänge</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Abmelden</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteAccountModal"><i class="bi bi-trash me-2"></i>Konto löschen und Bewerbung ziehen</a></li>
                             </ul>
                         </div>
                     {% else %}
@@ -97,5 +126,72 @@
 
     <!-- Bootstrap Bundle with Popper -->
     {% block scripts %}{% endblock %}
+
+    <!-- Delete Account Confirmation Modal -->
+    <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-semibold" id="deleteAccountModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>
+                        Konto löschen
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger border-0 rounded-4">
+                        <div class="d-flex">
+                            <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                            <div>
+                                <h6 class="alert-heading mb-2">Achtung: Unwiderrufliche Aktion</h6>
+                                <p class="mb-0">Wenn Sie Ihr Konto löschen:</p>
+                                <ul class="mb-0 ps-3 mt-2">
+                                    <li>Wird Ihre Bewerbung unwiderruflich zurückgezogen</li>
+                                    <li>Werden alle Ihre Daten und Antworten gelöscht</li>
+                                    <li>Können Sie sich nicht mehr mit diesem Konto bewerben</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mb-0">Sind Sie sicher, dass Sie Ihr Konto löschen möchten?</p>
+                    <div class="mt-4">
+                        <label for="deleteConfirmation" class="form-label">Bitte geben Sie 'DELETE' ein, um fortzufahren:</label>
+                        <input type="text" class="form-control" id="deleteConfirmation" placeholder="hier eingeben...">
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light rounded-4" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Abbrechen
+                    </button>
+                    <a href="{% url 'bw_delete_account' %}" class="btn btn-danger rounded-4 disabled" id="confirmDeleteBtn" disabled>
+                        <i class="bi bi-trash me-2"></i>Ja, Konto löschen
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteConfirmation = document.getElementById('deleteConfirmation');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            
+            deleteConfirmation.addEventListener('input', function() {
+                confirmDeleteBtn.disabled = this.value !== 'DELETE';
+                if (this.value === 'DELETE') {
+                    confirmDeleteBtn.classList.remove('disabled');
+                } else {
+                    confirmDeleteBtn.classList.add('disabled');
+                }
+            });
+
+            // Reset input when modal is closed
+            const deleteAccountModal = document.getElementById('deleteAccountModal');
+            deleteAccountModal.addEventListener('hidden.bs.modal', function() {
+                deleteConfirmation.value = '';
+                confirmDeleteBtn.disabled = true;
+            });
+        });
+    </script>
   </body>
 </html>
