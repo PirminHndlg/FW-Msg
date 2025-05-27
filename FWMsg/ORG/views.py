@@ -41,6 +41,12 @@ from django.db import models
 import ORG.forms as ORGforms
 from FWMsg.decorators import required_role
 from django.views.decorators.http import require_http_methods
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from io import BytesIO
 
 base_template = 'baseOrg.html'
 
@@ -1389,4 +1395,159 @@ def application_detail(request, id):
         return render(request, 'application_detail.html', context)
     except Bewerber.DoesNotExist:
         return redirect('application_list')
+
+def _create_pdf_document():
+    """Create a PDF document with standard settings."""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=72,
+        leftMargin=72,
+        topMargin=72,
+        bottomMargin=72
+    )
+    return buffer, doc
+
+def _get_pdf_styles():
+    """Get standard PDF styles."""
+    styles = getSampleStyleSheet()
+    return {
+        'title': ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=16,
+            spaceAfter=30
+        ),
+        'heading': ParagraphStyle(
+            'CustomHeading',
+            parent=styles['Heading2'],
+            fontSize=14,
+            spaceAfter=12
+        ),
+        'normal': styles['Normal']
+    }
+
+def _create_info_table(bewerber, styles):
+    """Create the applicant information table."""
+    info_data = [
+        ['Name:', f"{bewerber.user.first_name} {bewerber.user.last_name}"],
+        ['E-Mail:', bewerber.user.email],
+    ]
+    
+    info_table = Table(info_data, colWidths=[2*inch, 4*inch])
+    info_table.setStyle(TableStyle([
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('BACKGROUND', (0, 0), (0, -1), colors.lightgrey),
+        ('PADDING', (0, 0), (-1, -1), 6),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+    return info_table
+
+def _add_answers_to_content(content, answers, styles):
+    """Add answers to the PDF content."""
+    for answer in answers:
+        # Add question
+        content.append(Paragraph(f"Frage {answer.question.order}: {answer.question.question}", styles['heading']))
+        
+        # Add question description if exists
+        if answer.question.description:
+            content.append(Paragraph(answer.question.description, styles['normal']))
+            content.append(Spacer(1, 6))
+        
+        # Add answer
+        if answer.answer:
+            content.append(Paragraph(answer.answer, styles['normal']))
+        else:
+            content.append(Paragraph("Keine Antwort", styles['normal']))
+        
+        content.append(Spacer(1, 20))
+
+@login_required
+@required_role('O')
+def application_answer_download(request, bewerber_id):
+    bewerber = get_object_or_404(Bewerber, id=bewerber_id, org=request.user.org)
+    
+    # Create PDF document and get styles
+    buffer, doc = _create_pdf_document()
+    styles = _get_pdf_styles()
+    
+    # Create the content
+    content = []
+    
+    # Add title
+    content.append(Paragraph(f"Bewerbung von {bewerber.user}", styles['title']))
+    content.append(Spacer(1, 20))
+    
+    # Add application info
+    content.append(_create_info_table(bewerber, styles))
+    content.append(Spacer(1, 30))
+    
+    # Add all answers
+    answers = ApplicationAnswer.objects.filter(user=bewerber.user).order_by('question__order')
+    _add_answers_to_content(content, answers, styles)
+    
+    # Build the PDF
+    doc.build(content)
+    
+    # Get the value of the BytesIO buffer
+    pdf = buffer.getvalue()
+    buffer.close()
+    
+    # Create the HTTP response
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="bewerbung_{bewerber.user.first_name}_{bewerber.user.last_name}_{datetime.now().strftime("%Y%m%d")}.pdf"'
+    response.write(pdf)
+    
+    return response
+
+@login_required
+@required_role('O')
+def application_answer_download_fields(request, bewerber_id):
+    bewerber = get_object_or_404(Bewerber, id=bewerber_id, org=request.user.org)
+    
+    # Get selected question IDs from request
+    selected_question_ids = request.GET.getlist('questions')
+    if not selected_question_ids:
+        messages.error(request, 'Bitte wählen Sie mindestens eine Frage aus.')
+        return redirect('application_detail', id=bewerber_id)
+    
+    # Create PDF document and get styles
+    buffer, doc = _create_pdf_document()
+    styles = _get_pdf_styles()
+    
+    # Create the content
+    content = []
+    
+    # Add title
+    content.append(Paragraph(f"Ausgewählte Antworten von {bewerber.user.first_name} {bewerber.user.last_name}", styles['title']))
+    content.append(Spacer(1, 20))
+    
+    # Add application info
+    content.append(_create_info_table(bewerber, styles))
+    content.append(Spacer(1, 30))
+    
+    # Add selected answers
+    answers = ApplicationAnswer.objects.filter(
+        user=bewerber.user,
+        question_id__in=selected_question_ids
+    ).order_by('question__order')
+    _add_answers_to_content(content, answers, styles)
+    
+    # Build the PDF
+    doc.build(content)
+    
+    # Get the value of the BytesIO buffer
+    pdf = buffer.getvalue()
+    buffer.close()
+    
+    # Create the HTTP response
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="bewerbung_auswahl_{bewerber.user.last_name}_{datetime.now().strftime("%Y%m%d")}.pdf"'
+    response.write(pdf)
+    
+    return response
 
