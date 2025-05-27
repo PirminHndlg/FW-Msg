@@ -214,7 +214,7 @@ def home(request):
         org=request.user.org,
         user=request.user,
         pinned=True
-    ).order_by('-date')
+    ).order_by('-priority', '-date')
 
     context = {
         'gallery_images': gallery_images,
@@ -1575,6 +1575,7 @@ def application_answer_download_fields(request, bewerber_id):
 def create_sticky_note(request):
     """Create a new sticky note."""
     notiz = request.POST.get('notiz')
+    priority = request.POST.get('priority', 0)
     if not notiz:
         messages.error(request, 'Bitte geben Sie eine Notiz ein.')
         return redirect('org_home')
@@ -1584,7 +1585,8 @@ def create_sticky_note(request):
         user=request.user,
         notiz=notiz,
         pinned=True,
-        date=timezone.now()
+        date=timezone.now(),
+        priority=priority
     )
     
     return redirect('org_home')

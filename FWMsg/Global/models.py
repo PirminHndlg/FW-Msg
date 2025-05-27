@@ -960,6 +960,7 @@ class StickyNote(OrgModel):
     notiz = models.CharField(max_length=1000, verbose_name='Notiz', null=True, blank=True, help_text='Notiz')
     date = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
     pinned = models.BooleanField(default=False, verbose_name='Angeheftet')
+    priority = models.IntegerField(default=0, verbose_name='Priorität', help_text='Priorität der Notiz')
     
     class Meta:
         verbose_name = 'Sticky Note'
