@@ -9,6 +9,7 @@ billiard==4.2.1
 celery==5.4.0
 certifi==2025.1.31
 cffi==1.17.1
+chardet==5.2.0
 charset-normalizer==3.4.1
 click==8.1.8
 click-didyoumean==0.3.1
@@ -20,12 +21,14 @@ Django==5.2.1
 django-celery==3.1.17
 django-celery-results==2.5.1
 django-gdpr-assist==1.4.2
+django-password-validators==1.7.3
 django-simple-history==3.8.0
 django-widget-tweaks==1.5.0
 django-yaa-settings==1.1.0
 docx2pdf==0.1.8
 et_xmlfile==2.0.0
 frozenlist==1.5.0
+git-filter-repo==2.47.0
 html2text==2024.2.26
 http_ece==1.2.1
 idna==3.10
@@ -47,6 +50,7 @@ python-docx==1.1.2
 pytz==2024.2
 pywebpush==2.0.3
 redis==5.2.1
+reportlab==4.4.1
 requests==2.32.3
 six==1.17.0
 sqlparse==0.5.1
