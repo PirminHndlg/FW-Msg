@@ -22,14 +22,48 @@
                 <div class="card-body">
                     <form method="get" class="d-flex align-items-center">
                         <div class="flex-grow-1 me-3">
-                            <select name="es_id" class="form-select" onchange="this.form.submit()">
-                                <option value="">Einsatzstelle auswählen...</option>
-                                {% for es in einsatzstellen %}
-                                    <option value="{{ es.id }}" {% if es.id == einsatzstelle.id %}selected{% endif %}>
-                                        {{ es.land.name }} - {{ es.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between" type="button" id="einsatzstelleDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span>
+                                        {% if einsatzstelle %}
+                                            <span class="fi fi-{{ einsatzstelle.land.code|lower }} me-2"></span>
+                                            {{ einsatzstelle.name }}
+                                        {% else %}
+                                            <i class="bi bi-house me-2"></i>
+                                            Einsatzstelle auswählen...
+                                        {% endif %}
+                                    </span>
+                                </button>
+                                <ul class="dropdown-menu w-100 shadow-sm border-1 pt-0" aria-labelledby="einsatzstelleDropdown" style="max-height: 600px; overflow-y: auto;">
+                                    <li class="sticky-top bg-white" style="z-index: 1;">
+                                        <div class="px-3 py-2">
+                                            <div class="input-group">
+                                                <span class="input-group-text border-0 bg-light">
+                                                    <i class="bi bi-search"></i>
+                                                </span>
+                                                <input type="text" class="form-control border-0 bg-light" id="einsatzstelleSearch" placeholder="Suchen..." autocomplete="off">
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    {% for es in einsatzstellen %}
+                                        <li class="dropdown-item-container">
+                                            <a class="dropdown-item py-2 {% if es.id == einsatzstelle.id %}active bg-primary text-white{% endif %}" href="?es_id={{ es.id }}">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="fi fi-{{ es.land.code|lower }} me-2"></span>
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex align-items-center justify-content-between">
+                                                            <span>{{ es.name }}</span>
+                                                            <span class="badge {% if es.id == einsatzstelle.id %}bg-white text-primary{% else %}bg-primary text-white{% endif %} rounded-pill ms-2">{{ es.get_notiz_count|default:0 }}</span>
+                                                        </div>
+                                                        <small class="text-muted {% if es.id == einsatzstelle.id %}text-white-50{% endif %}">{{ es.land.name }}</small>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -71,7 +105,7 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
                     <h5 class="mb-0">
-                        <i class="bi bi-clock-history me-2"></i>Vorherige Notizen
+                        <i class="bi bi-journal-text me-2"></i>Notizen
                     </h5>
                 </div>
                 <div class="card-body">
@@ -148,6 +182,30 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('einsatzstelleSearch');
+    const dropdownItems = document.querySelectorAll('.dropdown-item-container');
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        dropdownItems.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            if (text.includes(searchTerm)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+
+    // Clear search when dropdown is closed
+    const dropdown = document.getElementById('einsatzstelleDropdown');
+    dropdown.addEventListener('hidden.bs.dropdown', function() {
+        searchInput.value = '';
+        dropdownItems.forEach(item => item.style.display = '');
+    });
+
     // Edit functionality
     document.querySelectorAll('.edit-notiz').forEach(button => {
         button.addEventListener('click', function() {
