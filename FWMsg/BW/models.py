@@ -30,6 +30,7 @@ class ApplicationQuestion(OrgModel):
         ('f', 'Datei'),
     ]
     question = models.TextField(verbose_name='Frage', help_text='Die Frage, die der Bewerber:in beantworten soll.')
+    description = models.TextField(verbose_name='Beschreibung', null=True, blank=True, help_text='Die Beschreibung der Frage, die der Bewerber:in beantworten soll.')
     order = models.IntegerField(verbose_name='Position', null=True, blank=True, help_text='Die Position der Frage in der Bewerbung. Wenn leer, wird hinten eingefügt.')
     max_length = models.IntegerField(verbose_name='Maximale Länge', default=1000, null=True, blank=True, help_text='Die maximale Länge der Antwort.')
     

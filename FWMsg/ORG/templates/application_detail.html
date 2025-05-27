@@ -67,7 +67,15 @@
 
             <!-- Text Answers -->
             {% if application_answers.exists %}
-              <h5 class="mb-3">Textantworten</h5>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Textantworten</h5>
+                <div class="d-flex gap-2">
+                  <a href="{% url 'application_answer_download' bewerber.id %}" class="btn btn-outline-primary rounded-3"><i class="bi bi-file-earmark-text me-2"></i>PDF herunterladen</a>
+                  <button type="button" class="btn btn-outline-primary rounded-3" data-bs-toggle="modal" data-bs-target="#selectQuestionsModal">
+                    <i class="bi bi-file-earmark-text me-2"></i>Ausgewählte Antworten als PDF
+                  </button>
+                </div>
+              </div>
               <div class="list-group list-group-flush mb-4">
                 {% for answer in application_answers %}
                   <div class="list-group-item px-0 py-3">
@@ -110,6 +118,81 @@
       </div>
     </div>
   </div>
+
+  <!-- Question Selection Modal -->
+  <div class="modal fade" id="selectQuestionsModal" tabindex="-1" aria-labelledby="selectQuestionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="selectQuestionsModalLabel">Fragen für PDF auswählen</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="questionSelectionForm" action="{% url 'application_answer_download_fields' bewerber.id %}" method="get">
+            <div class="mb-3">
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="selectAllQuestions">
+                <label class="form-check-label" for="selectAllQuestions">
+                  Alle Fragen auswählen
+                </label>
+              </div>
+              <hr>
+              <div class="question-list">
+                {% for answer in application_answers %}
+                <div class="form-check mb-3">
+                  <input class="form-check-input question-checkbox" type="checkbox" name="questions" value="{{ answer.question.id }}" id="question{{ answer.question.id }}">
+                  <label class="form-check-label" for="question{{ answer.question.id }}">
+                    <strong>Frage {{ answer.question.order }}:</strong> {{ answer.question.question }}
+                  </label>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+          <button type="button" class="btn btn-primary" id="downloadSelectedQuestions">Herunterladen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const selectAllCheckbox = document.getElementById('selectAllQuestions');
+      const questionCheckboxes = document.querySelectorAll('.question-checkbox');
+      const downloadButton = document.getElementById('downloadSelectedQuestions');
+      const form = document.getElementById('questionSelectionForm');
+
+      // Handle "Select All" checkbox
+      selectAllCheckbox.addEventListener('change', function() {
+        questionCheckboxes.forEach(checkbox => {
+          checkbox.checked = this.checked;
+        });
+      });
+
+      // Update "Select All" checkbox state when individual checkboxes change
+      questionCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          const allChecked = Array.from(questionCheckboxes).every(cb => cb.checked);
+          const someChecked = Array.from(questionCheckboxes).some(cb => cb.checked);
+          selectAllCheckbox.checked = allChecked;
+          selectAllCheckbox.indeterminate = someChecked && !allChecked;
+        });
+      });
+
+      // Handle download button click
+      downloadButton.addEventListener('click', function() {
+        const selectedQuestions = document.querySelectorAll('.question-checkbox:checked');
+        if (selectedQuestions.length === 0) {
+          alert('Bitte wählen Sie mindestens eine Frage aus.');
+          return;
+        }
+        form.submit();
+      });
+    });
+  </script>
 
   <style>
     .list-group-item {

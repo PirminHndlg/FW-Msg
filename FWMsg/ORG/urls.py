@@ -22,6 +22,8 @@ urlpatterns = [
     path('bewerbung-overview/', views.application_overview, name='application_overview'),
     path('bewerbung-liste/', views.application_list, name='application_list'),
     path('bewerbung-detail/<int:id>', views.application_detail, name='application_detail'),
+    path('bewerbung-answer-download/<int:bewerber_id>', views.application_answer_download, name='application_answer_download'),
+    path('bewerbung-answer-download-fields/<int:bewerber_id>', views.application_answer_download_fields, name='application_answer_download_fields'),
     
     path('download-aufgabe/<int:id>', views.download_aufgabe, name='download_aufgabe'),
     path('download-bild/<int:id>', views.download_bild_as_zip, name='download_bild_as_zip'),
