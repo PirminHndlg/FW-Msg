@@ -46,6 +46,10 @@
                            class="list-group-item list-group-item-action {% if q.id == question.id %}active{% endif %} d-flex align-items-center">
                             <span class="badge bg-primary rounded-pill me-2">{{ q.order }}</span>
                             <span class="text-truncate">{{ q.question }}</span>
+                            
+                            {% if q.id in answered_questions_ids %}
+                                <span class="badge bg-success rounded-pill ms-2">Beantwortet</span>
+                            {% endif %}
                         </a>
                         {% endfor %}
                     </div>
