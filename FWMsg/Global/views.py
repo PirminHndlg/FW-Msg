@@ -1316,8 +1316,19 @@ def einsatzstellen_notiz(request, es_id=None):
             messages.error(request, 'Notiz konnte nicht gelöscht werden.')
         return redirect('einsatzstellen_notiz', es_id=es_id)
     
+    # Handle note pinning/unpinning
+    if request.method == 'POST' and 'action' in request.POST and request.POST.get('action') in ['pin', 'unpin']:
+        notiz_id = request.POST.get('notiz_id')
+        try:
+            notiz = EinsatzstelleNotiz.objects.get(id=notiz_id)
+            notiz.pinned = request.POST.get('action') == 'pin'
+            notiz.save()
+        except EinsatzstelleNotiz.DoesNotExist:
+            messages.error(request, 'Notiz konnte nicht aktualisiert werden.')
+        return redirect('einsatzstellen_notiz', es_id=es_id)
+    
     # Handle note editing
-    if request.method == 'POST' and 'notiz_id' in request.POST:
+    if request.method == 'POST' and 'notiz_id' in request.POST and 'notiz' in request.POST:
         notiz_id = request.POST.get('notiz_id')
         try:
             notiz = EinsatzstelleNotiz.objects.get(id=notiz_id, user=request.user)
@@ -1339,8 +1350,8 @@ def einsatzstellen_notiz(request, es_id=None):
     else:
         form = EinsatzstelleNotizForm(einsatzstelle=einsatzstelle, request=request, org=request.user.org) if einsatzstelle else None
     
-    # Get notes for the selected Einsatzstelle
-    notizen = EinsatzstelleNotiz.objects.filter(einsatzstelle=einsatzstelle).order_by('-date') if einsatzstelle else None
+    # Get notes for the selected Einsatzstelle, ordered by pinned status and date
+    notizen = EinsatzstelleNotiz.objects.filter(einsatzstelle=einsatzstelle).order_by('-pinned', '-date') if einsatzstelle else None
 
     context = {
         'form': form,

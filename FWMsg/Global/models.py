@@ -942,9 +942,10 @@ class PushSubscription(models.Model):
 
 class EinsatzstelleNotiz(OrgModel):
     einsatzstelle = models.ForeignKey(Einsatzstelle2, on_delete=models.CASCADE, verbose_name='Einsatzstelle')
-    notiz = models.TextField(verbose_name='Notiz', null=True, blank=True, help_text='Notiz der Einsatzstelle')
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
+    notiz = models.TextField(verbose_name='Notiz', null=True, blank=True, help_text='Notiz der Einsatzstelle')
     date = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
+    pinned = models.BooleanField(default=False, verbose_name='Angeheftet')
     
     class Meta:
         verbose_name = 'Einsatzstellen Notiz'

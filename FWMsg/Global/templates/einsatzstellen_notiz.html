@@ -111,20 +111,31 @@
                 <div class="card-body">
                     {% if notizen %}
                         {% for notiz in notizen %}
-                            <div class="border-bottom mb-3 pb-3" id="notiz-{{ notiz.id }}">
+                            <div class="border-bottom mb-3 pb-3 {% if notiz.pinned %}border-primary{% endif %}" id="notiz-{{ notiz.id }}">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <div class="d-flex align-items-center">
                                             <i class="bi bi-person-circle text-primary me-2"></i>
                                             <strong>{{ notiz.user.get_full_name|default:notiz.user.username }}</strong>
+                                            {% if notiz.pinned %}
+                                                <i class="bi bi-pin-angle-fill text-primary ms-2" title="Angeheftet"></i>
+                                            {% endif %}
                                         </div>
                                         <small class="text-muted ms-4">
                                             <i class="bi bi-clock me-1"></i>
                                             {{ notiz.date|date:"d.m.Y H:i" }}
                                         </small>
                                     </div>
-                                    {% if notiz.user == request.user %}
                                     <div class="btn-group">
+                                        <form method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="notiz_id" value="{{ notiz.id }}">
+                                            <input type="hidden" name="action" value="{% if notiz.pinned %}unpin{% else %}pin{% endif %}">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary" title="{% if notiz.pinned %}Anheften aufheben{% else %}Anheften{% endif %}">
+                                                <i class="bi {% if notiz.pinned %}bi-pin-angle-fill{% else %}bi-pin-angle{% endif %}"></i>
+                                            </button>
+                                        </form>
+                                        {% if notiz.user == request.user %}
                                         <button type="button" class="btn btn-sm btn-outline-primary edit-notiz" 
                                                 data-notiz-id="{{ notiz.id }}"
                                                 data-notiz-text="{{ notiz.notiz }}">
@@ -134,8 +145,8 @@
                                                 data-notiz-id="{{ notiz.id }}">
                                             <i class="bi bi-trash"></i>
                                         </button>
+                                        {% endif %}
                                     </div>
-                                    {% endif %}
                                 </div>
                                 <div class="mt-2 ms-4">
                                     <p class="mb-0 notiz-content">{{ notiz.notiz }}</p>
