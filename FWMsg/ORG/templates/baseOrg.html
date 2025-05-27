@@ -105,7 +105,7 @@
         </nav>
 
         {# Main Content Area #}
-        <div class="container-fluid mt-3 mb-5">
+        <div class="{% if large_container %}container-fluid{% else %}container{% endif %} mt-3 mb-5">
           {% include 'error_message.html' %}
           {% block content %}
 
