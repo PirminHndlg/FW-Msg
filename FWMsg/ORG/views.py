@@ -31,7 +31,8 @@ from Global.models import (
     UserAufgaben, Post2, Bilder2, CustomUser,
     BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2,
     Einsatzland2, Einsatzstelle2,
-    AufgabeZwischenschritte2, UserAufgabenZwischenschritte
+    AufgabeZwischenschritte2, UserAufgabenZwischenschritte,
+    EinsatzstelleNotiz
 )
 from TEAM.models import Team
 from FW.models import Freiwilliger
@@ -203,15 +204,22 @@ def home(request):
 
     posts = get_posts(request.user.org, limit=4)
 
+    # Get all pinned notes across all Einsatzstellen
+    pinned_notizen = EinsatzstelleNotiz.objects.filter(
+        org=request.user.org,
+        pinned=True
+    ).order_by('-date')
+
     context = {
         'gallery_images': gallery_images,
         'pending_tasks': pending_tasks,
         'open_tasks': open_tasks,
         'my_open_tasks': my_open_tasks,
-        'posts': posts
+        'posts': posts,
+        'pinned_notizen': pinned_notizen,
     }
     
-    return render(request, 'homeOrg.html', context)
+    return render(request, 'homeOrg.html', context=context)
 
 
 @staff_member_required
@@ -1479,7 +1487,7 @@ def application_answer_download(request, bewerber_id):
     content = []
     
     # Add title
-    content.append(Paragraph(f"Bewerbung von {bewerber.user}", styles['title']))
+    content.append(Paragraph(f"Bewerbung von {bewerber.user.first_name} {bewerber.user.last_name}", styles['title']))
     content.append(Spacer(1, 20))
     
     # Add application info
