@@ -1,27 +1,72 @@
 {% extends 'baseBw.html' %}
 {% load i18n %}
 {% load widget_tweaks %}
+{% load bw_filters %}
 
 {% block title %}Frage beantworten{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-12 col-lg-8">
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Side Menu -->
+        <div class="col-12 col-lg-3 mb-4 mb-lg-0">
+            <!-- Accordion for small devices -->
+            <div class="accordion d-lg-none" id="questionsAccordion">
+                <div class="accordion-item rounded-4 shadow-sm">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed rounded-4" type="button" data-bs-toggle="collapse" data-bs-target="#questionsCollapse" aria-expanded="false" aria-controls="questionsCollapse">
+                            Fragen ({{ question.order }}/{{ all_questions|max_order }})
+                        </button>
+                    </h2>
+                    <div id="questionsCollapse" class="accordion-collapse collapse" data-bs-parent="#questionsAccordion">
+                        <div class="accordion-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% for q in all_questions %}
+                                <a href="{% url 'bw_application_answer' q.id %}" 
+                                   class="list-group-item list-group-item-action {% if q.id == question.id %}active{% endif %} d-flex align-items-center">
+                                    <span class="badge bg-primary rounded-pill me-2">{{ q.order }}</span>
+                                    <span class="text-truncate">{{ q.question }}</span>
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Regular card for larger devices -->
+            <div class="card rounded-4 shadow-sm h-100 d-none d-lg-block">
+                <div class="card-header bg-light rounded-top-4 py-3">
+                    <h5 class="card-title mb-0 fw-semibold">Fragen</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for q in all_questions %}
+                        <a href="{% url 'bw_application_answer' q.id %}" 
+                           class="list-group-item list-group-item-action {% if q.id == question.id %}active{% endif %} d-flex align-items-center">
+                            <span class="badge bg-primary rounded-pill me-2">{{ q.order }}</span>
+                            <span class="text-truncate">{{ q.question }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-12 col-lg-9">
             <div class="card rounded-4 shadow-sm">
                 <div class="card-header bg-light rounded-top-4 py-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center">
-                            <div class="question-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                <i class="bi bi-question-circle text-white fs-5"></i>
-                            </div>
-                            <h3 class="card-title mb-0 fw-semibold">Frage beantworten</h3>
+                    <div class="d-flex align-items-center">
+                        <div class="question-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <i class="bi bi-question-circle text-white fs-5"></i>
                         </div>
+                        <h3 class="card-title mb-0 fw-semibold">Frage {{ question.order }} von {{ all_questions|max_order }}</h3>
                     </div>
                 </div>
                 <div class="card-body p-4">
                     <div class="question-card p-4 bg-light rounded-3 border-start border-primary border-3 mb-4">
-                        <h4 class="mb-3">{{ question.question }}</h4>
+                        <h4 class="">{{ question.question }}</h4>
                         {% if question.description %}
                             <p class="text-muted mb-0">{{ question.description }}</p>
                         {% endif %}
@@ -47,7 +92,6 @@
                                 {% render_field field class="form-control" %}
                             {% endif %}
                             {% if field.help_text %}
-                            <div class="form-text">{{ field.help_text }}</div>
                             {% endif %}
                             <div class="d-flex justify-content-end">
                                 <small class="text-muted">
@@ -58,8 +102,8 @@
                         {% endfor %}
 
                         <div class="d-flex flex-column flex-sm-row gap-2 mt-4 justify-content-end">
-                            <a href="{% url 'bw_application_questions_list' %}" class="btn btn-outline-secondary rounded-3">
-                                <i class="bi bi-x-circle me-2"></i>Abbrechen
+                            <a href="{% url 'bw_home' %}" class="btn btn-outline-secondary rounded-3">
+                                <i class="bi bi-house me-2"></i>Zurück zur Startseite
                             </a>
                             <button type="submit" class="btn btn-primary rounded-3">
                                 <i class="bi bi-check2-circle me-2"></i>Antwort speichern
@@ -77,12 +121,55 @@
         border-color: var(--bs-primary);
         box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
     }
+    .list-group-item.active {
+        background-color: var(--bs-primary);
+        border-color: var(--bs-primary);
+    }
+    .list-group-item {
+        padding: 0.75rem 1rem;
+    }
+    .list-group-item .badge {
+        min-width: 24px;
+    }
 </style>
+
+<!-- Custom Confirm Modal -->
+<div class="modal fade" id="unsavedChangesModal" tabindex="-1" aria-labelledby="unsavedChangesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="unsavedChangesModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                    Ungespeicherte Änderungen
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Sie haben ungespeicherte Änderungen in Ihrer Antwort.</p>
+                <p class="mb-0">Möchten Sie die Seite wirklich verlassen? Alle Änderungen gehen verloren.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Abbrechen
+                </button>
+                <button type="button" class="btn btn-primary rounded-3" id="confirmLeave">
+                    <i class="bi bi-box-arrow-right me-2"></i>Seite verlassen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const textarea = document.querySelector('textarea[name="answer"]');
         const charCount = document.getElementById('charCount');
+        const form = document.querySelector('form');
+        let formChanged = false;
+        let pendingNavigation = null;
+        
+        // Initialize modal
+        const unsavedChangesModal = new bootstrap.Modal(document.getElementById('unsavedChangesModal'));
         
         // Set initial count
         charCount.textContent = textarea.value.length;
@@ -90,6 +177,63 @@
         // Update count on input
         textarea.addEventListener('input', function() {
             charCount.textContent = this.value.length;
+            formChanged = true;
+        });
+
+        // Track form changes
+        form.addEventListener('change', function() {
+            formChanged = true;
+        });
+
+        // Handle form submission
+        form.addEventListener('submit', function() {
+            formChanged = false;
+        });
+
+        // Function to handle navigation
+        function handleNavigation(url) {
+            if (formChanged) {
+                pendingNavigation = url;
+                unsavedChangesModal.show();
+                return false;
+            }
+            return true;
+        }
+
+        // Handle cancel button
+        document.querySelector('a[href="{% url 'bw_home' %}"]').addEventListener('click', function(e) {
+            e.preventDefault();
+            handleNavigation(this.href);
+        });
+
+        // Handle confirm leave button
+        document.getElementById('confirmLeave').addEventListener('click', function() {
+            if (pendingNavigation) {
+                formChanged = false; // Reset the flag before navigation
+                window.location.href = pendingNavigation;
+            }
+            unsavedChangesModal.hide();
+        });
+
+        // Handle browser back/forward and page leave
+        window.addEventListener('beforeunload', function(e) {
+            if (formChanged) {
+                // Show browser's native warning
+                e.preventDefault();
+                e.returnValue = 'Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?';
+                return e.returnValue;
+            }
+        });
+
+        // Handle all links that might navigate away
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            if (link && !link.hasAttribute('data-bs-toggle') && !link.hasAttribute('data-bs-target')) {
+                if (formChanged) {
+                    e.preventDefault();
+                    handleNavigation(link.href);
+                }
+            }
         });
     });
 </script>
