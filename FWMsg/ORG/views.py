@@ -507,7 +507,8 @@ def list_object(request, model_name, highlight_id=None):
                   'paginator': paginated_objects.paginator,
                   'page_obj': paginated_objects,
                   'total_count': total_objects_count,
-                  'query_string': query_string})
+                  'query_string': query_string,
+                  'large_container': True})
 
 
 def _check_person_cluster_permissions(model, person_cluster):
@@ -1062,7 +1063,8 @@ def list_aufgaben_table(request, scroll_to=None):
             'aufgaben_cluster': aufgaben_cluster,
             'filter': filter_type,
             'scroll_to': scroll_to,
-            'countries': countries
+            'countries': countries,
+            'large_container': True
         }
     
     else:
