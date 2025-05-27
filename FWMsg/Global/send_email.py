@@ -1,4 +1,5 @@
 import base64
+from django.urls import reverse
 from django.utils import timezone
 import smtplib
 import ssl
@@ -271,6 +272,66 @@ register_email_org_template = """
 </body>
 """
 
+mail_calendar_reminder_email_template = """
+<body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #333333; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+    <div style="padding: 20px; background-color: #ffffff;">
+        <!-- Organization Header -->
+        <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #eeeeee; margin-bottom: 20px;">
+            <img style="width: 60px; height: auto; margin-bottom: 10px;" src="data:image/png;base64,{base64_image}" alt="{org_name} Logo">
+            <h2 style="color: #3273dc; margin: 0; font-weight: 600;">{org_name}</h2>
+        </div>
+        
+        <!-- German Version -->
+        <div style="margin-bottom: 30px;">
+            <p style="font-size: 16px; margin-bottom: 15px;">Hallo {user_name},</p>
+            
+            <p>Es gibt einen neuen Kalendereintrag für Dich:</p>
+            
+            <div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+                <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{event_name}</p>
+                <p style="margin: 5px 0;"><span style="color: #666666;">Start:</span> <span style="font-weight: 500;">{event_start}</span></p>
+                <p style="margin: 5px 0;"><span style="color: #666666;">Ende:</span> <span style="font-weight: 500;">{event_end}</span></p>
+                {event_description_html}
+            </div>
+            
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{action_url}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">Zum Kalender</a>
+            </div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="border-top: 1px solid #eeeeee; margin: 20px 0;"></div>
+        
+        <!-- English Version -->
+        <div style="margin-bottom: 25px;">
+            <p style="font-size: 15px; color: #444444; margin-bottom: 15px;"><strong>English version</strong></p>
+            
+            <p>Hello {user_name},</p>
+            
+            <p>There is a new calendar entry for you:</p>
+            
+            <div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+                <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{event_name}</p>
+                <p style="margin: 5px 0;"><span style="color: #666666;">Start:</span> <span style="font-weight: 500;">{event_start}</span></p>
+                <p style="margin: 5px 0;"><span style="color: #666666;">End:</span> <span style="font-weight: 500;">{event_end}</span></p>
+                {event_description_html}
+            </div>
+            
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{action_url}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">View Calendar</a>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="text-align: center; font-size: 13px; color: #666666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eeeeee;">
+            <p style="margin: 5px 0;">Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions</p>
+            <p style="margin: 5px 0;">Um keine weiteren E-Mails zu erhalten, <a href="{unsubscribe_url}" style="color: #3273dc; text-decoration: none;">klicke hier</a></p>
+            <p style="margin: 5px 0; color: #999999;">This is an automatically generated email - no reply expected</p>
+        </div>
+    </div>
+</body>
+"""
+
 def format_aufgaben_email(aufgabe_name, aufgabe_deadline, base64_image, org_name, user_name, action_url, aufgabe_beschreibung='', unsubscribe_url=None):
     return aufgaben_email_template.format(
         aufgabe_name=aufgabe_name,
@@ -327,6 +388,27 @@ def format_register_email_fw(einmalpasswort, action_url, base64_image, org_name,
         user_name=user_name,
         username=username
     )
+
+def format_mail_calendar_reminder_email(title, start, end, description, action_url, unsubscribe_url, user_name, org_name, base64_image):
+    event_name = title
+    event_start = start.strftime('%d.%m.%Y %H:%M') if start else ''
+    event_end = end.strftime('%d.%m.%Y %H:%M') if end else ''
+    event_description = description if description else ''
+
+    event_description_html = f'<p style="margin: 5px 0;"><span style="color: #666666;">Beschreibung:</span> {event_description}</p>' if event_description else ''
+
+    return mail_calendar_reminder_email_template.format(
+        event_name=event_name,
+        event_start=event_start,
+        event_end=event_end,
+        event_description_html=event_description_html,
+        action_url=action_url,
+        unsubscribe_url=unsubscribe_url,
+        base64_image=base64_image,
+        org_name=org_name,
+        user_name=user_name
+    )
+
 
 def format_register_email_org(einmalpasswort, action_url, org_name, user_name, username):
     return register_email_org_template.format(
