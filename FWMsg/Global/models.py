@@ -495,6 +495,10 @@ class Einsatzstelle2(OrgModel):
 
     def __str__(self):
         return self.name
+    
+
+    def get_notiz_count(self):
+        return EinsatzstelleNotiz.objects.filter(einsatzstelle=self).count()
 
 class Attribute(OrgModel):
     TYPE_CHOICES = [
