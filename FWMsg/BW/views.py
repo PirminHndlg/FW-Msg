@@ -7,7 +7,7 @@ from celery import uuid
 from django.db import IntegrityError
 from django.http import FileResponse
 from django.shortcuts import render, redirect
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from BW.tasks import send_account_created_email, send_application_complete_email
 from ORG.models import Organisation
@@ -15,6 +15,7 @@ from .forms import CreateAccountForm, ApplicationAnswerForm, ApplicationFileAnsw
 from FWMsg.decorators import required_role
 from .models import ApplicationQuestion, ApplicationAnswer, ApplicationText, Bewerber, ApplicationAnswerFile, ApplicationFileQuestion
 from django.contrib import messages
+from django.contrib.auth.models import User
 
 base_template = 'baseBw.html'
 
@@ -231,3 +232,27 @@ def bw_application_file_answer_delete(request, file_answer_id):
     file_answer.delete()
     messages.success(request, 'Datei wurde erfolgreich gelöscht')
     return redirect('bw_application_files_list')
+
+
+@login_required
+@required_role('B')
+def delete_account(request):
+    try:
+        # Store user info before deletion
+        user_id = request.user.id
+        bewerber = Bewerber.objects.get(user=request.user)
+        
+        # First logout the user
+        logout(request)
+        
+        # Then delete the bewerber and user
+        bewerber.delete()
+        User.objects.filter(id=user_id).delete()
+        
+        messages.success(request, 'Ihr Konto wurde erfolgreich gelöscht')
+    except Bewerber.DoesNotExist:
+        messages.error(request, 'Ihr Konto wurde nicht gefunden')
+    except Exception as e:
+        messages.error(request, f'Fehler beim Löschen des Kontos: {str(e)}')
+    
+    return redirect('bw_home')

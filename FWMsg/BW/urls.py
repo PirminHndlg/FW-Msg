@@ -15,4 +15,5 @@ urlpatterns = [
     path('files/<int:file_question_id>/', views.bw_application_file_answer, name='bw_application_file_answer'),
     path('files/download/<int:file_answer_id>/', views.bw_application_file_answer_download, name='bw_application_file_answer_download'),
     path('files/delete/<int:file_answer_id>/', views.bw_application_file_answer_delete, name='bw_application_file_answer_delete'),
+    path('delete_account/', views.delete_account, name='bw_delete_account'),
 ]
