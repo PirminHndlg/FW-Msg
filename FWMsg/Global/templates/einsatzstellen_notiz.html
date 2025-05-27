@@ -126,7 +126,7 @@
                                             {{ notiz.date|date:"d.m.Y H:i" }}
                                         </small>
                                     </div>
-                                    <div class="btn-group">
+                                    <div class="">
                                         <form method="post" class="d-inline">
                                             {% csrf_token %}
                                             <input type="hidden" name="notiz_id" value="{{ notiz.id }}">

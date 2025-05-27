@@ -217,6 +217,7 @@ def home(request):
         'my_open_tasks': my_open_tasks,
         'posts': posts,
         'pinned_notizen': pinned_notizen,
+        'large_container': True
     }
     
     return render(request, 'homeOrg.html', context=context)
