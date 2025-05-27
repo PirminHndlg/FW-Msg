@@ -78,7 +78,8 @@ def create_account(request, org_id):
     
     context = {
         'form': form,
-        'org': org
+        'org': org,
+        'application_text': ApplicationText.objects.filter(org=org).first()
     }
     return render(request, 'bw_create_account.html', context)
 
