@@ -92,30 +92,16 @@ def verify_account(request, token):
     except Bewerber.DoesNotExist:
         return redirect('bw_home')
 
-@login_required
-@required_role('B')
-def bw_application_questions_list(request):
-    questions = ApplicationQuestion.objects.filter(org=request.user.org).order_by('order')
-    answers = ApplicationAnswer.objects.filter(user=request.user, question__in=questions).exclude(answer='')
-    
-    file_questions = ApplicationFileQuestion.objects.filter(org=request.user.org).order_by('order')
-    file_answers = ApplicationAnswerFile.objects.filter(user=request.user, file_question__in=file_questions)
-    
-    answers_dict = {answer.question.id: answer for answer in answers}
-    file_answers_dict = {answer.file_question.id: answer for answer in file_answers}
-    
-    context = {
-        'questions': questions,
-        'answers': answers_dict,
-        'file_answers': file_answers_dict
-    }
-    
-    return render(request, 'bw_application_questions_list.html', context)
 
 @login_required
 @required_role('B')
-def bw_application_answer(request, question_id):
-    question = ApplicationQuestion.objects.get(org=request.user.org, id=question_id)
+def bw_application_answer(request, question_id=None):
+    all_questions = ApplicationQuestion.objects.filter(org=request.user.org).order_by('order')
+    try:
+        question = all_questions.get(id=question_id)
+    except ApplicationQuestion.DoesNotExist:
+        question = all_questions.first()
+    
     answer = ApplicationAnswer.objects.filter(user=request.user, question=question).first()
     form = ApplicationAnswerForm(request.POST or None, user=request.user, question=question, instance=answer)
     
@@ -130,9 +116,20 @@ def bw_application_answer(request, question_id):
         if answer.answer == '':
             answer.delete()
             
-        return redirect('bw_application_questions_list')
+        next_question = all_questions.filter(order__gt=question.order).first()
+        if next_question:
+            return redirect('bw_application_answer', question_id=next_question.id)
+        else:
+            return redirect('bw_application_complete')
     
-    return render(request, 'bw_application_answer.html', {'form': form, 'question': question, 'answer': answer})
+    context = {
+        'form': form,
+        'question': question,
+        'answer': answer,
+        'all_questions': all_questions
+    }
+    
+    return render(request, 'bw_application_answer.html', context)
 
 @login_required
 @required_role('B')
