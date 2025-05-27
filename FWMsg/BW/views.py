@@ -121,12 +121,16 @@ def bw_application_answer(request, question_id=None):
             return redirect('bw_application_answer', question_id=next_question.id)
         else:
             return redirect('bw_application_complete')
+        
+    answered_questions_ids = ApplicationAnswer.objects.filter(user=request.user).values_list('question_id', flat=True)
+    print(answered_questions_ids)
     
     context = {
         'form': form,
         'question': question,
+        'all_questions': all_questions,
         'answer': answer,
-        'all_questions': all_questions
+        'answered_questions_ids': answered_questions_ids
     }
     
     return render(request, 'bw_application_answer.html', context)
@@ -134,8 +138,14 @@ def bw_application_answer(request, question_id=None):
 @login_required
 @required_role('B')
 def bw_application_answers_list(request):
-    answers = ApplicationAnswer.objects.filter(org=request.user.org, user=request.user)
-    return render(request, 'bw_application_answers_list.html', {'answers': answers})
+    answers = ApplicationAnswer.objects.filter(org=request.user.org, user=request.user).order_by('question__order')
+    file_answers = ApplicationAnswerFile.objects.filter(org=request.user.org, user=request.user).order_by('file_question__order')
+    
+    context = {
+        'answers': answers,
+        'file_answers': file_answers
+    }
+    return render(request, 'bw_application_answers_list.html', context)
 
 
 @login_required

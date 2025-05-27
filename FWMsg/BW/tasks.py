@@ -12,7 +12,7 @@ application_complete_email_template = """
         
         <!-- Application Complete Info -->
         <div style="margin-bottom: 20px;">
-            <h3 style="margin-top: 0; color: #4a4a4a;">✨ Neue Bewerbung eingegangen</h3>
+            <h3 style="margin-top: 0; color: #4a4a4a;">{subject}</h3>
             
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
@@ -83,7 +83,7 @@ account_created_email_template = """
 """
 
 
-def format_application_complete_email(org_name, user_name, changed_at, action_url, unsubscribe_url=None):
+def format_application_complete_email(org_name, user_name, changed_at, action_url, unsubscribe_url=None, text_subject=None):
     unsubscribe_text = f'<p><a href="{unsubscribe_url}" style="color: #888888;">Abmelden</a></p>' if unsubscribe_url else ''
     
     return application_complete_email_template.format(
@@ -91,7 +91,8 @@ def format_application_complete_email(org_name, user_name, changed_at, action_ur
         user_name=user_name,
         changed_at=changed_at,
         action_url=action_url,
-        unsubscribe_text=unsubscribe_text
+        unsubscribe_text=unsubscribe_text,
+        subject=text_subject or 'Neue Bewerbung eingegangen'
     )
 
 def format_account_created_email(org_name, user_name, verification_url, email, unsubscribe_url=None):
@@ -144,13 +145,26 @@ def send_application_complete_email(bewerber_id):
                 org_name=bewerber.org.name,
                 user_name=f"{bewerber.user.first_name} {bewerber.user.last_name}",
                 changed_at=bewerber.abgeschlossen_am.strftime('%d.%m.%Y %H:%M'),
-                action_url=action_url
+                action_url=action_url,
+                
             )
             
             subject = f'Neue Bewerbung eingegangen: {bewerber.user.first_name} {bewerber.user.last_name}'
             org_email = bewerber.org.email
+            send_mail_smtp(org_email, subject, email_content)
             
-            return send_mail_smtp(org_email, subject, email_content)
+            subject = f'Deine Bewerbung wurde eingereicht'
+            action_url = f"https://volunteer.solutions{reverse('bw_home')}"
+            email_content = format_application_complete_email(
+                org_name=bewerber.org.name,
+                user_name=f"{bewerber.user.first_name} {bewerber.user.last_name}",
+                changed_at=bewerber.abgeschlossen_am.strftime('%d.%m.%Y %H:%M'),
+                action_url=action_url,
+                text_subject='Deine Bewerbung wurde eingereicht, wir werden uns schnellstmöglich um Ihre Bewerbung kümmern.'
+            )
+            send_mail_smtp(bewerber.user.email, subject, email_content, reply_to=org_email)
+            
+            return True
     except Exception as e:
         print(f"Error sending application complete email: {e}")
         return False
