@@ -70,6 +70,7 @@ class ApplicationAnswer(OrgModel):
 
 class ApplicationText(OrgModel):
     welcome = models.TextField(verbose_name='Begrüßung', help_text='Die Begrüßung, die der Bewerber:in beim Start der Bewerbung sieht.')
+    welcome_account_create = models.TextField(verbose_name='Begrüßung bei Kontoerstellung', help_text='Die Begrüßung, die der Bewerber:in beim Erstellen des Kontos sieht.', null=True, blank=True)
     footer = models.TextField(verbose_name='Fußzeile', help_text='Die Fußzeile, die der Bewerber:in am Ende der Bewerbung sieht.')
     deadline = models.DateField(verbose_name='Abgabefrist', null=True, blank=True, help_text='Die Abgabefrist, bis zu welcher die Bewerbung abgeschlossen werden muss.')
 
