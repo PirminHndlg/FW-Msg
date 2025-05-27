@@ -13,7 +13,7 @@
 <div class="d-flex justify-content-between align-items-center">
   <h2>Dashboard</h2>
   <button type="button" class="btn btn-primary rounded-pill btn-sm" data-bs-toggle="modal" data-bs-target="#stickyNoteModal">
-    <i class="bi bi-plus-lg me-1"></i>Neue Sticky Note
+    <i class="bi bi-sticky me-1"></i>Neue Sticky Note
   </button>
 </div>
 
@@ -21,72 +21,134 @@
   {% if pinned_notizen or sticky_notes %}
     <div class="row mb-4">
       <div class="col-12">
-        <div class="card shadow-sm">
-          <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-pin-angle-fill me-2"></i>Angeheftete Notizen</h5>
+        <div class="pin-wall p-4 bg-light rounded-4 shadow-sm border border-1">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="mb-0 text-muted">
+              <i class="bi bi-pin-angle-fill me-2"></i>Angeheftete Notizen
+            </h5>
           </div>
-          <div class="card-body">
-            <div class="row">
-              {% for notiz in sticky_notes %}
-                <div class="col-md-6 col-lg-4 col-xl-3 mb-3">
-                  <div class="card h-100 border-primary">
-                    <div class="card-body">
-                      <div class="d-flex justify-content-between align-items-start mb-2">
+
+          <div class="row g-4" data-masonry="{&quot;percentPosition&quot;: true}">
+            {% for notiz in sticky_notes %}
+              <div class="col-md-6 col-lg-4 col-xl-3">
+                <div class="sticky-note">
+                  <div class="pin"></div>
+                  <div class="note-content bg-warning bg-opacity-10">
+                    <div class="note-header">
+                      <small class="text-muted">
+                        <i class="bi bi-clock me-1"></i>
+                        {{ notiz.date|date:'d.m.Y H:i' }}
+                      </small>
+                      <form method="post" action="{% url 'delete_sticky_note' %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="notiz_id" value="{{ notiz.id }}" />
+                        <button type="submit" class="btn btn-sm btn-link text-danger p-0" title="Notiz löschen">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </form>
+                    </div>
+                    {{ notiz.notiz|linebreaks }}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+
+            {% for notiz in pinned_notizen %}
+              <div class="col-md-6 col-lg-4 col-xl-3">
+                <div class="sticky-note">
+                  <div class="pin"></div>
+                  <div class="note-content bg-info bg-opacity-10">
+                    <div class="note-header">
+                      <div>
+                        <h6 class="mb-1">
+                          <span class="fi fi-{{ notiz.einsatzstelle.land.code|lower }} me-2"></span>
+                          {{ notiz.einsatzstelle.name }}
+                        </h6>
                         <small class="text-muted">
-                          <i class="bi bi-clock me-1"></i>
+                          <i class="bi bi-person-circle me-1"></i>
+                          {{ notiz.user.get_full_name|default:notiz.user.username }}
+                          <i class="bi bi-clock ms-2 me-1"></i>
                           {{ notiz.date|date:'d.m.Y H:i' }}
                         </small>
-                        <form method="post" action="{% url 'delete_sticky_note' %}" class="d-inline">
+                      </div>
+                      <div class="d-flex gap-1">
+                        <form method="post" action="{% url 'einsatzstellen_notiz' es_id=notiz.einsatzstelle.id %}" class="d-inline">
                           {% csrf_token %}
+                          <input type="hidden" name="action" value="unpin" />
                           <input type="hidden" name="notiz_id" value="{{ notiz.id }}" />
-                          <button type="submit" class="btn btn-sm btn-outline-danger" title="Notiz löschen">
-                            <i class="bi bi-trash"></i>
+                          <button type="submit" class="btn btn-sm btn-link text-primary p-0" title="Notiz lösen">
+                            <i class="bi bi-pin-angle-fill"></i>
                           </button>
                         </form>
+                        <a href="{% url 'einsatzstellen_notiz' es_id=notiz.einsatzstelle.id %}" 
+                           class="btn btn-sm btn-link text-primary p-0" 
+                           title="Zur Notiz">
+                          <i class="bi bi-arrow-right"></i>
+                        </a>
                       </div>
-                      <p class="card-text">{{ notiz.notiz|linebreaks }}</p>
                     </div>
+                    {{ notiz.notiz|linebreaks }}
                   </div>
                 </div>
-              {% endfor %}
-
-              {% for notiz in pinned_notizen %}
-                <div class="col-md-6 col-lg-4 col-xl-3 mb-3">
-                  <div class="card h-100 border-primary">
-                    <div class="card-body">
-                      <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div>
-                          <h6 class="card-title mb-1">
-                            <span class="fi fi-{{ notiz.einsatzstelle.land.code|lower }} me-2"></span>
-                            {{ notiz.einsatzstelle.name }}
-                          </h6>
-                          <small class="text-muted">
-                            <i class="bi bi-person-circle me-1"></i>
-                            {{ notiz.user.get_full_name|default:notiz.user.username }}
-                            <i class="bi bi-clock ms-2 me-1"></i>
-                            {{ notiz.date|date:'d.m.Y H:i' }}
-                          </small>
-                        </div>
-                        <div class="d-flex gap-1">
-                          <form method="post" action="{% url 'einsatzstellen_notiz' es_id=notiz.einsatzstelle.id %}" class="d-inline">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="unpin" />
-                            <input type="hidden" name="notiz_id" value="{{ notiz.id }}" />
-                            <button type="submit" class="btn btn-sm btn-outline-primary" title="Notiz lösen"><i class="bi bi-pin-angle-fill"></i></button>
-                          </form>
-                          <a href="{% url 'einsatzstellen_notiz' es_id=notiz.einsatzstelle.id %}" class="btn btn-sm btn-outline-primary" title="Zur Notiz"><i class="bi bi-arrow-right"></i></a>
-                        </div>
-                      </div>
-                      <p class="card-text">{{ notiz.notiz|linebreaks }}</p>
-                    </div>
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
+              </div>
+            {% endfor %}
           </div>
         </div>
       </div>
     </div>
+
+    <style>
+      .pin-wall {
+        border: 1px solid #dee2e6;
+      }
+
+      .sticky-note {
+        position: relative;
+        margin-bottom: 1rem;
+      }
+
+      .pin {
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 20px;
+        background: #dc3545;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      }
+      
+      .pin::after {
+        content: '';
+        position: absolute;
+        inset: 50% 0 0 50%;
+        transform: translate(-50%, -50%);
+        width: 8px;
+        height: 8px;
+        background: #fff;
+        border-radius: 50%;
+      }
+
+      .note-content {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: 0.2s ease;
+      }
+
+      .note-content:hover {
+        transform: rotate(0.5deg) scale(1.02);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      }
+
+      .note-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+      }
+    </style>
   {% endif %}
 
   <!-- Sticky Note Modal -->
