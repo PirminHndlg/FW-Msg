@@ -953,3 +953,17 @@ class EinsatzstelleNotiz(OrgModel):
 
     def __str__(self):
         return f"{self.einsatzstelle.name} - {self.notiz[:10]}"
+    
+    
+class StickyNote(OrgModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
+    notiz = models.CharField(max_length=1000, verbose_name='Notiz', null=True, blank=True, help_text='Notiz')
+    date = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
+    pinned = models.BooleanField(default=False, verbose_name='Angeheftet')
+    
+    class Meta:
+        verbose_name = 'Sticky Note'
+        verbose_name_plural = 'Sticky Notes'
+    
+    def __str__(self):
+        return f"{self.notiz[:10]}"
