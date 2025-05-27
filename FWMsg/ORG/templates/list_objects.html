@@ -174,11 +174,18 @@
                                             {{ field_attribute|default:'' }}
                                         </div>
                                     {% endif %}
-                                {% elif field_type == 'DateField' or field_type == 'DateTimeField' %}
+                                {% elif field_type == 'DateField' %}
                                     {% if field_attribute%}
                                         <div class="d-flex align-items-center gap-1">
                                             <i class="bi bi-calendar"></i>
                                             {{ field_attribute|date:"d.m.Y"|default:field_attribute }}
+                                        </div>
+                                    {% endif %}
+                                {% elif field_type == 'DateTimeField' %}
+                                    {% if field_attribute %}
+                                        <div class="d-flex align-items-center gap-1">
+                                            <i class="bi bi-calendar"></i>
+                                            {{ field_attribute|date:"d.m.Y H:i"|default:field_attribute }}
                                         </div>
                                     {% endif %}
                                 {% elif field_type == 'FileField' %}
