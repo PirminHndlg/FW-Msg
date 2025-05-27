@@ -5,6 +5,8 @@ from django import forms
 from django.db import models
 from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
+from django.utils import timezone
+from django.conf import settings
 
 from Global.models import (
     Attribute, Aufgabe2, AufgabenCluster, KalenderEvent,
@@ -462,27 +464,94 @@ class AddKalenderEventForm(OrgFormMixin, forms.ModelForm):
         label='Benutzergruppen',
         help_text='Wählen Sie Benutzergruppen aus, deren Mitglieder automatisch zum Termin hinzugefügt werden sollen'
     )
+    
+    # Add separate date and time fields
+    start_date = forms.DateField(
+        required=True,
+        label='Startdatum',
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    start_time = forms.TimeField(
+        required=False,
+        label='Startzeit',
+        widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'})
+    )
+    end_date = forms.DateField(
+        required=True,
+        label='Enddatum',
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    end_time = forms.TimeField(
+        required=False,
+        label='Endzeit',
+        widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'})
+    )
 
     class Meta:
         model = KalenderEvent
         fields = '__all__'
-        exclude = ['org']
+        exclude = ['org', 'mail_reminder_sent_to', 'start', 'end']
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.request.user.org)
         self.fields['user'].required = False
         
-        self.fields['start'].widget = forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'})
-        self.fields['end'].widget = forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'})
+        # Set initial values for date and time fields if instance exists
+        if self.instance and self.instance.pk:
+            if self.instance.start:
+                start_local = timezone.localtime(self.instance.start)
+                self.fields['start_date'].initial = start_local.date()
+                self.fields['start_time'].initial = start_local.time()
+            if self.instance.end:
+                end_local = timezone.localtime(self.instance.end)
+                self.fields['end_date'].initial = end_local.date()
+                self.fields['end_time'].initial = end_local.time()
         
         # Reorder fields to put person_cluster right after user
-        field_order = ['title', 'user', 'person_cluster', 'start', 'end', 'description']
+        field_order = ['title', 'user', 'person_cluster', 'start_date', 'start_time', 'end_date', 'end_time', 'description']
         self.order_fields(field_order)
         
+    def _clean_time(self):
+        cleaned_data = self.cleaned_data
+        start_date = cleaned_data.get('start_date')
+        start_time = cleaned_data.get('start_time')
+        end_date = cleaned_data.get('end_date')
+        end_time = cleaned_data.get('end_time')
+        
+        if not start_time:
+            start_time = datetime.strptime('00:00', '%H:%M').time()
+        if not end_time:
+            end_time = datetime.strptime('23:59', '%H:%M').time()
+            
+        # Create datetime objects with the exact time input by the user
+        start = datetime.combine(start_date, start_time)
+        end = datetime.combine(end_date, end_time)
+        
+        if start > end:
+            self.add_error('end_time', 'Die Endzeit muss nach der Startzeit liegen.')
+            
+        return start, end
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        start, end = self._clean_time()
+        
+        cleaned_data['start'] = start
+        cleaned_data['end'] = end
+        
+        return cleaned_data
+        
     def save(self, commit=True):
+        from ORG.tasks import send_mail_calendar_reminder_task
+        
+        start, end = self._clean_time()
+        
         instance = super().save(commit=False)
         instance.org = self.request.user.org
+        instance.start = start
+        instance.end = end
         
         if commit:
             instance.save()
@@ -497,6 +566,12 @@ class AddKalenderEventForm(OrgFormMixin, forms.ModelForm):
                     users = User.objects.filter(customuser__person_cluster=cluster, customuser__org=self.request.user.org)
                     # Add them to the event's users
                     instance.user.add(*users)
+        
+            users = instance.user.all()
+            for current_user in users:
+                if not instance.mail_reminder_sent_to.filter(id=current_user.id).exists():
+                    instance.mail_reminder_sent_to.add(current_user)
+                    send_mail_calendar_reminder_task.s(instance.id, current_user.id).apply_async(countdown=2)
         
         return instance
     

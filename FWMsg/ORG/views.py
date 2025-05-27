@@ -552,6 +552,8 @@ def _apply_model_specific_logic(model, objects, person_cluster, field_metadata, 
         objects = _handle_freiwilliger_team_model(objects, person_cluster, field_metadata, model_fields, user_fields)
     elif model_name == 'Notfallkontakt':
         objects = _handle_notfallkontakt_model(objects, person_cluster)
+    elif model_name == 'KalenderEvent':
+        objects = _handle_kalenderevent_model(model, objects, person_cluster)
     else:
         objects = _handle_default_model(objects, model_fields)
     
@@ -635,6 +637,22 @@ def _handle_notfallkontakt_model(objects, person_cluster):
     """Handle Notfallkontakt model specific logic."""
     if person_cluster:
         objects = objects.filter(user__customuser__person_cluster=person_cluster)
+    return objects
+
+def _handle_kalenderevent_model(model, objects, person_cluster):
+    """Handle KalenderEvent model specific logic."""
+    # Remove mail_reminder_sent_to from model fields
+    model._meta.fields = [field for field in model._meta.fields 
+                         if field.name != 'mail_reminder_sent_to']
+    model_fields = [field.name for field in model._meta.fields]
+    
+    # Remove mail_reminder_sent_to from many-to-many fields
+    model._meta.many_to_many = [field for field in model._meta.many_to_many
+                               if field.name != 'mail_reminder_sent_to']
+    
+    if person_cluster:
+        objects = objects.filter(user__customuser__person_cluster=person_cluster)
+    
     return objects
 
 def _handle_default_model(objects, model_fields):
