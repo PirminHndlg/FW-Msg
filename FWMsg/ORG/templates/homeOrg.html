@@ -11,7 +11,7 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center">
-  <h2>Dashboard</h2>
+<h2>Dashboard</h2>
   <button type="button" class="btn btn-primary rounded-pill btn-sm" data-bs-toggle="modal" data-bs-target="#stickyNoteModal">
     <i class="bi bi-sticky me-1"></i>Neue Sticky Note
   </button>
@@ -33,12 +33,19 @@
               <div class="col-md-6 col-lg-4 col-xl-3">
                 <div class="sticky-note">
                   <div class="pin"></div>
-                  <div class="note-content bg-warning bg-opacity-10">
+                  <div class="note-content {% if notiz.priority == 2 %}bg-danger bg-opacity-10{% elif notiz.priority == 1 %}bg-warning bg-opacity-10{% else %}bg-success bg-opacity-10{% endif %}">
                     <div class="note-header">
-                      <small class="text-muted">
-                        <i class="bi bi-clock me-1"></i>
-                        {{ notiz.date|date:'d.m.Y H:i' }}
-                      </small>
+                      <div class="d-flex align-items-center gap-2">
+                        <small class="text-muted">
+                          <i class="bi bi-clock me-1"></i>
+                          {{ notiz.date|date:'d.m.Y H:i' }}
+                        </small>
+                        {% if notiz.priority > 0 %}
+                          <span class="priority-badge" title="{% if notiz.priority == 1 %}Hoch{% else %}Sehr Hoch{% endif %}">
+                            {% if notiz.priority == 1 %}!!{% else %}!!!{% endif %}
+                          </span>
+                        {% endif %}
+                      </div>
                       <form method="post" action="{% url 'delete_sticky_note' %}" class="d-inline">
                         {% csrf_token %}
                         <input type="hidden" name="notiz_id" value="{{ notiz.id }}" />
@@ -64,12 +71,14 @@
                           <span class="fi fi-{{ notiz.einsatzstelle.land.code|lower }} me-2"></span>
                           {{ notiz.einsatzstelle.name }}
                         </h6>
-                        <small class="text-muted">
-                          <i class="bi bi-person-circle me-1"></i>
-                          {{ notiz.user.get_full_name|default:notiz.user.username }}
-                          <i class="bi bi-clock ms-2 me-1"></i>
-                          {{ notiz.date|date:'d.m.Y H:i' }}
-                        </small>
+                        <div class="d-flex align-items-center gap-2">
+                          <small class="text-muted">
+                            <i class="bi bi-person-circle me-1"></i>
+                            {{ notiz.user.get_full_name|default:notiz.user.username }}
+                            <i class="bi bi-clock ms-2 me-1"></i>
+                            {{ notiz.date|date:'d.m.Y H:i' }}
+                          </small>
+                        </div>
                       </div>
                       <div class="d-flex gap-1">
                         <form method="post" action="{% url 'einsatzstellen_notiz' es_id=notiz.einsatzstelle.id %}" class="d-inline">
@@ -148,6 +157,15 @@
         align-items: flex-start;
         margin-bottom: 0.5rem;
       }
+
+      .priority-badge {
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: #dc3545;
+        background: rgba(220, 53, 69, 0.1);
+        padding: 0.1rem 0.3rem;
+        border-radius: 0.25rem;
+      }
     </style>
   {% endif %}
 
@@ -166,7 +184,21 @@
               <label for="notiz" class="form-label">Notiz</label>
               <textarea class="form-control" id="notiz" name="notiz" rows="4" required></textarea>
             </div>
-          </div>
+            <div class="mb-3">
+              <label class="form-label d-flex align-items-center gap-2">
+                Priorität
+                <div class="btn-group btn-group-sm" role="group">
+                  <input type="radio" class="btn-check" name="priority" id="priority0" value="0" checked>
+                  <label class="btn btn-outline-secondary px-2" for="priority0" title="Normal">!</label>
+                  
+                  <input type="radio" class="btn-check" name="priority" id="priority1" value="1">
+                  <label class="btn btn-outline-secondary px-2" for="priority1" title="Hoch">!!</label>
+                  
+                  <input type="radio" class="btn-check" name="priority" id="priority2" value="2">
+                  <label class="btn btn-outline-secondary px-2" for="priority2" title="Sehr Hoch">!!!</label>
+                </div>
+              </div>
+            </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
             <button type="submit" class="btn btn-primary">Speichern</button>
@@ -206,115 +238,115 @@
   <div class="row" data-masonry="{&quot;percentPosition&quot;: true}">
     <!-- My Tasks -->
     {% if request.user.customuser.person_cluster.aufgaben %}
-      <div class="col-md-6 mb-4">
+    <div class="col-md-6 mb-4">
         <div class="card h-100 rounded-4">
-          <div class="card-header d-flex justify-content-between align-items-center rounded-4">
-            <h5 class="mb-0">Meine Aufgaben - {{ my_open_tasks.count }}</h5>
-            <a href="{% url 'aufgaben' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
-          </div>
-          <div class="card-body">
-            {% if my_open_tasks %}
-              <div class="row row-cols-1 row-cols-xxl-2 g-4">
-                {% for task in my_open_tasks %}
-                  {% include 'components/task_card.html' with task=task %}
-                {% endfor %}
-              </div>
-            {% else %}
-              <div class="text-center py-4">
+            <div class="card-header d-flex justify-content-between align-items-center rounded-4">
+                <h5 class="mb-0">Meine Aufgaben - {{ my_open_tasks.count }}</h5>
+                <a href="{% url 'aufgaben' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
+            </div>
+            <div class="card-body">
+                {% if my_open_tasks %}
+                    <div class="row row-cols-1 row-cols-xxl-2 g-4">
+                        {% for task in my_open_tasks %}
+                            {% include 'components/task_card.html' with task=task %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                <div class="text-center py-4">
                 <i class="bi bi-check2-circle text-muted mb-2" style="font-size: 2rem"></i>
-                <p class="text-muted mb-0">Keine Aufgaben</p>
-              </div>
-            {% endif %}
-          </div>
+                    <p class="text-muted mb-0">Keine Aufgaben</p>
+                </div>
+                {% endif %}
+            </div>
         </div>
-      </div>
+    </div>
     {% endif %}
 
     <!-- Pending Tasks -->
     <div class="col-md-6 mb-4">
-      <div class="card h-100 rounded-4">
-        <div class="card-header d-flex justify-content-between align-items-center rounded-4">
-          <h5 class="mb-0">Pending Aufgaben - {{ pending_tasks.count }}</h5>
-          <a href="{% url 'list_aufgaben_table' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
-        </div>
-        <div class="card-body">
-          {% if pending_tasks %}
-            <div class="list-group list-group-flush">
-              {% include 'components/task_item.html' with tasks=pending_tasks %}
+        <div class="card h-100 rounded-4">
+            <div class="card-header d-flex justify-content-between align-items-center rounded-4">
+                <h5 class="mb-0">Pending Aufgaben - {{ pending_tasks.count }}</h5>
+                <a href="{% url 'list_aufgaben_table' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
             </div>
-          {% else %}
-            <p class="text-muted mb-0">Keine pending Aufgaben</p>
-          {% endif %}
-        </div>
+            <div class="card-body">
+                {% if pending_tasks %}
+                    <div class="list-group list-group-flush">
+                        {% include 'components/task_item.html' with tasks=pending_tasks %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Keine pending Aufgaben</p>
+                {% endif %}
+            </div>
 
-        <div class="card-header d-flex justify-content-between align-items-center rounded-4 border-top">
-          <h5 class="mb-0">Überfällige Aufgaben - {{ open_tasks.count }}</h5>
-          <a href="{% url 'list_aufgaben_table' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
-        </div>
-        <div class="card-body">
-          {% if open_tasks %}
-            <div class="list-group list-group-flush">
-              {% include 'components/task_item.html' with tasks=open_tasks %}
+            <div class="card-header d-flex justify-content-between align-items-center rounded-4 border-top">
+                <h5 class="mb-0">Überfällige Aufgaben - {{ open_tasks.count }}</h5>
+                <a href="{% url 'list_aufgaben_table' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
             </div>
-          {% else %}
-            <p class="text-muted mb-0">Keine überfällige Aufgaben</p>
-          {% endif %}
+            <div class="card-body">
+                {% if open_tasks %}
+                    <div class="list-group list-group-flush">
+                        {% include 'components/task_item.html' with tasks=open_tasks %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Keine überfällige Aufgaben</p>
+                {% endif %}
+            </div>
         </div>
-      </div>
     </div>
 
     <!-- Newest Images -->
     {% if request.user.customuser.person_cluster.bilder %}
-      <div class="col-md-6 mb-4">
+    <div class="col-md-6 mb-4">
         <div class="card h-100 rounded-4">
-          <div class="card-header d-flex justify-content-between align-items-center rounded-4">
-            <h5 class="mb-0">Neueste Bilder</h5>
-            <a href="{% url 'bilder' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
-          </div>
-          <div class="card-body">
-            {% if gallery_images %}
-              <div class="row g-4">
-                {% include 'bilder_show.html' with gallery_images=gallery_images small=True %}
-              </div>
-            {% else %}
-              <div class="text-center py-4">
+            <div class="card-header d-flex justify-content-between align-items-center rounded-4">
+                <h5 class="mb-0">Neueste Bilder</h5>
+                <a href="{% url 'bilder' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
+            </div>
+            <div class="card-body">
+                {% if gallery_images %}
+                    <div class="row g-4">
+                        {% include 'bilder_show.html' with gallery_images=gallery_images small=True %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
                 <i class="bi bi-images text-muted mb-2" style="font-size: 2rem"></i>
-                <p class="text-muted mb-0">Keine Bilder vorhanden</p>
-              </div>
-            {% endif %}
-          </div>
+                        <p class="text-muted mb-0">Keine Bilder vorhanden</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
-      </div>
+    </div>
     {% endif %}
 
     <!-- Posts -->
     {% if request.user.customuser.person_cluster.posts %}
-      <div class="col-md-6 mb-4">
+    <div class="col-md-6 mb-4">
         <div class="card h-100 rounded-4">
-          <div class="card-header d-flex justify-content-between align-items-center rounded-4">
-            <h5 class="mb-0">Neueste Posts</h5>
-            <a href="{% url 'posts_overview' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
-          </div>
-          <div class="card-body">
-            {% if posts %}
-              <div class="list-group list-group-flush">
-                <div class="row row-cols-1 row-cols-xxl-2 g-4">
-                  {% include 'components/post_card.html' with posts=posts %}
-                </div>
-              </div>
-            {% endif %}
-          </div>
+            <div class="card-header d-flex justify-content-between align-items-center rounded-4">
+                <h5 class="mb-0">Neueste Posts</h5>
+                <a href="{% url 'posts_overview' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
+            </div>
+            <div class="card-body">
+                {% if posts %}
+                    <div class="list-group list-group-flush">
+                        <div class="row row-cols-1 row-cols-xxl-2 g-4">
+                            {% include 'components/post_card.html' with posts=posts %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
         </div>
-      </div>
+    </div>
     {% endif %}
 
     <!-- Kalender -->
     {% if request.user.customuser.person_cluster.calendar %}
-      <div class="col-md-6 mb-4">
-        <div class="card-body">
-          {% include 'components/calendar.html' %}
-        </div>
-      </div>
+    <div class="col-md-6 mb-4">
+            <div class="card-body">
+                {% include 'components/calendar.html' %}
+            </div>
+    </div>
     {% endif %}
-  </div>
+</div>
 {% endblock %}
