@@ -82,7 +82,7 @@ def send_mail_calendar_reminder_task(kalender_event_id, user_id):
     kalender_event = KalenderEvent.objects.get(id=kalender_event_id)
     user = User.objects.get(id=user_id)
     subject = f'Neuer Kalendereintrag: {kalender_event.title}'
-    action_url = f'https://volunteer.solutions{reverse('kalender_event', args=[kalender_event.id])}'
+    action_url = f"https://volunteer.solutions{reverse('kalender_event', args=[kalender_event.id])}"
     unsubscribe_url = user.customuser.get_unsubscribe_url()
     org_name = kalender_event.org.name
     with open(kalender_event.org.logo.path, "rb") as org_logo:
