@@ -167,7 +167,8 @@ def maintenance(request):
     
 def token_login(request, token):
     try:
-        data = signing.loads(token, max_age=60 * 60 * 24 * 14)  # 14 days
+        # data = signing.loads(token, max_age=60 * 60 * 24 * 14)  # 14 days
+        data = signing.loads(token, max_age=None) # expires never
         user = get_object_or_404(User, id=data['user_id'])
         login(request, user)
         return redirect('index_home')
