@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
@@ -10,6 +10,7 @@ from django.contrib.auth import get_user_model
 import re
 from Global.models import Maintenance
 from django.utils import timezone
+from django.core import signing
 
 def index(request):
     maintenance = Maintenance.objects.order_by('-id').first()
@@ -163,7 +164,17 @@ def maintenance(request):
         'maintenance_end_time': formatted_end_time,
         'progress_percentage': progress_percentage
     })
-
+    
+def token_login(request, token):
+    try:
+        data = signing.loads(token, max_age=60 * 60 * 24 * 14)  # 14 days
+        user = get_object_or_404(User, id=data['user_id'])
+        login(request, user)
+        return redirect('index_home')
+    except Exception as e:
+        messages.error(request, 'Ungültiger Token.')
+        return redirect('index_home')
+    
 def first_login(request, username=None, einmalpasswort=None):
     if request.method == 'POST':
         form = FirstLoginForm(request.POST)

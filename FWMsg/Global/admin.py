@@ -23,7 +23,7 @@ from simple_history.admin import SimpleHistoryAdmin
 @admin.register(CustomUser)
 class CustomUserAdmin(SimpleHistoryAdmin):
     search_fields = ['user__username', 'user__email', 'user__first_name', 'user__last_name']
-    actions = ['send_registration_email', 'create_small_image']
+    actions = ['send_registration_email', 'create_small_image', 'create_token']
     list_display = ('user', 'person_cluster', 'mail_notifications', 'get_user_email', 'get_last_login')
     list_filter = ('person_cluster', 'mail_notifications', ('einmalpasswort', admin.EmptyFieldListFilter))
     readonly_fields = ('mail_notifications_unsubscribe_auth_key',)
@@ -76,6 +76,12 @@ class CustomUserAdmin(SimpleHistoryAdmin):
         extra_context = extra_context or {}
         extra_context['show_send_emails_button'] = True
         return super().changelist_view(request, extra_context=extra_context)
+    
+    def create_token(self, request, queryset):
+        for customuser in queryset:
+            customuser.create_token()
+        self.message_user(request, f"Tokens created for {queryset.count()} users.", messages.SUCCESS)
+    create_token.short_description = "Create tokens for selected users"
 
 @admin.register(PersonCluster)
 class PersonClusterAdmin(admin.ModelAdmin):
