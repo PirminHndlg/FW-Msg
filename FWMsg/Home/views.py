@@ -24,7 +24,7 @@ def index(request):
             return redirect('team_home')
         elif user.role == 'F':
             return redirect('fw_home')
-        elif user.role == 'A':
+        elif user.role == 'A' or user.is_superuser:
             return redirect('admin_home')
         elif user.role == 'B':
             return redirect('bw_home')
