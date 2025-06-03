@@ -11,6 +11,8 @@ from FWMsg.middleware import get_current_request
 import os
 from ORG.models import Organisation
 from datetime import datetime, timedelta
+from django.core import signing
+from django.utils import timezone
 
 from PIL import Image  # Make sure this is from PIL, not Django models
 from django.core.files.base import ContentFile
@@ -62,7 +64,7 @@ class PersonCluster(OrgModel):
     class Meta:
         verbose_name = 'Benutzergruppe'
         verbose_name_plural = 'Benutzergruppen'
-
+        
     def __str__(self):
         return self.name
     
@@ -77,6 +79,7 @@ class CustomUser(OrgModel):
     mail_notifications_unsubscribe_auth_key = models.CharField(max_length=255, blank=True, null=True, verbose_name='Mail-Benachrichtigung Abmelde-Key')
 
     einmalpasswort = models.CharField(max_length=20, blank=True, null=True, verbose_name='Einmalpasswort', help_text='Wird automatisch erzeugt, wenn leer')
+    token = models.CharField(max_length=512, blank=True, null=True, verbose_name='Token', help_text='Wird automatisch erzeugt, wenn leer')
 
     history = HistoricalRecords()
 
@@ -126,6 +129,14 @@ class CustomUser(OrgModel):
         if self.profil_picture:
             self.profil_picture = calculate_small_image(self.profil_picture, size=(500, 500))
             self.save()
+            
+    def create_token(self):
+        data = {
+            'user_id': self.user.id,
+        }
+        token = signing.dumps(data)
+        self.token = token
+        self.save()
 
     def __str__(self):
         return self.user.username
