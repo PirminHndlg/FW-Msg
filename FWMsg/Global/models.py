@@ -21,7 +21,7 @@ from django.urls import reverse
 class OrgManager(models.Manager):
     def get_queryset(self):
         request = get_current_request()
-        if request and hasattr(request, 'user') and hasattr(request.user, 'org'):
+        if request and hasattr(request, 'user') and hasattr(request.user, 'org') and not request.user.is_superuser:
             return super().get_queryset().filter(org=request.user.org)
         return super().get_queryset()
 
