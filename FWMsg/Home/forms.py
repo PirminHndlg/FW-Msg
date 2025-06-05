@@ -41,7 +41,7 @@ class EmailAuthenticationForm(AuthenticationForm):
 
 class FirstLoginForm(forms.Form):
     username = forms.CharField(
-        label=_('Benutzername'),
+        label=_('Benutzername oder E-Mail'),
         widget=forms.TextInput(attrs={'class': 'form-control rounded-3', 'placeholder': _('Benutzername')})
     )
     einmalpasswort = forms.CharField(
