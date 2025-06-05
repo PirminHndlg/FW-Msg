@@ -44,5 +44,8 @@ class Freiwilliger(OrgModel):
         send_register_email_task.delay(self)
 
     def __str__(self):
-        return self.user.first_name + ' ' + self.user.last_name
+        if self.user:
+            return self.user.first_name + ' ' + self.user.last_name
+        else:
+            return f'Freiwillige ohne Benutzer:in {self.id}'
 
