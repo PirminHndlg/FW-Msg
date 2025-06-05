@@ -391,8 +391,8 @@ def format_register_email_fw(einmalpasswort, action_url, base64_image, org_name,
 
 def format_mail_calendar_reminder_email(title, start, end, description, action_url, unsubscribe_url, user_name, org_name, base64_image):
     event_name = title
-    event_start = start.strftime('%d.%m.%Y %H:%M') if start else ''
-    event_end = end.strftime('%d.%m.%Y %H:%M') if end else ''
+    event_start = start.astimezone(timezone.get_current_timezone()).strftime('%d.%m.%Y %H:%M') if start else ''
+    event_end = end.astimezone(timezone.get_current_timezone()).strftime('%d.%m.%Y %H:%M') if end else ''
     event_description = description if description else ''
 
     event_description_html = f'<p style="margin: 5px 0;"><span style="color: #666666;">Beschreibung:</span> {event_description}</p>' if event_description else ''
