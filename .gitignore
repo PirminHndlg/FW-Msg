@@ -82,3 +82,5 @@ update-reihenfolge.md
 FWMsg/dokumente-error.txt
 tmp/
 celerybeat-schedule
+
+.VSCodeCounter/
