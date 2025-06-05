@@ -5,7 +5,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.contrib.auth.models import User
-from .forms import PasswordResetForm, EmailAuthenticationForm, FirstLoginForm
+from .forms import EmailAuthenticationForm, FirstLoginForm
+from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth import get_user_model
 import re
 from Global.models import Maintenance
@@ -240,20 +241,14 @@ def password_reset(request):
     if request.method == 'POST':
         form = PasswordResetForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data['username']
             email = form.cleaned_data['email']
             try:
-                user = User.objects.get(username=username)
-                print(user.email, email)
-                if user.email != email:
-                    messages.error(request, 'Der Benutzer hat eine andere E-Mail-Adresse.')
-                    return redirect('password_reset')
-                else:
-                    messages.success(request, 'Eine E-Mail mit einem Link zum Zurücksetzen des Passworts wurde an die angegebene E-Mail-Adresse gesendet.')
-                    user.customuser.send_registration_email()
-                    return redirect('first_login')
+                user = User.objects.get(email=email)
+                messages.success(request, 'Eine E-Mail mit einem Link zum Zurücksetzen des Passworts wurde an die angegebene E-Mail-Adresse gesendet.')
+                user.customuser.send_registration_email()
+                return redirect('first_login')
             except User.DoesNotExist:
-                messages.error(request, 'Es gibt keinen Benutzer mit diesem Benutzernamen.')
+                messages.error(request, 'Es gibt keinen Benutzer mit dieser E-Mail-Adresse.')
                 return redirect('password_reset')
     else:
         form = PasswordResetForm()
