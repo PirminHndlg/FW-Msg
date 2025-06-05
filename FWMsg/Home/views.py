@@ -13,6 +13,19 @@ from Global.models import Maintenance
 from django.utils import timezone
 from django.core import signing
 
+def _is_email(value):
+        """
+        Check if the given value is an email address.
+        
+        Args:
+            value (str): The string to check
+            
+        Returns:
+            bool: True if the value is an email address, False otherwise
+        """
+        email_pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+        return bool(re.match(email_pattern, value))
+
 def index(request):
     maintenance = Maintenance.objects.order_by('-id').first()
     
@@ -33,20 +46,7 @@ def index(request):
         else:
             messages.error(request, _('Ungültige Personengruppe.'))
             return redirect('index')
-        
-    def is_email(value):
-        """
-        Check if the given value is an email address.
-        
-        Args:
-            value (str): The string to check
-            
-        Returns:
-            bool: True if the value is an email address, False otherwise
-        """
-        email_pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
-        return bool(re.match(email_pattern, value))
-    
+         
     # Handle login form
     form = EmailAuthenticationForm()
     if request.method == 'POST':
@@ -59,7 +59,7 @@ def index(request):
             user = None
             
             # First check if input is an email
-            if is_email(username):
+            if _is_email(username):
                 try:
                     # Get the user by email
                     email_user = get_user_model().objects.get(email=username)
@@ -184,15 +184,7 @@ def first_login(request, username=None, einmalpasswort=None):
             user_name = form.cleaned_data['username']
             password = form.cleaned_data['password']
             einmalpasswort = form.cleaned_data['einmalpasswort']
-
-            user_exists = User.objects.filter(username=user_name).exists()
-
-            if not user_exists:
-                messages.error(request, _('Benutzername nicht gefunden.'))
-                return redirect('first_login')
-            else:
-                user = User.objects.get(username=user_name)
-                
+            
             def redirect_to_first_login(username, einmalpasswort):
                 if username and einmalpasswort:
                     return redirect('first_login_with_params', username=username, einmalpasswort=einmalpasswort)
@@ -201,9 +193,18 @@ def first_login(request, username=None, einmalpasswort=None):
                 else:
                     return redirect('first_login')
             
+            try:
+                if _is_email(user_name):
+                    user = User.objects.get(email=user_name)
+                else:
+                    user = User.objects.get(username=user_name)
+            except User.DoesNotExist:
+                messages.error(request, _('Benutzername oder E-Mail-Adresse nicht gefunden.'))
+                return redirect_to_first_login(user_name, einmalpasswort)
+
             if not user.customuser:
                 messages.error(request, _('Interner Fehler: Benutzer nicht gefunden. Kontaktiere den Administrator.'))
-                return redirect('first_login')
+                return redirect_to_first_login(user_name, einmalpasswort)
             
             if not user.customuser.einmalpasswort:
                 messages.error(request, _('Einmalpasswort bereits verwendet.'))
@@ -220,7 +221,7 @@ def first_login(request, username=None, einmalpasswort=None):
             user.save()
 
             # Re-authenticate with new password
-            user = authenticate(username=user_name, password=password)
+            user = authenticate(username=user.username, password=password)
             if user is not None:
                 login(request, user)
                 return redirect('index_home')
