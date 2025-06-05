@@ -40,9 +40,11 @@ from django.http import (
     HttpResponseNotFound,
     JsonResponse
 )
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.core.files.base import ContentFile
+from django.core import signing
+from icalendar import Calendar, Event
 
 # Local application imports
 from FW.forms import BilderForm, BilderGalleryForm, ProfilUserForm
@@ -1361,3 +1363,106 @@ def einsatzstellen_notiz(request, es_id=None):
     }
     context = check_organization_context(request, context)
     return render(request, 'einsatzstellen_notiz.html', context=context)
+
+def kalender_abbonement(request, token):
+    try:
+        # Load the token data
+        data = signing.loads(token)
+        user = get_object_or_404(User, id=data['user_id'])
+        
+        # Get calendar events for the user
+        calendar_events = []
+        
+        # Add user's tasks
+        for user_aufgabe in UserAufgaben.objects.filter(user=user):
+            color = '#dc3545'  # Bootstrap danger color
+            if user_aufgabe.erledigt:
+                color = '#198754'  # Bootstrap success color
+            elif user_aufgabe.pending:
+                color = '#ffc107'  # Bootstrap warning color
+            elif user_aufgabe.faellig and user_aufgabe.faellig > datetime.now().date():
+                color = '#0d6efd'  # Bootstrap primary color
+
+            calendar_events.append({
+                'title': user_aufgabe.aufgabe.name,
+                'start': user_aufgabe.faellig.strftime('%d.%m.%Y') if user_aufgabe.faellig else '',
+                'url': f"https://volunteer.solutions{reverse('aufgaben_detail', args=[user_aufgabe.id])}",
+                'backgroundColor': color,
+                'borderColor': color,
+                'textColor': '#000'
+            })
+        
+        # Add calendar events
+        if user.role == 'O':
+            kalender_events = KalenderEvent.objects.filter(org=user.org)
+        else:
+            kalender_events = KalenderEvent.objects.filter(org=user.org).filter(user__in=[user])
+            
+        for kalender_event in kalender_events:
+            calendar_events.append({
+                'title': kalender_event.title,
+                'start': kalender_event.start.strftime('%d.%m.%Y %H:%M') if kalender_event.start else '',
+                'end': kalender_event.end.strftime('%d.%m.%Y %H:%M') if kalender_event.end else '',
+                'url': f"https://volunteer.solutions{reverse('kalender_event', args=[kalender_event.id])}",
+                'backgroundColor': '#000',
+                'borderColor': '#000',
+                'textColor': '#fff'
+            })
+
+        # Create iCal calendar
+        cal = Calendar()
+        cal.add('prodid', '-//Volunteer Solutions//Calendar//DE')
+        cal.add('version', '2.0')
+        cal.add('calscale', 'GREGORIAN')
+        cal.add('method', 'PUBLISH')
+        cal.add('name', f'Kalender von {user.first_name} {user.last_name}')
+        cal.add('description', f'Kalender von {user.first_name} {user.last_name}')
+
+        for event in calendar_events:
+            if not event['start']:  # Skip events without a start date
+                continue
+                
+            ical_event = Event()
+            ical_event.add('summary', event['title'])
+            
+            # Parse start date
+            if ' ' in event['start']:  # Has time component
+                start_dt = datetime.strptime(event['start'], '%d.%m.%Y %H:%M')
+            else:  # Date only
+                start_dt = datetime.strptime(event['start'], '%d.%m.%Y')
+            ical_event.add('dtstart', start_dt)
+            
+            # Parse end date if it exists
+            if 'end' in event and event['end']:
+                if ' ' in event['end']:  # Has time component
+                    end_dt = datetime.strptime(event['end'], '%d.%m.%Y %H:%M')
+                else:  # Date only
+                    end_dt = datetime.strptime(event['end'], '%d.%m.%Y')
+                ical_event.add('dtend', end_dt)
+            
+            if 'url' in event:
+                ical_event.add('url', event['url'])
+            cal.add_component(ical_event)
+
+        # Check if this is a calendar app request
+        is_calendar_app = (
+            request.headers.get('Accept') == 'text/calendar' or 
+            request.GET.get('format') == 'ical' or
+            'calendar' in request.headers.get('User-Agent', '').lower()
+        )
+
+        response = HttpResponse(cal.to_ical(), content_type='text/calendar')
+        
+        if is_calendar_app:
+            # For calendar apps, return as inline content
+            response['Content-Disposition'] = f'inline; filename="kalender_{user.username}.ics"'
+        else:
+            # For direct downloads, trigger file download
+            response['Content-Disposition'] = f'attachment; filename="kalender_{user.username}.ics"'
+        
+        return response
+
+    except Exception as e:
+        messages.error(request, 'Ungültiger Token.')
+        print(e)
+        return redirect('index_home')

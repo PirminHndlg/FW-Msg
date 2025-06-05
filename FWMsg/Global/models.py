@@ -80,6 +80,7 @@ class CustomUser(OrgModel):
 
     einmalpasswort = models.CharField(max_length=20, blank=True, null=True, verbose_name='Einmalpasswort', help_text='Wird automatisch erzeugt, wenn leer')
     token = models.CharField(max_length=512, blank=True, null=True, verbose_name='Token', help_text='Wird automatisch erzeugt, wenn leer')
+    calendar_token = models.CharField(max_length=512, blank=True, null=True, verbose_name='Kalender-Token', help_text='Wird automatisch erzeugt, wenn leer')
 
     history = HistoricalRecords()
 
@@ -137,6 +138,25 @@ class CustomUser(OrgModel):
         token = signing.dumps(data)
         self.token = token
         self.save()
+        
+    def create_calendar_token(self):
+        data = {
+            'user_id': self.user.id,
+        }
+        token = signing.dumps(data)
+        self.calendar_token = token
+        self.save()
+
+    def ensure_token(self):
+        """Ensure the user has a valid token for calendar subscription."""
+        if not self.token:
+            self.create_token()
+        return self.token
+    
+    def ensure_calendar_token(self):
+        if not self.calendar_token:
+            self.create_calendar_token()
+        return self.calendar_token
 
     def __str__(self):
         return self.user.username

@@ -43,6 +43,7 @@ urlpatterns = [
     path('kalender/', views.kalender, name='kalender'),
     path('kalender/<int:kalender_id>/', views.kalender_event, name='kalender_event'),
     path('calendar_events/', views.get_calendar_events, name='get_calendar_events'),
+    path('kalender_abbonement/<str:token>/', views.kalender_abbonement, name='kalender_abbonement'),
 
     path('datenschutz/', views.datenschutz, name='datenschutz'),
     
