@@ -5,9 +5,8 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
 
-class PasswordResetForm(forms.Form):
-    username = forms.CharField(label='Username')
-    email = forms.EmailField(label='Email')
+# class PasswordResetForm(forms.Form):
+#     email = forms.EmailField(label='Email')
 
 class EmailAuthenticationForm(AuthenticationForm):
     """
