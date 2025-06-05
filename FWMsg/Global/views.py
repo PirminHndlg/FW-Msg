@@ -901,8 +901,8 @@ def get_calendar_events(request):
     for kalender_event in kalender_events:
         calendar_events.append({
             'title': kalender_event.title,
-            'start': kalender_event.start.strftime('%Y-%m-%d %H:%M') if kalender_event.start else '',
-            'end': kalender_event.end.strftime('%Y-%m-%d %H:%M') if kalender_event.end else '',
+            'start': kalender_event.start.astimezone(timezone.get_current_timezone()).strftime('%Y-%m-%d %H:%M') if kalender_event.start else '',
+            'end': kalender_event.end.astimezone(timezone.get_current_timezone()).strftime('%Y-%m-%d %H:%M') if kalender_event.end else '',
             'url': reverse('kalender_event', args=[kalender_event.id]),
             'backgroundColor': '#000',
             'borderColor': '#000',
