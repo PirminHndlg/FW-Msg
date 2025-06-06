@@ -40,7 +40,13 @@
                         <h1 class="display-4 mt-3">500</h1>
                         <h2 class="h4 mb-4">{% trans "Serverfehler" %}</h2>
                         <p class="text-muted mb-4">{% trans "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es später erneut." %}</p>
+                        <p class="text-muted mb-4">
+                            {% trans "Der Administrator wurde über diesen Fehler informiert. Sie können uns auch direkt Feedback geben, indem Sie uns mitteilen, was Sie gerade getan haben, als der Fehler aufgetreten ist." %}
+                        </p>
                         <div class="d-grid gap-2">
+                            <a href="{% url 'feedback' %}" class="btn btn-outline-primary">
+                                {% trans "Feedback geben" %}
+                            </a>
                             <a href="{% url 'index_home' %}" class="btn btn-primary">
                                 {% trans "Zur Startseite" %}
                             </a>
