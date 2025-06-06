@@ -84,6 +84,13 @@ class CustomUser(OrgModel):
 
     history = HistoricalRecords()
 
+    def delete(self, *args, **kwargs):
+        # Delete the associated User first
+        if self.user:
+            self.user.delete()
+        # Then delete the CustomUser
+        super().delete(*args, **kwargs)
+
     def send_registration_email(self):
         if not self.einmalpasswort:
             self.einmalpasswort = random.randint(100000, 999999)
