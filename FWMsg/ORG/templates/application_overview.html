@@ -1,6 +1,7 @@
 {% extends 'baseOrg.html' %}
 {% load i18n %}
 {% load base_org_filter %}
+{% load widget_tweaks %}
 
 {% block title %}
   Bewerbungsübersicht
@@ -81,7 +82,9 @@
           <div class="d-flex align-items-center justify-content-between mb-4">
             <h3 class="card-title mb-0">Daten</h3>
             <div class="d-flex align-items-center justify-content-end">
-              <a href="{% url 'edit_object' 'bewerbung-text' application_texts.id %}" class="btn btn-primary rounded-3"><i class="bi bi-pencil-square me-2"></i>Bearbeiten</a>
+              <button type="button" class="btn btn-primary rounded-3" data-bs-toggle="modal" data-bs-target="#editTextsModal">
+                <i class="bi bi-pencil-square me-2"></i>Bearbeiten
+              </button>
             </div>
           </div>
 
@@ -134,6 +137,53 @@
     </div>
   </div>
 
+  <!-- Edit Texts Modal -->
+  <div class="modal fade" id="editTextsModal" tabindex="-1" aria-labelledby="editTextsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content rounded-4">
+        <div class="modal-header border-0 pb-0 rounded-top-4">
+          <div>
+            <h5 class="modal-title fw-bold mb-1" id="editTextsModalLabel">Bewerbungstexte bearbeiten</h5>
+            <p class="text-muted mb-0 small">Passe die Texte für Ihre Bewerbungsseite an</p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          <div class="modal-body">
+            {% for field in application_text_form %}
+              <div class="mb-4">
+                <label for="{{ field.id_for_label }}" class="form-label fw-semibold text-secondary">{{ field.label }}</label>
+                <div class="input-group">
+                  {{ field|add_class:"form-control form-control-lg shadow-none" }}
+                </div>
+                {% if field.help_text %}
+                  <div class="form-text text-muted mt-1">
+                    <i class="bi bi-info-circle me-1"></i>{{ field.help_text }}
+                  </div>
+                {% endif %}
+                {% if field.errors %}
+                  <div class="invalid-feedback d-block mt-1">
+                    <i class="bi bi-exclamation-circle me-1"></i>{{ field.errors }}
+                  </div>
+                {% endif %}
+              </div>
+              <hr>
+            {% endfor %}
+          </div>
+          <div class="modal-footer border-0 pt-0">
+            <button type="button" class="btn btn-light rounded-3" data-bs-dismiss="modal">
+              <i class="bi bi-x-lg me-2"></i>Abbrechen
+            </button>
+            <button type="submit" class="btn btn-primary rounded-3">
+              <i class="bi bi-check-lg me-2"></i>Speichern
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <style>
     .progress {
       background-color: var(--bs-gray-200);
@@ -149,6 +199,37 @@
     
     #applicationLink:hover {
       background-color: var(--bs-gray-200) !important;
+    }
+
+    .modal-body textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .modal-body input[type="date"] {
+      padding: 0.5rem 0.75rem;
+    }
+
+    .modal-body .form-control:focus {
+      border-color: var(--bs-primary);
+      box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.1);
+    }
+
+    .modal-content {
+      border: none;
+      border-radius: 1rem;
+    }
+
+    .modal-header {
+      padding: 1.5rem 1.5rem 0.5rem;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    .modal-footer {
+      padding: 0.5rem 1.5rem 1.5rem;
     }
   </style>
 
