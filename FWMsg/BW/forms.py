@@ -101,16 +101,38 @@ class ApplicationAnswerForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         self.question = kwargs.pop('question', None)
         super().__init__(*args, **kwargs)
-        max_length = self.question.max_length
-        if max_length:
-            self.fields['answer'].widget = forms.Textarea(attrs={'class': 'form-control', 'rows': max_length//100, 'maxlength': max_length})
+        
+        # If the question has choices, create a select field
+        if self.question.choices:
+            choices = [('', '- auswählen -')]
+            choices.extend([(choice.strip(), choice.strip()) for choice in self.question.choices.split(',')])
+            self.fields['answer'].widget = forms.Select(
+                choices=choices,
+                attrs={'class': 'form-select form-select-lg'}
+            )
         else:
-            self.fields['answer'].widget = forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
+            # Otherwise, use a textarea
+            max_length = self.question.max_length
+            if max_length:
+                self.fields['answer'].widget = forms.Textarea(
+                    attrs={
+                        'class': 'form-control form-control-lg',
+                        'rows': max_length//100,
+                        'maxlength': max_length
+                    }
+                )
+            else:
+                self.fields['answer'].widget = forms.Textarea(
+                    attrs={
+                        'class': 'form-control form-control-lg',
+                        'rows': 3
+                    }
+                )
     
     def clean(self):
         cleaned_data = super().clean()
         answer = cleaned_data.get('answer')
-        if answer and len(answer) > self.question.max_length:
+        if answer and not self.question.choices and len(answer) > self.question.max_length:
             raise forms.ValidationError(f'Answer is too long. Max length is {self.question.max_length} characters.')
         return cleaned_data
     

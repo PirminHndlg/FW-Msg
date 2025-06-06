@@ -97,11 +97,13 @@
                             {% endif %}
                             {% if field.help_text %}
                             {% endif %}
+                            {% if not question.choices %}
                             <div class="d-flex justify-content-end">
                                 <small class="text-muted">
                                     <span id="charCount">0</span>/{{ question.max_length }} Zeichen
                                 </small>
                             </div>
+                            {% endif %}
                         </div>
                         {% endfor %}
 
