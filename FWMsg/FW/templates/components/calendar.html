@@ -9,11 +9,19 @@
                     <h3 class="card-title mb-0">{% trans "Kalender" %}</h3>
                 </a>
                 
+                <div class="d-flex align-items-center gap-2">
                 {% if show_calendar_subscription %}
                     <button type="button" class="btn btn-primary ms-3" data-bs-toggle="modal" data-bs-target="#calendarSubscriptionModal">
                         <i class="bi bi-calendar-plus"></i> {% trans "Kalender abonnieren" %}
                     </button>
                 {% endif %}
+
+                {% if request.user.role == 'O' %}
+                    <a href="{% url 'add_object' 'kalender' %}" class="btn btn-outline-primary rounded-3">
+                        <i class="bi bi-plus"></i>
+                    </a>
+                {% endif %}
+                </div>
             </div>
         </div>
     </div>
