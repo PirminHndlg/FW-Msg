@@ -41,10 +41,16 @@
                   <div>
                     <small class="text-muted">{% trans 'Zeit' %}</small>
                     <div class="fw-medium">
-                      {{ kalender_event.start|date:"d.m.Y H:i" }}
-                      {% if kalender_event.end %}
-                      - {{ kalender_event.end|date:"d.m.Y H:i" }}
+                      {% if kalender_event.start|date:"d.m.Y" == kalender_event.end|date:"d.m.Y" %}
+                        <!-- Same day event -->
+                        <div>{{ kalender_event.start|date:"d.m.Y" }}</div>
+                        <div>{{ kalender_event.start|date:"H:i" }} - {{ kalender_event.end|date:"H:i" }} Uhr</div>
+                      {% else %}
+                        <!-- Multi-day event -->
+                        <div>Von: {{ kalender_event.start|date:"d.m.Y H:i" }} Uhr</div>
+                        <div>Bis: {{ kalender_event.end|date:"d.m.Y H:i" }} Uhr</div>
                       {% endif %}
+                      <small class="text-muted">({{ kalender_event.start|date:"e" }})</small>
                     </div>
                   </div>
                 </div>
