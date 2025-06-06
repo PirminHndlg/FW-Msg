@@ -15,6 +15,13 @@ class Bewerber(OrgModel):
     abgeschlossen = models.BooleanField(verbose_name='Abgeschlossen', default=False)
     abgeschlossen_am = models.DateTimeField(verbose_name='Abgeschlossen am', null=True, blank=True)
     verification_token = models.CharField(verbose_name='Verifikationstoken', max_length=255, null=True, blank=True)
+    accessible_by_team_member = models.ManyToManyField(
+        User, 
+        verbose_name='Zugriff auf Bewerbung', 
+        blank=True, 
+        help_text='Die Teammitglieder/Ehemaligen, die auf die Bewerbung des Bewerbers:in zugreifen können.',
+        related_name='accessible_applications'
+    )
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name
