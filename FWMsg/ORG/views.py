@@ -1347,6 +1347,17 @@ def application_overview(request):
         defaults={'welcome': '', 'footer': ''}
     )
     
+    if request.method == 'POST':
+        application_text_form = ORGforms.AddApplicationTextForm(request.POST, instance=application_texts)
+        if application_text_form.is_valid():
+            application_text_form.instance.org = request.user.org
+            application_text_form.save()
+            messages.success(request, 'Bewerbungstexte erfolgreich gespeichert')
+        else:
+            messages.error(request, 'Bewerbungstexte konnten nicht gespeichert werden')
+        
+        return redirect('application_overview')
+    
     # Get all application questions
     text_questions = ApplicationQuestion.objects.filter(org=request.user.org).order_by('order')
     file_questions = ApplicationFileQuestion.objects.filter(org=request.user.org).order_by('order')
@@ -1358,6 +1369,8 @@ def application_overview(request):
     # Calculate completion percentage
     completion_percentage = int(completed_applications / total_applications * 100) if total_applications > 0 else 0
     
+    application_text_form = ORGforms.AddApplicationTextForm(instance=application_texts)
+    
     context = {
         'application_texts': application_texts,
         'text_questions': text_questions,
@@ -1365,6 +1378,7 @@ def application_overview(request):
         'total_applications': total_applications,
         'completed_applications': completed_applications,
         'completion_percentage': completion_percentage,
+        'application_text_form': application_text_form,
     }
     
     return render(request, 'application_overview.html', context)
@@ -1373,10 +1387,18 @@ def application_overview(request):
 @required_role('O')
 @filter_person_cluster
 def application_list(request):
-    bewerber = Bewerber.objects.filter(org=request.user.org, abgeschlossen=True)
+    filter_status = request.GET.get('status', 'completed')
     
+    bewerber = Bewerber.objects.filter(org=request.user.org)
+    
+    if filter_status == 'completed':
+        bewerber = bewerber.filter(abgeschlossen=True)
+    elif filter_status == 'pending':
+        bewerber = bewerber.filter(abgeschlossen=False)
+        
     context = {
-        'bewerber': bewerber
+        'bewerber': bewerber,
+        'current_filter': filter_status
     }
     
     return render(request, 'application_list.html', context)
@@ -1402,8 +1424,8 @@ def application_detail(request, id):
     
     try:
         bewerber = Bewerber.objects.get(id=id, org=request.user.org)
-        application_answers = ApplicationAnswer.objects.filter(user=bewerber.user)
-        application_file_answers = ApplicationAnswerFile.objects.filter(user=bewerber.user)
+        application_answers = ApplicationAnswer.objects.filter(user=bewerber.user).order_by('question__order')
+        application_file_answers = ApplicationAnswerFile.objects.filter(user=bewerber.user).order_by('file_question__order')
         context = {
             'bewerber': bewerber,
             'application_answers': application_answers,
