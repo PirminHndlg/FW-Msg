@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
 from django.utils import timezone
 from django.conf import settings
+from django.db.models import Q
 
 from Global.models import (
     Attribute, Aufgabe2, AufgabenCluster, KalenderEvent,
@@ -17,7 +18,7 @@ from Global.models import (
 )
 from FW.models import Freiwilliger
 from TEAM.models import Team
-from BW.models import ApplicationText, ApplicationQuestion, ApplicationFileQuestion
+from BW.models import ApplicationText, ApplicationQuestion, ApplicationFileQuestion, Bewerber
 
 
 class OrgFormMixin:
@@ -598,6 +599,44 @@ class AddApplicationFileQuestionForm(OrgFormMixin, forms.ModelForm):
         model = ApplicationFileQuestion
         fields = '__all__'
         exclude = ['org']
+        
+
+class AccessibleByTeamMemberForm(OrgFormMixin, forms.ModelForm):
+    class Meta:
+        model = Bewerber
+        fields = ['accessible_by_team_member']
+        
+    def __init__(self, *args, **kwargs):
+        self.org = kwargs.pop('org', None)
+        super().__init__(*args, **kwargs)
+        
+        # Get team members and alumni from the same organization
+        person_cluster = PersonCluster.objects.filter(
+            Q(view='T') | Q(view='E'),
+            org=self.org
+        )
+        
+        # Use checkboxes for multiple selection
+        self.fields['accessible_by_team_member'].widget = forms.CheckboxSelectMultiple(
+            attrs={'class': 'form-check-input'}
+        )
+        
+        users = User.objects.filter(
+            customuser__person_cluster__in=person_cluster,
+            customuser__org=self.org
+        ).distinct()
+        
+        self.fields['accessible_by_team_member'].queryset = users
+        
+        self.fields['accessible_by_team_member'].label = 'Teammitglieder auswählen'
+        
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+            # Save many-to-many relationships
+            self.save_m2m()
+        return instance
 
 
 model_to_form_mapping = {

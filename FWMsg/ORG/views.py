@@ -1422,15 +1422,24 @@ def application_detail(request, id):
             bewerber.save()
             return redirect('application_detail', id=id)
     
+    if request.method == 'POST' and 'update_team_member' in request.POST:
+        accessible_by_team_member_form = ORGforms.AccessibleByTeamMemberForm(request.POST, instance=bewerber, org=request.user.org)
+        if accessible_by_team_member_form.is_valid():
+            accessible_by_team_member_form.save()
+            return redirect('application_detail', id=id)
+    
     try:
         bewerber = Bewerber.objects.get(id=id, org=request.user.org)
         application_answers = ApplicationAnswer.objects.filter(user=bewerber.user).order_by('question__order')
         application_file_answers = ApplicationAnswerFile.objects.filter(user=bewerber.user).order_by('file_question__order')
+        accessible_by_team_member_form = ORGforms.AccessibleByTeamMemberForm(instance=bewerber, org=request.user.org)
+        
         context = {
             'bewerber': bewerber,
             'application_answers': application_answers,
             'application_file_answers': application_file_answers,
-            'status_choices': Bewerber.STATUS_CHOICES
+            'status_choices': Bewerber.STATUS_CHOICES,
+            'accessible_by_team_member_form': accessible_by_team_member_form
         }
         return render(request, 'application_detail.html', context)
     except Bewerber.DoesNotExist:
