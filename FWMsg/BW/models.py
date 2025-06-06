@@ -5,13 +5,14 @@ from django.contrib.auth.models import User
 # Create your models here.
 class Bewerber(OrgModel):
     STATUS_CHOICES = [
-        ('green', 'Grün'),
-        ('yellow', 'Gelb'),
         ('red', 'Rot'),
+        ('yellow', 'Gelb'),
+        ('green', 'Grün'),
     ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Benutzer:in')
     status = models.CharField(verbose_name='Status', max_length=20, choices=STATUS_CHOICES, null=True, blank=True)
+    status_comment = models.TextField(verbose_name='Statuskommentar', null=True, blank=True, help_text='Der Kommentar, der dem Status zugeordnet wird.')
     abgeschlossen = models.BooleanField(verbose_name='Abgeschlossen', default=False)
     abgeschlossen_am = models.DateTimeField(verbose_name='Abgeschlossen am', null=True, blank=True)
     verification_token = models.CharField(verbose_name='Verifikationstoken', max_length=255, null=True, blank=True)

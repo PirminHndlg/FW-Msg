@@ -1413,6 +1413,7 @@ def application_detail(request, id):
     # Handle status change
     if request.method == 'POST' and 'status' in request.POST:
         new_status = request.POST.get('status')
+        print(new_status)
         if new_status in dict(Bewerber.STATUS_CHOICES):
             if new_status == bewerber.status:
                 bewerber.status = None
@@ -1421,6 +1422,13 @@ def application_detail(request, id):
             bewerber.status_changed_at = timezone.now()
             bewerber.save()
             return redirect('application_detail', id=id)
+        
+    print(request.POST)
+    if request.method == 'POST' and 'status_comment' in request.POST:
+        status_comment = request.POST.get('status_comment')
+        bewerber.status_comment = status_comment
+        bewerber.save()
+        return redirect('application_detail', id=id)
     
     if request.method == 'POST' and 'update_team_member' in request.POST:
         accessible_by_team_member_form = ORGforms.AccessibleByTeamMemberForm(request.POST, instance=bewerber, org=request.user.org)
