@@ -636,7 +636,7 @@ def _handle_freiwilliger_team_model(objects, person_cluster, field_metadata, mod
     )
     
     # Handle attributes
-    if person_cluster:
+    if person_cluster and objects.exists():
         attributes = Attribute.objects.filter(org=objects.first().org, person_cluster=person_cluster)
         for attr in attributes:
             field_metadata.append({
