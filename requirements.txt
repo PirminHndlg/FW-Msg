@@ -53,7 +53,7 @@ pytz==2024.2
 pywebpush==2.0.3
 redis==5.2.1
 reportlab==4.4.1
-requests==2.32.3
+requests==2.32.4
 six==1.17.0
 sqlparse==0.5.1
 style==1.1.0
