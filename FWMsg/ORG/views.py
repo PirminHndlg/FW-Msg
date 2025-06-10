@@ -674,7 +674,7 @@ def _handle_kalenderevent_model(model, objects, person_cluster):
                                if field.name != 'mail_reminder_sent_to']
     
     if person_cluster:
-        objects = objects.filter(user__customuser__person_cluster=person_cluster)
+        objects = objects.filter(user__customuser__person_cluster=person_cluster).distinct()
     
     return objects
 
