@@ -762,15 +762,15 @@ class UserAufgaben(OrgModel):
             if Freiwilliger.objects.filter(org=self.org, user=self.user, user__customuser__person_cluster__in=self.aufgabe.person_cluster.all()).exists():
                 freiwilliger = Freiwilliger.objects.get(org=self.org, user=self.user, user__customuser__person_cluster__in=self.aufgabe.person_cluster.all())
 
-                start_date = freiwilliger.start_real or freiwilliger.start_geplant or datetime.now().date()
-                end_date = freiwilliger.ende_real or freiwilliger.ende_geplant or datetime.now().date()
+                start_date = freiwilliger.start_real or freiwilliger.start_geplant
+                end_date = freiwilliger.ende_real or freiwilliger.ende_geplant
 
                 if self.aufgabe.faellig_tage_nach_start:
                     self.faellig = start_date + timedelta(days=self.aufgabe.faellig_tage_nach_start)
                 elif self.aufgabe.faellig_tage_vor_ende:
                     self.faellig = end_date - timedelta(days=self.aufgabe.faellig_tage_vor_ende)
                 elif self.aufgabe.faellig_monat:
-                    year = start_date.year
+                    year = start_date.year or datetime.now().year
 
                     try:
                         while self.aufgabe.faellig_art.type == 'V' and faellig_date > start_date:
