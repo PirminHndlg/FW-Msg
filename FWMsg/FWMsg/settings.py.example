@@ -36,6 +36,8 @@ try:
 
     # Configure allowed hosts properly - never use ['*'] in production
     ALLOWED_HOSTS = secrets["allowed_hosts"]
+except:
+    print("error")
 
 # Security settings - enable these in production
 if not DEBUG:
