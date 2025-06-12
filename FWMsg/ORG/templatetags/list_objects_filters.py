@@ -5,7 +5,8 @@ from datetime import date
 from django.db.models import ManyToManyField
 import re
 from django.db import models
-from django.utils.html import format_html
+from django.utils.html import format_html, escape
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -40,21 +41,33 @@ def format_text_with_link(obj):
         return ''
     if not isinstance(obj, str):
         return obj
-    links = re.findall(r'https?://\S+', obj)
+    
+    # First escape the text to prevent XSS
+    text = escape(obj)
+    
+    # Convert URLs to links
+    links = re.findall(r'https?://\S+', str(obj))
     for link in links:
-        obj = obj.replace(link, f'<a href="{link}" target="_blank">{link}</a>')
-    links_2 = re.findall(r' www\.\S+', obj)
+        safe_link = escape(link)
+        text = text.replace(safe_link, f'<a href="{safe_link}" target="_blank">{safe_link}</a>')
+    
+    # Convert www URLs to links
+    links_2 = re.findall(r' www\.\S+', str(obj))
     for link in links_2:
-        obj = obj.replace(link, f'<a href="https://{link}" target="_blank">{link}</a>')
-    emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b', obj)
+        safe_link = escape(link)
+        text = text.replace(safe_link, f'<a href="https://{safe_link}" target="_blank">{safe_link}</a>')
+    
+    # Convert emails to mailto links
+    emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b', str(obj))
     for email in emails:
-        obj = obj.replace(email, f'<a href="mailto:{email}" target="_blank">{email}</a>')
-    # Remove spaces, parentheses and hyphens before searching for phone numbers
-
-    line_breaks = re.findall(r'\n', obj)
-    for line_break in line_breaks:
-        obj = obj.replace(line_break, '<br>')
-    return obj
+        safe_email = escape(email)
+        text = text.replace(safe_email, f'<a href="mailto:{safe_email}" target="_blank">{safe_email}</a>')
+    
+    # Convert line breaks to <br>
+    text = text.replace('\n', '<br>')
+    
+    # Mark the result as safe since we've properly escaped everything
+    return mark_safe(text)
 
 
 @register.filter
