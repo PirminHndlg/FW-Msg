@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 import random
 import string
 from simple_history.models import HistoricalRecords
+import shlex
 
 # Create your models here.
 class Organisation(models.Model):
@@ -35,8 +36,10 @@ def create_folder(sender, instance, created, **kwargs):
         from Global.models import CustomUser, PersonCluster
         from ORG.tasks import send_register_email_task
 
-        path = os.path.join(instance.name)
-        os.makedirs(os.path.join('dokument', instance.name), exist_ok=True)
+        # Sanitize organization name for folder creation
+        safe_org_name = instance.name.replace('/', '').replace('\\', '').replace('..', '')
+        path = os.path.join(safe_org_name)
+        os.makedirs(os.path.join('dokument', safe_org_name), exist_ok=True)
 
         if instance.kurzname:
             user_name = instance.kurzname.lower().replace(' ', '_')
@@ -104,28 +107,55 @@ class Ordner(models.Model):
 
 @receiver(post_save, sender=Ordner)
 def create_folder(sender, instance, **kwargs):
-    path = os.path.join(instance.ordner_name)
-    os.makedirs(os.path.join('dokument', instance.org.name, path), exist_ok=True)
+    # Sanitize folder and org names
+    safe_ordner_name = instance.ordner_name.replace('/', '').replace('\\', '').replace('..', '')
+    safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
+    
+    path = os.path.join(safe_ordner_name)
+    os.makedirs(os.path.join('dokument', safe_org_name, path), exist_ok=True)
 
 
 @receiver(post_delete, sender=Ordner)
 def remove_folder(sender, instance, **kwargs):
-    path = os.path.join(instance.ordner_name)
-    path = os.path.join('dokument', instance.org.name, path)
+    # Sanitize folder and org names
+    safe_ordner_name = instance.ordner_name.replace('/', '').replace('\\', '').replace('..', '')
+    safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
+    
+    path = os.path.join(safe_ordner_name)
+    path = os.path.join('dokument', safe_org_name, path)
     if os.path.isdir(path):
         os.rmdir(path)
 
 
 def upload_to_folder(instance, filename):
+    import os
+    # Sanitize filename to prevent path traversal
+    filename = os.path.basename(filename)
+    # Remove any remaining path separators
+    filename = filename.replace('/', '').replace('\\', '')
+    
     order = instance.ordner
-    path = os.path.join(order.ordner_name, filename)
-    return os.path.join('dokument', instance.org.name, path)
+    # Sanitize folder name as well
+    safe_ordner_name = order.ordner_name.replace('/', '').replace('\\', '').replace('..', '')
+    safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
+    
+    path = os.path.join(safe_ordner_name, filename)
+    return os.path.join('dokument', safe_org_name, path)
 
 
 def upload_to_preview_image(instance, filename):
+    import os
+    # Sanitize filename
+    filename = os.path.basename(filename)
+    filename = filename.replace('/', '').replace('\\', '')
+    
     filename = filename.split('/')[-1]
     filename = filename.split('.')[0]
-    folder = os.path.join('dokument', instance.org.name, 'preview_image')
+    
+    # Sanitize org name
+    safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
+    
+    folder = os.path.join('dokument', safe_org_name, 'preview_image')
     os.makedirs(folder, exist_ok=True)
     return os.path.join(folder, filename + '.jpg')
 
@@ -264,9 +294,10 @@ class Dokument(models.Model):
             return pdf_to_image(self.dokument.path, preview_image_path)
 
         elif self.dokument.name.endswith('.docx') or self.dokument.name.endswith('.doc') or self.dokument.name.endswith('.odt'):
+            # When shell=False (default), subprocess.run safely handles arguments
             command = ["abiword", "--to=pdf", self.dokument.path]
             try:
-                subprocess.run(command)
+                subprocess.run(command, check=True, capture_output=True, timeout=30)
                 doc_path = str(self.dokument.path)  # Create string copy
                 if self.dokument.name.endswith('.docx'):
                     doc_path = doc_path.replace('.docx', '.pdf')
