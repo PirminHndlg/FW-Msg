@@ -770,7 +770,7 @@ class UserAufgaben(OrgModel):
                 elif self.aufgabe.faellig_tage_vor_ende:
                     self.faellig = end_date - timedelta(days=self.aufgabe.faellig_tage_vor_ende)
                 elif self.aufgabe.faellig_monat:
-                    year = start_date.year or datetime.now().year
+                    year = start_date.year if start_date else datetime.now().year
 
                     try:
                         while self.aufgabe.faellig_art.type == 'V' and faellig_date > start_date:
