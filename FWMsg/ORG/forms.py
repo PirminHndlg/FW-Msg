@@ -230,7 +230,19 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
             self.instance.user.customuser.save()
 
         instance = super().save(commit=commit)
-
+        
+        if self.cleaned_data['first_name'] != self.instance.user.first_name:
+            self.instance.user.first_name = self.cleaned_data['first_name']
+            self.instance.user.save()
+        
+        if self.cleaned_data['last_name'] != self.instance.user.last_name:
+            self.instance.user.last_name = self.cleaned_data['last_name']
+            self.instance.user.save()
+        
+        if self.cleaned_data['email'] != self.instance.user.email:
+            self.instance.user.email = self.cleaned_data['email']
+            self.instance.user.save()
+        
         save_person_cluster_field(self)
         
         return instance
