@@ -1214,7 +1214,7 @@ def statistik(request):
         return JsonResponse(data)
 
     freiwillige = Freiwilliger.objects.filter(org=request.user.org)
-    filter_for_fields = ['einsatzland', 'einsatzstelle', 'kirchenzugehoerigkeit', 'geschlecht', 'ort', 'geburtsdatum']
+    filter_for_fields = ['einsatzland2', 'einsatzstelle2']
     if not 'selectedPersonCluster' in request.COOKIES:
         filter_for_fields.append('personen_cluster')
     
