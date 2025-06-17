@@ -1136,6 +1136,10 @@ def download_aufgabe(request, id):
         if not os.path.exists(aufgabe.file.path):
             return HttpResponse('Datei nicht gefunden')
         
+        if not aufgabe.file_downloaded_of.filter(id=request.user.id).exists():
+            aufgabe.file_downloaded_of.add(request.user)
+            aufgabe.save()
+            
         response = HttpResponse(aufgabe.file.read(), content_type='application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{aufgabe.file.name.replace(" ", "_")}"'
 
