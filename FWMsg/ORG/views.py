@@ -451,6 +451,7 @@ def edit_object(request, model_name, id):
         if response:
             return response
 
+    if instance:
         form = ORGforms.model_to_form_mapping[model](
             request.POST or None,
             request.FILES or None,
@@ -860,46 +861,131 @@ def list_ampel(request):
     return render(request, 'list_ampel.html', context=context)
 
 def _get_ampel_date_range(org):
-    """Helper function to determine the date range for ampel entries."""
-    # Get earliest start date
+    """
+    Helper function to determine the date range for ampel entries.
+    
+    Args:
+        org: Organization instance
+        
+    Returns:
+        dict: Contains 'start_date' and 'end_date' keys with date values
+    """
+    # Get organization's freiwillige users for efficient querying
+    freiwillige_users = Freiwilliger.objects.filter(org=org).values_list('user', flat=True)
+    
+    # Get date range from freiwillige start/end dates
+    freiwillige_dates = _get_freiwillige_date_range(org)
+    
+    # Get date range from ampel entries
+    ampel_dates = _get_ampel_entry_date_range(freiwillige_users)
+    
+    # Combine and determine final date range
+    start_date = _get_earliest_date([
+        freiwillige_dates['start_date'],
+        ampel_dates['start_date']
+    ])
+    
+    end_date = _get_latest_date([
+        freiwillige_dates['end_date'],
+        ampel_dates['end_date']
+    ])
+    
+    # Fallback to last 12 months if no valid dates found
+    if not start_date or not end_date:
+        end_date = timezone.now().date()
+        start_date = end_date - relativedelta(months=12)
+        
+    return {
+        'start_date': start_date,
+        'end_date': end_date
+    }
+
+
+def _get_freiwillige_date_range(org):
+    """Get the date range from freiwillige start and end dates."""
     start_dates = Freiwilliger.objects.filter(org=org).aggregate(
         real_start=Min('start_real'),
         planned_start=Min('start_geplant')
     )
-    start_date = start_dates['real_start'] or start_dates['planned_start']
-
-    # Get latest end date
+    
     end_dates = Freiwilliger.objects.filter(org=org).aggregate(
         real_end=Max('ende_real'),
         planned_end=Max('ende_geplant')
     )
-    end_date = end_dates['real_end'] or end_dates['planned_end']
     
-    # Fallback to last 12 months if no dates found
-    if not start_date or not end_date:
-        end_date = timezone.now()
-        start_date = end_date - relativedelta(months=12)
-        
-    return {'start_date': start_date, 'end_date': end_date}
+    return {
+        'start_date': start_dates['real_start'] or start_dates['planned_start'],
+        'end_date': end_dates['real_end'] or end_dates['planned_end']
+    }
+
+
+def _get_ampel_entry_date_range(freiwillige_users):
+    """Get the date range from ampel entries for given users."""
+    ampel_entries = Ampel2.objects.filter(user__in=freiwillige_users).order_by('date')
+    
+    first_entry = ampel_entries.first()
+    last_entry = ampel_entries.last()
+    
+    return {
+        'start_date': first_entry.date.date() if first_entry else None,
+        'end_date': last_entry.date.date() if last_entry else None
+    }
+
+
+def _get_earliest_date(dates):
+    """Get the earliest non-None date from a list of dates."""
+    valid_dates = [date for date in dates if date is not None]
+    return min(valid_dates) if valid_dates else None
+
+
+def _get_latest_date(dates):
+    """Get the latest non-None date from a list of dates."""
+    valid_dates = [date for date in dates if date is not None]
+    return max(valid_dates) if valid_dates else None
 
 def _generate_month_labels(start_date, end_date):
-    """Helper function to generate month labels between two dates."""
+    """
+    Generate month labels between two dates.
+    
+    Args:
+        start_date: Start date for the range
+        end_date: End date for the range
+        
+    Returns:
+        list: List of month labels in "MMM YY" format
+    """
+    if not start_date or not end_date:
+        return []
+        
     months = []
     current = start_date
+    
     while current <= end_date:
         months.append(current.strftime("%b %y"))
         current += relativedelta(months=1)
+    
     return months
 
+
 def _create_ampel_matrix(freiwillige, months, ampel_entries):
-    """Helper function to create and fill the ampel matrix."""
+    """
+    Create and fill the ampel matrix with entries.
+    
+    Args:
+        freiwillige: List of freiwillige users
+        months: List of month labels
+        ampel_entries: QuerySet of ampel entries
+        
+    Returns:
+        dict: Matrix with freiwillige as keys and months as nested keys
+    """
     # Initialize empty matrix
     matrix = {fw: {month: [] for month in months} for fw in freiwillige}
     
     # Fill matrix with ampel entries
     for entry in ampel_entries:
         month_key = entry.date.strftime("%b %y")
-        if month_key in months:
+        if month_key in months and entry.user in freiwillige:
             matrix[entry.user][month_key].append({
                 'status': entry.status,
                 'comment': entry.comment,
