@@ -29,7 +29,3 @@ def get_attribute(request):
         return attribute
     else:
         return Attribute.objects.filter(org=request.user.org)
-
-@register.filter
-def get_item(dictionary, key):
-    return dictionary.get(key)
