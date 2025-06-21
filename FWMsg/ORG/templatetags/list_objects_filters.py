@@ -53,27 +53,25 @@ def get_field_type(obj, field):
     try:
         return obj._meta.get_field(field.get('name')).get_internal_type()
     except:
-        match field.get('type'):
-            case 'T':
-                return 'CharField'
-            case 'L':
-                return 'TextField'
-            case 'N':
-                return 'IntegerField'
-            case 'B':
-                return 'BooleanField'
-            case 'E':
-                return 'EmailField'
-            case 'P':
-                return 'PhoneNumberField'
-            case 'C':
-                return 'ChoiceField'
-            case 'D':
-                return 'DateField'
-            case 'P':
-                return 'PhoneNumberField'
-            case _:
-                return None
+        field_type = field.get('type')
+        if field_type == 'T':
+            return 'CharField'
+        elif field_type == 'L':
+            return 'TextField'
+        elif field_type == 'N':
+            return 'IntegerField'
+        elif field_type == 'B':
+            return 'BooleanField'
+        elif field_type == 'E':
+            return 'EmailField'
+        elif field_type == 'P':
+            return 'PhoneNumberField'
+        elif field_type == 'C':
+            return 'ChoiceField'
+        elif field_type == 'D':
+            return 'DateField'
+        else:
+            return None
 
         
 
