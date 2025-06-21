@@ -32,7 +32,16 @@
                 {% if aufgabe.file %}
                 <a href="{% url 'download_aufgabe' aufgabe.id %}" 
                     class="btn btn-sm btn-outline-primary download-btn mt-1"
-                    data-tooltip="{% if aufgabe.file_downloaded_of.count > 0 %}heruntergeladen von {% for user in aufgabe.file_downloaded_of.all %} {{ user.first_name }} {{ user.last_name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}{% trans 'noch nicht heruntergeladen' %}{% endif %}">
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="{% if aufgabe.file_downloaded_of.count > 0 %}
+                        Heruntergeladen von
+                        {% for user in aufgabe.file_downloaded_of.all %}
+                            {{ user.first_name }} {{ user.last_name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        {% trans 'Noch nicht heruntergeladen' %}
+                    {% endif %}">
                     <i class="bi bi-download"></i>
                 </a>
                 {% endif %}
@@ -71,7 +80,16 @@
                 {% if aufgabe.file %}
                 <a href="{% url 'download_aufgabe' aufgabe.id %}"
                     class="btn btn-sm btn-outline-primary download-btn" 
-                    data-tooltip="{% if aufgabe.file_downloaded_of.count > 0 %}heruntergeladen von {% for user in aufgabe.file_downloaded_of.all %} {{ user.first_name }} {{ user.last_name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}{% trans 'noch nicht heruntergeladen' %}{% endif %}">
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="{% if aufgabe.file_downloaded_of.count > 0 %}
+                        Heruntergeladen von
+                        {% for user in aufgabe.file_downloaded_of.all %}
+                            {{ user.first_name }} {{ user.last_name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        {% trans 'Noch nicht heruntergeladen' %}
+                    {% endif %}">
                     <i class="bi bi-download"></i>
                 </a>
                 {% endif %}

@@ -11,11 +11,30 @@
       <div class="d-flex align-items-center gap-2">
         {% if task.pending %}
           {% if task.file %}
-            <a href="{% url 'download_aufgabe' task.id %}" class="btn btn-sm btn-outline-primary" data-tooltip="{% trans 'Datei herunterladen' %}"><i class="bi bi-download"></i></a>
+            <a href="{% url 'download_aufgabe' task.id %}"
+              class="btn btn-sm btn-outline-primary download-btn mt-1"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="{% if task.file_downloaded_of.count > 0 %}
+                Heruntergeladen von
+                {% for user in task.file_downloaded_of.all %}
+                  {{ user.first_name }} {{ user.last_name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+              {% else %}
+                {% trans 'Noch nicht heruntergeladen' %}
+              {% endif %}">
+              <i class="bi bi-download"></i>
+            </a>
           {% endif %}
         {% endif %}
 
-        <span class="badge badge-pill {% if not task.pending %}bg-danger{% elif task.pending %}bg-warning{% else %}bg-success{% endif %}">
+        <span class="badge badge-pill {% if not task.pending %}
+            bg-danger
+          {% elif task.pending %}
+            bg-warning
+          {% else %}
+            bg-success
+          {% endif %}">
           {{ task.faellig|date:'d.m.y'|default:'flexibel' }}
         </span>
       </div>
