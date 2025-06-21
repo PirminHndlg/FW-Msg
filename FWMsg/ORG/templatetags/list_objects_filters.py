@@ -35,47 +35,6 @@ def get_attribute(obj, field):
     return None
 
 @register.filter
-def format_text_with_link(obj):
-    """Format text with links."""
-    if not obj:
-        return ''
-    if not isinstance(obj, str):
-        return obj
-    
-    # First escape the text to prevent XSS
-    text = escape(obj)
-    
-    # Convert URLs to links
-    links = re.findall(r'https?://\S+', str(obj))
-    for link in links:
-        safe_link = escape(link)
-        text = text.replace(safe_link, f'<a href="{safe_link}" target="_blank">{safe_link}</a>')
-    
-    # Convert www URLs to links
-    links_2 = re.findall(r' www\.\S+', str(obj))
-    for link in links_2:
-        safe_link = escape(link)
-        text = text.replace(safe_link, f'<a href="https://{safe_link}" target="_blank">{safe_link}</a>')
-    
-    # Convert emails to mailto links
-    emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b', str(obj))
-    for email in emails:
-        safe_email = escape(email)
-        text = text.replace(safe_email, f'<a href="mailto:{safe_email}" target="_blank">{safe_email}</a>')
-    
-    # Convert line breaks to <br>
-    text = text.replace('\n', '<br>')
-    
-    # Mark the result as safe since we've properly escaped everything
-    return mark_safe(text)
-
-
-@register.filter
-def getattribute(obj, attr):
-    """Get an attribute of an object by name."""
-    return getattr(obj, attr, '')
-
-@register.filter
 def get_fields(obj):
     """Get the fields of an object."""
     return obj.fields

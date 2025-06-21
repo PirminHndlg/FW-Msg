@@ -9,7 +9,7 @@ from FW.models import Freiwilliger
 from TEAM.models import Team
 
 from FWMsg.decorators import required_role
-from .templatetags.base_fw_filter import get_auswaeriges_amt_link, format_text_with_link
+from Global.templatetags.base_filter import format_text_with_link
 
 
 base_template = 'baseFw.html'
@@ -72,6 +72,29 @@ def home(request):
 
     return render(request, 'homeFw.html', context=context)
 
+def _get_auswaeriges_amt_link(value):
+    """Convert German special characters to their ASCII equivalents for URLs."""
+    replacements = {
+        'ä': 'ae',
+        'ö': 'oe', 
+        'ü': 'ue',
+        'ß': 'ss',
+        'Ä': 'Ae',
+        'Ö': 'Oe',
+        'Ü': 'Ue'
+    }
+    import requests
+    link = ''.join(replacements.get(c, c) for c in value.lower())
+    url = f"https://www.auswaertiges-amt.de/de/service/laender/{link}-node/"
+    try:
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            return url
+    except:
+        pass
+    return 'https://www.auswaertiges-amt.de/de/reiseundsicherheit'
+
+
 @login_required
 @required_role('F')
 def laenderinfo(request):
@@ -108,7 +131,7 @@ def laenderinfo(request):
     # Prepare country cards
     country_cards = []
     if land:
-        country_cards = [
+        country_cards = [   
             {
                 'title': _('Reisehinweise'),
                 'items': [
@@ -116,7 +139,7 @@ def laenderinfo(request):
                         'icon': 'link',
                         'type': 'link',
                         'value': 'Auswärtiges Amt',
-                        'url': get_auswaeriges_amt_link(land.name),
+                        'url': _get_auswaeriges_amt_link(land.name),
                         'external': True
                     }
                 ]
