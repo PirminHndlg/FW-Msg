@@ -733,7 +733,7 @@ class UserAufgaben(OrgModel):
     erledigt_am = models.DateField(blank=True, null=True, verbose_name='Abgeschlossen am', help_text='Datum, an dem die Aufgabe abgeschlossen wurde')
     file = models.FileField(upload_to='uploads/', max_length=255, blank=True, null=True, verbose_name='Angehängte Datei', help_text='Datei, die für diese Aufgabe hochgeladen wurde')
     file_list = models.JSONField(blank=True, null=True, verbose_name='Angehängte Dateien', help_text='Dateien, die für diese Aufgabe hochgeladen wurden')
-    file_downloaded_of = models.ManyToManyField(User, blank=True, null=True, verbose_name='Dateien heruntergeladen von', help_text='Benutzer, die die Dateien heruntergeladen haben', related_name='file_downloaded_of')
+    file_downloaded_of = models.ManyToManyField(User, blank=True, verbose_name='Dateien heruntergeladen von', help_text='Benutzer, die die Dateien heruntergeladen haben', related_name='file_downloaded_of')
     benachrichtigung_cc = models.CharField(max_length=255, blank=True, null=True, verbose_name='E-Mail-Kopie an', help_text='Weitere E-Mail-Adressen, die Benachrichtigungen erhalten sollen (kommagetrennt)')
     history = HistoricalRecords()
 
