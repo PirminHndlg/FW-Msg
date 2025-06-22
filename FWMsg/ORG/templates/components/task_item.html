@@ -16,7 +16,7 @@
               data-bs-toggle="tooltip"
               data-bs-placement="top"
               title="{% if task.file_downloaded_of.count > 0 %}
-                Heruntergeladen von
+                {% trans 'Heruntergeladen von' %}
                 {% for user in task.file_downloaded_of.all %}
                   {{ user.first_name }} {{ user.last_name }}{% if not forloop.last %}, {% endif %}
                 {% endfor %}

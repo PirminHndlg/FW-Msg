@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-22 19:52+0200\n"
+"POT-Creation-Date: 2025-06-22 19:55+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: German <de@li.org>\n"
@@ -806,7 +806,7 @@ msgstr "weniger"
 msgid "mehr"
 msgstr "mehr"
 
-#: Global/templates/bilder_show.html:41 ORG/templates/homeOrg.html:314
+#: Global/templates/bilder_show.html:41 ORG/templates/homeOrg.html:315
 msgid "Keine Bilder vorhanden"
 msgstr "Keine Bilder vorhanden"
 
@@ -1711,6 +1711,12 @@ msgstr "Filter"
 #: ORG/templates/components/task_filter.html:9
 msgid "Alle"
 msgstr "Alle"
+
+#: ORG/templates/components/task_item.html:19
+#: ORG/templates/components/task_table_row.html:38
+#: ORG/templates/components/task_table_row.html:86
+msgid "Heruntergeladen von"
+msgstr "Heruntergeladen von"
 
 #: ORG/templates/components/task_item.html:24
 #: ORG/templates/components/task_table_row.html:43
