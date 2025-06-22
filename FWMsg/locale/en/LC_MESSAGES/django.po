@@ -202,8 +202,6 @@ msgstr "Posts"
 
 #: FW/templates/baseFw.html:72 FW/templates/baseFw.html:138
 #: Global/templates/settings.html:40
-#, fuzzy
-#| msgid "Browser-Einstellungen"
 msgid "Einstellungen"
 msgstr "Settings"
 
@@ -450,10 +448,8 @@ msgstr "Description"
 
 #: FW/templates/components/task_detail_form.html:27
 #: Global/templates/components/document_modal.html:54
-#, fuzzy
-#| msgid "Datei hochgeladen"
 msgid "Datei hochladen"
-msgstr "File uploaded"
+msgstr "Upload File"
 
 #: FW/templates/components/task_detail_form.html:38
 #: FW/templates/components/task_detail_form.html:41
@@ -642,10 +638,8 @@ msgid "Weitere Informationen"
 msgstr "General Information"
 
 #: Global/forms.py:18 Global/templates/post_add.html:92
-#, fuzzy
-#| msgid "Bilder hinzufügen"
 msgid "Umfrage hinzufügen"
-msgstr "Add"
+msgstr "Add survey"
 
 #: Global/forms.py:19
 msgid "Aktivieren, um eine einfache Umfrage zum Beitrag hinzuzufügen"
@@ -708,8 +702,6 @@ msgid "Inhalt des Beitrags"
 msgstr "Post content"
 
 #: Global/forms.py:87
-#, fuzzy
-#| msgid "Bitte wählen Sie eine Farbe aus"
 msgid "Bitte geben Sie eine Frage für die Umfrage ein"
 msgstr "Please enter a question for the poll"
 
@@ -816,16 +808,12 @@ msgid "Dokument"
 msgstr "Documents"
 
 #: Global/templates/components/document_modal.html:58
-#, fuzzy
-#| msgid "Bearbeiten"
 msgid "Bearbeiten dürfen"
-msgstr "Edit"
+msgstr "Allowed to edit"
 
 #: Global/templates/components/document_modal.html:69
-#, fuzzy
-#| msgid "Freiwillige dürfen dieses Dokument bearbeiten/löschen"
 msgid "Benutzergruppen, die dieses Dokument bearbeiten/löschen dürfen"
-msgstr "Volunteers can edit/delete this document"
+msgstr "User groups can edit/delete this document"
 
 #: Global/templates/components/folder_card.html:35
 msgid "Ordner nicht leer"
@@ -842,16 +830,12 @@ msgstr "Folder name"
 
 #: Global/templates/components/folder_modal.html:16
 #: ORG/templates/components/form_field.html:6 ORG/templates/edit_object.html:25
-#, fuzzy
-#| msgid "Gelb - Aufmerksamkeit erforderlich"
 msgid "Dieses Feld ist erforderlich"
-msgstr "Yellow - Attention required"
+msgstr "This field is required"
 
 #: Global/templates/components/folder_modal.html:18
-#, fuzzy
-#| msgid "Neuer Ordner"
 msgid "Name des Ordners"
-msgstr "New Folder"
+msgstr "Name of Folder"
 
 #: Global/templates/components/folder_modal.html:22
 msgid "Sichtbar für"
@@ -875,8 +859,6 @@ msgstr "Color marking of the folder"
 
 #: Global/templates/components/fullscreen_drop_zone.html:6
 #: Global/templates/components/fullscreen_drop_zone.html:55
-#, fuzzy
-#| msgid "Datei herunterladen"
 msgid "Datei hier ablegen"
 msgstr "Drop file here"
 
@@ -896,8 +878,6 @@ msgstr "Profile picture"
 
 #: Global/templates/components/image_card_header.html:42
 #: Global/templates/components/image_card_header.html:72
-#, fuzzy
-#| msgid "Möchten Sie dieses Bild wirklich löschen?"
 msgid "Dieses Bild wirklich löschen?"
 msgstr "Really delete this image?"
 
@@ -919,14 +899,10 @@ msgid "Dieses Bild und"
 msgstr "This image and"
 
 #: Global/templates/components/image_card_header.html:74
-#, fuzzy
-#| msgid "Bild löschen"
 msgid "weiteres Bild löschen?"
 msgstr "Delete image"
 
 #: Global/templates/components/image_card_header.html:76
-#, fuzzy
-#| msgid "Alle Bilder löschen"
 msgid "weitere Bilder löschen?"
 msgstr "Delete all images"
 
@@ -943,10 +919,8 @@ msgid "Slide"
 msgstr "Slide"
 
 #: Global/templates/components/image_fullscreen.html:8
-#, fuzzy
-#| msgid "Profilbild"
 msgid "Vollbild"
-msgstr "Profile picture"
+msgstr "Fullscreen"
 
 #: Global/templates/components/image_fullscreen.html:16
 #: ORG/templates/components/task_zwischenschritte_modal.html:23
@@ -977,8 +951,6 @@ msgstr "By"
 
 #: Global/templates/components/post_card.html:65
 #: Global/templates/post_detail.html:49
-#, fuzzy
-#| msgid "Erledigt am"
 msgid "Erstellt am"
 msgstr "Completed on"
 
@@ -988,8 +960,6 @@ msgstr "Read more"
 
 #: Global/templates/components/post_delete_modal.html:10
 #: Global/templates/components/post_delete_modal.html:38
-#, fuzzy
-#| msgid "Bild löschen"
 msgid "Beitrag löschen"
 msgstr "Delete image"
 
@@ -1020,8 +990,6 @@ msgid "Email"
 msgstr "Email"
 
 #: Global/templates/components/profile_details.html:33
-#, fuzzy
-#| msgid "Bild löschen"
 msgid "Attribut löschen"
 msgstr "Delete attribute"
 
@@ -1067,8 +1035,6 @@ msgid "Teilnehmer:innen"
 msgstr "Participants"
 
 #: Global/templates/kalender_event.html:90
-#, fuzzy
-#| msgid "Zurück zur Startseite"
 msgid "Zurück zum Kalender"
 msgstr "Back to calendar"
 
@@ -1404,34 +1370,24 @@ msgid "Benutzername oder E-Mail"
 msgstr "Username or email"
 
 #: Home/forms.py:20 Home/templates/index.html:78
-#, fuzzy
-#| msgid "Password Reset"
 msgid "Passwort"
-msgstr "Password Reset"
+msgstr "Password"
 
 #: Home/forms.py:45
-#, fuzzy
-#| msgid "Benutzername oder E-Mail"
 msgid "Benutzername"
 msgstr "Username or email"
 
 #: Home/forms.py:48 Home/forms.py:49
-#, fuzzy
-#| msgid "Ungültiges Einmalpasswort."
 msgid "Einmalpasswort"
-msgstr "Invalid one-time password."
+msgstr "One-time password."
 
 #: Home/forms.py:52 Home/forms.py:53
-#, fuzzy
-#| msgid "Neue Posts"
 msgid "Neues Passwort"
-msgstr "New Posts"
+msgstr "New Password"
 
 #: Home/forms.py:57 Home/forms.py:58
-#, fuzzy
-#| msgid "Passwort ändern"
 msgid "Neues Passwort wiederholen"
-msgstr "Change password"
+msgstr "Repeat password"
 
 #: Home/templates/403.html:9
 msgid "403 - Zugriff verweigert"
@@ -1491,8 +1447,6 @@ msgstr "Give feedback"
 
 #: Home/templates/first_login.html:50 Home/templates/password_change.html:48
 #: Home/templates/password_reset.html:49
-#, fuzzy
-#| msgid "Zur Startseite"
 msgid "Zurück zur Startseite"
 msgstr "Back to homepage"
 
@@ -1501,54 +1455,38 @@ msgid "Willkommen"
 msgstr "Welcome"
 
 #: Home/templates/first_login.html:54
-#, fuzzy
-#| msgid "Bitte geben Sie Ihren Benutzernamen und Ihre E-Mail-Adresse ein"
 msgid "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
 msgstr "Please log in with your username and one-time password"
 
 #: Home/templates/first_login.html:108 Home/templates/password_change.html:90
-#, fuzzy
-#| msgid "Passwort ändern"
 msgid "Passwortanforderungen"
-msgstr "Change password"
+msgstr "Password requirements"
 
 #: Home/templates/first_login.html:117 Home/templates/index.html:89
-#, fuzzy
-#| msgid "Abmelden"
 msgid "Anmelden"
-msgstr "Logout"
+msgstr "Login"
 
 #: Home/templates/first_login.html:144 Home/templates/index.html:122
 #: Home/templates/password_change.html:144
 #: Home/templates/password_reset.html:104
-#, fuzzy
-#| msgid "Datenschutzerklärung"
 msgid "Datenschutz"
-msgstr "Privacy Policy"
+msgstr "Privacy"
 
 #: Home/templates/index.html:51
-#, fuzzy
-#| msgid "Bitte wählen Sie eine Farbe aus"
 msgid "Bitte melden Sie sich an"
-msgstr "Please select a color"
+msgstr "Please log in"
 
 #: Home/templates/index.html:62
-#, fuzzy
-#| msgid "Benutzername oder E-Mail"
 msgid "Benutzername oder Passwort falsch."
-msgstr "Username or email"
+msgstr "Username or password incorrect."
 
 #: Home/templates/index.html:95
-#, fuzzy
-#| msgid "Ungültiges Einmalpasswort."
 msgid "Anmelden mit Einmalpasswort"
-msgstr "Invalid one-time password."
+msgstr "Login with one-time password"
 
 #: Home/templates/index.html:98
-#, fuzzy
-#| msgid "Passwort ändern"
 msgid "Passwort vergessen?"
-msgstr "Change password"
+msgstr "Forgot password?"
 
 #: Home/templates/password_change.html:52
 msgid "Bitte geben Sie Ihr aktuelles Passwort und das neue Passwort ein"
@@ -1563,10 +1501,8 @@ msgid "Password Reset"
 msgstr "Password Reset"
 
 #: Home/templates/password_reset.html:54 Home/templates/password_reset.html:77
-#, fuzzy
-#| msgid "Passwort ändern"
 msgid "Passwort zurücksetzen"
-msgstr "Change password"
+msgstr "Reset password"
 
 #: Home/templates/password_reset.html:55
 msgid "Bitte geben Sie Ihren Benutzernamen und Ihre E-Mail-Adresse ein"
@@ -1581,10 +1517,8 @@ msgid "Bitte verifizieren Sie zuerst Ihre E-Mail-Adresse."
 msgstr "Please verify your email address first."
 
 #: Home/views.py:105
-#, fuzzy
-#| msgid "Ungültiges Einmalpasswort."
 msgid "Ungültiger Benutzername oder Passwort."
-msgstr "Invalid one-time password."
+msgstr "Invalid username or password."
 
 #: Home/views.py:212
 msgid "Benutzername oder E-Mail-Adresse nicht gefunden."
@@ -1604,10 +1538,6 @@ msgid "Ungültiges Einmalpasswort."
 msgstr "Invalid one-time password."
 
 #: Home/views.py:239
-#, fuzzy
-#| msgid ""
-#| "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es später "
-#| "erneut."
 msgid "Fehler beim Login. Bitte versuchen Sie es erneut."
 msgstr "Login error. Please try again."
 
@@ -1675,10 +1605,8 @@ msgstr "No traffic light reports found."
 
 #: ORG/templates/components/cascade_modal.html:10
 #: ORG/templates/edit_object.html:75
-#, fuzzy
-#| msgid "Alle löschen"
 msgid "Objekt löschen"
-msgstr "Delete all"
+msgstr "Delete object"
 
 #: ORG/templates/components/cascade_modal.html:21
 msgid "Achtung: Löschen nicht rückgängig machbar!"
@@ -1700,8 +1628,6 @@ msgid "Folgende Objekte werden auch gelöscht:"
 msgstr "The following objects will also be deleted:"
 
 #: ORG/templates/components/cascade_modal.html:55
-#, fuzzy
-#| msgid "Bild löschen"
 msgid "Endgültig löschen"
 msgstr "Delete permanently"
 
@@ -1710,8 +1636,6 @@ msgid "Keine weiteren Objekte werden gelöscht"
 msgstr "No additional objects will be deleted"
 
 #: ORG/templates/components/cascade_modal.html:170
-#, fuzzy
-#| msgid "Generelle Informationen"
 msgid "Fehler beim Laden der Informationen"
 msgstr "Error loading information"
 
@@ -1720,28 +1644,20 @@ msgid "Zwischenschritt löschen"
 msgstr "Delete intermediate step"
 
 #: ORG/templates/components/delete_modal.html:11
-#, fuzzy
-#| msgid "Möchten Sie dieses Bild wirklich löschen?"
 msgid "Möchten Sie den Zwischenschritt"
 msgstr "Do you want to delete the intermediate step"
 
 #: ORG/templates/components/delete_modal.html:11
-#, fuzzy
-#| msgid "Löschen"
 msgid "löschen?"
 msgstr "delete?"
 
 #: ORG/templates/components/person_cluster_selector.html:10
 #: ORG/templates/components/person_cluster_selector.html:15
-#, fuzzy
-#| msgid "Alle Bilder anzeigen"
 msgid "Alle Benutzergruppen"
 msgstr "All user groups"
 
 #: ORG/templates/components/task_country_modal.html:7
 #: ORG/templates/components/task_table_header.html:34
-#, fuzzy
-#| msgid "Mein Einsatzland"
 msgid "Einem Einsatzland zuweisen"
 msgstr "Assign to a deployment country"
 
@@ -1772,26 +1688,18 @@ msgstr "All"
 #: ORG/templates/components/task_item.html:24
 #: ORG/templates/components/task_table_row.html:43
 #: ORG/templates/components/task_table_row.html:91
-#, fuzzy
-#| msgid "Noch nicht verwendet"
 msgid "Noch nicht heruntergeladen"
 msgstr "Not yet downloaded"
 
 #: ORG/templates/components/task_legend.html:14
-#, fuzzy
-#| msgid "Nicht zugewiesen"
 msgid "Zugewiesen"
 msgstr "Assigned"
 
 #: ORG/templates/components/task_table_header.html:10
-#, fuzzy
-#| msgid "Profile suchen..."
 msgid "Suchen..."
-msgstr "Search profiles..."
+msgstr "Search..."
 
 #: ORG/templates/components/task_table_header.html:10
-#, fuzzy
-#| msgid "Benutzername"
 msgid "Benutzer suchen"
 msgstr "Search user"
 
@@ -1804,8 +1712,6 @@ msgid "Allen Freiwilligen zuweisen"
 msgstr "Assign to all volunteers"
 
 #: ORG/templates/components/task_table_header.html:47
-#, fuzzy
-#| msgid "Aufgabe erledigen"
 msgid "Neue Aufgabe erstellen"
 msgstr "Create new task"
 
@@ -1821,14 +1727,10 @@ msgid "Als pending markieren"
 msgstr "Mark as pending"
 
 #: ORG/templates/components/task_table_row.html:73
-#, fuzzy
-#| msgid "Bild löschen"
 msgid "Datei löschen"
 msgstr "Delete file"
 
 #: ORG/templates/components/task_table_row.html:108
-#, fuzzy
-#| msgid "Historie anzeigen"
 msgid "Zwischenschritte anzeigen"
 msgstr "Show intermediate steps"
 
@@ -1863,8 +1765,6 @@ msgid "Zwischenschritte"
 msgstr "Intermediate steps"
 
 #: ORG/templates/components/task_zwischenschritte_modal.html:14
-#, fuzzy
-#| msgid "Freiwilliger"
 msgid "Freiwillige:r"
 msgstr "Volunteer"
 
@@ -1874,8 +1774,6 @@ msgid "Fehler beim Aktualisieren des Status"
 msgstr "Error updating status"
 
 #: ORG/templates/components/task_zwischenschritte_modal.html:84
-#, fuzzy
-#| msgid "Keine Ampelmeldung vorhanden"
 msgid "Keine Zwischenschritte vorhanden"
 msgstr "No intermediate steps available"
 
@@ -1898,8 +1796,6 @@ msgid "Name"
 msgstr "Name"
 
 #: ORG/templates/edit_object.html:14
-#, fuzzy
-#| msgid "Bearbeiten"
 msgid " bearbeiten"
 msgstr " edit"
 
@@ -1908,8 +1804,6 @@ msgid "Neues Objekt in "
 msgstr "New object in "
 
 #: ORG/templates/edit_object.html:16
-#, fuzzy
-#| msgid "Aufgabe erledigen"
 msgid " erstellen"
 msgstr " create"
 
@@ -1922,8 +1816,6 @@ msgid "Zwischenschritte (optional)"
 msgstr "Intermediate steps (optional)"
 
 #: ORG/templates/edit_object.html:79
-#, fuzzy
-#| msgid "Möchten Sie dieses Bild wirklich löschen?"
 msgid "Möchten Sie dieses Objekt wirklich löschen?"
 msgstr "Do you really want to delete this object?"
 
@@ -1932,8 +1824,6 @@ msgid "Ampelmeldungen"
 msgstr "Status report"
 
 #: ORG/templates/list_ampel.html:16
-#, fuzzy
-#| msgid "Ampel Übersicht"
 msgid "Ampelübersicht"
 msgstr "Traffic light overview"
 
@@ -1964,26 +1854,18 @@ msgid "Herunterladen"
 msgstr "Download"
 
 #: ORG/templates/list_aufgaben_table.html:73
-#, fuzzy
-#| msgid "Aufgaben Übersicht"
 msgid "Aufgabenübersicht"
 msgstr "Task overview"
 
 #: ORG/templates/list_aufgaben_table.html:97
-#, fuzzy
-#| msgid "Aufgaben suchen..."
 msgid "Aufgabe löschen"
 msgstr "Delete task"
 
 #: ORG/templates/list_aufgaben_table.html:102
-#, fuzzy
-#| msgid "Dateien"
 msgid "Die Datei"
 msgstr "The file"
 
 #: ORG/templates/list_aufgaben_table.html:102
-#, fuzzy
-#| msgid "Aufgabe"
 msgid "der Aufgabe"
 msgstr "of the task"
 
@@ -1992,27 +1874,19 @@ msgid "für"
 msgstr "for"
 
 #: ORG/templates/list_aufgaben_table.html:102
-#, fuzzy
-#| msgid "Bild löschen"
 msgid "wirklich löschen?"
 msgstr "really delete?"
 
 #: ORG/templates/list_objects.html:177
-#, fuzzy
-#| msgid "Active filters:"
 msgid "Anzeige gefiltert:"
 msgstr "Filtered view:"
 
 #: ORG/templates/list_objects.html:177 ORG/templates/list_objects.html:192
 #: ORG/templates/list_objects.html:337
-#, fuzzy
-#| msgid "Von"
 msgid "von"
 msgstr "By"
 
 #: ORG/templates/list_objects.html:179
-#, fuzzy
-#| msgid "Insgesamt"
 msgid "insgesamt"
 msgstr "Total"
 
@@ -2029,8 +1903,6 @@ msgid "No items found"
 msgstr "No items found"
 
 #: ORG/templates/list_objects.html:337
-#, fuzzy
-#| msgid "Anzeigen"
 msgid "Zeige"
 msgstr "Show"
 
@@ -2059,8 +1931,6 @@ msgid "Ampel Übersicht"
 msgstr "Traffic light overview"
 
 #: TEAM/templates/teamContacts.html:5
-#, fuzzy
-#| msgid "Notfallkontakte"
 msgid "Kontakte"
 msgstr "Contacts"
 
@@ -2078,20 +1948,14 @@ msgstr ""
 
 #: TEAM/templates/teamEinsatzstellen.html:5
 #: TEAM/templates/teamEinsatzstellen.html:33
-#, fuzzy
-#| msgid "Informationen Einsatzstelle"
 msgid "Einsatzstellen"
 msgstr "Assignment locations"
 
 #: TEAM/templates/teamEinsatzstellen.html:69
-#, fuzzy
-#| msgid "Partnerorganisation"
 msgid "Keine Partnerorganisation hinterlegt"
 msgstr "No partner organization stored"
 
 #: TEAM/templates/teamEinsatzstellen.html:85
-#, fuzzy
-#| msgid "Arbeitsvorgesetzte:r"
 msgid "Keine Arbeitsvorgesetzte:r hinterlegt"
 msgstr "No supervisor stored"
 
@@ -2109,27 +1973,19 @@ msgstr "No consulate information available"
 
 #: TEAM/templates/teamEinsatzstellen.html:149
 #: TEAM/templates/teamLaender.html:169
-#, fuzzy
-#| msgid "Weitere Informationen"
 msgid "Keine weiteren Informationen hinterlegt"
 msgstr "No further information stored"
 
 #: TEAM/templates/teamEinsatzstellen.html:163
 #: TEAM/templates/teamLaender.html:182
-#, fuzzy
-#| msgid "Informationen Einsatzstelle"
 msgid "Informationen bearbeiten"
 msgstr "Edit information"
 
 #: TEAM/templates/teamEinsatzstellen.html:175
-#, fuzzy
-#| msgid "Partnerorganisation"
 msgid "Partnerorganisation hier eingeben..."
 msgstr "Enter partner organization here..."
 
 #: TEAM/templates/teamEinsatzstellen.html:182
-#, fuzzy
-#| msgid "Arbeitsvorgesetzte:r"
 msgid "Arbeitsvorgesetzte:r hier eingeben..."
 msgstr "Enter supervisor here..."
 
@@ -2147,15 +2003,11 @@ msgstr "Enter consulate information here..."
 
 #: TEAM/templates/teamEinsatzstellen.html:210
 #: TEAM/templates/teamLaender.html:205
-#, fuzzy
-#| msgid "Weitere Informationen"
 msgid "Weitere Informationen hier eingeben..."
 msgstr "Enter further information here..."
 
 #: TEAM/templates/teamEinsatzstellen.html:218
 #: TEAM/templates/teamLaender.html:210
-#, fuzzy
-#| msgid "Änderungen melden"
 msgid "Änderungen speichern"
 msgstr "Save changes"
 
@@ -2165,14 +2017,10 @@ msgid ""
 msgstr "No assignment locations found. Please contact the administrator."
 
 #: TEAM/templates/teamLaender.html:5 TEAM/templates/teamLaender.html:100
-#, fuzzy
-#| msgid "Mein Einsatzland"
 msgid "Einsatzländer"
 msgstr "Deployment countries"
 
 #: TEAM/templates/teamLaender.html:127
-#, fuzzy
-#| msgid "Notfallnummern"
 msgid "Keine Notfallnummern hinterlegt"
 msgstr "No emergency numbers stored"
 
@@ -2185,8 +2033,6 @@ msgid "Keine Apotheken hinterlegt"
 msgstr "No pharmacies listed"
 
 #: TEAM/templates/teamLaender.html:190
-#, fuzzy
-#| msgid "Notfallnummern"
 msgid "Notfallnummern hier eingeben..."
 msgstr "Enter emergency numbers here..."
 
