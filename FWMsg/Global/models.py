@@ -13,6 +13,7 @@ from ORG.models import Organisation
 from datetime import datetime, timedelta
 from django.core import signing
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from PIL import Image  # Make sure this is from PIL, not Django models
 from django.core.files.base import ContentFile
@@ -195,9 +196,9 @@ def user_str_method(self):
 User.__str__ = user_str_method
 
 class Feedback(models.Model):
-    text = models.TextField(verbose_name='Feedback-Text')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer:in', null=True, blank=True)
-    anonymous = models.BooleanField(default=False, verbose_name='Anonym einreichen')
+    text = models.TextField(verbose_name=_('Feedback-Text'))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer:in'), null=True, blank=True)
+    anonymous = models.BooleanField(default=False, verbose_name=_('Anonym einreichen'))
 
     def __str__(self):
         return f'Feedback von {self.user.username}' if not self.anonymous and self.user else 'Anonymes Feedback'
@@ -864,10 +865,10 @@ class PostSurveyAnswer(OrgModel):
 
 class Bilder2(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
-    titel = models.CharField(max_length=50, verbose_name='Bildtitel')
-    beschreibung = models.TextField(blank=True, null=True, verbose_name='Beschreibung')
-    date_created = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
-    date_updated = models.DateTimeField(auto_now=True, verbose_name='Aktualisiert am')
+    titel = models.CharField(max_length=50, verbose_name=_('Bildtitel'))
+    beschreibung = models.TextField(blank=True, null=True, verbose_name=_('Beschreibung'))
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
+    date_updated = models.DateTimeField(auto_now=True, verbose_name=_('Aktualisiert am'))
 
     history = HistoricalRecords()
 
