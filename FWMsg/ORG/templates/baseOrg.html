@@ -47,42 +47,42 @@
             <div class="collapse navbar-collapse" id="navbarResponsive">
               <ul class="navbar-nav me-auto mb-2 mb-md-0">
                 <li class="nav-item">
-                  <a href="{% url 'org_home' %}" class="nav-link" aria-current="page">Home</a>
+                  <a href="{% url 'org_home' %}" class="nav-link" aria-current="page">{% trans "Home" %}</a>
                 </li>
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Tabellen</a>
+                  <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">{% trans "Tabellen" %}</a>
                   <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a href="{% url 'list_object' 'freiwilliger' %}" class="dropdown-item">Freiwillige</a>
-                    <a href="{% url 'list_object' 'notfallkontakt' %}" class="dropdown-item">Notfallkontakte</a>
-                    <a href="{% url 'list_object' 'team' %}" class="dropdown-item">Team</a>
+                    <a href="{% url 'list_object' 'freiwilliger' %}" class="dropdown-item">{% trans "Freiwillige" %}</a>
+                    <a href="{% url 'list_object' 'notfallkontakt' %}" class="dropdown-item">{% trans "Notfallkontakte" %}</a>
+                    <a href="{% url 'list_object' 'team' %}" class="dropdown-item">{% trans "Team" %}</a>
                     <hr class="dropdown-divider" />
-                    <a href="{% url 'list_object' 'aufgabe' %}" class="dropdown-item">Aufgaben</a>
-                    <a href="{% url 'list_aufgaben_table' %}" class="dropdown-item">Aufgabenübersicht</a>
-                    <a href="{% url 'list_ampel' %}" class="dropdown-item">Ampelmeldungen</a>
+                    <a href="{% url 'list_object' 'aufgabe' %}" class="dropdown-item">{% trans "Aufgaben" %}</a>
+                    <a href="{% url 'list_aufgaben_table' %}" class="dropdown-item">{% trans "Aufgabenübersicht" %}</a>
+                    <a href="{% url 'list_ampel' %}" class="dropdown-item">{% trans "Ampelmeldungen" %}</a>
                     <hr class="dropdown-divider" />
-                    <a href="{% url 'list_object' 'einsatzland' %}" class="dropdown-item">Einsatzländer</a>
-                    <a href="{% url 'list_object' 'einsatzstelle' %}" class="dropdown-item">Einsatzstellen</a>
-                    <a href="{% url 'einsatzstellen_notiz' %}" class="dropdown-item">Einsatzstellen Notizen</a>
+                    <a href="{% url 'list_object' 'einsatzland' %}" class="dropdown-item">{% trans "Einsatzländer" %}</a>
+                    <a href="{% url 'list_object' 'einsatzstelle' %}" class="dropdown-item">{% trans "Einsatzstellen" %}</a>
+                    <a href="{% url 'einsatzstellen_notiz' %}" class="dropdown-item">{% trans "Einsatzstellen Notizen" %}</a>
                     <hr class="dropdown-divider" />
-                    <a href="{% url 'list_object' 'kalender' %}" class="dropdown-item">Kalender-Termine</a>
+                    <a href="{% url 'list_object' 'kalender' %}" class="dropdown-item">{% trans "Kalender-Termine" %}</a>
                   </div>
                 </li>
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Einstellungen</a>
+                  <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">{% trans "Einstellungen" %}</a>
                   <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a href="{% url 'list_object' 'user' %}" class="dropdown-item">Benutzer:innen</a>
-                    <a href="{% url 'list_object' 'personcluster' %}" class="dropdown-item">Benutzergruppen</a>
-                    <a href="{% url 'list_object' 'attribute' %}" class="dropdown-item">Attribute</a>
-                    <a href="{% url 'list_object' 'aufg-filter' %}" class="dropdown-item">Aufgaben Filter</a>
+                    <a href="{% url 'list_object' 'user' %}" class="dropdown-item">{% trans "Benutzer:innen" %}</a>
+                    <a href="{% url 'list_object' 'personcluster' %}" class="dropdown-item">{% trans "Benutzergruppen" %}</a>
+                    <a href="{% url 'list_object' 'attribute' %}" class="dropdown-item">{% trans "Attribute" %}</a>
+                    <a href="{% url 'list_object' 'aufg-filter' %}" class="dropdown-item">{% trans "Aufgaben Filter" %}</a>
                     <hr class="dropdown-divider" />
-                    <a href="{% url 'application_overview' %}" class="dropdown-item">Bewerbungen</a>
+                    <a href="{% url 'application_overview' %}" class="dropdown-item">{% trans "Bewerbungen" %}</a>
                   </div>
                 </li>
                 <li>
-                  <a href="{% url 'bilder' %}" class="nav-link">Bilder</a>
+                  <a href="{% url 'bilder' %}" class="nav-link">{% trans "Bilder" %}</a>
                 </li>
                 <li>
-                  <a href="{% url 'dokumente' %}" class="nav-link">Dokumente</a>
+                  <a href="{% url 'dokumente' %}" class="nav-link">{% trans "Dokumente" %}</a>
                 </li>
               </ul>
 

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-22 19:55+0200\n"
+"POT-Creation-Date: 2025-06-22 19:59+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: English <en@li.org>\n"
@@ -87,8 +87,9 @@ msgstr "Task"
 #: FW/templates/base.html:139 FW/templates/base.html:261
 #: FW/templates/baseFw.html:148 FW/templates/baseFw.html:252
 #: FW/templates/baseFw.html:350 FW/templates/homeFw.html:22
-#: ORG/templates/aufgaben_assign.html:82 ORG/templates/list_aufgaben.html:5
-#: ORG/templates/list_aufgaben_table.html:5 TEAM/templates/baseTeam.html:54
+#: ORG/templates/aufgaben_assign.html:82 ORG/templates/baseOrg.html:59
+#: ORG/templates/list_aufgaben.html:5 ORG/templates/list_aufgaben_table.html:5
+#: TEAM/templates/baseTeam.html:54
 msgid "Aufgaben"
 msgstr "Tasks"
 
@@ -136,7 +137,7 @@ msgstr "My deployment country"
 #: FW/templates/base.html:83 FW/templates/base.html:180
 #: FW/templates/baseFw.html:109 FW/templates/baseFw.html:205
 #: FW/templates/baseFw.html:303 FW/templates/notfallkontakte.html:5
-#: FW/templates/notfallkontakte.html:21
+#: FW/templates/notfallkontakte.html:21 ORG/templates/baseOrg.html:56
 msgid "Notfallkontakte"
 msgstr "Emergency contacts"
 
@@ -162,7 +163,8 @@ msgstr "English"
 
 #: FW/templates/base.html:134 FW/templates/base.html:255
 #: FW/templates/baseFw.html:137 FW/templates/baseFw.html:244
-#: FW/templates/baseFw.html:342 TEAM/templates/baseTeam.html:50
+#: FW/templates/baseFw.html:342 ORG/templates/baseOrg.html:50
+#: TEAM/templates/baseTeam.html:50
 msgid "Home"
 msgstr "Home"
 
@@ -174,7 +176,8 @@ msgstr "Upload images"
 #: FW/templates/base.html:154 FW/templates/base.html:281
 #: FW/templates/baseFw.html:188 FW/templates/baseFw.html:289
 #: FW/templates/baseFw.html:375 Global/templates/dokumente.html:44
-#: Global/templates/dokumente.html:58 TEAM/templates/baseTeam.html:64
+#: Global/templates/dokumente.html:58 ORG/templates/baseOrg.html:85
+#: TEAM/templates/baseTeam.html:64
 msgid "Dokumente"
 msgstr "Documents"
 
@@ -205,6 +208,7 @@ msgstr "Posts"
 
 #: FW/templates/baseFw.html:113 FW/templates/baseFw.html:221
 #: FW/templates/baseFw.html:316 Global/templates/settings.html:40
+#: ORG/templates/baseOrg.html:71
 msgid "Einstellungen"
 msgstr "Settings"
 
@@ -219,14 +223,13 @@ msgstr ""
 #: FW/templates/baseFw.html:174 FW/templates/baseFw.html:275
 #: Global/templates/bild.html:11 Global/templates/bilder.html:9
 #: Global/templates/components/gallery_grid.html:6
+#: ORG/templates/baseOrg.html:82
 msgid "Bilder"
 msgstr "Images"
 
 #: FW/templates/baseFw.html:195
-#, fuzzy
-#| msgid "Informationen Einsatzstelle"
 msgid "Information & Contacts"
-msgstr "Assignment Location Information"
+msgstr "Information & Contacts"
 
 #: FW/templates/baseFw.html:212
 msgid "Account & Settings"
@@ -1595,8 +1598,8 @@ msgstr "Your password has been successfully changed."
 msgid "Aufgaben zuweisen"
 msgstr "Complete task"
 
-#: ORG/templates/aufgaben_assign.html:22 ORG/templates/list_aufgaben.html:112
-#: TEAM/templates/teamContacts.html:26
+#: ORG/templates/aufgaben_assign.html:22 ORG/templates/baseOrg.html:55
+#: ORG/templates/list_aufgaben.html:112 TEAM/templates/teamContacts.html:26
 msgid "Freiwillige"
 msgstr "Volunteers"
 
@@ -1627,6 +1630,60 @@ msgstr "Search profiles..."
 #: ORG/templates/aufgaben_assign.html:160
 msgid "Alle Profile auswählen"
 msgstr "Select all profiles"
+
+#: ORG/templates/baseOrg.html:53
+msgid "Tabellen"
+msgstr "Tables"
+
+#: ORG/templates/baseOrg.html:57
+msgid "Team"
+msgstr "Team"
+
+#: ORG/templates/baseOrg.html:60 ORG/templates/list_aufgaben_table.html:73
+msgid "Aufgabenübersicht"
+msgstr "Task overview"
+
+#: ORG/templates/baseOrg.html:61 ORG/templates/list_ampel.html:7
+msgid "Ampelmeldungen"
+msgstr "Status report"
+
+#: ORG/templates/baseOrg.html:63 TEAM/templates/teamLaender.html:5
+#: TEAM/templates/teamLaender.html:100
+msgid "Einsatzländer"
+msgstr "Deployment countries"
+
+#: ORG/templates/baseOrg.html:64 TEAM/templates/teamEinsatzstellen.html:5
+#: TEAM/templates/teamEinsatzstellen.html:33
+msgid "Einsatzstellen"
+msgstr "Assignment locations"
+
+#: ORG/templates/baseOrg.html:65
+msgid "Einsatzstellen Notizen"
+msgstr "Assignment location notes"
+
+#: ORG/templates/baseOrg.html:67
+msgid "Kalender-Termine"
+msgstr "Calendar events"
+
+#: ORG/templates/baseOrg.html:73
+msgid "Benutzer:innen"
+msgstr "Users"
+
+#: ORG/templates/baseOrg.html:74
+msgid "Benutzergruppen"
+msgstr "User groups"
+
+#: ORG/templates/baseOrg.html:75
+msgid "Attribute"
+msgstr "Attributes"
+
+#: ORG/templates/baseOrg.html:76
+msgid "Aufgaben Filter"
+msgstr "Task filters"
+
+#: ORG/templates/baseOrg.html:78
+msgid "Bewerbungen"
+msgstr "Applications"
 
 #: ORG/templates/components/ampel_legend.html:6
 msgid "Grün"
@@ -1732,7 +1789,7 @@ msgstr "All"
 
 #: ORG/templates/components/task_item.html:19
 #: ORG/templates/components/task_table_row.html:38
-#: ORG/templates/components/task_table_row_row.html:86
+#: ORG/templates/components/task_table_row.html:86
 msgid "Heruntergeladen von"
 msgstr "Downloaded by"
 
@@ -1870,10 +1927,6 @@ msgstr "Intermediate steps (optional)"
 msgid "Möchten Sie dieses Objekt wirklich löschen?"
 msgstr "Do you really want to delete this object?"
 
-#: ORG/templates/list_ampel.html:7
-msgid "Ampelmeldungen"
-msgstr "Status report"
-
 #: ORG/templates/list_ampel.html:16
 msgid "Ampelübersicht"
 msgstr "Traffic light overview"
@@ -1903,10 +1956,6 @@ msgstr "Reminder"
 #: ORG/templates/list_aufgaben.html:141
 msgid "Herunterladen"
 msgstr "Download"
-
-#: ORG/templates/list_aufgaben_table.html:73
-msgid "Aufgabenübersicht"
-msgstr "Task overview"
 
 #: ORG/templates/list_aufgaben_table.html:97
 msgid "Aufgabe löschen"
@@ -1997,11 +2046,6 @@ msgstr ""
 "Here you can find all contact details of the volunteers who are active in "
 "your deployment country."
 
-#: TEAM/templates/teamEinsatzstellen.html:5
-#: TEAM/templates/teamEinsatzstellen.html:33
-msgid "Einsatzstellen"
-msgstr "Assignment locations"
-
 #: TEAM/templates/teamEinsatzstellen.html:69
 msgid "Keine Partnerorganisation hinterlegt"
 msgstr "No partner organization stored"
@@ -2066,10 +2110,6 @@ msgstr "Save changes"
 msgid ""
 "Keine Einsatzstellen gefunden. Bitte wenden Sie sich an den Administrator."
 msgstr "No assignment locations found. Please contact the administrator."
-
-#: TEAM/templates/teamLaender.html:5 TEAM/templates/teamLaender.html:100
-msgid "Einsatzländer"
-msgstr "Deployment countries"
 
 #: TEAM/templates/teamLaender.html:127
 msgid "Keine Notfallnummern hinterlegt"

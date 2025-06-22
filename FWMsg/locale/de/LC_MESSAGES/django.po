@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-22 19:55+0200\n"
+"POT-Creation-Date: 2025-06-22 19:59+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: German <de@li.org>\n"
@@ -85,8 +85,9 @@ msgstr "Aufgabe"
 #: FW/templates/base.html:139 FW/templates/base.html:261
 #: FW/templates/baseFw.html:148 FW/templates/baseFw.html:252
 #: FW/templates/baseFw.html:350 FW/templates/homeFw.html:22
-#: ORG/templates/aufgaben_assign.html:82 ORG/templates/list_aufgaben.html:5
-#: ORG/templates/list_aufgaben_table.html:5 TEAM/templates/baseTeam.html:54
+#: ORG/templates/aufgaben_assign.html:82 ORG/templates/baseOrg.html:59
+#: ORG/templates/list_aufgaben.html:5 ORG/templates/list_aufgaben_table.html:5
+#: TEAM/templates/baseTeam.html:54
 msgid "Aufgaben"
 msgstr "Aufgaben"
 
@@ -134,7 +135,7 @@ msgstr "Mein Einsatzland"
 #: FW/templates/base.html:83 FW/templates/base.html:180
 #: FW/templates/baseFw.html:109 FW/templates/baseFw.html:205
 #: FW/templates/baseFw.html:303 FW/templates/notfallkontakte.html:5
-#: FW/templates/notfallkontakte.html:21
+#: FW/templates/notfallkontakte.html:21 ORG/templates/baseOrg.html:56
 msgid "Notfallkontakte"
 msgstr "Notfallkontakte"
 
@@ -160,7 +161,8 @@ msgstr "Englisch"
 
 #: FW/templates/base.html:134 FW/templates/base.html:255
 #: FW/templates/baseFw.html:137 FW/templates/baseFw.html:244
-#: FW/templates/baseFw.html:342 TEAM/templates/baseTeam.html:50
+#: FW/templates/baseFw.html:342 ORG/templates/baseOrg.html:50
+#: TEAM/templates/baseTeam.html:50
 msgid "Home"
 msgstr "Home"
 
@@ -172,7 +174,8 @@ msgstr "Bilder hochladen"
 #: FW/templates/base.html:154 FW/templates/base.html:281
 #: FW/templates/baseFw.html:188 FW/templates/baseFw.html:289
 #: FW/templates/baseFw.html:375 Global/templates/dokumente.html:44
-#: Global/templates/dokumente.html:58 TEAM/templates/baseTeam.html:64
+#: Global/templates/dokumente.html:58 ORG/templates/baseOrg.html:85
+#: TEAM/templates/baseTeam.html:64
 msgid "Dokumente"
 msgstr "Dokumente"
 
@@ -203,6 +206,7 @@ msgstr ""
 
 #: FW/templates/baseFw.html:113 FW/templates/baseFw.html:221
 #: FW/templates/baseFw.html:316 Global/templates/settings.html:40
+#: ORG/templates/baseOrg.html:71
 msgid "Einstellungen"
 msgstr "Einstellungen"
 
@@ -217,6 +221,7 @@ msgstr "Medien & Dokumente"
 #: FW/templates/baseFw.html:174 FW/templates/baseFw.html:275
 #: Global/templates/bild.html:11 Global/templates/bilder.html:9
 #: Global/templates/components/gallery_grid.html:6
+#: ORG/templates/baseOrg.html:82
 msgid "Bilder"
 msgstr "Bilder"
 
@@ -1576,8 +1581,8 @@ msgstr ""
 msgid "Aufgaben zuweisen"
 msgstr "Aufgaben zuweisen"
 
-#: ORG/templates/aufgaben_assign.html:22 ORG/templates/list_aufgaben.html:112
-#: TEAM/templates/teamContacts.html:26
+#: ORG/templates/aufgaben_assign.html:22 ORG/templates/baseOrg.html:55
+#: ORG/templates/list_aufgaben.html:112 TEAM/templates/teamContacts.html:26
 msgid "Freiwillige"
 msgstr "Freiwillige"
 
@@ -1608,6 +1613,74 @@ msgstr "Profile suchen..."
 #: ORG/templates/aufgaben_assign.html:160
 msgid "Alle Profile auswählen"
 msgstr "Alle Profile auswählen"
+
+#: ORG/templates/baseOrg.html:53
+msgid "Tabellen"
+msgstr ""
+
+#: ORG/templates/baseOrg.html:57
+msgid "Team"
+msgstr ""
+
+#: ORG/templates/baseOrg.html:60 ORG/templates/list_aufgaben_table.html:73
+msgid "Aufgabenübersicht"
+msgstr "Aufgabenübersicht"
+
+#: ORG/templates/baseOrg.html:61 ORG/templates/list_ampel.html:7
+msgid "Ampelmeldungen"
+msgstr "Ampelmeldungen"
+
+#: ORG/templates/baseOrg.html:63 TEAM/templates/teamLaender.html:5
+#: TEAM/templates/teamLaender.html:100
+msgid "Einsatzländer"
+msgstr "Einsatzländer"
+
+#: ORG/templates/baseOrg.html:64 TEAM/templates/teamEinsatzstellen.html:5
+#: TEAM/templates/teamEinsatzstellen.html:33
+msgid "Einsatzstellen"
+msgstr "Einsatzstellen"
+
+#: ORG/templates/baseOrg.html:65
+#, fuzzy
+#| msgid "Einsatzstellen"
+msgid "Einsatzstellen Notizen"
+msgstr "Einsatzstellen"
+
+#: ORG/templates/baseOrg.html:67
+#, fuzzy
+#| msgid "Kalender"
+msgid "Kalender-Termine"
+msgstr "Kalender"
+
+#: ORG/templates/baseOrg.html:73
+#, fuzzy
+#| msgid "Benutzer:in"
+msgid "Benutzer:innen"
+msgstr "Benutzer:in"
+
+#: ORG/templates/baseOrg.html:74
+#, fuzzy
+#| msgid "Alle Benutzergruppen"
+msgid "Benutzergruppen"
+msgstr "Alle Benutzergruppen"
+
+#: ORG/templates/baseOrg.html:75
+#, fuzzy
+#| msgid "Attribut löschen"
+msgid "Attribute"
+msgstr "Attribut löschen"
+
+#: ORG/templates/baseOrg.html:76
+#, fuzzy
+#| msgid "Aufgaben"
+msgid "Aufgaben Filter"
+msgstr "Aufgaben"
+
+#: ORG/templates/baseOrg.html:78
+#, fuzzy
+#| msgid "Anmerkungen"
+msgid "Bewerbungen"
+msgstr "Anmerkungen"
 
 #: ORG/templates/components/ampel_legend.html:6
 msgid "Grün"
@@ -1852,10 +1925,6 @@ msgstr "Zwischenschritte (optional)"
 msgid "Möchten Sie dieses Objekt wirklich löschen?"
 msgstr "Möchten Sie dieses Objekt wirklich löschen?"
 
-#: ORG/templates/list_ampel.html:7
-msgid "Ampelmeldungen"
-msgstr "Ampelmeldungen"
-
 #: ORG/templates/list_ampel.html:16
 msgid "Ampelübersicht"
 msgstr "Ampelübersicht"
@@ -1885,10 +1954,6 @@ msgstr "Erinnerung"
 #: ORG/templates/list_aufgaben.html:141
 msgid "Herunterladen"
 msgstr "Herunterladen"
-
-#: ORG/templates/list_aufgaben_table.html:73
-msgid "Aufgabenübersicht"
-msgstr "Aufgabenübersicht"
 
 #: ORG/templates/list_aufgaben_table.html:97
 msgid "Aufgabe löschen"
@@ -1977,11 +2042,6 @@ msgid ""
 "Einsatzland tätig sind."
 msgstr ""
 
-#: TEAM/templates/teamEinsatzstellen.html:5
-#: TEAM/templates/teamEinsatzstellen.html:33
-msgid "Einsatzstellen"
-msgstr "Einsatzstellen"
-
 #: TEAM/templates/teamEinsatzstellen.html:69
 msgid "Keine Partnerorganisation hinterlegt"
 msgstr ""
@@ -2046,10 +2106,6 @@ msgstr "Änderungen speichern"
 msgid ""
 "Keine Einsatzstellen gefunden. Bitte wenden Sie sich an den Administrator."
 msgstr ""
-
-#: TEAM/templates/teamLaender.html:5 TEAM/templates/teamLaender.html:100
-msgid "Einsatzländer"
-msgstr "Einsatzländer"
 
 #: TEAM/templates/teamLaender.html:127
 msgid "Keine Notfallnummern hinterlegt"
