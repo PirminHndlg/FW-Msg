@@ -35,7 +35,7 @@
                     data-bs-toggle="tooltip"
                     data-bs-placement="top"
                     title="{% if aufgabe.file_downloaded_of.count > 0 %}
-                        Heruntergeladen von
+                        {% trans 'Heruntergeladen von' %}
                         {% for user in aufgabe.file_downloaded_of.all %}
                             {{ user.first_name }} {{ user.last_name }}{% if not forloop.last %}, {% endif %}
                         {% endfor %}
@@ -83,7 +83,7 @@
                     data-bs-toggle="tooltip"
                     data-bs-placement="top"
                     title="{% if aufgabe.file_downloaded_of.count > 0 %}
-                        Heruntergeladen von
+                        {% trans 'Heruntergeladen von' %}
                         {% for user in aufgabe.file_downloaded_of.all %}
                             {{ user.first_name }} {{ user.last_name }}{% if not forloop.last %}, {% endif %}
                         {% endfor %}
