@@ -149,7 +149,7 @@ AUTH_PASSWORD_VALIDATORS = [
              'min_length_special': 1,
              'min_length_lower': 1,
              'min_length_upper': 1,
-             'special_characters': "~!@#$%^&*()_+{}\":;'[]"
+             'special_characters': "~!?@#$%^&*()_+{}\":;'[]"
          }
     }
 ]
@@ -250,6 +250,9 @@ try:
     EMAIL_HOST_PASSWORD = mail_login["password"]
     EMAIL_USE_TLS = True
     EMAIL_USE_SSL = False
+
+    # Define your admins here
+    ADMINS = mail_login.get('admins', [])
     
     # Web Push Notification settings - Generate your own using the web-push library
     VAPID_PUBLIC_KEY = mail_login.get('vapid_public_key', 'YOUR_VAPID_PUBLIC_KEY')
@@ -261,12 +264,9 @@ except FileNotFoundError:
     EMAIL_PORT = 587
     EMAIL_HOST_USER = 'notifications@example.com'
     EMAIL_HOST_PASSWORD = ''
+    ADMINS = []
     VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY'
     VAPID_PRIVATE_KEY = 'YOUR_VAPID_PRIVATE_KEY'
 
-# Define your admins here
-ADMINS = (
-   ('admin_name', 'admin@example.com'),
-)
 
 MANAGERS = ADMINS

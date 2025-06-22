@@ -39,6 +39,8 @@ urlpatterns = [
     path('unsubscribe_mail_notifications/<int:user_id>/<str:auth_key>', views.unsubscribe_mail_notifications, name='unsubscribe_mail_notifications'),
 
     path('feedback/', views.feedback, name='feedback'),
+    path('settings/', views.settings_view, name='settings'),
+    path('settings/delete_account/', views.delete_account, name='delete_account'),
 
     path('kalender/', views.kalender, name='kalender'),
     path('kalender/<int:kalender_id>/', views.kalender_event, name='kalender_event'),
