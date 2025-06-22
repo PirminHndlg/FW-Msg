@@ -1433,7 +1433,8 @@ def kalender_abbonement(request, token):
     
 @login_required
 def settings_view(request):
-    return render(request, 'settings.html')
+    context = check_organization_context(request, {})
+    return render(request, 'settings.html', context=context)
 
 @login_required
 def delete_account(request):
