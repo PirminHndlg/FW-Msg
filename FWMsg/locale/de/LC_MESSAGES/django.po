@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-22 17:11+0200\n"
+"POT-Creation-Date: 2025-06-22 18:52+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -463,7 +463,7 @@ msgstr "Anzeigen"
 msgid "Jetzt erledigen"
 msgstr "Jetzt erledigen"
 
-#: FW/templates/components/task_detail_form.html:10
+#: FW/templates/components/task_detail_form.html:10 Global/models.py:869
 #: Global/templates/components/document_modal.html:30
 #: Global/templates/kalender_event.html:81
 #: ORG/templates/components/task_table_header.html:20
@@ -754,6 +754,39 @@ msgstr ""
 msgid "Notiz"
 msgstr ""
 
+#: Global/models.py:199
+#, fuzzy
+#| msgid "Feedback"
+msgid "Feedback-Text"
+msgstr "Feedback"
+
+#: Global/models.py:200
+#, fuzzy
+#| msgid "Benutzername"
+msgid "Benutzer:in"
+msgstr "Benutzername"
+
+#: Global/models.py:201
+msgid "Anonym einreichen"
+msgstr ""
+
+#: Global/models.py:868
+#, fuzzy
+#| msgid "Bilder"
+msgid "Bildtitel"
+msgstr "Bilder"
+
+#: Global/models.py:870 Global/templates/components/post_card.html:65
+#: Global/templates/post_detail.html:49
+#, fuzzy
+#| msgid "Erledigt am"
+msgid "Erstellt am"
+msgstr "Erledigt am"
+
+#: Global/models.py:871 Global/templates/post_detail.html:52
+msgid "Aktualisiert am"
+msgstr ""
+
 #: Global/templates/admin/global/customuser/change_list.html:8
 msgid "Send Daily Task Emails"
 msgstr ""
@@ -808,6 +841,12 @@ msgstr "weniger"
 #: Global/templates/components/image_description.html:8
 msgid "mehr"
 msgstr "mehr"
+
+#: Global/templates/bilder_show.html:41 ORG/templates/homeOrg.html:314
+#, fuzzy
+#| msgid "Ampelmeldung"
+msgid "Keine Bilder vorhanden"
+msgstr "Ampelmeldung"
 
 #: Global/templates/components/document_card.html:36
 #: Global/templates/components/image_card_header.html:20
@@ -1020,13 +1059,6 @@ msgstr ""
 msgid "Von"
 msgstr ""
 
-#: Global/templates/components/post_card.html:65
-#: Global/templates/post_detail.html:49
-#, fuzzy
-#| msgid "Erledigt am"
-msgid "Erstellt am"
-msgstr "Erledigt am"
-
 #: Global/templates/components/post_card.html:72
 #, fuzzy
 #| msgid "Aufgabe erledigen"
@@ -1183,10 +1215,6 @@ msgstr ""
 msgid "Erstellt von"
 msgstr ""
 
-#: Global/templates/post_detail.html:52
-msgid "Aktualisiert am"
-msgstr ""
-
 #: Global/templates/post_detail.html:72
 msgid "Umfrage"
 msgstr ""
@@ -1214,6 +1242,12 @@ msgstr ""
 #| msgid "Zurück zur Startseite"
 msgid "Zurück zur Übersicht"
 msgstr "Zurück zur Startseite"
+
+#: Global/templates/posts_overview.html:25 Global/templates/profil.html:52
+#, fuzzy
+#| msgid "Ampelmeldung"
+msgid "Keine Beiträge vorhanden"
+msgstr "Ampelmeldung"
 
 #: Global/templates/profil.html:64
 #, fuzzy
