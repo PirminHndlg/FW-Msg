@@ -45,7 +45,7 @@
         <!-- Main Settings Column -->
         <div class="col-lg-8">
             <!-- Account Settings -->
-            <div class="card rounded-4 mb-4 settings-section">
+            <div class="card rounded-4 mb-2 settings-section">
                 <div class="card-header rounded-4">
                     <h3 class="mb-0">
                         <i class="bi bi-person-circle me-2"></i>
@@ -84,7 +84,7 @@
             </div>
 
             <!-- Notification Settings -->
-            <div class="card rounded-4 mb-4 settings-section">
+            <div class="card rounded-4 mb-2 settings-section">
                 <div class="card-header rounded-4">
                     <h3 class="mb-0">
                         <i class="bi bi-bell me-2"></i>
@@ -117,7 +117,7 @@
                                     <p class="mb-0 text-muted small">{% trans "E-Mail-Benachrichtigungen für Aufgaben, Kalender-Ereignisse und mehr erhalten" %}</p>
                                 </div>
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="emailNotifications" {% if request.user.customuser.mail_notifications %}checked{% endif %} onchange="toggleEmailNotifications(this.checked)">
+                                    <input class="form-check-input" type="checkbox" id="emailNotifications" onchange="toggleEmailNotifications(this.checked)" {% if user.email_notifications_enabled %}checked{% endif %}>
                                     <label class="form-check-label" for="emailNotifications"></label>
                                 </div>
                             </div>
@@ -127,7 +127,7 @@
             </div>
 
             <!-- Privacy & Security -->
-            <div class="card rounded-4 mb-4 settings-section">
+            <div class="card rounded-4 mb-2 settings-section">
                 <div class="card-header rounded-4">
                     <h3 class="mb-0">
                         <i class="bi bi-shield-check me-2"></i>
@@ -153,7 +153,7 @@
             </div>
 
             <!-- Language & Region -->
-            <div class="card rounded-4 mb-4 settings-section">
+            <div class="card rounded-4 mb-2 settings-section">
                 <div class="card-header rounded-4">
                     <h3 class="mb-0">
                         <i class="bi bi-globe me-2"></i>
@@ -195,7 +195,7 @@
         <!-- Sidebar -->
         <div class="col-lg-4">
             <!-- User Info Card -->
-            <div class="card rounded-4 mb-4">
+            <div class="card rounded-4 mb-2">
                 <div class="card-body text-center">
                     <div class="mb-3">
                         {% if request.user.customuser.profil_picture %}
@@ -217,7 +217,7 @@
             </div>
 
             <!-- Quick Actions -->
-            <div class="card rounded-4 mb-4">
+            <div class="card rounded-4 mb-2">
                 <div class="card-header rounded-4">
                     <h5 class="mb-0">{% trans "Schnellzugriff" %}</h5>
                 </div>
