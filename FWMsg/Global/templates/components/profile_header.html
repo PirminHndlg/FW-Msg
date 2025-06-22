@@ -31,69 +31,7 @@
   </div>
   {% if this_user %}
     <div class="d-flex align-items-center gap-2">
-      <a id="pushStatusIndicator" href="{% url 'push_settings' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-bell me-1"></i></a>
-      {% if user.customuser.mail_notifications %}
-      <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#unsubscribeModal">
-        <i class="bi bi-envelope-check me-1"></i>
-      </button>
-      {% else %}
-      <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#unsubscribeModal">
-        <i class="bi bi-envelope-x me-1"></i>
-      </button>
-      {% endif %}
       <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-box-arrow-right me-1"></i>{% trans 'Abmelden' %}</a>
-    </div>
-
-    <!-- Unsubscribe Modal -->
-    <div class="modal fade" id="unsubscribeModal" tabindex="-1" aria-labelledby="unsubscribeModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="unsubscribeModalLabel">
-              <i class="bi bi-envelope me-2"></i>
-              {% if user.customuser.mail_notifications %}
-                {% trans "Mail-Benachrichtigungen deaktivieren" %}
-              {% else %}
-                {% trans "Mail-Benachrichtigungen aktivieren" %}
-              {% endif %}
-            </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            {% if user.customuser.mail_notifications %}
-              {% trans "Du erhältst dann keine E-Mails, wenn du Aufgaben erledigt hast oder neue Aufgaben zugewiesen werden." %}
-            {% else %}
-              {% trans "Du erhältst dann E-Mails, wenn du Aufgaben erledigt hast oder neue Aufgaben zugewiesen werden." %}
-            {% endif %}
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
-            {% if user.customuser.mail_notifications %}
-              <a href="{% url 'unsubscribe_mail_notifications' user.id user.customuser.mail_notifications_unsubscribe_auth_key %}?value=false" class="btn btn-danger">{% trans "Deaktivieren" %}</a>
-            {% else %}
-              <a href="{% url 'unsubscribe_mail_notifications' user.id user.customuser.mail_notifications_unsubscribe_auth_key %}?value=true" class="btn btn-success">{% trans "Aktivieren" %}</a>
-            {% endif %}
-          </div>
-        </div>
-      </div>
     </div>
   {% endif %}
 </div>
-
-{% if this_user %}
-    <script src="{% static 'js/push-notifications.js' %}"></script>
-    <script>
-        async function updatePushStatus() {
-            const subscription = await checkPushSubscription()
-            if (subscription) {
-                document.getElementById('pushStatusIndicator').classList.add('btn-outline-success');
-                document.getElementById('pushStatusIndicator').classList.remove('btn-outline-primary');
-            } else {
-                document.getElementById('pushStatusIndicator').classList.add('btn-outline-danger');
-                document.getElementById('pushStatusIndicator').classList.remove('btn-outline-primary');
-                document.getElementById('pushStatusIndicator').innerHTML = '<i class="bi bi-bell-slash me-1"></i>';
-            }
-        }
-        updatePushStatus()
-    </script>
-{% endif %}

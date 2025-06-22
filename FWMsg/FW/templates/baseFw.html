@@ -68,6 +68,9 @@
               <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'notfallkontakte' %}"><i class="bi bi-person-rolodex me-1"></i>{% trans 'Notfallkontakte' %}</a>
             </li>
           {% endif %}
+          <li class="nav-item">
+            <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'settings' %}"><i class="bi bi-gear me-1"></i>{% trans 'Einstellungen' %}</a>
+          </li>
         </ul>
         {% include 'components/language_selector.html' %}
       </div>
@@ -131,17 +134,8 @@
               <li class="nav-item">
                 <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'profil' %}"><i class="bi bi-person me-1"></i>{% trans 'Profil' %}</a>
               </li>
-              <li class="nav-item" style="z-index: 9999;">
-                <button class="btn btn-link nav-link dropdown-toggle text-on-org-color p-0" type="button" id="moreDropdown" data-bs-toggle="dropdown" aria-expanded="false">{% trans 'Mehr' %}</button>
-
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreDropdown">
-                  <li>
-                    <a class="dropdown-item" href="{% url 'datenschutz' %}"><i class="bi bi-file-earmark-text me-1"></i>{% trans 'Datenschutz' %}</a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{% url 'feedback' %}"><i class="bi bi-chat-dots me-1"></i>{% trans 'Feedback' %}</a>
-                  </li>
-                </ul>
+              <li class="nav-item">
+                <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'settings' %}"><i class="bi bi-gear me-1"></i>{% trans 'Einstellungen' %}</a>
               </li>
             </ul>
           </div>
