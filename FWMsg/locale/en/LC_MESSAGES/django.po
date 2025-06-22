@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-22 18:37+0200\n"
+"POT-Creation-Date: 2025-06-22 18:52+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -436,7 +436,7 @@ msgstr "View"
 msgid "Jetzt erledigen"
 msgstr "Complete task"
 
-#: FW/templates/components/task_detail_form.html:10
+#: FW/templates/components/task_detail_form.html:10 Global/models.py:869
 #: Global/templates/components/document_modal.html:30
 #: Global/templates/kalender_event.html:81
 #: ORG/templates/components/task_table_header.html:20
@@ -713,6 +713,31 @@ msgstr "At least two answer options are required"
 msgid "Notiz"
 msgstr "Note"
 
+#: Global/models.py:199
+msgid "Feedback-Text"
+msgstr "Feedback text"
+
+#: Global/models.py:200
+msgid "Benutzer:in"
+msgstr "User"
+
+#: Global/models.py:201
+msgid "Anonym einreichen"
+msgstr "Submit anonymously"
+
+#: Global/models.py:868
+msgid "Bildtitel"
+msgstr "Image title"
+
+#: Global/models.py:870 Global/templates/components/post_card.html:65
+#: Global/templates/post_detail.html:49
+msgid "Erstellt am"
+msgstr "Created on"
+
+#: Global/models.py:871 Global/templates/post_detail.html:52
+msgid "Aktualisiert am"
+msgstr "Updated on"
+
 #: Global/templates/admin/global/customuser/change_list.html:8
 msgid "Send Daily Task Emails"
 msgstr "Send Daily Task Emails"
@@ -767,6 +792,10 @@ msgstr "less"
 #: Global/templates/components/image_description.html:8
 msgid "mehr"
 msgstr "more"
+
+#: Global/templates/bilder_show.html:41 ORG/templates/homeOrg.html:314
+msgid "Keine Bilder vorhanden"
+msgstr "No images available"
 
 #: Global/templates/components/document_card.html:36
 #: Global/templates/components/image_card_header.html:20
@@ -949,11 +978,6 @@ msgstr "This post contains a survey"
 msgid "Von"
 msgstr "By"
 
-#: Global/templates/components/post_card.html:65
-#: Global/templates/post_detail.html:49
-msgid "Erstellt am"
-msgstr "Completed on"
-
 #: Global/templates/components/post_card.html:72
 msgid "Weiterlesen"
 msgstr "Read more"
@@ -1095,10 +1119,6 @@ msgstr "Publish"
 msgid "Erstellt von"
 msgstr "Created by"
 
-#: Global/templates/post_detail.html:52
-msgid "Aktualisiert am"
-msgstr "Updated on"
-
 #: Global/templates/post_detail.html:72
 msgid "Umfrage"
 msgstr "Survey"
@@ -1123,7 +1143,10 @@ msgstr "Vote"
 
 #: Global/templates/post_detail.html:139
 msgid "Zurück zur Übersicht"
-msgstr "Back to homepage"
+msgstr "Back to overview"
+#: Global/templates/posts_overview.html:25 Global/templates/profil.html:52
+msgid "Keine Beiträge vorhanden"
+msgstr "No posts available"
 
 #: Global/templates/profil.html:64
 msgid "Profilbild ändern"
