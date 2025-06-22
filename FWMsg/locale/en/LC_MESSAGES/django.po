@@ -1269,7 +1269,7 @@ msgstr "Secure your account with a new password"
 
 #: Global/templates/settings.html:76
 msgid "Profil bearbeiten"
-msgstr "edit profile"
+msgstr "Edit profile"
 
 #: Global/templates/settings.html:77
 msgid "Aktualisieren Sie Ihre persönlichen Informationen"
