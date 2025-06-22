@@ -1,16 +1,16 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# English translations for PACKAGE package.
+# Copyright (C) 2025 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Pirmin Hinderling <admin@Volunteer.solutions>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-22 18:52+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"POT-Creation-Date: 2025-06-22 19:40+0200\n"
+"PO-Revision-Date: 2025-06-22 19:40+0200\n"
+"Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
+"Language-Team: English <en@li.org>\n"
+"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -44,8 +44,9 @@ msgstr "Status"
 
 #: FW/templates/ampel.html:18 FW/templates/base.html:68
 #: FW/templates/base.html:149 FW/templates/base.html:274
-#: FW/templates/baseFw.html:55 FW/templates/baseFw.html:123
-#: FW/templates/baseFw.html:187 TEAM/templates/teamAmpelmeldung.html:5
+#: FW/templates/baseFw.html:96 FW/templates/baseFw.html:162
+#: FW/templates/baseFw.html:266 FW/templates/baseFw.html:364
+#: TEAM/templates/teamAmpelmeldung.html:5
 msgid "Ampelmeldung"
 msgstr "Status report"
 
@@ -84,10 +85,10 @@ msgstr "Task"
 
 #: FW/templates/aufgaben.html:11 FW/templates/aufgaben.html:21
 #: FW/templates/base.html:139 FW/templates/base.html:261
-#: FW/templates/baseFw.html:98 FW/templates/baseFw.html:173
-#: FW/templates/homeFw.html:22 ORG/templates/aufgaben_assign.html:82
-#: ORG/templates/list_aufgaben.html:5 ORG/templates/list_aufgaben_table.html:5
-#: TEAM/templates/baseTeam.html:54
+#: FW/templates/baseFw.html:148 FW/templates/baseFw.html:252
+#: FW/templates/baseFw.html:350 FW/templates/homeFw.html:22
+#: ORG/templates/aufgaben_assign.html:82 ORG/templates/list_aufgaben.html:5
+#: ORG/templates/list_aufgaben_table.html:5 TEAM/templates/baseTeam.html:54
 msgid "Aufgaben"
 msgstr "Tasks"
 
@@ -120,20 +121,22 @@ msgid "Erledigte Aufgaben sind Aufgaben, die abgeschlossen wurden."
 msgstr "Completed tasks are tasks that have been completed."
 
 #: FW/templates/base.html:73 FW/templates/base.html:170
-#: FW/templates/baseFw.html:60 FW/templates/baseFw.html:103
-#: FW/templates/components/calendar.html:9 Global/templates/kalender.html:6
-#: TEAM/templates/baseTeam.html:59
+#: FW/templates/baseFw.html:101 FW/templates/baseFw.html:155
+#: FW/templates/baseFw.html:259 FW/templates/components/calendar.html:9
+#: Global/templates/kalender.html:6 TEAM/templates/baseTeam.html:59
 msgid "Kalender"
 msgstr "Calendar"
 
 #: FW/templates/base.html:78 FW/templates/base.html:175
-#: FW/templates/baseFw.html:64 FW/templates/baseFw.html:127
+#: FW/templates/baseFw.html:105 FW/templates/baseFw.html:199
+#: FW/templates/baseFw.html:297
 msgid "Mein Einsatzland"
 msgstr "My deployment country"
 
 #: FW/templates/base.html:83 FW/templates/base.html:180
-#: FW/templates/baseFw.html:68 FW/templates/baseFw.html:131
-#: FW/templates/notfallkontakte.html:5 FW/templates/notfallkontakte.html:21
+#: FW/templates/baseFw.html:109 FW/templates/baseFw.html:205
+#: FW/templates/baseFw.html:303 FW/templates/notfallkontakte.html:5
+#: FW/templates/notfallkontakte.html:21
 msgid "Notfallkontakte"
 msgstr "Emergency contacts"
 
@@ -158,26 +161,26 @@ msgid "English"
 msgstr "English"
 
 #: FW/templates/base.html:134 FW/templates/base.html:255
-#: FW/templates/baseFw.html:94 FW/templates/baseFw.html:165
-#: TEAM/templates/baseTeam.html:50
+#: FW/templates/baseFw.html:137 FW/templates/baseFw.html:244
+#: FW/templates/baseFw.html:342 TEAM/templates/baseTeam.html:50
 msgid "Home"
 msgstr "Home"
 
 #: FW/templates/base.html:144 FW/templates/base.html:272
-#: FW/templates/baseFw.html:184 Global/templates/bild.html:17
+#: FW/templates/baseFw.html:361 Global/templates/bild.html:17
 msgid "Bilder hochladen"
 msgstr "Upload images"
 
 #: FW/templates/base.html:154 FW/templates/base.html:281
-#: FW/templates/baseFw.html:118 FW/templates/baseFw.html:198
-#: Global/templates/dokumente.html:44 Global/templates/dokumente.html:58
-#: TEAM/templates/baseTeam.html:64
+#: FW/templates/baseFw.html:188 FW/templates/baseFw.html:289
+#: FW/templates/baseFw.html:375 Global/templates/dokumente.html:44
+#: Global/templates/dokumente.html:58 TEAM/templates/baseTeam.html:64
 msgid "Dokumente"
 msgstr "Documents"
 
 #: FW/templates/base.html:159 FW/templates/base.html:287
-#: FW/templates/baseFw.html:135 FW/templates/baseFw.html:206
-#: Global/templates/profil.html:11
+#: FW/templates/baseFw.html:216 FW/templates/baseFw.html:311
+#: FW/templates/baseFw.html:383 Global/templates/profil.html:11
 msgid "Profil"
 msgstr "Profile"
 
@@ -186,7 +189,7 @@ msgid "Mehr"
 msgstr "More"
 
 #: FW/templates/base.html:185 FW/templates/base.html:275
-#: FW/templates/baseFw.html:190 Global/templates/feedback.html:28
+#: FW/templates/baseFw.html:367 Global/templates/feedback.html:28
 msgid "Feedback"
 msgstr "Feedback"
 
@@ -194,22 +197,40 @@ msgstr "Feedback"
 msgid "Aufgabe erledigen"
 msgstr "Complete task"
 
-#: FW/templates/baseFw.html:50 FW/templates/baseFw.html:113
-#: Global/templates/posts_overview.html:5
+#: FW/templates/baseFw.html:91 FW/templates/baseFw.html:181
+#: FW/templates/baseFw.html:282 Global/templates/posts_overview.html:5
 #: Global/templates/posts_overview.html:12 Global/templates/profil.html:40
 msgid "Beiträge"
 msgstr "Posts"
 
-#: FW/templates/baseFw.html:72 FW/templates/baseFw.html:138
-#: Global/templates/settings.html:40
+#: FW/templates/baseFw.html:113 FW/templates/baseFw.html:221
+#: FW/templates/baseFw.html:316 Global/templates/settings.html:40
 msgid "Einstellungen"
 msgstr "Settings"
 
-#: FW/templates/baseFw.html:108 Global/templates/bild.html:11
-#: Global/templates/bilder.html:9
+#: FW/templates/baseFw.html:143
+msgid "Content & Activities"
+msgstr ""
+
+#: FW/templates/baseFw.html:169
+msgid "Media & Documents"
+msgstr ""
+
+#: FW/templates/baseFw.html:174 FW/templates/baseFw.html:275
+#: Global/templates/bild.html:11 Global/templates/bilder.html:9
 #: Global/templates/components/gallery_grid.html:6
 msgid "Bilder"
 msgstr "Images"
+
+#: FW/templates/baseFw.html:195
+#, fuzzy
+#| msgid "Informationen Einsatzstelle"
+msgid "Information & Contacts"
+msgstr "Assignment Location Information"
+
+#: FW/templates/baseFw.html:212
+msgid "Account & Settings"
+msgstr ""
 
 #: FW/templates/components/add_contact_form.html:23
 #: Global/templates/bilder.html:65
@@ -1144,6 +1165,7 @@ msgstr "Vote"
 #: Global/templates/post_detail.html:139
 msgid "Zurück zur Übersicht"
 msgstr "Back to overview"
+
 #: Global/templates/posts_overview.html:25 Global/templates/profil.html:52
 msgid "Keine Beiträge vorhanden"
 msgstr "No posts available"
