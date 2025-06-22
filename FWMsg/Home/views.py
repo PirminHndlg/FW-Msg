@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
+from django.forms import ValidationError
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
 from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.contrib.auth.models import User
@@ -12,6 +13,7 @@ import re
 from Global.models import Maintenance
 from django.utils import timezone
 from django.core import signing
+from django.contrib.auth.decorators import login_required
 
 def _is_email(value):
         """
@@ -89,6 +91,14 @@ def index(request):
 
             if user is not None:
                 login(request, user)
+                
+                from django.contrib.auth.password_validation import validate_password
+                try:
+                    validate_password(password, user)
+                except ValidationError as e:
+                    messages.error(request, 'Das Passwort entspricht den Anforderungen nicht, wir empfehlen einen Passwortwechsel.')
+                    return redirect('password_change')
+                
                 return redirect_to_home(user)
             else:
                 # Add non-field error if authentication fails
@@ -254,3 +264,24 @@ def password_reset(request):
     else:
         form = PasswordResetForm()
     return render(request, 'password_reset.html', {'form': form})
+
+@login_required
+def password_change(request):
+    if request.method == 'POST':
+        form = SetPasswordForm(request.user, request.POST)
+        user = request.user
+        if form.is_valid():
+            user.set_password(form.cleaned_data['new_password1'])
+            user.save()
+            messages.success(request, _('Ihr Passwort wurde erfolgreich geändert.'))
+            
+            new_user = authenticate(username=user.username, password=form.cleaned_data['new_password1'])
+            login(request, new_user)
+            
+            return redirect('index_home')
+    else:
+        form = SetPasswordForm(request.user)
+        
+    form.fields['new_password1'].widget.attrs['class'] = 'form-control rounded-3'
+    form.fields['new_password2'].widget.attrs['class'] = 'form-control rounded-3'
+    return render(request, 'password_change.html', {'form': form})
