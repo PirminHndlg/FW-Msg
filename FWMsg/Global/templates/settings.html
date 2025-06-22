@@ -1,0 +1,315 @@
+{% extends extends_base|default:'baseFw.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block head %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@6.11.0/css/flag-icons.min.css">
+    <style>
+        .settings-section {
+            transition: all 0.2s ease;
+        }
+        
+        .settings-section:hover {
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+        }
+        
+        .setting-item {
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .setting-item:hover {
+            border-left-color: var(--bs-primary);
+            background-color: rgba(var(--bs-primary-rgb), 0.05);
+        }
+        
+        .setting-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background-color: rgba(var(--bs-primary-rgb), 0.1);
+            color: var(--bs-primary);
+        }
+    </style>
+{% endblock %}
+
+{% block title %}
+    {% trans "Einstellungen" %}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <!-- Main Settings Column -->
+        <div class="col-lg-8">
+            <!-- Account Settings -->
+            <div class="card rounded-4 mb-4 settings-section">
+                <div class="card-header rounded-4">
+                    <h3 class="mb-0">
+                        <i class="bi bi-person-circle me-2"></i>
+                        {% trans "Konto-Einstellungen" %}
+                    </h3>
+                </div>
+                <div class="card-body py-0 px-3">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'password_change' %}" class="list-group-item list-group-item-action setting-item">
+                            <div class="d-flex align-items-center">
+                                <div class="setting-icon me-3">
+                                    <i class="bi bi-shield-lock"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{% trans "Passwort ändern" %}</h6>
+                                    <p class="mb-0 text-muted small">{% trans "Sichern Sie Ihr Konto mit einem neuen Passwort" %}</p>
+                                </div>
+                                <i class="bi bi-chevron-right text-muted"></i>
+                            </div>
+                        </a>
+                        
+                        <a href="{% url 'profil' %}" class="list-group-item list-group-item-action setting-item">
+                            <div class="d-flex align-items-center">
+                                <div class="setting-icon me-3">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{% trans "Profil bearbeiten" %}</h6>
+                                    <p class="mb-0 text-muted small">{% trans "Aktualisieren Sie Ihre persönlichen Informationen" %}</p>
+                                </div>
+                                <i class="bi bi-chevron-right text-muted"></i>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="card rounded-4 mb-4 settings-section">
+                <div class="card-header rounded-4">
+                    <h3 class="mb-0">
+                        <i class="bi bi-bell me-2"></i>
+                        {% trans "Benachrichtigungen" %}
+                    </h3>
+                </div>
+                <div class="card-body py-0 px-3">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'push_settings' %}" class="list-group-item list-group-item-action setting-item">
+                            <div class="d-flex align-items-center">
+                                <div class="setting-icon me-3">
+                                    <i class="bi bi-bell-fill"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{% trans "Push-Benachrichtigungen" %}</h6>
+                                    <p class="mb-0 text-muted small">{% trans "Verwalten Sie Push-Benachrichtigungen für Aufgaben, Kalender-Ereignisse und mehr erhalten" %}</p>
+                                </div>
+                                <i class="bi bi-chevron-right text-muted"></i>
+                            </div>
+                        </a>
+                        
+                        <div class="list-group-item setting-item">
+                            {% comment %} URL: {% url 'unsubscribe_mail_notifications' request.user.id request.user.auth_key %} {% endcomment %}
+                            <div class="d-flex align-items-center">
+                                <div class="setting-icon me-3">
+                                    <i class="bi bi-envelope"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{% trans "E-Mail-Benachrichtigungen" %}</h6>
+                                    <p class="mb-0 text-muted small">{% trans "E-Mail-Benachrichtigungen für Aufgaben, Kalender-Ereignisse und mehr erhalten" %}</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="emailNotifications" {% if request.user.customuser.mail_notifications %}checked{% endif %} onchange="toggleEmailNotifications(this.checked)">
+                                    <label class="form-check-label" for="emailNotifications"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Privacy & Security -->
+            <div class="card rounded-4 mb-4 settings-section">
+                <div class="card-header rounded-4">
+                    <h3 class="mb-0">
+                        <i class="bi bi-shield-check me-2"></i>
+                        {% trans "Datenschutz & Sicherheit" %}
+                    </h3>
+                </div>
+                <div class="card-body py-0 px-3">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'datenschutz' %}" class="list-group-item list-group-item-action setting-item">
+                            <div class="d-flex align-items-center">
+                                <div class="setting-icon me-3">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{% trans "Datenschutzerklärung" %}</h6>
+                                    <p class="mb-0 text-muted small">{% trans "Lesen Sie unsere Datenschutzrichtlinien" %}</p>
+                                </div>
+                                <i class="bi bi-chevron-right text-muted"></i>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Language & Region -->
+            <div class="card rounded-4 mb-4 settings-section">
+                <div class="card-header rounded-4">
+                    <h3 class="mb-0">
+                        <i class="bi bi-globe me-2"></i>
+                        {% trans "Sprache & Region" %}
+                    </h3>
+                </div>
+                <div class="card-body py-0 px-3">
+                    <div class="mb-3 mt-2">
+                        <label for="languageSelect" class="form-label">{% trans "Sprache" %}</label>
+                        <form action="{% url 'set_language' %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <select class="form-select" name="language" onchange="this.form.submit()">
+                                {% get_current_language as CURRENT_LANGUAGE %}
+                                {% get_available_languages as LANGUAGES %}
+                                
+                                <option value="de" {% if CURRENT_LANGUAGE == 'de' %}selected{% endif %}>
+                                    <span class="fi fi-de"></span> {% trans "Deutsch" %}
+                                </option>
+                                <option value="en" {% if CURRENT_LANGUAGE == 'en' %}selected{% endif %}>
+                                    <span class="fi fi-gb"></span> {% trans "English" %} (Beta)
+                                </option>
+                            </select>
+                        </form>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="timezoneSelect" class="form-label">{% trans "Zeitzone" %} (coming soon)</label>
+                        <select class="form-select" id="timezoneSelect" disabled>
+                            <option value="Europe/Berlin" selected>{% trans "Mitteleuropäische Zeit (MEZ)" %}</option>
+                            <option value="Europe/London">{% trans "Greenwich Mean Time (GMT)" %}</option>
+                            <option value="America/New_York">{% trans "Eastern Time (ET)" %}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- User Info Card -->
+            <div class="card rounded-4 mb-4">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        {% if request.user.customuser.profil_picture %}
+                            <img src="{% url 'serve_profil_picture' request.user.id %}" 
+                                 alt="Profilbild" 
+                                 class="rounded-circle" 
+                                 style="width: 80px; height: 80px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center" 
+                                 style="width: 80px; height: 80px;">
+                                <i class="bi bi-person-fill text-white" style="font-size: 2rem;"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <h5 class="mb-1">{{ request.user.get_full_name|default:request.user.username }}</h5>
+                    <p class="text-muted mb-2">{{ request.user.email }}</p>
+                    <span class="badge bg-primary">{{ request.user.get_role_display }}</span>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card rounded-4 mb-4">
+                <div class="card-header rounded-4">
+                    <h5 class="mb-0">{% trans "Schnellzugriff" %}</h5>
+                </div>
+                <div class="card-body py-0 px-3">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'feedback' %}" class="list-group-item list-group-item-action">
+                            <i class="bi bi-chat-dots me-2"></i>
+                            {% trans "Feedback senden" %}
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action disabled" onclick="exportData()">
+                            <i class="bi bi-download me-2"></i>
+                            {% trans "Daten exportieren (coming soon)" %}
+                        </a>
+                        <button class="list-group-item list-group-item-action text-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                            <i class="bi bi-trash me-2"></i>
+                            {% trans "Konto Löschung beantragen" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Info -->
+            <div class="card rounded-4">
+                <div class="card-header rounded-4">
+                    <h5 class="mb-0">{% trans "System-Informationen" %}</h5>
+                </div>
+                <div class="card-body py-0 px-3">
+                    <div class="row text-center pt-2 pb-2">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h6 class="text-muted">{% trans "Letzter Login" %}</h6>
+                                <p class="mb-0">{{ request.user.last_login|date:'d.m.Y'|default:'-' }}</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-muted">{% trans "Mitglied seit" %}</h6>
+                            <p class="mb-0">{{ request.user.date_joined|date:'d.m.Y' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteAccountModalLabel">{% trans "Konto-Löschung beantragen" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {% trans "Ihr Antrag auf Konto-Löschung wird von einem Administrator geprüft." %}
+                    </div>
+                    <p>{% trans "Nach der Genehmigung werden alle Ihre Daten permanent gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden." %}</p>
+                    <p class="text-muted small">{% trans "Sie erhalten eine E-Mail-Bestätigung, sobald Ihr Antrag bearbeitet wurde." %}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
+                    <form action="{% url 'delete_account' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning">{% trans "Löschung beantragen" %}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function exportData() {
+            // TODO: Implement data export functionality
+            alert('{% trans "Datenexport-Funktion wird in einer zukünftigen Version verfügbar sein." %}');
+        }
+
+        function toggleEmailNotifications(value) {
+            fetch('{% url 'unsubscribe_mail_notifications' request.user.id request.user.customuser.mail_notifications_unsubscribe_auth_key %}?value=' + value)
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('{% trans "Fehler beim Speichern der Einstellungen." %}');
+                });
+        }
+
+        // Save settings changes
+        document.addEventListener('DOMContentLoaded', function() {
+            // Timezone change
+            document.getElementById('timezoneSelect').addEventListener('change', function() {
+                // TODO: Save timezone preference
+                console.log('Timezone:', this.value);
+            });
+        });
+    </script>
+{% endblock %} 

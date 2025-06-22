@@ -42,6 +42,7 @@ from django.http import (
 )
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from .send_email import send_mail_smtp
 from django.core.files.base import ContentFile
 from django.core import signing
 from icalendar import Calendar, Event
@@ -1429,3 +1430,22 @@ def kalender_abbonement(request, token):
         messages.error(request, 'Ungültiger Token.')
         print(e)
         return redirect('index_home')
+    
+@login_required
+def settings_view(request):
+    return render(request, 'settings.html')
+
+@login_required
+def delete_account(request):
+    #send mail to admin
+    if request.method == 'POST':
+        mail_addresses = settings.ADMINS
+        for mail_address in mail_addresses:
+            send_mail_smtp(
+                receiver_email=mail_address[1],
+                subject='Konto-Löschung beantragt',
+                html_content=f'Ein Benutzer hat die Löschung seines Kontos beantragt. {request.user.first_name} {request.user.last_name} ({request.user.email})'
+            )
+        messages.success(request, 'Konto-Löschung beantragt. Sie erhalten eine E-Mail, sobald Ihr Antrag bearbeitet wurde.')
+        return redirect('settings')
+    return redirect('settings')
