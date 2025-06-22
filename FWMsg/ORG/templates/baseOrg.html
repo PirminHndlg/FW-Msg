@@ -87,16 +87,15 @@
               </ul>
 
               <div class="d-flex flex-wrap gap-2 justify-content-center align-items-center">
-                <!-- Language Selector -->
-                {% include 'components/language_selector.html' %}
-
+                
                 <!-- Person Cluster Selector -->
                 {% include 'components/person_cluster_selector.html' %}
+                
+                <!-- Settings Button -->
+                <a href="{% url 'settings' %}" class="btn btn-light"><i class="bi bi-gear"></i></a>
 
                 <!-- Profil Button -->
-                <div class="d-flex">
-                  <a href="{% url 'profil' %}" class="btn btn-light"><i class="bi bi-person me-1"></i></a>
-                </div>
+                <a href="{% url 'profil' %}" class="btn btn-light"><i class="bi bi-person"></i></a>
               </div>
             </div>
           </div>
