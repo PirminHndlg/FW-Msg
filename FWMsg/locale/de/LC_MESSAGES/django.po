@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-22 19:59+0200\n"
+"POT-Creation-Date: 2025-06-23 10:42+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: German <de@li.org>\n"
@@ -270,6 +270,7 @@ msgid "Grün - Alles in Ordnung"
 msgstr "Grün - Alles in Ordnung"
 
 #: FW/templates/components/ampel_status.html:5
+#: ORG/templates/components/task_item.html:35
 #: ORG/templates/components/task_table_row.html:156
 msgid "Zuletzt"
 msgstr "Zuletzt"
@@ -1797,6 +1798,18 @@ msgstr "Heruntergeladen von"
 msgid "Noch nicht heruntergeladen"
 msgstr "Noch nicht heruntergeladen"
 
+#: ORG/templates/components/task_item.html:35
+#, fuzzy
+#| msgid "Erinnerung"
+msgid "Erinnerung senden"
+msgstr "Erinnerung"
+
+#: ORG/templates/components/task_item.html:36
+#, fuzzy
+#| msgid "Erinnerung"
+msgid "Erinnerung gesendet"
+msgstr "Erinnerung"
+
 #: ORG/templates/components/task_legend.html:14
 msgid "Zugewiesen"
 msgstr "Zugewiesen"
@@ -2023,6 +2036,20 @@ msgstr ""
 #: ORG/templates/nginx_statistic.html:11
 msgid "Error"
 msgstr ""
+
+#: ORG/views.py:1189
+msgid "E-Mail-Benachrichtigungen deaktiviert"
+msgstr ""
+
+#: ORG/views.py:1192
+msgid "Erinnerung wurde bereits heute gesendet"
+msgstr ""
+
+#: ORG/views.py:1196
+#, fuzzy
+#| msgid "Seite nicht gefunden"
+msgid "Aufgabe nicht gefunden"
+msgstr "Seite nicht gefunden"
 
 #: TEAM/templates/teamAmpelmeldung.html:11
 msgid "Ampel Übersicht"

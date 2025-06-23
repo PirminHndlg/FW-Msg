@@ -26,7 +26,42 @@
               <i class="bi bi-download"></i>
             </a>
           {% endif %}
+        {% elif task.user.customuser.mail_notifications %}
+          <button id="sendTaskReminder{{ task.id }}"
+            onclick="sendTaskReminder(this, {{ task.id }})"
+            class="btn btn-sm btn-outline-primary"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="{% trans 'Erinnerung senden' %}{% if task.last_reminder %} ({% trans 'Zuletzt' %} {{ task.last_reminder|date:'d.m.' }}{% if task.last_reminder.year < today.year %}{{ task.last_reminder|date:'y' }}{% endif %}){% endif %}"
+            data-sent-title="{% trans 'Erinnerung gesendet' %}">
+            <i class="bi bi-bell-fill"></i>
+          </button>
         {% endif %}
+
+        <script>
+          function sendTaskReminder(button, id) {
+            fetch(`{% url 'send_task_reminder' %}?id=${id}`, {
+              method: 'POST',
+              headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+              }
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.success) {
+                  button.classList.add('btn-outline-success')
+                  button.classList.remove('btn-outline-primary')
+                  button.innerHTML = '<i class="bi bi-check-circle-fill"></i>'
+                  $(button).attr('data-bs-original-title', button.dataset.sentTitle).tooltip('show')
+                } else {
+                  button.classList.add('btn-outline-danger')
+                  button.classList.remove('btn-outline-primary')
+                  button.innerHTML = '<i class="bi bi-x-circle-fill"></i>'
+                  $(button).attr('data-bs-original-title', data.error).tooltip('show')
+                }
+              })
+          }
+        </script>
 
         <span class="badge badge-pill {% if not task.pending %}
             bg-danger
