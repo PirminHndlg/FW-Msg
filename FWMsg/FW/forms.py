@@ -1,6 +1,6 @@
 from django import forms
 from Global.models import Bilder2, BilderGallery2, ProfilUser2
-
+from django.utils.translation import gettext_lazy as _
 
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
@@ -43,6 +43,6 @@ class ProfilUserForm(forms.ModelForm):
         model = ProfilUser2
         fields = ['attribut', 'value']
         widgets = {
-            'attribut': forms.TextInput(attrs={'placeholder': 'Attribut'}),
-            'value': forms.TextInput(attrs={'placeholder': 'Wert'}),
+            'attribut': forms.TextInput(attrs={'placeholder': _('Z.B. Instagram'), 'class': 'form-control'}),
+            'value': forms.TextInput(attrs={'placeholder': '@luisaneubauer', 'class': 'form-control'}),
         }
