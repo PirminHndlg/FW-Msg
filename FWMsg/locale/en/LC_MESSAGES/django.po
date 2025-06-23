@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 10:49+0200\n"
+"POT-Creation-Date: 2025-06-23 15:17+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: English <en@li.org>\n"
@@ -36,6 +36,10 @@ msgstr "Please enter the password again."
 #: BW/forms.py:52 BW/forms.py:53 Home/forms.py:68
 msgid "Passwörter stimmen nicht überein."
 msgstr "Passwords do not match."
+
+#: FW/forms.py:46
+msgid "Z.B. Instagram"
+msgstr ""
 
 #: FW/templates/ampel.html:10
 #: Global/templates/components/profile_header.html:16
@@ -246,6 +250,7 @@ msgstr ""
 #: Global/templates/feedback.html:73 Global/templates/post_add.html:164
 #: Global/templates/post_add.html:168 Global/templates/profil.html:76
 #: Global/templates/profil.html:156 Global/templates/settings.html:287
+#: ORG/templates/components/ampel_table.html:101
 #: ORG/templates/components/cascade_modal.html:52
 #: ORG/templates/components/delete_modal.html:18
 #: ORG/templates/components/task_country_modal.html:28
@@ -274,7 +279,7 @@ msgid "Grün - Alles in Ordnung"
 msgstr "Green - All good"
 
 #: FW/templates/components/ampel_status.html:5
-#: ORG/templates/components/task_item.html:35
+#: ORG/templates/components/task_item.html:51
 #: ORG/templates/components/task_table_row.html:156
 msgid "Zuletzt"
 msgstr "Last"
@@ -504,6 +509,7 @@ msgstr "Flexible"
 
 #: FW/templates/components/task_detail_form.html:88
 #: ORG/templates/components/ampel_modal.html:16
+#: ORG/templates/components/ampel_table.html:70
 msgid "Status"
 msgstr "Status"
 
@@ -773,8 +779,9 @@ msgstr "Send Daily Task Emails"
 #: Global/templates/components/document_modal.html:74
 #: Global/templates/components/folder_modal.html:49
 #: Global/templates/components/profile_edit_controls.html:25
-#: Global/templates/profil.html:77 ORG/templates/edit_object.html:65
-#: ORG/templates/homeOrg.html:205
+#: Global/templates/profil.html:77
+#: ORG/templates/components/ampel_table.html:102
+#: ORG/templates/edit_object.html:65 ORG/templates/homeOrg.html:205
 msgid "Speichern"
 msgstr "Save"
 
@@ -1019,37 +1026,28 @@ msgstr "Delete image"
 msgid "Bist Du sicher, dass Du diesen Beitrag löschen möchtest?"
 msgstr "Are you sure you want to delete this post?"
 
-#: Global/templates/components/profile_details.html:9
-#: Global/templates/components/profile_details.html:18
-msgid "Geburtsdatum"
-msgstr "Date of birth"
-
-#: Global/templates/components/profile_details.html:11
+#: Global/templates/components/profile_details.html:7
 msgid "Änderungen melden"
 msgstr "Report changes"
 
-#: Global/templates/components/profile_details.html:13
-msgid "Telefon"
-msgstr "Phone"
-
-#: Global/templates/components/profile_details.html:14
-msgid "Telefon Einsatzland"
-msgstr "Phone deployment country"
-
-#: Global/templates/components/profile_details.html:15
+#: Global/templates/components/profile_details.html:12
 #: Home/templates/password_reset.html:72 Home/templates/password_reset.html:73
 msgid "Email"
 msgstr "Email"
 
-#: Global/templates/components/profile_details.html:33
+#: Global/templates/components/profile_details.html:16
+msgid "Geburtsdatum"
+msgstr "Date of birth"
+
+#: Global/templates/components/profile_details.html:34
 msgid "Attribut löschen"
 msgstr "Delete attribute"
 
-#: Global/templates/components/profile_edit_controls.html:12
+#: Global/templates/components/profile_edit_controls.html:11
 msgid "Bezeichnung"
 msgstr "Label"
 
-#: Global/templates/components/profile_edit_controls.html:18
+#: Global/templates/components/profile_edit_controls.html:17
 msgid "Wert"
 msgstr "Value"
 
@@ -1690,22 +1688,37 @@ msgid "Bewerbungen"
 msgstr "Applications"
 
 #: ORG/templates/components/ampel_legend.html:6
+#: ORG/templates/components/ampel_table.html:75
 msgid "Grün"
 msgstr "Green"
 
 #: ORG/templates/components/ampel_legend.html:10
+#: ORG/templates/components/ampel_table.html:81
 msgid "Gelb"
 msgstr "Yellow"
 
 #: ORG/templates/components/ampel_legend.html:14
+#: ORG/templates/components/ampel_table.html:87
 msgid "Rot"
 msgstr "Red"
 
-#: ORG/templates/components/ampel_table.html:21
+#: ORG/templates/components/ampel_table.html:22
 msgid "Historie anzeigen"
 msgstr "Show history"
 
-#: ORG/templates/components/ampel_table.html:55
+#: ORG/templates/components/ampel_table.html:56
+msgid "Neuer Ampel-Eintrag für"
+msgstr "New traffic light entry for"
+
+#: ORG/templates/components/ampel_table.html:65
+msgid "Datum"
+msgstr "Date"
+
+#: ORG/templates/components/ampel_table.html:94
+msgid "Kommentar"
+msgstr "Comment"
+
+#: ORG/templates/components/ampel_table.html:140
 msgid "Keine Ampelmeldungen gefunden."
 msgstr "No traffic light reports found."
 
@@ -1791,23 +1804,33 @@ msgstr "Filter"
 msgid "Alle"
 msgstr "All"
 
-#: ORG/templates/components/task_item.html:19
+#: ORG/templates/components/task_item.html:21
 #: ORG/templates/components/task_table_row.html:38
 #: ORG/templates/components/task_table_row.html:86
 msgid "Heruntergeladen von"
 msgstr "Downloaded by"
 
-#: ORG/templates/components/task_item.html:24
+#: ORG/templates/components/task_item.html:26
 #: ORG/templates/components/task_table_row.html:43
 #: ORG/templates/components/task_table_row.html:91
 msgid "Noch nicht heruntergeladen"
 msgstr "Not yet downloaded"
 
 #: ORG/templates/components/task_item.html:35
+#: ORG/templates/components/task_table_row.html:129
+#: ORG/templates/components/task_table_row.html:182
+#: ORG/templates/components/task_zwischenschritte_modal.html:116
+msgid "Als erledigt markieren"
+msgstr "Mark as completed"
+#: ORG/templates/components/task_item.html:40
+msgid "Erinnerung heute bereits gesendet"
+msgstr "Reminder already sent today"
+
+#: ORG/templates/components/task_item.html:51
 msgid "Erinnerung senden"
 msgstr "Send reminder"
 
-#: ORG/templates/components/task_item.html:36
+#: ORG/templates/components/task_item.html:52
 msgid "Erinnerung gesendet"
 msgstr "Reminder sent"
 
@@ -1853,12 +1876,6 @@ msgstr "Delete file"
 #: ORG/templates/components/task_table_row.html:108
 msgid "Zwischenschritte anzeigen"
 msgstr "Show intermediate steps"
-
-#: ORG/templates/components/task_table_row.html:129
-#: ORG/templates/components/task_table_row.html:182
-#: ORG/templates/components/task_zwischenschritte_modal.html:116
-msgid "Als erledigt markieren"
-msgstr "Mark as completed"
 
 #: ORG/templates/components/task_table_row.html:138
 msgid "Fällig am"
@@ -1951,9 +1968,27 @@ msgstr "Create New Sticky Note"
 msgid "Angeheftete Notizen"
 msgstr "Pinned Notes"
 
+#: ORG/templates/homeOrg.html:45
+msgid "Hoch"
+msgstr "High"
+
+#: ORG/templates/homeOrg.html:45
+msgid "Sehr Hoch"
+msgstr "Very High"
+
+#: ORG/templates/homeOrg.html:53
+msgid "Notiz löschen"
+msgstr "Delete Note"
+
+#: ORG/templates/homeOrg.html:89
+msgid "Notiz lösen"
+msgstr "Unpin note"
+
+#: ORG/templates/homeOrg.html:95
+msgid "Zur Notiz"
+msgstr "Go to Note"
+
 #: ORG/templates/homeOrg.html:178
-#, fuzzy
-#| msgid "Neuen Beitrag erstellen"
 msgid "Neue Notiz erstellen"
 msgstr "Create New Note"
 
@@ -2094,17 +2129,33 @@ msgstr "Nginx Statistics"
 msgid "Error"
 msgstr "Error"
 
-#: ORG/views.py:1189
+#: ORG/views.py:862
+msgid "Nicht erlaubt"
+msgstr ""
+
+#: ORG/views.py:875
+msgid "Ampel-Eintrag erfolgreich hinzugefügt."
+msgstr ""
+
+#: ORG/views.py:877
+msgid "Benutzer nicht gefunden."
+msgstr "User not found"
+
+#: ORG/views.py:879
+msgid "Ein Fehler ist aufgetreten: {}"
+msgstr ""
+
+#: ORG/views.py:1232 ORG/views.py:1250
+msgid "Aufgabe nicht gefunden"
+msgstr "Task not found"
+
+#: ORG/views.py:1243
 msgid "E-Mail-Benachrichtigungen deaktiviert"
 msgstr "Email notifications disabled"
 
-#: ORG/views.py:1192
+#: ORG/views.py:1246
 msgid "Erinnerung wurde bereits heute gesendet"
 msgstr "Reminder has already been sent today"
-
-#: ORG/views.py:1196
-msgid "Aufgabe nicht gefunden"
-msgstr "Task not found"
 
 #: TEAM/templates/teamAmpelmeldung.html:11
 msgid "Ampel Übersicht"
@@ -2222,3 +2273,9 @@ msgid ""
 msgstr ""
 "No deployment countries found. Please contact the administrator to get "
 "deployment countries assigned."
+
+#~ msgid "Telefon"
+#~ msgstr "Phone"
+
+#~ msgid "Telefon Einsatzland"
+#~ msgstr "Phone deployment country"

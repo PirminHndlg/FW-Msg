@@ -42,7 +42,7 @@
                           {{ notiz.date|date:'d.m.Y H:i' }}
                         </small>
                         {% if notiz.priority > 0 %}
-                          <span class="priority-badge" title="{% if notiz.priority == 1 %}Hoch{% else %}Sehr Hoch{% endif %}">
+                          <span class="priority-badge" title="{% if notiz.priority == 1 %}{% trans 'Hoch' %}{% else %}{% trans 'Sehr Hoch' %}{% endif %}">
                             {% if notiz.priority == 1 %}!!{% else %}!!!{% endif %}
                           </span>
                         {% endif %}
@@ -50,7 +50,7 @@
                       <form method="post" action="{% url 'delete_sticky_note' %}" class="d-inline">
                         {% csrf_token %}
                         <input type="hidden" name="notiz_id" value="{{ notiz.id }}" />
-                        <button type="submit" class="btn btn-sm btn-link text-danger p-0" title="Notiz löschen">
+                        <button type="submit" class="btn btn-sm btn-link text-danger p-0" title="{% trans 'Notiz löschen' %}">
                           <i class="bi bi-trash"></i>
                         </button>
                       </form>
@@ -86,13 +86,13 @@
                           {% csrf_token %}
                           <input type="hidden" name="action" value="unpin" />
                           <input type="hidden" name="notiz_id" value="{{ notiz.id }}" />
-                          <button type="submit" class="btn btn-sm btn-link text-primary p-0" title="Notiz lösen">
+                          <button type="submit" class="btn btn-sm btn-link text-primary p-0" title="{% trans 'Notiz lösen' %}">
                             <i class="bi bi-pin-angle-fill"></i>
                           </button>
                         </form>
                         <a href="{% url 'einsatzstellen_notiz' es_id=notiz.einsatzstelle.id %}" 
                            class="btn btn-sm btn-link text-primary p-0" 
-                           title="Zur Notiz">
+                           title="{% trans 'Zur Notiz' %}">
                           <i class="bi bi-arrow-right"></i>
                         </a>
                       </div>
