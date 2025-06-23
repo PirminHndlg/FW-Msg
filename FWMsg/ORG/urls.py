@@ -15,6 +15,7 @@ urlpatterns = [
     path('list-ampel/', views.list_ampel, name='list_ampel'),
     path('list-aufgaben-table/', views.list_aufgaben_table, name='list_aufgaben_table'),
     path('list-aufgaben-table/<int:scroll_to>', views.list_aufgaben_table, name='list_aufgaben_table_scroll'),
+    path('send-task-reminder/', views.send_task_reminder, name='send_task_reminder'),
     path('get-aufgaben-zwischenschritte/', views.get_aufgaben_zwischenschritte, name='get_aufgaben_zwischenschritte'),
     path('toggle-zwischenschritt-status/', views.toggle_zwischenschritt_status, name='toggle_zwischenschritt_status'),
     path('get-zwischenschritt-form/', views.get_zwischenschritt_form, name='get_zwischenschritt_form'),

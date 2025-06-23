@@ -24,6 +24,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.template.loader import render_to_string
 from django.db.models.query import Prefetch
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.utils.translation import gettext as _
 
 from BW.models import ApplicationAnswer, ApplicationAnswerFile, ApplicationText, ApplicationQuestion, ApplicationFileQuestion, Bewerber
 from Global.models import (
@@ -1178,6 +1179,23 @@ def list_aufgaben_table(request, scroll_to=None):
 
     return response
 
+@login_required
+@required_role('O')
+@filter_person_cluster
+def send_task_reminder(request):
+    try:
+        user_aufgabe = UserAufgaben.objects.get(pk=request.GET.get('id'), org=request.user.org)
+        if not user_aufgabe.user.customuser.mail_notifications:
+            return JsonResponse({'success': False, 'error': _('E-Mail-Benachrichtigungen deaktiviert')}, status=400)
+        if user_aufgabe.last_reminder:
+            if user_aufgabe.last_reminder == date.today():
+                return JsonResponse({'success': False, 'error': _('Erinnerung wurde bereits heute gesendet')}, status=400)
+        user_aufgabe.send_reminder_email()
+        return JsonResponse({'success': True})
+    except UserAufgaben.DoesNotExist:
+        return JsonResponse({'success': False, 'error': _('Aufgabe nicht gefunden')}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @login_required
 @required_role('O')
