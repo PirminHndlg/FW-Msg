@@ -7,15 +7,15 @@
         {% csrf_token %}
         <div class="row g-3 mb-3">
             <div class="col-6">
-                <div class="form-floating">
-                    {{ profil_user_form.attribut|add_class:"form-control" }}
-                    <label for="{{ profil_user_form.attribut.id_for_label }}">{% trans "Bezeichnung" %}</label>
+                <div>
+                    <label for="{{ profil_user_form.attribut.id_for_label }}" class="form-label">{% trans "Bezeichnung" %}</label>
+                    {{ profil_user_form.attribut }}
                 </div>
             </div>
             <div class="col-6">
-                <div class="form-floating">
-                    {{ profil_user_form.value|add_class:"form-control" }}
-                    <label for="{{ profil_user_form.value.id_for_label }}">{% trans "Wert" %}</label>
+                <div>
+                    <label for="{{ profil_user_form.value.id_for_label }}" class="form-label">{% trans "Wert" %}</label>
+                    {{ profil_user_form.value }}
                 </div>
             </div>
         </div>
