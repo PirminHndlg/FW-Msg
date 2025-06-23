@@ -10,39 +10,47 @@
 
       <div class="d-flex align-items-center gap-2">
         {% if task.pending %}
-        {% if task.file %}
-          <a href="{% url 'download_aufgabe' task.id %}"
-            class="btn btn-sm btn-outline-primary download-btn"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="{% if task.file_downloaded_of.count > 0 %}
-              {% trans 'Heruntergeladen von' %}
-              {% for user in task.file_downloaded_of.all %}
-                {{ user.first_name }} {{ user.last_name }}{% if not forloop.last %}, {% endif %}
-              {% endfor %}
-            {% else %}
-              {% trans 'Noch nicht heruntergeladen' %}
-            {% endif %}">
-            <i class="bi bi-download"></i>
-          </a>
-        {% endif %}
+          {% if task.file %}
+            <a href="{% url 'download_aufgabe' task.id %}"
+              class="btn btn-sm btn-outline-primary download-btn"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="{% if task.file_downloaded_of.count > 0 %}
+                {% trans 'Heruntergeladen von' %}
+                {% for user in task.file_downloaded_of.all %}
+                  {{ user.first_name }} {{ user.last_name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+              {% else %}
+                {% trans 'Noch nicht heruntergeladen' %}
+              {% endif %}">
+              <i class="bi bi-download"></i>
+            </a>
+          {% endif %}
           <button onclick="markTaskAsDone({{ task.id }})"
             class="btn btn-sm btn-outline-primary"
             data-bs-toggle="tooltip"
             data-bs-placement="top"
             title="{% trans 'Als erledigt markieren' %}">
-              <i class="bi bi-check-circle-fill"></i>
+            <i class="bi bi-check-circle-fill"></i>
           </button>
         {% elif task.user.customuser.mail_notifications %}
-          <button id="sendTaskReminder{{ task.id }}"
-            onclick="sendTaskReminder(this, {{ task.id }})"
-            class="btn btn-sm btn-outline-primary"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="{% trans 'Erinnerung senden' %}{% if task.last_reminder %} ({% trans 'Zuletzt' %} {{ task.last_reminder|date:'d.m.' }}{% if task.last_reminder.year < today.year %}{{ task.last_reminder|date:'y' }}{% endif %}){% endif %}"
-            data-sent-title="{% trans 'Erinnerung gesendet' %}">
-            <i class="bi bi-bell-fill"></i>
-          </button>
+          {% if task.last_reminder == today %}
+            <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Erinnerung heute bereits gesendet' %}">
+              <button class="btn btn-sm btn-outline-primary" type="button" disabled style="pointer-events: none;">
+                <i class="bi bi-bell-fill"></i>
+              </button>
+            </span>
+          {% else %}
+            <button id="sendTaskReminder{{ task.id }}"
+              onclick="sendTaskReminder(this, {{ task.id }})"
+              class="btn btn-sm btn-outline-primary"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="{% trans 'Erinnerung senden' %}{% if task.last_reminder %} ({% trans 'Zuletzt' %} {{ task.last_reminder|date:'d.m.' }}{% if task.last_reminder.year < today.year %}{{ task.last_reminder|date:'y' }}{% endif %}){% endif %}"
+              data-sent-title="{% trans 'Erinnerung gesendet' %}">
+              <i class="bi bi-bell-fill"></i>
+            </button>
+          {% endif %}
         {% endif %}
 
         <script>

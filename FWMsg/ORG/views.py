@@ -225,8 +225,9 @@ def home(request):
         'posts': posts,
         'pinned_notizen': pinned_notizen,
         'sticky_notes': sticky_notes,
-        'large_container': True
-    }
+        'large_container': True,
+        'today': date.today()
+    }   
     
     return render(request, 'homeOrg.html', context=context)
 
@@ -1164,7 +1165,8 @@ def list_aufgaben_table(request, scroll_to=None):
     
     else:
         context = {
-            'error': f'{person_cluster.name} hat keine Aufgaben-Funktion aktiviert'
+            'error': f'{person_cluster.name} hat keine Aufgaben-Funktion aktiviert',
+            'today': date.today()
         }
 
     # Create response with rendered template
