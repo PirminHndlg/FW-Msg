@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 10:42+0200\n"
+"POT-Creation-Date: 2025-06-23 10:49+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: German <de@li.org>\n"
@@ -99,7 +99,8 @@ msgstr "Offene Aufgaben"
 msgid "Offene Aufgaben sind Aufgaben, die noch nicht abgeschlossen sind."
 msgstr "Offene Aufgaben sind Aufgaben, die noch nicht abgeschlossen sind."
 
-#: FW/templates/aufgaben.html:35 ORG/templates/list_aufgaben.html:23
+#: FW/templates/aufgaben.html:35 ORG/templates/homeOrg.html:270
+#: ORG/templates/list_aufgaben.html:23
 msgid "Pending Aufgaben"
 msgstr "Pending Aufgaben"
 
@@ -246,7 +247,8 @@ msgstr "Konto & Einstellungen"
 #: ORG/templates/components/cascade_modal.html:52
 #: ORG/templates/components/delete_modal.html:18
 #: ORG/templates/components/task_country_modal.html:28
-#: ORG/templates/edit_object.html:86 ORG/templates/list_aufgaben_table.html:109
+#: ORG/templates/edit_object.html:86 ORG/templates/homeOrg.html:204
+#: ORG/templates/list_aufgaben_table.html:109
 #: TEAM/templates/teamEinsatzstellen.html:215
 #: TEAM/templates/teamLaender.html:209
 msgid "Abbrechen"
@@ -728,7 +730,7 @@ msgstr "Bitte geben Sie eine Frage für die Umfrage ein"
 msgid "Mindestens zwei Antwortmöglichkeiten sind erforderlich"
 msgstr "Mindestens zwei Antwortmöglichkeiten sind erforderlich"
 
-#: Global/forms.py:180
+#: Global/forms.py:180 ORG/templates/homeOrg.html:185
 msgid "Notiz"
 msgstr "Notiz"
 
@@ -766,6 +768,7 @@ msgstr ""
 #: Global/templates/components/folder_modal.html:49
 #: Global/templates/components/profile_edit_controls.html:25
 #: Global/templates/profil.html:77 ORG/templates/edit_object.html:65
+#: ORG/templates/homeOrg.html:205
 msgid "Speichern"
 msgstr "Speichern"
 
@@ -1937,6 +1940,78 @@ msgstr "Zwischenschritte (optional)"
 #: ORG/templates/edit_object.html:79
 msgid "Möchten Sie dieses Objekt wirklich löschen?"
 msgstr "Möchten Sie dieses Objekt wirklich löschen?"
+
+#: ORG/templates/homeOrg.html:6 ORG/templates/homeOrg.html:15
+msgid "Dashboard"
+msgstr ""
+
+#: ORG/templates/homeOrg.html:17
+msgid "Neue Sticky Note"
+msgstr ""
+
+#: ORG/templates/homeOrg.html:28
+msgid "Angeheftete Notizen"
+msgstr ""
+
+#: ORG/templates/homeOrg.html:178
+#, fuzzy
+#| msgid "Neuen Beitrag erstellen"
+msgid "Neue Notiz erstellen"
+msgstr "Neuen Beitrag erstellen"
+
+#: ORG/templates/homeOrg.html:190
+msgid "Priorität"
+msgstr ""
+
+#: ORG/templates/homeOrg.html:245
+#, fuzzy
+#| msgid "Offene Aufgaben"
+msgid "Meine Aufgaben"
+msgstr "Offene Aufgaben"
+
+#: ORG/templates/homeOrg.html:246 ORG/templates/homeOrg.html:271
+#: ORG/templates/homeOrg.html:285 ORG/templates/homeOrg.html:305
+#: ORG/templates/homeOrg.html:329
+#, fuzzy
+#| msgid "Alle Bilder anzeigen"
+msgid "Alle anzeigen"
+msgstr "Alle Bilder anzeigen"
+
+#: ORG/templates/homeOrg.html:258
+#, fuzzy
+#| msgid "Offene Aufgaben"
+msgid "Keine Aufgaben"
+msgstr "Offene Aufgaben"
+
+#: ORG/templates/homeOrg.html:279
+#, fuzzy
+#| msgid "Keine offenen Aufgaben!"
+msgid "Keine pending Aufgaben"
+msgstr "Keine offenen Aufgaben!"
+
+#: ORG/templates/homeOrg.html:284
+#, fuzzy
+#| msgid "Fällige Aufgaben"
+msgid "Überfällige Aufgaben"
+msgstr "Fällige Aufgaben"
+
+#: ORG/templates/homeOrg.html:293
+#, fuzzy
+#| msgid "Fällige Aufgaben"
+msgid "Keine überfällige Aufgaben"
+msgstr "Fällige Aufgaben"
+
+#: ORG/templates/homeOrg.html:304
+#, fuzzy
+#| msgid "Neue Bilder"
+msgid "Neueste Bilder"
+msgstr "Neue Bilder"
+
+#: ORG/templates/homeOrg.html:328
+#, fuzzy
+#| msgid "Neue Posts"
+msgid "Neueste Posts"
+msgstr "Neue Beiträge"
 
 #: ORG/templates/list_ampel.html:16
 msgid "Ampelübersicht"
