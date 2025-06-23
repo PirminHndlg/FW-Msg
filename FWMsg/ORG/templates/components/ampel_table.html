@@ -17,10 +17,16 @@
             {% for user, months_data in user_matrix.items %}
             <tr>
                 <th class="border-end sticky-col">
-                    <a class="text-decoration-none text-body" data-bs-toggle="tooltip"
-                        title="{% trans 'Historie anzeigen' %}">
-                        {{ user.first_name }} {{   user.last_name }}
-                    </a>
+                    <div class="d-flex align-items-center justify-content-between gap-2">
+                        <a class="text-decoration-none text-body" data-bs-toggle="tooltip"
+                            title="{% trans 'Historie anzeigen' %}">
+                            {{ user.first_name }} {{   user.last_name }}
+                        </a>
+                        <button class="btn btn-sm btn-outline-primary"
+                            onclick="showAmpelEntryModal('{{ user.id }}', '{{ user.first_name }} {{ user.last_name }}')">
+                            <i class="bi bi-plus-circle-fill"></i>
+                        </button>
+                    </div>
                 </th>
                 {% for month in months %}
                 <td class="text-center {% if month == current_month %}table-active{% endif %}">
@@ -41,6 +47,85 @@
         </tbody>
     </table>
 </div>
+
+<!-- add entry modal -->
+<div class="modal fade" id="ampelEntryModal" tabindex="-1" aria-labelledby="ampelEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ampelEntryModalLabel">{% trans 'Neuer Ampel-Eintrag für' %} <span id="ampelEntryModalName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="ampelEntryForm" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_id" id="ampelEntryUserId">
+                    <div class="mb-3">
+                        <label for="ampelEntryDate" class="form-label">{% trans 'Datum' %}</label>
+                        <input type="date" class="form-control" id="ampelEntryDate" name="date" required">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ampelEntryStatus" class="form-label">{% trans 'Status' %}</label>
+                        <div class="d-flex justify-content-around" id="ampelEntryStatus">
+                            <div class="form-check">
+                                <input class="form-check-input cursor-pointer" style="accent-color: var(--ampel_green);appearance: auto; webkit-appearance: auto;" type="radio" name="status" id="ampelGreen" value="G" required checked>
+                                <label class="form-check-label cursor-pointer" for="ampelGreen">
+                                    {% trans 'Grün' %}
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input cursor-pointer" style="accent-color: var(--ampel_yellow);appearance: auto; webkit-appearance: auto;" type="radio" name="status" id="ampelYellow" value="Y">
+                                <label class="form-check-label cursor-pointer" for="ampelYellow">
+                                    {% trans 'Gelb' %}
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input cursor-pointer" style="accent-color: var(--ampel_red);appearance: auto; webkit-appearance: auto;" type="radio" name="status" id="ampelRed" value="R">
+                                <label class="form-check-label cursor-pointer" for="ampelRed">
+                                    {% trans 'Rot' %}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ampelEntryComment" class="form-label">{% trans 'Kommentar' %}</label>
+                        <textarea class="form-control" id="ampelEntryComment" name="comment" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Abbrechen' %}</button>
+                <button type="submit" class="btn btn-primary" form="ampelEntryForm">{% trans 'Speichern' %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showAmpelEntryModal(user_id, name) {
+        $('#ampelEntryModalName').text(`${name}`)
+        $('#ampelEntryComment').val('')
+        $('#ampelEntryDate').val('{{ today|date:'Y-m-d' }}')
+        $('#ampelGreen').prop('checked', true)
+        $('#ampelEntryUserId').val(user_id)
+        $('#ampelEntryModal').modal('show')
+    }
+
+    $('#ampelEntryModal').on('keydown', function(e) {
+        if (e.key === 'Enter') {
+            // Allow Shift+Enter for new lines in the textarea
+            if (e.target.id === 'ampelEntryComment' && e.shiftKey) {
+                return;
+            }
+            e.preventDefault();
+            $('#ampelEntryForm').submit();
+        }
+    });
+</script>
 
 <style>
     .sticky-top {

@@ -843,10 +843,40 @@ def _get_ampel_matrix(request, users):
 @required_role('O')
 @filter_person_cluster
 def list_ampel(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        status = request.POST.get('status')
+        comment = request.POST.get('comment')
+        date_str = request.POST.get('date')
+
+        try:
+            user = User.objects.get(id=user_id)
+            if user.customuser.org != request.user.org:
+                messages.error(request, _('Nicht erlaubt'))
+                return redirect('list_ampel')
+
+            entry_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            entry_datetime = timezone.make_aware(datetime.combine(entry_date, timezone.now().time()))
+
+            Ampel2.objects.create(
+                org=request.user.org,
+                user=user,
+                status=status,
+                comment=comment,
+                date=entry_datetime
+            )
+            messages.success(request, _('Ampel-Eintrag erfolgreich hinzugefügt.'))
+        except User.DoesNotExist:
+            messages.error(request, _('Benutzer nicht gefunden.'))
+        except Exception as e:
+            messages.error(request, _('Ein Fehler ist aufgetreten: {}').format(e))
+        
+        return redirect('list_ampel')
+
     # Base queryset for freiwillige
     user_qs, person_cluster = get_filtered_user_queryset(request, 'ampel')
     error = None
-
+    
     if not person_cluster or person_cluster.ampel:
         ampel_matrix, months = _get_ampel_matrix(request, user_qs)
     else:
@@ -858,7 +888,8 @@ def list_ampel(request):
         'months': months,
         'ampel_matrix': ampel_matrix,
         'current_month': timezone.now().strftime("%b %y"),
-        'error': error
+        'error': error,
+        'today': timezone.now().date(),
     }
     return render(request, 'list_ampel.html', context=context)
 
