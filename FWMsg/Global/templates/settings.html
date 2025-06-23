@@ -117,7 +117,7 @@
                                     <p class="mb-0 text-muted small">{% trans "E-Mail-Benachrichtigungen für Aufgaben, Kalender-Ereignisse und mehr erhalten" %}</p>
                                 </div>
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="emailNotifications" onchange="toggleEmailNotifications(this.checked)" {% if user.email_notifications_enabled %}checked{% endif %}>
+                                    <input class="form-check-input" type="checkbox" id="emailNotifications" onchange="toggleEmailNotifications(this.checked)" {% if request.user.customuser.mail_notifications %}checked{% endif %}>
                                     <label class="form-check-label" for="emailNotifications"></label>
                                 </div>
                             </div>
@@ -300,7 +300,7 @@
         }
 
         function toggleEmailNotifications(value) {
-            fetch('{% url 'unsubscribe_mail_notifications' request.user.id request.user.customuser.mail_notifications_unsubscribe_auth_key %}?value=' + value)
+            fetch("{% url 'unsubscribe_mail_notifications' request.user.id request.user.customuser.mail_notifications_unsubscribe_auth_key %}?value=" + value)
                 .catch(error => {
                     console.error('Error:', error);
                     alert('{% trans "Fehler beim Speichern der Einstellungen." %}');
