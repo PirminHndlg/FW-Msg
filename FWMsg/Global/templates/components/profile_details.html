@@ -2,24 +2,25 @@
 
 {# Basic Info #}
 <div class="mb-3">
-    {% if freiwilliger %}
-        {% if this_user %}
-            <div class="d-flex justify-content-between gap-2 mb-2 align-items-center">
-                {% if user.customuser.geburtsdatum %}
-                    <p class="mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ user.customuser.geburtsdatum|date:"d.m.Y" }}</p>
-                {% endif %}
-                <a href="mailto:{{ user.org.email|default:'' }}" class="btn btn-sm"><i class="bi bi-envelope-fill me-1"></i>{% trans "Änderungen melden" %}</a>
-            </div>
-            <p class="mb-2"><strong>{% trans "Telefon" %}:</strong> {{ freiwilliger.phone|default:"" }}</p>
-            <p class="mb-2"><strong>{% trans "Telefon Einsatzland" %}:</strong> {{ freiwilliger.phone_einsatzland|default:"" }}</p>
-            <p class="mb-2"><strong>{% trans "Email" %}:</strong> {{ freiwilliger.email|default:"" }}</p>
-        {% else %}
-            {% if user.customuser.geburtsdatum %}
-                <p class="mb-2 mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ user.customuser.geburtsdatum|date:"d.m.Y" }}</p>
-            {% endif %}
+    {% if this_user %}
+        <div class="d-flex justify-content-between gap-2 mb-2 align-items-center">
+            <a href="mailto:{{ user.org.email|default:'' }}" class="btn btn-sm"><i class="bi bi-envelope-fill me-1"></i>{% trans "Änderungen melden" %}</a>
+        </div>
+        {% for user_attribute in user_attributes %}
+            <p class="mb-2"><strong>{{ user_attribute.attribute.name }}:</strong> {{ user_attribute.value|default:"" }}</p>
+        {% endfor%}
+        <p class="mb-2"><strong>{% trans "Email" %}:</strong> {{ user.email|default:"" }}</p>
+
+    {% else %}
+        {% if user.customuser.geburtsdatum %}
+            <p class="mb-2 mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ user.customuser.geburtsdatum|date:"d.m.Y" }}</p>
         {% endif %}
     {% endif %}
 </div>
+
+{% if profil_users and user_attributes %}
+    <hr class="my-2">
+{% endif %}
 
 {# Profile Attributes #}
 <div class="mb-3">

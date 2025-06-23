@@ -56,7 +56,8 @@ from .models import (
     BilderGallery2,
     Einsatzstelle2,
     EinsatzstelleNotiz, 
-    ProfilUser2, 
+    ProfilUser2,
+    UserAttribute, 
     UserAufgaben,
     KalenderEvent,
     CustomUser,
@@ -765,6 +766,7 @@ def view_profil(request, user_id=None):
             return redirect('profil')
 
     profil_users = ProfilUser2.objects.filter(user=user)
+    user_attributes = UserAttribute.objects.filter(user=user) if this_user else []
     gallery_images = get_bilder(request.user.org, user)
 
     ampel_of_user = None
@@ -788,7 +790,8 @@ def view_profil(request, user_id=None):
         'this_user': this_user,
         'ampel_of_user': ampel_of_user,
         'gallery_images': gallery_images,
-        'posts': posts
+        'posts': posts,
+        'user_attributes': user_attributes
     }
 
     context = check_organization_context(request, context)
