@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 10:42+0200\n"
+"POT-Creation-Date: 2025-06-23 10:49+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: English <en@li.org>\n"
@@ -101,7 +101,8 @@ msgstr "Open Tasks"
 msgid "Offene Aufgaben sind Aufgaben, die noch nicht abgeschlossen sind."
 msgstr "Open tasks are tasks that have not yet been completed."
 
-#: FW/templates/aufgaben.html:35 ORG/templates/list_aufgaben.html:23
+#: FW/templates/aufgaben.html:35 ORG/templates/homeOrg.html:270
+#: ORG/templates/list_aufgaben.html:23
 msgid "Pending Aufgaben"
 msgstr "Pending Tasks"
 
@@ -248,7 +249,8 @@ msgstr ""
 #: ORG/templates/components/cascade_modal.html:52
 #: ORG/templates/components/delete_modal.html:18
 #: ORG/templates/components/task_country_modal.html:28
-#: ORG/templates/edit_object.html:86 ORG/templates/list_aufgaben_table.html:109
+#: ORG/templates/edit_object.html:86 ORG/templates/homeOrg.html:204
+#: ORG/templates/list_aufgaben_table.html:109
 #: TEAM/templates/teamEinsatzstellen.html:215
 #: TEAM/templates/teamLaender.html:209
 msgid "Abbrechen"
@@ -734,7 +736,7 @@ msgstr "Please enter a question for the poll"
 msgid "Mindestens zwei Antwortmöglichkeiten sind erforderlich"
 msgstr "At least two answer options are required"
 
-#: Global/forms.py:180
+#: Global/forms.py:180 ORG/templates/homeOrg.html:185
 msgid "Notiz"
 msgstr "Note"
 
@@ -772,6 +774,7 @@ msgstr "Send Daily Task Emails"
 #: Global/templates/components/folder_modal.html:49
 #: Global/templates/components/profile_edit_controls.html:25
 #: Global/templates/profil.html:77 ORG/templates/edit_object.html:65
+#: ORG/templates/homeOrg.html:205
 msgid "Speichern"
 msgstr "Save"
 
@@ -1935,6 +1938,62 @@ msgstr "Intermediate steps (optional)"
 #: ORG/templates/edit_object.html:79
 msgid "Möchten Sie dieses Objekt wirklich löschen?"
 msgstr "Do you really want to delete this object?"
+
+#: ORG/templates/homeOrg.html:6 ORG/templates/homeOrg.html:15
+msgid "Dashboard"
+msgstr "Dashboard"
+
+#: ORG/templates/homeOrg.html:17
+msgid "Neue Sticky Note"
+msgstr "Create New Sticky Note"
+
+#: ORG/templates/homeOrg.html:28
+msgid "Angeheftete Notizen"
+msgstr "Pinned Notes"
+
+#: ORG/templates/homeOrg.html:178
+#, fuzzy
+#| msgid "Neuen Beitrag erstellen"
+msgid "Neue Notiz erstellen"
+msgstr "Create New Note"
+
+#: ORG/templates/homeOrg.html:190
+msgid "Priorität"
+msgstr "Priority"
+
+#: ORG/templates/homeOrg.html:245
+msgid "Meine Aufgaben"
+msgstr "My Tasks"
+
+#: ORG/templates/homeOrg.html:246 ORG/templates/homeOrg.html:271
+#: ORG/templates/homeOrg.html:285 ORG/templates/homeOrg.html:305
+#: ORG/templates/homeOrg.html:329
+msgid "Alle anzeigen"
+msgstr "Show All"
+
+#: ORG/templates/homeOrg.html:258
+msgid "Keine Aufgaben"
+msgstr "No Tasks"
+
+#: ORG/templates/homeOrg.html:279
+msgid "Keine pending Aufgaben"
+msgstr "No Pending Tasks!"
+
+#: ORG/templates/homeOrg.html:284
+msgid "Überfällige Aufgaben"
+msgstr "Overdue Tasks"
+
+#: ORG/templates/homeOrg.html:293
+msgid "Keine überfällige Aufgaben"
+msgstr "No Overdue Tasks"
+
+#: ORG/templates/homeOrg.html:304
+msgid "Neueste Bilder"
+msgstr "Latest Images"
+
+#: ORG/templates/homeOrg.html:328
+msgid "Neueste Posts"
+msgstr "Latest Posts"
 
 #: ORG/templates/list_ampel.html:16
 msgid "Ampelübersicht"

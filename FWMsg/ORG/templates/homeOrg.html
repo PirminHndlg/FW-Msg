@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block title %}
-  Dashboard
+  {% trans "Dashboard" %}
 {% endblock %}
 
 {% block head %}
@@ -12,9 +12,9 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-<h2 class="mb-0">Dashboard</h2>
+<h2 class="mb-0">{% trans "Dashboard" %}</h2>
   <button type="button" class="btn btn-primary rounded-pill btn-sm" data-bs-toggle="modal" data-bs-target="#stickyNoteModal" title="Neue Sticky Note erstellen">
-    <i class="bi bi-sticky me-1"></i>Neue Sticky Note
+    <i class="bi bi-sticky me-1"></i>{% trans "Neue Sticky Note" %}
   </button>
 </div>
 
@@ -25,7 +25,7 @@
         <div class="pin-wall p-4 bg-light rounded-4 shadow-sm border border-1">
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h5 class="mb-0 text-muted">
-              <i class="bi bi-pin-angle-fill me-2"></i>Angeheftete Notizen
+              <i class="bi bi-pin-angle-fill me-2"></i>{% trans "Angeheftete Notizen" %}
             </h5>
           </div>
 
@@ -175,19 +175,19 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="stickyNoteModalLabel">Neue Notiz erstellen</h5>
+          <h5 class="modal-title" id="stickyNoteModalLabel">{% trans "Neue Notiz erstellen" %}</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <form method="post" action="{% url 'create_sticky_note' %}" id="stickyNoteForm">
           {% csrf_token %}
           <div class="modal-body">
             <div class="mb-3">
-              <label for="notiz" class="form-label">Notiz</label>
+              <label for="notiz" class="form-label">{% trans "Notiz" %}</label>
               <textarea class="form-control" id="notiz" name="notiz" rows="4" required></textarea>
             </div>
             <div class="mb-3">
               <label class="form-label d-flex align-items-center gap-2">
-                Priorität
+                {% trans "Priorität" %}
                 <div class="btn-group btn-group-sm" role="group">
                   <input type="radio" class="btn-check" name="priority" id="priority0" value="0" checked>
                   <label class="btn btn-outline-secondary px-2" for="priority0" title="Normal">!</label>
@@ -201,8 +201,8 @@
               </div>
             </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-            <button type="submit" class="btn btn-primary">Speichern</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
+            <button type="submit" class="btn btn-primary">{% trans "Speichern" %}</button>
           </div>
         </form>
       </div>
@@ -242,8 +242,8 @@
     <div class="col-md-6 mb-4">
         <div class="card h-100 rounded-4">
             <div class="card-header d-flex justify-content-between align-items-center rounded-4">
-                <h5 class="mb-0">Meine Aufgaben - {{ my_open_tasks.count }}</h5>
-                <a href="{% url 'aufgaben' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
+                <h5 class="mb-0">{% trans "Meine Aufgaben" %} - {{ my_open_tasks.count }}</h5>
+                <a href="{% url 'aufgaben' %}" class="btn btn-sm btn-outline-primary">{% trans "Alle anzeigen" %}</a>
             </div>
             <div class="card-body">
                 {% if my_open_tasks %}
@@ -255,7 +255,7 @@
                 {% else %}
                 <div class="text-center py-4">
                 <i class="bi bi-check2-circle text-muted mb-2" style="font-size: 2rem"></i>
-                    <p class="text-muted mb-0">Keine Aufgaben</p>
+                    <p class="text-muted mb-0">{% trans "Keine Aufgaben" %}</p>
                 </div>
                 {% endif %}
             </div>
@@ -267,8 +267,8 @@
     <div class="col-md-6 mb-4">
         <div class="card h-100 rounded-4">
             <div class="card-header d-flex justify-content-between align-items-center rounded-4">
-                <h5 class="mb-0">Pending Aufgaben - {{ pending_tasks.count }}</h5>
-                <a href="{% url 'list_aufgaben_table' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
+                <h5 class="mb-0">{% trans "Pending Aufgaben" %} - {{ pending_tasks.count }}</h5>
+                <a href="{% url 'list_aufgaben_table' %}" class="btn btn-sm btn-outline-primary">{% trans "Alle anzeigen" %}</a>
             </div>
             <div class="card-body">
                 {% if pending_tasks %}
@@ -276,13 +276,13 @@
                         {% include 'components/task_item.html' with tasks=pending_tasks %}
                     </div>
                 {% else %}
-                    <p class="text-muted mb-0">Keine pending Aufgaben</p>
+                    <p class="text-muted mb-0">{% trans "Keine pending Aufgaben" %}</p>
                 {% endif %}
             </div>
 
             <div class="card-header d-flex justify-content-between align-items-center rounded-4 border-top">
-                <h5 class="mb-0">Überfällige Aufgaben - {{ open_tasks.count }}</h5>
-                <a href="{% url 'list_aufgaben_table' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
+                <h5 class="mb-0">{% trans "Überfällige Aufgaben" %} - {{ open_tasks.count }}</h5>
+                <a href="{% url 'list_aufgaben_table' %}" class="btn btn-sm btn-outline-primary">{% trans "Alle anzeigen" %}</a>
             </div>
             <div class="card-body">
                 {% if open_tasks %}
@@ -290,7 +290,7 @@
                         {% include 'components/task_item.html' with tasks=open_tasks %}
                     </div>
                 {% else %}
-                    <p class="text-muted mb-0">Keine überfällige Aufgaben</p>
+                    <p class="text-muted mb-0">{% trans "Keine überfällige Aufgaben" %}</p>
                 {% endif %}
             </div>
         </div>
@@ -301,8 +301,8 @@
     <div class="col-md-6 mb-4">
         <div class="card h-100 rounded-4">
             <div class="card-header d-flex justify-content-between align-items-center rounded-4">
-                <h5 class="mb-0">Neueste Bilder</h5>
-                <a href="{% url 'bilder' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
+                <h5 class="mb-0">{% trans "Neueste Bilder" %}</h5>
+                <a href="{% url 'bilder' %}" class="btn btn-sm btn-outline-primary">{% trans "Alle anzeigen" %}</a>
             </div>
             <div class="card-body">
                 {% if gallery_images %}
@@ -325,8 +325,8 @@
     <div class="col-md-6 mb-4">
         <div class="card h-100 rounded-4">
             <div class="card-header d-flex justify-content-between align-items-center rounded-4">
-                <h5 class="mb-0">Neueste Posts</h5>
-                <a href="{% url 'posts_overview' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
+                <h5 class="mb-0">{% trans "Neueste Posts" %}</h5>
+                <a href="{% url 'posts_overview' %}" class="btn btn-sm btn-outline-primary">{% trans "Alle anzeigen" %}</a>
             </div>
             <div class="card-body">
                 {% if posts %}
