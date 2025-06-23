@@ -12,6 +12,8 @@
         {% if task.pending %}
           {% if task.file %}
             <a href="{% url 'download_aufgabe' task.id %}"
+              target="_blank"
+              onclick="window.location.reload(true)"
               class="btn btn-sm btn-outline-primary download-btn"
               data-bs-toggle="tooltip"
               data-bs-placement="top"
