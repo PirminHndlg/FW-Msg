@@ -154,7 +154,12 @@
 
         <div class="col-12 col-md-6 col-lg-5 col-xl-4 mt-2 mt-md-0 search-container">
             <div class="input-group">
-                <input type="text" class="form-control" id="mySearch" placeholder="Suche">
+                <input type="text" class="form-control" id="mySearch" placeholder="Suche"
+                    {% if not request.user_agent.is_mobile %}
+                    data-bs-toggle="tooltip"
+                    title="{% trans 'Drücke \'F\' um schnell ins Suchfeld zu springen' %}"
+                    data-bs-placement="bottom"
+                    {% endif %}>
                 <button class="btn btn-outline-primary" type="button">
                     <i class="bi bi-search"></i>
                 </button>
@@ -484,6 +489,26 @@
             }
         });
         {% endif %}
+
+        // Add keyboard shortcut to focus search input when 'f' key is pressed
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'f' && event.target.id !== 'mySearch') {
+                event.preventDefault();
+                document.getElementById('mySearch').focus();
+                const tooltip = bootstrap.Tooltip.getInstance(document.getElementById('mySearch'));
+                if (tooltip) tooltip.dispose();
+            }
+        });
+
+        // Also hide tooltip when user starts typing
+        document.addEventListener('input', function(event) {
+            if (event.target.id === 'mySearch') {
+                const tooltip = bootstrap.Tooltip.getInstance(event.target);
+                if (tooltip) {
+                    tooltip.hide();
+                }
+            }
+        });
     </script>
 
     {% include "components/cascade_modal.html" %}
