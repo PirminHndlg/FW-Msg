@@ -11,6 +11,9 @@ FWMsg/ORG/**/__pycache__/
 # Django settings
 FWMsg/FWMsg/settings.py
 
+# Sensitive files with credentials
+FWMsg/ORG/smptMail.py
+
 # Python cache files
 __pycache__/
 *.py[cod]
