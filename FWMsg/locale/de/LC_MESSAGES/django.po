@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 15:17+0200\n"
+"POT-Creation-Date: 2025-06-26 13:05+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: German <de@li.org>\n"
@@ -149,7 +149,7 @@ msgstr "Notfallkontakte"
 #: Global/templates/components/language_selector.html:10
 #: Global/templates/components/language_selector.html:25
 #: Global/templates/settings.html:175 Home/templates/first_login.html:134
-#: Home/templates/index.html:115 Home/templates/password_change.html:131
+#: Home/templates/index.html:115 Home/templates/password_change.html:128
 #: Home/templates/password_reset.html:94
 msgid "Deutsch"
 msgstr "Deutsch"
@@ -159,7 +159,7 @@ msgstr "Deutsch"
 #: Global/templates/components/language_selector.html:10
 #: Global/templates/components/language_selector.html:25
 #: Global/templates/settings.html:178 Home/templates/first_login.html:134
-#: Home/templates/index.html:115 Home/templates/password_change.html:133
+#: Home/templates/index.html:115 Home/templates/password_change.html:130
 #: Home/templates/password_reset.html:94
 msgid "English"
 msgstr "Englisch"
@@ -1270,8 +1270,8 @@ msgid "Konto-Einstellungen"
 msgstr "Konto-Einstellungen"
 
 #: Global/templates/settings.html:63 Home/templates/password_change.html:9
-#: Home/templates/password_change.html:50
-#: Home/templates/password_change.html:100
+#: Home/templates/password_change.html:48
+#: Home/templates/password_change.html:98
 msgid "Passwort ändern"
 msgstr "Passwort ändern"
 
@@ -1477,8 +1477,7 @@ msgstr ""
 msgid "Feedback geben"
 msgstr "Feedback geben"
 
-#: Home/templates/first_login.html:50 Home/templates/password_change.html:48
-#: Home/templates/password_reset.html:49
+#: Home/templates/first_login.html:50 Home/templates/password_reset.html:49
 msgid "Zurück zur Startseite"
 msgstr "Zurück zur Startseite"
 
@@ -1490,7 +1489,7 @@ msgstr "Willkommen"
 msgid "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
 msgstr "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
 
-#: Home/templates/first_login.html:108 Home/templates/password_change.html:90
+#: Home/templates/first_login.html:108 Home/templates/password_change.html:88
 msgid "Passwortanforderungen"
 msgstr ""
 
@@ -1499,7 +1498,7 @@ msgid "Anmelden"
 msgstr "Anmelden"
 
 #: Home/templates/first_login.html:144 Home/templates/index.html:122
-#: Home/templates/password_change.html:144
+#: Home/templates/password_change.html:141
 #: Home/templates/password_reset.html:104
 msgid "Datenschutz"
 msgstr "Datenschutz"
@@ -1520,11 +1519,11 @@ msgstr "Anmelden mit Einmalpasswort"
 msgid "Passwort vergessen?"
 msgstr ""
 
-#: Home/templates/password_change.html:52
+#: Home/templates/password_change.html:50
 msgid "Bitte geben Sie Ihr aktuelles Passwort und das neue Passwort ein"
 msgstr ""
 
-#: Home/templates/password_change.html:98
+#: Home/templates/password_change.html:95
 msgid "Später ändern"
 msgstr ""
 
@@ -2111,44 +2110,48 @@ msgstr "für"
 msgid "wirklich löschen?"
 msgstr "wirklich löschen?"
 
-#: ORG/templates/list_objects.html:177
+#: ORG/templates/list_objects.html:160
+msgid "Drücke 'F' um schnell ins Suchfeld zu springen"
+msgstr ""
+
+#: ORG/templates/list_objects.html:182
 msgid "Anzeige gefiltert:"
 msgstr "Anzeige gefiltert:"
 
-#: ORG/templates/list_objects.html:177 ORG/templates/list_objects.html:192
-#: ORG/templates/list_objects.html:337
+#: ORG/templates/list_objects.html:182 ORG/templates/list_objects.html:197
+#: ORG/templates/list_objects.html:342
 msgid "von"
 msgstr ""
 
-#: ORG/templates/list_objects.html:179
+#: ORG/templates/list_objects.html:184
 msgid "insgesamt"
 msgstr ""
 
-#: ORG/templates/list_objects.html:192
+#: ORG/templates/list_objects.html:197
 msgid "Seite"
 msgstr ""
 
-#: ORG/templates/list_objects.html:306
+#: ORG/templates/list_objects.html:311
 msgid "Send Registration Mail"
 msgstr ""
 
-#: ORG/templates/list_objects.html:324
+#: ORG/templates/list_objects.html:329
 msgid "No items found"
 msgstr "Keine Einträge gefunden"
 
-#: ORG/templates/list_objects.html:337
+#: ORG/templates/list_objects.html:342
 msgid "Zeige"
 msgstr "Zeige"
 
-#: ORG/templates/list_objects.html:423
+#: ORG/templates/list_objects.html:428
 msgid "Erfolgreich gesendet!"
 msgstr ""
 
-#: ORG/templates/list_objects.html:432
+#: ORG/templates/list_objects.html:437
 msgid "Fehler beim Senden der Registrierungsmail:"
 msgstr ""
 
-#: ORG/templates/list_objects.html:437
+#: ORG/templates/list_objects.html:442
 msgid "Error sending registration mail"
 msgstr ""
 
@@ -2304,6 +2307,11 @@ msgid ""
 "Keine Einsatzländer gefunden. Bitte wenden Sie sich an den Administrator, um "
 "Einsatzländer zugewiesen zu bekommen."
 msgstr ""
+
+#, fuzzy
+#~| msgid "Zurück"
+#~ msgid "Drücke \\"
+#~ msgstr "Zurück"
 
 #~ msgid "Telefon"
 #~ msgstr "Telefon"
