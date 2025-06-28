@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-26 13:05+0200\n"
+"POT-Creation-Date: 2025-06-28 11:24+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: English <en@li.org>\n"
@@ -150,7 +150,7 @@ msgstr "Emergency contacts"
 #: FW/templates/base.html:210 FW/templates/base.html:222
 #: Global/templates/components/language_selector.html:10
 #: Global/templates/components/language_selector.html:25
-#: Global/templates/settings.html:175 Home/templates/first_login.html:134
+#: Global/templates/settings.html:187 Home/templates/first_login.html:134
 #: Home/templates/index.html:115 Home/templates/password_change.html:128
 #: Home/templates/password_reset.html:94
 msgid "Deutsch"
@@ -160,7 +160,7 @@ msgstr "German"
 #: FW/templates/base.html:212 FW/templates/base.html:227
 #: Global/templates/components/language_selector.html:10
 #: Global/templates/components/language_selector.html:25
-#: Global/templates/settings.html:178 Home/templates/first_login.html:134
+#: Global/templates/settings.html:190 Home/templates/first_login.html:134
 #: Home/templates/index.html:115 Home/templates/password_change.html:130
 #: Home/templates/password_reset.html:94
 msgid "English"
@@ -249,7 +249,7 @@ msgstr ""
 #: Global/templates/components/profile_edit_controls.html:29
 #: Global/templates/feedback.html:73 Global/templates/post_add.html:164
 #: Global/templates/post_add.html:168 Global/templates/profil.html:76
-#: Global/templates/profil.html:156 Global/templates/settings.html:287
+#: Global/templates/profil.html:156 Global/templates/settings.html:295
 #: ORG/templates/components/ampel_table.html:101
 #: ORG/templates/components/cascade_modal.html:52
 #: ORG/templates/components/delete_modal.html:18
@@ -670,6 +670,27 @@ msgstr "Pharmacies"
 msgid "Weitere Informationen"
 msgstr "General Information"
 
+#: Global/export_utils.py:70
+msgid ""
+"Datenexport ist nur einmal pro Stunde möglich. Bitte versuchen Sie es später "
+"erneut."
+msgstr "Data export is only possible once per hour. Please try again later."
+
+#: Global/export_utils.py:77
+msgid "Ungültige Benutzerberechtigungen."
+msgstr "Invalid user permissions."
+
+#: Global/export_utils.py:81
+msgid "Ihr Konto ist deaktiviert."
+msgstr "Your account is deactivated."
+
+#: Global/export_utils.py:110
+msgid ""
+"Die zu exportierenden Daten sind zu groß. Bitte kontaktieren Sie den "
+"Administrator."
+msgstr ""
+"The data to be exported is too large. Please contact the administrator."
+
 #: Global/forms.py:18 Global/templates/post_add.html:92
 msgid "Umfrage hinzufügen"
 msgstr "Add survey"
@@ -1056,11 +1077,11 @@ msgid "Fertig"
 msgstr "Done"
 
 #: Global/templates/components/profile_header.html:34
-#: Global/templates/settings.html:237
+#: Global/templates/settings.html:245
 msgid "Abmelden"
 msgstr "Logout"
 
-#: Global/templates/feedback.html:76 Global/templates/settings.html:229
+#: Global/templates/feedback.html:76 Global/templates/settings.html:241
 msgid "Feedback senden"
 msgstr "Send feedback"
 
@@ -1333,63 +1354,67 @@ msgstr "Privacy Policy"
 msgid "Lesen Sie unsere Datenschutzrichtlinien"
 msgstr "Read our privacy policy"
 
-#: Global/templates/settings.html:161
+#: Global/templates/settings.html:158
+msgid "Daten exportieren"
+msgstr "Export data"
+
+#: Global/templates/settings.html:159
+msgid "Exportieren Sie Ihre Daten"
+msgstr "Export your data"
+
+#: Global/templates/settings.html:173
 msgid "Sprache & Region"
 msgstr "Language & Region"
 
-#: Global/templates/settings.html:166
+#: Global/templates/settings.html:178
 msgid "Sprache"
 msgstr "Language"
 
-#: Global/templates/settings.html:185
+#: Global/templates/settings.html:197
 msgid "Zeitzone"
 msgstr "Timezone"
 
-#: Global/templates/settings.html:187
+#: Global/templates/settings.html:199
 msgid "Mitteleuropäische Zeit (MEZ)"
 msgstr "Central European Time (CET)"
 
-#: Global/templates/settings.html:188
+#: Global/templates/settings.html:200
 msgid "Greenwich Mean Time (GMT)"
 msgstr "Greenwich Mean Time (GMT)"
 
-#: Global/templates/settings.html:189
+#: Global/templates/settings.html:201
 msgid "Eastern Time (ET)"
 msgstr "Eastern Time (ET)"
 
-#: Global/templates/settings.html:223
+#: Global/templates/settings.html:235
 msgid "Schnellzugriff"
 msgstr "Quick Access"
 
-#: Global/templates/settings.html:233
-msgid "Daten exportieren (coming soon)"
-msgstr "Export data (coming soon)"
-
-#: Global/templates/settings.html:241
+#: Global/templates/settings.html:249
 msgid "Konto Löschung beantragen"
 msgstr "Request account deletion"
 
-#: Global/templates/settings.html:250
+#: Global/templates/settings.html:258
 msgid "System-Informationen"
 msgstr "System Information"
 
-#: Global/templates/settings.html:256
+#: Global/templates/settings.html:264
 msgid "Letzter Login"
 msgstr "Last login"
 
-#: Global/templates/settings.html:261
+#: Global/templates/settings.html:269
 msgid "Mitglied seit"
 msgstr "Member since"
 
-#: Global/templates/settings.html:275
+#: Global/templates/settings.html:283
 msgid "Konto-Löschung beantragen"
 msgstr "Request account deletion"
 
-#: Global/templates/settings.html:281
+#: Global/templates/settings.html:289
 msgid "Ihr Antrag auf Konto-Löschung wird von einem Administrator geprüft."
 msgstr "Your account deletion request will be reviewed by an administrator."
 
-#: Global/templates/settings.html:283
+#: Global/templates/settings.html:291
 msgid ""
 "Nach der Genehmigung werden alle Ihre Daten permanent gelöscht. Dieser "
 "Vorgang kann nicht rückgängig gemacht werden."
@@ -1397,21 +1422,17 @@ msgstr ""
 "After approval, all your data will be permanently deleted. This process "
 "cannot be undone."
 
-#: Global/templates/settings.html:284
+#: Global/templates/settings.html:292
 msgid ""
 "Sie erhalten eine E-Mail-Bestätigung, sobald Ihr Antrag bearbeitet wurde."
 msgstr ""
 "You will receive an email confirmation once your request has been processed."
 
-#: Global/templates/settings.html:290
+#: Global/templates/settings.html:298
 msgid "Löschung beantragen"
 msgstr "Request deletion"
 
-#: Global/templates/settings.html:300
-msgid "Datenexport-Funktion wird in einer zukünftigen Version verfügbar sein."
-msgstr "Data export function will be available in a future version."
-
-#: Global/templates/settings.html:307
+#: Global/templates/settings.html:310
 msgid "Fehler beim Speichern der Einstellungen."
 msgstr "Error saving settings."
 

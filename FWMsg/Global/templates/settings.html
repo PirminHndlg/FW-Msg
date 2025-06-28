@@ -148,6 +148,18 @@
                                 <i class="bi bi-chevron-right text-muted"></i>
                             </div>
                         </a>
+                        <a href="{% url 'export_data' %}" class="list-group-item list-group-item-action setting-item">
+                            <div class="d-flex align-items-center">
+                                <div class="setting-icon me-3">
+                                    <i class="bi bi-download"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{% trans "Daten exportieren" %}</h6>
+                                    <p class="mb-0 text-muted small">{% trans "Exportieren Sie Ihre Daten" %}</p>
+                                </div>
+                                <i class="bi bi-chevron-right text-muted"></i>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -227,10 +239,6 @@
                             <i class="bi bi-chat-dots me-2"></i>
                             {% trans "Feedback senden" %}
                         </a>
-                        <a href="#" class="list-group-item list-group-item-action disabled" onclick="exportData()">
-                            <i class="bi bi-download me-2"></i>
-                            {% trans "Daten exportieren (coming soon)" %}
-                        </a>
                         <a href="{% url 'logout' %}" class="list-group-item list-group-item-action text-warning">
                             <i class="bi bi-box-arrow-right me-2"></i>
                             {% trans "Abmelden" %}
@@ -294,11 +302,6 @@
     </div>
 
     <script>
-        function exportData() {
-            // TODO: Implement data export functionality
-            alert('{% trans "Datenexport-Funktion wird in einer zukünftigen Version verfügbar sein." %}');
-        }
-
         function toggleEmailNotifications(value) {
             fetch("{% url 'unsubscribe_mail_notifications' request.user.id request.user.customuser.mail_notifications_unsubscribe_auth_key %}?value=" + value)
                 .catch(error => {

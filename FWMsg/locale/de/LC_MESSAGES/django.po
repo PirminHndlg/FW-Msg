@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-26 13:05+0200\n"
+"POT-Creation-Date: 2025-06-28 11:24+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: German <de@li.org>\n"
@@ -148,7 +148,7 @@ msgstr "Notfallkontakte"
 #: FW/templates/base.html:210 FW/templates/base.html:222
 #: Global/templates/components/language_selector.html:10
 #: Global/templates/components/language_selector.html:25
-#: Global/templates/settings.html:175 Home/templates/first_login.html:134
+#: Global/templates/settings.html:187 Home/templates/first_login.html:134
 #: Home/templates/index.html:115 Home/templates/password_change.html:128
 #: Home/templates/password_reset.html:94
 msgid "Deutsch"
@@ -158,7 +158,7 @@ msgstr "Deutsch"
 #: FW/templates/base.html:212 FW/templates/base.html:227
 #: Global/templates/components/language_selector.html:10
 #: Global/templates/components/language_selector.html:25
-#: Global/templates/settings.html:178 Home/templates/first_login.html:134
+#: Global/templates/settings.html:190 Home/templates/first_login.html:134
 #: Home/templates/index.html:115 Home/templates/password_change.html:130
 #: Home/templates/password_reset.html:94
 msgid "English"
@@ -247,7 +247,7 @@ msgstr "Konto & Einstellungen"
 #: Global/templates/components/profile_edit_controls.html:29
 #: Global/templates/feedback.html:73 Global/templates/post_add.html:164
 #: Global/templates/post_add.html:168 Global/templates/profil.html:76
-#: Global/templates/profil.html:156 Global/templates/settings.html:287
+#: Global/templates/profil.html:156 Global/templates/settings.html:295
 #: ORG/templates/components/ampel_table.html:101
 #: ORG/templates/components/cascade_modal.html:52
 #: ORG/templates/components/delete_modal.html:18
@@ -664,6 +664,34 @@ msgstr ""
 msgid "Weitere Informationen"
 msgstr ""
 
+#: Global/export_utils.py:70
+#, fuzzy
+#| msgid ""
+#| "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es später "
+#| "erneut."
+msgid ""
+"Datenexport ist nur einmal pro Stunde möglich. Bitte versuchen Sie es später "
+"erneut."
+msgstr ""
+"Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es später "
+"erneut."
+
+#: Global/export_utils.py:77
+#, fuzzy
+#| msgid "Ungültiger Benutzername oder Passwort."
+msgid "Ungültige Benutzerberechtigungen."
+msgstr "Ungültiger Benutzername oder Passwort."
+
+#: Global/export_utils.py:81
+msgid "Ihr Konto ist deaktiviert."
+msgstr ""
+
+#: Global/export_utils.py:110
+msgid ""
+"Die zu exportierenden Daten sind zu groß. Bitte kontaktieren Sie den "
+"Administrator."
+msgstr ""
+
 #: Global/forms.py:18 Global/templates/post_add.html:92
 msgid "Umfrage hinzufügen"
 msgstr "Umfrage hinzufügen"
@@ -1050,11 +1078,11 @@ msgid "Fertig"
 msgstr "Fertig"
 
 #: Global/templates/components/profile_header.html:34
-#: Global/templates/settings.html:237
+#: Global/templates/settings.html:245
 msgid "Abmelden"
 msgstr "Abmelden"
 
-#: Global/templates/feedback.html:76 Global/templates/settings.html:229
+#: Global/templates/feedback.html:76 Global/templates/settings.html:241
 msgid "Feedback senden"
 msgstr "Feedback senden"
 
@@ -1318,82 +1346,82 @@ msgstr "Datenschutzerklärung"
 msgid "Lesen Sie unsere Datenschutzrichtlinien"
 msgstr ""
 
-#: Global/templates/settings.html:161
+#: Global/templates/settings.html:158
+msgid "Daten exportieren"
+msgstr ""
+
+#: Global/templates/settings.html:159
+msgid "Exportieren Sie Ihre Daten"
+msgstr ""
+
+#: Global/templates/settings.html:173
 msgid "Sprache & Region"
 msgstr ""
 
-#: Global/templates/settings.html:166
+#: Global/templates/settings.html:178
 msgid "Sprache"
 msgstr ""
 
-#: Global/templates/settings.html:185
+#: Global/templates/settings.html:197
 msgid "Zeitzone"
 msgstr ""
 
-#: Global/templates/settings.html:187
+#: Global/templates/settings.html:199
 msgid "Mitteleuropäische Zeit (MEZ)"
 msgstr ""
 
-#: Global/templates/settings.html:188
+#: Global/templates/settings.html:200
 msgid "Greenwich Mean Time (GMT)"
 msgstr ""
 
-#: Global/templates/settings.html:189
+#: Global/templates/settings.html:201
 msgid "Eastern Time (ET)"
 msgstr ""
 
-#: Global/templates/settings.html:223
+#: Global/templates/settings.html:235
 msgid "Schnellzugriff"
 msgstr ""
 
-#: Global/templates/settings.html:233
-msgid "Daten exportieren (coming soon)"
-msgstr ""
-
-#: Global/templates/settings.html:241
+#: Global/templates/settings.html:249
 msgid "Konto Löschung beantragen"
 msgstr ""
 
-#: Global/templates/settings.html:250
+#: Global/templates/settings.html:258
 msgid "System-Informationen"
 msgstr ""
 
-#: Global/templates/settings.html:256
+#: Global/templates/settings.html:264
 msgid "Letzter Login"
 msgstr ""
 
-#: Global/templates/settings.html:261
+#: Global/templates/settings.html:269
 msgid "Mitglied seit"
 msgstr ""
 
-#: Global/templates/settings.html:275
+#: Global/templates/settings.html:283
 msgid "Konto-Löschung beantragen"
 msgstr ""
 
-#: Global/templates/settings.html:281
+#: Global/templates/settings.html:289
 msgid "Ihr Antrag auf Konto-Löschung wird von einem Administrator geprüft."
 msgstr ""
 
-#: Global/templates/settings.html:283
+#: Global/templates/settings.html:291
 msgid ""
 "Nach der Genehmigung werden alle Ihre Daten permanent gelöscht. Dieser "
 "Vorgang kann nicht rückgängig gemacht werden."
 msgstr ""
 
-#: Global/templates/settings.html:284
+#: Global/templates/settings.html:292
 msgid ""
 "Sie erhalten eine E-Mail-Bestätigung, sobald Ihr Antrag bearbeitet wurde."
 msgstr ""
 
-#: Global/templates/settings.html:290
+#: Global/templates/settings.html:298
 msgid "Löschung beantragen"
 msgstr ""
 
-#: Global/templates/settings.html:300
-msgid "Datenexport-Funktion wird in einer zukünftigen Version verfügbar sein."
-msgstr ""
-
-#: Global/templates/settings.html:307
+#: Global/templates/settings.html:310
 msgid "Fehler beim Speichern der Einstellungen."
 msgstr ""
 
