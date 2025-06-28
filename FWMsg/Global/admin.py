@@ -12,7 +12,7 @@ from .models import (
     Ordner2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, PushSubscription, 
     UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, 
     AufgabenCluster, Bilder2, BilderGallery2, ProfilUser2, Maintenance,
-    PostSurveyAnswer, PostSurveyQuestion, EinsatzstelleNotiz
+    PostSurveyAnswer, PostSurveyQuestion, EinsatzstelleNotiz, StickyNote
 )
 from TEAM.models import Team
 from FW.models import Freiwilliger
@@ -549,7 +549,17 @@ class PushSubscriptionAdmin(admin.ModelAdmin):
 
 @admin.register(EinsatzstelleNotiz)
 class EinsatzstelleNotizAdmin(admin.ModelAdmin):
-    list_display = ['einsatzstelle', 'user', 'date']
+    list_display = ['einsatzstelle', 'user', 'date', 'pinned']
     search_fields = ['einsatzstelle__name', 'notiz']
-    list_filter = ['date']
+    list_filter = ['date', 'pinned']
 
+@admin.register(StickyNote)
+class StickyNoteAdmin(admin.ModelAdmin):
+    list_display = ['user', 'get_user_full_name', 'notiz', 'date', 'pinned', 'priority']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name', 'notiz']
+    list_filter = ['date', 'pinned', 'priority']
+
+    def get_user_full_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+    get_user_full_name.short_description = 'Full Name'
+    get_user_full_name.admin_order_field = 'user__first_name'
