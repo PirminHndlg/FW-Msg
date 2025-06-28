@@ -18,12 +18,21 @@ The views are organized into logical sections:
 """
 
 # Standard library imports
-from datetime import datetime
+from datetime import datetime, timedelta
 import io
 import json
 import mimetypes
 import os
 import zipfile
+import hashlib
+import logging
+from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.utils.html import strip_tags
+import re
+from django.core.serializers import serialize
+from django.db.models import Model
+from django.apps import apps
 
 # Django imports
 from django.contrib import messages
@@ -59,6 +68,7 @@ from .models import (
     ProfilUser2,
     UserAttribute, 
     UserAufgaben,
+    UserAufgabenZwischenschritte,
     KalenderEvent,
     CustomUser,
     Dokument2,
@@ -67,7 +77,9 @@ from .models import (
     Notfallkontakt2,
     DokumentColor2,
     Post2,
-    PostSurveyAnswer
+    PostSurveyAnswer,
+    PushSubscription,
+    StickyNote
 )
 from ORG.models import Organisation
 from FW.models import Freiwilliger
@@ -79,6 +91,7 @@ from FWMsg.celery import send_email_aufgaben_daily
 from FWMsg.decorators import required_person_cluster, required_role
 from .forms import EinsatzstelleNotizForm, FeedbackForm, AddPostForm
 from ORG.forms import AddNotfallkontaktForm
+from .export_utils import export_user_data_securely
 
 
 # Utility Functions
@@ -1453,3 +1466,25 @@ def delete_account(request):
         messages.success(request, 'Konto-Löschung beantragt. Sie erhalten eine E-Mail, sobald Ihr Antrag bearbeitet wurde.')
         return redirect('settings')
     return redirect('settings')
+
+@login_required
+def export_data(request):
+    """
+    Export all user data including foreign key relationships as a JSON file.
+    
+    This is a wrapper function that uses the secure export utilities module.
+    All security features are implemented in the export_utils module.
+    """
+    try:
+        return export_user_data_securely(request.user)
+    except ValueError as e:
+        # Handle specific validation errors (rate limiting, permissions, etc.)
+        messages.error(request, str(e))
+        return redirect('settings')
+    except Exception as e:
+        # SECURITY: Generic error message to prevent information disclosure
+        logger = logging.getLogger('security')
+        logger.error(f'Data export failed for user {request.user.id} ({request.user.username}): {str(e)}')
+        
+        messages.error(request, 'Beim Export der Daten ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.')
+        return redirect('settings')
