@@ -26,14 +26,18 @@ def _get_Freiwillige(request):
     if team_member:
         countries = team_member.land.all()
         return Freiwilliger.objects.filter(einsatzland2__in=countries)
-    return []
+    return Freiwilliger.objects.none()
 
 @filter_person_cluster
 @login_required
 @required_role('T')
 def contacts(request):
     # Get freiwillige with prefetched user data to reduce queries
-    freiwillige = _get_Freiwillige(request).select_related('user')
+    freiwillige_queryset = _get_Freiwillige(request)
+    if freiwillige_queryset:
+        freiwillige = freiwillige_queryset.select_related('user')
+    else:
+        freiwillige = Freiwilliger.objects.none()
     
     # Collect all user IDs for efficient attribute queries
     user_ids = [fw.user_id for fw in freiwillige]
