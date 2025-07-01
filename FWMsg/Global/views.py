@@ -51,6 +51,8 @@ from django.http import (
 )
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+
+from TEAM.models import Team
 from .send_email import send_mail_smtp
 from django.core.files.base import ContentFile
 from django.core import signing
@@ -1310,7 +1312,16 @@ def post_vote(request, post_id):
 @required_role('OT')
 def einsatzstellen_notiz(request, es_id=None):
     # Get all Einsatzstellen for the selector, grouped by land
-    einsatzstellen = Einsatzstelle2.objects.filter(org=request.user.org).order_by('land__name', 'name')
+    if request.user.role == 'T':
+        from TEAM.views import _get_team_member
+        team = _get_team_member(request)
+        if team:
+            einsatzstellen = Einsatzstelle2.objects.filter(org=request.user.org, land__in=team.land.all()).order_by('land__name', 'name')
+        else:
+            messages.error(request, 'Team nicht gefunden.')
+            return redirect('index_home')
+    else:
+        einsatzstellen = Einsatzstelle2.objects.filter(org=request.user.org).order_by('land__name', 'name')
     
     # Get the selected Einsatzstelle
     einsatzstelle = None
@@ -1320,7 +1331,16 @@ def einsatzstellen_notiz(request, es_id=None):
     
     if es_id:
         try:
-            einsatzstelle = Einsatzstelle2.objects.get(id=es_id, org=request.user.org)
+            if request.user.role == 'T':
+                from TEAM.views import _get_team_member
+                team = _get_team_member(request)
+                if team:
+                    einsatzstelle = Einsatzstelle2.objects.get(id=es_id, land__in=team.land.all())
+                else:
+                    messages.error(request, 'Team nicht gefunden.')
+                    return redirect('index_home')
+            else:
+                einsatzstelle = Einsatzstelle2.objects.get(id=es_id, org=request.user.org)
         except Einsatzstelle2.DoesNotExist:
             messages.error(request, 'Einsatzstelle nicht gefunden.')
             return redirect('einsatzstellen_notiz')
