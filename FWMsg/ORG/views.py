@@ -2,6 +2,7 @@ from datetime import date, datetime, timedelta
 import io
 import os
 import zipfile
+from django.urls import reverse
 import pandas as pd
 import subprocess
 import json
@@ -480,8 +481,13 @@ def edit_object(request, model_name, id):
             form.fields[first_field_name].widget.attrs['autofocus'] = True
         except StopIteration:
             pass
+        
+    if model_name == 'aufgabe':
+        back_url = reverse('list_aufgaben_table')
+    else:
+        back_url = reverse('list_object', args=[model_name])
 
-    return render(request, 'edit_object.html', {'form': form, 'object': model_name, 'verbose_name': model._meta.verbose_name})
+    return render(request, 'edit_object.html', {'form': form, 'object': model_name, 'verbose_name': model._meta.verbose_name, 'back_url': back_url})
 
 
 @login_required
