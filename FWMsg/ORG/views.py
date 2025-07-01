@@ -147,10 +147,15 @@ def get_filtered_user_queryset(request, requested_view=None):
 
 def org_context_processor(request):
     """Context processor to add jahrgaenge to all templates."""
-    if hasattr(request, 'user') and request.user.is_authenticated and (request.user.role == 'O' or request.user.role == 'T'):
-        return {
-            'person_cluster': PersonCluster.objects.filter(org=request.user.org)
-        }
+    if hasattr(request, 'user') and request.user.is_authenticated:
+        if request.user.role == 'O':
+            return {
+                'person_cluster': PersonCluster.objects.filter(org=request.user.org)
+            }
+        elif request.user.role == 'T':
+            return {
+                'person_cluster': PersonCluster.objects.filter(org=request.user.org, view='F')
+            }
     return {}
 
 allowed_models_to_edit = {
