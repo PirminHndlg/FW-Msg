@@ -42,6 +42,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login
 from django.conf import settings
 from django.http import (
+    HttpResponseForbidden,
     HttpResponseRedirect, 
     HttpResponse, 
     Http404, 
@@ -707,7 +708,7 @@ def serve_profil_picture(request, user_id):
     requested_user = User.objects.get(id=user_id)
 
     if requested_user.org != request.user.org:
-        return HttpResponseForbidden('Nicht erlaubt')
+        return HttpResponseForbidden()
     
     if not requested_user.customuser.profil_picture:
         return get_bild(os.path.join(settings.STATIC_ROOT, 'img/default_img.png'), 'default_img.png')

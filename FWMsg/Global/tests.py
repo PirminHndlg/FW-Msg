@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.core import signing
 from datetime import datetime, timedelta
-from .models import CustomUser, UserAufgaben, Aufgabe2, KalenderEvent, PersonCluster, Bilder2, BilderGallery2, Dokument2, Ordner2, DokumentColor2
+from .models import CustomUser, ProfilUser2, UserAufgaben, Aufgabe2, KalenderEvent, PersonCluster, Bilder2, BilderGallery2, Dokument2, Ordner2, DokumentColor2
 from ORG.models import Organisation
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.files.base import ContentFile
@@ -12,6 +12,7 @@ import tempfile
 from PIL import Image
 import io
 from django.db.models.signals import post_save
+from django.contrib.messages import get_messages
 
 
 class KalenderAbbonementTests(TestCase):
@@ -1337,6 +1338,7 @@ class DokumentViewsTests(TestCase):
                 name=f"Cluster {view_type}",
                 org=self.org,
                 view=view_type,
+                bilder=True,
                 dokumente=True
             )
             
@@ -1389,7 +1391,7 @@ class DokumentViewsTests(TestCase):
         response = self.client.get(reverse('dokumente'))
         self.assertEqual(response.status_code, 302)  # Redirect to index
         
-        response = self.client.post(reverse('add_dokument'), data={'titel': 'test'})
+        response = self.client.get(reverse('serve_dokument', args=[self.dokument.id]))
         self.assertEqual(response.status_code, 302)  # Redirect to index
 
     def test_form_validation_errors(self):
@@ -1428,5 +1430,554 @@ class DokumentViewsTests(TestCase):
                 documents = item['dokumente']
                 break
         self.assertIn(self.dokument, documents)
+
+
+class ProfileViewsTests(TestCase):
+    """Tests for profile-related views: view_profil, update_profil_picture, serve_profil_picture, remove_profil_attribut"""
+    
+    def setUp(self):
+        # Create test organization
+        self.org = Organisation.objects.create(name="Test Org")
+        
+        # Create different person clusters for testing permissions
+        self.admin_cluster = PersonCluster.objects.create(
+            name="Admin Cluster",
+            org=self.org,
+            view='A',  # Admin view
+            bilder=True,
+            posts=True
+        )
+        
+        self.org_cluster = PersonCluster.objects.create(
+            name="Org Cluster",
+            org=self.org,
+            view='O',  # Organization view
+            bilder=True,
+            posts=True
+        )
+        
+        self.freiwillige_cluster = PersonCluster.objects.create(
+            name="Freiwillige Cluster",
+            org=self.org,
+            view='F',  # Freiwillige view
+            bilder=True,
+            posts=True
+        )
+        
+        self.ehemalige_cluster = PersonCluster.objects.create(
+            name="Ehemalige Cluster",
+            org=self.org,
+            view='E',  # Ehemalige view
+            bilder=True,
+            posts=True
+        )
+        
+        self.team_cluster = PersonCluster.objects.create(
+            name="Team Cluster",
+            org=self.org,
+            view='T',  # Team view
+            bilder=True,
+            posts=True
+        )
+        
+        self.bewerber_cluster = PersonCluster.objects.create(
+            name="Bewerber Cluster",
+            org=self.org,
+            view='B',  # Bewerber view
+            bilder=True,
+            posts=True
+        )
+        
+        # Create test users
+        self.admin_user = User.objects.create_user(
+            username='adminuser',
+            email='admin@example.com',
+            password='testpass123',
+            first_name='Admin',
+            last_name='User'
+        )
+        self.admin_custom_user = CustomUser.objects.create(
+            user=self.admin_user,
+            org=self.org,
+            person_cluster=self.admin_cluster
+        )
+        
+        self.org_user = User.objects.create_user(
+            username='orguser',
+            email='org@example.com',
+            password='testpass123',
+            first_name='Org',
+            last_name='User'
+        )
+        self.org_custom_user = CustomUser.objects.create(
+            user=self.org_user,
+            org=self.org,
+            person_cluster=self.org_cluster
+        )
+        
+        self.freiwillige_user = User.objects.create_user(
+            username='freiwilligeuser',
+            email='freiwillige@example.com',
+            password='testpass123',
+            first_name='Freiwillige',
+            last_name='User'
+        )
+        self.freiwillige_custom_user = CustomUser.objects.create(
+            user=self.freiwillige_user,
+            org=self.org,
+            person_cluster=self.freiwillige_cluster
+        )
+        
+        # Create another organization for cross-org testing
+        self.other_org = Organisation.objects.create(name="Other Org")
+        self.other_cluster = PersonCluster.objects.create(
+            name="Other Cluster",
+            org=self.other_org,
+            view='F',
+            bilder=True,
+            posts=True
+        )
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='testpass123',
+            first_name='Other',
+            last_name='User'
+        )
+        self.other_custom_user = CustomUser.objects.create(
+            user=self.other_user,
+            org=self.other_org,
+            person_cluster=self.other_cluster
+        )
+        
+        # Create test images
+        self.create_test_images()
+        
+        # Create test profile attributes
+        self.profil_attribut = ProfilUser2.objects.create(
+            org=self.org,
+            user=self.freiwillige_user,
+            attribut='Instagram',
+            value='@testuser'
+        )
+        
+        # Create test freiwilliger
+        from FW.models import Freiwilliger
+        self.freiwilliger = Freiwilliger.objects.create(
+            org=self.org,
+            user=self.freiwillige_user
+        )
+        
+        # Create client
+        self.client = Client()
+
+    def create_test_images(self):
+        """Create test images for profile pictures"""
+        # Create a test image
+        image = Image.new('RGB', (100, 100), color='red')
+        image_io = io.BytesIO()
+        image.save(image_io, format='JPEG')
+        image_io.seek(0)
+        
+        # Create test bilder
+        self.bilder = Bilder2.objects.create(
+            user=self.freiwillige_user,
+            org=self.org,
+            titel="Test Bild",
+            beschreibung="Test description"
+        )
+        
+        # Create test bilder gallery
+        self.bilder_gallery = BilderGallery2.objects.create(
+            bilder=self.bilder,
+            org=self.org,
+            image=SimpleUploadedFile(
+                "test_image.jpg",
+                image_io.getvalue(),
+                content_type="image/jpeg"
+            )
+        )
+
+    def test_view_profil_own_profile_success(self):
+        """Test viewing own profile"""
+        self.client.force_login(self.freiwillige_user)
+        response = self.client.get(reverse('profil'))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('user', response.context)
+        self.assertIn('this_user', response.context)
+        self.assertIn('profil_users', response.context)
+        self.assertIn('profil_user_form', response.context)
+        self.assertIn('freiwilliger', response.context)
+        self.assertIn('gallery_images', response.context)
+        self.assertIn('posts', response.context)
+        self.assertIn('user_attributes', response.context)
+        
+        # Check that this_user is True for own profile
+        self.assertTrue(response.context['this_user'])
+        self.assertEqual(response.context['user'], self.freiwillige_user)
+
+    def test_view_profil_other_user_success(self):
+        """Test viewing another user's profile"""
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse('profil', args=[self.freiwillige_user.id]))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('user', response.context)
+        self.assertIn('this_user', response.context)
+        self.assertIn('profil_users', response.context)
+        self.assertIn('profil_user_form', response.context)
+        self.assertIn('freiwilliger', response.context)
+        self.assertIn('gallery_images', response.context)
+        self.assertIn('posts', response.context)
+        
+        # Check that this_user is False for other user's profile
+        self.assertFalse(response.context['this_user'])
+        self.assertEqual(response.context['user'], self.freiwillige_user)
+
+    def test_view_profil_wrong_organization(self):
+        """Test that users cannot view profiles from other organizations"""
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse('profil', args=[self.other_user.id]), follow=True)
+        
+        self.assertEqual(response.status_code, 200)  # After redirect
+        # Check for error message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('Nicht gefunden' in str(msg) for msg in messages))
+
+    def test_view_profil_unauthenticated(self):
+        """Test that unauthenticated users are redirected to login"""
+        response = self.client.get(reverse('profil'))
+        self.assertEqual(response.status_code, 302)  # Redirect to login
+
+    def test_view_profil_add_attribute_success(self):
+        """Test adding a profile attribute via POST"""
+        self.client.force_login(self.freiwillige_user)
+        data = {
+            'attribut': 'Twitter',
+            'value': '@newuser'
+        }
+        response = self.client.post(reverse('profil'), data=data, follow=True)
+        
+        self.assertEqual(response.status_code, 200)
+        # Check that attribute was created
+        self.assertTrue(ProfilUser2.objects.filter(
+            user=self.freiwillige_user,
+            attribut='Twitter',
+            value='@newuser'
+        ).exists())
+
+    def test_view_profil_form_validation(self):
+        """Test ProfilUserForm validation"""
+        from FW.forms import ProfilUserForm
+        
+        # Test valid data
+        valid_data = {'attribut': 'Instagram', 'value': '@testuser'}
+        form = ProfilUserForm(data=valid_data)
+        self.assertTrue(form.is_valid())
+        
+        # Test invalid data (missing attribut)
+        invalid_data = {'value': '@testuser'}
+        form = ProfilUserForm(data=invalid_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('attribut', form.errors)
+
+    def test_update_profil_picture_success(self):
+        """Test successful profile picture update"""
+        self.client.force_login(self.freiwillige_user)
+        
+        # Create a test image
+        image = Image.new('RGB', (100, 100), color='blue')
+        image_io = io.BytesIO()
+        image.save(image_io, format='JPEG')
+        image_io.seek(0)
+        
+        files = {
+            'profil_picture': SimpleUploadedFile(
+                "new_profile.jpg",
+                image_io.getvalue(),
+                content_type="image/jpeg"
+            )
+        }
+        
+        response = self.client.post(reverse('update_profil_picture'), files=files, follow=True)
+        self.assertEqual(response.status_code, 200)
+        
+        # Check that profile picture was updated
+        self.freiwillige_user.refresh_from_db()
+        self.assertTrue(self.freiwillige_user.customuser.profil_picture is not None)
+
+    def test_update_profil_picture_no_file(self):
+        """Test profile picture update without file"""
+        self.client.force_login(self.freiwillige_user)
+        response = self.client.post(reverse('update_profil_picture'), follow=True)
+        self.assertEqual(response.status_code, 200)
+        # Should redirect without error
+
+    def test_update_profil_picture_unauthenticated(self):
+        """Test that unauthenticated users are redirected to login"""
+        response = self.client.post(reverse('update_profil_picture'))
+        self.assertEqual(response.status_code, 302)  # Redirect to login
+
+    def test_serve_profil_picture_success(self):
+        """Test successful profile picture serving"""
+        # Set a profile picture for the user
+        image = Image.new('RGB', (100, 100), color='green')
+        image_io = io.BytesIO()
+        image.save(image_io, format='JPEG')
+        image_io.seek(0)
+        
+        self.freiwillige_user.customuser.profil_picture = SimpleUploadedFile(
+            "profile.jpg",
+            image_io.getvalue(),
+            content_type="image/jpeg"
+        )
+        self.freiwillige_user.customuser.save()
+        
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.id]))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'image/jpeg')
+
+    def test_serve_profil_picture_default_image(self):
+        """Test serving default image when no profile picture exists"""
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.id]))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'image/jpeg')
+
+    def test_serve_profil_picture_wrong_organization(self):
+        """Test that users cannot access profile pictures from other organizations"""
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse('serve_profil_picture', args=[self.other_user.id]))
+        
+        self.assertEqual(response.status_code, 403)  # Forbidden
+
+    def test_serve_profil_picture_unauthenticated(self):
+        """Test that unauthenticated users are redirected to login"""
+        response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.id]))
+        self.assertEqual(response.status_code, 302)  # Redirect to login
+
+    def test_remove_profil_attribut_success(self):
+        """Test successful profile attribute removal"""
+        self.client.force_login(self.freiwillige_user)
+        response = self.client.get(reverse('remove_profil_attribut', args=[self.profil_attribut.id]), follow=True)
+        
+        self.assertEqual(response.status_code, 200)
+        # Check that attribute was deleted
+        self.assertFalse(ProfilUser2.objects.filter(id=self.profil_attribut.id).exists())
+
+    def test_remove_profil_attribut_wrong_user(self):
+        """Test that users cannot remove other users' attributes"""
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse('remove_profil_attribut', args=[self.profil_attribut.id]), follow=True)
+        
+        self.assertEqual(response.status_code, 200)
+        # Check that attribute was not deleted
+        self.assertTrue(ProfilUser2.objects.filter(id=self.profil_attribut.id).exists())
+
+    def test_remove_profil_attribut_unauthenticated(self):
+        """Test that unauthenticated users are redirected to login"""
+        response = self.client.get(reverse('remove_profil_attribut', args=[self.profil_attribut.id]))
+        self.assertEqual(response.status_code, 302)  # Redirect to login
+
+    def test_different_person_cluster_views_access(self):
+        """Test access from different PersonCluster views"""
+        # Test all view types
+        view_types = [view[0] for view in PersonCluster.view_choices]
+        
+        for view_type in view_types:
+            # Create cluster with this view type
+            cluster = PersonCluster.objects.create(
+                name=f"Cluster {view_type}",
+                org=self.org,
+                view=view_type,
+                bilder=True,
+                posts=True
+            )
+            
+            # Create user with this cluster
+            user = User.objects.create_user(
+                username=f'user_{view_type}',
+                email=f'user_{view_type}@example.com',
+                password='testpass123'
+            )
+            CustomUser.objects.create(
+                user=user,
+                org=self.org,
+                person_cluster=cluster
+            )
+            
+            # Test profil access
+            self.client.force_login(user)
+            response = self.client.get(reverse('profil'))
+            self.assertEqual(response.status_code, 200)
+            
+            # Test serve_profil_picture access
+            response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.id]))
+            self.assertEqual(response.status_code, 200)
+            
+            # Test update_profil_picture access
+            response = self.client.post(reverse('update_profil_picture'))
+            self.assertEqual(response.status_code, 302)  # Redirect after success
+
+    def test_profile_context_data_with_freiwilliger(self):
+        """Test that profile view provides correct context data when user has freiwilliger"""
+        self.client.force_login(self.freiwillige_user)
+        response = self.client.get(reverse('profil'))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('freiwilliger', response.context)
+        self.assertEqual(response.context['freiwilliger'], self.freiwilliger)
+
+    def test_profile_context_data_without_freiwilliger(self):
+        """Test that profile view provides correct context data when user has no freiwilliger"""
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse('profil'))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('freiwilliger', response.context)
+        self.assertIsNone(response.context['freiwilliger'])
+
+    def test_profile_context_data_with_ampel(self):
+        """Test that profile view provides correct context data when user has ampel status"""
+        from Global.models import Ampel2
+        
+        # Create ampel status for user
+        ampel = Ampel2.objects.create(
+            org=self.org,
+            user=self.freiwillige_user,
+            status='G',
+            comment='All good'
+        )
+        
+        self.client.force_login(self.freiwillige_user)
+        response = self.client.get(reverse('profil'))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('ampel_of_user', response.context)
+        self.assertEqual(response.context['ampel_of_user'], ampel)
+
+    def test_profile_context_data_without_ampel(self):
+        """Test that profile view provides correct context data when user has no ampel status"""
+        self.client.force_login(self.freiwillige_user)
+        response = self.client.get(reverse('profil'))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('ampel_of_user', response.context)
+        self.assertIsNone(response.context['ampel_of_user'])
+
+    def test_profile_context_data_with_gallery_images(self):
+        """Test that profile view provides correct context data with gallery images"""
+        self.client.force_login(self.freiwillige_user)
+        response = self.client.get(reverse('profil'))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('gallery_images', response.context)
+        # Should contain the test image we created
+        self.assertEqual(len(response.context['gallery_images']), 1)
+
+    def test_profile_context_data_with_posts(self):
+        """Test that profile view provides correct context data with posts"""
+        from Global.models import Post2
+        
+        # Create a test post
+        post = Post2.objects.create(
+            org=self.org,
+            user=self.freiwillige_user,
+            title="Test Post",
+            text="Test post content"
+        )
+        
+        self.client.force_login(self.freiwillige_user)
+        response = self.client.get(reverse('profil'))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('posts', response.context)
+        # Should contain the test post
+        self.assertEqual(len(response.context['posts']), 1)
+
+    def test_profile_context_data_with_user_attributes(self):
+        """Test that profile view provides correct context data with user attributes"""
+        from Global.models import Attribute, UserAttribute
+        
+        # Create test attribute
+        attribute = Attribute.objects.create(
+            org=self.org,
+            name="Test Attribute",
+            type='T'
+        )
+        
+        # Create user attribute
+        user_attribute = UserAttribute.objects.create(
+            org=self.org,
+            user=self.freiwillige_user,
+            attribute=attribute,
+            value="Test Value"
+        )
+        
+        self.client.force_login(self.freiwillige_user)
+        response = self.client.get(reverse('profil'))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('user_attributes', response.context)
+        # Should contain the test user attribute
+        self.assertEqual(len(response.context['user_attributes']), 1)
+
+    def test_profile_context_data_other_user_no_attributes(self):
+        """Test that profile view doesn't show user attributes for other users"""
+        from Global.models import Attribute, UserAttribute
+        
+        # Create test attribute
+        attribute = Attribute.objects.create(
+            org=self.org,
+            name="Test Attribute",
+            type='T'
+        )
+        
+        # Create user attribute for freiwillige user
+        user_attribute = UserAttribute.objects.create(
+            org=self.org,
+            user=self.freiwillige_user,
+            attribute=attribute,
+            value="Test Value"
+        )
+        
+        # View as admin user
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse('profil', args=[self.freiwillige_user.id]))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('user_attributes', response.context)
+        # Should be empty for other users
+        self.assertEqual(len(response.context['user_attributes']), 0)
+
+    def test_superuser_access(self):
+        """Test superuser access to profile views"""
+        # Create superuser
+        superuser = User.objects.create_superuser(
+            username='superuser',
+            email='super@example.com',
+            password='testpass123'
+        )
+        CustomUser.objects.create(
+            user=superuser,
+            org=self.org,
+            person_cluster=self.admin_cluster
+        )
+        
+        self.client.force_login(superuser)
+        
+        # Should have access
+        response = self.client.get(reverse('profil'))
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.id]))
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.client.post(reverse('update_profil_picture'))
+        self.assertEqual(response.status_code, 302)  # Redirect after success
 
 
