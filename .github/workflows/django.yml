@@ -69,4 +69,4 @@ jobs:
     - name: Run Tests
       run: |
         cd FWMsg
-        python manage.py test --parallel 10
+        python manage.py test --parallel 10 -v 2
