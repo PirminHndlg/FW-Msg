@@ -278,13 +278,12 @@ def serve_bilder(request, image_id):
         HttpResponseNotFound: If the image doesn't exist
         HttpResponseNotAllowed: If user doesn't have permission
     """
-    bild_exists = BilderGallery2.objects.filter(id=image_id).exists()
-    if not bild_exists:
+    
+    try:
+        image_id = int(image_id)
+        bild = BilderGallery2.objects.get(id=image_id, org=request.user.org)
+    except (ValueError, BilderGallery2.DoesNotExist):
         return HttpResponseNotFound('Bild nicht gefunden')
-
-    bild = BilderGallery2.objects.get(id=image_id)
-    if not bild.org == request.user.org:
-        return HttpResponseNotAllowed('Nicht erlaubt')
     
     return get_bild(bild.image.path, bild.bilder.titel)
 
@@ -333,18 +332,23 @@ def serve_dokument(request, dokument_id):
     """
     img = request.GET.get('img', None)
     download = request.GET.get('download', None)
-
-    dokument_exists = Dokument2.objects.filter(id=dokument_id).exists()
-    if not dokument_exists:
+    
+    try:
+        dokument_id = int(dokument_id)
+        dokument = Dokument2.objects.get(id=dokument_id)
+        
+        if not dokument.org == request.user.org:
+            return HttpResponseNotAllowed('Nicht erlaubt')
+        
+        doc_path = dokument.dokument.path
+        if not os.path.exists(doc_path) or not dokument.dokument:
+            return HttpResponseNotFound('Dokument nicht gefunden' + doc_path)
+    except ValueError:
+        return HttpResponseNotFound('Ungültige Dokument-ID')
+    except Dokument2.DoesNotExist:
         return HttpResponseNotFound('Dokument nicht gefunden')
 
-    dokument = Dokument2.objects.get(id=dokument_id)
-    if not dokument.org == request.user.org:
-        return HttpResponseNotAllowed('Nicht erlaubt')
-
-    doc_path = dokument.dokument.path
-    if not os.path.exists(doc_path):
-        return HttpResponseNotFound('Dokument nicht gefunden' + doc_path)
+    
 
     mimetype = get_mimetype(doc_path)
     
