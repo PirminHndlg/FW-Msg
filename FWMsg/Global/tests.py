@@ -11,6 +11,7 @@ import os
 import tempfile
 from PIL import Image
 import io
+from django.db.models.signals import post_save
 
 
 class KalenderAbbonementTests(TestCase):
@@ -164,6 +165,9 @@ class FileServingViewsTests(TestCase):
     """Tests for file serving views: serve_bilder, serve_small_bilder, serve_dokument"""
     
     def setUp(self):
+        # Disable the post_save signal for Dokument2 to avoid PDF preview generation issues
+        post_save.disconnect(receiver=None, sender=Dokument2, dispatch_uid='create_preview_image')
+        
         # Create test organization
         self.org = Organisation.objects.create(name="Test Org")
         
@@ -289,6 +293,12 @@ class FileServingViewsTests(TestCase):
         
         # Create client
         self.client = Client()
+
+    def tearDown(self):
+        # Re-enable the post_save signal for Dokument2
+        from .models import create_preview_image
+        post_save.connect(create_preview_image, sender=Dokument2, dispatch_uid='create_preview_image')
+        super().tearDown()
 
     def create_test_files(self):
         """Create test image and document files"""
@@ -471,8 +481,8 @@ class FileServingViewsTests(TestCase):
 
     def test_serve_dokument_pdf_inline(self):
         """Test that PDFs are served inline by default"""
-        # Create a test PDF document
-        pdf_content = b"%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n"
+        # Create a test PDF document with valid PDF content
+        pdf_content = b"%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n2 0 obj\n<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>\nendobj\n3 0 obj\n<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n/Contents 4 0 R\n>>\nendobj\n4 0 obj\n<<\n/Length 44\n>>\nstream\nBT\n/F1 12 Tf\n72 720 Td\n(Test PDF) Tj\nET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000204 00000 n \ntrailer\n<<\n/Size 5\n/Root 1 0 R\n>>\nstartxref\n297\n%%EOF\n"
         pdf_dokument = Dokument2.objects.create(
             org=self.org,
             ordner=self.doc_folder,
@@ -494,8 +504,8 @@ class FileServingViewsTests(TestCase):
 
     def test_serve_dokument_pdf_download(self):
         """Test that PDFs can be downloaded with download parameter"""
-        # Create a test PDF document
-        pdf_content = b"%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n"
+        # Create a test PDF document with valid PDF content
+        pdf_content = b"%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n2 0 obj\n<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>\nendobj\n3 0 obj\n<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n/Contents 4 0 R\n>>\nendobj\n4 0 obj\n<<\n/Length 44\n>>\nstream\nBT\n/F1 12 Tf\n72 720 Td\n(Test PDF) Tj\nET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000204 00000 n \ntrailer\n<<\n/Size 5\n/Root 1 0 R\n>>\nstartxref\n297\n%%EOF\n"
         pdf_dokument = Dokument2.objects.create(
             org=self.org,
             ordner=self.doc_folder,
