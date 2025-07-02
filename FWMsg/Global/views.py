@@ -302,13 +302,10 @@ def serve_small_bilder(request, image_id):
         HttpResponseNotFound: If the image doesn't exist
         HttpResponseNotAllowed: If user doesn't have permission
     """
-    bild_exists = BilderGallery2.objects.filter(id=image_id).exists()
-    if not bild_exists:
+    try:
+        bild = BilderGallery2.objects.get(id=image_id, org=request.user.org)
+    except BilderGallery2.DoesNotExist:
         return HttpResponseNotFound('Bild nicht gefunden')
-
-    bild = BilderGallery2.objects.get(id=image_id)
-    if not bild.org == request.user.org:
-        return HttpResponseNotAllowed('Nicht erlaubt')
 
     if not bild.small_image:
         return serve_bilder(request, image_id)
@@ -466,30 +463,25 @@ def remove_bild(request):
         return redirect('profil')
 
     try:
-        gallery_image_exists = BilderGallery2.objects.filter(id=gallery_image_id).exists()
-        if not gallery_image_exists:
-            messages.error(request, 'Bild nicht gefunden')
-            return redirect('profil')
-        
-        gallery_image = BilderGallery2.objects.get(id=gallery_image_id)
-        
-        if gallery_image.bilder.user != request.user:
-            messages.error(request, 'Nicht erlaubt')
-            return redirect('profil')
-
-        # Check if this is the last image in the gallery
-        related_gallery_images = BilderGallery2.objects.filter(bilder=gallery_image.bilder)
-        if related_gallery_images.count() == 1:
-            # Delete the parent Bilder object if this is the last image
-            gallery_image.bilder.delete()
-        else:
-            # Otherwise just delete this specific image
-            gallery_image.delete()
-
-        messages.success(request, 'Bild erfolgreich gelöscht')
-        
+        gallery_image = BilderGallery2.objects.get(id=gallery_image_id, org=request.user.org)
     except BilderGallery2.DoesNotExist:
         messages.error(request, 'Bild nicht gefunden')
+        return redirect('profil')
+
+    if gallery_image.bilder.user != request.user:
+        messages.error(request, 'Nicht erlaubt')
+        return redirect('profil')
+
+    # Check if this is the last image in the gallery
+    related_gallery_images = BilderGallery2.objects.filter(bilder=gallery_image.bilder)
+    if related_gallery_images.count() == 1:
+        # Delete the parent Bilder object if this is the last image
+        gallery_image.bilder.delete()
+    else:
+        # Otherwise just delete this specific image
+        gallery_image.delete()
+
+    messages.success(request, 'Bild erfolgreich gelöscht')
 
     return redirect('profil')
 
@@ -501,16 +493,12 @@ def remove_bild_all(request):
         messages.error(request, 'Kein Bild gefunden')
         return redirect('profil')
     
-    bild_exists = Bilder2.objects.filter(id=bild_id).exists()
-    if not bild_exists:
+    try:
+        bild = Bilder2.objects.get(id=bild_id, org=request.user.org, user=request.user)
+    except Bilder2.DoesNotExist:
         messages.error(request, 'Bild nicht gefunden')
         return redirect('profil')
-    
-    bild = Bilder2.objects.get(id=bild_id)
-    if bild.user != request.user:
-        messages.error(request, 'Nicht erlaubt')
-        return redirect('profil')
-    
+
     bilder_gallery = BilderGallery2.objects.filter(bilder=bild)
     for bild_gallery in bilder_gallery:
         bild_gallery.delete()
@@ -522,7 +510,6 @@ def remove_bild_all(request):
 @required_person_cluster('dokumente')
 def dokumente(request, ordner_id=None):
     folder_structure = []
-
 
     if request.user.role == 'O':
         from ORG.views import get_person_cluster
@@ -565,59 +552,49 @@ def dokumente(request, ordner_id=None):
 @login_required
 @required_person_cluster('dokumente')
 def add_dokument(request):
-    if request.method == 'POST':
-        dokument_id = request.POST.get('dokument_id')
-        titel = request.POST.get('titel')
-        beschreibung = request.POST.get('beschreibung')
-        link = request.POST.get('link')
-        darf_bearbeiten = request.POST.getlist('darf_bearbeiten')
-        darf_bearbeiten = PersonCluster.objects.filter(id__in=darf_bearbeiten)
-
-        file = request.FILES.get('dokument')
-
-        if dokument_id and Dokument2.objects.filter(id=dokument_id).exists():
-            dokument = Dokument2.objects.get(id=dokument_id)
-            if dokument.org != request.user.org:
-                messages.error(request, 'Nicht erlaubt')
-                return redirect('dokumente')
-
-            if file:
-                dokument.dokument = file
-
-            dokument.titel = titel
-            dokument.beschreibung = beschreibung
-            dokument.link = link
-            dokument.save()
-
-            if request.user.role == 'O':
-                dokument.darf_bearbeiten.set(darf_bearbeiten)
-        else:
-            try:
-                ordner = Ordner2.objects.get(id=request.POST.get('ordner'))
-            except Ordner2.DoesNotExist:
-                messages.error(request, 'Ordner nicht gefunden')
-                return redirect('dokumente')
-            
-            try:
-                dokument = Dokument2.objects.create(
-                    org=request.user.org,
-                    ordner=ordner,
-                    titel=titel,
-                    beschreibung=beschreibung,
-                    dokument=file,
-                    link=link,
-                    date_created=datetime.now()
-                )
-                if request.user.role == 'O':
-                    dokument.darf_bearbeiten.set(darf_bearbeiten)
-                dokument.save()
-                
-            except Exception as e:
-                messages.error(request, f'Fehler beim Erstellen des Dokuments: {str(e)}')
-                return redirect('dokumente')
-
+    if request.method != 'POST':
+        return redirect('dokumente')
+        
+    dokument_id = request.POST.get('dokument_id')
+    titel = request.POST.get('titel')
+    beschreibung = request.POST.get('beschreibung')
+    link = request.POST.get('link')
+    darf_bearbeiten = request.POST.getlist('darf_bearbeiten')
+    darf_bearbeiten = PersonCluster.objects.filter(id__in=darf_bearbeiten)
+    file = request.FILES.get('dokument')
+    
+    if dokument_id and dokument_id != '':
+        try:
+            dokument = Dokument2.objects.get(id=dokument_id, org=request.user.org)
+        except Dokument2.DoesNotExist:
+            messages.error(request, 'Dokument nicht gefunden')
+            return redirect('dokumente')
+    else:
+        try:
+            ordner = Ordner2.objects.get(id=request.POST.get('ordner'))
+            dokument = Dokument2.objects.create(
+                org=request.user.org,
+                ordner=ordner,
+                date_created=datetime.now()
+            )
+        except Ordner2.DoesNotExist:
+            messages.error(request, 'Ordner nicht gefunden')
+            return redirect('dokumente')
+        except Exception as e:
+            messages.error(request, f'Fehler beim Erstellen des Dokuments: {str(e)}')
+            return redirect('dokumente')
+    
+    dokument.titel = titel
+    dokument.beschreibung = beschreibung
+    dokument.link = link
+    if file:
+        dokument.dokument = file    
+    if request.user.role == 'O':
+        dokument.darf_bearbeiten.set(darf_bearbeiten)
+    dokument.save()
 
     return redirect('dokumente', ordner_id=dokument.ordner.id)
+    
 
 @login_required
 @required_person_cluster('dokumente')
@@ -636,42 +613,41 @@ def add_ordner(request):
         
         # Get the PersonenCluster instance if typ_id is provided
         person_clusters = None
-        if person_cluster_ids:
-            try:
-                person_clusters = PersonCluster.objects.filter(id__in=person_cluster_ids)
-            except PersonCluster.DoesNotExist:
-                messages.error(request, 'Ausgewählte Benutzergruppe existiert nicht.')
-                return redirect('dokumente')
             
-        color = None
-        if color_id:
-            try:
+        try:
+            if person_cluster_ids:
+                person_clusters = PersonCluster.objects.filter(id__in=person_cluster_ids)
+            
+            color = None
+            if color_id:
                 color = DokumentColor2.objects.get(id=color_id)
-            except DokumentColor2.DoesNotExist:
-                messages.error(request, 'Ausgewählte Farbe existiert nicht.')
-                return redirect('dokumente')
-
-        if ordner_id and Ordner2.objects.filter(id=ordner_id).exists():
-            ordner = Ordner2.objects.get(id=ordner_id)
-            if ordner.org != request.user.org:
-                messages.error(request, 'Nicht erlaubt')
-                return redirect('dokumente')
-            ordner.ordner_name = ordner_name
-            ordner.typ.set(person_clusters or [])
-            ordner.color = color
-            ordner.save()
-        else:
-            try:
+                
+            if ordner_id:
+                ordner = Ordner2.objects.get(id=ordner_id, org=request.user.org)
+            elif ordner_name:
                 ordner = Ordner2.objects.create(
                     org=request.user.org, 
                     ordner_name=ordner_name,
                     color=color
                 )
-                ordner.typ.set(person_clusters or [])
-                ordner.save()
-            except Exception as e:
-                messages.error(request, f'Fehler beim Erstellen des Ordners: {str(e)}')
+            else:
+                messages.error(request, 'Kein Ordnername oder Ordner-ID angegeben.')
                 return redirect('dokumente')
+            
+            ordner.ordner_name = ordner_name
+            ordner.typ.set(person_clusters or [])
+            ordner.color = color
+            ordner.save()    
+            
+        except PersonCluster.DoesNotExist:
+            messages.error(request, 'Ausgewählte Benutzergruppe existiert nicht.')
+            return redirect('dokumente')
+        except DokumentColor2.DoesNotExist:
+            messages.error(request, 'Ausgewählte Farbe existiert nicht.')
+            return redirect('dokumente')
+        except Exception as e:
+            messages.error(request, f'Fehler beim Erstellen des Ordners: {str(e)}')
+            return redirect('dokumente')
 
     return redirect('dokumente')
 
@@ -682,7 +658,7 @@ def remove_dokument(request):
         dokument_id = request.POST.get('dokument_id')
         try:
             dokument = Dokument2.objects.get(id=dokument_id, org=request.user.org)
-            if request.user.role== 'O' or request.user.person_cluster in dokument.darf_bearbeiten.all():
+            if request.user.role == 'O' or request.user.person_cluster in dokument.darf_bearbeiten.all():
                 dokument.delete()
             else:
                 messages.error(request, 'Dokument kann nicht gelöscht werden, da du nicht der Ersteller bist.')
@@ -730,8 +706,8 @@ def update_profil_picture(request):
 def serve_profil_picture(request, user_id):
     requested_user = User.objects.get(id=user_id)
 
-    if not requested_user.org == request.user.org:
-        return 'not allowed'
+    if requested_user.org != request.user.org:
+        return HttpResponseForbidden('Nicht erlaubt')
     
     if not requested_user.customuser.profil_picture:
         return get_bild(os.path.join(settings.STATIC_ROOT, 'img/default_img.png'), 'default_img.png')
@@ -777,22 +753,11 @@ def view_profil(request, user_id=None):
     if not user_id or user_id == request.user.id:
         user_id = request.user.id
         this_user = True
-
-    user_exists = User.objects.filter(id=user_id).exists()
-    if not user_exists:
-        messages.error(request, 'Nicht gefunden')
-        return redirect('profil')
     
-    user = User.objects.get(id=user_id)
-
-    custom_user_exists = CustomUser.objects.filter(user=user).exists()
-    if not custom_user_exists:
+    try:
+        user = User.objects.get(id=user_id, customuser__org=request.user.org)
+    except User.DoesNotExist:
         messages.error(request, 'Nicht gefunden')
-        return redirect('profil')
-    
-    custom_user = CustomUser.objects.get(user=user)
-    if not custom_user.org == request.user.org:
-        messages.error(request, 'Nicht erlaubt')
         return redirect('profil')
 
     if request.method == 'POST':
@@ -814,9 +779,9 @@ def view_profil(request, user_id=None):
 
     profil_user_form = ProfilUserForm()
 
-    if Freiwilliger.objects.filter(user=user).exists():
+    try:
         freiwilliger = Freiwilliger.objects.get(user=user)
-    else:
+    except Freiwilliger.DoesNotExist:
         freiwilliger = None
 
     posts = get_posts(request.user.org, filter_user=user)
@@ -1081,14 +1046,10 @@ def aufgaben(request):
 @required_person_cluster('aufgaben')
 def aufgabe(request, aufgabe_id):
 
-    user_aufgabe_exists = UserAufgaben.objects.filter(id=aufgabe_id).exists()
-    if not user_aufgabe_exists:
+    try:
+        user_aufgabe = UserAufgaben.objects.get(id=aufgabe_id, org=request.user.org, user=request.user)
+    except UserAufgaben.DoesNotExist:
         messages.error(request, 'Aufgabe nicht gefunden')
-        return redirect('aufgaben')
-    user_aufgabe = UserAufgaben.objects.get(id=aufgabe_id)
-
-    if user_aufgabe.user != request.user:
-        messages.error(request, 'Nicht erlaubt')
         return redirect('aufgaben')
     
     if request.method == 'POST':

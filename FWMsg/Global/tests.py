@@ -1077,6 +1077,7 @@ class DokumentViewsTests(TestCase):
         self.client.force_login(self.admin_user)
         
         data = {
+            'dokument_id': self.dokument.id,
             'titel': 'Link Document',
             'beschreibung': 'Document with link',
             'link': 'https://example.com/document.pdf',
