@@ -88,3 +88,4 @@ celerybeat-schedule
 
 .VSCodeCounter/
 FWMsg/FWMsg/save_settings.py
+security_report.md
