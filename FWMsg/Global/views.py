@@ -592,19 +592,30 @@ def add_dokument(request):
             if request.user.role == 'O':
                 dokument.darf_bearbeiten.set(darf_bearbeiten)
         else:
-            ordner = Ordner2.objects.get(id=request.POST.get('ordner'))
-            dokument = Dokument2.objects.create(
-                org=request.user.org,
-                ordner=ordner,
-                titel=titel,
-                beschreibung=beschreibung,
-                dokument=file,
-                link=link,
-                date_created=datetime.now()
-            )
+            try:
+                ordner = Ordner2.objects.get(id=request.POST.get('ordner'))
+            except Ordner2.DoesNotExist:
+                messages.error(request, 'Ordner nicht gefunden')
+                return redirect('dokumente')
+            
+            try:
+                dokument = Dokument2.objects.create(
+                    org=request.user.org,
+                    ordner=ordner,
+                    titel=titel,
+                    beschreibung=beschreibung,
+                    dokument=file,
+                    link=link,
+                    date_created=datetime.now()
+                )
+                if request.user.role == 'O':
+                    dokument.darf_bearbeiten.set(darf_bearbeiten)
+                dokument.save()
+                
+            except Exception as e:
+                messages.error(request, f'Fehler beim Erstellen des Dokuments: {str(e)}')
+                return redirect('dokumente')
 
-            if request.user.role == 'O':
-                dokument.darf_bearbeiten.set(darf_bearbeiten)
 
     return redirect('dokumente', ordner_id=dokument.ordner.id)
 
@@ -617,6 +628,11 @@ def add_ordner(request):
         ordner_name = request.POST.get('ordner_name')
         person_cluster_ids = request.POST.getlist('ordner_person_cluster')
         color_id = request.POST.get('color')
+        
+        # Validate required fields
+        if not ordner_name:
+            messages.error(request, 'Ordnername ist erforderlich.')
+            return redirect('dokumente')
         
         # Get the PersonenCluster instance if typ_id is provided
         person_clusters = None
@@ -645,15 +661,19 @@ def add_ordner(request):
             ordner.color = color
             ordner.save()
         else:
-            ordner = Ordner2.objects.create(
-                org=request.user.org, 
-                ordner_name=ordner_name,
-                color=color
-            )
-            ordner.typ.set(person_clusters or [])
-            ordner.save()
+            try:
+                ordner = Ordner2.objects.create(
+                    org=request.user.org, 
+                    ordner_name=ordner_name,
+                    color=color
+                )
+                ordner.typ.set(person_clusters or [])
+                ordner.save()
+            except Exception as e:
+                messages.error(request, f'Fehler beim Erstellen des Ordners: {str(e)}')
+                return redirect('dokumente')
 
-    return redirect('dokumente', ordner_id=ordner.id)
+    return redirect('dokumente')
 
 @login_required
 @required_person_cluster('dokumente')
