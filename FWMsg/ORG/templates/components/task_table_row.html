@@ -136,7 +136,7 @@
                 <div class="dropdown d-inline">
                     <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <span data-tooltip="{% trans 'Fällig am' %} {{ aufgabe.faellig|date:'d.m.Y' }}"
-                        class="badge {% if aufgabe.faellig < today %}bg-danger{% else %}bg-dark{% endif %}">{{ aufgabe.faellig|date:"d.m.y" }}</span>
+                        class="badge {% if aufgabe.faellig <= today %}bg-danger{% else %}bg-dark{% endif %}">{{ aufgabe.faellig|date:"d.m.y" }}</span>
                     </button>
                     <ul class="dropdown-menu">
                         <li>
