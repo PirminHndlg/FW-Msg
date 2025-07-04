@@ -1,0 +1,18 @@
+{% extends 'seminar_base.html' %}
+{% block content %}
+
+    <form method="post">
+        <h2>Länderauswahl</h2>
+        <p>Gib deine Präferenzen für das Einsatzland und den Einsatzort <u>frei</u> an sowie das Land, in das du
+            auf keinen Fall gehen möchtest.</p>
+        <div class="land_div">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="submit_button" type="submit">Abschicken</button>
+
+            <p style="color: white; text-align: center">Du hast noch {{ deadline_hour_left }}h übrig, um deine
+                Länderauswahl abzugeben</p>
+        </div>
+    </form>
+
+{% endblock %}

@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Users Overview</title>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+    <link rel="stylesheet" href="{% static 'css/usersOverview.css' %}"/>
+
+    <script src="{% static 'js/user.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+</head>
+<body>
+
+<div class="container">
+    {% load custom_filters %}
+    {% for user in users %}
+
+        <div class="sub_container">
+            <div class="head_container">
+                <img class="logo" src="/static/img/bmw_logo_black_small.png" alt="BMW-Logo">
+                <h3><strong>{{ user.first_name }} {{ user.last_name }}</strong></h3>
+            </div>
+
+            <div class="second_sub_container">
+                <div class="name_container">
+                    <p>Username: <strong>{{ user.user.username }}</strong></p>
+                    <p>Passwort: <strong>{{ user.passwort }}</strong></p>
+                </div>
+                <div class="qrcode_container" data-token="{{ user.user|get_token }}">
+                    {#                <img src="/static/img/qr-code.png" alt="QR-Code">#}
+                </div>
+            </div>
+            <small style="margin-top: 3px;">https://auswahl.fw-msg.de</small>
+
+        </div>
+    {% endfor %}
+</div>
+
+
+<button onclick="window.print()">Diese Seite drucken</button>
+
+<script>
+    let divs = document.querySelectorAll('.qrcode_container');
+    for (let i = 0; i < divs.length; i++) {
+        let qrcodeElement = divs[i];
+        let token = qrcodeElement.getAttribute('data-token');
+        let loginUrl = "https://auswahl.fw-msg.de{% url 'login' %}" + token;
+        getQRCode(qrcodeElement, loginUrl);
+    }
+
+</script>
+</body>
+</html>

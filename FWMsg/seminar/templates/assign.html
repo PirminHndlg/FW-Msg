@@ -1,0 +1,197 @@
+{% load custom_filters %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>BMW Auswahl - Zuweisung</title>
+
+    <link rel="stylesheet" href="{% static 'css-seminar/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css-seminar/assign.css' %}">
+
+    <script src="{% static 'js/assign.js' %}"></script>
+</head>
+<body>
+
+<div class="laender_div">
+    {% for land in laender %}
+        <details id="l{{ land.land.id }}" class="laender_detail" open>
+            <summary>{{ land.land }} ({{ land.stellen|get_current_fw_of_stellen }}/{{ land.land|get_max_fw_of_land }})
+            </summary>
+            <table style="border-collapse: collapse">
+
+                {% for stelle in land.stellen %}
+
+                    <tr id="s{{ stelle.0.id }}" onclick="onLandClicked(this)" style="height: 100px; cursor: pointer;">
+                        <td>
+                            <p style="
+                                    {% if stelle.0.max_freiwillige == stelle.1|length %}
+                                        color: var(--green-color)
+                                    {% elif stelle.0.max_freiwillige < stelle.1|length %}
+                                        color: var(--red-color)
+                                    {% endif %}
+                                    ">{{ stelle.0.name }}</p>
+                        </td>
+                        {% for anz in stelle.0.max_freiwillige|default:0|range_filter:"0,0" %}
+                            <td class="laender_container_img_div">
+                                <div class="laender_container_img_subdiv">
+                                    {% if stelle.1 %}
+                                        {% if anz < stelle.1|length %}
+
+                                            {% with freiwilliger=stelle.1|get_item:anz %}
+                                                <img src="{% url 'serve_profil_picture' freiwilliger.user.id %}"
+                                                     id="img{{ freiwilliger.id }}"
+                                                     onclick="removeAssignment(event, this)"
+                                                 alt="Bild von {{ freiwilliger.user.first_name }}"
+                                                onerror="this.onerror=null; this.src='../static/img/default_img.png';">
+                                                <p>{{ freiwilliger.user.first_name }}</p>
+                                            {% endwith %}
+
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </td>
+                        {% endfor %}
+                        <td class="laender_container_img_div" style="width: 100%;background-color: transparent;"
+                            colspan="{{ land.stellen|get_max_stelle|subtract:stelle.0.max_freiwillige|default:0|subtract:-1 }}">
+                            <div style="display: flex; flex-wrap: wrap; gap: 2px">
+                                {% if stelle.1|length > stelle.0.max_freiwillige %}
+                                    {% with max=stelle.0.max_freiwillige %}
+                                        {% with arg="0,"|add:max %}
+                                            {% for anz in stelle.1|length|range_filter:arg %}
+                                                {% with freiwilliger=stelle.1|get_item:anz %}
+                                                    <div class="laender_container_img_subdiv"
+                                                         style="background-color: transparent">
+                                                        <img src="{{ freiwilliger.file|get_img_url }}"
+                                                             id="img{{ freiwilliger.id }}"
+                                                             onclick="removeAssignment(event, this)">
+                                                        <p>{{ freiwilliger.first_name }}</p>
+                                                    </div>
+                                                {% endwith %}
+                                            {% endfor %}
+                                        {% endwith %}
+                                    {% endwith %}
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+
+                {% endfor %}
+            </table>
+        </details>
+    {% endfor %}
+
+</div>
+
+<div class="freiwillige_div">
+    <div id="offen_div" class="freiwillige_div_container">
+        {% for freiwilliger in freiwillige %}
+            <div id="f{{ freiwilliger.id }}" data-zuteilung="{{ freiwilliger.zuteilung }}" class="freiwilliger_div"
+                 onclick="onFWClicked(this)">
+
+                <div class="freiwillige_div_top_container">
+                    <a href="{% url 'evaluate_all' %}?fid={{ freiwilliger.id }}" target="_blank">
+                        <img onclick="event.stopPropagation()" src="{% static 'img/icon_info.png' %}" alt="Bewertung">
+                    </a>
+
+                    <div class="freiwillige_img_div">
+                        <img src="{% url 'serve_profil_picture' freiwilliger.user.id %}" alt="Bild von {{ freiwilliger.user.first_name }}"
+                             onerror="this.onerror=null; this.src='../static/img/default_img.png';">
+                    </div>
+
+                    {% if freiwilliger.endbewertung %}
+                        <div class="geeignet_div" style="background-color:
+                                {% if freiwilliger.endbewertung == 'G' %}
+                                    var(--green-color)
+                                {% elif freiwilliger.endbewertung == 'B' %}
+                                    var(--yellow-color)
+                                {% elif freiwilliger.endbewertung == 'N' %}
+                                    var(--red-color)
+                                {% endif %}
+                                ">
+                        </div>
+                    {% endif %}
+                </div>
+
+                <h3>{{ freiwilliger.first_name }} {{ freiwilliger.last_name.0 }}.</h3>
+
+                <p id="f{{ freiwilliger.id }}_1" data-land="{{ freiwilliger.first_wish_einsatzland.id }}"
+                   data-stelle="{{ freiwilliger.first_wish_einsatzstelle.id }}">1)
+                    {% if freiwilliger.first_wish_einsatzstelle %}
+                        {{ freiwilliger.first_wish_einsatzstelle }}
+                    {% elif freiwilliger.first_wish_einsatzland %}
+                        {{ freiwilliger.first_wish_einsatzland }}
+                    {% else %}
+                        {{ freiwilliger.first_wish }}
+                    {% endif %}
+                </p>
+
+                <p id="f{{ freiwilliger.id }}_2" data-land="{{ freiwilliger.second_wish_einsatzland.id }}"
+                   data-stelle="{{ freiwilliger.second_wish_einsatzstelle.id }}">2)
+                    {% if freiwilliger.second_wish_einsatzstelle %}
+                        {{ freiwilliger.second_wish_einsatzstelle }}
+                    {% elif freiwilliger.second_wish_einsatzland %}
+                        {{ freiwilliger.second_wish_einsatzland }}
+                    {% else %}
+                        {{ freiwilliger.second_wish }}
+                    {% endif %}
+                </p>
+
+                <p id="f{{ freiwilliger.id }}_3" data-land="{{ freiwilliger.third_wish_einsatzland.id }}"
+                   data-stelle="{{ freiwilliger.third_wish_einsatzstelle.id }}">3)
+                    {% if freiwilliger.third_wish_einsatzstelle %}
+                        {{ freiwilliger.third_wish_einsatzstelle }}
+                    {% elif freiwilliger.third_wish_einsatzland %}
+                        {{ freiwilliger.third_wish_einsatzland }}
+                    {% else %}
+                        {{ freiwilliger.third_wish }}
+                    {% endif %}
+                </p>
+
+                <div class="freiwillige_nicht_note_div">
+                    <p id="f{{ freiwilliger.id }}_n" data-nicht="True"
+                       data-land="{{ freiwilliger.no_wish_einsatzland.id }}"
+                       data-stelle="{{ freiwilliger.no_wish_einsatzstelle.id }}">nicht:
+                        {{ freiwilliger.no_wish }}
+                    </p>
+
+                    <p>{{ freiwilliger.note|myround:1 }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <details id="details_others">
+        <summary>Andere Wünsche</summary>
+        <div id="andere_div" class="freiwillige_div_container"></div>
+    </details>
+
+    <details id="details_not">
+        <summary>Nicht</summary>
+        <div id="nicht_div" class="freiwillige_div_container"></div>
+    </details>
+
+    <details id="details_done">
+        <summary>Bereits zugeteilt</summary>
+        <div id="zugeteilt_div" class="freiwillige_div_container"></div>
+    </details>
+</div>
+
+<footer>
+    <a href="{% url 'auto_assign' %}">
+        <img src="{% static 'img/icon_automatic.png' %}" alt="Automatische Zuweisung">
+    </a>
+
+    <div>
+        <a href="{% url 'home-seminar' %}">
+            <img src="{% static 'img/bmw_logo.png' %}" alt="BMW-Logo">
+        </a>
+    </div>
+</footer>
+
+<script>
+    let zuteilung_url = '{% url "assign" %}';
+</script>
+
+</body>
+</html>

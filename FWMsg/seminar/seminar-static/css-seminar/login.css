@@ -1,0 +1,49 @@
+.user_field {
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.password_field {
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.login_container {
+    margin: auto;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    text-align: center;
+    padding: 5px 20px;
+    width: 80%;
+    max-width: 500px;
+    background-color: var(--form-purple-color);
+    color: white;
+    border-radius: 5px;
+}
+
+.login_container h3 {
+    color: white;
+    background-color: darkgray;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.login_container p {
+    color: white;
+}
+
+.login_button {
+    background-color: var(--form-control-color);
+    color: white;
+    border-radius: 5px;
+    padding: 10px 35px;
+    margin: 10px 0;
+    cursor: pointer;
+    border: 2px solid white;
+}
