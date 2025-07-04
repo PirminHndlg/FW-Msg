@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0899d9">
+    <title>Auswahlseminar 2025 - Berliner Missionswerk</title>
+
+    <link rel="stylesheet" href="{% static 'css-seminar/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css-seminar/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css-seminar/chooseBewerber.css' %}">
+    <link rel="stylesheet" href="{% static 'css-seminar/index.css' %}">
+    <link rel="stylesheet" href="{% static 'css-seminar/chooseEinheit.css' %}">
+    <link rel="stylesheet" href="{% static 'css-seminar/login.css' %}">
+    <link rel="stylesheet" href="{% static 'css-seminar/land.css' %}">
+
+    <script src="{% static 'js/global.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+
+    <link rel="icon" type="image/png" href="{% static 'img/favicon/favicon-48x48.png' %}" sizes="48x48"/>
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon/favicon.svg' %}"/>
+    <link rel="shortcut icon" href="{% static 'img/favicon/favicon.ico' %}"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/favicon/apple-touch-icon.png' %}"/>
+    <meta name="apple-mobile-web-app-title" content="Auswahl-BMW"/>
+    <link rel="manifest" href="{% static 'img/favicon/site.webmanifest' %}"/>
+</head>
+<body>
+
+<div class="head-container">
+    <div class="head_sub-container">
+        <a class="a_btn" href="{% url 'home-seminar' %}">
+            <img src="{% static 'img/bmw_logo.png' %}" alt="BMW-Logo">
+        </a>
+        <h1>Auswahlseminar 2025</h1>
+    </div>
+
+    {% if user.is_authenticated %}
+    <div class="logout_container">
+        <a>{{user.username}}</a>
+        <a class="a_btn" href="{% url 'logout' %}">Logout</a>
+    </div>
+    {% endif %}
+</div>
+
+{% block content %}
+{% endblock %}
+
+</body>
+</html>

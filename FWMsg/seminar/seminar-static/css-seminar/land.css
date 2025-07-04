@@ -1,0 +1,43 @@
+
+.land_div {
+    background-color: var(--form-purple-color);
+    color: white;
+    padding: 10px;
+    margin: 10px auto;
+    border-radius: 10px;
+
+    width: 80%;
+    max-width: 400px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.land_div label {
+    font-size: 20px;
+    color: white;
+    width: 100%;
+}
+
+.land_div input {
+    padding: 8px;
+    border-radius: 5px;
+    border: none;
+    width: auto;
+    font-size: 16px;
+    margin-top: 4px;
+}
+
+.land_div p {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.land_div button {
+    border: 2px solid white;
+}

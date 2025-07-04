@@ -1,0 +1,47 @@
+{% extends "seminar_base.html" %}
+{% block content %}
+
+    {% if messages %}
+        <div class="flash_message_div">
+            {% for message in messages %}
+                <p class="flash_message">{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <p class="wellcome_msg">
+        <strong>Herzlich Willkommen beim "BMW-Kompass" für ein Jahr im Ausland mit dem Freiwilligenprogramm des Berliner
+            Missionswerks</strong>
+    </p>
+
+    <div class="center_div">
+        <a href="{% url 'start' %}">
+            <button class="start_button">Starten</button>
+        </a>
+        {% load custom_filters %}
+        {% if user.role in 'OTE' %}
+            <br>
+            <button type="button" class="refresh_button" onclick="window.location = {% url 'refresh' %}">Refresh
+            </button>
+        {% endif %}
+    </div>
+
+    <div style="text-align: center;">
+        <p><a href="{% url 'datenschutz' %}">Datenschutzerklärung</a></p>
+        {% if user.role == 'O' %}
+            <br>
+            <p><a href="{% url 'evaluate_all' %}">Auswertung</a></p>
+            <p><a href="{% url 'assign' %}">Zuteilung</a></p>
+            <p><a href="{% url 'summary' %}">Kommentare ChatGPT</a></p>
+            <br>
+            <p><a href="{% url 'land' %}">Landwahl</a></p>
+            <p><a href="{% url 'admin:index' %}">Admin</a></p>
+        {% endif %}
+    </div>
+    <br>
+
+    <script>
+        let refresh_url = "{% url 'refresh' %}"
+    </script>
+
+{% endblock %}

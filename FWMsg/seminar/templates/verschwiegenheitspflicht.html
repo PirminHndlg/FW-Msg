@@ -1,0 +1,59 @@
+{% extends 'seminar_base.html' %}
+{% block content %}
+
+<form method="post" style="padding: 5px">
+    {% csrf_token %}
+
+    <h2>Verschwiegenheitserklärung</h2>
+    <p>
+        Die ehrenamtliche Mitarbeiterin verpflichtet sich, sämtliche Informationen, die ihr im Rahmen des
+        Auswahlseminars für Freiwillige zur Kenntnis gelangen, streng vertraulich zu behandeln. Dies umfasst
+        insbesondere:
+    </p>
+
+    <ul>
+        <li>Persönliche Daten der Bewerber:innen (z.B. Name, Anschrift, Kontaktinformationen),</li>
+        <li>Informationen über den Auswahlprozess, Bewertungen und Entscheidungen,</li>
+        <li>Gespräche und Bewertungen, die während des Seminars geführt werden,</li>
+        <li>Andere vertrauliche Informationen, die im Zusammenhang mit dem Seminar offengelegt werden.</li>
+        <li>Die Weitergabe oder Veröffentlichung dieser Informationen an unbeteiligte Dritte ist untersagt.</li>
+    </ul>
+
+    <p>
+        Diese Verschwiegenheitspflicht gilt, um die Privatsphäre der Bewerber:innen zu schützen und sicherzustellen,
+        dass der Auswahlprozess fair und unvoreingenommen bleibt. Die gewonnenen Informationen dürfen ausschließlich zum
+        Zweck der Mitwirkung am Auswahlverfahren verwendet werden. Die Verpflichtung zur Vertraulichkeit gilt während
+        des Auswahlseminars sowie darüber hinaus unbefristet, auch nach Beendigung der ehrenamtlichen Tätigkeit. Diese
+        Vereinbarung unterliegt dem Recht der Bundesrepublik Deutschland. Gerichtsstand ist der Sitz der Organisation.
+    </p>
+    <br>
+    <p><strong>Meine Daten</strong></p>
+    {{ form.as_p }}
+
+    <br>
+    <label style="margin: 4px">
+        <input type="checkbox" name="verschwiegenheitspflicht" value="True" required onchange="if (!this.checked) {this.setCustomValidity('Bitte akzeptiere die Verschwiegenheitserklärung.')} else {this.setCustomValidity('')}"
+               oninvalid="this.setCustomValidity('Bitte akzeptiere die Verschwiegenheitserklärung.')">
+        Ich, <a id="my_first_name">{{bewerter.first_name}}</a> <a id="my_last_name">{{bewerter.last_name}}</a>, habe die
+        Verschwiegenheitserklärung gelesen und verstanden.
+    </label>
+
+    <br>
+
+    <div class="center_div">
+        <button type="submit" class="submit_button center_button">Weiter</button>
+    </div>
+
+</form>
+
+<script>
+        document.getElementById('id_first_name').addEventListener('input', function (e) {
+            document.getElementById('my_first_name').innerHTML = e.target.value;
+        });
+
+        document.getElementById('id_last_name').addEventListener('input', function (e) {
+            document.getElementById('my_last_name').innerHTML = e.target.value;
+        });
+</script>
+
+{% endblock %}

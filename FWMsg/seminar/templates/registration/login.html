@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% if messages %}
+<div class="flash_message_div flash_message_div_error">
+    {% for message in messages %}
+    <p class="flash_message">{{ message }}</p>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="login_container">
+    <h3 class="title">Login</h3>
+    <p>Bitte melde Dich ein, um fortzufahren:</p>
+    <div class="box">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="">
+                <div class="">
+                    <label class="label">Username:</label>
+                    {{ form.username }}
+                    <script>
+                        document.getElementById('id_username').classList.add('user_field');
+                    </script>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="control">
+                    <label class="label">Passwort:</label>
+                    {{ form.password }}
+                    <script>
+                        document.getElementById('id_password').classList.add('password_field');
+                    </script>
+                </div>
+            </div>
+<!--            <div class="field">-->
+<!--                <label class="checkbox">-->
+<!--                    {{ form.remember_me }}-->
+<!--                    Login speichern-->
+<!--                </label>-->
+<!--            </div>-->
+            <button class="login_button">Login</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
