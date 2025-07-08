@@ -10,7 +10,7 @@ from .forms import EmailAuthenticationForm, FirstLoginForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth import get_user_model
 import re
-from Global.models import Maintenance
+from Global.models import CustomUser, Maintenance
 from django.utils import timezone
 from django.core import signing
 from django.contrib.auth.decorators import login_required
@@ -178,9 +178,8 @@ def maintenance(request):
     
 def token_login(request, token):
     try:
-        # data = signing.loads(token, max_age=60 * 60 * 24 * 14)  # 14 days
-        data = signing.loads(token, max_age=None) # expires never
-        user = get_object_or_404(User, id=data['user_id'])
+        custom_user = CustomUser.objects.get(token=token)
+        user = custom_user.user
         login(request, user)
         return redirect('index_home')
     except Exception as e:

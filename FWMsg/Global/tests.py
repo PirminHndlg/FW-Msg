@@ -66,7 +66,7 @@ class KalenderAbbonementTests(TestCase):
         self.client = Client()
         
         # Generate token
-        self.token = signing.dumps({'user_id': self.user.id})
+        self.token = self.custom_user.ensure_calendar_token()
 
     def test_invalid_token(self):
         """Test that invalid token returns error"""
@@ -154,7 +154,7 @@ class KalenderAbbonementTests(TestCase):
         )
         
         # Create token for other user
-        other_token = signing.dumps({'user_id': other_user.id})
+        other_token = other_user.customuser.ensure_calendar_token()
         
         # Test access
         response = self.client.get(reverse('kalender_abbonement', args=[other_token]))

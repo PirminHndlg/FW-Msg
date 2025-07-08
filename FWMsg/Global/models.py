@@ -103,21 +103,23 @@ class CustomUser(OrgModel):
         else:
             from ORG.tasks import send_register_email_task
             send_register_email_task.s(self.id).apply_async(countdown=2)
+        
+    def get_random_hash(self, length=16):
+        import secrets
+        import hashlib
+        import time
+        
+        # Combine user ID with current timestamp and a random token
+        unique_value = f"{self.user.id}_{time.time()}_{secrets.token_hex(length)}"
+        
+        # Create a SHA-256 hash of this value
+        hash_obj = hashlib.sha512(unique_value.encode())
+        return hash_obj.hexdigest()
 
     def get_unsubscribe_url(self):
         try:
             if not self.mail_notifications_unsubscribe_auth_key:
-                # Generate a secure hash token for unsubscribing
-                import secrets
-                import hashlib
-                import time
-                
-                # Combine user ID with current timestamp and a random token
-                unique_value = f"{self.user.id}_{time.time()}_{secrets.token_hex(16)}"
-                
-                # Create a SHA-256 hash of this value
-                hash_obj = hashlib.sha256(unique_value.encode())
-                self.mail_notifications_unsubscribe_auth_key = hash_obj.hexdigest()
+                self.mail_notifications_unsubscribe_auth_key = self.get_random_hash()
                 self.save()
             
             # Use Django's reverse function instead of hardcoding the path
@@ -140,19 +142,11 @@ class CustomUser(OrgModel):
             self.save()
             
     def create_token(self):
-        data = {
-            'user_id': self.user.id,
-        }
-        token = signing.dumps(data)
-        self.token = token
+        self.token = self.get_random_hash(128)
         self.save()
         
     def create_calendar_token(self):
-        data = {
-            'user_id': self.user.id,
-        }
-        token = signing.dumps(data)
-        self.calendar_token = token
+        self.calendar_token = self.get_random_hash(128)
         self.save()
 
     def ensure_token(self):
@@ -160,8 +154,9 @@ class CustomUser(OrgModel):
         if not self.token:
             self.create_token()
         return self.token
-    
+
     def ensure_calendar_token(self):
+        """Ensure the user has a valid token for calendar subscription."""
         if not self.calendar_token:
             self.create_calendar_token()
         return self.calendar_token
