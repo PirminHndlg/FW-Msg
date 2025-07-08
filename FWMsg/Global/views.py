@@ -712,7 +712,28 @@ def serve_profil_picture(request, user_id):
         return HttpResponseForbidden()
     
     if not requested_user.customuser.profil_picture:
-        return get_bild(os.path.join(settings.STATIC_ROOT, 'img/default_img.png'), 'default_img.png')
+        # Use Django's static file finder to get the correct path with hash
+        from django.contrib.staticfiles.finders import find
+        from django.contrib.staticfiles.storage import staticfiles_storage
+        
+        # Try to find the default image using the static file finder
+        default_img_path = find('img/default_img.png')
+        if default_img_path:
+            return get_bild(default_img_path, 'default_img.png')
+        else:
+            # If the file is not found, try to serve it from the staticfiles storage
+            try:
+                # Get the hashed filename from staticfiles storage
+                hashed_path = staticfiles_storage.path('img/default_img.png')
+                if os.path.exists(hashed_path):
+                    return get_bild(hashed_path, 'default_img.png')
+                else:
+                    # Last resort: redirect to the static URL
+                    default_img_url = staticfiles_storage.url('img/default_img.png')
+                    return HttpResponseRedirect(default_img_url)
+            except Exception as e:
+                # Return a simple 404 or placeholder
+                return HttpResponseNotFound('Default profile picture not found')
 
     return get_bild(requested_user.customuser.profil_picture.path, requested_user.customuser.profil_picture.name)
 
