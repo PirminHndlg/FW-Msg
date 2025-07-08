@@ -1390,9 +1390,11 @@ def einsatzstellen_notiz(request, es_id=None):
 
 def kalender_abbonement(request, token):
     try:
-        # Load the token data
-        data = signing.loads(token)
-        user = get_object_or_404(User, id=data['user_id'])
+        # Load the token data without expiration checking
+        custom_user = CustomUser.objects.get(calendar_token=token)
+        print(custom_user)
+        user = custom_user.user
+        print(user)
         
         # Add calendar events
         if user.role == 'O':
@@ -1413,8 +1415,13 @@ def kalender_abbonement(request, token):
         for user_aufgabe in UserAufgaben.objects.filter(user=user):
             ical_event = Event()
             ical_event.add('summary', user_aufgabe.aufgabe.name)
-            ical_event.add('dtstart', user_aufgabe.faellig)
-            ical_event.add('dtend', user_aufgabe.faellig)
+            # Convert date to datetime for iCal compatibility
+            if user_aufgabe.faellig:
+                # Convert date to datetime at midnight
+                from datetime import datetime
+                faellig_datetime = datetime.combine(user_aufgabe.faellig, datetime.min.time())
+                ical_event.add('dtstart', faellig_datetime)
+                ical_event.add('dtend', faellig_datetime)
             url = f"https://volunteer.solutions{reverse('aufgaben_detail', args=[user_aufgabe.id])}"
             ical_event.add('url', url)
             cal.add_component(ical_event)
@@ -1424,8 +1431,13 @@ def kalender_abbonement(request, token):
             ical_event = Event()
             ical_event.add('summary', kalender_event.title)
             
-            ical_event.add('dtstart', kalender_event.start.astimezone(timezone.get_current_timezone()))
-            ical_event.add('dtend', kalender_event.end.astimezone(timezone.get_current_timezone()))
+            # Ensure proper timezone handling
+            if kalender_event.start:
+                start_dt = kalender_event.start.astimezone(timezone.get_current_timezone())
+                ical_event.add('dtstart', start_dt)
+            if kalender_event.end:
+                end_dt = kalender_event.end.astimezone(timezone.get_current_timezone())
+                ical_event.add('dtend', end_dt)
             url = f"https://volunteer.solutions{reverse('kalender_event', args=[kalender_event.id])}"
             ical_event.add('url', url)
             cal.add_component(ical_event)
