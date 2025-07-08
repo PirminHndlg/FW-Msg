@@ -9,6 +9,7 @@ from Global.send_email import send_aufgaben_email, send_new_aufgaben_email
 
 from datetime import datetime, timedelta
 from django.db.models import Q
+from django.core.mail import send_mail
 
 ###
 # start celery:
@@ -78,8 +79,6 @@ def debug_task(self):
 
 @app.task(name='send_email_aufgaben_daily')
 def send_email_aufgaben_daily():
-    from Global.send_email import send_mail_smtp
-
     response_json = {
         'count': 0,
         'aufgaben_sent': [],
@@ -119,7 +118,13 @@ def send_email_aufgaben_daily():
     Gesamt: {len(response_json['new_aufgaben_sent']) + len(response_json['new_aufgaben_failed'])}
     """
 
-    send_mail_smtp(settings.SERVER_EMAIL, 'Aufgabenerinnerungen erfolgreich gesendet', msg, reply_to=settings.SERVER_EMAIL)
+    send_mail(
+        'Aufgabenerinnerungen erfolgreich gesendet',
+        msg,
+        settings.SERVER_EMAIL,
+        settings.ADMINS,
+        html_message=msg
+    )
 
     return response_json
 

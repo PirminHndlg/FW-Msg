@@ -1,11 +1,6 @@
 import base64
-from django.urls import reverse
 from django.utils import timezone
-import smtplib
-import ssl
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.utils import formatdate
+from django.core.mail import send_mail
 
 from django.conf import settings
 
@@ -451,7 +446,9 @@ def send_aufgaben_email(aufgabe, org):
 
     send_push_notification_to_user(aufgabe.user, subject, push_content, url=action_url)
     
-    if aufgabe.user.customuser.mail_notifications and send_mail_smtp(aufgabe.user.email, subject, email_content, reply_to=org.email):
+    from django.core.mail import send_mail
+    
+    if aufgabe.user.customuser.mail_notifications and send_mail(subject, email_content, settings.SERVER_EMAIL, [aufgabe.user.email], html_message=email_content):
         aufgabe.last_reminder = timezone.now()
         aufgabe.currently_sending = False
         aufgabe.save()
@@ -476,13 +473,12 @@ def send_new_aufgaben_email(aufgaben, org):
     )
 
     subject = f'Neue Aufgaben: {aufgaben[0].aufgabe.name}... und mehr'
-
-    if send_mail_smtp(aufgaben[0].user.email, subject, email_content, reply_to=org.email):
+        
+    if send_mail(subject, email_content, settings.SERVER_EMAIL, [aufgaben[0].user.email], html_message=email_content):
         for aufgabe in aufgaben:
             aufgabe.last_reminder = timezone.now()
             aufgabe.currently_sending = False
             aufgabe.save()
-            
         return True
     
     for aufgabe in aufgaben:
@@ -490,45 +486,3 @@ def send_new_aufgaben_email(aufgaben, org):
         aufgabe.save()
     
     return False
-
-def send_mail_smtp(receiver_email, subject, html_content, reply_to=None, cc=None):
-    if not receiver_email or not subject or not html_content:
-        return False
-
-    smtp_server = settings.EMAIL_HOST
-    port = settings.EMAIL_PORT
-    sender_email = settings.EMAIL_HOST_USER
-    password = settings.EMAIL_HOST_PASSWORD
-    
-    # Create a MIMEText email message
-    message = MIMEMultipart("alternative")
-    message["From"] = sender_email
-    message["To"] = receiver_email
-    message["Subject"] = subject
-    message["Date"] = formatdate(localtime=True)
-
-    if reply_to:
-        message["Reply-To"] = reply_to
-
-    if cc:
-        message["Cc"] = cc
-
-    # Add email content
-    html_part = MIMEText(html_content, "html")
-    message.attach(html_part)
-
-    # Create a secure SSL context
-    context = ssl.create_default_context()
-
-    try:
-        with smtplib.SMTP(smtp_server, port) as server:
-            server.ehlo()  # Identify ourselves to the SMTP server
-            server.starttls(context=context)  # Secure the connection
-            server.ehlo()
-            server.login(sender_email, password)  # Log in to the server
-            server.sendmail(sender_email, receiver_email, message.as_string())  # Send the email
-        print("Email sent successfully!")
-        return True
-    except smtplib.SMTPException as e:
-        print(f"An error occurred: {e}")
-        return False
