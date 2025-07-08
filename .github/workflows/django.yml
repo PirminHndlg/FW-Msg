@@ -49,8 +49,8 @@ jobs:
     - name: Setup Django Settings
       run: |
         cd FWMsg
-        cp FWMsg/settings.py.example FWMsg/settings.py
-        cp FWMsg/.secrets.json.example FWMsg/.secrets.json
+        cp FWMsg/example-settings.py FWMsg/settings.py
+        cp FWMsg/.example-secrets.json FWMsg/.secrets.json
         sed -i 's/DEBUG = True/DEBUG = False/' FWMsg/settings.py
         sed -i 's#^SECRET_KEY = .*#SECRET_KEY = "django-insecure-test-key-for-ci"#' FWMsg/settings.py
 
