@@ -24,6 +24,20 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 app.conf.timezone = 'Europe/Berlin'
 
+# Old setting that will be deprecated
+app.conf.broker_connection_retry = True
+
+# New recommended setting
+app.conf.broker_connection_retry_on_startup = True
+
+# Optional: Configure retry delays
+app.conf.broker_transport_options = {
+    'max_retries': 100,
+    'interval_start': 0,
+    'interval_step': 2,
+    'interval_max': 30,
+}
+
 
 def get_faellige_aufgaben():
     from Global.models import UserAufgaben
