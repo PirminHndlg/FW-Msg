@@ -38,8 +38,6 @@ app.conf.broker_transport_options = {
     'socket_connect_timeout': 30,
     'socket_timeout': 30,
     'retry_on_timeout': True,
-    'health_check_interval': 30,
-    'visibility_timeout': 3600,
 }
 
 # Result backend settings
@@ -76,11 +74,6 @@ app.conf.broker_connection_max_retries = 10
 # Redis connection pool settings
 app.conf.broker_transport_options.update({
     'socket_keepalive': True,
-    'socket_keepalive_options': {
-        'TCP_KEEPIDLE': 60,
-        'TCP_KEEPINTVL': 10,
-        'TCP_KEEPCNT': 6
-    }
 })
 
 
@@ -197,6 +190,6 @@ def send_email_aufgaben_daily(self):
 app.conf.beat_schedule = {
     'send_email_aufgaben_daily': {
         'task': 'send_email_aufgaben_daily',
-        'schedule': crontab(hour=16, minute=5),
+        'schedule': crontab(hour=16, minute=30),
     },
 }
