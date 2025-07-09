@@ -186,10 +186,10 @@ def send_email_aufgaben_daily(self):
             raise
 
 
-# cronjob, every day at 10:00 PM
+# cronjob, every day at 10:00 AM
 app.conf.beat_schedule = {
     'send_email_aufgaben_daily': {
         'task': 'send_email_aufgaben_daily',
-        'schedule': crontab(hour=16, minute=30),
+        'schedule': crontab(hour=10, minute=0),
     },
 }
