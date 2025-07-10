@@ -21,7 +21,7 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-primary text-white text-center">
                     <h3 class="mb-0">
-                        <i class="fas fa-graduation-cap me-2"></i>Seminar Portal
+                        <i class="bi bi-mortarboard me-2"></i>Seminar Portal
                     </h3>
                 </div>
                 <div class="card-body text-center">
@@ -32,20 +32,27 @@
                         </p>
                     </div>
                     
+                    
+                    <!-- Refresh Button for Organizers/Testers/Evaluators -->
+                    {% if user.role in 'OTE' %}
                     <!-- Main Start Button -->
                     <div class="mb-4">
-                        <a href="{% url 'start' %}" class="btn btn-success btn-lg px-5 py-3">
-                            <i class="fas fa-play me-2"></i>Starten
+                        <a href="{% url 'einheit' %}" class="btn btn-success btn-lg px-5 py-3">
+                            <i class="bi bi-play-fill me-2"></i>Starten
                         </a>
                     </div>
 
-                    <!-- Refresh Button for Organizers/Testers/Evaluators -->
-                    {% if user.role in 'OTE' %}
-                        <div class="mb-3">
+                    <div class="mb-3">
                             <a href="{% url 'refresh' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-sync-alt me-2"></i>Refresh
+                                <i class="bi bi-arrow-repeat me-2"></i>Refresh
                             </a>
                         </div>
+                    {% else %}
+                    <div class="mb-4">
+                        <a href="{% url 'land' %}" class="btn btn-success btn-lg px-5 py-3">
+                            <i class="bi bi-play-fill me-2"></i>Starten
+                        </a>
+                    </div>
                     {% endif %}
                 </div>
             </div>
