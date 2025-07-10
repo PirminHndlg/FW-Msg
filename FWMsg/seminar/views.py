@@ -422,7 +422,7 @@ def evaluate_all(request):
     if not average_total_per_freiwilliger:
         msg_text = 'Noch keine Bewertungen vorhanden'
         messages.info(request, msg_text)
-        return redirect('start')
+        return redirect('seminar_home')
 
     i = int(request.GET.get('f') or 0)
     if i < 0 or i >= len(average_total_per_freiwilliger):
