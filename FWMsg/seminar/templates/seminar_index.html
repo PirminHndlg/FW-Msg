@@ -1,47 +1,127 @@
 {% extends "seminar_base.html" %}
+{% load custom_filters %}
 {% block content %}
 
-    {% if messages %}
-        <div class="flash_message_div">
-            {% for message in messages %}
-                <p class="flash_message">{{ message }}</p>
-            {% endfor %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Welcome Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-graduation-cap me-2"></i>Seminar Portal
+                    </h3>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-hand-wave fa-2x text-primary mb-3"></i>
+                        <p class="lead mb-0">
+                            <strong>{{ request.user.org|get_seminar|get_seminar_description }}</strong>
+                        </p>
+                    </div>
+                    
+                    <!-- Main Start Button -->
+                    <div class="mb-4">
+                        <a href="{% url 'start' %}" class="btn btn-success btn-lg px-5 py-3">
+                            <i class="fas fa-play me-2"></i>Starten
+                        </a>
+                    </div>
+
+                    <!-- Refresh Button for Organizers/Testers/Evaluators -->
+                    {% if user.role in 'OTE' %}
+                        <div class="mb-3">
+                            <a href="{% url 'refresh' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-sync-alt me-2"></i>Refresh
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Navigation Cards -->
+            <div class="row g-3 {% if user.role != 'O' %}justify-content-center{% endif %}">
+                {% if user.role == 'O' %}
+                    <!-- Organizer Controls -->
+                    <div class="col-md-6">
+                        <a href="{% url 'evaluate_all' %}" class="text-decoration-none">
+                            <div class="card h-100 shadow-sm card-hover">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-graph-up-arrow text-primary mb-3" style="font-size: 3rem;"></i>
+                                    <h5 class="card-title text-dark">Auswertung</h5>
+                                    <p class="card-text text-muted">Bewertungen und Ergebnisse einsehen</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <a href="{% url 'assign' %}" class="text-decoration-none">
+                            <div class="card h-100 shadow-sm card-hover">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-people-fill text-primary mb-3" style="font-size: 3rem;"></i>
+                                    <h5 class="card-title text-dark">Zuteilung</h5>
+                                    <p class="card-text text-muted">Bewerber zu Einheiten zuordnen</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <a href="{% url 'settings' %}" class="text-decoration-none">
+                            <div class="card h-100 shadow-sm card-hover">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-gear-fill text-primary mb-3" style="font-size: 3rem;"></i>
+                                    <h5 class="card-title text-dark">Einstellungen</h5>
+                                    <p class="card-text text-muted">Seminar und Fragen konfigurieren</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endif %}
+                
+                <!-- Datenschutz - Always visible -->
+                <div class="col-md-6">
+                    <a href="{% url 'datenschutz' %}" class="text-decoration-none">
+                        <div class="card h-100 shadow-sm card-hover">
+                            <div class="card-body text-center">
+                                <i class="bi bi-shield-fill text-primary mb-3" style="font-size: 3rem;"></i>
+                                <h5 class="card-title text-dark">Datenschutz</h5>
+                                <p class="card-text text-muted">Datenschutzerklärung einsehen</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
         </div>
-    {% endif %}
-
-    <p class="wellcome_msg">
-        <strong>Herzlich Willkommen beim "BMW-Kompass" für ein Jahr im Ausland mit dem Freiwilligenprogramm des Berliner
-            Missionswerks</strong>
-    </p>
-
-    <div class="center_div">
-        <a href="{% url 'start' %}">
-            <button class="start_button">Starten</button>
-        </a>
-        {% load custom_filters %}
-        {% if user.role in 'OTE' %}
-            <br>
-            <button type="button" class="refresh_button" onclick="window.location = {% url 'refresh' %}">Refresh
-            </button>
-        {% endif %}
     </div>
+</div>
 
-    <div style="text-align: center;">
-        <p><a href="{% url 'datenschutz' %}">Datenschutzerklärung</a></p>
-        {% if user.role == 'O' %}
-            <br>
-            <p><a href="{% url 'evaluate_all' %}">Auswertung</a></p>
-            <p><a href="{% url 'assign' %}">Zuteilung</a></p>
-            <p><a href="{% url 'summary' %}">Kommentare ChatGPT</a></p>
-            <br>
-            <p><a href="{% url 'land' %}">Landwahl</a></p>
-            <p><a href="{% url 'admin:index' %}">Admin</a></p>
-        {% endif %}
-    </div>
-    <br>
+<style>
+.card-hover {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    cursor: pointer;
+}
 
-    <script>
-        let refresh_url = "{% url 'refresh' %}"
-    </script>
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+</style>
+
+<script>
+    let refresh_url = "{% url 'refresh' %}"
+</script>
 
 {% endblock %}

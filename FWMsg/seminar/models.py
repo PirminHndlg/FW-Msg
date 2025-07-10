@@ -1,12 +1,13 @@
-from time import localtime
 from django.db import models
+from django.utils.timezone import localtime
 from BW.models import Bewerber
 from django.contrib.auth.models import User
-
+from Global.models import OrgModel
+from ORG.models import Organisation as Org
 
 
 # Create your models here.
-class Fragekategorie(models.Model):
+class Fragekategorie(OrgModel):
     name = models.CharField(
         max_length=200, blank=False, null=False, verbose_name="Name"
     )
@@ -22,7 +23,7 @@ class Fragekategorie(models.Model):
         return self.name
 
 
-class Frage(models.Model):
+class Frage(OrgModel):
     text = models.CharField(
         max_length=200, blank=False, null=False, verbose_name="Frage"
     )
@@ -55,7 +56,7 @@ class Frage(models.Model):
         return self.text
 
 
-class Einheit(models.Model):
+class Einheit(OrgModel):
     name = models.CharField(max_length=200)
     short_name = models.CharField(
         max_length=100, blank=True, null=True, verbose_name="Kurzname"
@@ -69,7 +70,7 @@ class Einheit(models.Model):
         return self.name
 
 
-class Bewertung(models.Model):
+class Bewertung(OrgModel):
     bewerter = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name="Teammitglied"
     )
@@ -103,7 +104,7 @@ class Bewertung(models.Model):
         )
 
 
-class Kommentar(models.Model):
+class Kommentar(OrgModel):
     bewerter = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name="Teammitglied"
     )
@@ -147,15 +148,25 @@ class Kommentar(models.Model):
             + " - "
             + self.text
         )
+        
 
-
-class DeadlineDateTime(models.Model):
-    deadline = models.DateTimeField(verbose_name="Deadline")
+class Seminar(models.Model):
+    org = models.OneToOneField(Org, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    deadline_start = models.DateTimeField(verbose_name="Deadline Start", null=True, blank=True)
+    deadline_end = models.DateTimeField(verbose_name="Deadline Ende", null=True, blank=True)
+    verschwiegenheit_von_user = models.ManyToManyField(User, blank=True, verbose_name="Verschwiegenheit von User")
 
     class Meta:
-        verbose_name = "Deadline"
-        verbose_name_plural = "Deadlines"
+        verbose_name = "Seminar"
+        verbose_name_plural = "Seminare"
 
     def __str__(self):
-        local_deadline = localtime(self.deadline)
-        return local_deadline.strftime("%d.%m.%Y %H:%M")
+        return self.name
+    
+    def get_deadline_start(self):
+        return localtime(self.deadline_start)
+
+    def get_deadline_end(self):
+        return localtime(self.deadline_end)

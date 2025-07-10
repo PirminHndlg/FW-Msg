@@ -1,5 +1,5 @@
 from django.contrib.admin import SimpleListFilter
-from .models import Fragekategorie, Frage, Bewertung, Kommentar, DeadlineDateTime, Einheit
+from .models import Fragekategorie, Frage, Bewertung, Kommentar, Einheit, Seminar
 from django.contrib import admin
 
 
@@ -137,6 +137,6 @@ class KommentarAdmin(admin.ModelAdmin):
     list_filter = ['bewerter', 'bewerber', 'einheit']
 
 
-@admin.register(DeadlineDateTime)
-class DeadlineDateTimeAdmin(admin.ModelAdmin):
-    search_fields = ['deadline']
+@admin.register(Seminar)
+class SeminarAdmin(admin.ModelAdmin):
+    list_display = ['name', 'deadline_start', 'deadline_end']

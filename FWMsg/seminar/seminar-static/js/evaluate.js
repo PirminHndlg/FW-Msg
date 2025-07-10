@@ -341,7 +341,7 @@ function backButtonClicked() {
 
     document.getElementById('yes').addEventListener('click', function () {
         dialog.close();
-        window.location.href = start_url;
+        window.location.href = seminar_home_url;
         dialog.remove()
     })
 

@@ -4,28 +4,34 @@ from datetime import datetime
 from django.contrib.auth.decorators import login_required
 from django.db.models.functions import Round
 from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
+from django.urls import reverse
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from FWMsg.decorators import required_role
-from seminar.models import Einheit, Frage, Fragekategorie, Bewertung, Kommentar, DeadlineDateTime
+from seminar.models import Einheit, Frage, Fragekategorie, Bewertung, Kommentar, Seminar
 from Global.models import Einsatzland2 as Einsatzland, Einsatzstelle2 as Einsatzstelle
 from BW.models import Bewerber
 from .forms import WishForm, BewerterForm
 from django.db.models import Avg, Case, When, IntegerField
 from django.contrib.auth.models import User
 
+def required_verschwiegenheit(view_func):
+    def wrapper(request, *args, **kwargs):
+        seminar = Seminar.objects.get(org=request.user.org)
+        if not request.user in seminar.verschwiegenheit_von_user.all():
+            return redirect('verschwiegenheit')
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 # Create your views here.
 def home(request):
     return render(request, 'seminar_index.html')
 
-
+@required_verschwiegenheit
 @login_required
 def start(request):
-    print(request.user.role)
     if request.user.is_authenticated and request.user.role in ['O', 'T', 'E']:
-        # return HttpResponseRedirect('/verschwiegenheit')
         return redirect('einheit')
     if request.user.is_authenticated and request.user.role == 'B':
         return redirect('land')
@@ -33,9 +39,10 @@ def start(request):
 
 
 @csrf_exempt
+@required_verschwiegenheit
 @required_role('OTE')
 def refresh(request):
-    response = HttpResponseRedirect('/')
+    response = redirect('seminar_home')
     inserted = []
     edited = []
 
@@ -115,7 +122,7 @@ def refresh(request):
 
 @required_role('OTE')
 def verschwiegenheit(request):
-    bewerter = Bewerter.objects.get(user=request.user)
+    bewerter = request.user
 
     if request.method == 'POST':
         form = BewerterForm(request.POST, instance=bewerter)
@@ -127,19 +134,12 @@ def verschwiegenheit(request):
         verschwiegenheitsplicht = request.POST.get('verschwiegenheitspflicht')
         if not verschwiegenheitsplicht:
             return redirect('start')
-        bewerter = Bewerter.objects.get(user=request.user)
-        bewerter.verschwiegenheit = True
-        bewerter.verschwiegenheit_datetime = datetime.now()
-        bewerter.save()
+        seminar = Seminar.objects.get(org=bewerter.org)
+        seminar.verschwiegenheit_von_user.add(bewerter)
+        seminar.save()
         return redirect('einheit')
 
     form = BewerterForm(instance=bewerter)
-    if bewerter.geburtsdatum:
-        form.fields['geburtsdatum'].widget.attrs['value'] = bewerter.geburtsdatum.strftime('%Y-%m-%d')
-    if bewerter.rolle == 'E':
-        form.fields['geburtsdatum'].label = 'Geburtsdatum'
-        form.fields['geburtsdatum'].widget.attrs['required'] = 'True'
-
     context = {
         'bewerter': bewerter,
         'form': form
@@ -148,6 +148,7 @@ def verschwiegenheit(request):
     return render(request, 'verschwiegenheitspflicht.html', context=context)
 
 
+@required_verschwiegenheit
 @required_role('OTE')
 def einheit(request):
     einheiten = Einheit.objects.all()
@@ -162,6 +163,7 @@ def einheit(request):
     return render(request, 'chooseEinheit.html', context)
 
 
+@required_verschwiegenheit
 @required_role('OTE')
 def choose(request):
     einheit_arg = request.GET.get('einheit')
@@ -178,6 +180,7 @@ def choose(request):
 
 
 @csrf_exempt
+@required_verschwiegenheit
 @required_role('OTE')
 def evaluate(request):
     freiwillige_arg = request.GET.dict()
@@ -302,6 +305,7 @@ def insert_comment(data):
 
 
 @csrf_exempt
+@required_verschwiegenheit
 @required_role('OTE')
 def evaluate_post(request):
     request_dict = request.POST.dict()
@@ -309,7 +313,7 @@ def evaluate_post(request):
     inserted = []
     edited = []
 
-    response = redirect('home-seminar')
+    response = redirect('seminar_home')
 
     only = request_dict.get('only')
 
@@ -654,14 +658,142 @@ def auto_assign(request):
     return redirect('zuteilung')
 
 
+@required_role('O')
+def settings(request):
+    from .forms import SeminarForm, EinheitForm, FragekategorieForm, FrageForm
+    from .models import Seminar, Einheit, Fragekategorie, Frage
+    
+    # Get current user's org
+    org = request.user.org
+    
+    # Handle form submissions
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+        
+        if form_type == 'seminar':
+            if 'seminar_id' in request.POST and request.POST['seminar_id'] != '':
+                seminar = get_object_or_404(Seminar, id=request.POST['seminar_id'], org=org)
+                form = SeminarForm(request.POST, instance=seminar)
+            else:
+                form = SeminarForm(request.POST)
+            
+            if form.is_valid():
+                seminar = form.save(commit=False)
+                seminar.org = org
+                seminar.save()
+                messages.success(request, 'Seminar erfolgreich gespeichert!')
+                return HttpResponseRedirect(reverse('settings') + '#seminar')
+                
+        elif form_type == 'einheit':
+            if 'einheit_id' in request.POST and request.POST['einheit_id'] != '':
+                einheit = get_object_or_404(Einheit, id=request.POST['einheit_id'], org=org)
+                form = EinheitForm(request.POST, instance=einheit)
+            else:
+                form = EinheitForm(request.POST)
+            
+            if form.is_valid():
+                einheit = form.save(commit=False)
+                einheit.org = org
+                einheit.save()
+                messages.success(request, 'Einheit erfolgreich gespeichert!')
+                return HttpResponseRedirect(reverse('settings') + '#einheit')
+                
+        elif form_type == 'fragekategorie':
+            if 'kategorie_id' in request.POST and request.POST['kategorie_id'] != '':
+                kategorie = get_object_or_404(Fragekategorie, id=request.POST['kategorie_id'], org=org)
+                form = FragekategorieForm(request.POST, instance=kategorie)
+            else:
+                form = FragekategorieForm(request.POST)
+            
+            if form.is_valid():
+                kategorie = form.save(commit=False)
+                kategorie.org = org
+                kategorie.save()
+                messages.success(request, 'Fragekategorie erfolgreich gespeichert!')
+                return HttpResponseRedirect(reverse('settings') + '#kategorie')
+                
+        elif form_type == 'frage':
+            if 'frage_id' in request.POST and request.POST['frage_id'] != '':
+                frage = get_object_or_404(Frage, id=request.POST['frage_id'], org=org)
+                form = FrageForm(request.POST, instance=frage, org=org)
+            else:
+                form = FrageForm(request.POST, org=org)
+            
+            if form.is_valid():
+                frage = form.save(commit=False)
+                frage.org = org
+                frage.save()
+                messages.success(request, 'Frage erfolgreich gespeichert!')
+                return HttpResponseRedirect(reverse('settings') + '#frage')
+    
+    # Handle deletions
+    if request.method == 'GET' and 'delete' in request.GET:
+        delete_type = request.GET.get('delete')
+        delete_id = request.GET.get('id')
+        
+        if delete_type == 'seminar':
+            seminar = get_object_or_404(Seminar, id=delete_id, org=org)
+            seminar.delete()
+            messages.success(request, 'Seminar erfolgreich gelöscht!')
+            return HttpResponseRedirect(reverse('settings') + '#seminar')
+        elif delete_type == 'einheit':
+            einheit = get_object_or_404(Einheit, id=delete_id, org=org)
+            einheit.delete()
+            messages.success(request, 'Einheit erfolgreich gelöscht!')
+            return HttpResponseRedirect(reverse('settings') + '#einheit')
+        elif delete_type == 'fragekategorie':
+            kategorie = get_object_or_404(Fragekategorie, id=delete_id, org=org)
+            kategorie.delete()
+            messages.success(request, 'Fragekategorie erfolgreich gelöscht!')
+            return HttpResponseRedirect(reverse('settings') + '#kategorie')
+        elif delete_type == 'frage':
+            frage = get_object_or_404(Frage, id=delete_id, org=org)
+            frage.delete()
+            messages.success(request, 'Frage erfolgreich gelöscht!')
+            return HttpResponseRedirect(reverse('settings') + '#frage')
+        
+        return redirect('settings')
+    
+    # Get all objects for the current org
+    seminare = Seminar.objects.filter(org=org)
+    einheiten = Einheit.objects.filter(org=org)
+    fragekategorien = Fragekategorie.objects.filter(org=org)
+    fragen = Frage.objects.filter(org=org)
+    
+    # Initialize forms
+    seminar_form = SeminarForm()
+    einheit_form = EinheitForm()
+    fragekategorie_form = FragekategorieForm()
+    frage_form = FrageForm(org=org)
+    
+    context = {
+        'seminare': seminare,
+        'einheiten': einheiten,
+        'fragekategorien': fragekategorien,
+        'fragen': fragen,
+        'seminar_form': seminar_form,
+        'einheit_form': einheit_form,
+        'fragekategorie_form': fragekategorie_form,
+        'frage_form': frage_form,
+    }
+    
+    return render(request, 'seminar_settings.html', context)
+
+
+
 @required_role('B')
 def land(request):
-    deadline = DeadlineDateTime.objects.first()
+    seminar = Seminar.objects.filter(org=request.org).first()
+    
+    if timezone.now() < seminar.get_deadline_start():
+        message_text = 'Die Frist für die Auswahl des Einsatzlandes ist noch nicht begonnen.'
+        messages.info(request, message_text)
+        return redirect('seminar_home')
 
-    if timezone.now() > deadline.deadline:
+    if timezone.now() > seminar.get_deadline_end():
         message_text = 'Die Frist für die Auswahl des Einsatzlandes ist abgelaufen.'
         messages.info(request, message_text)
-        return redirect('start')
+        return redirect('seminar_home')
 
     if request.method == 'POST':
         try:
@@ -684,5 +816,5 @@ def land(request):
             messages.info(request, msg_text)
             return redirect('start')
         form = WishForm(instance=Bewerber.objects.get(user=request.user))
-        deadline_hour_left = int((deadline.deadline - timezone.now()).total_seconds() // 3600)
+        deadline_hour_left = int((seminar.get_deadline_end() - timezone.now()).total_seconds() // 3600)
     return render(request, 'land.html', {'form': form, 'deadline_hour_left': deadline_hour_left})

@@ -61,10 +61,10 @@
 </div>
 
 <div class="headline_container">
+    <h2>Feststellung der Eignung</h2>
     {% if einheit %}
         <a class="einheiten_strong">{{ einheit }}</a>
     {% endif %}
-    <h2>Feststellung der Eignung</h2>
 </div>
 <p><strong>des Freiwilligenjahrgang 2025/26</strong></p>
 <br>
@@ -236,6 +236,7 @@
     let refresh_url = "{% url 'refresh' %}"
     let post_url = "{% url 'evaluate-post' %}"
     let start_url = "{% url 'start' %}"
+    let seminar_home_url = "{% url 'seminar_home' %}"
 
     let user = "{{ user }}"
     let einheit = "{{ einheit.id }}"

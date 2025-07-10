@@ -1,59 +1,120 @@
 {% extends 'seminar_base.html' %}
 {% block content %}
 
-<form method="post" style="padding: 5px">
-    {% csrf_token %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>Verschwiegenheitserklärung
+                    </h2>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
 
-    <h2>Verschwiegenheitserklärung</h2>
-    <p>
-        Die ehrenamtliche Mitarbeiterin verpflichtet sich, sämtliche Informationen, die ihr im Rahmen des
-        Auswahlseminars für Freiwillige zur Kenntnis gelangen, streng vertraulich zu behandeln. Dies umfasst
-        insbesondere:
-    </p>
+                        <div class="mb-4">
+                            <p class="lead">
+                                Die ehrenamtliche Mitarbeiterin verpflichtet sich, sämtliche Informationen, die ihr im Rahmen des
+                                Auswahlseminars für Freiwillige zur Kenntnis gelangen, streng vertraulich zu behandeln. Dies umfasst
+                                insbesondere:
+                            </p>
 
-    <ul>
-        <li>Persönliche Daten der Bewerber:innen (z.B. Name, Anschrift, Kontaktinformationen),</li>
-        <li>Informationen über den Auswahlprozess, Bewertungen und Entscheidungen,</li>
-        <li>Gespräche und Bewertungen, die während des Seminars geführt werden,</li>
-        <li>Andere vertrauliche Informationen, die im Zusammenhang mit dem Seminar offengelegt werden.</li>
-        <li>Die Weitergabe oder Veröffentlichung dieser Informationen an unbeteiligte Dritte ist untersagt.</li>
-    </ul>
+                            <ul class="list-group list-group-flush mb-4">
+                                <li class="list-group-item border-0 ps-0">
+                                    <i class="fas fa-user me-2 text-primary"></i>
+                                    Persönliche Daten der Bewerber:innen (z.B. Name, Anschrift, Kontaktinformationen),
+                                </li>
+                                <li class="list-group-item border-0 ps-0">
+                                    <i class="fas fa-clipboard-list me-2 text-primary"></i>
+                                    Informationen über den Auswahlprozess, Bewertungen und Entscheidungen,
+                                </li>
+                                <li class="list-group-item border-0 ps-0">
+                                    <i class="fas fa-comments me-2 text-primary"></i>
+                                    Gespräche und Bewertungen, die während des Seminars geführt werden,
+                                </li>
+                                <li class="list-group-item border-0 ps-0">
+                                    <i class="fas fa-lock me-2 text-primary"></i>
+                                    Andere vertrauliche Informationen, die im Zusammenhang mit dem Seminar offengelegt werden.
+                                </li>
+                                <li class="list-group-item border-0 ps-0">
+                                    <i class="fas fa-ban me-2 text-danger"></i>
+                                    Die Weitergabe oder Veröffentlichung dieser Informationen an unbeteiligte Dritte ist untersagt.
+                                </li>
+                            </ul>
 
-    <p>
-        Diese Verschwiegenheitspflicht gilt, um die Privatsphäre der Bewerber:innen zu schützen und sicherzustellen,
-        dass der Auswahlprozess fair und unvoreingenommen bleibt. Die gewonnenen Informationen dürfen ausschließlich zum
-        Zweck der Mitwirkung am Auswahlverfahren verwendet werden. Die Verpflichtung zur Vertraulichkeit gilt während
-        des Auswahlseminars sowie darüber hinaus unbefristet, auch nach Beendigung der ehrenamtlichen Tätigkeit. Diese
-        Vereinbarung unterliegt dem Recht der Bundesrepublik Deutschland. Gerichtsstand ist der Sitz der Organisation.
-    </p>
-    <br>
-    <p><strong>Meine Daten</strong></p>
-    {{ form.as_p }}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <p class="mb-0">
+                                    Diese Verschwiegenheitspflicht gilt, um die Privatsphäre der Bewerber:innen zu schützen und sicherzustellen,
+                                    dass der Auswahlprozess fair und unvoreingenommen bleibt. Die gewonnenen Informationen dürfen ausschließlich zum
+                                    Zweck der Mitwirkung am Auswahlverfahren verwendet werden. Die Verpflichtung zur Vertraulichkeit gilt während
+                                    des Auswahlseminars sowie darüber hinaus unbefristet, auch nach Beendigung der ehrenamtlichen Tätigkeit. Diese
+                                    Vereinbarung unterliegt dem Recht der Bundesrepublik Deutschland. Gerichtsstand ist der Sitz der Organisation.
+                                </p>
+                            </div>
+                        </div>
 
-    <br>
-    <label style="margin: 4px">
-        <input type="checkbox" name="verschwiegenheitspflicht" value="True" required onchange="if (!this.checked) {this.setCustomValidity('Bitte akzeptiere die Verschwiegenheitserklärung.')} else {this.setCustomValidity('')}"
-               oninvalid="this.setCustomValidity('Bitte akzeptiere die Verschwiegenheitserklärung.')">
-        Ich, <a id="my_first_name">{{bewerter.first_name}}</a> <a id="my_last_name">{{bewerter.last_name}}</a>, habe die
-        Verschwiegenheitserklärung gelesen und verstanden.
-    </label>
+                        <div class="mb-4">
+                            <h5 class="mb-3">
+                                <i class="fas fa-user-edit me-2"></i>Meine Daten
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+                                    {{ form.first_name }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+                                    {{ form.last_name }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                                    {{ form.email }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.geburtsdatum.id_for_label }}" class="form-label">{{ form.geburtsdatum.label }}</label>
+                                    {{ form.geburtsdatum }}
+                                </div>
+                            </div>
+                        </div>
 
-    <br>
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input type="checkbox" name="verschwiegenheitspflicht" value="True" required 
+                                       class="form-check-input" id="verschwiegenheitspflicht"
+                                       onchange="if (!this.checked) {this.setCustomValidity('Bitte akzeptiere die Verschwiegenheitserklärung.')} else {this.setCustomValidity('')}"
+                                       oninvalid="this.setCustomValidity('Bitte akzeptiere die Verschwiegenheitserklärung.')">
+                                <label class="form-check-label" for="verschwiegenheitspflicht">
+                                    Ich, <strong id="my_first_name" class="text-primary">{{bewerter.first_name}}</strong> 
+                                    <strong id="my_last_name" class="text-primary">{{bewerter.last_name}}</strong>, habe die
+                                    Verschwiegenheitserklärung gelesen und verstanden.
+                                </label>
+                            </div>
+                        </div>
 
-    <div class="center_div">
-        <button type="submit" class="submit_button center_button">Weiter</button>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-arrow-right me-2"></i>Weiter
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-
-</form>
+</div>
 
 <script>
-        document.getElementById('id_first_name').addEventListener('input', function (e) {
-            document.getElementById('my_first_name').innerHTML = e.target.value;
-        });
+    document.getElementById('id_first_name').addEventListener('input', function (e) {
+        document.getElementById('my_first_name').innerHTML = e.target.value;
+    });
 
-        document.getElementById('id_last_name').addEventListener('input', function (e) {
-            document.getElementById('my_last_name').innerHTML = e.target.value;
-        });
+    document.getElementById('id_last_name').addEventListener('input', function (e) {
+        document.getElementById('my_last_name').innerHTML = e.target.value;
+    });
 </script>
 
 {% endblock %}
