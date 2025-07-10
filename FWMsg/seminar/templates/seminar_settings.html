@@ -1,0 +1,580 @@
+{% extends 'seminar_base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="bi bi-gear-fill me-2"></i>Einstellungen
+        </h2>
+    </div>
+
+    <!-- Display messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills mb-4" id="settingsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="seminar-tab" data-bs-toggle="tab" data-bs-target="#seminar" type="button" role="tab">
+                <i class="bi bi-mortarboard me-1"></i>Seminar
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="einheit-tab" data-bs-toggle="tab" data-bs-target="#einheit" type="button" role="tab">
+                <i class="bi bi-people me-1"></i>Einheiten
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="kategorie-tab" data-bs-toggle="tab" data-bs-target="#kategorie" type="button" role="tab">
+                <i class="bi bi-tags me-1"></i>Kategorien
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="frage-tab" data-bs-toggle="tab" data-bs-target="#frage" type="button" role="tab">
+                <i class="bi bi-question-circle me-1"></i>Fragen
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="settingsTabsContent">
+        
+        <!-- Seminar Tab -->
+        <div class="tab-pane fade show active" id="seminar" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-mortarboard me-2"></i>Seminar Konfiguration
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if seminare %}
+                        {% for seminar in seminare %}
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="mb-2">{{ seminar.name }}</h6>
+                                <p class="text-muted mb-2">{{ seminar.description|default:"Keine Beschreibung vorhanden" }}</p>
+                                <div class="d-flex gap-2">
+                                    {% if seminar.deadline_start %}
+                                        <span class="badge bg-info">Start: {{ seminar.deadline_start|date:"d.m.Y H:i" }}</span>
+                                    {% endif %}
+                                    {% if seminar.deadline_end %}
+                                        <span class="badge bg-warning">Ende: {{ seminar.deadline_end|date:"d.m.Y H:i" }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button class="btn btn-outline-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#seminarModal" onclick="editSeminar({{ seminar.id }}, '{{ seminar.name|escapejs }}', '{{ seminar.description|escapejs }}', '{{ seminar.deadline_start|date:"Y-m-d\TH:i"|default:"" }}', '{{ seminar.deadline_end|date:"Y-m-d\TH:i"|default:"" }}')">
+                                    <i class="bi bi-pencil-square me-1"></i>Bearbeiten
+                                </button>
+                                <a href="?delete=seminar&id={{ seminar.id }}" class="btn btn-outline-danger btn-sm" onclick="return confirm('Seminar zurücksetzen und löschen?')">
+                                    <i class="bi bi-trash me-1"></i>Zurücksetzen
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-mortarboard fa-4x text-muted mb-3 opacity-25"></i>
+                            <h5 class="text-muted mb-2">Kein Seminar konfiguriert</h5>
+                            <p class="text-muted mb-3">Erstellen Sie ein Seminar für Ihre Organisation</p>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#seminarModal" onclick="resetSeminarForm()">
+                                <i class="fas fa-plus me-1"></i>Seminar erstellen
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Einheit Tab -->
+        <div class="tab-pane fade" id="einheit" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people me-2"></i>Einheiten
+                    </h5>
+                    <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#einheitModal" onclick="resetEinheitForm()">
+                        <i class="fas fa-plus me-1"></i>Hinzufügen
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if einheiten %}
+                        <div class="row g-3">
+                            {% for einheit in einheiten %}
+                            <div class="col-md-6">
+                                <div class="card h-100 border">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="card-title mb-1">{{ einheit.name }}</h6>
+                                                <p class="card-text text-muted small mb-0">
+                                                    {% if einheit.short_name %}
+                                                        Kurzname: {{ einheit.short_name }}
+                                                    {% else %}
+                                                        Kein Kurzname
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#einheitModal" onclick="editEinheit({{ einheit.id }}, '{{ einheit.name|escapejs }}', '{{ einheit.short_name|default:''|escapejs }}')">
+                                                        <i class="bi bi-pencil-square me-1"></i>Bearbeiten
+                                                    </button></li>
+                                                    <li><a class="dropdown-item text-danger" href="?delete=einheit&id={{ einheit.id }}" onclick="return confirm('Einheit löschen?')">
+                                                        <i class="bi bi-trash me-1"></i>Löschen
+                                                    </a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-people fa-4x text-muted mb-3 opacity-25"></i>
+                            <h5 class="text-muted mb-2">Keine Einheiten vorhanden</h5>
+                            <p class="text-muted mb-3">Erstellen Sie Einheiten für die Bewertung</p>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#einheitModal" onclick="resetEinheitForm()">
+                                <i class="bi bi-plus-lg me-1"></i>Erste Einheit erstellen
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Fragekategorie Tab -->
+        <div class="tab-pane fade" id="kategorie" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-tags me-2"></i>Fragekategorien
+                    </h5>
+                    <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#kategorieModal" onclick="resetKategorieForm()">
+                        <i class="bi bi-plus-lg me-1"></i>Hinzufügen
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if fragekategorien %}
+                        <div class="row g-3">
+                            {% for kategorie in fragekategorien %}
+                            <div class="col-md-6">
+                                <div class="card h-100 border">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="card-title mb-1">{{ kategorie.name }}</h6>
+                                                <p class="card-text text-muted small mb-0">
+                                                    {% if kategorie.short_name %}
+                                                        Kurzname: {{ kategorie.short_name }}
+                                                    {% else %}
+                                                        Kein Kurzname
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kategorieModal" onclick="editKategorie({{ kategorie.id }}, '{{ kategorie.name|escapejs }}', '{{ kategorie.short_name|default:''|escapejs }}')">
+                                                        <i class="bi bi-pencil-square me-1"></i>Bearbeiten
+                                                    </button></li>
+                                                    <li><a class="dropdown-item text-danger" href="?delete=fragekategorie&id={{ kategorie.id }}" onclick="return confirm('Kategorie löschen?')">
+                                                        <i class="bi bi-trash me-1"></i>Löschen
+                                                    </a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-tags fa-4x text-muted mb-3 opacity-25"></i>
+                            <h5 class="text-muted mb-2">Keine Kategorien vorhanden</h5>
+                            <p class="text-muted mb-3">Erstellen Sie Kategorien für die Fragen</p>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kategorieModal" onclick="resetKategorieForm()">
+                                <i class="bi bi-plus-lg me-1"></i>Erste Kategorie erstellen
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Frage Tab -->
+        <div class="tab-pane fade" id="frage" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-question-circle me-2"></i>Fragen
+                    </h5>
+                    <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#frageModal" onclick="resetFrageForm()">
+                        <i class="bi bi-plus-lg me-1"></i>Hinzufügen
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if fragen %}
+                        <div class="row g-3">
+                            {% for frage in fragen %}
+                            <div class="col-12">
+                                <div class="card border">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="card-title mb-2">{{ frage.text }}</h6>
+                                                {% if frage.explanation %}
+                                                    <p class="card-text text-muted small mb-2">{{ frage.explanation }}</p>
+                                                {% endif %}
+                                                <div class="d-flex gap-2">
+                                                    <span class="badge bg-secondary">{{ frage.kategorie.name }}</span>
+                                                    <span class="badge bg-info">{{ frage.min }}-{{ frage.max }} Punkte</span>
+                                                </div>
+                                            </div>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#frageModal" onclick="editFrage({{ frage.id }}, '{{ frage.text|escapejs }}', '{{ frage.explanation|escapejs|default:"" }}', {{ frage.kategorie.id }}, {{ frage.min }}, {{ frage.max }})">
+                                                        <i class="bi bi-pencil-square me-1"></i>Bearbeiten
+                                                    </button></li>
+                                                    <li><a class="dropdown-item text-danger" href="?delete=frage&id={{ frage.id }}" onclick="return confirm('Frage löschen?')">
+                                                        <i class="bi bi-trash me-1"></i>Löschen
+                                                    </a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-question-circle fa-4x text-muted mb-3 opacity-25"></i>
+                            <h5 class="text-muted mb-2">Keine Fragen vorhanden</h5>
+                            <p class="text-muted mb-3">Erstellen Sie Fragen für die Bewertung</p>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#frageModal" onclick="resetFrageForm()">
+                                <i class="bi bi-plus-lg me-1"></i>Erste Frage erstellen
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Seminar Modal -->
+<div class="modal fade" id="seminarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="seminarModalTitle">Seminar hinzufügen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" id="seminarForm">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="seminar">
+                    <input type="hidden" name="seminar_id" id="seminar_id">
+                    
+                    <div class="mb-3">
+                        {{ seminar_form.name.label_tag }}
+                        {{ seminar_form.name }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ seminar_form.description.label_tag }}
+                        {{ seminar_form.description }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ seminar_form.deadline_start.label_tag }}
+                        {{ seminar_form.deadline_start }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ seminar_form.deadline_end.label_tag }}
+                        {{ seminar_form.deadline_end }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i>Speichern
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Einheit Modal -->
+<div class="modal fade" id="einheitModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="einheitModalTitle">Einheit hinzufügen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" id="einheitForm">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="einheit">
+                    <input type="hidden" name="einheit_id" id="einheit_id">
+                    
+                    <div class="mb-3">
+                        {{ einheit_form.name.label_tag }}
+                        {{ einheit_form.name }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ einheit_form.short_name.label_tag }}
+                        {{ einheit_form.short_name }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i>Speichern
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Kategorie Modal -->
+<div class="modal fade" id="kategorieModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="kategorieModalTitle">Kategorie hinzufügen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" id="kategorieForm">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="fragekategorie">
+                    <input type="hidden" name="kategorie_id" id="kategorie_id">
+                    
+                    <div class="mb-3">
+                        {{ fragekategorie_form.name.label_tag }}
+                        {{ fragekategorie_form.name }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ fragekategorie_form.short_name.label_tag }}
+                        {{ fragekategorie_form.short_name }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i>Speichern
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Frage Modal -->
+<div class="modal fade" id="frageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="frageModalTitle">Frage hinzufügen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" id="frageForm">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="frage">
+                    <input type="hidden" name="frage_id" id="frage_id">
+                    
+                    <div class="mb-3">
+                        {{ frage_form.text.label_tag }}
+                        {{ frage_form.text }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ frage_form.explanation.label_tag }}
+                        {{ frage_form.explanation }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ frage_form.kategorie.label_tag }}
+                        {{ frage_form.kategorie }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ frage_form.min.label_tag }}
+                                {{ frage_form.min }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ frage_form.max.label_tag }}
+                                {{ frage_form.max }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i>Speichern
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+// Seminar functions
+function editSeminar(id, name, description, deadline_start, deadline_end) {
+    document.getElementById('seminar_id').value = id;
+    document.getElementById('id_name').value = name;
+    document.getElementById('id_description').value = description;
+    document.getElementById('id_deadline_start').value = deadline_start;
+    document.getElementById('id_deadline_end').value = deadline_end;
+    document.getElementById('seminarModalTitle').textContent = 'Seminar bearbeiten';
+}
+
+function resetSeminarForm() {
+    document.getElementById('seminarForm').reset();
+    document.getElementById('seminar_id').value = '';
+    document.getElementById('seminarModalTitle').textContent = 'Seminar hinzufügen';
+}
+
+// Einheit functions
+function editEinheit(id, name, short_name) {
+    document.getElementById('einheit_id').value = id;
+    document.querySelector('#einheitForm #id_name').value = name;
+    document.querySelector('#einheitForm #id_short_name').value = short_name;
+    document.getElementById('einheitModalTitle').textContent = 'Einheit bearbeiten';
+}
+
+function resetEinheitForm() {
+    document.getElementById('einheitForm').reset();
+    document.getElementById('einheit_id').value = '';
+    document.getElementById('einheitModalTitle').textContent = 'Einheit hinzufügen';
+}
+
+// Kategorie functions
+function editKategorie(id, name, short_name) {
+    document.getElementById('kategorie_id').value = id;
+    document.querySelector('#kategorieForm #id_name').value = name;
+    document.querySelector('#kategorieForm #id_short_name').value = short_name;
+    document.getElementById('kategorieModalTitle').textContent = 'Kategorie bearbeiten';
+}
+
+function resetKategorieForm() {
+    document.getElementById('kategorieForm').reset();
+    document.getElementById('kategorie_id').value = '';
+    document.getElementById('kategorieModalTitle').textContent = 'Kategorie hinzufügen';
+}
+
+// Frage functions
+function editFrage(id, text, explanation, kategorie_id, min, max) {
+    document.getElementById('frage_id').value = id;
+    document.querySelector('#frageForm #id_text').value = text;
+    document.querySelector('#frageForm #id_explanation').value = explanation;
+    document.querySelector('#frageForm #id_kategorie').value = kategorie_id;
+    document.querySelector('#frageForm #id_min').value = min;
+    document.querySelector('#frageForm #id_max').value = max;
+    document.getElementById('frageModalTitle').textContent = 'Frage bearbeiten';
+}
+
+function resetFrageForm() {
+    document.getElementById('frageForm').reset();
+    document.getElementById('frage_id').value = '';
+    document.getElementById('frageModalTitle').textContent = 'Frage hinzufügen';
+}
+
+// Focus first input when modal opens and close modal after form submission
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle URL fragments to activate correct tab
+    function activateTabFromHash() {
+        const hash = window.location.hash;
+        if (hash) {
+            const tabId = hash.substring(1); // Remove the # symbol
+            const tabButton = document.getElementById(tabId + '-tab');
+            const tabContent = document.getElementById(tabId);
+            
+            if (tabButton && tabContent) {
+                // Remove active class from all tabs
+                document.querySelectorAll('.nav-link').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('show', 'active');
+                });
+                
+                // Activate the target tab
+                tabButton.classList.add('active');
+                tabContent.classList.add('show', 'active');
+            }
+        }
+    }
+    
+    // Activate tab on page load
+    activateTabFromHash();
+    
+    // Activate tab when hash changes
+    window.addEventListener('hashchange', activateTabFromHash);
+    
+    // Auto-focus first input when modal opens
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.addEventListener('shown.bs.modal', function() {
+            const firstInput = modal.querySelector('input[type="text"], textarea, select');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        });
+    });
+    
+    // Auto-close modals after successful form submission
+    const forms = document.querySelectorAll('form[method="post"]');
+    forms.forEach(form => {
+        form.addEventListener('submit', function() {
+            setTimeout(() => {
+                const modals = document.querySelectorAll('.modal.show');
+                modals.forEach(modal => {
+                    bootstrap.Modal.getInstance(modal)?.hide();
+                });
+            }, 100);
+        });
+    });
+});
+</script>
+
+{% comment %} <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> {% endcomment %}
+
+{% endblock %} 

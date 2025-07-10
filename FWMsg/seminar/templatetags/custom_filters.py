@@ -5,8 +5,27 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from Global.models import Einsatzstelle2 as Einsatzstelle, CustomUser
+from seminar.models import Seminar
 
 register = template.Library()
+
+
+@register.filter
+def get_seminar(org):
+    print('org', org)
+    return Seminar.objects.get_or_create(org=org, defaults={'name': 'Auswahlseminar', 'description': 'Hallo Welt'})[0]
+
+
+@register.filter
+def get_seminar_name(seminar):
+    return seminar.name
+
+
+@register.filter
+def get_seminar_description(seminar):
+    return seminar.description
+
+
 
 
 @register.filter
