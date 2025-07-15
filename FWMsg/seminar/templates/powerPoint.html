@@ -34,7 +34,7 @@
             {% endif %}
             ; border-radius: 50%"></div>
             <a class="pp_hamburger_menu_point" href="{% url 'evaluate_all' %}?f={{forloop.counter|subtract:1}}"
-            >{{result.freiwilliger__first_name}} {{result.freiwilliger__last_name}} <small>({{result.avg_total|myround:1}})</small></a>
+            >{{result.bewerber__user__first_name}} {{result.bewerber__user__last_name}} <small>({{result.avg_total|myround:1}})</small></a>
         </div>
 
             {% endfor %}
@@ -59,7 +59,7 @@
         ></div>
 
         <div class="pp_second_top_div">
-            <h1 class="pp_name_field">{{freiwilliger.first_name}} {{freiwilliger.last_name}}</h1>
+            <h1 class="pp_name_field">{{freiwilliger.user.first_name}} {{freiwilliger.user.last_name}}</h1>
 
             <div class="pp_second_top_subdiv">
                 <div class="pp_steckbrief_container">
@@ -185,7 +185,7 @@
         </div>
 
         <a class="bmw_logo" href="{% url 'seminar_home' %}">
-            <img id="logo" src="../static/img/bmw_logo.png" alt="BMW Logo" class="bmw_logo">
+            <img id="logo" src="{% url 'serve_image' request.user.org.id %}" alt="{{request.user.org}} Logo" class="bmw_logo">
         </a>
 
     </div>

@@ -245,6 +245,7 @@ def insert_bewertung(data):
         frage = Frage.objects.get(id=data['frage'])
 
         bewertung, created = Bewertung.objects.get_or_create(
+            org=bewerter.org,
             bewerber=freiwilliger,
             einheit=einheit,
             frage=frage,
@@ -278,6 +279,7 @@ def insert_comment(data):
         defaults = {'show_name_at_presentation': show_name, 'text': text, 'last_modified': datetime.now()}
 
         comment_data = {
+            'org': bewerter.org,
             'freiwilliger': freiwilliger,
             'einheit': einheit,
             'bewerter': bewerter,
@@ -563,21 +565,36 @@ def insert_geeingnet(request):
 
 
 @required_role('O')
-def assign(request):
+def assign(request, scroll_to=None):
     stelle = request.GET.get('land')
     freiwilliger = request.GET.get('fw')
 
     if stelle and freiwilliger:
-        freiwilliger = Bewerber.objects.get(id=freiwilliger)
-        if stelle == 'None':
-            freiwilliger.zuteilung = None
+        try:
+            freiwilliger_obj = Bewerber.objects.get(id=freiwilliger, org=request.user.org)
+            if stelle == 'None':
+                freiwilliger_obj.zuteilung = None
+            else:
+                stelle_obj = Einsatzstelle.objects.get(id=stelle, org=request.user.org)
+                freiwilliger_obj.zuteilung = stelle_obj
+            
+            freiwilliger_obj.save()
+        except (Bewerber.DoesNotExist, Einsatzstelle.DoesNotExist):
+            messages.error(request, 'Fehler bei der Zuteilung. Bitte versuchen Sie es erneut.')
+        
+        if stelle and stelle != 'None':
+            return redirect('assign_scroll', scroll_to=stelle)
         else:
-            stelle = Einsatzstelle.objects.get(id=stelle)
-            freiwilliger.zuteilung = stelle
-        freiwilliger.save()
+            return redirect('assign')
 
+    # Get all volunteers for the current organization
     freiwillige = (
         Bewerber.objects
+        .filter(org=request.user.org)
+        .select_related('user', 'zuteilung', 'first_wish_einsatzstelle', 'first_wish_einsatzland',
+                       'second_wish_einsatzstelle', 'second_wish_einsatzland',
+                       'third_wish_einsatzstelle', 'third_wish_einsatzland',
+                       'no_wish_einsatzstelle', 'no_wish_einsatzland')
         .annotate(
             custom_order=Case(
                 When(endbewertung__startswith='G', then=0),
@@ -593,15 +610,15 @@ def assign(request):
     freiwillige_ohne_zuteilung = freiwillige.filter(zuteilung=None)
     freiwillige_mit_zuteilung = freiwillige.exclude(zuteilung=None)
 
-    laender = Einsatzland.objects.filter().order_by('name')
-    # laender = Einsatzland.objects.all()
-
+    # Get countries for the current organization
+    laender = Einsatzland.objects.filter(org=request.user.org).order_by('name')
+    
     laender_arg = []
 
     for land in laender:
         land_dict = {}
         land_dict['land'] = land
-        einsatzstellen = Einsatzstelle.objects.filter(land=land)
+        einsatzstellen = Einsatzstelle.objects.filter(land=land, org=request.user.org).order_by('name')
         land_dict['stellen'] = []
         for stelle in einsatzstellen:
             freiwillige_land = (
@@ -624,7 +641,8 @@ def assign(request):
         'freiwillige': freiwillige,
         'freiwillige_ohne_zuteilung': freiwillige_ohne_zuteilung,
         'freiwillige_mit_zuteilung': freiwillige_mit_zuteilung,
-        'laender': laender_arg
+        'laender': laender_arg,
+        'scroll_to': scroll_to
     }
 
     return render(request, 'assign.html', context=context)
@@ -632,16 +650,25 @@ def assign(request):
 
 @required_role('O')
 def auto_assign(request):
-    freiwillige_geeignet = Bewerber.objects.filter(endbewertung__startswith='G', zuteilung=None).order_by('note')
-    freiwillige_bedingt_geeignet = Bewerber.objects.filter(endbewertung__startswith='B', zuteilung=None).order_by(
-        'note')
+    org = request.user.org
+    
+    freiwillige_geeignet = Bewerber.objects.filter(
+        org=org, endbewertung__startswith='G', zuteilung=None
+    ).order_by('note')
+    freiwillige_bedingt_geeignet = Bewerber.objects.filter(
+        org=org, endbewertung__startswith='B', zuteilung=None
+    ).order_by('note')
 
     all_freiwille = list(freiwillige_geeignet) + list(freiwillige_bedingt_geeignet)
+    
+    assigned_count = 0
 
     for freiwilliger in all_freiwille:
         def stelle_verfuegbar(stelle):
-            freiwilliger_with_stelle = Bewerber.objects.filter(zuteilung=stelle)
-            return len(freiwilliger_with_stelle) < stelle.max_freiwillige
+            if not stelle or stelle.max_freiwillige is None:
+                return False
+            freiwilliger_with_stelle = Bewerber.objects.filter(zuteilung=stelle, org=org)
+            return freiwilliger_with_stelle.count() < stelle.max_freiwillige
 
         first_wish = freiwilliger.first_wish_einsatzstelle
         second_wish = freiwilliger.second_wish_einsatzstelle
@@ -653,9 +680,15 @@ def auto_assign(request):
             if wish and stelle_verfuegbar(wish):
                 freiwilliger.zuteilung = wish
                 freiwilliger.save()
+                assigned_count += 1
                 break
 
-    return redirect('zuteilung')
+    if assigned_count > 0:
+        messages.success(request, f'Automatische Zuteilung abgeschlossen. {assigned_count} Freiwillige wurden zugeteilt.')
+    else:
+        messages.info(request, 'Keine automatischen Zuweisungen möglich. Alle Wünsche sind bereits belegt oder nicht verfügbar.')
+
+    return redirect('assign')
 
 
 @required_role('O')
