@@ -239,10 +239,10 @@ def first_login(request, username=None, einmalpasswort=None):
                 return redirect('first_login')
     else:
         initial = {}
-        if username:
-            initial['username'] = username
-        if einmalpasswort:
-            initial['einmalpasswort'] = einmalpasswort
+        if username or request.GET.get('username'):
+            initial['username'] = username or request.GET.get('username')
+        if einmalpasswort or request.GET.get('einmalpasswort'):
+            initial['einmalpasswort'] = einmalpasswort or request.GET.get('einmalpasswort')
         form = FirstLoginForm(initial=initial)
 
     return render(request, 'first_login.html', {'form': form})
