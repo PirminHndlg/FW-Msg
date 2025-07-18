@@ -1,7 +1,8 @@
 from celery import shared_task
 import base64
 from django.urls import reverse
-
+from FWMsg import settings
+import logging
 from Global.push_notification import send_push_notification_to_user
 from Global.send_email import send_mail_smtp, format_register_email_org, format_aufgabe_erledigt_email, format_mail_calendar_reminder_email
 
@@ -17,25 +18,25 @@ def send_register_email_task(customuser_id):
     einmalpasswort = customuser.einmalpasswort
     freiwilliger_name = f"{user.first_name} {user.last_name}"
     username = user.username
-    action_url = f'https://volunteer.solutions/first_login?username={username}&einmalpasswort={einmalpasswort}'
+    action_url = f'{settings.DOMAIN_HOST}{reverse("first_login_with_params", args=[username, einmalpasswort])}'
     
     email_content = format_register_email_org(einmalpasswort, action_url, org_name, freiwilliger_name, username)
     subject = f'Account erstellt: {freiwilliger_name}'
     if send_mail_smtp(user.email, subject, email_content, reply_to=org.email):
         return True
+    logging.error(f"Error sending register email: {user.email} {subject}")
     return False
 
 @shared_task
 def send_aufgabe_erledigt_email_task(aufgabe_id):
     from Global.models import UserAufgaben
-    from django.urls import reverse
     
     try:
         aufgabe = UserAufgaben.objects.get(id=aufgabe_id)
         mail_to = ','.join(aufgabe.benachrichtigung_cc.split(',')) if aufgabe.benachrichtigung_cc else None
         
         # Create action URL
-        action_url = f"https://volunteer.solutions{reverse('download_aufgabe', args=[aufgabe.id])}"
+        action_url = f"{settings.DOMAIN_HOST}{reverse('download_aufgabe', args=[aufgabe.id])}"
         
         # Check if there's a file uploaded
         has_file_upload = bool(aufgabe.file)
@@ -56,7 +57,7 @@ def send_aufgabe_erledigt_email_task(aufgabe_id):
         
         return send_mail_smtp(org_email, subject, email_content, cc=mail_to)
     except Exception as e:
-        print(f"Error sending task completion email: {e}")
+        logging.error(f"Error sending task completion email: {e}")
         return False
 
 @shared_task
@@ -82,7 +83,7 @@ def send_mail_calendar_reminder_task(kalender_event_id, user_id):
     kalender_event = KalenderEvent.objects.get(id=kalender_event_id)
     user = User.objects.get(id=user_id)
     subject = f'Neuer Kalendereintrag: {kalender_event.title}'
-    action_url = f"https://volunteer.solutions{reverse('kalender_event', args=[kalender_event.id])}"
+    action_url = f"{settings.DOMAIN_HOST}{reverse('kalender_event', args=[kalender_event.id])}"
     unsubscribe_url = user.customuser.get_unsubscribe_url()
     org_name = kalender_event.org.name
     with open(kalender_event.org.logo.path, "rb") as org_logo:
