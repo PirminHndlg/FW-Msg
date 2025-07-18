@@ -99,7 +99,7 @@ class CustomUser(OrgModel):
 
         if self.person_cluster.view == 'F':
             from FW.tasks import send_register_email_task
-            send_register_email_task.s(self.user.id).apply_async(countdown=2)
+            send_register_email_task.s(self.id).apply_async(countdown=2)
         else:
             from ORG.tasks import send_register_email_task
             send_register_email_task.s(self.id).apply_async(countdown=2)

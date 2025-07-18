@@ -1,6 +1,8 @@
 import base64
 from datetime import datetime, timedelta
 from django.db.models import Q
+from django.urls import reverse
+from FWMsg import settings
 from celery import shared_task
 
 from django.contrib.auth.models import User
@@ -19,7 +21,7 @@ def send_register_email_task(user_id):
     einmalpasswort = user.customuser.einmalpasswort
     user_name = f"{user.first_name} {user.last_name}"
     username = user.username
-    action_url = f'https://volunteer.solutions/first_login?username={username}&einmalpasswort={einmalpasswort}'
+    action_url = f'{settings.DOMAIN_HOST}{reverse("first_login_with_params", args=[username, einmalpasswort])}'
     
     email_content = format_register_email_fw(einmalpasswort, action_url, base64_image, org_name, user_name, username)
     subject = f'Account erstellt: {user_name}'
