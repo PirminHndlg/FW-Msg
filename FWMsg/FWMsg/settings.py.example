@@ -36,8 +36,11 @@ try:
 
     # Configure allowed hosts properly - never use ['*'] in production
     ALLOWED_HOSTS = secrets["allowed_hosts"]
-except:
-    print("error")
+    
+    # Domain host for web push notifications
+    DOMAIN_HOST = secrets["domain_host"]
+except Exception as e:
+    print(f"error loading secrets.json: {e}")
 
 # Security settings - enable these in production
 if not DEBUG:
