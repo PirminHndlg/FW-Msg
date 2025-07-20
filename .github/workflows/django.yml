@@ -54,18 +54,6 @@ jobs:
         sed -i 's/DEBUG = True/DEBUG = False/' FWMsg/settings.py
         sed -i 's#^SECRET_KEY = .*#SECRET_KEY = "django-insecure-test-key-for-ci"#' FWMsg/settings.py
 
-    - name: Wait for Redis
-      # block until Redis healthcheck passes
-      run: |
-        for i in {1..10}; do
-          if redis-cli ping; then
-            echo "Redis is up!"
-            break
-          fi
-          echo "Waiting for Redis..."
-          sleep 3
-        done
-
     - name: Run Tests
       run: |
         cd FWMsg
