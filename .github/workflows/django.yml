@@ -53,6 +53,8 @@ jobs:
         cp FWMsg/.secrets.json.example FWMsg/.secrets.json
         sed -i 's/DEBUG = True/DEBUG = False/' FWMsg/settings.py
         sed -i 's#^SECRET_KEY = .*#SECRET_KEY = "django-insecure-test-key-for-ci"#' FWMsg/settings.py
+        # Disable file logging for CI by commenting out the problematic file handler
+        sed -i "s|'filename': '/var/log/django/error.log',|'filename': '/tmp/django_error.log',|" FWMsg/settings.py
 
     - name: Run Tests
       run: |
