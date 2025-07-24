@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'Global.apps.GlobalConfig',
     'TEAM.apps.TeamConfig',
     'BW.apps.BwConfig',
+    'survey.apps.SurveyConfig',
     'widget_tweaks',
     'celery',
     'django_celery_results',
