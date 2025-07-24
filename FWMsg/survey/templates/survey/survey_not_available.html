@@ -1,0 +1,99 @@
+{% extends "survey/base_survey.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Survey Not Available" %} - {{ survey.title }}{% endblock %}
+
+{% block header %}
+<div class="survey-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <div class="mb-4">
+                    <i class="fas fa-exclamation-triangle fa-5x text-warning"></i>
+                </div>
+                <h1 class="display-5 mb-3">{% trans "Survey Not Available" %}</h1>
+                <p class="lead">{% trans "This survey is currently not accepting responses" %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="survey-card card">
+            <div class="card-header">
+                <h3 class="mb-0">{{ survey.title }}</h3>
+            </div>
+            <div class="card-body text-center">
+                {% if survey.description %}
+                    <p class="text-muted mb-4">{{ survey.description|linebreaks }}</p>
+                {% endif %}
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {% if not survey.is_active %}
+                        {% trans "This survey has been deactivated by the administrator." %}
+                    {% elif survey.start_date and survey.start_date > now %}
+                        {% trans "This survey has not started yet." %}
+                        <br>
+                        <strong>{% trans "Start date:" %}</strong> {{ survey.start_date|date:"F d, Y H:i" }}
+                    {% elif survey.end_date and survey.end_date < now %}
+                        {% trans "This survey has ended." %}
+                        <br>
+                        <strong>{% trans "End date:" %}</strong> {{ survey.end_date|date:"F d, Y H:i" }}
+                    {% elif survey.max_responses and survey.response_count >= survey.max_responses %}
+                        {% trans "This survey has reached its maximum number of responses." %}
+                        <br>
+                        <strong>{% trans "Maximum responses:" %}</strong> {{ survey.max_responses }}
+                    {% else %}
+                        {% trans "This survey is temporarily unavailable. Please try again later." %}
+                    {% endif %}
+                </div>
+                
+                <div class="row justify-content-center mt-4">
+                    <div class="col-md-6">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ survey.response_count }}</div>
+                            <div class="stats-label">{% trans "Responses Received" %}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>
+                        {% trans "Go to Home" %}
+                    </a>
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'survey:survey_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-list me-2"></i>
+                            {% trans "My Surveys" %}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contact Information -->
+        <div class="survey-card card mt-4">
+            <div class="card-body text-center">
+                <h5 class="mb-3">{% trans "Need Help?" %}</h5>
+                <p class="text-muted">
+                    {% trans "If you believe this is an error or need assistance, please contact the survey administrator." %}
+                </p>
+                
+                {% if survey.created_by.email %}
+                    <a href="mailto:{{ survey.created_by.email }}?subject=Survey Access Issue - {{ survey.title|urlencode }}" 
+                       class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-envelope me-2"></i>
+                        {% trans "Contact Administrator" %}
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

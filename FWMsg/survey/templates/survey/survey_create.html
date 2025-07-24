@@ -1,0 +1,171 @@
+{% extends "survey/base_survey.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block title %}{% trans "Create Survey" %}{% endblock %}
+
+{% block header %}
+<div class="survey-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-5 mb-3">
+                    <i class="fas fa-plus-circle me-3"></i>
+                    {% trans "Create New Survey" %}
+                </h1>
+                <p class="lead">{% trans "Build your survey and start collecting responses" %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="survey-card card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-clipboard-list me-2"></i>
+                    {% trans "Survey Details" %}
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">
+                            <strong>{{ form.title.label }}</strong>
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.title|add_class:'form-control' }}
+                        {% if form.title.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.title.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">{% trans "A descriptive title for your survey" %}</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            <strong>{{ form.description.label }}</strong>
+                        </label>
+                        {{ form.description|add_class:'form-control' }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.description.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">{% trans "Optional description that will be shown to participants" %}</div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                                <strong>{{ form.start_date.label }}</strong>
+                            </label>
+                            {{ form.start_date|add_class:'form-control' }}
+                            {% if form.start_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.start_date.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">{% trans "When the survey becomes available" %}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.end_date.id_for_label }}" class="form-label">
+                                <strong>{{ form.end_date.label }}</strong>
+                            </label>
+                            {{ form.end_date|add_class:'form-control' }}
+                            {% if form.end_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.end_date.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">{% trans "When the survey closes" %}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.max_responses.id_for_label }}" class="form-label">
+                            <strong>{{ form.max_responses.label }}</strong>
+                        </label>
+                        {{ form.max_responses|add_class:'form-control' }}
+                        {% if form.max_responses.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.max_responses.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">{% trans "Maximum number of responses (leave empty for unlimited)" %}</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            {{ form.allow_anonymous|add_class:'form-check-input' }}
+                            <label class="form-check-label" for="{{ form.allow_anonymous.id_for_label }}">
+                                <strong>{{ form.allow_anonymous.label }}</strong>
+                            </label>
+                            {% if form.allow_anonymous.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.allow_anonymous.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">{% trans "Allow people to participate without logging in" %}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'survey:survey_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            {% trans "Back to Surveys" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            {% trans "Create Survey" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Help Card -->
+        <div class="survey-card card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-question-circle me-2"></i>
+                    {% trans "Next Steps" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <p>{% trans "After creating your survey, you'll be able to:" %}</p>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-plus-circle text-success me-2"></i>
+                        {% trans "Add questions with different types (text, multiple choice, etc.)" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-share-alt text-info me-2"></i>
+                        {% trans "Share the survey URL with participants" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-chart-bar text-warning me-2"></i>
+                        {% trans "View responses and analytics" %}
+                    </li>
+                    <li>
+                        <i class="fas fa-download text-primary me-2"></i>
+                        {% trans "Export results for further analysis" %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

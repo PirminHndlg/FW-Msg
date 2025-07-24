@@ -1,0 +1,324 @@
+{% load static %}
+{% load i18n %}
+{% load base_filter %}
+<!DOCTYPE html>
+<html lang="{% get_current_language as LANGUAGE_CODE %}{{ LANGUAGE_CODE }}">
+<head>
+    {% include 'header.html' %}
+    <title>{% block title %}{% trans "Survey" %}{% endblock %} - Volunteer.Solutions</title>
+    
+    <style>
+        /* Survey-specific styling that integrates with the main color scheme */
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .survey-header {
+            {% comment %} background: linear-gradient(135deg, var(--color-primary), var(--secondary_color)); {% endcomment %}
+            background-color: var(--color-primary);
+            color: var(--text_color_on_org_color);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .survey-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .survey-card .card-header {
+            background-color: #fff;
+            border-bottom: 2px solid #e9ecef;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 1.5rem;
+        }
+        
+        .survey-card .card-body {
+            padding: 2rem;
+        }
+        
+        .question-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .question-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .question-header {
+            background-color: #f8f9fa;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .question-body {
+            padding: 1.5rem;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            padding: 0.75rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+        }
+        
+        .btn {
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            color: var(--text_color_on_org_color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .alert {
+            border-radius: 8px;
+            border: none;
+        }
+        
+        .survey-progress {
+            height: 6px;
+            border-radius: 3px;
+            background-color: #e9ecef;
+            margin-bottom: 2rem;
+        }
+        
+        .survey-progress .progress-bar {
+            border-radius: 3px;
+        }
+        
+        .stats-card {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+        
+        .stats-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--color-primary);
+        }
+        
+        .stats-label {
+            color: var(--secondary_color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Survey-specific components with organization colors */
+        .survey-badge-primary {
+            background-color: var(--color-primary);
+            color: var(--text_color_on_org_color);
+        }
+        
+        .survey-badge-secondary {
+            background-color: var(--secondary_color);
+            color: var(--text_color_on_org_color);
+        }
+        
+        /* Progress bars and indicators */
+        .progress-bar {
+            background-color: var(--color-primary);
+        }
+        
+        /* Links and interactive elements */
+        a {
+            color: var(--color-primary);
+        }
+        
+        a:hover {
+            color: var(--color-primary);
+            opacity: 0.8;
+        }
+        
+        /* Form check elements */
+        .form-check-input:checked {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+        
+        /* Badges with organization colors */
+        .badge.bg-primary {
+            background-color: var(--color-primary) !important;
+            color: var(--text_color_on_org_color);
+        }
+        
+        .badge.bg-secondary {
+            background-color: var(--secondary_color) !important;
+            color: var(--text_color_on_org_color);
+        }
+        
+        /* Navigation styling */
+        .navbar-brand {
+            color: var(--text_color_on_org_color) !important;
+        }
+        
+        .navbar-dark .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .navbar-dark .navbar-nav .nav-link:hover {
+            color: var(--color-primary);
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .survey-header {
+                padding: 1rem 0;
+                margin-bottom: 1rem;
+            }
+            
+            .survey-card .card-body {
+                padding: 1rem;
+            }
+            
+            .question-body {
+                padding: 1rem;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--color-primary);">
+        <div class="container">
+            <a class="navbar-brand" href="{% if user.role == 'O' or user.role == 'A' or user.is_superuser %}{% url 'survey:survey_list' %}{% else %}{% url 'index_home' %}{% endif %}" style="color: var(--text_color_on_org_color);">
+                <i class="fas fa-poll-h me-2"></i>
+                {% if org %}
+                    {{ org.name }} - {% trans "Survey" %}
+                {% else %}
+                    Volunteer.Solutions Survey
+                {% endif %}
+            </a>
+
+            <a class="navbar-brand" href="{% url 'index_home' %}" style="color: var(--text_color_on_org_color);">
+                <i class="fas fa-home me-2"></i>
+                {% trans "Home" %}
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'survey:survey_list' %}" style="color: var(--text_color_on_org_color);">
+                                <i class="fas fa-list me-1"></i>{% trans "My Surveys" %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'survey:survey_create' %}" style="color: var(--text_color_on_org_color);">
+                                <i class="fas fa-plus me-1"></i>{% trans "Create Survey" %}
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" style="color: var(--text_color_on_org_color);">
+                                <i class="fas fa-user me-1"></i>{{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'survey:survey_list' %}">{% trans "Home" %}</a></li>
+                                {% if user.is_superuser or user.is_staff %}
+                                    <li><a class="dropdown-item" href="{% url 'survey:admin_survey_list' %}">{% trans "Admin: All Surveys" %}</a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'admin:logout' %}">{% trans "Logout" %}</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin:login' %}" style="color: var(--text_color_on_org_color);">
+                                <i class="fas fa-sign-in-alt me-1"></i>{% trans "Login" %}
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block header %}{% endblock %}
+        
+        <div class="container">
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'warning' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-4 mt-5" style="background-color: var(--secondary_color); color: var(--text_color_on_org_color);">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>
+                        {% if org %}
+                            {{ org.name }} - {% trans "Survey System" %}
+                        {% else %}
+                        Volunteer.Solutions Survey System
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">&copy; {% now "Y" %} 
+                        {% if org %}
+                            {{ org.name }}
+                        {% else %}
+                            Volunteer.Solutions
+                        {% endif %}
+                        . {% trans "All rights reserved." %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript dependencies are already loaded from header.html -->
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

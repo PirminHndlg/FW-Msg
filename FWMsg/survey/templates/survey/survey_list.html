@@ -1,0 +1,217 @@
+{% extends "survey/base_survey.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "My Surveys" %}{% endblock %}
+
+{% block header %}
+<div class="survey-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-5 mb-3">
+                    <i class="fas fa-list me-3"></i>
+                    {% trans "My Surveys" %}
+                </h1>
+                <p class="lead">{% trans "Manage and view your surveys" %}</p>
+                <a href="{% url 'survey:survey_create' %}" class="btn btn-light btn-lg">
+                    <i class="fas fa-plus me-2"></i>
+                    {% trans "Create New Survey" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    {% for survey in surveys %}
+        <div class="col-lg-6 col-xl-4 mb-4">
+            <div class="survey-card card h-100">
+                <div class="card-header d-flex justify-content-between align-items-start">
+                    <h5 class="card-title mb-0">{{ survey.title }}</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'survey:survey_manage' survey.pk %}">
+                                    <i class="fas fa-cog me-2"></i>{% trans "Manage" %}
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'survey:survey_update' survey.pk %}">
+                                    <i class="fas fa-edit me-2"></i>{% trans "Edit" %}
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'survey:survey_results' survey.pk %}">
+                                    <i class="fas fa-chart-bar me-2"></i>{% trans "Results" %}
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'survey:survey_delete' survey.pk %}">
+                                    <i class="fas fa-trash me-2"></i>{% trans "Delete" %}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if survey.description %}
+                        <p class="card-text text-muted">{{ survey.description|truncatechars:100 }}</p>
+                    {% endif %}
+                    
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <div class="stats-number">{{ survey.questions.count }}</div>
+                            <div class="stats-label">{% trans "Questions" %}</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stats-number">{{ survey.response_count }}</div>
+                            <div class="stats-label">{% trans "Responses" %}</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stats-number">
+                                {% if survey.is_active %}
+                                    <i class="fas fa-check-circle text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-pause-circle text-warning"></i>
+                                {% endif %}
+                            </div>
+                            <div class="stats-label">{% trans "Status" %}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar me-1"></i>
+                            {{ survey.created_at|date:"M d, Y" }}
+                        </small>
+                        {% if survey.allow_anonymous %}
+                            <span class="badge bg-info">
+                                <i class="fas fa-globe me-1"></i>
+                                {% trans "Public" %}
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning">
+                                <i class="fas fa-lock me-1"></i>
+                                {% trans "Private" %}
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Survey URL -->
+                    <div class="mt-3">
+                        <label class="form-label small">{% trans "Survey URL:" %}</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control form-control-sm" 
+                                   value="{{ request.scheme }}://{{ request.get_host }}{% url 'survey:survey_detail' survey.survey_key %}"
+                                   readonly id="url-{{ survey.pk }}">
+                            <button class="btn btn-outline-secondary btn-sm" type="button" 
+                                    onclick="copyToClipboard('url-{{ survey.pk }}')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'survey:survey_manage' survey.pk %}" class="btn btn-primary">
+                            <i class="fas fa-cog me-2"></i>
+                            {% trans "Manage Survey" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-poll-h fa-5x text-muted"></i>
+                </div>
+                <h3 class="text-muted mb-3">{% trans "No Surveys Yet" %}</h3>
+                <p class="lead text-muted mb-4">
+                    {% trans "Create your first survey to get started!" %}
+                </p>
+                <a href="{% url 'survey:survey_create' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>
+                    {% trans "Create Your First Survey" %}
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+    <nav aria-label="Survey pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    element.select();
+    element.setSelectionRange(0, 99999);
+    
+    try {
+        document.execCommand('copy');
+        
+        // Show feedback
+        const button = element.nextElementSibling;
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        button.classList.add('btn-success');
+        button.classList.remove('btn-outline-secondary');
+        
+        setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-secondary');
+        }, 2000);
+        
+    } catch (err) {
+        console.error('Failed to copy: ', err);
+    }
+}
+</script>
+{% endblock %} 

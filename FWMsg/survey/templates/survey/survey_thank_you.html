@@ -1,0 +1,116 @@
+{% extends "survey/base_survey.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Thank You" %} - {{ survey.title }}{% endblock %}
+
+{% block header %}
+<div class="survey-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle fa-5x text-success"></i>
+                </div>
+                <h1 class="display-5 mb-3">{% trans "Thank You!" %}</h1>
+                <p class="lead">{% trans "Your response has been recorded successfully" %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="survey-card card">
+            <div class="card-body text-center">
+                <h3 class="mb-4">{{ survey.title }}</h3>
+                
+                <div class="alert alert-success">
+                    <i class="fas fa-thumbs-up me-2"></i>
+                    {% trans "Thank you for participating in this survey. Your feedback is valuable to us!" %}
+                </div>
+                
+                {% if survey.description %}
+                    <p class="text-muted">{{ survey.description|linebreaks }}</p>
+                {% endif %}
+                
+                <div class="row justify-content-center mt-4">
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ survey.response_count }}</div>
+                            <div class="stats-label">{% trans "Total Responses" %}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <p class="text-muted mb-3">{% trans "What would you like to do next?" %}</p>
+                    
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'survey:survey_list' %}" class="btn btn-primary">
+                                <i class="fas fa-list me-2"></i>
+                                {% trans "My Surveys" %}
+                            </a>
+                            <a href="{% url 'survey:survey_create' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-plus me-2"></i>
+                                {% trans "Create Survey" %}
+                            </a>
+                        {% endif %}
+                        
+                        <a href="/" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-2"></i>
+                            {% trans "Home" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyCurrentUrl() {
+    const surveyUrl = "{{ request.scheme }}://{{ request.get_host }}{% url 'survey:survey_detail' survey.survey_key %}";
+    
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(surveyUrl).then(function() {
+            showCopyFeedback();
+        });
+    } else {
+        // Fallback for older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = surveyUrl;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            document.execCommand('copy');
+            showCopyFeedback();
+        } catch (err) {
+            console.error('Failed to copy: ', err);
+        }
+        
+        document.body.removeChild(textArea);
+    }
+}
+
+function showCopyFeedback() {
+    const button = event.target.closest('button');
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check me-1"></i>{% trans "Copied!" %}';
+    button.classList.add('btn-success');
+    button.classList.remove('btn-outline-secondary');
+    
+    setTimeout(() => {
+        button.innerHTML = originalHTML;
+        button.classList.remove('btn-success');
+        button.classList.add('btn-outline-secondary');
+    }, 2000);
+}
+</script>
+{% endblock %} 

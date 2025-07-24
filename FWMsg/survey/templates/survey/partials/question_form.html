@@ -1,0 +1,105 @@
+{% load i18n %}
+
+<div class="question-type-info">
+    <h6>{% trans "Question Type:" %} 
+        {% if question_type == 'text' %}
+            {% trans "Short Text" %}
+        {% elif question_type == 'textarea' %}
+            {% trans "Long Text" %}
+        {% elif question_type == 'select' %}
+            {% trans "Dropdown" %}
+        {% elif question_type == 'radio' %}
+            {% trans "Radio Buttons" %}
+        {% elif question_type == 'checkbox' %}
+            {% trans "Checkboxes" %}
+        {% elif question_type == 'email' %}
+            {% trans "Email" %}
+        {% elif question_type == 'number' %}
+            {% trans "Number" %}
+        {% elif question_type == 'date' %}
+            {% trans "Date" %}
+        {% elif question_type == 'rating' %}
+            {% trans "Rating (1-5)" %}
+        {% else %}
+            {{ question_type|title }}
+        {% endif %}
+    </h6>
+    
+    {% if needs_options %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            {% trans "This question type requires answer options. You can add them after creating the question." %}
+        </div>
+        
+        <div class="preview-section">
+            <h6>{% trans "Preview:" %}</h6>
+            <div class="border rounded p-3 bg-light">
+                <label class="form-label">
+                    <strong>{% trans "Sample Question" %}</strong>
+                </label>
+                
+                {% if question_type == 'select' %}
+                    <select class="form-select" disabled>
+                        <option>{% trans "Select an option" %}</option>
+                        <option>{% trans "Option 1" %}</option>
+                        <option>{% trans "Option 2" %}</option>
+                        <option>{% trans "Option 3" %}</option>
+                    </select>
+                {% elif question_type == 'radio' %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" disabled>
+                        <label class="form-check-label">{% trans "Option 1" %}</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" disabled>
+                        <label class="form-check-label">{% trans "Option 2" %}</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" disabled>
+                        <label class="form-check-label">{% trans "Option 3" %}</label>
+                    </div>
+                {% elif question_type == 'checkbox' %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" disabled>
+                        <label class="form-check-label">{% trans "Option 1" %}</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" disabled>
+                        <label class="form-check-label">{% trans "Option 2" %}</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" disabled>
+                        <label class="form-check-label">{% trans "Option 3" %}</label>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="preview-section">
+            <h6>{% trans "Preview:" %}</h6>
+            <div class="border rounded p-3 bg-light">
+                <label class="form-label">
+                    <strong>{% trans "Sample Question" %}</strong>
+                </label>
+                
+                {% if question_type == 'text' %}
+                    <input type="text" class="form-control" placeholder="{% trans 'Short text answer' %}" disabled>
+                {% elif question_type == 'textarea' %}
+                    <textarea class="form-control" rows="3" placeholder="{% trans 'Long text answer' %}" disabled></textarea>
+                {% elif question_type == 'email' %}
+                    <input type="email" class="form-control" placeholder="user@example.com" disabled>
+                {% elif question_type == 'number' %}
+                    <input type="number" class="form-control" placeholder="123" disabled>
+                {% elif question_type == 'date' %}
+                    <input type="date" class="form-control" disabled>
+                {% elif question_type == 'rating' %}
+                    <div class="rating-preview">
+                        {% for i in "12345" %}
+                            <i class="far fa-star text-warning fs-4 me-1"></i>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div> 

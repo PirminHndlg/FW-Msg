@@ -1,0 +1,251 @@
+{% extends "survey/base_survey.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+{% load survey_filters %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+
+{% block header %}
+<div class="survey-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-4 mb-3">{{ survey.title }}</h1>
+                {% if survey.description %}
+                    <p class="lead">{{ survey.description|linebreaks }}</p>
+                {% endif %}
+                <div class="mt-4">
+                    <span class="badge bg-light text-dark">
+                        <i class="fas fa-users me-1"></i>
+                        {{ survey.response_count }} {% trans "responses" %}
+                    </span>
+                    {% if not survey.allow_anonymous %}
+                        <span class="badge bg-warning">
+                            <i class="fas fa-lock me-1"></i>
+                            {% trans "Login required" %}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="survey-card card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-clipboard-list me-2"></i>
+                    {% trans "Survey Questions" %}
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="post" id="surveyForm">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
+                    {% for field in form %}
+                        <div class="question-card">
+                            <div class="question-header">
+                                <label for="{{ field.id_for_label }}" class="form-label mb-0">
+                                    <strong>{{ field.label }}</strong>
+                                    {% if field.field.required %}
+                                        <span class="text-danger">*</span>
+                                    {% endif %}
+                                </label>
+                                {% if field.help_text %}
+                                    <div class="form-text mt-1">{{ field.help_text }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="question-body">
+                                {% if field|is_checkbox_widget %}
+                                    <!-- Checkbox fields -->
+                                    <div class="form-check-container">
+                                        {% for choice in field %}
+                                            <div class="form-check">
+                                                {{ choice.tag }}
+                                                <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                                    {{ choice.choice_label }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% elif field|is_radio_widget %}
+                                    <!-- Radio fields -->
+                                    <div class="form-check-container">
+                                        {% for choice in field %}
+                                            <div class="form-check">
+                                                {{ choice.tag }}
+                                                <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                                    {{ choice.choice_label }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% elif field|is_select_widget %}
+                                    <!-- Select dropdown -->
+                                    {{ field|add_class:'form-select' }}
+                                {% elif field|is_textarea_widget %}
+                                    <!-- Textarea -->
+                                    {{ field|add_class:'form-control' }}
+                                {% else %}
+                                    <!-- Regular input fields -->
+                                    {{ field|add_class:'form-control' }}
+                                {% endif %}
+                                
+                                {% if field.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ field.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle me-2"></i>
+                            {% trans "This survey doesn't have any questions yet." %}
+                        </div>
+                    {% endfor %}
+                    
+                    {% if form %}
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>
+                                {% trans "Submit Survey" %}
+                            </button>
+                        </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+        
+        <!-- Survey Info -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="stats-card">
+                    <div class="stats-number">{{ survey.response_count }}</div>
+                    <div class="stats-label">{% trans "Total Responses" %}</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stats-card">
+                    <div class="stats-number">{{ survey.questions.count }}</div>
+                    <div class="stats-label">{% trans "Questions" %}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-check-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .form-check {
+        padding: 0.75rem;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        background-color: #fff;
+        transition: all 0.2s ease;
+    }
+    
+    .form-check:hover,
+    .form-check-hover {
+        background-color: #f8f9fa;
+        border-color: var(--color-primary);
+        cursor: pointer;
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+    
+    .form-check-input:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+    }
+    
+    .form-check-label {
+        margin-left: 0.5rem;
+        cursor: pointer;
+        font-weight: 500;
+    }
+    
+    .invalid-feedback {
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Form validation
+    $('#surveyForm').on('submit', function(e) {
+        let isValid = true;
+        
+        // Check required fields
+        $(this).find('input[required], select[required], textarea[required]').each(function() {
+            if (!$(this).val()) {
+                isValid = false;
+                $(this).addClass('is-invalid');
+            } else {
+                $(this).removeClass('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            $('html, body').animate({
+                scrollTop: $('.is-invalid').first().offset().top - 100
+            }, 500);
+        }
+    });
+    
+    // Remove validation errors on input
+    $('input, select, textarea').on('input change', function() {
+        $(this).removeClass('is-invalid');
+    });
+    
+    // Style radio buttons and checkboxes
+    $('.form-check-input').each(function() {
+        $(this).closest('.form-check').addClass('form-check-styled');
+    });
+    
+    // Make entire form-check div clickable for radio buttons and checkboxes
+    $('.form-check').on('click', function(e) {
+        // Don't trigger if user clicked directly on the input or label
+        if (e.target.type === 'radio' || e.target.type === 'checkbox' || e.target.tagName === 'LABEL') {
+            return;
+        }
+        
+        // Find the input within this form-check div and trigger it
+        const input = $(this).find('input[type="radio"], input[type="checkbox"]');
+        if (input.length) {
+            input.trigger('click');
+        }
+    });
+    
+    // Add hover effect for better UX feedback
+    $('.form-check').on('mouseenter', function() {
+        $(this).addClass('form-check-hover');
+    }).on('mouseleave', function() {
+        $(this).removeClass('form-check-hover');
+    });
+});
+</script>
+{% endblock %} 
