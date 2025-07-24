@@ -1,0 +1,290 @@
+{% extends "survey/base_survey.html" %}
+{% load i18n %}
+
+{% block title %}{{ survey.title }} - {% trans "Manage" %}{% endblock %}
+
+{% block header %}
+<div class="survey-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h1 class="display-6 mb-2">{{ survey.title }}</h1>
+                        <p class="lead mb-0">{% trans "Manage questions and view responses" %}</p>
+                    </div>
+                    <div class="text-end">
+                        <div class="dropdown">
+                            <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-cog me-2"></i>{% trans "Actions" %}
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'survey:survey_update' survey.pk %}">
+                                        <i class="fas fa-edit me-2"></i>{% trans "Edit Survey" %}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'survey:survey_results' survey.pk %}">
+                                        <i class="fas fa-chart-bar me-2"></i>{% trans "View Results" %}
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{% url 'survey:survey_delete' survey.pk %}">
+                                        <i class="fas fa-trash me-2"></i>{% trans "Delete Survey" %}
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Survey Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ questions.count }}</div>
+            <div class="stats-label">{% trans "Questions" %}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ response_count }}</div>
+            <div class="stats-label">{% trans "Responses" %}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            {% if survey.is_active %}
+                <div class="stats-number text-success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stats-label">{% trans "Active" %}</div>
+            {% else %}
+                <div class="stats-number text-warning">
+                    <i class="fas fa-pause-circle"></i>
+                </div>
+                <div class="stats-label">{% trans "Inactive" %}</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            {% if survey.allow_anonymous %}
+                <div class="stats-number text-info">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <div class="stats-label">{% trans "Public" %}</div>
+            {% else %}
+                <div class="stats-number text-warning">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <div class="stats-label">{% trans "Private" %}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Survey URL -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="survey-card card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-link me-2"></i>
+                    {% trans "Survey URL" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="input-group">
+                    <input type="text" class="form-control" 
+                           value="{{ request.scheme }}://{{ request.get_host }}{% url 'survey:survey_detail' survey.survey_key %}"
+                           readonly id="survey-url">
+                    <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('survey-url')">
+                        <i class="fas fa-copy me-1"></i>{% trans "Copy" %}
+                    </button>
+                    <a href="{% url 'survey:survey_detail' survey.survey_key %}" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt me-1"></i>{% trans "Open" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Questions Management -->
+<div class="row">
+    <div class="col-12">
+        <div class="survey-card card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-question-circle me-2"></i>
+                    {% trans "Questions" %}
+                </h5>
+                <a href="{% url 'survey:add_question' survey.pk %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>{% trans "Add Question" %}
+                </a>
+            </div>
+            <div class="card-body">
+                {% if questions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Order" %}</th>
+                                    <th>{% trans "Question" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Required" %}</th>
+                                    <th>{% trans "Options" %}</th>
+                                    <th width="150">{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for question in questions %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ question.order }}</span>
+                                        </td>
+                                        <td>
+                                            <strong>{{ question.question_text|truncatechars:60 }}</strong>
+                                            {% if question.help_text %}
+                                                <br><small class="text-muted">{{ question.help_text }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ question.get_question_type_display }}</span>
+                                        </td>
+                                        <td>
+                                            {% if question.is_required %}
+                                                <i class="fas fa-check text-success"></i>
+                                            {% else %}
+                                                <i class="fas fa-times text-muted"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if question.options.exists %}
+                                                <small class="text-muted">{{ question.options.count }} option{{ question.options.count|pluralize }}</small>
+                                            {% else %}
+                                                <small class="text-muted">-</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'survey:edit_question' survey.pk question.pk %}" 
+                                                   class="btn btn-outline-primary" title="{% trans 'Edit' %}">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'survey:delete_question' survey.pk question.pk %}" 
+                                                   class="btn btn-outline-danger" title="{% trans 'Delete' %}">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-question-circle fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">{% trans "No Questions Yet" %}</h5>
+                        <p class="text-muted">{% trans "Add your first question to get started." %}</p>
+                        <a href="{% url 'survey:add_question' survey.pk %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>{% trans "Add First Question" %}
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Responses -->
+{% if responses %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="survey-card card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-users me-2"></i>
+                    {% trans "Recent Responses" %}
+                </h5>
+                <a href="{% url 'survey:survey_results' survey.pk %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-chart-bar me-1"></i>{% trans "View All Results" %}
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Participant" %}</th>
+                                <th>{% trans "Submitted" %}</th>
+                                <th>{% trans "Answers" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for response in responses|slice:":5" %}
+                                <tr>
+                                    <td>
+                                        {% if response.respondent %}
+                                            <i class="fas fa-user me-1"></i>{{ response.respondent.username }}
+                                        {% else %}
+                                            <i class="fas fa-user-secret me-1"></i>{% trans "Anonymous" %}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ response.submitted_at|date:"M d, Y H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ response.answers.count }} answer{{ response.answers.count|pluralize }}</small>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    element.select();
+    element.setSelectionRange(0, 99999);
+    
+    try {
+        document.execCommand('copy');
+        
+        // Show feedback
+        const button = element.nextElementSibling;
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check me-1"></i>{% trans "Copied!" %}';
+        button.classList.add('btn-success');
+        button.classList.remove('btn-outline-secondary');
+        
+        setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-secondary');
+        }, 2000);
+        
+    } catch (err) {
+        console.error('Failed to copy: ', err);
+    }
+}
+</script>
+{% endblock %} 

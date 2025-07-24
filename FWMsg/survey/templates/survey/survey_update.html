@@ -1,0 +1,199 @@
+{% extends "survey/base_survey.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block title %}{% trans "Edit Survey" %} - {{ survey.title }}{% endblock %}
+
+{% block header %}
+<div class="survey-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-5 mb-3">
+                    <i class="fas fa-edit me-3"></i>
+                    {% trans "Edit Survey" %}
+                </h1>
+                <p class="lead">{% trans "Update your survey settings" %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="survey-card card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-clipboard-list me-2"></i>
+                    {% trans "Survey Details" %}
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">
+                            <strong>{{ form.title.label }}</strong>
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.title|add_class:'form-control' }}
+                        {% if form.title.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.title.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            <strong>{{ form.description.label }}</strong>
+                        </label>
+                        {{ form.description|add_class:'form-control' }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.description.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                                <strong>{{ form.start_date.label }}</strong>
+                            </label>
+                            {{ form.start_date|add_class:'form-control' }}
+                            {% if form.start_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.start_date.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.end_date.id_for_label }}" class="form-label">
+                                <strong>{{ form.end_date.label }}</strong>
+                            </label>
+                            {{ form.end_date|add_class:'form-control' }}
+                            {% if form.end_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.end_date.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.max_responses.id_for_label }}" class="form-label">
+                            <strong>{{ form.max_responses.label }}</strong>
+                        </label>
+                        {{ form.max_responses|add_class:'form-control' }}
+                        {% if form.max_responses.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.max_responses.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            {{ form.allow_anonymous|add_class:'form-check-input' }}
+                            <label class="form-check-label" for="{{ form.allow_anonymous.id_for_label }}">
+                                <strong>{{ form.allow_anonymous.label }}</strong>
+                            </label>
+                            {% if form.allow_anonymous.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.allow_anonymous.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'survey:survey_manage' survey.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            {% trans "Back to Survey" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            {% trans "Update Survey" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Survey Key Info -->
+        <div class="survey-card card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-key me-2"></i>
+                    {% trans "Survey Access" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">{% trans "Survey Key:" %}</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="{{ survey.survey_key }}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" 
+                                onclick="alert('{% trans "Survey key cannot be changed for security reasons." %}')">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">{% trans "This unique key is used to access your survey and cannot be changed." %}</div>
+                </div>
+                
+                <div class="mb-0">
+                    <label class="form-label">{% trans "Public URL:" %}</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" 
+                               value="{{ request.scheme }}://{{ request.get_host }}{% url 'survey:survey_detail' survey.survey_key %}"
+                               readonly id="survey-url">
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('survey-url')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    element.select();
+    element.setSelectionRange(0, 99999);
+    
+    try {
+        document.execCommand('copy');
+        
+        // Show feedback
+        const button = element.nextElementSibling;
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        button.classList.add('btn-success');
+        button.classList.remove('btn-outline-secondary');
+        
+        setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-secondary');
+        }, 2000);
+        
+    } catch (err) {
+        console.error('Failed to copy: ', err);
+    }
+}
+</script>
+{% endblock %} 

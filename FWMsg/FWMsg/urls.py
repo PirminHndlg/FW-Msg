@@ -30,6 +30,7 @@ urlpatterns = [
     path('team/', include('TEAM.urls')),
     path('administrator/', include('ADMIN.urls')),
     path('bw/', include('BW.urls')),
+    path('survey/', include('survey.urls')),
     
     #path('login/', LoginView.as_view(), name='login'),
     path('login/', views.index, name='login'),

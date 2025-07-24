@@ -1,0 +1,177 @@
+{% extends "survey/base_survey.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block title %}{% trans "Add Question" %} - {{ survey.title }}{% endblock %}
+
+{% block header %}
+<div class="survey-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-5 mb-3">
+                    <i class="fas fa-plus-circle me-3"></i>
+                    {% trans "Add Question" %}
+                </h1>
+                <p class="lead">{% trans "Add a new question to" %} "{{ survey.title }}"</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="survey-card card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-question-circle me-2"></i>
+                    {% trans "Question Details" %}
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="post" id="questionForm">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.question_text.id_for_label }}" class="form-label">
+                            <strong>{{ form.question_text.label }}</strong>
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.question_text|add_class:'form-control' }}
+                        {% if form.question_text.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.question_text.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">{% trans "The question that participants will see" %}</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.question_type.id_for_label }}" class="form-label">
+                            <strong>{{ form.question_type.label }}</strong>
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.question_type|add_class:'form-select' }}
+                        {% if form.question_type.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.question_type.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">{% trans "Choose the type of answer you want to collect" %}</div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="{{ form.order.id_for_label }}" class="form-label">
+                                <strong>{{ form.order.label }}</strong>
+                            </label>
+                            {{ form.order|add_class:'form-control' }}
+                            {% if form.order.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.order.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">{% trans "Question order (0 = first)" %}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch mt-5">
+                                {{ form.is_required|add_class:'form-check-input' }}
+                                <label class="form-check-label" for="{{ form.is_required.id_for_label }}">
+                                    <strong>{{ form.is_required.label }}</strong>
+                                </label>
+                                {% if form.is_required.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.is_required.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.help_text.id_for_label }}" class="form-label">
+                            <strong>{{ form.help_text.label }}</strong>
+                        </label>
+                        {{ form.help_text|add_class:'form-control' }}
+                        {% if form.help_text.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.help_text.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">{% trans "Optional explanation or instruction for participants" %}</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'survey:survey_manage' survey.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            {% trans "Back to Survey" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            {% trans "Add Question" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Question Type Info -->
+        <div class="survey-card card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {% trans "Question Types" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <strong>{% trans "Short Text" %}:</strong> Single line text input
+                            </li>
+                            <li class="mb-2">
+                                <strong>{% trans "Long Text" %}:</strong> Multi-line text area
+                            </li>
+                            <li class="mb-2">
+                                <strong>{% trans "Email" %}:</strong> Email address input
+                            </li>
+                            <li class="mb-2">
+                                <strong>{% trans "Number" %}:</strong> Numeric input
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <strong>{% trans "Dropdown" %}:</strong> Select from dropdown list
+                            </li>
+                            <li class="mb-2">
+                                <strong>{% trans "Radio Buttons" %}:</strong> Single choice options
+                            </li>
+                            <li class="mb-2">
+                                <strong>{% trans "Checkboxes" %}:</strong> Multiple choice options
+                            </li>
+                            <li class="mb-2">
+                                <strong>{% trans "Rating" %}:</strong> 1-5 star rating
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    {% trans "After creating this question, you'll be able to add answer options for dropdown, radio, and checkbox questions." %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

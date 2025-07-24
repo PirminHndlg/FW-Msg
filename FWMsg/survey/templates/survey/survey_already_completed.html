@@ -1,0 +1,71 @@
+{% extends "survey/base_survey.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Already Completed" %} - {{ survey.title }}{% endblock %}
+
+{% block header %}
+<div class="survey-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <div class="mb-4">
+                    <i class="fas fa-check-double fa-5x text-info"></i>
+                </div>
+                <h1 class="display-5 mb-3">{% trans "Already Completed" %}</h1>
+                <p class="lead">{% trans "You have already participated in this survey" %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="survey-card card">
+            <div class="card-header">
+                <h3 class="mb-0">{{ survey.title }}</h3>
+            </div>
+            <div class="card-body text-center">
+                {% if survey.description %}
+                    <p class="text-muted mb-4">{{ survey.description|linebreaks }}</p>
+                {% endif %}
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {% trans "Thank you for your previous participation! You have already submitted a response to this survey." %}
+                </div>
+                
+                <div class="row justify-content-center mt-4">
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ response.submitted_at|date:"M d" }}</div>
+                            <div class="stats-label">{% trans "Your Response Date" %}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ survey.response_count }}</div>
+                            <div class="stats-label">{% trans "Total Responses" %}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>
+                        {% trans "Go to Home" %}
+                    </a>
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'survey:survey_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-list me-2"></i>
+                            {% trans "My Surveys" %}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,203 @@
+{% extends "survey/base_survey.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "All Surveys" %} - {% trans "Admin" %}{% endblock %}
+
+{% block header %}
+<div class="survey-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-5 mb-3">
+                    <i class="fas fa-shield-alt me-3"></i>
+                    {% trans "All Surveys" %}
+                </h1>
+                <p class="lead">{% trans "Administrative overview of all surveys in the system" %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="survey-card card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    {% trans "Survey Overview" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if surveys %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Survey" %}</th>
+                                    <th>{% trans "Created by" %}</th>
+                                    <th>{% trans "Created" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Responses" %}</th>
+                                    <th>{% trans "Questions" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for survey in surveys %}
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <strong>{{ survey.title }}</strong>
+                                                {% if survey.description %}
+                                                    <br><small class="text-muted">{{ survey.description|truncatechars:60 }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-user me-2"></i>
+                                                {{ survey.created_by.username }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ survey.created_at|date:"M d, Y" }}</small>
+                                        </td>
+                                        <td>
+                                            {% if survey.is_active %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>{% trans "Active" %}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">
+                                                    <i class="fas fa-pause me-1"></i>{% trans "Inactive" %}
+                                                </span>
+                                            {% endif %}
+                                            
+                                            {% if survey.allow_anonymous %}
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-globe me-1"></i>{% trans "Public" %}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-lock me-1"></i>{% trans "Private" %}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ survey.response_count }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ survey.questions.count }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'survey:survey_detail' survey.survey_key %}" 
+                                                   target="_blank"
+                                                   class="btn btn-outline-primary" 
+                                                   title="{% trans 'View Survey' %}">
+                                                    <i class="fas fa-external-link-alt"></i>
+                                                </a>
+                                                <a href="{% url 'survey:survey_results' survey.pk %}" 
+                                                   class="btn btn-outline-info" 
+                                                   title="{% trans 'View Results' %}">
+                                                    <i class="fas fa-chart-bar"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                        <nav aria-label="Survey pagination" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                    
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-poll-h fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">{% trans "No Surveys Yet" %}</h5>
+                        <p class="text-muted">{% trans "No surveys have been created in the system yet." %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Statistics -->
+{% if surveys %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ page_obj.paginator.count }}</div>
+            <div class="stats-label">{% trans "Total Surveys" %}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">
+                {% for survey in surveys %}
+                    {% if forloop.first %}{{ survey.response_count }}{% endif %}
+                {% endfor %}
+            </div>
+            <div class="stats-label">{% trans "Total Responses" %}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">
+                {{ surveys|length|add:0 }}
+            </div>
+            <div class="stats-label">{% trans "Active Surveys" %}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">
+                {% now "M d" %}
+            </div>
+            <div class="stats-label">{% trans "Today" %}</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %} 
