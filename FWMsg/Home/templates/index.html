@@ -54,7 +54,7 @@
                         {% include 'error_message.html' %}
 
                         <!-- Login Form -->
-                        <form method="post" action="{% url 'index_home' %}">
+                        <form method="post">
                             {% csrf_token %}
                             
                             {% if form.errors %}

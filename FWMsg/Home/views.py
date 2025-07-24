@@ -92,6 +92,11 @@ def index(request):
             if user is not None:
                 login(request, user)
                 
+                next_url = request.GET.get('next')
+                print(next_url)
+                if next_url:
+                    return redirect(next_url)
+                
                 from django.contrib.auth.password_validation import validate_password
                 try:
                     validate_password(password, user)
