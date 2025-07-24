@@ -48,7 +48,7 @@ def survey_detail(request, survey_key):
         
         #add next url to login url as parameter
         next_url = reverse('survey:survey_detail', kwargs={'survey_key': survey_key})
-        return redirect('/login?next=' + next_url)
+        return redirect(reverse('login') + '?next=' + next_url)
     
     # Check if user has already participated
     user = request.user if request.user.is_authenticated else None
