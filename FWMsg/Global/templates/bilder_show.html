@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load static %}
 
 {% if gallery_images %}
   {% for bild_gallery in gallery_images %}
@@ -41,3 +42,18 @@
     <p class="text-muted mb-0">{% trans "Keine Bilder vorhanden" %}</p>
   </div>
 {% endif %}
+
+<script src="{% static 'js/image-interactions.js' %}"></script>
+<script>
+// Initialize image interactions after the script loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait a bit for the script to fully load
+    setTimeout(function() {
+        if (window.ImageInteractions && !window.imageInteractions) {
+            window.imageInteractions = new window.ImageInteractions();
+        } else if (window.imageInteractions) {
+            window.imageInteractions.initializeExistingInteractions();
+        }
+    }, 100);
+});
+</script>

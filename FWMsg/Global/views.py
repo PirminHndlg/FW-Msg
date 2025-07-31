@@ -142,6 +142,8 @@ def get_bilder(org, filter_user=None, filter_person_cluster=None, limit=None):
     Args:
         org: The organization object
         filter_user (User, optional): User to filter images by. Defaults to None.
+        filter_person_cluster: Person cluster to filter by. Defaults to None.
+        limit (int, optional): Limit number of results. Defaults to None.
         
     Returns:
         list: List of dictionaries containing gallery images and their metadata
@@ -154,6 +156,13 @@ def get_bilder(org, filter_user=None, filter_person_cluster=None, limit=None):
         bilder = Bilder2.objects.filter(org=org, user=filter_user).order_by('-date_created')
     else:
         bilder = Bilder2.objects.filter(org=org).order_by('-date_created')
+
+    # Prefetch related data for better performance
+    bilder = bilder.prefetch_related(
+        'comments__user',
+        'reactions__user',
+        'bildergallery2_set'
+    ).select_related('user')
 
     if limit:
         bilder = bilder[:limit]
@@ -507,6 +516,192 @@ def remove_bild_all(request):
     bild.delete()
     messages.success(request, 'Alle Bilder erfolgreich gelöscht')
     return redirect('profil')
+
+@login_required
+@required_person_cluster('bilder')
+def add_comment_to_bild(request, bild_id):
+    """Add a comment to a Bilder2 object."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+    
+    try:
+        from .models import BilderComment
+        bild = Bilder2.objects.get(id=bild_id, org=request.user.org)
+        comment_text = request.POST.get('comment', '').strip()
+        
+        if not comment_text:
+            return JsonResponse({'error': 'Kommentar darf nicht leer sein'}, status=400)
+        
+        if len(comment_text) > 500:
+            return JsonResponse({'error': 'Kommentar ist zu lang (max. 500 Zeichen)'}, status=400)
+        
+        comment = BilderComment.objects.create(
+            bilder=bild,
+            user=request.user,
+            org=request.user.org,
+            comment=comment_text
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'comment': {
+                'id': comment.id,
+                'comment': comment.comment,
+                'user_name': comment.user.get_full_name() or comment.user.username,
+                'user_id': comment.user.id,
+                'date_created': comment.date_created.strftime('%d.%m.%Y %H:%M'),
+                'can_delete': True
+            },
+            'comment_count': bild.get_comment_count()
+        })
+        
+    except Bilder2.DoesNotExist:
+        return JsonResponse({'error': 'Bild nicht gefunden'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+@required_person_cluster('bilder')
+def remove_comment_from_bild(request, comment_id):
+    """Remove a comment from a Bilder2 object."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+    
+    try:
+        from .models import BilderComment
+        comment = BilderComment.objects.get(id=comment_id, org=request.user.org)
+        
+        # Check permissions - user can only delete their own comments, or admins can delete any
+        if comment.user != request.user and request.user.role != 'O':
+            return JsonResponse({'error': 'Keine Berechtigung'}, status=403)
+        
+        bild = comment.bilder
+        comment.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'comment_count': bild.get_comment_count()
+        })
+        
+    except BilderComment.DoesNotExist:
+        return JsonResponse({'error': 'Kommentar nicht gefunden'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+@required_person_cluster('bilder')
+def toggle_reaction_to_bild(request, bild_id):
+    """Toggle an emoji reaction on a Bilder2 object. Each user can only have one reaction per image."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+    
+    try:
+        from .models import BilderReaction
+        bild = Bilder2.objects.get(id=bild_id, org=request.user.org)
+        emoji = request.POST.get('emoji', '').strip()
+        
+        # Validate emoji
+        valid_emojis = [choice[0] for choice in BilderReaction.EMOJI_CHOICES]
+        if emoji not in valid_emojis:
+            return JsonResponse({'error': 'Ungültiges Emoji'}, status=400)
+        
+        # Check if user already has a reaction on this image
+        existing_reaction = BilderReaction.objects.filter(
+            bilder=bild,
+            user=request.user
+        ).first()
+        
+        user_reaction = None  # Initialize user_reaction
+        
+        if existing_reaction:
+            if existing_reaction.emoji == emoji:
+                # Same emoji clicked - remove the reaction
+                existing_reaction.delete()
+                action = 'removed'
+                user_reaction = None
+            else:
+                # Different emoji clicked - update the reaction
+                existing_reaction.emoji = emoji
+                existing_reaction.save()
+                action = 'changed'
+                user_reaction = emoji  # Set to the new emoji directly
+        else:
+            # No existing reaction - create new one
+            BilderReaction.objects.create(
+                bilder=bild,
+                user=request.user,
+                emoji=emoji,
+                org=request.user.org
+            )
+            action = 'added'
+            user_reaction = emoji  # Set to the new emoji directly
+        
+        # Get updated reaction summary
+        reaction_summary = bild.get_reaction_summary()
+        
+        # Debug logging
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Reaction toggle - Action: {action}, Clicked emoji: {emoji}, User reaction after: {user_reaction}")
+        
+        return JsonResponse({
+            'success': True,
+            'action': action,
+            'emoji': emoji,
+            'reaction_summary': list(reaction_summary),
+            'user_reaction': user_reaction  # Single reaction instead of list
+        })
+        
+    except Bilder2.DoesNotExist:
+        return JsonResponse({'error': 'Bild nicht gefunden'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+@required_person_cluster('bilder')
+def get_bild_interactions(request, bild_id):
+    """Get comments and reactions for a specific Bilder2 object."""
+    try:
+        from .models import BilderComment
+        bild = Bilder2.objects.get(id=bild_id, org=request.user.org)
+        
+        # Get comments with pagination
+        page = int(request.GET.get('page', 1))
+        page_size = 10
+        start = (page - 1) * page_size
+        end = start + page_size
+        
+        comments = bild.comments.select_related('user')[start:end]
+        has_more_comments = bild.comments.count() > end
+        
+        comments_data = []
+        for comment in comments:
+            comments_data.append({
+                'id': comment.id,
+                'comment': comment.comment,
+                'user_name': comment.user.get_full_name() or comment.user.username,
+                'user_id': comment.user.id,
+                'date_created': comment.date_created.strftime('%d.%m.%Y %H:%M'),
+                'can_delete': comment.user == request.user or request.user.role == 'O'
+            })
+        
+        # Get reaction summary
+        reaction_summary = bild.get_reaction_summary()
+        user_reaction = bild.reactions.filter(user=request.user).values_list('emoji', flat=True).first()
+        
+        return JsonResponse({
+            'success': True,
+            'comments': comments_data,
+            'comment_count': bild.get_comment_count(),
+            'has_more_comments': has_more_comments,
+            'reaction_summary': list(reaction_summary),
+            'user_reaction': user_reaction
+        })
+        
+    except Bilder2.DoesNotExist:
+        return JsonResponse({'error': 'Bild nicht gefunden'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 @login_required
 @required_person_cluster('dokumente')

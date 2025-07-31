@@ -887,6 +887,60 @@ class Bilder2(OrgModel):
     def __str__(self):
         return self.titel
 
+    def get_comment_count(self):
+        """Get total number of comments for this image."""
+        from Global.models import BilderComment
+        return BilderComment.objects.filter(bilder=self).count()
+
+    def get_reaction_summary(self):
+        """Get a summary of reactions grouped by emoji."""
+        from django.db.models import Count
+        from Global.models import BilderReaction
+        return BilderReaction.objects.filter(bilder=self).values('emoji').annotate(count=Count('id')).order_by('-count')
+
+class BilderComment(OrgModel):
+    bilder = models.ForeignKey(Bilder2, on_delete=models.CASCADE, related_name='comments', verbose_name='Bild')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
+    comment = models.TextField(max_length=500, verbose_name=_('Kommentar'))
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
+    date_updated = models.DateTimeField(auto_now=True, verbose_name=_('Aktualisiert am'))
+
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = 'Bildkommentar'
+        verbose_name_plural = 'Bildkommentare'
+        ordering = ['-date_created']
+
+    def __str__(self):
+        return f'{self.user.get_full_name()}: {self.comment[:50]}...'
+
+
+class BilderReaction(OrgModel):
+    EMOJI_CHOICES = [
+        ('👍', _('Daumen hoch')),
+        ('❤️', _('Herz')),
+        ('😂', _('Lachen')),
+        ('😮', _('Überrascht')),
+        ('😢', _('Traurig')),
+        ('😡', _('Wütend')),
+    ]
+    
+    bilder = models.ForeignKey(Bilder2, on_delete=models.CASCADE, related_name='reactions', verbose_name='Bild')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
+    emoji = models.CharField(max_length=10, choices=EMOJI_CHOICES, verbose_name=_('Emoji'))
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
+
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = 'Bildreaktion'
+        verbose_name_plural = 'Bildreaktionen'
+        unique_together = ['bilder', 'user']  # Only one reaction per user per image
+
+    def __str__(self):
+        return f'{self.user.get_full_name()}: {self.emoji} auf {self.bilder.titel}'
+
 
 class BilderGallery2(OrgModel):
     image = models.ImageField(upload_to='bilder/', verbose_name='Bild')
