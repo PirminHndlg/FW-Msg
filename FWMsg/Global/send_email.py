@@ -579,3 +579,66 @@ def send_new_aufgaben_email(aufgaben, org):
         aufgabe.save()
     
     return False
+
+
+def send_new_post_email(post_id):
+    from Global.models import Post2
+    from django.urls import reverse
+    
+    post = Post2.objects.get(id=post_id)
+    org = post.org
+    
+    # Generate action URL for the post
+    action_url = f'{settings.DOMAIN_HOST}{reverse("post_detail", args=[post.pk])}'
+    
+    # Get organization logo
+    base64_image = get_logo_base64(org)
+    
+    # Get author information
+    author_name = f"{post.user.first_name} {post.user.last_name}" if post.user.first_name and post.user.last_name else post.user.username
+    
+    # Email subject
+    subject = f'Neuer Post: {post.title}'
+    
+    # Track successful sends
+    successful_sends = 0
+    
+    for person_cluster in post.person_cluster.all():
+        for user in person_cluster.get_users():
+            # Skip if user doesn't want email notifications
+            if hasattr(user, 'customuser') and not user.customuser.mail_notifications:
+                continue
+                
+            # Get user's unsubscribe URL
+            unsubscribe_url = user.customuser.get_unsubscribe_url() if hasattr(user, 'customuser') else None
+            
+            # Format user name
+            user_name = f"{user.first_name} {user.last_name}" if user.first_name and user.last_name else user.username
+            
+            # Generate email content
+            email_content = format_new_post_email(
+                post_title=post.title,
+                post_text=post.text,
+                author_name=author_name,
+                post_date=post.date,
+                has_survey=post.has_survey,
+                action_url=action_url,
+                unsubscribe_url=unsubscribe_url,
+                user_name=user_name,
+                org_name=org.name,
+                base64_image=base64_image
+            )
+            
+            # Send email using Django's send_mail
+            if send_mail(subject, '', settings.SERVER_EMAIL, [user.email], html_message=email_content):
+                successful_sends += 1
+                
+            # Send push notification as well
+            push_content = f'Neuer Post von {author_name}: {post.title}'
+            if post.has_survey:
+                push_content += ' (enthält Umfrage)'
+                
+            # send_push_notification_to_user(user, subject, push_content, url=action_url)
+    
+    return successful_sends
+    
