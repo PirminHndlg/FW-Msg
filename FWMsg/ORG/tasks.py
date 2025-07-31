@@ -1,10 +1,12 @@
+from django.conf import settings
 from celery import shared_task
 import base64
 from django.urls import reverse
 from FWMsg import settings
 import logging
 from Global.push_notification import send_push_notification_to_user
-from Global.send_email import send_mail_smtp, format_register_email_org, format_aufgabe_erledigt_email, format_mail_calendar_reminder_email
+from Global.send_email import format_register_email_org, format_aufgabe_erledigt_email, format_mail_calendar_reminder_email
+from django.core.mail import send_mail
 
 
 @shared_task
@@ -28,7 +30,7 @@ def send_register_email_task(customuser_id):
     
     email_content = format_register_email_org(einmalpasswort, action_url, org_name, freiwilliger_name, username)
     subject = f'Account erstellt: {freiwilliger_name}'
-    if send_mail_smtp(user.email, subject, email_content, reply_to=org.email):
+    if send_mail(subject, email_content, settings.SERVER_EMAIL, [user.email], html_message=email_content):
         return True
     logging.error(f"Error sending register email: {user.email} {subject}")
     return False
@@ -61,7 +63,7 @@ def send_aufgabe_erledigt_email_task(aufgabe_id):
         subject = f'Aufgabe erledigt: {aufgabe.aufgabe.name} von {aufgabe.user.first_name} {aufgabe.user.last_name}'
         org_email = aufgabe.user.org.email
         
-        return send_mail_smtp(org_email, subject, email_content, cc=mail_to)
+        return send_mail(subject, email_content, settings.SERVER_EMAIL, [org_email], html_message=email_content)
     except Exception as e:
         logging.error(f"Error sending task completion email: {e}")
         return False
@@ -78,7 +80,7 @@ def send_feedback_email_task(feedback_id):
     subject = f'Feedback von {feedback.user.username}' if not feedback.anonymous else 'Anonymes Feedback'
     reply_to = feedback.user.email if not feedback.anonymous else None
 
-    if send_mail_smtp(secrets['feedback_email'], subject, feedback.text, reply_to=reply_to):
+    if send_mail(subject, feedback.text, settings.SERVER_EMAIL, [secrets['feedback_email']], html_message=feedback.text):
         return True
     return False
 
@@ -101,6 +103,6 @@ def send_mail_calendar_reminder_task(kalender_event_id, user_id):
     push_content = f'{kalender_event.start.strftime("%d.%m.%Y")} bis {kalender_event.end.strftime("%d.%m.%Y")}: {kalender_event.title}'
     send_push_notification_to_user(user, subject, push_content, url=action_url)
     
-    if send_mail_smtp(user.email, subject, email_content):
+    if send_mail(subject, email_content, settings.SERVER_EMAIL, [user.email], html_message=email_content):
         return True
     return False

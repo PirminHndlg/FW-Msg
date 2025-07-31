@@ -1,0 +1,31 @@
+{% extends "seminar_base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="headline_container">
+    <h2>Einheiten</h2>
+</div>
+
+<p>
+    Wähle die aktuelle Einheit aus, in der Du bewerten möchtest:
+</p>
+
+{% if einheiten %}
+<form class="center_div" method="get" action="{% url 'choose' %}">
+    <div class="einheiten_div">
+        {% for einheit in einheiten %}
+        <button type="submit" class="einheit_button" name="einheit" value="{{ einheit.id }}"
+                style="order: {{ einheit.id }}">{{ einheit }}
+
+            {% if einheit.bewertet %}
+            <div>
+                <img src="{% static 'img/pen_icon.png' %}" alt="checkmark" class="checkmark">
+            </div>
+            {% endif %}
+        </button>
+        {% endfor %}
+    </div>
+</form>
+{% endif %}
+
+{% endblock %}

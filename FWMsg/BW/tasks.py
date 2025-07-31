@@ -1,6 +1,7 @@
+from django.conf import settings
 from celery import shared_task
-from Global.send_email import send_mail_smtp
 from BW.models import Bewerber
+from django.core.mail import send_mail
 
 application_complete_email_template = """
 <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #333333; line-height: 1.6; max-width: 500px; margin: 0 auto;">
@@ -126,7 +127,7 @@ def send_account_created_email(bewerber_id):
         
         subject = f'Neuer Account erstellt: {bewerber.org.name}'
         
-        return send_mail_smtp(user.email, subject, email_content)
+        return send_mail(subject, email_content, settings.SERVER_EMAIL, [user.email], html_message=email_content)
     except Exception as e:
         print(f"Error sending account creation email: {e}")
         return False
@@ -151,7 +152,7 @@ def send_application_complete_email(bewerber_id):
             
             subject = f'Neue Bewerbung eingegangen: {bewerber.user.first_name} {bewerber.user.last_name}'
             org_email = bewerber.org.email
-            send_mail_smtp(org_email, subject, email_content)
+            send_mail(subject, email_content, settings.SERVER_EMAIL, [org_email], html_message=email_content)
             
             subject = f'Deine Bewerbung wurde eingereicht'
             action_url = f"https://volunteer.solutions{reverse('bw_home')}"
@@ -162,7 +163,7 @@ def send_application_complete_email(bewerber_id):
                 action_url=action_url,
                 text_subject='Deine Bewerbung wurde eingereicht, wir werden uns schnellstmöglich um Ihre Bewerbung kümmern.'
             )
-            send_mail_smtp(bewerber.user.email, subject, email_content, reply_to=org_email)
+            send_mail(subject, email_content, settings.SERVER_EMAIL, [bewerber.user.email], html_message=email_content)
             
             return True
     except Exception as e:

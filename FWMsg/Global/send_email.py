@@ -1,11 +1,6 @@
 import base64
-from django.urls import reverse
 from django.utils import timezone
-import smtplib
-import ssl
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.utils import formatdate
+from django.core.mail import send_mail
 
 from django.conf import settings
 
@@ -544,7 +539,9 @@ def send_aufgaben_email(aufgabe, org):
 
     send_push_notification_to_user(aufgabe.user, subject, push_content, url=action_url)
     
-    if aufgabe.user.customuser.mail_notifications and send_mail_smtp(aufgabe.user.email, subject, email_content, reply_to=org.email):
+    from django.core.mail import send_mail
+    
+    if aufgabe.user.customuser.mail_notifications and send_mail(subject, email_content, settings.SERVER_EMAIL, [aufgabe.user.email], html_message=email_content):
         aufgabe.last_reminder = timezone.now()
         aufgabe.currently_sending = False
         aufgabe.save()
@@ -569,13 +566,12 @@ def send_new_aufgaben_email(aufgaben, org):
     )
 
     subject = f'Neue Aufgaben: {aufgaben[0].aufgabe.name}... und mehr'
-
-    if send_mail_smtp(aufgaben[0].user.email, subject, email_content, reply_to=org.email):
+        
+    if send_mail(subject, email_content, settings.SERVER_EMAIL, [aufgaben[0].user.email], html_message=email_content):
         for aufgabe in aufgaben:
             aufgabe.last_reminder = timezone.now()
             aufgabe.currently_sending = False
             aufgabe.save()
-            
         return True
     
     for aufgabe in aufgaben:
@@ -583,106 +579,3 @@ def send_new_aufgaben_email(aufgaben, org):
         aufgabe.save()
     
     return False
-
-def send_new_post_email(post_id):
-    from Global.models import Post2
-    post = Post2.objects.get(id=post_id)
-    recipient_person_cluster = post.person_cluster.all()
-    org = post.org
-    
-    """Send email notification for a new post to specified users"""
-    # Generate action URL for the post
-    action_url = f'{settings.DOMAIN_HOST}{reverse("post_detail", args=[post.id])}'
-    
-    # Get organization logo
-    base64_image = get_logo_base64(org)
-    
-    # Get author information
-    author_name = f"{post.user.first_name} {post.user.last_name}" if post.user.first_name and post.user.last_name else post.user.username
-    
-    # Email subject
-    subject = f'Neuer Post: {post.title}'
-    
-    # Track successful sends
-    successful_sends = 0
-    
-    for person_cluster in recipient_person_cluster:
-        for user in person_cluster.get_users():
-            # Skip if user doesn't want email notifications
-            if hasattr(user, 'customuser') and not user.customuser.mail_notifications:
-                continue
-                
-            # Get user's unsubscribe URL
-            unsubscribe_url = user.customuser.get_unsubscribe_url() if hasattr(user, 'customuser') else None
-            
-            # Format user name
-            user_name = f"{user.first_name} {user.last_name}" if user.first_name and user.last_name else user.username
-            
-            # Generate email content
-            email_content = format_new_post_email(
-                post_title=post.title,
-                post_text=post.text,
-                author_name=author_name,
-                post_date=post.date,
-                has_survey=post.has_survey,
-                action_url=action_url,
-                unsubscribe_url=unsubscribe_url,
-                user_name=user_name,
-                org_name=org.name,
-                base64_image=base64_image
-            )
-            
-            # Send email
-            if send_mail_smtp(user.email, subject, email_content, reply_to=org.email):
-                successful_sends += 1
-                
-            # Send push notification as well
-            push_content = f'Neuer Post von {author_name}: {post.title}'
-            if post.has_survey:
-                push_content += ' (enthält Umfrage)'
-                
-            # send_push_notification_to_user(user, subject, push_content, url=action_url)
-    
-    return successful_sends
-
-def send_mail_smtp(receiver_email, subject, html_content, reply_to=None, cc=None):
-    if not receiver_email or not subject or not html_content:
-        return False
-
-    smtp_server = settings.EMAIL_HOST
-    port = settings.EMAIL_PORT
-    sender_email = settings.EMAIL_HOST_USER
-    password = settings.EMAIL_HOST_PASSWORD
-    
-    # Create a MIMEText email message
-    message = MIMEMultipart("alternative")
-    message["From"] = sender_email
-    message["To"] = receiver_email
-    message["Subject"] = subject
-    message["Date"] = formatdate(localtime=True)
-
-    if reply_to:
-        message["Reply-To"] = reply_to
-
-    if cc:
-        message["Cc"] = cc
-
-    # Add email content
-    html_part = MIMEText(html_content, "html")
-    message.attach(html_part)
-
-    # Create a secure SSL context
-    context = ssl.create_default_context()
-
-    try:
-        with smtplib.SMTP(smtp_server, port) as server:
-            server.ehlo()  # Identify ourselves to the SMTP server
-            server.starttls(context=context)  # Secure the connection
-            server.ehlo()
-            server.login(sender_email, password)  # Log in to the server
-            server.sendmail(sender_email, receiver_email, message.as_string())  # Send the email
-        print("Email sent successfully!")
-        return True
-    except smtplib.SMTPException as e:
-        print(f"An error occurred: {e}")
-        return False
