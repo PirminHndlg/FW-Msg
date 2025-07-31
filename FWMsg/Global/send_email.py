@@ -638,7 +638,7 @@ def send_new_post_email(post_id):
             if post.has_survey:
                 push_content += ' (enthält Umfrage)'
                 
-            # send_push_notification_to_user(user, subject, push_content, url=action_url)
+            send_push_notification_to_user(user, subject, push_content, url=action_url)
     
     return successful_sends
     
