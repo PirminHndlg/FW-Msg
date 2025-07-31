@@ -332,6 +332,72 @@ mail_calendar_reminder_email_template = """
 </body>
 """
 
+new_post_email_template = """
+<body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #333333; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+    <div style="padding: 20px; background-color: #ffffff;">
+        <!-- Organization Header -->
+        <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #eeeeee; margin-bottom: 20px;">
+            <img style="width: 60px; height: auto; margin-bottom: 10px;" src="data:image/png;base64,{base64_image}" alt="{org_name} Logo">
+            <h2 style="color: #3273dc; margin: 0; font-weight: 600;">{org_name}</h2>
+        </div>
+        
+        <!-- German Version -->
+        <div style="margin-bottom: 30px;">
+            <p style="font-size: 16px; margin-bottom: 15px;">Hallo {user_name},</p>
+            
+            <p>Es gibt einen neuen Post von {author_name}:</p>
+            
+            <div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+                <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{post_title}</p>
+                <p style="margin: 5px 0;"><span style="color: #666666;">Von:</span> <span style="font-weight: 500;">{author_name}</span></p>
+                <p style="margin: 5px 0;"><span style="color: #666666;">Erstellt am:</span> <span style="font-weight: 500;">{post_date}</span></p>
+                {survey_info_html}
+                <div style="margin-top: 10px; padding: 10px; background-color: #ffffff; border-radius: 4px; border: 1px solid #e9ecef;">
+                    <p style="margin: 0; color: #555555; font-size: 14px;">{post_text}</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{action_url}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">Post ansehen</a>
+            </div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="border-top: 1px solid #eeeeee; margin: 20px 0;"></div>
+        
+        <!-- English Version -->
+        <div style="margin-bottom: 25px;">
+            <p style="font-size: 15px; color: #444444; margin-bottom: 15px;"><strong>English version</strong></p>
+            
+            <p>Hello {user_name},</p>
+            
+            <p>There is a new post from {author_name}:</p>
+            
+            <div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+                <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{post_title}</p>
+                <p style="margin: 5px 0;"><span style="color: #666666;">From:</span> <span style="font-weight: 500;">{author_name}</span></p>
+                <p style="margin: 5px 0;"><span style="color: #666666;">Created on:</span> <span style="font-weight: 500;">{post_date}</span></p>
+                {survey_info_html}
+                <div style="margin-top: 10px; padding: 10px; background-color: #ffffff; border-radius: 4px; border: 1px solid #e9ecef;">
+                    <p style="margin: 0; color: #555555; font-size: 14px;">{post_text}</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{action_url}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">View Post</a>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="text-align: center; font-size: 13px; color: #666666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eeeeee;">
+            <p style="margin: 5px 0;">Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions</p>
+            <p style="margin: 5px 0;">Um keine weiteren E-Mails zu erhalten, <a href="{unsubscribe_url}" style="color: #3273dc; text-decoration: none;">klicke hier</a></p>
+            <p style="margin: 5px 0; color: #999999;">This is an automatically generated email - no reply expected</p>
+        </div>
+    </div>
+</body>
+"""
+
 def format_aufgaben_email(aufgabe_name, aufgabe_deadline, base64_image, org_name, user_name, action_url, aufgabe_beschreibung='', unsubscribe_url=None):
     return aufgaben_email_template.format(
         aufgabe_name=aufgabe_name,
@@ -407,6 +473,33 @@ def format_mail_calendar_reminder_email(title, start, end, description, action_u
         base64_image=base64_image,
         org_name=org_name,
         user_name=user_name
+    )
+
+def format_new_post_email(post_title, post_text, author_name, post_date, has_survey, action_url, unsubscribe_url, user_name, org_name, base64_image):
+    """Format email for new post notifications"""
+    # Format the post date
+    formatted_date = post_date.astimezone(timezone.get_current_timezone()).strftime('%d.%m.%Y %H:%M') if post_date else ''
+    
+    # Add survey information if the post has a survey
+    survey_info_html = ''
+    if has_survey:
+        survey_info_html = '<p style="margin: 5px 0;"><span style="color: #666666; font-weight: 500;">📊 Dieser Post enthält eine Umfrage</span></p>'
+    
+    # Truncate post text if it's too long for email
+    max_length = 300
+    truncated_text = post_text if len(post_text) <= max_length else post_text[:max_length] + '...'
+    
+    return new_post_email_template.format(
+        post_title=post_title,
+        post_text=truncated_text,
+        author_name=author_name,
+        post_date=formatted_date,
+        survey_info_html=survey_info_html,
+        action_url=action_url,
+        unsubscribe_url=unsubscribe_url,
+        user_name=user_name,
+        org_name=org_name,
+        base64_image=base64_image
     )
 
 
@@ -490,6 +583,67 @@ def send_new_aufgaben_email(aufgaben, org):
         aufgabe.save()
     
     return False
+
+def send_new_post_email(post_id):
+    from Global.models import Post2
+    post = Post2.objects.get(id=post_id)
+    recipient_person_cluster = post.person_cluster.all()
+    org = post.org
+    
+    """Send email notification for a new post to specified users"""
+    # Generate action URL for the post
+    action_url = f'{settings.DOMAIN_HOST}{reverse("post_detail", args=[post.id])}'
+    
+    # Get organization logo
+    base64_image = get_logo_base64(org)
+    
+    # Get author information
+    author_name = f"{post.user.first_name} {post.user.last_name}" if post.user.first_name and post.user.last_name else post.user.username
+    
+    # Email subject
+    subject = f'Neuer Post: {post.title}'
+    
+    # Track successful sends
+    successful_sends = 0
+    
+    for person_cluster in recipient_person_cluster:
+        for user in person_cluster.get_users():
+            # Skip if user doesn't want email notifications
+            if hasattr(user, 'customuser') and not user.customuser.mail_notifications:
+                continue
+                
+            # Get user's unsubscribe URL
+            unsubscribe_url = user.customuser.get_unsubscribe_url() if hasattr(user, 'customuser') else None
+            
+            # Format user name
+            user_name = f"{user.first_name} {user.last_name}" if user.first_name and user.last_name else user.username
+            
+            # Generate email content
+            email_content = format_new_post_email(
+                post_title=post.title,
+                post_text=post.text,
+                author_name=author_name,
+                post_date=post.date,
+                has_survey=post.has_survey,
+                action_url=action_url,
+                unsubscribe_url=unsubscribe_url,
+                user_name=user_name,
+                org_name=org.name,
+                base64_image=base64_image
+            )
+            
+            # Send email
+            if send_mail_smtp(user.email, subject, email_content, reply_to=org.email):
+                successful_sends += 1
+                
+            # Send push notification as well
+            push_content = f'Neuer Post von {author_name}: {post.title}'
+            if post.has_survey:
+                push_content += ' (enthält Umfrage)'
+                
+            # send_push_notification_to_user(user, subject, push_content, url=action_url)
+    
+    return successful_sends
 
 def send_mail_smtp(receiver_email, subject, html_content, reply_to=None, cc=None):
     if not receiver_email or not subject or not html_content:

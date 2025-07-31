@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from django.core import validators
 import random
 import string
+from Global.tasks import send_new_post_email_task
 from simple_history.models import HistoricalRecords
 import os.path
 from django.db.models.signals import post_save, post_delete, pre_delete
@@ -68,6 +69,9 @@ class PersonCluster(OrgModel):
         
     def __str__(self):
         return self.name
+    
+    def get_users(self):
+        return User.objects.filter(customuser__person_cluster=self)
     
 
 class CustomUser(OrgModel):
@@ -832,6 +836,12 @@ class Post2(OrgModel):
     def __str__(self):
         return self.title
 
+
+@receiver(post_save, sender=Post2)
+def send_new_post_email_task_receiver(sender, instance, created, **kwargs):
+    if created:
+        print(f"Sending new post email to {instance.person_cluster.all()}")
+        send_new_post_email_task.apply_async(args=[instance.id], countdown=2)
 
 class PostSurveyQuestion(OrgModel):
     post = models.OneToOneField(Post2, on_delete=models.CASCADE, related_name='survey_question', verbose_name='Post')

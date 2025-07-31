@@ -3,6 +3,7 @@ from django import forms
 from FWMsg.middleware import get_current_request
 from .models import Feedback, PersonCluster, Post2, Notfallkontakt2, PostSurveyQuestion, PostSurveyAnswer, EinsatzstelleNotiz
 from django.utils.translation import gettext_lazy as _
+from Global.send_email import send_new_post_email
 
 class FeedbackForm(forms.ModelForm):
     class Meta:
@@ -107,7 +108,7 @@ class AddPostForm(forms.ModelForm):
             # Save the ManyToManyField
             self.save_m2m()
             self.save_answers()
-        
+    
         return post
     
     def save_answers(self):
