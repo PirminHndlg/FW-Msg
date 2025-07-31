@@ -1,0 +1,248 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0899d9">
+    <title>Beurteilung AWS2024 BMW</title>
+
+    <link rel="stylesheet" href="{% static 'css-seminar/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css-seminar/evaluate.css' %}">
+
+    <script src="{% static 'js/global.js' %}"></script>
+    <script src="{% static 'js/evaluate.js' %}"></script>
+
+    <link rel="icon" type="image/png" href="/icon/favicon-48x48.png" sizes="48x48"/>
+    <link rel="icon" type="image/svg+xml" href="/icon/favicon.svg"/>
+    <link rel="shortcut icon" href="/icon/favicon.ico"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon/apple-touch-icon.png"/>
+    <meta name="apple-mobile-web-app-title" content="Auswahl-BMW"/>
+    <link rel="manifest" href="/icon/site.webmanifest"/>
+</head>
+<body>
+
+<div id="dark_background" class="dark_background" onclick="background_clicked()"></div>
+
+<div class="head-container">
+    <div class="tab-container">
+
+        {% if freiwillige %}
+            {% for freiwilliger in freiwillige %}
+                {% with fid=freiwilliger.id %}
+
+                    <button id="{{ fid }}" onclick="onButtonClick(this.id)"
+                            {% if fid == freiwillige.0.id %}
+                            style="background-color: lightblue"
+                            {% endif %}
+                    >{{ freiwilliger.user.first_name }}
+                    </button>
+
+                {% endwith %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    {% if freiwillige %}
+        {% for freiwilliger in freiwillige %}
+            {% with fid=freiwilliger.id %}
+                <img id="img{{ fid }}" class="profil_img" src="{% url 'serve_profil_picture' freiwilliger.user.id %}" sizes="100vw"
+                     alt="Bild von {{ freiwilliger.user.first_name }}"
+                     onclick="on_img_click(this)"
+                     onerror="this.onerror=null; this.src='../static/img/default_img.png';"
+                        {% if not fid == freiwillige.0.id %}
+                     style="display: none"
+                        {% endif %}
+                >
+            {% endwith %}
+        {% endfor %}
+    {% endif %}
+</div>
+
+<div class="headline_container">
+    <h2>Feststellung der Eignung</h2>
+    {% if einheit %}
+        <a class="einheiten_strong">{{ einheit }}</a>
+    {% endif %}
+</div>
+<p><strong>des Freiwilligenjahrgang 2025/26</strong></p>
+<br>
+<p>Bewertungspunkte</p>
+<ul>
+    <li>1 - überdurchschnittlich ausgeprägt</li>
+    <li>2 - gut ausgeprägt</li>
+    <li>3 - durchschnittlich ausgeprägt</li>
+    <li>4 - unterdurchschnittlich ausgeprägt</li>
+    <li>5 - nicht ausgeprägt</li>
+</ul>
+
+<form id="form" action="{% url 'evaluate-post' %}" method="post">
+
+    {% if freiwillige %}
+        {% for freiwilliger in freiwillige %}
+            {% with fid=freiwilliger.id %}
+
+                <div id="question_div_{{ fid }}" class="questions_div"
+                        {% if not fid == freiwillige.0.id %}
+                     style="display: none"
+                        {% endif %}
+                >
+
+                    <div>
+                        {% if categories %}
+                            {% for category in categories %}
+                                {% with category_id=category.id %}
+                                    <details class="question_detail" open>
+                                        <summary class="question_summary">{{ category.name }}</summary>
+
+                                        {% if questions %}
+                                            {% for question in questions %}
+
+                                                {% if question.kategorie == category %}
+
+                                                    <div class="question_detail_div">
+
+                                                        <a class="question_text">
+                                                            {{ question.text }}
+                                                        </a>
+
+                                                        <div class="question_checkbox_div">
+                                                            <a style="color: var(--green-color)">{{ question.min }}</a>
+
+                                                            {% for i in question.max|range_filter %}
+                                                                {% if i >= question.min %}
+                                                                    <input id="f{{ fid }}q{{ question.id }}v{{ i }}"
+                                                                           type="checkbox" class="own_checkbox"
+                                                                           name="f{{ fid }}q{{ question.id }}r{{ einheit.id }}u{{ user }}"
+                                                                           value="{{ i }}"
+                                                                           onchange="deselect_other_checkboxes(this)"
+
+                                                                            {% with frage_beantwortet=bewertet|get_item:fid %}
+                                                                                {% if frage_beantwortet %}
+                                                                                    {% with this_frage_beantwortet=frage_beantwortet|get_item:question.id %}
+
+                                                                                        {% if this_frage_beantwortet == i %}
+                                                                           checked
+                                                                                        {% endif %}
+
+                                                                                    {% endwith %}
+                                                                                {% endif %}
+                                                                            {% endwith %}
+                                                                    >
+                                                                {% endif %}
+                                                            {% endfor %}
+
+                                                            <a style="color: var(--red-color)">{{ question.max }}</a>
+                                                        </div>
+
+                                                        {% if not forloop.last %}
+                                                            <hr>
+                                                        {% endif %}
+
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+
+                                        <div class="center_div">
+                                            {% with frage_beantwortet=bewertet|get_item:fid %}
+                                                {% with category_id=category.id %}
+                                                    {% with comment=frage_beantwortet|get_item:'comment' %}
+                                                        {% with comment=comment|get_item:category_id %}
+                                                            <a for="comment">Anmerkungen: </a>
+                                                            <br>
+                                                            <textarea class="smaller_textarea"
+                                                                      name="comment{{ fid }}r{{ einheit.id }}u{{ user }}c{{ category.id }}n1"
+                                                                      id="comment{{ fid }}r{{ einheit.id }}u{{ user }}c{{ category.id }}"
+                                                                      maxlength="300"
+                                                                      oninput="onTextChange(this)">{{ comment|get_item:'text'|default:'' }}</textarea>
+                                                            <br>
+                                                            <label>
+                                                                <input type="checkbox" name=""
+                                                                       {% if comment|get_item:'name' or not comment %}checked{% endif %}
+                                                                       onchange="this.parentElement.parentElement.querySelector('textarea').name = this.parentElement.parentElement.querySelector('textarea').name.slice(0, -1) + (this.checked ? '1' : '0');">
+                                                                Namen bei Präsentation anzeigen
+                                                            </label>
+                                                        {% endwith %}
+                                                    {% endwith %}
+                                                {% endwith %}
+                                            {% endwith %}
+                                        </div>
+
+                                    </details>
+
+                                {% endwith %}
+                            {% endfor %}
+                        {% endif %}
+
+                    </div>
+
+                    <div class="center_div">
+                        {% with frage_beantwortet=bewertet|get_item:fid %}
+                            {% with comment=frage_beantwortet|get_item:'comment' %}
+                                <a for="comment">Generelle Anmerkungen: </a>
+                                <br>
+                                <textarea name="comment{{ fid }}r{{ einheit.id }}u{{ user }}n1"
+                                          id="comment{{ fid }}r{{ einheit.id }}u{{ user }}"
+                                          maxlength="600"
+                                          oninput="onTextChange(this)">{{ comment|get_item:'ohne'|get_item:'text'|default:'' }}</textarea>
+                                <br>
+                                <label>
+                                    <input type="checkbox" name=""
+                                           {% if comment|get_item:'ohne'|get_item:'name' or not comment|get_item:'ohne' %}checked{% endif %}
+                                           onchange="this.parentElement.parentElement.querySelector('textarea').name = this.parentElement.parentElement.querySelector('textarea').name.slice(0, -1) + (this.checked ? '1' : '0');">
+                                    Namen bei Präsentation anzeigen
+                                </label>
+                            {% endwith %}
+                        {% endwith %}
+                    </div>
+                </div>
+
+            {% endwith %}
+        {% endfor %}
+    {% endif %}
+
+    <div class="center_div">
+        <div style="display:flex; justify-content: center; gap: 5px">
+            <button type="button" class="back_button" onclick="backButtonClicked()">
+                Zurück
+            </button>
+            <button type="submit" class="submit_button">
+                Abschicken
+            </button>
+
+            <button type="button" class="submit_button"
+                    style="background-color: var(--red-color); padding: 2px 10px; display: flex; align-items: center;"
+                    onclick="deleteButtonClicked()">
+                <img id="delete" src="{% static 'img/delete.png' %}" alt="Löschen"
+                     style="height: 25px;-webkit-filter: invert(100%);filter: invert(100%);">
+            </button>
+        </div>
+
+        <br>
+
+        <a>Die Antworten können später noch bearbeitet werden</a>
+        <br>
+    </div>
+
+</form>
+
+
+<script>
+
+    let confirmed = false;
+    let chosen = {{ freiwillige.0.id }};
+    let refresh_url = "{% url 'refresh' %}"
+    let post_url = "{% url 'evaluate-post' %}"
+    let start_url = "{% url 'start' %}"
+    let seminar_home_url = "{% url 'seminar_home' %}"
+
+    let user = "{{ user }}"
+    let einheit = "{{ einheit.id }}"
+
+
+</script>
+
+</body>
+</html>

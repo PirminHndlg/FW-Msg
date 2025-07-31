@@ -9,6 +9,7 @@ from Global.send_email import send_aufgaben_email, send_new_aufgaben_email
 
 from datetime import datetime, timedelta
 from django.db.models import Q
+from django.core.mail import send_mail
 
 ###
 # start celery:

@@ -1,0 +1,105 @@
+{% extends "seminar_base.html" %}
+{% block content %}
+
+<div class="headline_container">
+    <h2>Bewerber:innen</h2>
+  
+    {% if einheit %}
+    <a href="{% url 'einheit' %}" class="einheiten_strong">{{einheit}}</a>
+    {% endif %}
+</div>
+
+<p>
+    Wähle Deine Bewerber:innen aus, die Du bewerten möchtest:
+</p>
+
+
+<form action="{% url 'evaluate' %}">
+
+    <div class="error_msg" onclick="hideErrorMsg()">
+        <p>
+            Bitte wähle mindestens eine:n Bewerber:in aus
+        </p>
+        <div>
+            x
+        </div>
+    </div>
+
+
+    {% if einheit %}
+    <input type="hidden" name="einheit" value="{{einheit.id}}">
+    {% endif %}
+
+
+    {% if freiwillige %}
+    <div class="container_div">
+
+        {% for f in freiwillige %}
+        {% with fid=f.id %}
+
+        <div class="freiwillige_div" onclick="kachel_click({{fid}})">
+            <input id="checkbox{{fid}}" name="{{fid}}" type="checkbox" style="display: none">
+
+            <div id="kachel{{fid}}" class="kachel_div">
+                <div class="img_container">
+                    <img src="{% url 'serve_profil_picture' f.user.id %}"
+                         alt="Bild von {{f.user.first_name}} {{f.user.last_name}}"
+                         onerror="this.onerror=null; this.src='../static/img/default_img.png';">
+                </div>
+                <div>
+                    <a>{{f.user.first_name}}</a>
+                    <br>
+                    <a>{{f.user.last_name}}</a>
+                </div>
+            </div>
+
+        </div>
+
+        {% endwith %}
+
+        {% endfor %}
+
+    </div>
+
+    {% endif %}
+
+    <button class="back_button" type="button" onclick="history.back()">Zurück</button>
+
+    <button class="continue_button submit_button" style="border: 2px solid black" type="submit">Weiter</button>
+
+</form>
+
+<script>
+    function kachel_click(fid) {
+        console.log('click' + fid);
+        if (document.getElementById('checkbox' + fid).checked) {
+            document.getElementById('checkbox' + fid).checked = false;
+            let kachel = document.getElementById('kachel' + fid);
+            kachel.style.backgroundColor = '#f0f0f0';
+            kachel.parentElement.style.backgroundColor = '#f0f0f0';
+            kachel.style.scale = '1';
+        } else {
+            document.getElementById('checkbox' + fid).checked = true;
+            let kachel = document.getElementById('kachel' + fid);
+            kachel.style.backgroundColor = 'lightblue';
+            kachel.parentElement.style.backgroundColor = 'lightblue';
+            kachel.style.scale = '0.9';
+        }
+
+    }
+
+    document.querySelector('form').addEventListener('submit', function (e) {
+        let checked_checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+        if (checked_checkboxes.length === 0) {
+            e.preventDefault();
+            document.querySelector('.error_msg').style.display = 'block';
+        }
+    })
+
+    function hideErrorMsg() {
+        document.querySelector('.error_msg').style.display = 'none';
+    }
+</script>
+
+
+{% endblock %}

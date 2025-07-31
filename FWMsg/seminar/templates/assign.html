@@ -1,0 +1,522 @@
+{% load custom_filters %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freiwillige Zuteilung</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        .volunteer-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .volunteer-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .volunteer-card.selected {
+            border-color: #0d6efd;
+            background-color: #e7f3ff;
+        }
+        
+        .position-slot {
+            min-height: 120px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s ease;
+        }
+        
+        .position-slot:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+        
+        .position-slot.drop-target {
+            border-color: #198754;
+            background-color: #d1e7dd;
+        }
+        
+        .assigned-volunteer {
+            position: relative;
+        }
+        
+        .remove-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: none;
+        }
+        
+        .assigned-volunteer:hover .remove-btn {
+            display: block;
+        }
+        
+        .evaluation-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        
+        .evaluation-G { background-color: #198754; }
+        .evaluation-B { background-color: #ffc107; }
+        .evaluation-N { background-color: #dc3545; }
+        
+        .country-section {
+            border-left: 4px solid #0d6efd;
+        }
+        
+        .volunteer-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .position-counter {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+        
+        .wish-list {
+            font-size: 0.85em;
+            color: #6c757d;
+        }
+        
+        .wish-match {
+            color: #198754;
+            font-weight: bold;
+        }
+        
+        .wish-avoid {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-people-fill text-primary me-2"></i>
+                        Freiwillige Zuteilung
+                    </h1>
+                    <div class="btn-group">
+                        <a href="{% url 'auto_assign' %}" class="btn btn-success">
+                            <i class="bi bi-magic me-2"></i>
+                            Automatische Zuteilung
+                        </a>
+                        <a href="{% url 'seminar_home' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-house me-2"></i>
+                            Zurück zur Übersicht
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <!-- Countries and Positions -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-geo-alt me-2"></i>
+                            Einsatzländer und Stellen
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for land in laender %}
+                            <div class="country-section p-3 mb-4 bg-white rounded border">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-flag me-2"></i>
+                                        {{ land.land.name }}
+                                    </h5>
+                                    <span class="badge bg-info position-counter">
+                                        {{ land.stellen|get_current_fw_of_stellen }}/{{ land.land|get_max_fw_of_land }}
+                                    </span>
+                                </div>
+                                
+                                {% for stelle in land.stellen %}
+                                    <div class="position-section mb-4 p-3 border rounded" data-position-id="{{ stelle.0.id }}">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 class="mb-0">{{ stelle.0.name }}</h6>
+                                            <span class="badge 
+                                                {% if stelle.0.max_freiwillige == stelle.1|length %}
+                                                    bg-success
+                                                {% elif stelle.0.max_freiwillige|default:0 < stelle.1|length %}
+                                                    bg-danger
+                                                {% else %}
+                                                    bg-secondary
+                                                {% endif %}
+                                            ">
+                                                {{ stelle.1|length }}/{{ stelle.0.max_freiwillige|default:0 }}
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="row g-2">
+                                            <!-- Assigned volunteers -->
+                                            {% for freiwilliger in stelle.1 %}
+                                                <div class="col-md-4 col-lg-3">
+                                                    <div class="assigned-volunteer card border-success">
+                                                        <div class="card-body p-2 text-center">
+                                                            <a class="btn btn-sm btn-danger remove-btn" 
+                                                                href="{% url 'assign' %}?fw={{ freiwilliger.id }}&land=None">
+                                                                <i class="bi bi-x"></i>
+                                                            </a>
+                                                            
+                                                            {% if freiwilliger.endbewertung %}
+                                                                <div class="evaluation-badge evaluation-{{ freiwilliger.endbewertung }}"></div>
+                                                            {% endif %}
+                                                            
+                                                            <img src="{% url 'serve_profil_picture' freiwilliger.user.id %}" 
+                                                                 class="volunteer-avatar mb-2" 
+                                                                 alt="{{ freiwilliger.user.first_name }}"
+                                                                 onerror="this.src='{% static 'img/default_img.png' %}'">
+                                                            <div class="small fw-bold">{{ freiwilliger.user.first_name }}</div>
+                                                            <div class="small text-muted">{{ freiwilliger.user.last_name }}</div>
+                                                            {% if freiwilliger.note %}
+                                                                <div class="small text-primary">{{ freiwilliger.note|myround:1 }}</div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                            
+                                            <!-- Empty slots -->
+                                            {% for i in stelle.0.max_freiwillige|default:0|range_filter:"0,0" %}
+                                                {% if forloop.counter0 >= stelle.1|length %}
+                                                    <div class="col-md-4 col-lg-3">
+                                                        <div class="position-slot d-flex align-items-center justify-content-center"
+                                                             data-position-id="{{ stelle.0.id }}"
+                                                             onclick="selectPosition({{ stelle.0.id }}, this)">
+                                                            <div class="text-center text-muted">
+                                                                <i class="bi bi-plus-circle fs-2"></i>
+                                                                <div class="small">Freiwillige:r zuweisen</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+
+                                            {% if stelle.0.max_freiwillige|default:0 <= stelle.1|length %}
+                                            <div class="col-md-4 col-lg-3">
+                                                <div class="position-slot d-flex align-items-center justify-content-center"
+                                                     data-position-id="{{ stelle.0.id }}"
+                                                     onclick="selectPosition({{ stelle.0.id }}, this)">
+                                                    <div class="text-center text-muted">
+                                                        <i class="bi bi-plus-circle fs-2"></i>
+                                                        <div class="small">Freiwillige:r zuweisen</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Volunteers -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person-lines-fill me-2"></i>
+                            Freiwillige
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <!-- Tabs -->
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#unassigned">
+                                    Nicht zugeteilt
+                                    <span class="badge bg-primary ms-1">{{ freiwillige_ohne_zuteilung|length }}</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#assigned">
+                                    Zugeteilt
+                                    <span class="badge bg-success ms-1">{{ freiwillige_mit_zuteilung|length }}</span>
+                                </a>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content">
+                            <!-- Unassigned volunteers -->
+                            <div class="tab-pane fade show active" id="unassigned">
+                                <div class="p-3" style="max-height: 70vh; overflow-y: auto;">
+                                    {% for freiwilliger in freiwillige_ohne_zuteilung %}
+                                        <div class="volunteer-card card mb-2" 
+                                             data-volunteer-id="{{ freiwilliger.id }}"
+                                             data-first-wish-land="{{ freiwilliger.first_wish_einsatzland.id|default:'' }}"
+                                             data-first-wish-stelle="{{ freiwilliger.first_wish_einsatzstelle.id|default:'' }}"
+                                             data-second-wish-land="{{ freiwilliger.second_wish_einsatzland.id|default:'' }}"
+                                             data-second-wish-stelle="{{ freiwilliger.second_wish_einsatzstelle.id|default:'' }}"
+                                             data-third-wish-land="{{ freiwilliger.third_wish_einsatzland.id|default:'' }}"
+                                             data-third-wish-stelle="{{ freiwilliger.third_wish_einsatzstelle.id|default:'' }}"
+                                             data-no-wish-land="{{ freiwilliger.no_wish_einsatzland.id|default:'' }}"
+                                             data-no-wish-stelle="{{ freiwilliger.no_wish_einsatzstelle.id|default:'' }}"
+                                             onclick="selectVolunteer({{ freiwilliger.id }})">
+                                            <div class="card-body p-2">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="position-relative me-3">
+                                                        <img src="{% url 'serve_profil_picture' freiwilliger.user.id %}" 
+                                                             class="volunteer-avatar" 
+                                                             alt="{{ freiwilliger.user.first_name }}"
+                                                             onerror="this.src='{% static 'img/default_img.png' %}'">
+                                                        {% if freiwilliger.endbewertung %}
+                                                            <div class="evaluation-badge evaluation-{{ freiwilliger.endbewertung }}"></div>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <div class="fw-bold">{{ freiwilliger.user.first_name }} {{ freiwilliger.user.last_name.0 }}.</div>
+                                                        {% if freiwilliger.note %}
+                                                            <div class="small text-primary">Note: {{ freiwilliger.note|myround:1 }}</div>
+                                                        {% endif %}
+                                                        <div class="wish-list">
+                                                            <div class="small">
+                                                                1) {% if freiwilliger.first_wish_einsatzstelle %}{{ freiwilliger.first_wish_einsatzstelle }}{% elif freiwilliger.first_wish_einsatzland %}{{ freiwilliger.first_wish_einsatzland }}{% else %}{{ freiwilliger.first_wish }}{% endif %}
+                                                            </div>
+                                                            <div class="small">
+                                                                2) {% if freiwilliger.second_wish_einsatzstelle %}{{ freiwilliger.second_wish_einsatzstelle }}{% elif freiwilliger.second_wish_einsatzland %}{{ freiwilliger.second_wish_einsatzland }}{% else %}{{ freiwilliger.second_wish }}{% endif %}
+                                                            </div>
+                                                            <div class="small">
+                                                                3) {% if freiwilliger.third_wish_einsatzstelle %}{{ freiwilliger.third_wish_einsatzstelle }}{% elif freiwilliger.third_wish_einsatzland %}{{ freiwilliger.third_wish_einsatzland }}{% else %}{{ freiwilliger.third_wish }}{% endif %}
+                                                            </div>
+                                                            {% if freiwilliger.no_wish %}
+                                                                <div class="small text-danger">
+                                                                    Nicht: {{ freiwilliger.no_wish }}
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    <div class="ms-2">
+                                                        <a href="{% url 'evaluate_all' %}?fid={{ freiwilliger.id }}" 
+                                                           target="_blank" 
+                                                           class="btn btn-sm btn-outline-info"
+                                                           onclick="event.stopPropagation()">
+                                                            <i class="bi bi-info-circle"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                    
+                                    {% if not freiwillige_ohne_zuteilung %}
+                                        <div class="text-center text-muted py-4">
+                                            <i class="bi bi-check-circle fs-1"></i>
+                                            <div class="mt-2">Alle Freiwilligen sind zugeteilt!</div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Assigned volunteers -->
+                            <div class="tab-pane fade" id="assigned">
+                                <div class="p-3" style="max-height: 70vh; overflow-y: auto;">
+                                    {% for freiwilliger in freiwillige_mit_zuteilung %}
+                                        <div class="card mb-2 border-success">
+                                            <div class="card-body p-2">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="position-relative me-3">
+                                                        <img src="{% url 'serve_profil_picture' freiwilliger.user.id %}" 
+                                                             class="volunteer-avatar" 
+                                                             alt="{{ freiwilliger.user.first_name }}"
+                                                             onerror="this.src='{% static 'img/default_img.png' %}'">
+                                                        {% if freiwilliger.endbewertung %}
+                                                            <div class="evaluation-badge evaluation-{{ freiwilliger.endbewertung }}"></div>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <div class="fw-bold">{{ freiwilliger.user.first_name }} {{ freiwilliger.user.last_name.0 }}.</div>
+                                                        <div class="small text-success">
+                                                            <i class="bi bi-geo-alt me-1"></i>
+                                                            {{ freiwilliger.zuteilung.name }}
+                                                        </div>
+                                                        {% if freiwilliger.note %}
+                                                            <div class="small text-primary">Note: {{ freiwilliger.note|myround:1 }}</div>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="ms-2">
+                                                        <button class="btn btn-sm btn-outline-danger" 
+                                                                onclick="removeAssignment({{ freiwilliger.id }})">
+                                                            <i class="bi bi-x-circle"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                    
+                                    {% if not freiwillige_mit_zuteilung %}
+                                        <div class="text-center text-muted py-4">
+                                            <i class="bi bi-person-x fs-1"></i>
+                                            <div class="mt-2">Noch keine Zuweisungen</div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        let scrollTo = {{ scroll_to|default:0 }};
+        let selectedVolunteer = null;
+        let selectedPosition = null;
+
+        if (scrollTo) {
+            document.querySelector(`[data-position-id="${scrollTo}"]`).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function selectVolunteer(volunteerId) {
+            // if volunteer is already selected, remove the selection
+            if (selectedVolunteer == volunteerId) {
+                selectedVolunteer = null;
+                document.querySelectorAll('.volunteer-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                return;
+            }
+
+            // Remove previous selection
+            document.querySelectorAll('.volunteer-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Select new volunteer
+            const volunteerCard = document.querySelector(`[data-volunteer-id="${volunteerId}"]`);
+            volunteerCard.classList.add('selected');
+            selectedVolunteer = volunteerId;
+            
+            // Highlight matching positions
+            highlightMatchingPositions(volunteerCard);
+            
+            // Auto-assign if position is already selected
+            if (selectedPosition) {
+                assignVolunteer();
+            }
+        }
+
+        function selectPosition(positionId, positionSlot) {
+            // if position is already selected, remove the selection
+            if (selectedPosition == positionId) {
+                selectedPosition = null;
+                document.querySelectorAll('.position-slot').forEach(slot => {
+                    slot.classList.remove('drop-target');
+                });
+                return;
+            }
+            // Remove previous selection
+            document.querySelectorAll('.position-slot').forEach(slot => {
+                slot.classList.remove('drop-target');
+            });
+            
+            // Select new position
+            if (positionSlot) {
+                positionSlot.classList.add('drop-target');
+                selectedPosition = positionId;
+            }
+            
+            // Auto-assign if volunteer is already selected
+            if (selectedVolunteer) {
+                assignVolunteer();
+            }
+        }
+
+        function highlightMatchingPositions(volunteerCard) {
+            const firstWishStelle = volunteerCard.dataset.firstWishStelle;
+            const secondWishStelle = volunteerCard.dataset.secondWishStelle;
+            const thirdWishStelle = volunteerCard.dataset.thirdWishStelle;
+            const noWishStelle = volunteerCard.dataset.noWishStelle;
+            
+            // Reset all position highlights
+            document.querySelectorAll('.position-section').forEach(section => {
+                section.classList.remove('border-success', 'border-warning', 'border-danger');
+            });
+            
+            // Highlight positions based on wishes
+            if (firstWishStelle) {
+                const section = document.querySelector(`[data-position-id="${firstWishStelle}"]`);
+                if (section) section.classList.add('border-success');
+            }
+            if (secondWishStelle) {
+                const section = document.querySelector(`[data-position-id="${secondWishStelle}"]`);
+                if (section) section.classList.add('border-success');
+            }
+            if (thirdWishStelle) {
+                const section = document.querySelector(`[data-position-id="${thirdWishStelle}"]`);
+                if (section) section.classList.add('border-success');
+            }
+            if (noWishStelle) {
+                const section = document.querySelector(`[data-position-id="${noWishStelle}"]`);
+                if (section) section.classList.add('border-danger');
+            }
+        }
+
+        function assignVolunteer() {
+            if (selectedVolunteer && selectedPosition) {
+                window.location.href = `{% url 'assign' %}?fw=${selectedVolunteer}&land=${selectedPosition}`;
+            }
+        }
+
+        function removeAssignment(volunteerId) {
+            window.location.href = `{% url 'assign' %}?fw=${volunteerId}&land=None`;
+        }
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                // Clear selections
+                selectedVolunteer = null;
+                selectedPosition = null;
+                document.querySelectorAll('.volunteer-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                document.querySelectorAll('.position-slot').forEach(slot => {
+                    slot.classList.remove('drop-target');
+                });
+                document.querySelectorAll('.position-section').forEach(section => {
+                    section.classList.remove('border-success', 'border-warning', 'border-danger');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

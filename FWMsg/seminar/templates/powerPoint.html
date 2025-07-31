@@ -1,0 +1,393 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMW AWS2024 - Auswertung</title>
+
+    <link rel="stylesheet" href="{% static 'css-seminar/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css-seminar/auswertung.css' %}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'js/global.js' %}"></script>
+</head>
+<body>
+
+<a class="pp_hamburger_button" onclick="hamburgerMenu(true)">≡</a>
+
+<div id="menu" class="pp_hamburger_menu">
+    <a class="pp_hamburger_button_close" onclick="hamburgerMenu(false)">×</a>
+    <div class="pp_hamburger_submenu">
+        {% for result in all_results %}
+        <div style="display: flex; align-items: center;">
+            <div style="height: 10px; width: 10px; background-color:
+            {% if result.freiwilliger__endbewertung == 'G' %}
+                var(--green-color)
+            {% elif result.freiwilliger__endbewertung == 'B' %}
+                var(--yellow-color)
+            {% elif result.freiwilliger__endbewertung == 'N' %}
+                var(--red-color)
+            {% else %}
+                #E6E6E6
+            {% endif %}
+            ; border-radius: 50%"></div>
+            <a class="pp_hamburger_menu_point" href="{% url 'evaluate_all' %}?f={{forloop.counter|subtract:1}}"
+            >{{result.bewerber__user__first_name}} {{result.bewerber__user__last_name}} <small>({{result.avg_total|myround:1}})</small></a>
+        </div>
+
+            {% endfor %}
+    </div>
+</div>
+
+<div class="body_div">
+
+    <div class="pp_top_div">
+
+
+        <div class="pp_profil_img_div"><img class="pp_profil_img" style="border-color:
+            {% if freiwilliger.endbewertung == 'G' %}
+                var(--green-color)
+            {% elif freiwilliger.endbewertung == 'B' %}
+                var(--yellow-color)
+            {% elif freiwilliger.endbewertung == 'N' %}
+                var(--red-color)
+            {% endif %}
+            ;" src="/{{freiwilliger.file}}" alt="Bild von {{freiwilliger.first_name}}"
+                onerror="this.onerror=null; this.src='/static/img/default_img.png';"
+        ></div>
+
+        <div class="pp_second_top_div">
+            <h1 class="pp_name_field">{{freiwilliger.user.first_name}} {{freiwilliger.user.last_name}}</h1>
+
+            <div class="pp_second_top_subdiv">
+                <div class="pp_steckbrief_container">
+                    <h2>Steckbrief:</h2>
+                    <p><strong>Gegenstand:</strong> {{freiwilliger.gegenstand|default:""}}</p>
+                    <p style="display: flex; align-items: center"><strong>Kirchenzugehörigkeit:</strong>
+                        <img src="/static/img/{{freiwilliger.kirchenzugehoerigkeit}}.png" alt="{{freiwilliger.kirchenzugehoerigkeit}}" class="kirchen_logo">
+                    </p>
+                    <p><strong>Adresse:</strong> {{freiwilliger.stadt|default:""}}</p>
+                    <p><strong>Sprachen:</strong> {{freiwilliger.sprachen|default:""}}</p>
+                    <p><strong>Geburtstag:</strong> <a
+                            {% if freiwilliger.birthdate|is_age %}
+                                style="color: var(--red-color)"
+                            {% endif %}
+                    >{{freiwilliger.birthdate|default:""|date:"d.m.Y"}}</a></p>
+                </div>
+                <div class="pp_prefer_container">
+                    <div class="pp_prefer_subcontainer">
+                        <h2>Länderwünsche:</h2>
+                        <ol>
+                            <li>{{freiwilliger.first_wish|default:"-"}}</li>
+                            <li>{{freiwilliger.second_wish|default:"-"}}</li>
+                            <li>{{freiwilliger.third_wish|default:"-"}}</li>
+                        </ol>
+                        <p><strong>nicht:</strong> {{freiwilliger.no_wish|default:"-"}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pp_sub_div">
+
+        <div class="pp_result_container">
+            <div class="pp_category_container">
+                <h2 class="pp_bewertungen_h">Bewertungen:</h2>
+                {% for k in kategorien %}
+                <div>
+                    <h3>{{ k.short_name|default:k }}</h3>
+                    <canvas id="lineChart{{k.id}}"></canvas>
+                    <p>
+                        {% for r in result %}
+                        {% if r.frage__kategorie == k.id %}
+                        {{r.avg_bewertung}}
+                        {% endif %}
+                        {% endfor %}
+                    </p>
+                </div>
+
+                {% endfor %}
+            </div>
+
+            <div class="pp_result_total">{{avg.avg_total|myround:1}}</div>
+
+            <div class="pp_comment_container">
+                <h2>Kommentare:</h2>
+                {{freiwilliger.kommentar_zusammenfassung}}
+                {% for kommentar in kommentare %}
+                <details>
+                    <summary>
+                        {% if kommentar.show_name_at_presentation %}
+                        {{kommentar.bewerter__first_name}} {{kommentar.bewerter__last_name}}
+                        {% else %}
+                        Anonym
+                        {% endif %}
+                        <a style="font-style: italic;">
+                            {% if kommentar.einheit__short_name %}
+                                {{ kommentar.einheit__short_name }}
+                            {% else %}
+                                {{ kommentar.einheit__name }}
+                            {% endif %}
+                        </a>
+                        <br>
+                        <p class="pp_comment_preview">{{kommentar.text}}</p>
+                    </summary>
+                    <p>{{kommentar.text}}</p>
+                </details>
+                {% if not forloop.last %}
+                <hr>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <div class="pp_footer">
+        <h3>Interview: {{freiwilliger.interview_1.last_name|default:"-"}}, {{freiwilliger.interview_2.last_name|default:"-"}}</h3>
+        <div class="pp_bewertungen_container">
+            <button id="geeignet" style="border-color: var(--green-color);
+                        {% if freiwilliger.endbewertung == 'G' %}
+                                background-color: var(--green-color);
+                                {% endif %}
+            " onclick="geeignet_button(this.id, 'G');">geeignet</button>
+            <button id="bedingt" style="border-color: var(--yellow-color);
+                        {% if freiwilliger.endbewertung == 'B' %}
+                                background-color: var(--yellow-color);
+                                {% endif %}
+                        >bedingt geeignet</button>
+            " onclick="geeignet_button(this.id, 'B');">bedingt geeignet</button>
+            <button id="nicht" style="border-color: var(--red-color);
+                        {% if freiwilliger.endbewertung == 'N' %}
+                                background-color: var(--red-color);
+                                {% endif %}
+                        >nicht geeignet</button>
+            " onclick="geeignet_button(this.id, 'N');">nicht geeignet</button>
+        </div>
+
+        <div class="pp_navigate_div">
+            <button style="transform: rotate(180deg);" id="back" onclick="window.location = '{% url 'evaluate_all' %}?f={{back}}'"
+            {% if back == -1 %}
+                disabled
+            {% endif %}>
+                <img src="/static/img/arrow.png" alt="arrow">
+            </button>
+            <button id="next" onclick="window.location = '{% url 'evaluate_all' %}?f={{next}}'"
+            {% if next == -1 %}
+                disabled
+            {% endif %}>
+                    <img src="/static/img/arrow.png" alt="arrow">
+            </button>
+        </div>
+
+        <a class="bmw_logo" href="{% url 'seminar_home' %}">
+            <img id="logo" src="{% url 'serve_image' request.user.org.id %}" alt="{{request.user.org}} Logo" class="bmw_logo">
+        </a>
+
+    </div>
+
+
+<script>
+    function resize() {
+        let width = window.innerWidth - 20
+        let height = window.innerHeight - 20
+        let body_div = document.getElementsByClassName('body_div')[0]
+
+        let width_ratio = width / body_div.offsetWidth
+        let height_ratio = height / body_div.offsetHeight
+
+        if (width_ratio < height_ratio) {
+            body_div.style.scale = width_ratio
+        } else {
+            body_div.style.scale = height_ratio
+        }
+
+        body_div.style.transformOrigin = '0 0'
+    }
+
+    window.onload = function () {
+        resize()
+
+        const isFullscreen = localStorage.getItem('isFullscreen');
+        console.log(isFullscreen)
+        if (isFullscreen === 'true' && !document.fullscreenElement) {
+            openFullscreen();
+        }
+    }
+
+    window.onresize = resize
+
+    function openFullscreen() {
+        const docEl = document.documentElement;
+        if (docEl.requestFullscreen) {
+            docEl.requestFullscreen();
+        } else if (docEl.mozRequestFullScreen) { // Firefox
+            docEl.mozRequestFullScreen();
+        } else if (docEl.webkitRequestFullscreen) { // Chrome, Safari and Opera
+            docEl.webkitRequestFullscreen();
+        } else if (docEl.msRequestFullscreen) { // IE/Edge
+            docEl.msRequestFullscreen();
+        }
+    }
+
+    function closeFullscreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) { // Firefox
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) { // Chrome, Safari and Opera
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { // IE/Edge
+            document.msExitFullscreen();
+        }
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'f' || event.key === 'F') {
+            openFullscreen();
+        } else if (event.key === 'e' || event.key === 'E') {
+            closeFullscreen();
+        } else if (event.key === 'ArrowRight') {
+            document.getElementById('next').click()
+        } else if (event.key === 'ArrowLeft') {
+            document.getElementById('back').click()
+        }
+    });
+
+    let canvas = document.querySelectorAll('canvas')
+    canvas.forEach((c) => {
+        const ctx = c.getContext('2d')
+        let category = c.id.replace('lineChart', '')
+        let bewertungen = {{ bewertungen }}
+        let xyValues = []
+
+        let bewertungen_category = bewertungen[category]
+        bewertungen_category.forEach((b) => {
+            xyValues.push({x: Math.round(parseFloat(b) * 100) / 100, y: 0.05})
+        })
+
+        new Chart(ctx, {
+            type: 'scatter', // Line chart type
+            data: {
+                datasets: [{
+                    /*data: bewertungen[category], // Y-axis data points {{bewertungen[category]
+                    borderColor: '#623395', // Line color
+                    backgroundColor: 'rgba(98, 51, 149, 0.4)', // Fill under the line
+                    borderWidth: 2, // Line width
+                    fill: true // Enable the area fill under the line*/
+                    pointRadius: 5,
+                    pointBackgroundColor: "rgba(98,51,149,0.2)",
+                    data: xyValues,
+                    showLine: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true, // Set to false to allow for custom size
+                aspectRatio: 2.5,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: true, // Enable tooltips
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.parsed.x; // Display the X value
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true, // X-axis starts at zero
+                        ticks: {
+                            display: true, // Hide X-axis labels
+                            stepSize: 1, // Set the step size of the X-axis
+                        },
+                        min: 1,  // Set the minimum value of the X-axis
+                        max: 5,  // Set the maximum value of the X-axis
+                    },
+                    y: {
+                        beginAtZero: true, // Y-axis starts at zero
+                        min: 0,  // Set the minimum value of the Y-axis
+                        max: 0.1,  // Set the maximum value of the Y-axis
+                        ticks: {
+                            display: false, // Hide Y-axis labels
+                            stepSize: 0.05,
+                        }
+                    }
+                }
+            }
+        });
+        c.style.height = '100px'
+    })
+
+    function hamburgerMenu(open) {
+        let menu = document.getElementById('menu')
+        if (open) {
+            menu.style.display = 'flex'
+        } else {
+            menu.style.display = 'none'
+        }
+    }
+
+    document.querySelector('div.pp_result_total').addEventListener('mouseenter', function () {
+        this.innerHTML = '{{avg.avg_total|myround:2}}'
+    })
+    document.querySelector('div.pp_result_total').addEventListener('mouseleave', function () {
+        this.innerHTML = '{{avg.avg_total|myround:1}}'
+    })
+
+    function geeignet_button(id, g) {
+        let g_arg = g
+        let buttons = document.getElementsByClassName('pp_bewertungen_container')[0].children
+        for (let b of buttons) {
+            console.log(b.style.backgroundColor)
+            if (b.id === id && b.style.backgroundColor.startsWith('var')) {
+                g_arg = 'None'
+            }
+
+            b.style.backgroundColor = '#E6E6E6'
+        }
+
+        console.log(g_arg, g, id)
+
+        http("{% url 'insert_geeignet' %}" + '?f={{freiwilliger.id}}&g=' + g_arg)
+
+        let as = document.getElementsByClassName('pp_hamburger_menu_point')
+        for (let a of as) {
+            if (a.innerHTML.includes('{{freiwilliger.first_name}} {{freiwilliger.last_name}}')) {
+                let color = '#E6E6E6'
+                if (g_arg === 'G') {
+                    color = 'var(--green-color)'
+                } else if (g_arg === 'B') {
+                    color = 'var(--yellow-color)'
+                } else if (g_arg === 'N') {
+                    color = 'var(--red-color)'
+                }
+                console.log(color)
+                a.parentElement.querySelector('div').style.backgroundColor = color
+                document.getElementById(id).style.backgroundColor = color
+
+                if (g_arg === 'None') {
+                    document.querySelector('img.pp_profil_img').style.borderColor = 'white'
+                } else {
+                    document.querySelector('img.pp_profil_img').style.borderColor = color
+                }
+            }
+        }
+    }
+</script>
+
+</body>
+</html>

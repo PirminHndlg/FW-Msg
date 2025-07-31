@@ -1,0 +1,90 @@
+:root {
+    --form-control-disabled: #959495;
+    --form-control-color: #0899d9;
+    --form-purple-color: #623395;
+    --red-color: #e84855;
+    --yellow-color: #f9cb40;
+    --green-color: #8ec649;
+    --gray-color: #E6E6E6;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: white;
+    margin: 0;
+}
+
+h1 {
+    font-size: 30px;
+    color: black;
+    margin: 4px 6px;
+    text-align: center;
+}
+
+h2 {
+    font-size: 24px;
+    margin: 4px 6px;
+}
+
+p {
+    font-size: 18px;
+    color: black;
+    margin: 2px 6px;
+}
+
+.back_button {
+    background-color: darkgray;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    margin: 10px 0;
+    cursor: pointer;
+}
+
+.submit_button {
+    background-color: #0899d9;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    margin: 10px 0;
+    cursor: pointer;
+}
+
+.center_div {
+    margin: auto;
+    text-align: center;
+    padding: 10px;
+}
+
+
+.headline_container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0;
+    padding-top: 10px;
+}
+
+
+@media screen and (max-width: 360px) {
+    .headline_container {
+        flex-direction: column;
+    }
+    .headline_container h2 {
+        width: 100%;
+    }
+}
+
+.einheiten_strong {
+    font-weight: bold;
+    background-color: var(--form-purple-color);
+    color: white;
+    border-radius: 5px;
+    padding: 5px;
+    text-decoration: none;
+    margin-right: 5px;
+    font-size: 14px;
+}
