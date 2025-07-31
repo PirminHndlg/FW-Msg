@@ -10,6 +10,12 @@ urlpatterns = [
     path('bild/', views.bild, name='bild'),
     path('bild/remove/', views.remove_bild, name='remove_bild'),
     path('bild/remove/all/', views.remove_bild_all, name='remove_bild_all'),
+    
+    # Bilder Comments and Reactions
+    path('bild/<int:bild_id>/comment/add/', views.add_comment_to_bild, name='add_comment_to_bild'),
+    path('bild/comment/<int:comment_id>/remove/', views.remove_comment_from_bild, name='remove_comment_from_bild'),
+    path('bild/<int:bild_id>/reaction/toggle/', views.toggle_reaction_to_bild, name='toggle_reaction_to_bild'),
+    path('bild/<int:bild_id>/interactions/', views.get_bild_interactions, name='get_bild_interactions'),
 
     path('posts/', views.posts_overview, name='posts_overview'),
     path('posts/add/', views.post_add, name='post_add'),

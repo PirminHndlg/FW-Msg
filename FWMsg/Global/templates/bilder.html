@@ -10,6 +10,7 @@
 {% endblock %}
 
 {% block content %}
+    {% csrf_token %}
     {% if error %}
         <div class="alert alert-danger" role="alert">
             <i class="bi bi-exclamation-triangle-fill"></i>

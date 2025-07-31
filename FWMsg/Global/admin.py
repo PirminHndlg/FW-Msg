@@ -11,7 +11,7 @@ from .models import (
     Organisation, Aufgabe2, DokumentColor2, Dokument2, 
     Ordner2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, PushSubscription, 
     UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, 
-    AufgabenCluster, Bilder2, BilderGallery2, ProfilUser2, Maintenance,
+    AufgabenCluster, Bilder2, BilderGallery2, BilderComment, BilderReaction, ProfilUser2, Maintenance,
     PostSurveyAnswer, PostSurveyQuestion, EinsatzstelleNotiz, StickyNote
 )
 from TEAM.models import Team
@@ -563,3 +563,23 @@ class StickyNoteAdmin(admin.ModelAdmin):
         return f"{obj.user.first_name} {obj.user.last_name}"
     get_user_full_name.short_description = 'Full Name'
     get_user_full_name.admin_order_field = 'user__first_name'
+
+
+@admin.register(BilderComment)
+class BilderCommentAdmin(SimpleHistoryAdmin):
+    list_display = ['bilder', 'user', 'get_comment_preview', 'date_created']
+    search_fields = ['bilder__titel', 'user__username', 'user__first_name', 'user__last_name', 'comment']
+    list_filter = ['date_created', 'bilder__user']
+    raw_id_fields = ['bilder', 'user']
+
+    def get_comment_preview(self, obj):
+        return obj.comment[:50] + '...' if len(obj.comment) > 50 else obj.comment
+    get_comment_preview.short_description = 'Kommentar Vorschau'
+
+
+@admin.register(BilderReaction)
+class BilderReactionAdmin(SimpleHistoryAdmin):
+    list_display = ['bilder', 'user', 'emoji', 'date_created']
+    search_fields = ['bilder__titel', 'user__username', 'user__first_name', 'user__last_name']
+    list_filter = ['emoji', 'date_created', 'bilder__user']
+    raw_id_fields = ['bilder', 'user']
