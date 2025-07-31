@@ -10,7 +10,13 @@ from Global.send_email import send_mail_smtp, format_register_email_org, format_
 @shared_task
 def send_register_email_task(customuser_id):
     from Global.models import CustomUser
-    customuser = CustomUser.objects.get(id=customuser_id)
+
+    try:
+        customuser = CustomUser.objects.get(id=customuser_id)
+    except CustomUser.DoesNotExist:
+        logging.error(f"CustomUser with id {customuser_id} does not exist")
+        return False
+    
     user = customuser.user
     org = customuser.org
 
