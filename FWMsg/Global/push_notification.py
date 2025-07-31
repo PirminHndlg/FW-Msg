@@ -116,6 +116,9 @@ def send_push_notification(subscription, title, body, tag=None, url=None, icon=N
         else:
             logger.error(f"WebPushException: {str(e)}")
         return False
+    except Exception as e:
+        logger.error(f"Error sending push notification: {str(e)}")
+        return False
 
 def send_push_notification_to_user(user, title, body, tag=None, url=None, icon=None):
     """
@@ -133,7 +136,7 @@ def send_push_notification_to_user(user, title, body, tag=None, url=None, icon=N
         Number of devices the notification was successfully sent to
     """
     # Import PushSubscription here to avoid circular imports
-    from .models import PushSubscription
+    from Global.models import PushSubscription
     
     subscriptions = PushSubscription.objects.filter(user=user)
     print(f"Sending push notification to {len(subscriptions)} devices")
