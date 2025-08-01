@@ -231,7 +231,7 @@ class KalenderEvent(OrgModel):
     
     
 class Ordner2(OrgModel):
-    ordner_name = models.CharField(max_length=100, verbose_name='Ordnername', help_text='Name des Ordners')
+    ordner_name = models.CharField(max_length=255, verbose_name='Ordnername', help_text='Name des Ordners')
     typ = models.ManyToManyField(PersonCluster, verbose_name='Sichtbar für', help_text='Benutzergruppen, die diesen Ordner sehen können')
     color = models.ForeignKey('DokumentColor2', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Farbkennzeichnung', help_text='Farbliche Markierung des Ordners')
 
@@ -303,7 +303,7 @@ class Dokument2(models.Model):
     link = models.URLField(null=True, blank=True, verbose_name='Link', help_text='Link zu einer externen Datei')
     date_created = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am', help_text='Datum der Erstellung der Datei')
     date_modified = models.DateTimeField(auto_now=True, verbose_name='Zuletzt geändert am', help_text='Datum der letzten Änderung der Datei')
-    titel = models.CharField(max_length=100, null=True, blank=True, verbose_name='Titel', help_text='Titel der Datei')
+    titel = models.CharField(max_length=255, null=True, blank=True, verbose_name='Titel', help_text='Titel der Datei')
     beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung', help_text='Beschreibung der Datei')
     darf_bearbeiten = models.ManyToManyField(PersonCluster, verbose_name='Darf bearbeiten', help_text='Benutzergruppen, die diese Datei bearbeiten können')
     preview_image = models.ImageField(upload_to=upload_to_preview_image, null=True, blank=True)
