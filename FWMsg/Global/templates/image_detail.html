@@ -1,0 +1,77 @@
+{% extends extends_base|default:'baseFw.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}
+  {{ bild.titel }} -{% trans 'Bild Details' %}
+{% endblock %}
+
+{% block head %}
+  <style>
+    /* Instagram-style layout optimizations */
+    .main-image {
+      max-height: 70vh;
+      object-fit: contain;
+    }
+    
+    /* Mobile optimizations */
+    @media (max-width: 991.98px) {
+      .main-image {
+        max-height: 60vh;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <!-- Back Button -->
+  <button class="btn btn-outline-secondary rounded-3 mb-3" style="z-index: 1000;" onclick="history.back()"><i class="bi bi-arrow-left"></i>{% trans 'Zurück' %}</button>
+  
+      <div class="card shadow-sm">
+          <div class="card-body">
+        <div class="row">
+          <div class="col-lg-8 order-2 order-lg-1">
+            <div class="text-center">
+              <img src="{% url 'serve_bilder' bild.id %}" alt="{{ bild.titel }}" class="w-100 rounded border main-image" style="max-width: 100%; height: auto;" id="mainImage" />
+            </div>
+          </div>
+
+          <!-- User Info and Interactions Right -->
+          <div class="col-lg-4 order-1 order-lg-2">
+            <div class="card border-0">
+              <div class="card-body p-0">
+                <div class="d-flex align-items-center mb-3">
+                  <a href="{% url 'profil' bild.user.id %}"><img src="{% url 'serve_profil_picture' bild.user.id %}" alt="{% trans 'Profilbild' %}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;" /></a>
+                  <div>
+                    <h5 class="mb-1"><a href="{% url 'profil' bild.user.id %}" class="text-decoration-none text-dark">{{ bild.user.get_full_name|default:bild.user.username }}</a></h5>
+                    <small class="text-muted">{{ bild.date_created|date:'d.m.Y H:i' }}</small>
+                  </div>
+                </div>
+
+                <!-- Title and Description -->
+                <div class="mb-3">
+                  <h4 class="mb-2">{{ bild.titel }}</h4>
+                  {% if bild.beschreibung %}
+                    <p class="text-muted">{{ bild.beschreibung }}</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+                      <div class="order-3 order-lg-2">
+              <!-- Interactions -->
+              <div class="card border-0">
+                <div class="card-body p-0 pt-3">
+                  {% include 'components/image_interactions.html' %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'js/image-interactions.js' %}"></script>
+{% endblock %}
