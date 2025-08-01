@@ -896,7 +896,20 @@ class Bilder2(OrgModel):
         """Get a summary of reactions grouped by emoji."""
         from django.db.models import Count
         from Global.models import BilderReaction
-        return BilderReaction.objects.filter(bilder=self).values('emoji').annotate(count=Count('id')).order_by('-count')
+        possible_reactions = BilderReaction.EMOJI_CHOICES
+        reactions = []
+        for reaction in possible_reactions:
+            reactions.append({
+                'emoji': reaction[0],
+                'count': BilderReaction.objects.filter(bilder=self, emoji=reaction[0]).count()
+            })
+        reactions.sort(key=lambda x: x['count'], reverse=True)
+        return reactions
+    
+    def get_my_reaction(self, user):
+        """Get the specified user's reaction for this image."""
+        from Global.models import BilderReaction
+        return BilderReaction.objects.filter(bilder=self, user=user).first()
 
 class BilderComment(OrgModel):
     bilder = models.ForeignKey(Bilder2, on_delete=models.CASCADE, related_name='comments', verbose_name='Bild')

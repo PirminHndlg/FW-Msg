@@ -1,79 +1,102 @@
 {% load i18n %}
+{% load bilder_filter %}
 
 <!-- Image Interactions Container -->
 <div class="image-interactions mt-2" data-bild-id="{{ bild.id|default:'' }}">
-    
-    <!-- Reaction Bar -->
-    <div class="reaction-bar mb-2">
-        <div class="d-flex align-items-center gap-1 flex-wrap">
-            <!-- Emoji Reaction Buttons -->
-            <div class="emoji-buttons d-flex gap-1 me-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary emoji-btn" data-emoji="👍" title="{% trans 'Daumen hoch' %}">👍</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary emoji-btn" data-emoji="❤️" title="{% trans 'Herz' %}">❤️</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary emoji-btn" data-emoji="😂" title="{% trans 'Lachen' %}">😂</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary emoji-btn" data-emoji="😮" title="{% trans 'Überrascht' %}">😮</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary emoji-btn" data-emoji="😢" title="{% trans 'Traurig' %}">😢</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary emoji-btn" data-emoji="😡" title="{% trans 'Wütend' %}">😡</button>
-            </div>
-            
-            <!-- Reaction Summary Display -->
-            <div class="reaction-summary d-flex gap-1 flex-wrap">
-                {% for reaction in bild.get_reaction_summary %}
-                    <span class="badge bg-light text-dark border">{{ reaction.emoji }} {{ reaction.count }}</span>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    
-    <!-- Comments Section -->
-    <div class="comments-section">
-        <!-- Comments Toggle Button -->
-        <div class="d-flex align-items-center justify-content-between mb-2">
-            <button type="button" class="btn btn-sm btn-link p-0 text-muted comments-toggle" data-bs-toggle="collapse" data-bs-target="#comments-{{ bild.id|default:'fullscreen' }}" aria-expanded="false">
-                <i class="bi bi-chat me-1"></i>
-                <span class="comment-count">{{ bild.get_comment_count|default:0 }}</span> {% trans 'Kommentare' %}
+  <!-- Reaction Bar -->
+  <div class="reaction-bar mb-3">
+    <div class="d-flex align-items-center gap-1 flex-wrap">
+      <!-- Emoji Reaction Buttons -->
+      <div class="emoji-buttons d-flex gap-1 me-3" data-bild-id="{{ bild.id|default:'' }}" data-interaction-url="{% url 'toggle_reaction_to_bild' bild.id 'EMOJI_PLACEHOLDER' %}">
+        {% with my_reaction=bild|get_my_reaction:request.user %}
+          {% for reaction in bild.get_reaction_summary %}
+            <button type="button" onclick="interactionButtonPressed(this)" class="btn btn-sm btn-outline-secondary emoji-btn {% if my_reaction and my_reaction.emoji == reaction.emoji %}active{% endif %}" data-emoji="{{ reaction.emoji }}" title="{% trans 'Daumen hoch' %}">
+              {{ reaction.emoji }}
+              <span class="reaction-count">{{ reaction.count }}</span>
             </button>
-        </div>
-        
-        <!-- Comments Container (Collapsible) -->
-        <div class="collapse" id="comments-{{ bild.id|default:'fullscreen' }}">
-            <!-- Comments List -->
-            <div class="comments-list mb-3" id="comments-list-{{ bild.id|default:'fullscreen' }}">
-                {% for comment in bild.comments.all|slice:"0:3" %}
-                    <div class="comment-item border-bottom pb-2 mb-2" data-comment-id="{{ comment.id }}">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <small class="fw-bold">{{ comment.user.get_full_name|default:comment.user.username }}</small>
-                                <small class="text-muted ms-2">{{ comment.date_created|date:"d.m.Y H:i" }}</small>
-                                <div class="mt-1">{{ comment.comment }}</div>
-                            </div>
-                            {% if comment.user == request.user or request.user.role == 'O' %}
-                                <button type="button" class="btn btn-sm btn-outline-danger delete-comment-btn" data-comment-id="{{ comment.id }}" title="{% trans 'Löschen' %}">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-            
-            <!-- Load More Comments Button -->
-            {% if bild.get_comment_count > 3 %}
-                <button type="button" class="btn btn-sm btn-outline-primary load-more-comments mb-3" data-page="2">
-                    {% trans 'Weitere Kommentare laden' %}
-                </button>
-            {% endif %}
-            
-            <!-- Add Comment Form -->
-            <div class="add-comment-form">
-                <div class="input-group">
-                    <input type="text" class="form-control form-control-sm comment-input" placeholder="{% trans 'Kommentar hinzufügen...' %}" maxlength="500">
-                    <button type="button" class="btn btn-primary btn-sm submit-comment-btn">
-                        <i class="bi bi-send"></i>
-                    </button>
-                </div>
-                <small class="text-muted">{% trans 'Max. 500 Zeichen' %}</small>
-            </div>
-        </div>
+          {% endfor %}
+        {% endwith %}
+      </div>
     </div>
+  </div>
+
+  <!-- Write Comment Section (Always Visible) -->
+  <div class="{% if mobile_only %}
+      border-top pt-3 mt-3
+    {% else %}
+      bg-light border rounded-3 p-3 mt-3
+    {% endif %} mb-3">
+    <form id="comment-form" method="post" action="{% url 'add_comment_to_bild' bild.id %}">
+      {% csrf_token %}
+      <div class="mb-2">
+        <textarea name="comment"
+          class="form-control"
+          placeholder="{% trans 'Kommentar hinzufügen...' %}"
+          rows="2"
+          maxlength="500"
+          required
+          style="resize: vertical; min-height: 60px;"></textarea>
+      </div>
+      <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">{% trans 'Max. 500 Zeichen' %}</small>
+        <button type="submit" class="btn btn-primary btn-sm">
+          <i class="bi bi-send me-1"></i>{% trans 'Kommentar senden' %}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Comments Section -->
+  <div class="comments-section">
+    <!-- Comments Header -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <span class="fw-semibold">
+          <i class="bi bi-chat me-1"></i>
+          {% trans 'Kommentare' %}
+          {% if bild.get_comment_count > 0 %}
+            <span class="text-muted">({{ bild.get_comment_count }})</span>
+          {% endif %}
+        </span>
+      {% if bild.get_comment_count > 0 %}
+        <button type="button" class="btn btn-sm btn-outline-secondary comments-toggle" data-bs-toggle="collapse" data-bs-target="#comments-{{ bild.id|default:'fullscreen' }}" aria-expanded="false"><i class="bi bi-chevron-down"></i></button>
+      {% endif %}
+    </div>
+
+    <!-- Comments Container -->
+    <div class="{% if bild.get_comment_count > 0 and not mobile_only %}collapse{% endif %}" id="comments-{{ bild.id|default:'fullscreen' }}">
+      <!-- Comments List -->
+      <div class="comments-list mb-3" id="comments-list-{{ bild.id|default:'fullscreen' }}">
+        {% for comment in bild.comments.all %}
+          <div class="py-3 {% if not forloop.last %}border-bottom{% endif %}" data-comment-id="{{ comment.id }}">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center mb-1">
+                  <strong class="me-2">{{ comment.user.get_full_name|default:comment.user.username }}</strong>
+                  <small class="text-muted">{{ comment.date_created|date:'d.m.Y H:i' }}</small>
+                </div>
+                <p class="mb-0">{{ comment.comment }}</p>
+              </div>
+              {% if comment.user == request.user or request.user.role == 'O' %}
+                <form method="post" action="{% url 'remove_comment_from_bild' comment.id %}" class="d-inline" onsubmit="return confirm('{% trans 'Kommentar wirklich löschen?' %}')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger" title="{% trans 'Löschen' %}"><i class="bi bi-trash"></i></button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- No Comments Message -->
+    {% if bild.get_comment_count == 0 %}
+      <div class="text-center text-muted py-3">
+        <i class="bi bi-chat-square-dots fs-1 mb-2 d-block"></i>
+        <p class="mb-0">
+          {% trans 'Noch keine Kommentare vorhanden.' %}
+        </p>
+        <small>{% trans 'Sei der Erste, der einen Kommentar schreibt!' %}</small>
+      </div>
+    {% endif %}
+  </div>
 </div>
