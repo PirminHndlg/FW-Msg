@@ -672,25 +672,9 @@ def image_detail(request, image_id):
         current_image = Bilder2.objects.get(id=image_id, org=request.user.org)
         bilder_gallery = BilderGallery2.objects.filter(bilder=current_image)
         
-        # Flatten the gallery structure to find current position
-        all_gallery_images = []
-        for bild_gallery in bilder_gallery:
-            all_gallery_images.append(bild_gallery)
-        
-        # Find current position
-        for i, bild_gallery in enumerate(all_gallery_images):
-            if bild_gallery.id == current_image.id:
-                current_index = i
-                if i > 0:
-                    prev_image = all_gallery_images[i - 1]
-                if i < len(all_gallery_images) - 1:
-                    next_image = all_gallery_images[i + 1]
-                break
-        
         context = {
             'bild': current_image,
             'bilder_gallery': bilder_gallery,
-            'current_index': current_index or 0,
         }
 
         context = check_organization_context(request, context)
