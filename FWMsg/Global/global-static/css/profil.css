@@ -28,3 +28,38 @@
     min-width: 200px;
     max-width: 300px;
 }
+
+/* Online Status Indicators */
+.online-status-badge {
+    font-size: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.online-status-badge.bg-success {
+    animation: pulse-green 2s infinite;
+}
+
+.online-status-badge .bi-circle-fill {
+    animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-green {
+    0% {
+        box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 5px rgba(25, 135, 84, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(25, 135, 84, 0);
+    }
+}
+
+@keyframes pulse-dot {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}

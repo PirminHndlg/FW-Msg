@@ -93,6 +93,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'FWMsg.middleware.RequestMiddleware',
+    'Global.middleware.OnlineStatusMiddleware',
+    'Global.middleware.OfflineStatusMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
 ]
 

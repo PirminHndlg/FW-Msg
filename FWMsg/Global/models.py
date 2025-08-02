@@ -86,6 +86,10 @@ class CustomUser(OrgModel):
     einmalpasswort = models.CharField(max_length=20, blank=True, null=True, verbose_name='Einmalpasswort', help_text='Wird automatisch erzeugt, wenn leer')
     token = models.CharField(max_length=512, blank=True, null=True, verbose_name='Token', help_text='Wird automatisch erzeugt, wenn leer')
     calendar_token = models.CharField(max_length=512, blank=True, null=True, verbose_name='Kalender-Token', help_text='Wird automatisch erzeugt, wenn leer')
+    
+    # Online status tracking
+    last_seen = models.DateTimeField(blank=True, null=True, verbose_name='Zuletzt online')
+    is_online = models.BooleanField(default=False, verbose_name='Ist online')
 
     history = HistoricalRecords()
 
@@ -164,6 +168,43 @@ class CustomUser(OrgModel):
         if not self.calendar_token:
             self.create_calendar_token()
         return self.calendar_token
+    
+    def update_last_seen(self):
+        """Update the last seen timestamp and online status."""
+        from django.utils import timezone
+        self.last_seen = timezone.now()
+        self.is_online = True
+        self.save(update_fields=['last_seen', 'is_online'])
+    
+    def is_currently_online(self):
+        """Check if user is currently online (active within last 5 minutes)."""
+        if not self.last_seen:
+            return False
+        from django.utils import timezone
+        from datetime import timedelta
+        return timezone.now() - self.last_seen < timedelta(minutes=5)
+    
+    def get_online_status_display(self):
+        """Get a human-readable online status."""
+        if self.is_currently_online():
+            return "Online"
+        elif self.last_seen:
+            from django.utils import timezone
+            from datetime import timedelta
+            time_diff = timezone.now() - self.last_seen
+            
+            if time_diff.days > 0:
+                return f"Vor {time_diff.days} Tag{'en' if time_diff.days > 1 else ''}"
+            elif time_diff.seconds > 3600:
+                hours = time_diff.seconds // 3600
+                return f"Vor {hours} Stunde{'n' if hours > 1 else ''}"
+            elif time_diff.seconds > 60:
+                minutes = time_diff.seconds // 60
+                return f"Vor {minutes} Minute{'n' if minutes > 1 else ''}"
+            else:
+                return "Gerade eben"
+        else:
+            return "Nie online gewesen"
 
     def __str__(self):
         return self.user.username
