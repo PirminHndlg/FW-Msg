@@ -15,6 +15,9 @@ from datetime import datetime, timedelta
 from django.core import signing
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+import logging
+
+logger = logging.getLogger(__name__)
 
 from PIL import Image  # Make sure this is from PIL, not Django models
 from django.core.files.base import ContentFile
@@ -515,6 +518,8 @@ def create_preview_image(sender, instance, **kwargs):
             instance._creating_preview = True
             instance.preview_image = img_path
             instance.save()
+        except Exception as e:
+            logger.error(f"Error creating preview image: {e}")
         finally:
             # Always remove the flag, even if an error occurs
             delattr(instance, '_creating_preview')
