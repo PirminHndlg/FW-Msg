@@ -1651,8 +1651,8 @@ def kalender_abbonement(request, token):
         else:
             for custom_user in CustomUser.objects.filter(org=user.org):
                 # Use getattr to avoid attribute errors if 'role' is missing
-                user_role = getattr(custom_user.user, 'role', None)
-                current_user_role = getattr(user, 'role', None)
+                user_role = custom_user.user.role
+                current_user_role = user.role
                 if user_role != current_user_role and current_user_role != 'O':
                     continue
 
