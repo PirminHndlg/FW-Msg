@@ -1678,7 +1678,7 @@ def kalender_abbonement(request, token):
         return response
 
     except Exception as e:
-        messages.error(request, 'Ungültiger Token.')
+        messages.error(request, f'Ungültiger Token: {e}')
         print(e)
         return redirect('index_home')
     
