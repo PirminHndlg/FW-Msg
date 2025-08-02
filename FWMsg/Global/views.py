@@ -1661,18 +1661,19 @@ def kalender_abbonement(request, token):
                 continue
 
             if custom_user.geburtsdatum:
-                birthday = dt.combine(custom_user.geburtsdatum, dtime.min)
-                for _ in range(dt.now().year - birthday.year + 10):
+                birthday_date = custom_user.geburtsdatum
+                for year_offset in range(dt.now().year - birthday_date.year + 10):
                     ical_event = Event()
                     ical_event.add('summary', f'Geburtstag von {getattr(custom_user.user, "first_name", "")} {getattr(custom_user.user, "last_name", "")}')
-                    ical_event.add('dtstart', birthday)
-                    ical_event.add('dtend', birthday)
+                    # Use date object for all-day events
+                    current_birthday = birthday_date.replace(year=birthday_date.year + year_offset)
+                    ical_event.add('dtstart', current_birthday)
+                    ical_event['dtstart'].params['VALUE'] = 'DATE'  # Mark as all-day event
                     user_id = getattr(custom_user.user, 'id', None)
                     if user_id is not None:
                         url = f"{request.scheme}://{request.get_host()}{reverse('profil', args=[user_id])}"
                         ical_event.add('url', url)
                     cal.add_component(ical_event)
-                    birthday = birthday.replace(year=birthday.year + 1)
 
         # Check if this is a calendar app request
         is_calendar_app = (
@@ -1693,7 +1694,7 @@ def kalender_abbonement(request, token):
         return response
 
     except Exception as e:
-        messages.error(request, f'Ungültiger Token: {e}')
+        messages.error(request, f'Ungültiger Token.')
         print(e)
         return redirect('index_home')
     
