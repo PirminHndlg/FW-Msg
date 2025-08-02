@@ -43,9 +43,7 @@ secrets = load_secrets()
 # =============================================================================
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = secrets.get(
-    "secret_key", "django-insecure-default-key-change-in-production"
-)
+SECRET_KEY = secrets.get("secret_key", "django-insecure-default-key-change-in-production")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = secrets.get("debug", True)
