@@ -1653,29 +1653,26 @@ def kalender_abbonement(request, token):
         from datetime import datetime as dt, time as dtime
 
         # If user is not authenticated, skip adding birthdays
-        if not request.user.is_authenticated:
-            pass  # Or optionally: return redirect('login')
-        else:
-            for custom_user in CustomUser.objects.filter(org=user.org):
-                # Use getattr to avoid attribute errors if 'role' is missing
-                user_role = custom_user.user.role
-                current_user_role = user.role
-                if user_role != current_user_role and current_user_role != 'O':
-                    pass
+        for custom_user in CustomUser.objects.filter(org=user.org):
+            # Use getattr to avoid attribute errors if 'role' is missing
+            user_role = custom_user.user.role
+            current_user_role = user.role
+            if user_role != current_user_role and current_user_role != 'O':
+                continue
 
-                if custom_user.geburtsdatum:
-                    birthday = dt.combine(custom_user.geburtsdatum, dtime.min)
-                    for _ in range(dt.now().year - birthday.year + 10):
-                        ical_event = Event()
-                        ical_event.add('summary', f'Geburtstag von {getattr(custom_user.user, "first_name", "")} {getattr(custom_user.user, "last_name", "")}')
-                        ical_event.add('dtstart', birthday)
-                        ical_event.add('dtend', birthday)
-                        user_id = getattr(custom_user.user, 'id', None)
-                        if user_id is not None:
-                            url = f"{request.scheme}://{request.get_host()}{reverse('profil', args=[user_id])}"
-                            ical_event.add('url', url)
-                        cal.add_component(ical_event)
-                        birthday = birthday.replace(year=birthday.year + 1)
+            if custom_user.geburtsdatum:
+                birthday = dt.combine(custom_user.geburtsdatum, dtime.min)
+                for _ in range(dt.now().year - birthday.year + 10):
+                    ical_event = Event()
+                    ical_event.add('summary', f'Geburtstag von {getattr(custom_user.user, "first_name", "")} {getattr(custom_user.user, "last_name", "")}')
+                    ical_event.add('dtstart', birthday)
+                    ical_event.add('dtend', birthday)
+                    user_id = getattr(custom_user.user, 'id', None)
+                    if user_id is not None:
+                        url = f"{request.scheme}://{request.get_host()}{reverse('profil', args=[user_id])}"
+                        ical_event.add('url', url)
+                    cal.add_component(ical_event)
+                    birthday = birthday.replace(year=birthday.year + 1)
 
         # Check if this is a calendar app request
         is_calendar_app = (
