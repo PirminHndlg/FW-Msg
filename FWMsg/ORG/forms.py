@@ -380,11 +380,12 @@ class AddUserForm(OrgFormMixin, forms.ModelForm):
     username = forms.CharField(max_length=150, required=False, label='Username', help_text='Wird automatisch mit Vornamen erzeugt, wenn leer')
     first_name = forms.CharField(max_length=150, required=False, label='First Name')
     last_name = forms.CharField(max_length=150, required=False, label='Last Name')
+    geburtsdatum = forms.DateField(required=False, label='Geburtsdatum', widget=forms.DateInput(attrs={'type': 'date'}))
     email = forms.EmailField(required=False, label='Email')
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'first_name', 'last_name', 'person_cluster', 'email', 'einmalpasswort', 'profil_picture']
+        fields = ['username', 'first_name', 'last_name', 'person_cluster', 'geburtsdatum', 'email', 'einmalpasswort', 'profil_picture']
         exclude = ['org']
 
     def __init__(self, *args, **kwargs):
