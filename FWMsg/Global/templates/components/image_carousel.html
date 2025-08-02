@@ -4,7 +4,7 @@
     <div class="carousel-inner">
         {% for img in bilder_gallery %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                <a href="{% url 'image_detail' img.id %}" style="aspect-ratio: 1/1; display: block; cursor: pointer;">
+                <a href="{% url 'image_detail' bild.id %}" style="aspect-ratio: 1/1; display: block; cursor: pointer;">
                     <img src="{% if img.small_image %}{% url 'serve_small_bilder' img.id %}{% else %}{% url 'serve_bilder' img.id %}{% endif %}"
                         alt="{% trans 'Bild' %}"
                         class="w-100 h-100"

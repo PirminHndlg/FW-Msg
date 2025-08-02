@@ -32,7 +32,9 @@
         <div class="row">
           <div class="col-lg-8 order-2 order-lg-1">
             <div class="text-center">
-              <img src="{% url 'serve_bilder' bild.id %}" alt="{{ bild.titel }}" class="w-100 rounded border main-image" style="max-width: 100%; height: auto;" id="mainImage" />
+                {% for bild_gallery in bilder_gallery %}
+                    <img src="{% url 'serve_bilder' bild_gallery.id %}" alt="{{ bild_gallery.titel }}" class="w-100 rounded border main-image" style="max-width: 100%; height: auto;" id="mainImage" />
+                {% endfor %}
             </div>
           </div>
 
@@ -40,26 +42,24 @@
           <div class="col-lg-4 order-1 order-lg-2">
             <div class="card border-0">
               <div class="card-body p-0">
-                <div class="d-flex align-items-center mb-3">
-                  <a href="{% url 'profil' bild.user.id %}"><img src="{% url 'serve_profil_picture' bild.user.id %}" alt="{% trans 'Profilbild' %}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;" /></a>
-                  <div>
-                    <h5 class="mb-1"><a href="{% url 'profil' bild.user.id %}" class="text-decoration-none text-dark">{{ bild.user.get_full_name|default:bild.user.username }}</a></h5>
-                    <small class="text-muted">{{ bild.date_created|date:'d.m.Y H:i' }}</small>
-                  </div>
-                </div>
+                {% include 'components/image_card_header.html' %}
 
                 <!-- Title and Description -->
-                <div class="mb-3">
+                <div class="mb-3 mt-3">
                   <h4 class="mb-2">{{ bild.titel }}</h4>
                   {% if bild.beschreibung %}
                     <p class="text-muted">{{ bild.beschreibung }}</p>
                   {% endif %}
                 </div>
+
+                <div class="d-none d-lg-block">
+                  {% include 'components/image_interactions.html' %}
+                </div>
               </div>
             </div>
           </div>
 
-                      <div class="order-3 order-lg-2">
+            <div class="order-3 order-lg-2 d-lg-none">
               <!-- Interactions -->
               <div class="card border-0">
                 <div class="card-body p-0 pt-3">
