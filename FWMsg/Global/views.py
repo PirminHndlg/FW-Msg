@@ -551,9 +551,7 @@ def add_comment_to_bild(request, bild_id):
             comment=comment_text
         )
         
-        
-        # AJAX response for backward compatibility
-        return redirect('bilder')
+        return redirect('image_detail', image_id=bild.id)
         
     except Bilder2.DoesNotExist:
         messages.error(request, 'Bild nicht gefunden')
@@ -651,14 +649,6 @@ def toggle_reaction_to_bild(request, bild_id, emoji):
         # Handle the reaction toggle
         action = _handle_reaction_toggle(bild, request.user, emoji)
         
-        # Add success message based on action
-        if action == 'added':
-            messages.success(request, f'Reaktion {emoji} hinzugefügt')
-        elif action == 'changed':
-            messages.success(request, f'Reaktion zu {emoji} geändert')
-        elif action == 'removed':
-            messages.success(request, f'Reaktion {emoji} entfernt')
-        
         return JsonResponse({
             'success': True,
             'bild_id': bild.id,
@@ -679,27 +669,17 @@ def image_detail(request, image_id):
     """Display detailed view of a single image with navigation and interactions."""
     try:
         # Get the specific gallery image
-        current_image = BilderGallery2.objects.get(id=image_id, org=request.user.org)
-        bild = current_image.bilder
-        
-        # Get all images from the same gallery for navigation
-        gallery_images = get_bilder(request.user.org)
-        
-        # Find current image position and navigation
-        current_index = None
-        prev_image = None
-        next_image = None
+        current_image = Bilder2.objects.get(id=image_id, org=request.user.org)
+        bilder_gallery = BilderGallery2.objects.filter(bilder=current_image)
         
         # Flatten the gallery structure to find current position
         all_gallery_images = []
-        for img_data in gallery_images:
-            for img_bild, img_gallery in img_data.items():
-                for gallery_img in img_gallery:
-                    all_gallery_images.append(gallery_img)
+        for bild_gallery in bilder_gallery:
+            all_gallery_images.append(bild_gallery)
         
         # Find current position
-        for i, gallery_img in enumerate(all_gallery_images):
-            if gallery_img.id == current_image.id:
+        for i, bild_gallery in enumerate(all_gallery_images):
+            if bild_gallery.id == current_image.id:
                 current_index = i
                 if i > 0:
                     prev_image = all_gallery_images[i - 1]
@@ -708,12 +688,9 @@ def image_detail(request, image_id):
                 break
         
         context = {
-            'bild': bild,
-            'current_image': current_image,
-            'gallery_images': gallery_images,
+            'bild': current_image,
+            'bilder_gallery': bilder_gallery,
             'current_index': current_index or 0,
-            'prev_image': prev_image,
-            'next_image': next_image,
         }
 
         context = check_organization_context(request, context)
