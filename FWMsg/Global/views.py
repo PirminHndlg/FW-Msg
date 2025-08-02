@@ -876,6 +876,7 @@ def update_profil_picture(request):
             
             custom_user.profil_picture = request.FILES['profil_picture']
             custom_user.save()
+            custom_user.create_small_image()
             messages.success(request, 'Profilbild wurde erfolgreich aktualisiert.')
         except Exception as e:
             messages.error(request, f'Fehler beim Aktualisieren des Profilbildes: {str(e)}')
