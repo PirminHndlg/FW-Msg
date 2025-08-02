@@ -1418,37 +1418,44 @@ def post_add(request, post=None):
 @login_required
 @required_person_cluster('posts')
 def post_detail(request, post_id):
-    post = Post2.objects.get(id=post_id)
-    
-    # Check if user has permission to view this post based on person_cluster
-    user_person_cluster = request.user.person_cluster
-    if user_person_cluster.view != 'O' and post.person_cluster.exists():
-        # Check if the user's cluster is in the post's allowed clusters
-        if user_person_cluster not in post.person_cluster.all():
-            messages.error(request, 'Sie haben keine Berechtigung, diesen Beitrag anzusehen.')
-            return redirect('posts_overview')
-    
-    # Track if user has voted in this survey
-    has_voted = False
-    total_votes = 0
-    
-    if post.has_survey and hasattr(post, 'survey_question'):
-        # Check if user has voted using the ManyToManyField
-        answers = PostSurveyAnswer.objects.filter(question=post.survey_question)
+    try:
+        post = Post2.objects.get(id=post_id)
+        
+        # Check if user has permission to view this post based on person_cluster
+        user_person_cluster = request.user.person_cluster
+        if user_person_cluster.view != 'O' and post.person_cluster.exists():
+            # Check if the user's cluster is in the post's allowed clusters
+            if user_person_cluster not in post.person_cluster.all():
+                messages.error(request, 'Sie haben keine Berechtigung, diesen Beitrag anzusehen.')
+                return redirect('posts_overview')
+        
+        # Track if user has voted in this survey
         has_voted = False
-        for answer in answers:
-            total_votes += answer.votes.count()
-            if request.user in answer.votes.all():
-                has_voted = answer
+        total_votes = 0
+        
+        if post.has_survey and hasattr(post, 'survey_question'):
+            # Check if user has voted using the ManyToManyField
+            answers = PostSurveyAnswer.objects.filter(question=post.survey_question)
+            has_voted = False
+            for answer in answers:
+                total_votes += answer.votes.count()
+                if request.user in answer.votes.all():
+                    has_voted = answer
 
-    context = {
-        'post': post,
-        'has_voted': has_voted,
-        'total_votes': total_votes
-    }
+        context = {
+            'post': post,
+            'has_voted': has_voted,
+            'total_votes': total_votes
+        }
 
-    context = check_organization_context(request, context)
-    return render(request, 'post_detail.html', context=context)
+        context = check_organization_context(request, context)
+        return render(request, 'post_detail.html', context=context)
+    except Post2.DoesNotExist:
+        messages.error(request, 'Beitrag nicht gefunden.')
+        return redirect('posts_overview')
+    except Exception as e:
+        messages.error(request, f'Fehler: {e}')
+        return redirect('posts_overview')
 
 @login_required
 @required_person_cluster('posts')
