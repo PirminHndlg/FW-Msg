@@ -1622,7 +1622,7 @@ def kalender_abbonement(request, token):
                 faellig_datetime = datetime.combine(user_aufgabe.faellig, datetime.min.time())
                 ical_event.add('dtstart', faellig_datetime)
                 ical_event.add('dtend', faellig_datetime)
-            url = f"https://volunteer.solutions{reverse('aufgaben_detail', args=[user_aufgabe.id])}"
+            url = f"{request.scheme}://{request.get_host()}{reverse('aufgaben_detail', args=[user_aufgabe.id])}"
             ical_event.add('url', url)
             cal.add_component(ical_event)
 
@@ -1638,9 +1638,26 @@ def kalender_abbonement(request, token):
             if kalender_event.end:
                 end_dt = kalender_event.end.astimezone(timezone.get_current_timezone())
                 ical_event.add('dtend', end_dt)
-            url = f"https://volunteer.solutions{reverse('kalender_event', args=[kalender_event.id])}"
+            url = f"{request.scheme}://{request.get_host()}{reverse('kalender_event', args=[kalender_event.id])}"
             ical_event.add('url', url)
             cal.add_component(ical_event)
+            
+        # Add birthdays
+        for custom_user in CustomUser.objects.filter(org=user.org):
+            if not custom_user.user.role == request.user.role and request.user.role != 'O':
+                continue
+            
+            if custom_user.geburtsdatum:
+                birthday = datetime.combine(custom_user.geburtsdatum, datetime.min.time())
+                for _ in range(datetime.now().year - birthday.year + 10):
+                    ical_event = Event()
+                    ical_event.add('summary', f'Geburtstag von {custom_user.user.first_name} {custom_user.user.last_name}')
+                    ical_event.add('dtstart', birthday)
+                    ical_event.add('dtend', birthday)
+                    url = f"{request.scheme}://{request.get_host()}{reverse('profil', args=[custom_user.user.id])}"
+                    ical_event.add('url', url)
+                    cal.add_component(ical_event)
+                    birthday = birthday.replace(year=birthday.year + 1)
 
         # Check if this is a calendar app request
         is_calendar_app = (
