@@ -1661,7 +1661,7 @@ def kalender_abbonement(request, token):
                 user_role = custom_user.user.role
                 current_user_role = user.role
                 if user_role != current_user_role and current_user_role != 'O':
-                    continue
+                    pass
 
                 if custom_user.geburtsdatum:
                     birthday = dt.combine(custom_user.geburtsdatum, dtime.min)
