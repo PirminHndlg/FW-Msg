@@ -1644,7 +1644,7 @@ def kalender_abbonement(request, token):
             
         # Add birthdays
         for custom_user in CustomUser.objects.filter(org=user.org):
-            if not custom_user.user.role == request.user.role and request.user.role != 'O':
+            if not custom_user.user.role == user.role and user.role != 'O':
                 continue
             
             if custom_user.geburtsdatum:
@@ -1678,7 +1678,7 @@ def kalender_abbonement(request, token):
         return response
 
     except Exception as e:
-        messages.error(request, f'Ungültiger Token: {e}')
+        messages.error(request, f'Ungültiger Token.')
         print(e)
         return redirect('index_home')
     
