@@ -9,6 +9,9 @@ from django.utils import timezone
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 from .push_notification import send_push_notification_to_user
 
@@ -19,15 +22,11 @@ def save_email_to_sent_folder(subject, message, from_email, recipient_list, html
     """
     try:
         # Get IMAP settings from Django settings
-        imap_host = getattr(settings, 'IMAP_HOST', None)
-        imap_port = getattr(settings, 'IMAP_PORT', 993)
-        imap_use_ssl = getattr(settings, 'IMAP_USE_SSL', True)
-        email_user = getattr(settings, 'EMAIL_HOST_USER', None)
-        email_password = getattr(settings, 'EMAIL_HOST_PASSWORD', None)
-        
-        if not all([imap_host, email_user, email_password]):
-            print("IMAP settings not configured, skipping email archiving")
-            return False
+        imap_host = settings.IMAP_HOST
+        imap_port = settings.IMAP_PORT
+        imap_use_ssl = settings.IMAP_USE_SSL
+        email_user = settings.EMAIL_HOST_USER
+        email_password = settings.EMAIL_HOST_PASSWORD
         
         # Create email message
         msg = MIMEMultipart('alternative')
@@ -65,6 +64,7 @@ def save_email_to_sent_folder(subject, message, from_email, recipient_list, html
         
     except Exception as e:
         print(f"Failed to archive email to IMAP Sent folder: {e}")
+        logger.error(f"Failed to archive email to IMAP Sent folder: {e}")
         return False
 
 
