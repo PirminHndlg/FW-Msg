@@ -102,6 +102,6 @@ def send_mail_calendar_reminder_task(kalender_event_id, user_id):
     push_content = f'{kalender_event.start.strftime("%d.%m.%Y")} bis {kalender_event.end.strftime("%d.%m.%Y")}: {kalender_event.title}'
     send_push_notification_to_user(user, subject, push_content, url=action_url)
     
-    if send_mail(subject, email_content, settings.SERVER_EMAIL, [user.email], html_message=email_content):
+    if user.customuser.mail_notifications and send_mail(subject, email_content, settings.SERVER_EMAIL, [user.email], html_message=email_content):
         return True
     return False
