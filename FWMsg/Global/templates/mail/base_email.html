@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ org_name }}{% endblock %}</title>
+</head>
+<body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #333333; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+    <div style="padding: 20px; background-color: #ffffff;">
+        <!-- Organization Header -->
+        {% block header %}
+        <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #eeeeee; margin-bottom: 20px;">
+            {% if base64_image %}
+                <img style="width: 60px; height: auto; margin-bottom: 10px;" src="data:image/png;base64,{{ base64_image }}" alt="{{ org_name }} Logo">
+            {% endif %}
+            <h2 style="color: #3273dc; margin: 0; font-weight: 600;">{{ org_name }}{% block header_subtitle %}{% endblock %}</h2>
+        </div>
+        {% endblock %}
+        
+        <!-- German Version -->
+        <div style="margin-bottom: 30px;">
+            <p style="font-size: 16px; margin-bottom: 15px;">Hallo {{ user_name }},</p>
+            
+            {% block german_content %}{% endblock %}
+            
+            {% block german_action_button %}
+            {% if action_url %}
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{{ action_url }}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">{% block german_button_text %}Zur Plattform{% endblock %}</a>
+            </div>
+            {% endif %}
+            {% endblock %}
+        </div>
+        
+        <!-- Divider -->
+        {% block show_english %}
+        <div style="border-top: 1px solid #eeeeee; margin: 20px 0;"></div>
+        
+        <!-- English Version -->
+        <div style="margin-bottom: 25px;">
+            <p style="font-size: 15px; color: #444444; margin-bottom: 15px;"><strong>English version</strong></p>
+            
+            <p>Hello {{ user_name }},</p>
+            
+            {% block english_content %}{% endblock %}
+            
+            {% block english_action_button %}
+            {% if action_url %}
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{{ action_url }}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">{% block english_button_text %}View Platform{% endblock %}</a>
+            </div>
+            {% endif %}
+            {% endblock %}
+        </div>
+        {% endblock %}
+        
+        <!-- Footer -->
+        {% block footer %}
+        <div style="text-align: center; font-size: 13px; color: #666666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eeeeee;">
+            {% block footer_content %}
+            <p style="margin: 5px 0;">Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions</p>
+            {% if unsubscribe_url %}
+            <p style="margin: 5px 0;">Um keine weiteren E-Mails zu erhalten, <a href="{{ unsubscribe_url }}" style="color: #3273dc; text-decoration: none;">klicke hier</a></p>
+            {% endif %}
+            <p style="margin: 5px 0; color: #999999;">This is an automatically generated email - no reply expected</p>
+            {% endblock %}
+        </div>
+        {% endblock %}
+    </div>
+</body>
+</html> 

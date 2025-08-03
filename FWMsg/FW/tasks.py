@@ -1,30 +1,26 @@
 import base64
-from datetime import datetime, timedelta
 from django.conf import settings
-from django.db.models import Q
 from django.urls import reverse
-from FWMsg import settings
 from celery import shared_task
-from django.urls import reverse
-from django.contrib.auth.models import User
-from Global.send_email import format_register_email_fw
+from Global.send_email import format_register_email_fw, get_logo_base64
 from django.core.mail import send_mail
 
 @shared_task
-def send_register_email_task(user_id):
-    user = User.objects.get(id=user_id)
-    org = user.customuser.org
+def send_register_email_task(custom_user_id):
+    from Global.models import CustomUser
+    
+    custom_user = CustomUser.objects.get(id=custom_user_id)
+    org = custom_user.org
 
-    with open(org.logo.path, "rb") as org_logo:
-        base64_image = base64.b64encode(org_logo.read()).decode("utf-8")
+    base64_image = get_logo_base64(org)
     org_name = org.name
-    einmalpasswort = user.customuser.einmalpasswort
-    user_name = f"{user.first_name} {user.last_name}"
-    username = user.username
+    einmalpasswort = custom_user.einmalpasswort
+    user_name = f"{custom_user.user.first_name} {custom_user.user.last_name}"
+    username = custom_user.user.username
     action_url = f'{settings.DOMAIN_HOST}{reverse("first_login_with_params", args=[username, einmalpasswort])}'
     
     email_content = format_register_email_fw(einmalpasswort, action_url, base64_image, org_name, user_name, username)
     subject = f'Account erstellt: {user_name}'
-    if send_mail_smtp(user.email, subject, email_content, reply_to=org.email):
+    if send_mail(subject, email_content, settings.SERVER_EMAIL, [custom_user.user.email], html_message=email_content):
         return True
     return False

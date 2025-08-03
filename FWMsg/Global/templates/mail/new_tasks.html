@@ -1,0 +1,25 @@
+{% extends "mail/base_email.html" %}
+
+{% block german_content %}
+<p>Es gibt neue Aufgaben für Dich:</p>
+
+<div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+    <p style="font-weight: 600; margin: 0; font-size: 17px; color: #3273dc;">{{ aufgaben_name }}</p>
+</div>
+
+<p>Bitte schaue dir die Aufgaben an und bearbeite diese zeitnah.</p>
+{% endblock %}
+
+{% block german_button_text %}Zu den Aufgaben{% endblock %}
+
+{% block english_content %}
+<p>There are new tasks for you:</p>
+
+<div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+    <p style="font-weight: 600; margin: 0; font-size: 17px; color: #3273dc;">{{ aufgaben_name }}</p>
+</div>
+
+<p>Please check the tasks and complete them as soon as possible.</p>
+{% endblock %}
+
+{% block english_button_text %}View Tasks{% endblock %} 

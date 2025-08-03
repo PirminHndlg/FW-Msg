@@ -1,0 +1,45 @@
+{% extends "mail/base_email.html" %}
+
+{% block header %}
+<div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #eeeeee; margin-bottom: 20px;">
+    <h2 style="color: #3273dc; margin: 0; font-weight: 600;">Volunteer.Solutions</h2>
+    <p style="margin: 10px 0 0 0; color: #666666;">Plattform für {{ org_name }}</p>
+</div>
+{% endblock %}
+
+{% block show_english %}{% endblock %}
+
+<!-- German Version -->
+<div style="margin-bottom: 30px;">
+    <p style="font-size: 16px; margin-bottom: 15px;">An {{ org_name }},</p>
+    
+    <p>Es wurde ein neuer Account auf Volunteer.Solutions erstellt.</p>
+    
+    <div style="background-color: #f7f9fc; border-radius: 4px; padding: 20px; margin: 20px 0;">
+        <p style="margin: 0 0 10px 0; font-weight: 500;">Bitte nutze für den Login die folgenden Daten:</p>
+        <p style="margin: 5px 0;"><span style="display: inline-block; width: 120px; color: #666666;">Benutzername:</span> <span style="font-weight: 500;">{{ username }}</span></p>
+        <p style="margin: 5px 0;"><span style="display: inline-block; width: 120px; color: #666666;">Einmalpasswort:</span> <span style="font-weight: 500; font-family: monospace; font-size: 16px; letter-spacing: 1px;">{{ einmalpasswort }}</span></p>
+    </div>
+    
+    {% if action_url %}
+    <div style="text-align: center; margin: 25px 0;">
+        <a href="{{ action_url }}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">Jetzt einloggen</a>
+    </div>
+    {% endif %}
+</div>
+
+{% block german_content %}{% endblock %}
+
+{% block german_button_text %}Jetzt einloggen{% endblock %}
+
+{% block footer %}
+<div style="text-align: center; font-size: 13px; color: #666666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eeeeee;">
+    <p style="margin: 5px 0;">Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions</p>
+    <p style="margin: 5px 0; color: #999999;">This is an automatically generated email - no reply expected</p>
+</div>
+
+<!-- Spam Note -->
+<div style="font-size: 12px; color: #777777; margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 4px;">
+    <p style="margin: 0;">Falls diese E-Mail in Ihrem Spam-Ordner gelandet ist, ist es empfehlenswert, diese E-Mail in den Posteingang zu verschieben und eine leere E-Mail an <a href="mailto:admin@volunteer.solutions" style="color: #3273dc; text-decoration: none;">admin@volunteer.solutions</a> zu schreiben.</p>
+</div>
+{% endblock %} 

@@ -2,7 +2,6 @@ from django.conf import settings
 from celery import shared_task
 import base64
 from django.urls import reverse
-from FWMsg import settings
 import logging
 from Global.push_notification import send_push_notification_to_user
 from Global.send_email import format_register_email_org, format_aufgabe_erledigt_email, format_mail_calendar_reminder_email
