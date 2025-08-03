@@ -166,7 +166,7 @@ def send_email_aufgaben_daily(self):
         Gesamt: {len(response_json['new_aufgaben_sent']) + len(response_json['new_aufgaben_failed'])}
         """
 
-        send_mail(settings.SERVER_EMAIL, 'Aufgabenerinnerungen erfolgreich gesendet', msg, [settings.SERVER_EMAIL], html_message=msg)
+        send_mail('Aufgabenerinnerungen erfolgreich gesendet', msg, settings.SERVER_EMAIL, [settings.SERVER_EMAIL], html_message=msg)
 
         return response_json
         
@@ -179,7 +179,7 @@ def send_email_aufgaben_daily(self):
             # If we've exhausted retries, send a notification about the failure
             error_msg = f"Task send_email_aufgaben_daily failed after {self.max_retries} retries. Error: {exc}"
             try:
-                send_mail(settings.SERVER_EMAIL, 'Celery Task Failed', error_msg, [settings.SERVER_EMAIL], html_message=error_msg)
+                send_mail('Celery Task Failed', error_msg, settings.SERVER_EMAIL, [settings.SERVER_EMAIL], html_message=error_msg)
             except:
                 pass  # Don't let email failure prevent the task from failing
             raise
