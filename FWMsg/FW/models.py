@@ -39,10 +39,7 @@ class Freiwilliger(OrgModel):
         except:
             return False
     
-    def send_register_email(self):
-        from FW.tasks import send_register_email_task
-        send_register_email_task.delay(self)
-
+    
     def __str__(self):
         if self.user:
             return self.user.first_name + ' ' + self.user.last_name

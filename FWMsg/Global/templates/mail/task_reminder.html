@@ -1,0 +1,33 @@
+{% extends "mail/base_email.html" %}
+
+{% block german_content %}
+<p>Dies ist eine automatische Erinnerung an die folgende Aufgabe:</p>
+
+<div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+    <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{{ aufgabe_name }}</p>
+    {% if aufgabe_beschreibung %}
+    <p style="margin: 5px 0;"><span style="color: #666666;">Beschreibung:</span> {{ aufgabe_beschreibung }}</p>
+    {% endif %}
+    <p style="margin: 5px 0;"><span style="color: #666666;">Fällig am:</span> <span style="font-weight: 500;">{{ aufgabe_deadline }}</span></p>
+</div>
+
+<p>Bitte schaue dir die Aufgabe an und bearbeite diese zeitnah.</p>
+{% endblock %}
+
+{% block german_button_text %}Zur Aufgabe{% endblock %}
+
+{% block english_content %}
+<p>This is a reminder for the following task:</p>
+
+<div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+    <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{{ aufgabe_name }}</p>
+    {% if aufgabe_beschreibung %}
+    <p style="margin: 5px 0;"><span style="color: #666666;">Description:</span> {{ aufgabe_beschreibung }}</p>
+    {% endif %}
+    <p style="margin: 5px 0;"><span style="color: #666666;">Deadline:</span> <span style="font-weight: 500;">{{ aufgabe_deadline }}</span></p>
+</div>
+
+<p>Please check the task and complete it as soon as possible.</p>
+{% endblock %}
+
+{% block english_button_text %}View Task{% endblock %} 
