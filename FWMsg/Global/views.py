@@ -53,6 +53,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
+from Global.send_email import send_email_with_archive
 from TEAM.models import Team
 from django.core.mail import send_mail
 
@@ -1710,7 +1711,7 @@ def delete_account(request):
     if request.method == 'POST':
         mail_addresses = settings.ADMINS
         for mail_address in mail_addresses:
-            send_mail(
+            send_email_with_archive(
                 subject='Konto-Löschung beantragt',
                 message=f'Ein Benutzer hat die Löschung seines Kontos beantragt. {request.user.first_name} {request.user.last_name} ({request.user.email})',
                 from_email=settings.SERVER_EMAIL,
