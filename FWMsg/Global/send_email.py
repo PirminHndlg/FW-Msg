@@ -1,10 +1,97 @@
 import base64
+import imaplib
+import email
+import time
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import formatdate
 from django.utils import timezone
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
 
 from .push_notification import send_push_notification_to_user
+
+
+def save_email_to_sent_folder(subject, message, from_email, recipient_list, html_message=None):
+    """
+    Save a copy of the sent email to the IMAP Sent folder.
+    """
+    try:
+        # Get IMAP settings from Django settings
+        imap_host = getattr(settings, 'IMAP_HOST', None)
+        imap_port = getattr(settings, 'IMAP_PORT', 993)
+        imap_use_ssl = getattr(settings, 'IMAP_USE_SSL', True)
+        email_user = getattr(settings, 'EMAIL_HOST_USER', None)
+        email_password = getattr(settings, 'EMAIL_HOST_PASSWORD', None)
+        
+        if not all([imap_host, email_user, email_password]):
+            print("IMAP settings not configured, skipping email archiving")
+            return False
+        
+        # Create email message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = from_email
+        msg['To'] = ', '.join(recipient_list)
+        msg['Date'] = formatdate(localtime=True)
+        
+        if message:
+            text_part = MIMEText(message, 'plain', 'utf-8')
+            msg.attach(text_part)
+        
+        if html_message:
+            html_part = MIMEText(html_message, 'html', 'utf-8')
+            msg.attach(html_part)
+        
+        # Connect to IMAP server
+        if imap_use_ssl:
+            imap = imaplib.IMAP4_SSL(str(imap_host), imap_port)
+        else:
+            imap = imaplib.IMAP4(str(imap_host), imap_port)
+        
+        # Login
+        imap.login(str(email_user), str(email_password))
+        
+        # Append message to Sent folder
+        sent_folder = 'Volunteer.Solutions'
+        imap.append(sent_folder, '\\Seen', imaplib.Time2Internaldate(time.time()), msg.as_string().encode('utf-8'))
+        
+        # Logout
+        imap.logout()
+        
+        print(f"Email archived to {sent_folder}")
+        return True
+        
+    except Exception as e:
+        print(f"Failed to archive email to IMAP Sent folder: {e}")
+        return False
+
+
+def send_email_with_archive(subject, message, from_email, recipient_list, html_message=None, save_to_sent=True):
+    """
+    Enhanced email sending function that saves emails to IMAP Sent folder for archiving.
+    This ensures sent emails appear in the mail server and external email programs.
+    """
+    try:
+        # Send the email normally first
+        result = send_mail(
+            subject=subject,
+            message=message,
+            from_email=from_email,
+            recipient_list=recipient_list,
+            html_message=html_message
+        )
+        
+        # If email was sent successfully and archiving is enabled, save to Sent folder
+        if result and save_to_sent:
+            save_email_to_sent_folder(subject, message, from_email, recipient_list, html_message)
+        
+        return result
+        
+    except Exception as e:
+        print(f"Email sending failed: {e}")
+        return False
 
 def format_aufgaben_email(aufgabe_name, aufgabe_deadline, base64_image, org_name, user_name, action_url, aufgabe_beschreibung='', unsubscribe_url=None):
     context = {
@@ -145,7 +232,7 @@ def send_aufgaben_email(aufgabe, org):
 
     send_push_notification_to_user(aufgabe.user, subject, push_content, url=action_url)
     
-    if aufgabe.user.customuser.mail_notifications and send_mail(subject, email_content, settings.SERVER_EMAIL, [aufgabe.user.email], html_message=email_content):
+    if aufgabe.user.customuser.mail_notifications and send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [aufgabe.user.email], html_message=email_content):
         aufgabe.last_reminder = timezone.now()
         aufgabe.currently_sending = False
         aufgabe.save()
@@ -175,7 +262,7 @@ def send_new_aufgaben_email(aufgaben, org):
 
     subject = f'Neue Aufgaben: {aufgaben[0].aufgabe.name}... und mehr'
         
-    if aufgaben[0].user.customuser.mail_notifications and send_mail(subject, email_content, settings.SERVER_EMAIL, [aufgaben[0].user.email], html_message=email_content):
+    if aufgaben[0].user.customuser.mail_notifications and send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [aufgaben[0].user.email], html_message=email_content):
         for aufgabe in aufgaben:
             aufgabe.last_reminder = timezone.now()
             aufgabe.currently_sending = False
@@ -240,7 +327,7 @@ def send_new_post_email(post_id):
             )
             
             # Send email using Django's send_mail
-            if user.customuser.mail_notifications and send_mail(subject, '', settings.SERVER_EMAIL, [user.email], html_message=email_content):
+            if user.customuser.mail_notifications and send_email_with_archive(subject, '', settings.SERVER_EMAIL, [user.email], html_message=email_content):
                 successful_sends += 1
                 
             # Send push notification as well
