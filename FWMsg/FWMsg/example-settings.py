@@ -274,6 +274,9 @@ def configure_email_settings():
         "EMAIL_HOST_PASSWORD": "",
         "EMAIL_USE_TLS": True,
         "EMAIL_USE_SSL": False,
+        "IMAP_HOST": "imap.example.com",
+        "IMAP_PORT": 993,
+        "IMAP_USE_SSL": True,
         "ADMINS": [],
         "VAPID_PUBLIC_KEY": "YOUR_VAPID_PUBLIC_KEY",
         "VAPID_PRIVATE_KEY": "YOUR_VAPID_PRIVATE_KEY",
@@ -293,6 +296,9 @@ def configure_email_settings():
                 "EMAIL_HOST_PASSWORD": secrets.get(
                     "password", email_config["EMAIL_HOST_PASSWORD"]
                 ),
+                "IMAP_HOST": secrets.get("imap_server", email_config["IMAP_HOST"]),
+                "IMAP_PORT": secrets.get("imap_port", email_config["IMAP_PORT"]),
+                "IMAP_USE_SSL": secrets.get("imap_use_ssl", email_config["IMAP_USE_SSL"]),
                 "ADMINS": secrets.get("admins", email_config["ADMINS"]),
                 "VAPID_PUBLIC_KEY": secrets.get(
                     "vapid_public_key", email_config["VAPID_PUBLIC_KEY"]
