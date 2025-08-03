@@ -100,7 +100,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'settings' %}">
+                    <a class="nav-link" href="{% url 'seminar_settings' %}">
                         <i class="bi bi-gear me-1"></i>
                                                  <span class="d-none d-lg-inline">Einstellungen</span>
                     </a>
@@ -147,7 +147,7 @@
                         </li>
                         {% if user.role == 'O' %}
                         <li>
-                            <a class="dropdown-item" href="{% url 'settings' %}">
+                            <a class="dropdown-item" href="{% url 'seminar_settings' %}">
                                 <i class="bi bi-gear me-2"></i>
                                 Einstellungen
                             </a>

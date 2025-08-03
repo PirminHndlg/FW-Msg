@@ -20,5 +20,5 @@ urlpatterns = [
     path('assign/', views.assign, name='assign_alt'),  # Alternative URL for clarity
     path('auto-zuteilung/', views.auto_assign, name='auto_assign'),
     path('sum/', views.summerizeComments, name='summary'),
-    path('settings/', views.settings, name='settings'),
+    path('settings/', views.settings, name='seminar_settings'),
 ]
