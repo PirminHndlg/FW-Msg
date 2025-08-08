@@ -89,12 +89,11 @@
 
     <!-- No Comments Message -->
     {% if bild.get_comment_count == 0 %}
-      <div class="text-center text-muted py-3">
-        <i class="bi bi-chat-square-dots fs-1 mb-2 d-block"></i>
+      <div class="text-center text-muted py-1">
+        <i class="bi bi-chat-square-dots fs-3 mb-1 d-block"></i>
         <p class="mb-0">
-          {% trans 'Noch keine Kommentare vorhanden.' %}
+          {% trans 'Keine Kommentare vorhanden.' %}
         </p>
-        <small>{% trans 'Sei der Erste, der einen Kommentar schreibt!' %}</small>
       </div>
     {% endif %}
   </div>
