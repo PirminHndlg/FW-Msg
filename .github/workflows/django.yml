@@ -59,4 +59,10 @@ jobs:
     - name: Run Tests
       run: |
         cd FWMsg
-        python manage.py test --parallel 10 -v 2
+        python manage.py test --parallel 20 -v 3
+    
+    - name: Check for migrations
+      run: |
+        cd FWMsg
+        python manage.py makemigrations --check --dry-run
+
