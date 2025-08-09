@@ -384,7 +384,7 @@ class UserAufgabenAdmin(admin.ModelAdmin):
     list_display = ['get_user_name', 'aufgabe', 'faellig', 'erledigt', 'pending', 'erledigt_am', 'last_reminder', 'has_file']
     search_fields = ['user__first_name', 'user__last_name', 'aufgabe__name', 'personalised_description'] 
     list_filter = ['erledigt', 'pending', 'faellig', 'aufgabe', 'aufgabe__faellig_art']
-    readonly_fields = ['datetime', 'last_reminder']
+    readonly_fields = ['datetime']
     actions = ['send_aufgaben_email', 'mark_as_completed', 'mark_as_pending']
 
     def get_user_name(self, obj):
