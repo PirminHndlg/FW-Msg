@@ -3,8 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.utils.translation import gettext as _
 from Global.models import (
-    UserAufgaben, Post2,
+    UserAufgaben, Post2, Bilder2,
 )
+from django.contrib.auth import get_user_model
 from FW.models import Freiwilliger
 from TEAM.models import Team
 
@@ -47,11 +48,37 @@ def home(request):
             'offen_prozent': safe_percentage(len_offen, gesamt),
         }
 
-    # Get recent images
+    # Build unified feed (posts + images) sorted by date
+    feed = []
+    # Posts
+    if request.user.person_cluster and request.user.person_cluster.posts:
+        posts = get_posts(request.user.org, filter_person_cluster=request.user.person_cluster)
+        for post in posts:
+            feed.append({
+                'type': 'post',
+                'date': post.date_updated or post.date,
+                'post': post,
+            })
+    # Bilder
     if request.user.person_cluster and request.user.person_cluster.bilder:
-        gallery_images = get_bilder(request.user.org)
-    else:
-        gallery_images = []
+        UserModel = get_user_model()
+        user_filter_qs = UserModel.objects.filter(customuser__person_cluster=request.user.person_cluster)
+        bilder_qs = (
+            Bilder2.objects
+            .filter(org=request.user.org, user__in=user_filter_qs)
+            .select_related('user')
+            .order_by('-date_created')
+        )
+        for bild in bilder_qs:
+            feed.append({
+                'type': 'image',
+                'date': bild.date_created,
+                'bild': bild,
+            })
+
+    # Sort and trim feed
+    feed.sort(key=lambda item: item['date'], reverse=True)
+    feed = feed[:12]
 
     freiwilliger = Freiwilliger.objects.get(user=request.user) if Freiwilliger.objects.filter(user=request.user).exists() else None
 
@@ -60,12 +87,9 @@ def home(request):
     else:
         days_until_start = None
 
-    posts = get_posts(request.user.org, filter_person_cluster=request.user.person_cluster)
-
     context = {
         'aufgaben': user_aufgaben,
-        'gallery_images': gallery_images,
-        'posts': posts,
+        'feed': feed,
         'freiwilliger': freiwilliger,
         'days_until_start': days_until_start,
     }

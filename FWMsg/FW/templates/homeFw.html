@@ -42,41 +42,41 @@
         </div>
     {% endif %}
 
-    {# Images Section #}
-    {% if request.user.customuser.person_cluster.bilder %}
+    {# Unified Feed: Posts and Images #}
+    {% if feed %}
     <div class="card rounded-4 mb-2">
-        <div class="card-header rounded-4">
-            <a href="{% url 'bilder' %}" class="text-decoration-none text-body">
-                <h3 class="mb-0">{% trans "Neue Bilder" %} ⟩</h3>
-            </a>
-        </div>
-        <div class="card-body">
-            <div class="row g-4">
-                {% include 'bilder_show.html' with gallery_images=gallery_images %}
+        <div class="card-header rounded-4 d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">{% trans "Neuigkeiten" %}</h3>
+            <div class="d-flex gap-2">
+                <a href="{% url 'posts_overview' %}" class="btn btn-outline-secondary btn-sm">{% trans "Alle Posts" %}</a>
+                <a href="{% url 'bilder' %}" class="btn btn-outline-secondary btn-sm">{% trans "Alle Bilder" %}</a>
             </div>
-
-            {% if bilder %}
-                <div class="text-center mt-3">
-                    <a href="{% url 'bilder' %}" class="btn btn-secondary btn-sm text-white">
-                        {% trans "Alle Bilder anzeigen" %}
-                    </a>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-    {% endif %}
-
-    {# Posts Section #}
-    {% if request.user.customuser.person_cluster.posts %}
-    <div class="card rounded-4 mb-2">
-        <div class="card-header rounded-4">
-            <a href="{% url 'posts_overview' %}" class="text-decoration-none text-body">
-                <h3 class="mb-0">{% trans "Neue Posts" %} ⟩</h3>
-            </a>
         </div>
         <div class="card-body">
             <div class="row row-cols-1 row-cols-md-2 row-cols-xxl-3 g-4">
-                {% include "components/post_card.html" with posts=posts %}
+                {% for item in feed %}
+                    {% if item.type == 'post' %}
+                    <div class="col">
+                        {% include "components/post_card_object.html" with post=item.post %}
+                    </div>
+                    {% elif item.type == 'image' %}
+                        <div class="col">
+                            <div class="card rounded-4 h-100">
+                                <div class="card-header">
+                                    {% with bild=item.bild bilder_gallery=item.bild.bildergallery2_set.all %}
+                                        {% include 'components/image_card_header.html' %}
+                                    {% endwith %}
+                                </div>
+                                <div class="card-body p-0">
+                                    {% with bild=item.bild bilder_gallery=item.bild.bildergallery2_set.all %}
+                                        {% include 'components/image_carousel.html' %}
+                                        {% include 'components/image_description.html' %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
             </div>
         </div>
     </div>
