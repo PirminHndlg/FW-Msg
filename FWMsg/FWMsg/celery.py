@@ -78,7 +78,7 @@ app.conf.broker_transport_options.update({
 })
 
 
-def get_faellige_aufgaben():
+def get_faellige_aufgaben(before_date=False):
     from Global.models import UserAufgaben
     
     current_time = datetime.now()
@@ -87,6 +87,7 @@ def get_faellige_aufgaben():
     overdue_tasks = UserAufgaben.objects.filter(
         erledigt=False,
         pending=False,
+        last_reminder__isnull=False,
         faellig__lt=current_time
     )
     
@@ -96,6 +97,20 @@ def get_faellige_aufgaben():
         reminder_threshold = current_time.date() - timedelta(days=task.aufgabe.repeat_push_days)
         if task.last_reminder is None or task.last_reminder < reminder_threshold:
             tasks_to_remind.append(task)
+            
+    
+    if before_date:        
+        overdue_tasks_2 = UserAufgaben.objects.filter(
+            erledigt=False,
+            pending=False,
+            last_reminder__isnull=False,
+            faellig__gte=current_time
+        )
+        
+        for task in overdue_tasks_2:
+            if task.aufgabe.repeat_push_days:
+                if (task.faellig - current_time.date()).days < task.aufgabe.repeat_push_days and (current_time.date() - task.last_reminder).days > task.aufgabe.repeat_push_days:
+                    tasks_to_remind.append(task)
     
     return UserAufgaben.objects.filter(id__in=[task.id for task in tasks_to_remind])
 
@@ -145,7 +160,7 @@ def send_email_aufgaben_daily(self):
             else:
                 response_json['new_aufgaben_failed'].append({'aufgaben': [aufgabe.aufgabe.name for aufgabe in aufgaben], 'user': aufgaben[0].user.first_name})
 
-        faellige_aufgaben = get_faellige_aufgaben()
+        faellige_aufgaben = get_faellige_aufgaben(before_date=True)
         start_time = datetime.now()
         for aufgabe in faellige_aufgaben:
             if send_aufgaben_email(aufgabe, aufgabe.aufgabe.org):
