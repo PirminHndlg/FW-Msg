@@ -1024,17 +1024,11 @@ class BilderGallery2(OrgModel):
 
     def __str__(self):
         return self.image.name
-
-
-@receiver(post_save, sender=BilderGallery2)
-def create_small_image(sender, instance, created, **kwargs):
-    """Create small version of uploaded image on save."""
-    if created and instance.image and not instance.small_image:
-        print('create_small_image')
-        instance.small_image = calculate_small_image(instance.image)
-        print(instance.small_image)
-        instance.save()
-        print(instance.small_image)
+    
+    def save(self, *args, **kwargs):
+        if self.image and not self.small_image:
+            self.small_image = calculate_small_image(self.image)
+        super().save(*args, **kwargs)
 
 
 @receiver(pre_delete, sender=BilderGallery2)
