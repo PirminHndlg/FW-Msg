@@ -19,7 +19,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from PIL import Image  # Make sure this is from PIL, not Django models
+from PIL import Image, ImageOps  # Make sure this is from PIL, not Django models
 from django.core.files.base import ContentFile
 import io
 from django.urls import reverse
@@ -542,33 +542,42 @@ class DokumentColor2(models.Model):
         return self.name
 
 
-def calculate_small_image(image, size=(750, 750)):
+def calculate_small_image(image, size=(750, 750), jpeg_quality=85, background_color=(255, 255, 255)):
     # Open the image
     img = Image.open(image)
-            
-    # Check for EXIF orientation and rotate if needed
+
+    # Apply EXIF-based orientation correction (handles 1-8)
     try:
-        exif = img._getexif()
-        if exif:
-            orientation = exif.get(274)  # 274 is the orientation tag
-            if orientation:
-                rotate_values = {
-                    3: 180,
-                    6: 270,
-                    8: 90
-                }
-                if orientation in rotate_values:
-                    img = img.rotate(rotate_values[orientation], expand=True)
-    except (AttributeError, KeyError, IndexError):
-        # No EXIF data or no orientation info
+        img = ImageOps.exif_transpose(img)
+    except Exception:
         pass
 
-    img.thumbnail(size)
+    # Ensure RGB for JPEG; handle transparency if present
+    if img.mode not in ("RGB", "L"):
+        try:
+            if "A" in img.getbands():
+                background = Image.new("RGB", img.size, background_color)
+                background.paste(img, mask=img.split()[-1])
+                img = background
+            else:
+                img = img.convert("RGB")
+        except Exception:
+            img = img.convert("RGB")
 
+    # Create thumbnail with high-quality resampling
+    try:
+        img.thumbnail(size, resample=Image.LANCZOS)
+    except Exception:
+        img.thumbnail(size)
+
+    # Encode as optimized/progressive JPEG
     img_io = io.BytesIO()
-    format = "JPEG"
-    img.save(img_io, format=format, quality=85)
-    return ContentFile(img_io.getvalue(), name=image.name.split('/')[-1])
+    img.save(img_io, format="JPEG", quality=jpeg_quality, optimize=True, progressive=True)
+
+    # Ensure the returned filename has .jpg extension
+    base = image.name.split('/')[-1] if hasattr(image, 'name') else 'image'
+    base = os.path.splitext(base)[0] + '.jpg'
+    return ContentFile(img_io.getvalue(), name=base)
 
 
 class Einsatzland2(OrgModel):
@@ -1021,46 +1030,11 @@ class BilderGallery2(OrgModel):
 def create_small_image(sender, instance, created, **kwargs):
     """Create small version of uploaded image on save."""
     if created and instance.image and not instance.small_image:
-        try:
-            # Open the image
-            img = Image.open(instance.image)
-            
-            # Check for EXIF orientation and rotate if needed
-            try:
-                exif = img._getexif()
-                if exif:
-                    orientation = exif.get(274)  # 274 is the orientation tag
-                    if orientation:
-                        rotate_values = {
-                            3: 180,
-                            6: 270,
-                            8: 90
-                        }
-                        if orientation in rotate_values:
-                            img = img.rotate(rotate_values[orientation], expand=True)
-            except (AttributeError, KeyError, IndexError):
-                # No EXIF data or no orientation info
-                pass
-
-            # Create thumbnail
-            img.thumbnail((1000, 1000))
-
-            # Save to buffer
-            img_io = io.BytesIO()
-            format = "JPEG"  # Always save as JPEG for consistency
-            img.save(img_io, format=format, quality=85)
-            
-            # Create filename
-            extension = format.lower()
-
-            filename = f"{os.path.basename(instance.image.name).rsplit('.', 1)[0]}.{extension}"
-
-            # Save small image
-            instance.small_image = ContentFile(img_io.getvalue(), name=filename)
-            instance.save()
-
-        except Exception as e:
-            print(f"Error creating small image: {str(e)}")
+        print('create_small_image')
+        instance.small_image = calculate_small_image(instance.image)
+        print(instance.small_image)
+        instance.save()
+        print(instance.small_image)
 
 
 @receiver(pre_delete, sender=BilderGallery2)
