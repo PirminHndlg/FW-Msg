@@ -535,14 +535,14 @@ def add_comment_to_bild(request, bild_id):
             messages.error(request, 'Kommentar darf nicht leer sein')
             gallery_image = BilderGallery2.objects.filter(bilder=bild).first()
             if gallery_image:
-                return redirect('image_detail', image_id=gallery_image.id)
+                return redirect('image_detail', image_id=bild.id)
             return redirect('bilder')
         
         if len(comment_text) > 500:
             messages.error(request, 'Kommentar ist zu lang (max. 500 Zeichen)')
             gallery_image = BilderGallery2.objects.filter(bilder=bild).first()
             if gallery_image:
-                return redirect('image_detail', image_id=gallery_image.id)
+                return redirect('image_detail', image_id=bild.id)
             return redirect('bilder')
         
         BilderComment.objects.create(
@@ -577,7 +577,7 @@ def remove_comment_from_bild(request, comment_id):
             messages.error(request, 'Keine Berechtigung zum Löschen dieses Kommentars')
             gallery_image = BilderGallery2.objects.filter(bilder=comment.bilder).first()
             if gallery_image:
-                return redirect('image_detail', image_id=gallery_image.id)
+                return redirect('image_detail', image_id=bild.id)
             return redirect('bilder')
         
         bild = comment.bilder
@@ -587,7 +587,7 @@ def remove_comment_from_bild(request, comment_id):
         # Redirect to image detail page
         gallery_image = BilderGallery2.objects.filter(bilder=bild).first()
         if gallery_image:
-            return redirect('image_detail', image_id=gallery_image.id)
+            return redirect('image_detail', image_id=bild.id)
         else:
             return redirect('bilder')
         
