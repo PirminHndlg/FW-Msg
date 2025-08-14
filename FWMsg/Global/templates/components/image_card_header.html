@@ -6,10 +6,14 @@
     <div>
       {% if not hide_title %}
       <h5 class="mb-0">{{ bild.titel }}</h5>
+      {% else %}
+      <h5 class="mb-0">{{ bild.user.get_full_name|default:bild.user.username }}</h5>
       {% endif %}
       <div class="small text-muted">
+        {% if not hide_title %}
         <span>{{ bild.user.get_full_name|default:bild.user.username }}</span>
         <span class="mx-1">•</span>
+        {% endif %}
         <span>{{ bild.date_created|date:'d.m.Y' }}</span>
       </div>
     </div>
