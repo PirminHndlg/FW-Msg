@@ -33,7 +33,13 @@
           <div class="col-lg-8 order-2 order-lg-1">
             <div class="text-center">
                 {% for bild_gallery in bilder_gallery %}
-                    <img src="{% url 'serve_bilder' bild_gallery.id %}" alt="{{ bild_gallery.titel }}" class="w-100 rounded border main-image" style="max-width: 100%; height: auto;" id="mainImage" />
+                    <img 
+                      src="{% url 'serve_small_bilder' bild_gallery.id %}"
+                      data-full-src="{% url 'serve_bilder' bild_gallery.id %}"
+                      alt="{{ bild_gallery.titel }}"
+                      class="w-100 rounded border main-image js-progressive-image"
+                      style="max-width: 100%; height: auto;"
+                    />
                 {% endfor %}
             </div>
           </div>
@@ -74,4 +80,19 @@
   </div>
 
   <script src="{% static 'js/image-interactions.js' %}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var images = document.querySelectorAll('.js-progressive-image');
+      images.forEach(function (img) {
+        var fullSrc = img.getAttribute('data-full-src');
+        if (!fullSrc) return;
+        var loader = new Image();
+        loader.onload = function () {
+          // Swap to full-res image once loaded
+          img.src = fullSrc;
+        };
+        loader.src = fullSrc;
+      });
+    });
+  </script>
 {% endblock %}
