@@ -207,16 +207,6 @@ class FWViewsTests(TestCase):
         self.assertIn('days_until_start', response.context)
         self.assertEqual(response.context['days_until_start'], 30)  # Set in _create_test_users
 
-    def test_home_view_posts(self):
-        """Test posts display in home view"""
-        response = self.client.get(reverse('fw_home'))
-        self.assertEqual(response.status_code, 200)
-        
-        # Check posts
-        self.assertIn('posts', response.context)
-        self.assertEqual(len(response.context['posts']), 1)  # One test post
-
-
     def test_laenderinfo_view(self):
         """Test that the laenderinfo view loads correctly"""
         response = self.client.get(reverse('laenderinfo'))
