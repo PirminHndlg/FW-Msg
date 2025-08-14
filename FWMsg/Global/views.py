@@ -680,6 +680,10 @@ def image_detail(request, image_id):
 
         context = check_organization_context(request, context)
         return render(request, 'image_detail.html', context)
+    
+    except Bilder2.DoesNotExist:
+        messages.error(request, 'Bild nicht gefunden')
+        return redirect('bilder')
         
     except BilderGallery2.DoesNotExist:
         messages.error(request, 'Bild nicht gefunden')
