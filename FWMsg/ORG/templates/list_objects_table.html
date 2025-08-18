@@ -1,0 +1,169 @@
+{% extends "baseOrg.html" %}
+{% load django_tables2 %}
+{% load i18n %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="row justify-content-between mb-3 align-items-center header-container">
+    <div class="col-12 col-md-6 col-lg-7 col-xl-8 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="mb-0">{{ verbose_name }}</h2>
+        </div>
+        <div>
+            <a href="{% url 'add_object' model_name %}">
+                <button class="btn btn-sm rounded-4 btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>{% trans "Hinzufügen" %}
+                </button>
+            </a>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-lg-5 col-xl-4 mt-2 mt-md-0 search-container">
+        <form method="get" class="search-form">
+            <div class="input-group">
+                <input type="text" 
+                        class="form-control" 
+                        name="search" 
+                        value="{{ request.GET.search }}" 
+                        placeholder="{% trans 'Suche' %}"
+                        {% if not request.user_agent.is_mobile %}
+                        data-bs-toggle="tooltip"
+                        title="{% trans "Drücke 'F' um schnell ins Suchfeld zu springen" %}"
+                        data-bs-placement="bottom"
+                        {% endif %}
+                        id="search-input">
+                <button class="btn btn-outline-primary" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+                {% if request.GET.search %}
+                <a href="?" class="btn btn-outline-secondary">
+                    <i class="bi bi-x"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+{% else %}
+
+<!-- Main Table Card -->
+<div class="card rounded-4">
+    <div class="card-header bg-transparent border-0 p-2">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <small class="text-muted">
+                        {% trans "insgesamt" %} {{ total_count }} {{ verbose_name }}
+                    </small>
+                </div>
+                
+                {% if paginator.num_pages > 1 %}
+                <div>
+                    <small class="text-muted">
+                        {% trans "Seite" %} {{ page_obj.number }} {% trans "von" %} {{ paginator.num_pages }}
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+    </div>
+    
+    <div class="table-responsive" style="height: calc(100vh - 220px); min-height: 500px;">
+        {% render_table table %}
+    </div>
+</div>
+
+<!-- Include delete modal -->
+{% include "components/cascade_modal.html" %}
+
+{% endif %}
+
+<script>
+    // Registration mail functionality for user tables
+    {% if model_name == 'user' %}
+    function sendRegistrationMail(userId) {
+        const csrfTokenElement = document.querySelector('[name=csrfmiddlewaretoken]');
+        const csrfToken = csrfTokenElement.value;
+        
+        fetch('{% url "send_registration_mail" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                userId: userId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const button = document.getElementById(`sendRegistrationMailButton-${userId}`);
+                if (button) {
+                    button.classList.add('btn-success', 'text-white', 'disabled');
+                    button.classList.remove('btn-outline-info');
+                    button.innerHTML = '<i class="bi bi-envelope"></i> <i class="bi bi-check"></i>';
+                } else {
+                    alert('{% trans "Erfolgreich gesendet!" %}');
+                }
+            } else {
+                alert('{% trans "Fehler beim Senden der Registrierungsmail:" %} ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{% trans "Error sending registration mail" %}');
+        });
+    }
+    {% endif %}
+    
+    // Keyboard shortcut to focus search input when 'f' key is pressed
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'f' && event.target.id !== 'search-input') {
+            event.preventDefault();
+            document.getElementById('search-input').focus();
+            const tooltip = bootstrap.Tooltip.getInstance(document.getElementById('search-input'));
+            if (tooltip) tooltip.dispose();
+        }
+    });
+    
+    // Hide tooltip when user starts typing
+    document.addEventListener('input', function(event) {
+        if (event.target.id === 'search-input') {
+            const tooltip = bootstrap.Tooltip.getInstance(event.target);
+            if (tooltip) {
+                tooltip.hide();
+            }
+        }
+    });
+    
+    // Highlight row if highlight_id is provided
+    {% if highlight_id %}
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("{{ highlight_id }}");
+        const targetRow = document.querySelector(`tr[data-pk="{{ highlight_id }}"]`);
+        console.log(targetRow); // is null
+        if (targetRow) {
+            // Add highlight class
+            targetRow.classList.add('table-warning');
+            
+            // Scroll to the highlighted row
+            setTimeout(() => {
+                targetRow.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }, 100);
+            
+            // Remove highlight after 3 seconds
+            setTimeout(() => {
+                targetRow.classList.remove('table-warning');
+            }, 3000);
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}

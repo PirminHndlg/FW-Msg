@@ -1,0 +1,26 @@
+{% load i18n %}
+<div class="btn-group" role="group">
+    <a class="btn btn-sm btn-outline-primary" 
+       href="{% url 'edit_object' model_name record.pk %}"
+       title="{% trans 'Bearbeiten' %}">
+        <i class="bi bi-pencil"></i>
+    </a>
+    {% csrf_token %}
+    <button type="button" 
+            id="sendRegistrationMailButton-{{ record.pk }}"
+            class="btn btn-sm btn-outline-info d-flex align-items-center gap-1"
+            onclick="sendRegistrationMail({{ record.pk }})"
+            data-bs-toggle="tooltip"
+            title="{% trans 'Registrierungsmail senden' %}">
+        <i class="bi bi-envelope"></i>
+    </button>
+    <button class="btn btn-sm btn-outline-danger delete-btn"
+            data-bs-toggle="modal"
+            data-bs-target="#deleteModal"
+            data-model="{{ model_name }}"
+            data-id="{{ record.pk }}"
+            data-name="{{ record|default:record.pk }}"
+            title="{% trans 'Löschen' %}">
+        <i class="bi bi-trash"></i>
+    </button>
+</div>
