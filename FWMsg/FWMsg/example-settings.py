@@ -99,6 +99,7 @@ INSTALLED_APPS = [
     "celery",
     "django_celery_results",
     "simple_history",
+    "django_tables2",
 ]
 
 MIDDLEWARE = [
