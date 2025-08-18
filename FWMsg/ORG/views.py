@@ -1,26 +1,23 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 import io
 import os
 import zipfile
 from django.urls import reverse
 import pandas as pd
-import subprocess
 import json
 
 from django.db.models import ForeignKey
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http404, HttpResponseNotAllowed, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.db.models import Max, F, Min
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.conf import settings
 from functools import wraps
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
-from django.template.context_processors import request
 from django.db.models import QuerySet, Subquery, OuterRef
-from django.db.models import Case, When, Value, Count, Q
+from django.db.models import Count, Q
 from django.contrib.admin.views.decorators import staff_member_required
 from django.template.loader import render_to_string
 from django.db.models.query import Prefetch
@@ -40,7 +37,6 @@ from TEAM.models import Team
 from FW.models import Freiwilliger
 from django.contrib.auth.models import User
 
-from django.db import models
 import ORG.forms as ORGforms
 from FWMsg.decorators import required_role
 from django.views.decorators.http import require_http_methods
@@ -504,6 +500,16 @@ def list_object(request, model_name, highlight_id=None):
     if response:
         return response
 
+    # Check if this model should use the old approach (freiwilliger and team)
+    if model_name.lower() in ['freiwilliger', 'team']:
+        return _list_object_legacy(request, model_name, model, highlight_id)
+    
+    # Use djangotables2 for other models
+    return _list_object_with_tables2(request, model_name, model, highlight_id)
+
+
+def _list_object_legacy(request, model_name, model, highlight_id=None):
+    """Legacy implementation for freiwilliger and team models"""
     # Get base queryset with organization filter
     objects = model.objects.filter(org=request.user.org)
     
@@ -538,6 +544,84 @@ def list_object(request, model_name, highlight_id=None):
                   'total_count': total_objects_count,
                   'query_string': query_string,
                   'large_container': True})
+
+
+def _list_object_with_tables2(request, model_name, model, highlight_id=None):
+    """New implementation using djangotables2"""
+    from django_tables2 import RequestConfig
+    from .tables import MODEL_TABLE_MAPPING
+    
+    # Get person cluster and check permissions
+    person_cluster = get_person_cluster(request)
+    error = _check_person_cluster_permissions(model, person_cluster)
+    
+    # Get base queryset with organization filter
+    objects = model.objects.filter(org=request.user.org)
+    
+    # Get field metadata and model fields for model-specific logic
+    field_metadata, model_fields = _get_field_metadata(model)
+    
+    # Apply model-specific logic
+    objects = _apply_model_specific_logic(model, objects, person_cluster, field_metadata, model_fields)
+    
+    # Count total objects before filtering
+    total_objects_count = objects.count()
+    
+    # Apply search filter if provided
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        objects = _apply_search_filter(objects, model, search_query)
+    
+    # Get the appropriate table class
+    table_class = MODEL_TABLE_MAPPING.get(model_name.lower())
+    if not table_class:
+        # Fallback to legacy implementation if no table defined
+        return _list_object_legacy(request, model_name, model, highlight_id)
+    
+    # Create table instance
+    table = table_class(objects, model_name=model_name.lower())
+
+    # Configure pagination and sorting
+    RequestConfig(request).configure(table)
+
+    return render(request, 'list_objects_table.html', {
+        'table': table,
+        'model_name': model_name,
+        'verbose_name': model._meta.verbose_name_plural,
+        'highlight_id': highlight_id,
+        'error': error,
+        'total_count': total_objects_count,
+        'search_query': search_query,
+        'large_container': True
+    })
+
+
+def _apply_search_filter(queryset, model, search_query):
+    """Apply search filter to queryset based on searchable fields"""
+    from django.db.models import Q
+    
+    # Get text fields that can be searched
+    searchable_fields = []
+    for field in model._meta.fields:
+        if field.get_internal_type() in ['CharField', 'TextField', 'EmailField']:
+            searchable_fields.append(field.name)
+    
+    # Build search query
+    if searchable_fields and search_query:
+        search_q = Q()
+        for field_name in searchable_fields:
+            search_q |= Q(**{f"{field_name}__icontains": search_query})
+        
+        # Also search in related fields for common patterns
+        if hasattr(model, 'user'):
+            search_q |= Q(user__first_name__icontains=search_query)
+            search_q |= Q(user__last_name__icontains=search_query)
+            search_q |= Q(user__username__icontains=search_query)
+            search_q |= Q(user__email__icontains=search_query)
+        
+        queryset = queryset.filter(search_q)
+    
+    return queryset
 
 
 def _check_person_cluster_permissions(model, person_cluster):
@@ -586,65 +670,16 @@ def _apply_model_specific_logic(model, objects, person_cluster, field_metadata, 
         {'name': 'user_email', 'verbose_name': 'Email', 'type': 'E'}
     ]
     
-    if model_name == 'Aufgabe':
-        objects = _handle_aufgabe_model(objects, person_cluster)
-    elif model_name == 'UserAufgaben':
-        objects = _handle_useraufgaben_model(objects, person_cluster)
-    elif model_name == 'CustomUser':
-        objects = _handle_customuser_model(model, objects, person_cluster, field_metadata, model_fields, user_fields)
-    elif model_name in ['Freiwilliger', 'Team']:
-        objects = _handle_freiwilliger_team_model(objects, person_cluster, field_metadata, model_fields, user_fields)
-    elif model_name == 'Notfallkontakt':
-        objects = _handle_notfallkontakt_model(objects, person_cluster)
-    elif model_name == 'KalenderEvent':
-        objects = _handle_kalenderevent_model(model, objects, person_cluster)
+    if model_name in ['Freiwilliger', 'Team']:
+        objects = _handle_freiwilliger_team_model(objects, person_cluster, field_metadata, model_fields, user_fields, model_name)
+        if model_name == 'Freiwilliger':
+            pass
     else:
         objects = _handle_default_model(objects, model_fields)
     
     return objects
 
-def _handle_aufgabe_model(objects, person_cluster):
-    """Handle Aufgabe model specific logic."""
-    if person_cluster:
-        objects = objects.filter(person_cluster=person_cluster)
-    return objects.order_by('faellig_art', 'faellig_tag', 'faellig_monat', 
-                          'faellig_tage_nach_start', 'faellig_tage_vor_ende')
-
-def _handle_useraufgaben_model(objects, person_cluster):
-    """Handle UserAufgaben model specific logic."""
-    if person_cluster:
-        objects = objects.filter(aufgabe__person_cluster=person_cluster)
-    return objects
-
-def _handle_customuser_model(model, objects, person_cluster, field_metadata, model_fields, user_fields):
-    """Handle CustomUser model specific logic."""
-    # Remove sensitive field
-    model._meta.fields = [field for field in model._meta.fields 
-                         if field.name != 'mail_notifications_unsubscribe_auth_key']
-    model_fields = [field.name for field in model._meta.fields]
-    
-    if person_cluster:
-        objects = objects.filter(person_cluster=person_cluster)
-    
-    objects = objects.order_by('user__first_name', 'user__last_name')
-    
-    # Add user fields
-    field_metadata[0:0] = user_fields
-    model_fields[0:0] = [field['name'] for field in user_fields]
-    objects = objects.annotate(
-        **{field['name']: F(f'user__{field["name"].replace("user_", "")}') 
-           for field in user_fields}
-    )
-    
-    # Add last login field
-    last_login_field = {'name': 'user_last_login', 'verbose_name': 'Letzter Login', 'type': 'D'}
-    field_metadata.append(last_login_field)
-    model_fields.append(last_login_field['name'])
-    objects = objects.annotate(user_last_login=F('user__last_login'))
-    
-    return objects
-
-def _handle_freiwilliger_team_model(objects, person_cluster, field_metadata, model_fields, user_fields):
+def _handle_freiwilliger_team_model(objects, person_cluster, field_metadata, model_fields, user_fields, model_name):
     """Handle Freiwilliger and Team model specific logic."""
     objects = objects.order_by('user__first_name', 'user__last_name')
     
@@ -655,6 +690,12 @@ def _handle_freiwilliger_team_model(objects, person_cluster, field_metadata, mod
         **{field['name']: F(f'user__{field["name"].replace("user_", "")}') 
            for field in user_fields}
     )
+    
+    if model_name.lower() == 'freiwilliger':
+        # Add birthday field
+        field_metadata.append({'name': 'geburtsdatum', 'verbose_name': 'Geburtsdatum', 'type': 'D'})
+        model_fields.append('geburtsdatum')
+        objects = objects.annotate(geburtsdatum=F('user__customuser__geburtsdatum'))
     
     # Handle attributes
     if person_cluster and objects.exists():
@@ -674,28 +715,6 @@ def _handle_freiwilliger_team_model(objects, person_cluster, field_metadata, mod
                     ).values('value')[:1]
                 )
             })
-    
-    return objects
-
-def _handle_notfallkontakt_model(objects, person_cluster):
-    """Handle Notfallkontakt model specific logic."""
-    if person_cluster:
-        objects = objects.filter(user__customuser__person_cluster=person_cluster)
-    return objects
-
-def _handle_kalenderevent_model(model, objects, person_cluster):
-    """Handle KalenderEvent model specific logic."""
-    # Remove mail_reminder_sent_to from model fields
-    model._meta.fields = [field for field in model._meta.fields 
-                         if field.name != 'mail_reminder_sent_to']
-    model_fields = [field.name for field in model._meta.fields]
-    
-    # Remove mail_reminder_sent_to from many-to-many fields
-    model._meta.many_to_many = [field for field in model._meta.many_to_many
-                               if field.name != 'mail_reminder_sent_to']
-    
-    if person_cluster:
-        objects = objects.filter(user__customuser__person_cluster=person_cluster).distinct()
     
     return objects
 
