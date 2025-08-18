@@ -1,12 +1,7 @@
 import datetime
 
 from django import template
-from datetime import date
-from django.db.models import ManyToManyField
-import re
 from django.db import models
-from django.utils.html import format_html, escape
-from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -24,7 +19,7 @@ def get_attribute(obj, field):
             else:
                 try:
                     return datetime.datetime.strptime(attr, '%Y-%m-%d').date()
-                except ValueError:
+                except:
                     return attr
         return attr
     elif hasattr(obj, 'get_%s_display' % field.get('name').replace(' ', '_')):
