@@ -133,7 +133,7 @@ class NotfallkontaktTable(BaseOrgTable):
     
     class Meta(BaseOrgTable.Meta):
         model = Notfallkontakt2
-        fields = ('first_name', 'last_name', 'phone', 'email', 'actions')
+        fields = ('first_name', 'last_name', 'phone', 'email', 'user', 'actions')
 
 
 class UserAufgabenTable(BaseOrgTable):
