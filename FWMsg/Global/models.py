@@ -593,6 +593,7 @@ class Einsatzland2(OrgModel):
     class Meta:
         verbose_name = 'Einsatzland'
         verbose_name_plural = 'Einsatzländer'
+        ordering = ['name', 'code']
 
     def __str__(self):
         return self.name
