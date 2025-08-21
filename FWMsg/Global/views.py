@@ -54,6 +54,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from Global.send_email import send_email_with_archive
+from Global.tasks import send_image_uploaded_email_task
 from TEAM.models import Team
 from django.core.mail import send_mail
 
@@ -446,6 +447,12 @@ def bild(request):
                 except Exception as e:
                     messages.error(request, f'Error saving image: {str(e)}')
                     continue
+            
+            # Enqueue email sending task with a short delay
+            try:
+                send_image_uploaded_email_task.apply_async(args=[bilder.id], countdown=5)
+            except Exception as e:
+                logging.error(f"Error scheduling image uploaded email task: {e}")
 
             return redirect('bilder')
         else:
