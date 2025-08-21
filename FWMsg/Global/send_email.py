@@ -200,6 +200,21 @@ def format_register_email_org(einmalpasswort, action_url, org_name, user_name, u
     }
     return render_to_string('mail/register_organization.html', context)
 
+def format_image_uploaded_email(bild_titel, bild_beschreibung, uploader_name, image_count, action_url, unsubscribe_url, user_name, org_name, base64_image):
+    """Format email for newly uploaded image notification to organization"""
+    context = {
+        'bild_titel': bild_titel,
+        'bild_beschreibung': bild_beschreibung,
+        'uploader_name': uploader_name,
+        'image_count': image_count,
+        'action_url': action_url,
+        'unsubscribe_url': unsubscribe_url,
+        'user_name': user_name,
+        'org_name': org_name,
+        'base64_image': base64_image,
+    }
+    return render_to_string('mail/image_uploaded.html', context)
+
 def get_logo_base64(org):
     with open(org.logo.path, "rb") as org_logo:
         base64_image = base64.b64encode(org_logo.read()).decode('utf-8')

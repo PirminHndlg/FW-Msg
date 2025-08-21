@@ -1,0 +1,34 @@
+{% extends "mail/base_email.html" %}
+
+{% block german_content %}
+<p>Es wurde ein neues Bild hochgeladen.</p>
+
+<div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+    <p style="margin: 5px 0;"><span style="color: #666666;">Titel:</span> <span style="font-weight: 600;">{{ bild_titel }}</span></p>
+    {% if bild_beschreibung %}
+    <p style="margin: 5px 0;"><span style="color: #666666;">Beschreibung:</span> {{ bild_beschreibung }}</p>
+    {% endif %}
+    <p style="margin: 5px 0;"><span style="color: #666666;">Hochgeladen von:</span> {{ uploader_name }}</p>
+    <p style="margin: 5px 0;"><span style="color: #666666;">Anzahl Bilder:</span> {{ image_count }}</p>
+</div>
+<p>Du kannst das Bild direkt in der Galerie ansehen.</p>
+{% endblock %}
+
+{% block german_button_text %}Bild ansehen{% endblock %}
+
+{% block english_content %}
+<p>A new image has been uploaded.</p>
+
+<div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+    <p style="margin: 5px 0;"><span style="color: #666666;">Title:</span> <span style="font-weight: 600;">{{ bild_titel }}</span></p>
+    {% if bild_beschreibung %}
+    <p style="margin: 5px 0;"><span style="color: #666666;">Description:</span> {{ bild_beschreibung }}</p>
+    {% endif %}
+    <p style="margin: 5px 0;"><span style="color: #666666;">Uploaded by:</span> {{ uploader_name }}</p>
+    <p style="margin: 5px 0;"><span style="color: #666666;">Image count:</span> {{ image_count }}</p>
+</div>
+<p>You can view the image directly in the gallery.</p>
+{% endblock %}
+
+{% block english_button_text %}View Image{% endblock %}
+
