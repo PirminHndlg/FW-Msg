@@ -675,7 +675,7 @@ def _apply_model_specific_logic(model, objects, person_cluster, field_metadata, 
         if model_name == 'Freiwilliger':
             pass
     else:
-        objects = _handle_default_model(objects, model_fields)
+        objects = _handle_default_model(objects, model_fields, person_cluster)
     
     return objects
 
@@ -718,16 +718,23 @@ def _handle_freiwilliger_team_model(objects, person_cluster, field_metadata, mod
     
     return objects
 
-def _handle_default_model(objects, model_fields):
+def _handle_default_model(objects, model_fields, person_cluster=None):
     """Handle default model ordering logic."""
     if 'freiwilliger' in model_fields:
-        return objects.order_by('freiwilliger__first_name', 'freiwilliger__last_name')
+        objects = objects.order_by('freiwilliger__first_name', 'freiwilliger__last_name')
     elif 'first_name' in model_fields:
-        return objects.order_by('first_name')
+        objects = objects.order_by('first_name')
     elif 'last_name' in model_fields:
-        return objects.order_by('last_name')
+        objects = objects.order_by('last_name')
     elif 'name' in model_fields:
-        return objects.order_by('name')
+        objects = objects.order_by('name')
+    if person_cluster:
+        print(model_fields, person_cluster)
+        if 'person_cluster' in model_fields:
+            objects = objects.filter(person_cluster=person_cluster)
+        elif 'user' in model_fields:
+            print(objects.first().user.customuser.person_cluster)
+            objects = objects.filter(user__customuser__person_cluster=person_cluster)
     return objects
 
 def _apply_pagination(objects, request):
