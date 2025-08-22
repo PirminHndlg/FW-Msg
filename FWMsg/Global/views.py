@@ -984,7 +984,7 @@ def view_profil(request, user_id=None):
             return redirect('profil')
 
     profil_users = ProfilUser2.objects.filter(user=user)
-    user_attributes = UserAttribute.objects.filter(user=user) if this_user else []
+    user_attributes = UserAttribute.objects.filter(user=user) if this_user or request.user.role == 'O' else []
     gallery_images = get_bilder(request.user.org, user)
 
     ampel_of_user = None
