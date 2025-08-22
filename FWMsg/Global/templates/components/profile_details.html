@@ -6,15 +6,17 @@
         <div class="d-flex justify-content-between gap-2 mb-2 align-items-center">
             <a href="mailto:{{ user.org.email|default:'' }}" class="btn btn-sm"><i class="bi bi-envelope-fill me-1"></i>{% trans "Änderungen melden" %}</a>
         </div>
+    {% endif %}
+
+    {% if this_user or request.user.role == 'O' %}
         {% for user_attribute in user_attributes %}
             <p class="mb-2"><strong>{{ user_attribute.attribute.name }}:</strong> {{ user_attribute.value|default:"" }}</p>
         {% endfor%}
-        <p class="mb-2"><strong>{% trans "Email" %}:</strong> {{ user.email|default:"" }}</p>
+        <p class="mb-2"><strong>{% trans "Email" %}:</strong> <a href="mailto:{{ user.email|default:'' }}">{{ user.email|default:"" }}</a></p>
+    {% endif %}
 
-    {% else %}
-        {% if user.customuser.geburtsdatum %}
-            <p class="mb-2 mb-0"><strong>{% trans "Geburtsdatum" %}:</strong> {{ user.customuser.geburtsdatum|date:"d.m.Y" }}</p>
-        {% endif %}
+    {% if user.customuser.geburtsdatum %}
+        <p class="mb-2"><strong>{% trans "Geburtsdatum" %}:</strong> {{ user.customuser.geburtsdatum|date:"d.m.Y" }}</p>
     {% endif %}
 </div>
 
