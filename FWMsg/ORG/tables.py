@@ -92,12 +92,14 @@ class AttributeTable(BaseOrgTable):
     )
     person_cluster = tables.ManyToManyColumn(
         verbose_name=_('Für Benutzergruppen'),
-        transform=lambda obj: obj.name if hasattr(obj, 'name') else str(obj)
+        transform=lambda obj: obj.name if hasattr(obj, 'name') else str(obj),
+        orderable=True
     )
+    value_for_choices = tables.Column(verbose_name=_('Auswahloptionen'), orderable=False)
     
     class Meta(BaseOrgTable.Meta):
         model = Attribute
-        fields = ('name', 'type_display', 'person_cluster', 'actions')
+        fields = ('name', 'type_display', 'value_for_choices', 'person_cluster', 'actions')
 
 
 class AufgabeTable(BaseOrgTable):
