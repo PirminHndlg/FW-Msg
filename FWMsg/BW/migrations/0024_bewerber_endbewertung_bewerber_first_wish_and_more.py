@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='bewerber',
             name='first_wish_einsatzland',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='first_wish_einsatzland', to='Global.einsatzland2', verbose_name='Erstwunsch Einsatzland'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='first_wish_einsatzland', to='Global.Einsatzland2', verbose_name='Erstwunsch Einsatzland'),
         ),
         migrations.AddField(
             model_name='bewerber',
@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='bewerber',
             name='no_wish_einsatzland',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='no_wish_einsatzland', to='Global.einsatzland2', verbose_name='Nicht Einsatzland'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='no_wish_einsatzland', to='Global.Einsatzland2', verbose_name='Nicht Einsatzland'),
         ),
         migrations.AddField(
             model_name='bewerber',
@@ -82,7 +82,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='bewerber',
             name='second_wish_einsatzland',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='second_wish_einsatzland', to='Global.einsatzland2', verbose_name='Zweitwunsch Einsatzland'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='second_wish_einsatzland', to='Global.Einsatzland2', verbose_name='Zweitwunsch Einsatzland'),
         ),
         migrations.AddField(
             model_name='bewerber',
@@ -97,7 +97,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='bewerber',
             name='third_wish_einsatzland',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='third_wish_einsatzland', to='Global.einsatzland2', verbose_name='Drittwunsch Einsatzland'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='third_wish_einsatzland', to='Global.Einsatzland2', verbose_name='Drittwunsch Einsatzland'),
         ),
         migrations.AddField(
             model_name='bewerber',
