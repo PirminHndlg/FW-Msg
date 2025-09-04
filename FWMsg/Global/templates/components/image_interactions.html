@@ -11,7 +11,7 @@
         <div>
         {% with my_reaction=bild|get_my_reaction:request.user %}
           {% for reaction in bild.get_reaction_summary %}
-            <button type="button" onclick="interactionButtonPressed(this)" class="btn btn-sm btn-outline-secondary emoji-btn {% if my_reaction and my_reaction.emoji == reaction.emoji %}active{% endif %}" data-emoji="{{ reaction.emoji }}" data-interaction-url="{% url 'toggle_reaction_to_bild' bild.id 'EMOJI_PLACEHOLDER' %}">
+            <button type="button" onclick="interactionButtonPressed(this)" class="btn btn-sm btn-outline-secondary emoji-btn {% if my_reaction and my_reaction.emoji == reaction.emoji %}active{% endif %}" data-interaction-url="{% url 'toggle_reaction_to_bild' bild.id reaction.emoji %}">
               {{ reaction.emoji }}
               <span class="reaction-count">{{ reaction.count }}</span>
             </button>
