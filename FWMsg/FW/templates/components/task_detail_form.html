@@ -22,6 +22,24 @@
     </div>
     {% endif %}
 
+    {% if task.aufgabe.attachment %}
+    <div class="mb-4">
+        <h5 class="form-label fw-semibold text-primary">{% trans "Anhang" %}</h5>
+        <div class="p-3 bg-light rounded-3 border-start border-warning border-3 d-flex align-items-center">
+            <i class="bi bi-paperclip fs-3 text-warning me-3"></i>
+            <div class="flex-grow-1">
+                <p class="mb-0 fw-medium text-break">{{ task.aufgabe.attachment.name|cut:"aufgaben_attachments/" }}</p>
+                <small class="text-muted">{% trans "Anhang von der Organisation bereitgestellt" %}</small>
+            </div>
+            <a href="{% url 'download_aufgabe_attachment' task.aufgabe.id %}" 
+               class="btn btn-outline-warning ms-3 bg-white" 
+               title="{% trans 'Anhang herunterladen' %}">
+                <i class="bi bi-download me-1"></i>{% trans "Herunterladen" %}
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
     {% if task.aufgabe.mitupload %}
     <div class="mb-4">
         <h5 class="form-label fw-semibold text-primary">{% trans "Datei hochladen" %}</h5>
