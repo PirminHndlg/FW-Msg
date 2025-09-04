@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='freiwilliger',
             name='einsatzland2',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='Global.einsatzland2', verbose_name='Einsatzland'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='Global.Einsatzland2', verbose_name='Einsatzland'),
         ),
         migrations.AddField(
             model_name='freiwilliger',
@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='historicalfreiwilliger',
             name='einsatzland2',
-            field=models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='Global.einsatzland2', verbose_name='Einsatzland'),
+            field=models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='Global.Einsatzland2', verbose_name='Einsatzland'),
         ),
         migrations.AddField(
             model_name='historicalfreiwilliger',
