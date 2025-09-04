@@ -6,7 +6,6 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('Global', '0026_remove_historicalordner2_typ_remove_ordner2_typ_and_more'),
         ('TEAM', '0001_initial'),
     ]
 
