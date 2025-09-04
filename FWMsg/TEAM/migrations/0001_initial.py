@@ -11,7 +11,6 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('Global', '0020_dokumentcolor2_organisation2_remove_customuser_role_and_more'),
         ('ORG', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
