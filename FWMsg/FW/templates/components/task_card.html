@@ -32,6 +32,23 @@
         </div>
         {% endif %}
 
+        {% if task.aufgabe.attachment %}
+        <div class="p-2 bg-light rounded-3 border-start border-warning border-3 mb-3 d-flex align-items-center justify-content-between">
+          <div class="overflow-x-hidden flex-grow-1 d-flex align-items-center">
+            <i class="bi bi-paperclip fs-3 text-warning me-3"></i>
+            <div>
+            <p class="mb-0 fw-medium text-truncate">{{ task.aufgabe.attachment.name|cut:"aufgaben_attachments/" }}</p>
+            <small class="text-muted">{% trans "Anhang verfügbar" %}</small>
+            </div>
+          </div>
+          <a href="{% url 'download_aufgabe_attachment' task.aufgabe.id %}" 
+          class="btn btn-sm btn-outline-warning ms-2 bg-white" 
+          title="{% trans 'Anhang herunterladen' %}">
+          <i class="bi bi-download"></i>
+        </a>
+        </div>
+        {% endif %}
+
         <div class="row g-3">
           <div class="col-12 col-lg-6">
             <div class="due-date-card p-2 rounded-3 shadow-sm overflow-x-auto">

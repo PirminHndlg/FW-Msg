@@ -40,6 +40,7 @@ urlpatterns = [
     path('ampel/', views.ampel, name='ampel'),
     path('aufgaben/', views.aufgaben, name='aufgaben'),
     path('aufgaben/<int:aufgabe_id>/', views.aufgabe, name='aufgaben_detail'),
+    path('aufgaben/attachment/<int:aufgabe_id>/', views.download_aufgabe_attachment, name='download_aufgabe_attachment'),
     path('notfallkontakte/', views.notfallkontakte, name='notfallkontakte'),
 
     path('profil/', views.view_profil, name='profil'),

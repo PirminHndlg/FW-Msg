@@ -67,6 +67,7 @@ from django.utils import timezone
 from FW.forms import BilderForm, BilderGalleryForm, ProfilUserForm
 from .models import (
     Ampel2, 
+    Aufgabe2,
     Bilder2, 
     BilderGallery2,
     Einsatzstelle2,
@@ -1360,6 +1361,26 @@ def aufgabe(request, aufgabe_id):
     }
     context = check_organization_context(request, context)
     return render(request, 'aufgabe.html', context=context)
+
+
+@login_required
+def download_aufgabe_attachment(request, aufgabe_id):
+    """Download attachment file from an Aufgabe2 object - accessible to all authenticated users"""
+    try:
+        aufgabe = Aufgabe2.objects.get(pk=aufgabe_id, org=request.user.org)
+        if not aufgabe.attachment:
+            return HttpResponse('Keine Datei gefunden')
+        if not aufgabe.attachment.path:
+            return HttpResponse('Datei nicht gefunden')
+        if not os.path.exists(aufgabe.attachment.path):
+            return HttpResponse('Datei nicht gefunden')
+            
+        response = HttpResponse(aufgabe.attachment.read(), content_type='application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{aufgabe.attachment.name.replace(" ", "_")}"'
+
+        return response
+    except Aufgabe2.DoesNotExist:
+        return HttpResponse('Nicht erlaubt')
 
 
 @login_required
