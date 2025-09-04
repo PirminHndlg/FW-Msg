@@ -68,7 +68,7 @@
     modal.addEventListener('show.bs.modal', function() {
       // Create and add image only when modal is shown
       const img = document.createElement('img');
-      img.src = "{% url 'serve_bilder' bilder_gallery.first.id %}";
+      img.src = "{% if bilder_gallery.first.id %}{% url 'serve_bilder' bilder_gallery.first.id %}{% endif %}";
       img.alt = "{% trans 'Bild' %}";
       img.className = "img-fluid rounded";
       img.style.maxHeight = '200px';

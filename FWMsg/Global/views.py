@@ -278,7 +278,7 @@ def serve_logo(request, org_id):
 
 @login_required
 @required_person_cluster('bilder')
-def serve_bilder(request, image_id):
+def serve_bilder(request, image_id=None):
     """
     Serve gallery images.
     
@@ -445,6 +445,7 @@ def bild(request):
                         image=image
                     )
                 except Exception as e:
+                    logging.error(f"Error saving image: {str(e)}")
                     messages.error(request, f'Error saving image: {str(e)}')
                     continue
             
