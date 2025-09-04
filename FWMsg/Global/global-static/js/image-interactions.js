@@ -4,11 +4,7 @@
  */
 
 function interactionButtonPressed(button) {
-    const emoji = button.getAttribute("data-emoji");
-    const interactionUrl = button.getAttribute("data-interaction-url");
-    
-    // Build URL with emoji parameter
-    const url = interactionUrl.replace('EMOJI_PLACEHOLDER', encodeURIComponent(emoji));
+    const url = button.getAttribute("data-interaction-url");
     
     // fetch to the URL (GET request)
     fetch(url)
