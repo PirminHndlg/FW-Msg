@@ -200,6 +200,29 @@ def format_register_email_org(einmalpasswort, action_url, org_name, user_name, u
     }
     return render_to_string('mail/register_organization.html', context)
 
+def format_ampel_email(user_name, ampel_user_name, ampel_user_email, status, comment, ampel_date, action_url, unsubscribe_url, org_name, base64_image):
+    """Format email for ampel status notifications to organization"""
+    # Format the ampel date
+    formatted_date = ampel_date.astimezone(timezone.get_current_timezone()).strftime('%d.%m.%Y %H:%M') if ampel_date else ''
+    
+    # Truncate comment if it's too long for email
+    max_length = 200
+    truncated_comment = comment if comment and len(comment) <= max_length else (comment[:max_length] + '...' if comment else '')
+    
+    context = {
+        'user_name': user_name,
+        'ampel_user_name': ampel_user_name,
+        'ampel_user_email': ampel_user_email,
+        'status': status,
+        'comment': truncated_comment,
+        'ampel_date': formatted_date,
+        'action_url': action_url,
+        'unsubscribe_url': unsubscribe_url,
+        'org_name': org_name,
+        'base64_image': base64_image
+    }
+    return render_to_string('mail/ampel_notification.html', context)
+
 def format_image_uploaded_email(bild_titel, bild_beschreibung, uploader_name, image_count, action_url, unsubscribe_url, user_name, org_name, base64_image):
     """Format email for newly uploaded image notification to organization"""
     context = {

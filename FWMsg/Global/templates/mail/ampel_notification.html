@@ -1,0 +1,53 @@
+{% extends "mail/base_email.html" %}
+
+{% block german_content %}
+<p>Neue Ampel-Meldung von {{ ampel_user_name }}:</p>
+
+<div style="background-color: #f7f9fc; border-left: 4px solid {% if status == 'G' %}#28a745{% elif status == 'Y' %}#ffc107{% else %}#dc3545{% endif %}; padding: 15px; margin: 15px 0; border-radius: 3px;">
+    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <div style="width: 30px; height: 30px; border-radius: 50%; background-color: {% if status == 'G' %}#28a745{% elif status == 'Y' %}#ffc107{% else %}#dc3545{% endif %}; margin-right: 10px;"></div>
+        <p style="font-weight: 600; margin: 0; font-size: 18px; color: #333;">
+            {% if status == 'G' %}Grün{% elif status == 'Y' %}Gelb{% else %}Rot{% endif %}
+        </p>
+    </div>
+    
+    <p style="margin: 5px 0;"><span style="color: #666666;">Von:</span> <span style="font-weight: 500;">{{ ampel_user_name }}</span></p>
+    <p style="margin: 5px 0;"><span style="color: #666666;">E-Mail:</span> <a href="mailto:{{ ampel_user_email }}"><span style="font-weight: 500;">{{ ampel_user_email }}</span></a></p>
+    <p style="margin: 5px 0;"><span style="color: #666666;">Zeitpunkt:</span> <span style="font-weight: 500;">{{ ampel_date }}</span></p>
+    
+    {% if comment %}
+    <div style="margin-top: 15px; padding: 12px; background-color: #ffffff; border-radius: 4px; border: 1px solid #e9ecef;">
+        <p style="margin: 0 0 5px 0; color: #666666; font-weight: 500; font-size: 14px;">Nachricht:</p>
+        <p style="margin: 0; color: #555555; font-size: 14px; line-height: 1.5;">{{ comment }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block german_button_text %}Ampel-Status ansehen{% endblock %}
+
+{% block english_content %}
+<p>New status report from {{ ampel_user_name }}:</p>
+
+<div style="background-color: #f7f9fc; border-left: 4px solid {% if status == 'G' %}#28a745{% elif status == 'Y' %}#ffc107{% else %}#dc3545{% endif %}; padding: 15px; margin: 15px 0; border-radius: 3px;">
+    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <div style="width: 30px; height: 30px; border-radius: 50%; background-color: {% if status == 'G' %}#28a745{% elif status == 'Y' %}#ffc107{% else %}#dc3545{% endif %}; margin-right: 10px;"></div>
+        <p style="font-weight: 600; margin: 0; font-size: 18px; color: #333;">
+            {% if status == 'G' %}Green{% elif status == 'Y' %}Yellow{% else %}Red{% endif %}
+        </p>
+    </div>
+    
+    <p style="margin: 5px 0;"><span style="color: #666666;">From:</span> <span style="font-weight: 500;">{{ ampel_user_name }}</span></p>
+    <p style="margin: 5px 0;"><span style="color: #666666;">Email:</span> <a href="mailto:{{ ampel_user_email }}"><span style="font-weight: 500;">{{ ampel_user_email }}</span></a></p>
+    <p style="margin: 5px 0;"><span style="color: #666666;">Time:</span> <span style="font-weight: 500;">{{ ampel_date }}</span></p>
+    
+    {% if comment %}
+    <div style="margin-top: 15px; padding: 12px; background-color: #ffffff; border-radius: 4px; border: 1px solid #e9ecef;">
+        <p style="margin: 0 0 5px 0; color: #666666; font-weight: 500; font-size: 14px;">Message:</p>
+        <p style="margin: 0; color: #555555; font-size: 14px; line-height: 1.5;">{{ comment }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block english_button_text %}View Status Report{% endblock %}

@@ -4,7 +4,7 @@ import base64
 from django.urls import reverse
 import logging
 from Global.push_notification import send_push_notification_to_user
-from Global.send_email import format_register_email_org, format_aufgabe_erledigt_email, format_mail_calendar_reminder_email, send_email_with_archive
+from Global.send_email import format_register_email_org, format_aufgabe_erledigt_email, format_mail_calendar_reminder_email, format_ampel_email, send_email_with_archive
 from django.core.mail import send_mail
 
 
@@ -105,3 +105,79 @@ def send_mail_calendar_reminder_task(kalender_event_id, user_id):
     if user.customuser.mail_notifications and send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [user.email], html_message=email_content):
         return True
     return False
+
+@shared_task
+def send_ampel_email_task(ampel_id):
+    """Send email notification to organization when a user submits an ampel status"""
+    from Global.models import Ampel2
+    
+    try:
+        ampel = Ampel2.objects.get(id=ampel_id)
+        user = ampel.user
+        org = ampel.org
+        
+        # Get user's full name
+        user_name = f"{user.first_name} {user.last_name}".strip()
+        if not user_name:
+            user_name = user.username
+        
+        # Create action URL - link to the ampel overview page or user profile
+        action_url = f"{settings.DOMAIN_HOST}{reverse('list_ampel')}"
+        
+        # Get organization logo as base64
+        base64_image = None
+        if org.logo:
+            try:
+                with open(org.logo.path, "rb") as org_logo:
+                    base64_image = base64.b64encode(org_logo.read()).decode('utf-8')
+            except (FileNotFoundError, OSError):
+                logging.warning(f"Could not load logo for org {org.id}")
+        
+        # Format the email content
+        email_content = format_ampel_email(
+            user_name=org.name,
+            ampel_user_name=user_name,
+            ampel_user_email=user.email,
+            status=ampel.status,
+            comment=ampel.comment,
+            ampel_date=ampel.date,
+            action_url=action_url,
+            unsubscribe_url=None,  # Organizations don't have unsubscribe URLs
+            org_name=org.name,
+            base64_image=base64_image
+        )
+        
+        # Create subject based on status
+        status_text = {
+            'G': 'Grün',
+            'Y': 'Gelb',
+            'R': 'Rot'
+        }.get(ampel.status, 'Unbekannt')
+        
+        status_emoji = {
+            'G': '🟢',
+            'Y': '🟡',
+            'R': '🔴'
+        }.get(ampel.status, '❓')
+        
+        subject = f'{status_emoji} Neue Ampel-Meldung: {user_name} - Status {status_text}'
+        
+        # Send email to organization
+        if org.email:
+            return send_email_with_archive(
+                subject=subject,
+                message=email_content,
+                from_email=settings.SERVER_EMAIL,
+                recipient_list=[org.email],
+                html_message=email_content
+            )
+        else:
+            logging.warning(f"No email address found for organization {org.id}")
+            return False
+            
+    except Ampel2.DoesNotExist:
+        logging.error(f"Ampel with id {ampel_id} does not exist")
+        return False
+    except Exception as e:
+        logging.error(f"Error sending ampel email: {e}")
+        return False
