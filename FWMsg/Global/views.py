@@ -1203,8 +1203,8 @@ def ampel(request):
         ampel_object.save()
         
         # send email to org
-        # from ORG.tasks import send_ampel_email_task
-        # send_ampel_email_task.delay(ampel_object.id)
+        from ORG.tasks import send_ampel_email_task
+        send_ampel_email_task.delay(ampel_object.id)
 
         msg_text = 'Ampel erfolgreich auf ' + (
             'Grün' if ampel == 'G' else 'Rot' if ampel == 'R' else 'Gelb' if ampel == 'Y' else 'error') + ' gesetzt'
