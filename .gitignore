@@ -1,6 +1,5 @@
 .venv
 migrations_old/
-migrations/
 db.sqlite3
 FWMsg/FW/__pycache__/
 FWMsg/FW/**/__pycache__/
