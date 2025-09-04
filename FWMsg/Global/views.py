@@ -674,6 +674,35 @@ def toggle_reaction_to_bild(request, bild_id, emoji):
 
 @login_required
 @required_person_cluster('bilder')
+def get_bild_reactions(request, bild_id):
+    """Get detailed reaction information for a specific image."""
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        # Get the bild
+        bild = Bilder2.objects.get(id=bild_id, org=request.user.org)
+        
+        # Get all reactions with user details
+        reactions_data = bild.get_all_reactions_with_users()
+        
+        # Format the response
+        response_data = {
+            'success': True,
+            'bild_id': bild.id,
+            'bild_title': bild.titel,
+            'reactions': reactions_data
+        }
+        
+        return JsonResponse(response_data)
+        
+    except Bilder2.DoesNotExist:
+        return JsonResponse({'error': 'Bild nicht gefunden'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': 'Fehler beim Laden der Reaktionen'}, status=500)
+
+@login_required
+@required_person_cluster('bilder')
 def image_detail(request, image_id):
     """Display detailed view of a single image with navigation and interactions."""
     try:
@@ -1172,6 +1201,10 @@ def ampel(request):
             comment=comment
         )
         ampel_object.save()
+        
+        # send email to org
+        # from ORG.tasks import send_ampel_email_task
+        # send_ampel_email_task.delay(ampel_object.id)
 
         msg_text = 'Ampel erfolgreich auf ' + (
             'Grün' if ampel == 'G' else 'Rot' if ampel == 'R' else 'Gelb' if ampel == 'Y' else 'error') + ' gesetzt'

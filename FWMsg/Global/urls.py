@@ -18,6 +18,7 @@ urlpatterns = [
     path('bilder/<int:bild_id>/comment/add/', views.add_comment_to_bild, name='add_comment_to_bild'),
     path('bilder/comment/<int:comment_id>/remove/', views.remove_comment_from_bild, name='remove_comment_from_bild'),
     path('bilder/<int:bild_id>/reaction/<str:emoji>/', views.toggle_reaction_to_bild, name='toggle_reaction_to_bild'),
+    path('bilder/<int:bild_id>/reactions/', views.get_bild_reactions, name='get_bild_reactions'),
 
     path('posts/', views.posts_overview, name='posts_overview'),
     path('posts/add/', views.post_add, name='post_add'),
