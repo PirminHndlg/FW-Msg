@@ -7,11 +7,11 @@
   <div class="reaction-bar mb-3">
     <div class="d-flex align-items-center gap-1 flex-wrap">
       <!-- Emoji Reaction Buttons -->
-      <div class="emoji-buttons d-flex w-100 justify-content-between gap-1" data-bild-id="{{ bild.id|default:'' }}" data-interaction-url="{% url 'toggle_reaction_to_bild' bild.id 'EMOJI_PLACEHOLDER' %}">
+      <div class="emoji-buttons d-flex w-100 justify-content-between gap-1" data-bild-id="{{ bild.id|default:'' }}">
         <div>
         {% with my_reaction=bild|get_my_reaction:request.user %}
           {% for reaction in bild.get_reaction_summary %}
-            <button type="button" onclick="interactionButtonPressed(this)" class="btn btn-sm btn-outline-secondary emoji-btn {% if my_reaction and my_reaction.emoji == reaction.emoji %}active{% endif %}" data-emoji="{{ reaction.emoji }}">
+            <button type="button" onclick="interactionButtonPressed(this)" class="btn btn-sm btn-outline-secondary emoji-btn {% if my_reaction and my_reaction.emoji == reaction.emoji %}active{% endif %}" data-emoji="{{ reaction.emoji }}" data-interaction-url="{% url 'toggle_reaction_to_bild' bild.id 'EMOJI_PLACEHOLDER' %}">
               {{ reaction.emoji }}
               <span class="reaction-count">{{ reaction.count }}</span>
             </button>
