@@ -10,7 +10,6 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('BW', '0020_bewerber_endbewertung_bewerber_first_wish_and_more'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
