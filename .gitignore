@@ -90,3 +90,4 @@ celerybeat-schedule
 FWMsg/FWMsg/save_settings.py
 security_report.md
 FWMsg/FWMsg/settings copy.py
+dump.rdb
