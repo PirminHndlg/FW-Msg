@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('Global', '0024_remove_referenten2_land_remove_referenten2_org_and_more'),
+        ('Global', '0020_dokumentcolor2_organisation2_remove_customuser_role_and_more'),
         ('ORG', '0032_remove_referentenaufgaben_aufgabe_and_more'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
