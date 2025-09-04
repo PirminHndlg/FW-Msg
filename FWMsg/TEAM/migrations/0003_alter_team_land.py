@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='team',
             name='land',
-            field=models.ManyToManyField(blank=True, to='Global.einsatzland2', verbose_name='Länderzuständigkeit'),
+            field=models.ManyToManyField(blank=True, to='Global.Einsatzland2', verbose_name='Länderzuständigkeit'),
         ),
     ]
