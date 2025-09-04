@@ -7,7 +7,8 @@
   <div class="reaction-bar mb-3">
     <div class="d-flex align-items-center gap-1 flex-wrap">
       <!-- Emoji Reaction Buttons -->
-      <div class="emoji-buttons d-flex gap-1 me-3" data-bild-id="{{ bild.id|default:'' }}" data-interaction-url="{% url 'toggle_reaction_to_bild' bild.id 'EMOJI_PLACEHOLDER' %}">
+      <div class="emoji-buttons d-flex w-100 justify-content-between gap-1" data-bild-id="{{ bild.id|default:'' }}" data-interaction-url="{% url 'toggle_reaction_to_bild' bild.id 'EMOJI_PLACEHOLDER' %}">
+        <div>
         {% with my_reaction=bild|get_my_reaction:request.user %}
           {% for reaction in bild.get_reaction_summary %}
             <button type="button" onclick="interactionButtonPressed(this)" class="btn btn-sm btn-outline-secondary emoji-btn {% if my_reaction and my_reaction.emoji == reaction.emoji %}active{% endif %}" data-emoji="{{ reaction.emoji }}">
@@ -15,9 +16,20 @@
               <span class="reaction-count">{{ reaction.count }}</span>
             </button>
           {% endfor %}
-        {% endwith %}
+          {% endwith %}
+          </div>
+
+          <!-- View All Reactions Button -->
+          <div class="d-flex justify-content-end gap-1">
+          {% if bild.reactions.count > 0 %}
+            <button type="button" class="btn btn-sm" onclick="showReactionsModal({{ bild.id|default:'null' }})">
+              <i class="bi bi-info-circle"></i>
+            </button>
+          {% endif %}
+          </div>
+        </div>
       </div>
-    </div>
+
   </div>
 
   <!-- Write Comment Section (Always Visible) -->
@@ -100,3 +112,83 @@
     {% endif %}
   </div>
 </div>
+
+<!-- Reactions Modal -->
+<div class="modal fade" id="reactionsModal" tabindex="-1" aria-labelledby="reactionsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-light border-0 pb-2">
+        <h5 class="modal-title fw-bold" id="reactionsModalLabel">
+          <i class="bi bi-emoji-smile me-2 text-primary"></i>{% trans 'Reaktionen' %}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body px-4 py-3" id="reactionsModalBody" style="max-height: 60vh; overflow-y: auto;">
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">{% trans 'Lädt...' %}</span>
+          </div>
+          <p class="mt-2 mb-0 text-muted small">{% trans 'Reaktionen werden geladen...' %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom CSS for the reactions modal -->
+<style>
+.emoji-circle {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 50%;
+  border: 2px solid #dee2e6;
+}
+
+.user-avatar {
+  width: 35px;
+  height: 35px;
+}
+
+.user-item {
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
+  margin: 0 -8px;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+.user-item:hover {
+  background-color: #f8f9fa;
+}
+
+.user-item a:hover .fw-medium {
+  color: #0d6efd !important;
+}
+
+.reaction-group {
+  border-color: #e9ecef !important;
+}
+
+.reactions-list {
+  padding: 0;
+}
+
+#reactionsModal .modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+#reactionsModal .modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+#reactionsModal .modal-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+#reactionsModal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+</style>

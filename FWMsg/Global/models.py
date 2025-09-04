@@ -720,7 +720,7 @@ class Aufgabe2(OrgModel):
 
     name = models.CharField(max_length=50, verbose_name='Name', help_text='Name der Aufgabe')
     beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung', help_text='Ausführliche Beschreibung der Aufgabe')
-    mitupload = models.BooleanField(default=True, verbose_name='Datei-Upload erlauben', help_text='Ermöglicht und erfordert das Hochladen von Dateien bei dieser Aufgabe')
+    mitupload = models.BooleanField(default=True, verbose_name='Datei-Upload erforderlich', help_text='Ermöglicht und erfordert das Hochladen von Dateien bei dieser Aufgabe')
     requires_submission = models.BooleanField(default=True, verbose_name='Bestätigung erforderlich', help_text='Wenn aktiviert, wird die Aufgabe nach Erledigung als pending markiert und muss manuell als erledigt bestätigt werden')
     faellig_art = models.ForeignKey(AufgabenCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Kategorie', help_text='Kategorie dieser Aufgabe, bestimmt den Zeitraum')
     faellig_tag = models.IntegerField(blank=True, null=True, verbose_name='Fällig am Tag', validators=[validators.MinValueValidator(1), validators.MaxValueValidator(31)], help_text='Tag im Monat, an dem die Aufgabe fällig ist (1-31)')
@@ -966,6 +966,24 @@ class Bilder2(OrgModel):
         """Get the specified user's reaction for this image."""
         from Global.models import BilderReaction
         return BilderReaction.objects.filter(bilder=self, user=user).first()
+    
+    def get_all_reactions_with_users(self):
+        """Get all reactions for this image grouped by emoji with user details."""
+        from Global.models import BilderReaction
+        reactions_by_emoji = {}
+        
+        for reaction in BilderReaction.objects.filter(bilder=self).select_related('user').order_by('emoji', 'date_created'):
+            emoji = reaction.emoji
+            if emoji not in reactions_by_emoji:
+                reactions_by_emoji[emoji] = []
+            
+            reactions_by_emoji[emoji].append({
+                'user_id': reaction.user.id,
+                'user_name': reaction.user.get_full_name() or reaction.user.username,
+                'date_created': reaction.date_created
+            })
+        
+        return reactions_by_emoji
 
 class BilderComment(OrgModel):
     bilder = models.ForeignKey(Bilder2, on_delete=models.CASCADE, related_name='comments', verbose_name='Bild')
