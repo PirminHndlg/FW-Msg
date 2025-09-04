@@ -11,8 +11,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('Global', '0020_dokumentcolor2_organisation2_remove_customuser_role_and_more'),
-        ('ORG', '0032_remove_referentenaufgaben_aufgabe_and_more'),
+        ('ORG', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -41,7 +40,6 @@ class Migration(migrations.Migration):
             name='Team',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('land', models.ManyToManyField(blank=True, null=True, to='Global.einsatzland2', verbose_name='Länderzuständigkeit')),
                 ('org', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ORG.organisation', verbose_name='Organisation')),
                 ('user', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='Benutzer:in')),
             ],
