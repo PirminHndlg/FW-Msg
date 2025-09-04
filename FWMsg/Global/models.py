@@ -732,7 +732,7 @@ class Aufgabe2(OrgModel):
     wiederholung = models.BooleanField(default=False, verbose_name='Regelmäßige Wiederholung', help_text='Wenn aktiviert, wird die Aufgabe regelmäßig wiederholt')
     wiederholung_interval_wochen = models.IntegerField(blank=True, null=True, verbose_name='Wiederholung alle x Wochen', validators=[validators.MinValueValidator(0)], help_text='Wiederholungsintervall in Wochen')
     wiederholung_ende = models.DateField(blank=True, null=True, verbose_name='Wiederholung bis', help_text='Datum, bis zu dem die Aufgabe wiederholt wird')
-    attachment = models.FileField(upload_to='aufgaben_attachments/', blank=True, null=True, verbose_name='Anhang', help_text='Optionale Datei als Anhang für diese Aufgabe')
+    # attachment = models.FileField(upload_to='aufgaben_attachments/', blank=True, null=True, verbose_name='Anhang', help_text='Optionale Datei als Anhang für diese Aufgabe')
 
     history = HistoricalRecords()
 
