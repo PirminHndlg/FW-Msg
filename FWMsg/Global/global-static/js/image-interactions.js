@@ -102,10 +102,11 @@ function displayReactions(reactions) {
             `;
             
             users.forEach((user, userIndex) => {
+                console.log(user);
                 html += `
                     <div class="user-item d-flex align-items-center py-2 ${userIndex > 0 ? 'border-top' : ''}">
                         <div class="user-avatar d-flex align-items-center justify-content-center me-3">
-                            <i class="bi bi-person-circle fs-4 text-secondary"></i>
+                            <img src="/profil_picture/${user.user_id}" alt="${user.user_name}" class="rounded-circle" style="height: 35px; object-fit: cover;">
                         </div>
                         <div class="flex-grow-1">
                             <a href="/profil/${user.user_id}" class="text-decoration-none text-dark">
@@ -137,9 +138,20 @@ function formatDate(dateString) {
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now - date);
+    const diffHours = Math.round(diffTime / (1000 * 60 * 60));
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) {
+    console.log(diffDays, diffTime, diffHours);
+
+    console.log(date);
+    console.log(now);
+
+    if (diffHours === 0) {
+        return 'gerade eben';
+    } else if (diffHours === 1) {
+        return 'vor 1 Stunde';
+    } else if (diffHours < 24) {
+        return `vor ${diffHours} Stunden`;
+    } else if (diffDays === 1) {
         return 'vor 1 Tag';
     } else if (diffDays < 7) {
         return `vor ${diffDays} Tagen`;
