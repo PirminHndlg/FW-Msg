@@ -265,24 +265,23 @@ def send_aufgaben_email(aufgabe, org):
     )   
     
     subject = f'Erinnerung: {aufgabe.aufgabe.name}'
+    
+    faellig_text = ''
+    if aufgabe.faellig:
+        faellig_text = f'am {aufgabe.faellig.strftime("%d.%m.%Y")} '
 
-    push_content = f'Die Aufgabe "{aufgabe.aufgabe.name}" ist am {aufgabe.faellig.strftime("%d.%m.%Y")} fällig.'
+    push_content = f'Die Aufgabe "{aufgabe.aufgabe.name}" ist {faellig_text}fällig.'
 
     send_push_notification_to_user(aufgabe.user, subject, push_content, url=action_url)
     
-    if aufgabe.user.customuser.mail_notifications and send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [aufgabe.user.email], html_message=email_content):
-        aufgabe.last_reminder = timezone.now()
-        aufgabe.currently_sending = False
-        aufgabe.save()
-        return True
+    if aufgabe.user.customuser.mail_notifications:
+        send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [aufgabe.user.email], html_message=email_content)
     
+    aufgabe.last_reminder = timezone.now()
     aufgabe.currently_sending = False
     aufgabe.save()
     
-    push_content = f'Die Aufgabe "{aufgabe.aufgabe.name}" ist am {aufgabe.faellig.strftime("%d.%m.%Y")} fällig.'
-    send_push_notification_to_user(aufgabe.user, subject, push_content, url=action_url)
-    
-    return False
+    return True
 
 def send_new_aufgaben_email(aufgaben, org):
     action_url = 'https://volunteer.solutions/aufgaben/'
