@@ -11,6 +11,13 @@ from django.db.models.signals import post_save, post_delete, pre_delete
 from FWMsg.middleware import get_current_request
 import os
 from ORG.models import Organisation
+
+# Add HEIC support to PIL/Pillow
+try:
+    from pillow_heif import register_heif_opener
+    register_heif_opener()
+except ImportError:
+    pass  # HEIC support not available
 from datetime import datetime, timedelta
 from django.core import signing
 from django.utils import timezone

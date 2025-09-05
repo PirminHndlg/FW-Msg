@@ -5,6 +5,62 @@
 
 {% block head %}
 <script src="{% static 'js/bild.js' %}"></script>
+<script>
+function handleImageUpload(input) {
+    const files = Array.from(input.files);
+    const convertedFiles = [];
+    let processedCount = 0;
+
+    files.forEach((file, index) => {
+        if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+            // Convert HEIC to JPEG
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                canvas.toBlob(function(blob) {
+                    const convertedFile = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), {
+                        type: 'image/jpeg',
+                        lastModified: Date.now()
+                    });
+                    convertedFiles[index] = convertedFile;
+                    processedCount++;
+                    
+                    if (processedCount === files.length) {
+                        updateInputFiles(input, convertedFiles);
+                    }
+                }, 'image/jpeg', 0.9);
+            };
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            convertedFiles[index] = file;
+            processedCount++;
+            
+            if (processedCount === files.length) {
+                updateInputFiles(input, convertedFiles);
+            }
+        }
+    });
+}
+
+function updateInputFiles(input, files) {
+    const dt = new DataTransfer();
+    files.forEach(file => {
+        if (file) dt.items.add(file);
+    });
+    input.files = dt.files;
+}
+</script>
 {% endblock %}
 
 {% block headline %}
@@ -56,7 +112,8 @@
                                {% if not field.value %} required {% endif %} 
                                multiple="true"
                                accept="image/*"
-                               style="z-index: 2;">
+                               style="z-index: 2;"
+                               onchange="handleImageUpload(this)">
                         <div class="upload-overlay d-flex flex-column align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100"
                              style="z-index: 1; pointer-events: none;">
                              {% if field.value %}
