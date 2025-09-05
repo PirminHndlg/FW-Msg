@@ -30,6 +30,7 @@
   {% endif %}
 </div>
 
+{% if request.user.role == 'O' or request.user == bild.user %}
 <div class="modal fade" id="deleteBildModal-{{ bild.id }}" tabindex="-1" aria-labelledby="deleteBildModalLabel-{{ bild.id }}" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -68,7 +69,7 @@
     modal.addEventListener('show.bs.modal', function() {
       // Create and add image only when modal is shown
       const img = document.createElement('img');
-      img.src = "{% if bilder_gallery.first.id %}{% url 'serve_bilder' bilder_gallery.first.id %}{% endif %}";
+      img.src = "{% if bilder_gallery.first.id %}{% if bilder_gallery.first.small_image %}{% url 'serve_small_bilder' bilder_gallery.first.id %}{% else %}{% url 'serve_bilder' bilder_gallery.first.id %}{% endif %}{% else %}{% url 'serve_bilder' %}{% endif %}";
       img.alt = "{% trans 'Bild' %}";
       img.className = "img-fluid rounded";
       img.style.maxHeight = '200px';
@@ -89,3 +90,4 @@
     });
   });
 </script>
+{% endif %}
