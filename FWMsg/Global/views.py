@@ -627,6 +627,7 @@ def _handle_reaction_toggle(bild, user, emoji):
         else:
             # Update to new emoji
             existing_reaction.emoji = emoji
+            existing_reaction.date_created = datetime.now()
             existing_reaction.save()
             return 'changed'
     else:
