@@ -169,4 +169,250 @@
       }
     </script>
   {% endif %}
+  
+  <script>
+    // CSRF token for AJAX requests
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    // Helper function to update task state UI
+    function updateTaskState(taskId, state) {
+        const row = document.getElementById(`task-table-row-${taskId}`);
+        const completed = document.getElementById(`completed-task-template-${taskId}`);
+        const pending = document.getElementById(`pending-task-template-${taskId}`);
+        const upcoming = document.getElementById(`upcoming-task-template-${taskId}`);
+        
+        if (!row) return;
+        
+        // Reset all background classes
+        row.className = row.className.replace(/bg-(success|warning|danger|dark)\s+bg-opacity-(25|10)/g, '');
+        
+        // Hide all templates
+        [completed, pending, upcoming].forEach(el => el?.classList.add('d-none'));
+        
+        // Apply state-specific styling and show correct template
+        switch(state) {
+            case 'pending':
+                row.classList.add('bg-warning', 'bg-opacity-25');
+                pending?.classList.remove('d-none');
+                break;
+            case 'completed':
+                row.classList.add('bg-success', 'bg-opacity-25');
+                completed?.classList.remove('d-none');
+                break;
+            case 'upcoming':
+            default:
+                row.classList.add('bg-dark', 'bg-opacity-10');
+                upcoming?.classList.remove('d-none');
+                break;
+        }
+    }
+
+    // Update task status function
+    function updateTaskStatus(aufgabeId, pending, erledigt) {
+        fetch("{% url 'ajax_update_task_status' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({
+                aufgabe_id: aufgabeId,
+                pending: pending,
+                erledigt: erledigt
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log(data);
+                
+                // Update task state using helper function
+                if (pending) {
+                    updateTaskState(aufgabeId, 'pending');
+                } else if (erledigt) {
+                    updateTaskState(aufgabeId, 'completed');
+                } else {
+                    updateTaskState(aufgabeId, 'upcoming');
+                }
+                
+                console.log('Task status updated successfully');
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating the task status.');
+        });
+    }
+
+    // Delete task file function
+    function deleteTaskFile(aufgabeId) {
+        if (confirm('Are you sure you want to delete this file?')) {
+            fetch("{% url 'ajax_delete_task_file' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({
+                    aufgabe_id: aufgabeId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the file.');
+            });
+        }
+    }
+
+    function sendTaskReminder(button, id) {
+      fetch(`{% url 'send_task_reminder' %}?id=${id}`, {
+        method: 'GET',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}'
+        }
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            button.classList.add('text-success', 'disabled')
+            button.innerHTML = '<i class="bi bi-bell-fill"></i> {% trans "Erinnerung gesendet" %}'
+          } else {
+            button.classList.add('text-danger', 'disabled')
+            button.innerHTML = '<i class="bi bi-bell-slash-fill"></i> {% trans "Fehler beim Senden der Erinnerung" %}'
+          }
+        })
+    }
+
+    // Show delete task modal (if you have a modal for this)
+    function showDeleteTaskModal(aufgabeId, aufgabeName, fileName, userName) {
+        if (confirm(`Delete file "${fileName}" for task "${aufgabeName}" from user "${userName}"?`)) {
+            deleteTaskFile(aufgabeId);
+        }
+    }
+
+    // Assign task to specific user
+    function assignTask(userId, aufgabeId) {
+        fetch("{% url 'ajax_assign_task' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                aufgabe_id: aufgabeId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while assigning the task.');
+        });
+    }
+
+    // Assign task to all eligible users
+    function assignTaskToAll(aufgabeId) {
+        if (confirm('Are you sure you want to assign this task to all eligible users?')) {
+            fetch("{% url 'ajax_assign_task_to_all' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({
+                    aufgabe_id: aufgabeId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let message = data.message;
+                    if (data.errors && data.errors.length > 0) {
+                        message += '\n\nWarnings:\n' + data.errors.join('\n');
+                    }
+                    // alert(message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while assigning tasks to all users.');
+            });
+        }
+    }
+
+    // Assign tasks by country
+    function assignTasksByCountry() {
+        const taskId = document.getElementById('taskIdInput').value;
+        const countryId = document.getElementById('countrySelect').value;
+        
+        if (!countryId) {
+            alert('Please select a country.');
+            return;
+        }
+        
+        fetch("{% url 'ajax_assign_tasks_by_country' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({
+                aufgabe_id: taskId,
+                country_id: countryId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // alert(data.message);
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('taskCountryModal'));
+                modal.hide();
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while assigning tasks by country.');
+        });
+    }
+  </script>
 {% endblock %}

@@ -34,7 +34,9 @@
               <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#taskCountryModal" onclick="setTaskId({{ aufgabe.id }}, '{{ aufgabe.name }}')"><i class="bi bi-globe-americas"></i> {% trans 'Einem Einsatzland zuweisen' %}</a>
             </li>
             <li>
-              <a href="{% url 'list_aufgaben_table' %}?a={{ aufgabe.id }}&u=all" class="dropdown-item"><i class="bi bi-people-fill"></i> {% trans 'Allen Freiwilligen zuweisen' %}</a>
+              <button type="button" class="dropdown-item" onclick="assignTaskToAll('{{ aufgabe.id }}')">
+                <i class="bi bi-people-fill"></i> {% trans 'Allen Freiwilligen zuweisen' %}
+              </button>
             </li>
           </ul>
         </div>

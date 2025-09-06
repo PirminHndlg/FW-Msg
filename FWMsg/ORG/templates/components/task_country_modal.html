@@ -8,14 +8,13 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="assignCountryForm" method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="aufgabe_id" id="taskIdInput">
-                    <p>{% trans 'Aufgabe:' %} <a id="task_name"></a></p>
+                <div id="assignCountryForm">
+                    <input type="hidden" id="taskIdInput">
+                    <p>{% trans 'Aufgabe:' %} <span id="task_name"></span></p>
 
                     <div class="mb-3">
                         <label for="countrySelect" class="form-label">{% trans "Einsatzland auswählen" %}</label>
-                        <select class="form-select rounded-4" id="countrySelect" name="country_id" required>
+                        <select class="form-select rounded-4" id="countrySelect" required>
                             <option value="">{% trans "Bitte wählen..." %}</option>
                             {% for country in countries %}
                                 <option value="{{ country.id }}">{{ country.name }}</option>
@@ -27,11 +26,11 @@
                         <button type="button" class="btn btn-outline-secondary rounded-4" data-bs-dismiss="modal">
                             {% trans "Abbrechen" %}
                         </button>
-                        <button type="submit" class="btn btn-primary rounded-4">
+                        <button type="button" class="btn btn-primary rounded-4" onclick="assignTasksByCountry()">
                             {% trans "Zuweisen" %}
                         </button>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
