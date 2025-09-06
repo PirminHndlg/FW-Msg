@@ -44,4 +44,6 @@ urlpatterns = [
     path('get-cascade-info/', views.get_cascade_info, name='get_cascade_info'),
     path('create-sticky-note/', views.create_sticky_note, name='create_sticky_note'),
     path('delete-sticky-note/', views.delete_sticky_note, name='delete_sticky_note'),
+    
+    path("copy-links", views.copy_links, name="copy_links"),
 ]
