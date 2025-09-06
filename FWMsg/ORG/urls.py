@@ -21,6 +21,13 @@ urlpatterns = [
     path('toggle-zwischenschritt-status/', views.toggle_zwischenschritt_status, name='toggle_zwischenschritt_status'),
     path('get-zwischenschritt-form/', views.get_zwischenschritt_form, name='get_zwischenschritt_form'),
     
+    # AJAX endpoints for task operations
+    path('ajax/update-task-status/', views.ajax_update_task_status, name='ajax_update_task_status'),
+    path('ajax/delete-task-file/', views.ajax_delete_task_file, name='ajax_delete_task_file'),
+    path('ajax/assign-tasks-by-country/', views.ajax_assign_tasks_by_country, name='ajax_assign_tasks_by_country'),
+    path('ajax/assign-task/', views.ajax_assign_task, name='ajax_assign_task'),
+    path('ajax/assign-task-to-all/', views.ajax_assign_task_to_all, name='ajax_assign_task_to_all'),
+    
     path('bewerbung-overview/', views.application_overview, name='application_overview'),
     path('bewerbung-liste/', views.application_list, name='application_list'),
     path('bewerbung-detail/<int:id>', views.application_detail, name='application_detail'),

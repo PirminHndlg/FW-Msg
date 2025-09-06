@@ -22,13 +22,15 @@
                 bg-dark bg-opacity-10
             {% endif %}
         {% endif %}"
+        id="task-table-row-{{ aufgabe.id }}"
+        {% if aufgabe.id %}data-task-id="{{ aufgabe.id }}"{% endif %}
         {% if scroll_to %}
             {% if scroll_to == aufgabe.id %}
                 id="scroll-to"
             {% endif %}
         {% endif %}>
         {% if aufgabe.id %}
-            {% if aufgabe.erledigt %}
+            <div id="completed-task-template-{{ aufgabe.id }}" class="{% if not aufgabe.erledigt %}d-none{% endif %}">
                 {% if aufgabe.file %}
                 <a href="{% url 'download_aufgabe' aufgabe.id %}" 
                     class="btn btn-sm btn-outline-primary download-btn mt-1"
@@ -57,15 +59,9 @@
                             </a>
                         </li>
                         <li>
-                            <form method="post" class="d-inline">
-                                {% csrf_token %}
-                                <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
-                                <input type="hidden" name="pending" value="True">
-                                <input type="hidden" name="erledigt" value="False">
-                                <button type="submit" class="dropdown-item text-warning">
-                                    <i class="bi bi-arrow-counterclockwise me-2"></i>{% trans "Als pending markieren" %}
-                                </button>
-                            </form>
+                            <button type="button" class="dropdown-item text-warning" onclick="updateTaskStatus('{{ aufgabe.id }}', true, false)">
+                                <i class="bi bi-arrow-counterclockwise me-2"></i>{% trans "Als pending markieren" %}
+                            </button>
                         </li>
                         {% if aufgabe.file %}
                             <li>
@@ -76,7 +72,8 @@
                         {% endif %}
                     </ul>
                 </div>
-            {% elif aufgabe.pending %}
+            </div>
+            <div id="pending-task-template-{{ aufgabe.id }}" class="{% if not aufgabe.pending or aufgabe.erledigt %}d-none{% endif %}">
                 {% if aufgabe.file %}
                 <a href="{% url 'download_aufgabe' aufgabe.id %}"
                     class="btn btn-sm btn-outline-primary download-btn" 
@@ -93,8 +90,8 @@
                     <i class="bi bi-download"></i>
                 </a>
                 {% endif %}
-                <div class="dropdown d-inline">
-                    <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="dropdown d-inline task-status-buttons">
+                    <button class="btn btn-sm dropdown-toggle btn-pending" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <span id="pending-badge-{{ aufgabe.id }}" class="badge bg-warning {% if zwischenschritte_done %}border border-2 border-success{% else %}bg-warning{% endif %}">{% trans "Pending" %} {{ zwischenschritte_done_open|default:"" }}</span>
                     </button>
                     <ul class="dropdown-menu">
@@ -109,31 +106,20 @@
                             </button>
                         </li>
                         <li>
-                            <form method="post">
-                                {% csrf_token %}
-                                <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
-                                <input type="hidden" name="pending" value="False">
-                                <input type="hidden" name="erledigt" value="False">
-                                <button type="submit" class="dropdown-item text-danger">
-                                    <i class="bi bi-x-lg me-2"></i>{% trans "Als nicht erledigt markieren" %}
-                                </button>
-                            </form>
+                            <button type="button" class="dropdown-item text-danger" onclick="updateTaskStatus('{{ aufgabe.id }}', false, false)">
+                                <i class="bi bi-x-lg me-2"></i>{% trans "Als nicht erledigt markieren" %}
+                            </button>
                         </li>
                         <li>
-                            <form method="post">
-                                {% csrf_token %}
-                                <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
-                                <input type="hidden" name="pending" value="False">
-                                <input type="hidden" name="erledigt" value="True">
-                                <button type="submit" class="dropdown-item text-success">
-                                    <i class="bi bi-check-lg me-2"></i>{% trans "Als erledigt markieren" %}
-                                </button>
-                            </form>
+                            <button type="button" class="dropdown-item text-success" onclick="updateTaskStatus('{{ aufgabe.id }}', false, true)">
+                                <i class="bi bi-check-lg me-2"></i>{% trans "Als erledigt markieren" %}
+                            </button>
                         </li>
                     </ul>
                 </div>
-            {% else %}
-                <div class="dropdown d-inline">
+            </div>
+            <div id="upcoming-task-template-{{ aufgabe.id }}" class="{% if aufgabe.erledigt or aufgabe.pending %}d-none{% endif %}">
+                <div class="dropdown d-inline task-status-buttons">
                     <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <span data-tooltip="{% trans 'Fällig am' %} {{ aufgabe.faellig|date:'d.m.Y' }}"
                         class="badge {% if aufgabe.faellig <= today %}bg-danger{% else %}bg-dark{% endif %}">{{ aufgabe.faellig|date:"d.m.y" }}</span>
@@ -145,54 +131,37 @@
                             </a>
                         </li>
                         <li>
-                            <form method="post">
-                                {% csrf_token %}
-                                <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
-                                <input type="hidden" name="reminder" value="True">
-                                <button type="submit" class="dropdown-item {% if not aufgabe.user.customuser.mail_notifications %}disabled{% endif %}" {% if aufgabe.currently_sending %}disabled{% endif %}>
-                                    {% if aufgabe.user.customuser.mail_notifications %}
-                                    <i class="bi bi-bell-fill me-2"></i>{% trans "Erinnern" %}
-                                    {% if aufgabe.last_reminder %}
-                                        <small class="text-muted">({% trans "Zuletzt" %} {{ aufgabe.last_reminder|date:'d.m.' }}{% if aufgabe.last_reminder.year < today.year %}{{ aufgabe.last_reminder|date:'y' }}{% endif %})</small>
-                                    {% endif %}
-                                    {% else %}
-                                    <i class="bi bi-bell-slash-fill me-2"></i>{{aufgabe.user.first_name}} {% trans "hat E-Mail-Benachrichtigungen deaktiviert" %}
-                                    {% endif %}
-                                </button>
-                            </form>
+                            <button type="button" class="dropdown-item btn-reminder {% if not aufgabe.user.customuser.mail_notifications %}disabled{% endif %}" {% if aufgabe.currently_sending %}disabled{% endif %} onclick="{% if aufgabe.user.customuser.mail_notifications and not aufgabe.currently_sending %}sendTaskReminder(this, '{{ aufgabe.id }}'){% endif %}">
+                                {% if aufgabe.user.customuser.mail_notifications %}
+                                <i class="bi bi-bell-fill me-2"></i>{% trans "Erinnern" %}
+                                {% if aufgabe.last_reminder %}
+                                    <small class="text-muted last-reminder-date">({% trans "Zuletzt" %} {{ aufgabe.last_reminder|date:'d.m.' }}{% if aufgabe.last_reminder.year < today.year %}{{ aufgabe.last_reminder|date:'y' }}{% endif %})</small>
+                                {% endif %}
+                                {% else %}
+                                <i class="bi bi-bell-slash-fill me-2"></i>{{aufgabe.user.first_name}} {% trans "hat E-Mail-Benachrichtigungen deaktiviert" %}
+                                {% endif %}
+                            </button>
                         </li>
                         <li>
-                            <form method="post">
-                                {% csrf_token %}
-                                <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
-                                <input type="hidden" name="pending" value="True">
-                                <input type="hidden" name="erledigt" value="False">
-                                <button type="submit" class="dropdown-item text-warning">
-                                    <i class="bi bi-arrow-counterclockwise me-2"></i>{% trans "Als pending markieren" %}
-                                </button>
-                            </form>
+                            <button type="button" class="dropdown-item text-warning btn-pending" onclick="updateTaskStatus('{{ aufgabe.id }}', true, false)">
+                                <i class="bi bi-arrow-counterclockwise me-2"></i>{% trans "Als pending markieren" %}
+                            </button>
                         </li>
                         <li>
-                            <form method="post">
-                                {% csrf_token %}
-                                <input type="hidden" name="aufgabe_id" value="{{ aufgabe.id }}">
-                                <input type="hidden" name="pending" value="False">
-                                <input type="hidden" name="erledigt" value="True">
-                                <button type="submit" class="dropdown-item text-success">
-                                    <i class="bi bi-check-lg me-2"></i>{% trans "Als erledigt markieren" %}
-                                </button>
-                            </form>
+                            <button type="button" class="dropdown-item text-success btn-done" onclick="updateTaskStatus('{{ aufgabe.id }}', false, true)">
+                                <i class="bi bi-check-lg me-2"></i>{% trans "Als erledigt markieren" %}
+                            </button>
                         </li>   
                     </ul>
                 </div>
-            {% endif %}
+            </div>
         {% elif user_aufgabe is not None %}
         <div class="p-0 m-0">
-            <a class="btn btn-sm" 
-                href="{% url 'list_aufgaben_table' %}?u={{user.id}}&a={{user_aufgabe}}"
+            <button type="button" class="btn btn-sm" 
+                onclick="assignTask('{{ user.id }}', '{{ user_aufgabe }}')"
                 data-tooltip="{% trans 'Aufgabe zuweisen' %}">
                 <i class="bi bi-plus-circle"></i>
-            </a>
+            </button>
         </div>
         {% else %}
         <div class="p-0 m-0">

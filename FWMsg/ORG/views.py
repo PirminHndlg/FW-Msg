@@ -1075,75 +1075,7 @@ def _create_ampel_matrix(freiwillige, months, ampel_entries):
 @required_role('O')
 @filter_person_cluster
 def list_aufgaben_table(request, scroll_to=None):
-    if request.method == 'GET' and request.GET.get('u') and request.GET.get('a'):
-        user_id = request.GET.get('u')
-        aufgabe_id = request.GET.get('a')
 
-        if user_id == 'all':
-            users, person_cluster = get_filtered_user_queryset(request, 'aufgaben')
-        else:
-            users = User.objects.filter(id=user_id)
-
-        aufgabe = Aufgabe2.objects.get(pk=aufgabe_id)
-        users = users.filter(customuser__person_cluster__in=aufgabe.person_cluster.all())
-
-        user_aufgabe = None
-        
-        for user in users:
-            if not user.org == request.user.org or not aufgabe.org == request.user.org:
-                continue
-                
-            if aufgabe.person_cluster and user.person_cluster and not user.person_cluster in aufgabe.person_cluster.all():
-                name = f'{user.first_name + " " if user.first_name else ""}{user.last_name + " " if user.last_name else ""}{user.username if not user.first_name and not user.last_name else ""}'
-                message = f'{name} ({user.person_cluster.name}) hat keine Aufgabe {aufgabe.name}'
-                messages.error(request, message)
-                continue
-
-            user_aufgabe, created = UserAufgaben.objects.get_or_create(
-                org=request.user.org,
-                user=user,
-                aufgabe=aufgabe
-            )
-
-        if user_aufgabe:
-            return redirect('list_aufgaben_table_scroll', scroll_to=user_aufgabe.id)
-        else:
-            return redirect('list_aufgaben_table')
-
-    
-    if request.method == 'POST':
-        aufgabe_id = request.POST.get('aufgabe_id')
-        country_id = request.POST.get('country_id')
-        delete_file_of_aufgabe = request.POST.get('delete_file_of_aufgabe')
-
-        if not UserAufgaben.objects.filter(pk=aufgabe_id, org=request.user.org).exists():
-            return redirect('list_aufgaben_table_scroll', scroll_to=user_aufgabe.id)
-        else:
-            user_aufgabe = UserAufgaben.objects.get(pk=aufgabe_id, org=request.user.org)
-
-        if request.POST.get('reminder') == 'True':
-            user_aufgabe.send_reminder_email()
-        elif country_id:
-            aufgabe = Aufgabe2.objects.get(pk=aufgabe_id)
-            users, _ = get_filtered_user_queryset(request, 'aufgaben')
-            custom_users = CustomUser.objects.filter(org=request.user.org, user__in=users, person_cluster__in=aufgabe.person_cluster.all())
-            for custom_user in custom_users:
-                if (Freiwilliger.objects.filter(org=request.user.org, user=custom_user.user, einsatzland2=country_id).exists() or Team.objects.filter(org=request.user.org, user=custom_user.user, land=country_id).exists()):
-                    user_aufgabe, created = UserAufgaben.objects.get_or_create(
-                        org=request.user.org,
-                        user=custom_user.user,
-                        aufgabe=aufgabe
-                    )
-        elif delete_file_of_aufgabe and UserAufgaben.objects.filter(pk=delete_file_of_aufgabe, org=request.user.org).exists():
-            user_aufgabe.file.delete()
-            user_aufgabe.save()
-            return redirect('list_aufgaben_table_scroll', scroll_to=user_aufgabe.id)
-        else:
-            user_aufgabe.pending = request.POST.get('pending') == 'True'
-            user_aufgabe.erledigt = request.POST.get('erledigt') == 'True'
-            user_aufgabe.erledigt_am = timezone.now() if user_aufgabe.erledigt else None
-            user_aufgabe.save()
-        return redirect('list_aufgaben_table_scroll', scroll_to=user_aufgabe.id)
 
     users, person_cluster = get_filtered_user_queryset(request, 'aufgaben')
 
@@ -1850,4 +1782,270 @@ def delete_sticky_note(request):
         messages.error(request, 'Notiz konnte nicht gefunden werden.')
     
     return redirect('org_home')
+
+
+# Helper functions for AJAX operations
+def _parse_ajax_request(request):
+    """Parse and validate AJAX request body."""
+    try:
+        return json.loads(request.body), None
+    except json.JSONDecodeError:
+        return None, JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+
+def _get_user_aufgabe_with_org_check(aufgabe_id, org):
+    """Get UserAufgabe with organization check."""
+    try:
+        return UserAufgaben.objects.get(pk=aufgabe_id, org=org), None
+    except UserAufgaben.DoesNotExist:
+        return None, JsonResponse({'success': False, 'error': 'Task not found'}, status=404)
+
+def _get_aufgabe_with_org_check(aufgabe_id, org):
+    """Get Aufgabe2 with organization check."""
+    try:
+        return Aufgabe2.objects.get(id=aufgabe_id, org=org), None
+    except Aufgabe2.DoesNotExist:
+        return None, JsonResponse({'success': False, 'error': 'Task not found'}, status=404)
+
+def _get_user_with_org_check(user_id, org):
+    """Get User with organization check."""
+    try:
+        user = User.objects.get(id=user_id)
+        if user.customuser.org != org:
+            return None, JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+        return user, None
+    except User.DoesNotExist:
+        return None, JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+
+def _check_user_task_permission(user, aufgabe):
+    """Check if user has permission for the task based on person cluster."""
+    if aufgabe.person_cluster.exists() and user.customuser.person_cluster:
+        if not user.customuser.person_cluster in aufgabe.person_cluster.all():
+            return JsonResponse({
+                'success': False, 
+                'error': f'{user.get_full_name()} ({user.customuser.person_cluster.name}) has no access to task {aufgabe.name}'
+            }, status=400)
+    return None
+
+def _handle_ajax_error(e):
+    """Handle common AJAX errors."""
+    return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+# AJAX endpoints for task operations
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def ajax_update_task_status(request):
+    """Update task status via AJAX."""
+    data, error_response = _parse_ajax_request(request)
+    if error_response:
+        return error_response
+    
+    try:
+        aufgabe_id = data.get('aufgabe_id')
+        pending = data.get('pending')
+        erledigt = data.get('erledigt')
+        
+        user_aufgabe, error_response = _get_user_aufgabe_with_org_check(aufgabe_id, request.user.org)
+        if error_response:
+            return error_response
+        
+        user_aufgabe.pending = pending
+        user_aufgabe.erledigt = erledigt
+        user_aufgabe.erledigt_am = timezone.now() if erledigt else None
+        user_aufgabe.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Task status updated successfully',
+            'new_status': {
+                'pending': user_aufgabe.pending,
+                'erledigt': user_aufgabe.erledigt,
+                'erledigt_am': user_aufgabe.erledigt_am.strftime('%d.%m.%Y') if user_aufgabe.erledigt_am else None
+            }
+        })
+        
+    except Exception as e:
+        return _handle_ajax_error(e)
+
+
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def ajax_delete_task_file(request):
+    """Delete task file via AJAX."""
+    data, error_response = _parse_ajax_request(request)
+    if error_response:
+        return error_response
+    
+    try:
+        aufgabe_id = data.get('aufgabe_id')
+        
+        user_aufgabe, error_response = _get_user_aufgabe_with_org_check(aufgabe_id, request.user.org)
+        if error_response:
+            return error_response
+        
+        if user_aufgabe.file:
+            user_aufgabe.file.delete()
+            user_aufgabe.save()
+            return JsonResponse({'success': True, 'message': 'File deleted successfully'})
+        else:
+            return JsonResponse({'success': False, 'error': 'No file to delete'}, status=400)
+        
+    except Exception as e:
+        return _handle_ajax_error(e)
+
+
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def ajax_assign_tasks_by_country(request):
+    """Assign tasks by country via AJAX."""
+    data, error_response = _parse_ajax_request(request)
+    if error_response:
+        return error_response
+    
+    try:
+        aufgabe_id = data.get('aufgabe_id')
+        country_id = data.get('country_id')
+        
+        aufgabe, error_response = _get_aufgabe_with_org_check(aufgabe_id, request.user.org)
+        if error_response:
+            return error_response
+        
+        users, _ = get_filtered_user_queryset(request, 'aufgaben')
+        custom_users = CustomUser.objects.filter(
+            org=request.user.org, 
+            user__in=users, 
+            person_cluster__in=aufgabe.person_cluster.all()
+        )
+        
+        assigned_count = 0
+        for custom_user in custom_users:
+            if (Freiwilliger.objects.filter(org=request.user.org, user=custom_user.user, einsatzland2=country_id).exists() or 
+                Team.objects.filter(org=request.user.org, user=custom_user.user, land=country_id).exists()):
+                user_aufgabe, created = UserAufgaben.objects.get_or_create(
+                    org=request.user.org,
+                    user=custom_user.user,
+                    aufgabe=aufgabe
+                )
+                if created:
+                    assigned_count += 1
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Tasks assigned to {assigned_count} users',
+            'assigned_count': assigned_count
+        })
+        
+    except Exception as e:
+        return _handle_ajax_error(e)
+
+
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def ajax_assign_task(request):
+    """Assign a task to a specific user via AJAX."""
+    data, error_response = _parse_ajax_request(request)
+    if error_response:
+        return error_response
+    
+    try:
+        user_id = data.get('user_id')
+        aufgabe_id = data.get('aufgabe_id')
+        
+        # Get user and check organization
+        user, error_response = _get_user_with_org_check(user_id, request.user.org)
+        if error_response:
+            return error_response
+        
+        # Get aufgabe and check organization
+        aufgabe, error_response = _get_aufgabe_with_org_check(aufgabe_id, request.user.org)
+        if error_response:
+            return error_response
+        
+        # Check user permissions for this task
+        permission_error = _check_user_task_permission(user, aufgabe)
+        if permission_error:
+            return permission_error
+        
+        # Create or get the user task
+        user_aufgabe, created = UserAufgaben.objects.get_or_create(
+            org=request.user.org,
+            user=user,
+            aufgabe=aufgabe
+        )
+        
+        message = 'Task assigned successfully' if created else 'Task was already assigned'
+        
+        return JsonResponse({
+            'success': True,
+            'message': message,
+            'created': created,
+            'task_id': user_aufgabe.id
+        })
+        
+    except Exception as e:
+        return _handle_ajax_error(e)
+
+
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def ajax_assign_task_to_all(request):
+    """Assign a task to all eligible users via AJAX."""
+    data, error_response = _parse_ajax_request(request)
+    if error_response:
+        return error_response
+    
+    try:
+        aufgabe_id = data.get('aufgabe_id')
+        
+        # Get aufgabe and check organization
+        aufgabe, error_response = _get_aufgabe_with_org_check(aufgabe_id, request.user.org)
+        if error_response:
+            return error_response
+        
+        # Get all eligible users
+        users, person_cluster = get_filtered_user_queryset(request, 'aufgaben')
+        users = users.filter(customuser__person_cluster__in=aufgabe.person_cluster.all())
+        
+        assigned_count = 0
+        error_messages = []
+        
+        for user in users:
+            try:
+                # Check organization match
+                if user.customuser.org != request.user.org:
+                    continue
+                
+                # Check person cluster compatibility
+                permission_error = _check_user_task_permission(user, aufgabe)
+                if permission_error:
+                    name = f'{user.first_name + " " if user.first_name else ""}{user.last_name + " " if user.last_name else ""}{user.username if not user.first_name and not user.last_name else ""}'
+                    error_messages.append(f'{name} ({user.customuser.person_cluster.name}) has no access to task {aufgabe.name}')
+                    continue
+                
+                # Create or get the user task
+                user_aufgabe, created = UserAufgaben.objects.get_or_create(
+                    org=request.user.org,
+                    user=user,
+                    aufgabe=aufgabe
+                )
+                
+                if created:
+                    assigned_count += 1
+                    
+            except Exception as e:
+                error_messages.append(f'Error assigning to {user.get_full_name()}: {str(e)}')
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Task assigned to {assigned_count} users',
+            'assigned_count': assigned_count,
+            'errors': error_messages if error_messages else None
+        })
+        
+    except Exception as e:
+        return _handle_ajax_error(e)
 
