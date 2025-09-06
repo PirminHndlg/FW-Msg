@@ -893,6 +893,7 @@ class Post2(OrgModel):
     date_updated = models.DateTimeField(auto_now=True, verbose_name='Aktualisiert am')
     has_survey = models.BooleanField(default=False, verbose_name='Umfrage', help_text='Post enthält eine Umfrage')
     person_cluster = models.ManyToManyField(PersonCluster, verbose_name='Für Benutzergruppen', help_text='Benutzergruppen, für die dieser Post relevant ist', blank=True)
+    already_sent_to = models.ManyToManyField(User, verbose_name='Bereits gesendet an', help_text='Benutzer, die diesen Post bereits erhalten haben', blank=True, related_name='already_sent_to')
 
     history = HistoricalRecords()
 
