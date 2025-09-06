@@ -8,7 +8,7 @@ from Global.models import (
 from django.contrib.auth import get_user_model
 from FW.models import Freiwilliger
 from TEAM.models import Team
-
+from django.contrib import messages
 from FWMsg.decorators import required_role
 from Global.templatetags.base_filter import format_text_with_link
 
@@ -122,8 +122,13 @@ def _get_auswaeriges_amt_link(value):
 @login_required
 @required_role('F')
 def laenderinfo(request):
-    user = request.user
-    freiwilliger = Freiwilliger.objects.get(user=user)
+    try:
+        user = request.user
+        freiwilliger = Freiwilliger.objects.get(user=user)
+    except Freiwilliger.DoesNotExist:
+        messages.error(request, 'Konto wurde nicht gefunden.')
+        return redirect('index_home')
+    
     land = freiwilliger.einsatzland2
     referenten = Team.objects.filter(org=user.org, land=land) if land else []
 
