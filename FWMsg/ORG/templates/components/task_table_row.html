@@ -59,6 +59,11 @@
                             </a>
                         </li>
                         <li>
+                            <button type="button" class="dropdown-item text-danger" onclick="updateTaskStatus('{{ aufgabe.id }}', false, false)">
+                                <i class="bi bi-x-lg me-2"></i>{% trans "Als nicht erledigt markieren" %}
+                            </button>
+                        </li>
+                        <li>
                             <button type="button" class="dropdown-item text-warning" onclick="updateTaskStatus('{{ aufgabe.id }}', true, false)">
                                 <i class="bi bi-arrow-counterclockwise me-2"></i>{% trans "Als pending markieren" %}
                             </button>
