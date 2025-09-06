@@ -1,0 +1,169 @@
+{% extends 'baseOrg.html' %}
+{% load i18n %}
+
+{% block title %}
+  {% trans 'Links kopieren' %}
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid mt-4">
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="mb-0">{% trans 'Links kopieren' %}</h2>
+        </div>
+
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle"></i>
+          {% trans 'Hier findest du alle wichtigen Links zu den verschiedenen Bereichen der Plattform. Klicke auf das Symbol neben einem Link, um ihn in die Zwischenablage zu kopieren.' %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Pages -->
+    {% for page_element in page_elements %}
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card rounded-4">
+            <div class="card-header">
+              <h4 class="mb-0"><i class="bi bi-link"></i> {{ page_element.name }}</h4>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                {% for page in page_element.pages %}
+                  <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="link-item" data-link="{{ page.url }}">
+                      <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                        <div>
+                          <strong>{{ page.name }}</strong>
+                          <br /><small class="text-muted">{{ request.get_host }}{{ page.url }}</small>
+                        </div>
+                        <div class="d-flex gap-2">
+                          <a href="{{ page.url }}" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-box-arrow-up-right"></i></a>
+                          <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyLink(this, '{{ page.url }}')"><i class="bi bi-clipboard"></i></button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Success Toast -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="copyToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header">
+        <i class="bi bi-check-circle-fill text-success me-2"></i>
+        <strong class="me-auto">{% trans 'Erfolgreich kopiert' %}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body" id="toastMessage">
+        {% trans 'Link wurde in die Zwischenablage kopiert.' %}
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .link-item {
+      transition: all 0.2s ease;
+    }
+    
+    .link-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .copy-btn {
+      transition: all 0.2s ease;
+    }
+    
+    .copy-btn:hover {
+      transform: scale(1.1);
+    }
+    
+    .copy-btn.copied {
+      background-color: #198754;
+      border-color: #198754;
+      color: white;
+    }
+    
+    .copy-btn.copied i::before {
+      content: '\f26b'; /* bi-check */
+    }
+  </style>
+
+  <script>
+    function copyLink(button, link) {
+      const fullUrl = window.location.protocol + '//' + window.location.host + link
+    
+      navigator.clipboard
+        .writeText(fullUrl)
+        .then(function () {
+          // Update button appearance
+          button.classList.add('copied')
+          const icon = button.querySelector('i')
+          icon.className = 'bi bi-check'
+    
+          // Show toast
+          showToast('{% trans "Link kopiert:" %} ' + fullUrl)
+    
+          // Reset button after 2 seconds
+          setTimeout(() => {
+            button.classList.remove('copied')
+            icon.className = 'bi bi-clipboard'
+          }, 2000)
+        })
+        .catch(function (err) {
+          console.error('Could not copy text: ', err)
+          showToast('{% trans "Fehler beim Kopieren des Links" %}', 'error')
+        })
+    }
+    
+    function copyAllLinks() {
+      const links = []
+      const baseUrl = window.location.protocol + '//' + window.location.host
+    
+      document.querySelectorAll('.link-item').forEach((item) => {
+        const link = item.getAttribute('data-link')
+        const title = item.querySelector('strong').textContent
+        links.push(title + ': ' + baseUrl + link)
+      })
+    
+      const allLinksText = links.join('\n')
+    
+      navigator.clipboard
+        .writeText(allLinksText)
+        .then(function () {
+          showToast('{% trans "Alle Links wurden kopiert" %} (' + links.length + ' {% trans "Links" %})')
+        })
+        .catch(function (err) {
+          console.error('Could not copy text: ', err)
+          showToast('{% trans "Fehler beim Kopieren der Links" %}', 'error')
+        })
+    }
+    
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('copyToast')
+      const toastMessage = document.getElementById('toastMessage')
+      const toastHeader = toast.querySelector('.toast-header')
+    
+      toastMessage.textContent = message
+    
+      if (type === 'error') {
+        toastHeader.querySelector('i').className = 'bi bi-exclamation-triangle-fill text-danger me-2'
+        toastHeader.querySelector('strong').textContent = '{% trans "Fehler" %}'
+      } else {
+        toastHeader.querySelector('i').className = 'bi bi-check-circle-fill text-success me-2'
+        toastHeader.querySelector('strong').textContent = '{% trans "Erfolgreich kopiert" %}'
+      }
+    
+      const bsToast = new bootstrap.Toast(toast)
+      bsToast.show()
+    }
+  </script>
+{% endblock %}

@@ -2049,3 +2049,64 @@ def ajax_assign_task_to_all(request):
     except Exception as e:
         return _handle_ajax_error(e)
 
+
+@login_required
+@required_role('O')
+def copy_links(request):
+    page_elements = [
+        {
+        'name': 'Freiwillige',
+        'pages': [
+            {
+                'name': 'Aufgaben',
+                'url': reverse('aufgaben')
+            },
+            {
+                'name': 'Kalender',
+                'url': reverse('kalender')
+            },
+            {
+                'name': 'Ampelmeldungen abgeben',
+                'url': reverse('ampel')
+            },
+            {
+                'name': 'Notfallkontakte eintragen',
+                'url': reverse('notfallkontakte')
+            },
+            {
+                'name': 'Einsatzlandinformationen einsehen',
+                'url': reverse('laenderinfo')
+            }
+        ]
+    }, {
+        'name': 'Allgemein',
+        'pages': [
+            {
+                'name': 'Posts',
+                'url': reverse('posts_overview')
+            },
+            {
+                'name': 'Dokumente',
+                'url': reverse('dokumente')
+            },
+            {
+                'name': 'Bilder',
+                'url': reverse('bilder')
+            },
+            {
+                'name': 'Bilder hochladen',
+                'url': reverse('bild')
+            },
+            {
+                'name': 'Profil',
+                'url': reverse('profil')
+            },
+            {
+                'name': 'Einstellungen',
+                'url': reverse('settings')
+            }
+        ]
+    }
+    ]
+    
+    return render(request, 'copy_links.html', {'page_elements': page_elements})
