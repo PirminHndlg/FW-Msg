@@ -250,7 +250,7 @@ class PostAdmin(admin.ModelAdmin):
     search_fields = ['title', 'text', 'user__username']
     list_filter = ['has_survey', 'date', 'person_cluster']
     readonly_fields = ['date', 'date_updated']
-    filter_horizontal = ['person_cluster']
+    filter_horizontal = ['person_cluster', 'already_sent_to']
     
     def get_cluster_count(self, obj):
         return obj.person_cluster.count()

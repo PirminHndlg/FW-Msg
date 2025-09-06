@@ -339,12 +339,19 @@ def send_new_post_email(post_id):
     
     for person_cluster in post.person_cluster.all():
         for user in person_cluster.get_users():
+            # Skip if user already received this post
+            if user in post.already_sent_to.all():
+                continue
+                
             # Skip if user doesn't want email notifications
             if hasattr(user, 'customuser') and not user.customuser.mail_notifications:
                 continue
                 
             # Get user's unsubscribe URL
             unsubscribe_url = user.customuser.get_unsubscribe_url() if hasattr(user, 'customuser') else None
+            
+            # Add user to already_sent_to list
+            post.already_sent_to.add(user)
             
             # Format user name
             user_name = f"{user.first_name} {user.last_name}" if user.first_name and user.last_name else user.username
@@ -374,5 +381,6 @@ def send_new_post_email(post_id):
                 
             send_push_notification_to_user(user, subject, push_content, url=action_url)
     
+    post.save()
     return successful_sends
     
