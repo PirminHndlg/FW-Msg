@@ -28,7 +28,7 @@
 
     {# Task Sections #}
     {% if aufgaben_offen %}
-        {% include "components/task_section.html" with title=_("Offene Aufgaben") count=len_offen tasks=aufgaben_offen info_text=_("Offene Aufgaben sind Aufgaben, die noch nicht abgeschlossen sind.") %}
+        {% include "components/task_section.html" with title=_("Offene Aufgaben") count=len_offen tasks=aufgaben_offen info_text=_("Offene Aufgaben sind Aufgaben, die noch erledigt werden müssen.") %}
     {% endif %}
 
     {% if aufgaben_pending %}
@@ -36,6 +36,6 @@
     {% endif %}
 
     {% if aufgaben_erledigt %}
-        {% include "components/task_section.html" with title=_("Erledigte Aufgaben") count=len_erledigt tasks=aufgaben_erledigt info_text=_("Erledigte Aufgaben sind Aufgaben, die abgeschlossen wurden.") %}
+        {% include "components/task_section.html" with title=_("Erledigte Aufgaben") count=len_erledigt tasks=aufgaben_erledigt info_text=_("Erledigte Aufgaben - keine weitere Aktion mehr erforderlich.") %}
     {% endif %}
 {% endblock %}
