@@ -338,7 +338,7 @@ class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):
         self.fields['faellig'] = date_field
 
         self.fields['benachrichtigung_cc'].widget.attrs['placeholder'] = 'E-Mail-Adressen mit Komma getrennt'
-        self.fields['benachrichtigung_cc'].help_text = 'Geben Sie hier E-Mail-Adressen ein, die eine Kopie der Benachrichtigungen erhalten sollen'
+        self.fields['benachrichtigung_cc'].help_text = 'Hier weitere E-Mail-Adressen eingeben, die eine Mail erhalten sollen, wenn die Aufgabe erledigt wurde'
 
         # Hide the actual fields and set up display fields
         if self.instance and self.instance.pk:
