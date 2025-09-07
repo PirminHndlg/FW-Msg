@@ -109,6 +109,71 @@ document.addEventListener('DOMContentLoaded', function() {
             form.classList.add('was-validated');
         }, false);
     });
+    
+    // Generic dependent select: einsatzstelle2 depends on einsatzland2
+    const landSelect = document.getElementById('id_einsatzland2');
+    const stelleSelect = document.getElementById('id_einsatzstelle2');
+    
+    if (landSelect && stelleSelect) {
+        const placeholderOption = () => new Option('--- Bitte zuerst Einsatzland wählen ---', '', true, true);
+        
+        const setDisabledState = (disabled) => {
+            stelleSelect.disabled = disabled;
+        };
+        
+        const rebuildOptions = (items, selectedId=null) => {
+            stelleSelect.innerHTML = '';
+            if (!items.length) {
+                stelleSelect.add(new Option('Keine Einsatzstellen verfügbar', '', true, true));
+                return;
+            }
+            stelleSelect.add(new Option('---', '', true, false));
+            items.forEach(item => {
+                const opt = new Option(item.name, item.id, false, selectedId && String(item.id) === String(selectedId));
+                stelleSelect.add(opt);
+            });
+        };
+        
+        const fetchAndPopulate = async (landId, keepSelection=false) => {
+            if (!landId) {
+                stelleSelect.innerHTML = '';
+                stelleSelect.add(placeholderOption());
+                setDisabledState(true);
+                return;
+            }
+            setDisabledState(true);
+            const currentSelected = keepSelection ? stelleSelect.value : null;
+            try {
+                const url = `${window.location.origin}/org/ajax/einsatzstellen-by-land/?land_id=${encodeURIComponent(landId)}`;
+                const resp = await fetch(url, { credentials: 'same-origin' });
+                if (!resp.ok) throw new Error('Netzwerkfehler');
+                const data = await resp.json();
+                const items = Array.isArray(data.results) ? data.results : [];
+                rebuildOptions(items, currentSelected);
+            } catch (e) {
+                stelleSelect.innerHTML = '';
+                stelleSelect.add(new Option('Fehler beim Laden', '', true, true));
+            } finally {
+                setDisabledState(false);
+            }
+        };
+        
+        // Initial state on page load
+        if (!landSelect.value) {
+            stelleSelect.innerHTML = '';
+            stelleSelect.add(placeholderOption());
+            setDisabledState(true);
+        } else {
+            // Ensure options reflect current land
+            fetchAndPopulate(landSelect.value, true);
+        }
+        
+        landSelect.addEventListener('change', () => {
+            // Clear current selection
+            stelleSelect.value = '';
+            fetchAndPopulate(landSelect.value, false);
+        });
+    }
 });
 </script>
 {% endblock %}

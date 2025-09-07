@@ -84,6 +84,29 @@ def get_person_cluster(request):
         return PersonCluster.objects.get(id=person_cluster_id) if person_cluster_id else None
 
 
+@login_required
+@required_role('O')
+@require_http_methods(["GET"])
+def ajax_einsatzstellen_by_land(request):
+    """Return Einsatzstelle2 options filtered by einsatzland2 for the current org.
+
+    Query params:
+    - land_id: int (Einsatzland2 id)
+
+    Response: JSON list of {id, name}
+    """
+    try:
+        land_id = request.GET.get('land_id')
+        if not land_id or not str(land_id).isdigit():
+            return JsonResponse({'error': 'Invalid or missing land_id'}, status=400)
+
+        stellen = Einsatzstelle2.objects.filter(org=request.user.org, land_id=int(land_id)).order_by('name')
+        data = [{'id': s.id, 'name': s.name} for s in stellen]
+        return JsonResponse({'results': data})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 def filter_person_cluster(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
