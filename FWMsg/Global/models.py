@@ -626,7 +626,7 @@ class Einsatzstelle2(OrgModel):
         verbose_name_plural = 'Einsatzstellen'
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.land.name})"
     
 
     def get_notiz_count(self):

@@ -219,8 +219,31 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
         self.order_fields(order_fields)
 
         add_person_cluster_field(self)
+        
+        # Dependent select: einsatzstelle2 filtered by einsatzland2
+        self.fields['einsatzstelle2'].queryset = Einsatzstelle2.objects.none()
+        selected_land = None
+        try:
+            raw_value = self.data.get('einsatzland2') if hasattr(self, 'data') else None
+            value_str = str(raw_value) if raw_value is not None else ''
+            if value_str.isdigit():
+                selected_land = int(value_str)
+            elif self.instance and getattr(self.instance, 'einsatzland2_id', None):
+                selected_land = self.instance.einsatzland2_id
+        except Exception:
+            selected_land = None
+        if selected_land:
+            self.fields['einsatzstelle2'].queryset = Einsatzstelle2.objects.filter(org=self.request.user.org, land_id=selected_land)
                     
                 
+    def clean(self):
+        cleaned_data = super().clean()
+        einsatzstelle = cleaned_data.get('einsatzstelle2')
+        einsatzland = cleaned_data.get('einsatzland2')
+        if einsatzstelle and einsatzland and einsatzstelle.land_id != einsatzland.id:
+            self.add_error('einsatzstelle2', 'Einsatzstelle gehört nicht zum ausgewählten Einsatzland')
+        return cleaned_data
+
     def save(self, commit=True):
         if not self.instance.pk:
             save_and_create_customuser(self)
