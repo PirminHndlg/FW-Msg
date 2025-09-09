@@ -3,6 +3,8 @@ from celery import shared_task
 import base64
 from django.urls import reverse
 import logging
+from FW.models import Freiwilliger
+from TEAM.models import Team
 from Global.push_notification import send_push_notification_to_user
 from Global.send_email import format_register_email_org, format_aufgabe_erledigt_email, format_mail_calendar_reminder_email, format_ampel_email, send_email_with_archive
 from django.core.mail import send_mail
@@ -160,15 +162,27 @@ def send_ampel_email_task(ampel_id):
             'R': '🔴'
         }.get(ampel.status, '❓')
         
-        subject = f'{status_emoji} Neue Ampel-Meldung: {user_name} - Status {status_text}'
+        subject = f'{status_emoji} Neue Ampelmeldung: {user_name} - Status {status_text}'
         
         # Send email to organization
         if org.email:
+            try:
+                land = Freiwilliger.objects.get(user=ampel.user).einsatzland2
+                team_emails = list(
+                    Team.objects.filter(org=org, land=land, user__email__isnull=False, user__customuser__isnull=False, user__customuser__mail_notifications=True)
+                    .exclude(user__email='')
+                    .values_list('user__email', flat=True)
+                    .distinct()
+                )
+            except Exception as e:
+                logging.error(f"Error getting team members: {e}")
+                team_emails = []
+
             return send_email_with_archive(
                 subject=subject,
                 message=email_content,
                 from_email=settings.SERVER_EMAIL,
-                recipient_list=[org.email],
+                recipient_list=[org.email] + team_emails,
                 html_message=email_content
             )
         else:

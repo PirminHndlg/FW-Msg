@@ -1,7 +1,7 @@
 {% extends "mail/base_email.html" %}
 
 {% block german_content %}
-<p>Neue Ampel-Meldung von {{ ampel_user_name }}:</p>
+<p>Neue Ampelmeldung von {{ ampel_user_name }}:</p>
 
 <div style="background-color: #f7f9fc; border-left: 4px solid {% if status == 'G' %}#28a745{% elif status == 'Y' %}#ffc107{% else %}#dc3545{% endif %}; padding: 15px; margin: 15px 0; border-radius: 3px;">
     <div style="display: flex; align-items: center; margin-bottom: 10px;">
