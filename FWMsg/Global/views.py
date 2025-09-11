@@ -18,7 +18,7 @@ The views are organized into logical sections:
 """
 
 # Standard library imports
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 import io
 import json
 import mimetypes
@@ -270,9 +270,46 @@ def serve_logo(request, org_id):
         return HttpResponseNotFound('Logo nicht gefunden')
 
     try:
-        with open(org.logo.path, 'rb') as img_file:
-            response = HttpResponse(img_file.read(), content_type='image/jpeg')
-            response['Content-Disposition'] = f'inline; filename="{org.logo.name}"'
+        # File metadata for caching
+        file_path = org.logo.path
+        stat = os.stat(file_path)
+        last_modified = datetime.fromtimestamp(stat.st_mtime, tz=dt_timezone.utc)
+        etag_base = f"{stat.st_ino}-{stat.st_size}-{int(stat.st_mtime)}"
+        etag = hashlib.md5(etag_base.encode('utf-8')).hexdigest()
+
+        # Conditional GET: ETag
+        if_none_match = request.META.get('HTTP_IF_NONE_MATCH')
+        if if_none_match and if_none_match.strip('"') == etag:
+            not_modified = HttpResponse(status=304)
+            not_modified['ETag'] = f'"{etag}"'
+            not_modified['Cache-Control'] = 'public, max-age=86400, immutable'
+            not_modified['Last-Modified'] = last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT')
+            return not_modified
+
+        # Conditional GET: Last-Modified
+        if_modified_since = request.META.get('HTTP_IF_MODIFIED_SINCE')
+        if if_modified_since:
+            try:
+                ims_dt = datetime.strptime(if_modified_since, '%a, %d %b %Y %H:%M:%S GMT')
+                # If the resource has not changed since the date sent by the client
+                if last_modified <= ims_dt:
+                    not_modified = HttpResponse(status=304)
+                    not_modified['ETag'] = f'"{etag}"'
+                    not_modified['Cache-Control'] = 'public, max-age=86400, immutable'
+                    not_modified['Last-Modified'] = last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT')
+                    return not_modified
+            except Exception:
+                pass
+
+        # Guess content type
+        mime_type = mimetypes.guess_type(file_path)[0] or 'application/octet-stream'
+
+        with open(file_path, 'rb') as img_file:
+            response = HttpResponse(img_file.read(), content_type=mime_type)
+            response['Content-Disposition'] = f'inline; filename="{os.path.basename(org.logo.name)}"'
+            response['ETag'] = f'"{etag}"'
+            response['Last-Modified'] = last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT')
+            response['Cache-Control'] = 'public, max-age=86400, immutable'
             return response
     except FileNotFoundError:
         return HttpResponseNotFound('Bild nicht gefunden')
