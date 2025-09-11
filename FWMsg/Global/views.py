@@ -968,6 +968,42 @@ def update_profil_picture(request):
 def serve_profil_picture(request, user_id):
     requested_user = User.objects.get(id=user_id)
 
+    def _serve_cached_image(file_path, download_name):
+        stat = os.stat(file_path)
+        last_modified = datetime.fromtimestamp(stat.st_mtime, tz=dt_timezone.utc)
+        etag_base = f"{stat.st_ino}-{stat.st_size}-{int(stat.st_mtime)}"
+        etag = hashlib.md5(etag_base.encode('utf-8')).hexdigest()
+
+        if_none_match = request.META.get('HTTP_IF_NONE_MATCH')
+        if if_none_match and if_none_match.strip('"') == etag:
+            not_modified = HttpResponse(status=304)
+            not_modified['ETag'] = f'"{etag}"'
+            not_modified['Cache-Control'] = 'public, max-age=86400, immutable'
+            not_modified['Last-Modified'] = last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT')
+            return not_modified
+
+        if_modified_since = request.META.get('HTTP_IF_MODIFIED_SINCE')
+        if if_modified_since:
+            try:
+                ims_dt = datetime.strptime(if_modified_since, '%a, %d %b %Y %H:%M:%S GMT')
+                if last_modified <= ims_dt:
+                    not_modified = HttpResponse(status=304)
+                    not_modified['ETag'] = f'"{etag}"'
+                    not_modified['Cache-Control'] = 'public, max-age=86400, immutable'
+                    not_modified['Last-Modified'] = last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT')
+                    return not_modified
+            except Exception:
+                pass
+
+        mime_type = mimetypes.guess_type(file_path)[0] or 'application/octet-stream'
+        with open(file_path, 'rb') as img_file:
+            response = HttpResponse(img_file.read(), content_type=mime_type)
+            response['Content-Disposition'] = f'inline; filename="{os.path.basename(download_name)}"'
+            response['ETag'] = f'"{etag}"'
+            response['Last-Modified'] = last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT')
+            response['Cache-Control'] = 'public, max-age=86400, immutable'
+            return response
+
     if requested_user.org != request.user.org:
         return HttpResponseForbidden()
     
@@ -979,14 +1015,14 @@ def serve_profil_picture(request, user_id):
         # Try to find the default image using the static file finder
         default_img_path = find('img/default_img.png')
         if default_img_path:
-            return get_bild(default_img_path, 'default_img.png')
+            return _serve_cached_image(default_img_path, 'default_img.png')
         else:
             # If the file is not found, try to serve it from the staticfiles storage
             try:
                 # Get the hashed filename from staticfiles storage
                 hashed_path = staticfiles_storage.path('img/default_img.png')
                 if os.path.exists(hashed_path):
-                    return get_bild(hashed_path, 'default_img.png')
+                    return _serve_cached_image(hashed_path, 'default_img.png')
                 else:
                     # Last resort: redirect to the static URL
                     default_img_url = staticfiles_storage.url('img/default_img.png')
@@ -995,7 +1031,7 @@ def serve_profil_picture(request, user_id):
                 # Return a simple 404 or placeholder
                 return HttpResponseNotFound('Default profile picture not found')
 
-    return get_bild(requested_user.customuser.profil_picture.path, requested_user.customuser.profil_picture.name)
+    return _serve_cached_image(requested_user.customuser.profil_picture.path, requested_user.customuser.profil_picture.name)
 
 
 def unsubscribe_mail_notifications(request, user_id, auth_key):
