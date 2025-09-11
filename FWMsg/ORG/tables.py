@@ -54,6 +54,14 @@ class BaseOrgTable(tables.Table):
             'delete_url': reverse('delete_object', args=[model_name, record.pk]),
             'pk': record.pk,
         }
+        
+    def render_user__username(self, value, record):
+        try:
+            user_id = record.user.id
+        except Exception:
+            return value
+        url = reverse('profil', args=[user_id])
+        return format_html('<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', url, value)
 
 
 class EinsatzlandTable(BaseOrgTable):
