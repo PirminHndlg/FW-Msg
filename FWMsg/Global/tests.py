@@ -1789,7 +1789,8 @@ class ProfileViewsTests(TestCase):
             # The response should be either 200 (success) or 404 (if default image not found)
             self.assertIn(response.status_code, [200, 404])
             if response.status_code == 200:
-                self.assertEqual(response['Content-Type'], 'image/jpeg')
+                # Content type is determined by file extension, default_img.png should return image/png
+                self.assertEqual(response['Content-Type'], 'image/png')
         finally:
             # Clean up the temporary file
             if os.path.exists(default_img_path):
