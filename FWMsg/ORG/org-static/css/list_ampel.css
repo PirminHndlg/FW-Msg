@@ -31,12 +31,13 @@
 }
 
 .ampel-dot {
-    height: 15px;
-    width: 15px;
+    border: 1px solid #ddd;
+    height: 25px;
+    width: 25px;
     border-radius: 50%;
     display: inline-block;
     position: relative;
-    cursor: help;
+    cursor: pointer;
 }
 
 .ampel-G { background-color: var(--ampel_green); }
