@@ -18,12 +18,9 @@
             <tr>
                 <th class="border-end sticky-col">
                     <div class="d-flex align-items-center justify-content-between gap-2">
-                        <a class="text-decoration-none text-body" data-bs-toggle="tooltip"
-                            title="{% trans 'Historie anzeigen' %}">
-                            {{ user.first_name }} {{   user.last_name }}
-                        </a>
+                        <p class="text-decoration-none text-body text-nowrap">{{ user }}</p>
                         <button class="btn btn-sm btn-outline-primary"
-                            onclick="showAmpelEntryModal('{{ user.id }}', '{{ user.first_name }} {{ user.last_name }}')">
+                            onclick="showAmpelEntryModal('{{ user.id }}', '{{ user }}')">
                             <i class="bi bi-plus-circle-fill"></i>
                         </button>
                     </div>
@@ -32,10 +29,13 @@
                 <td class="text-center {% if month == current_month %}table-active{% endif %}">
                     <div class="ampel-dot-container">
                         {% for entry in months_data|get_item:month %}
-                        <span class="ampel-dot ampel-{{ entry.status }}"
+                        <span class="ampel-dot ampel-{{ entry.status }} d-flex align-items-center justify-content-center"
                             onclick="showAmpelComment('{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}')"
-                            data-bs-toggle="tooltip" data-bs-html="true"
-                            title="<strong>{{ entry.date }}</strong><br>{{ entry.comment|default:'' }}">
+                            {% comment %} data-bs-toggle="tooltip" data-bs-html="true"
+                            title="<strong>{{ entry.date }}</strong><br>{{ entry.comment|default:'' }}"{% endcomment %}>
+                            {% if entry.comment %}
+                            <i class="bi bi-three-dots {% if entry.status == 'R' %}text-white{% else %}text-muted{% endif %}" style="font-size: 0.7em;"></i>
+                            {% endif %}
                         </span>
                         {% endfor %}
                     </div>

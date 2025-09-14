@@ -1,7 +1,7 @@
 {% load i18n %}
 
-<div class="d-flex align-items-center gap-3">
-    <div class="d-flex align-items-center">
+<div class="d-flex align-items-center gap-3 text-muted">
+    {% comment %} <div class="d-flex align-items-center">
         <span class="ampel-dot ampel-G me-2"></span>
         <span>{% trans "Grün" %}</span>
     </div>
@@ -12,5 +12,9 @@
     <div class="d-flex align-items-center">
         <span class="ampel-dot ampel-R me-2"></span>
         <span>{% trans "Rot" %}</span>
+    </div> {% endcomment %}
+    <div class="d-flex align-items-center">
+        <span class="ampel-dot ampel-white me-2 d-flex align-items-center justify-content-center"><i class="bi bi-three-dots text-muted" style="font-size: 0.7em;"></i></span>
+        <span>{% trans "Mit Kommentar" %}</span>
     </div>
 </div> 
