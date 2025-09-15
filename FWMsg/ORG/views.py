@@ -242,6 +242,12 @@ def home(request):
         pinned=True
     ).order_by('-priority', '-date')
 
+    # Get recent ampel entries
+    recent_ampel_entries = Ampel2.objects.filter(
+        org=request.user.org,
+        date__gte=timezone.now() - timezone.timedelta(days=5)
+    ).select_related('user').order_by('-date')[:10]
+
     context = {
         'gallery_images': gallery_images,
         'pending_tasks': pending_tasks,
@@ -250,11 +256,79 @@ def home(request):
         'posts': posts,
         'pinned_notizen': pinned_notizen,
         'sticky_notes': sticky_notes,
+        'recent_ampel_entries': recent_ampel_entries,
         'large_container': True,
         'today': date.today()
     }   
     
     return render(request, 'homeOrg.html', context=context)
+
+
+@login_required
+@required_role('O')
+@filter_person_cluster
+def home_2(request):
+    from Global.views import get_bilder, get_posts
+
+    # Get all gallery images and group by bilder
+    gallery_images = get_bilder(request.user.org, limit=6)
+
+    # Get pending tasks
+    now = timezone.now().date()
+    pending_tasks = UserAufgaben.objects.filter(
+        org=request.user.org,
+        erledigt=False,
+        pending=True,
+    ).order_by('-erledigt_am', 'faellig')  # Order by deadline
+
+    open_tasks = UserAufgaben.objects.filter(
+        org=request.user.org,
+        erledigt=False,
+        pending=False,
+        faellig__lte=now
+    ).order_by('faellig')
+
+    my_open_tasks = UserAufgaben.objects.filter(
+        org=request.user.org,
+        user=request.user,
+        erledigt=False,
+        pending=False
+    ).order_by('faellig')
+
+    posts = get_posts(request.user.org, limit=4)
+
+    # Get all pinned notes across all Einsatzstellen
+    pinned_notizen = EinsatzstelleNotiz.objects.filter(
+        org=request.user.org,
+        pinned=True
+    ).order_by('-date')
+    
+    sticky_notes = StickyNote.objects.filter(
+        org=request.user.org,
+        user=request.user,
+        pinned=True
+    ).order_by('-priority', '-date')
+
+    # Get recent ampel entries
+    recent_ampel_entries = Ampel2.objects.filter(
+        org=request.user.org,
+        date__gte=timezone.now() - timezone.timedelta(days=5)
+    ).select_related('user').order_by('-date')[:10]
+
+    context = {
+        'gallery_images': gallery_images,
+        'pending_tasks': pending_tasks,
+        'open_tasks': open_tasks,
+        'my_open_tasks': my_open_tasks,
+        'posts': posts,
+        'pinned_notizen': pinned_notizen,
+        'sticky_notes': sticky_notes,
+        'recent_ampel_entries': recent_ampel_entries,
+        'large_container': True,
+        'today': date.today()
+    }
+    
+    return render(request, 'homeOrg_2.html', context=context)
 
 
 @staff_member_required
