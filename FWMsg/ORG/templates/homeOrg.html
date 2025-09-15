@@ -312,7 +312,6 @@
     </div>
 
     <!-- Recent Ampel Entries -->
-    {% if request.user.customuser.person_cluster.ampel %}
     <div class="col-md-6 mb-4">
         <div class="card h-100 rounded-4">
             <div class="card-header d-flex justify-content-between align-items-center rounded-4">
@@ -346,7 +345,6 @@
             </div>
         </div>
     </div>
-    {% endif %}
 
     <!-- Newest Images -->
     {% if request.user.customuser.person_cluster.bilder %}
