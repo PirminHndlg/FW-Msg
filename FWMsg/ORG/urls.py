@@ -3,6 +3,7 @@ from django.urls import path
 
 urlpatterns = [
     path('', views.home, name='org_home'),
+    path('2/', views.home_2, name='org_home_2'),
 
     path('add/<str:model_name>/', views.add_object, name='add_object'),
     path('add/<str:model_name>/excel/', views.add_objects_from_excel, name='add_objects_from_excel'),

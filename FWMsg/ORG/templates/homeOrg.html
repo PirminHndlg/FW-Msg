@@ -170,6 +170,21 @@
     </style>
   {% endif %}
 
+  <!-- neues Dashboard -->
+  <div class="mb-4 d-flex justify-content-center">
+    <div class="card shadow-lg border-0 rounded-4 p-4" style="max-width: 480px; width: 100%; background: var(--bs-light);">
+      <div class="card-body text-center">
+        <i class="bi bi-speedometer2 text-primary mb-3" style="font-size: 2.5rem;"></i>
+        <h4 class="card-title mb-2">{% trans "Neues Dashboard bald verfügbar!" %}</h4>
+        <p class="card-text text-muted mb-4">Ich arbeite an einem neuen Dashboard, das mehr Funktionen und ein besseres Design hat. Hier kannst du es ausprobieren.</p>
+        <a href="{% url 'org_home_2' %}" class="btn btn-lg btn-primary rounded-pill px-4">
+          <i class="bi bi-arrow-right-circle me-2"></i>
+          {% trans "Neues Dashboard testen" %}
+        </a>
+      </div>
+    </div>
+  </div>
+  
   <!-- Sticky Note Modal -->
   <div class="modal fade" id="stickyNoteModal" tabindex="-1" aria-labelledby="stickyNoteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -295,6 +310,43 @@
             </div>
         </div>
     </div>
+
+    <!-- Recent Ampel Entries -->
+    {% if request.user.customuser.person_cluster.ampel %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 rounded-4">
+            <div class="card-header d-flex justify-content-between align-items-center rounded-4">
+                <h5 class="mb-0">{% trans "Neueste Ampelmeldungen" %}</h5>
+                <a href="{% url 'list_ampel' %}" class="btn btn-sm btn-outline-primary">{% trans "Alle anzeigen" %}</a>
+            </div>
+            <div class="card-body">
+                {% if recent_ampel_entries %}
+                    <div class="list-group list-group-flush">
+                        {% for entry in recent_ampel_entries %}
+                            <div class="list-group-item d-flex justify-content-between align-items-start px-0 border-0">
+                                <div class="me-auto">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="badge rounded-circle me-2 {% if entry.status == 'G' %}bg-success{% elif entry.status == 'Y' %}bg-warning{% else %}bg-danger{% endif %}" style="width: 15px; height: 15px; display: inline-block;"></span>
+                                        <strong>{{ entry.user.get_full_name|default:entry.user.username }}</strong>
+                                    </div>
+                                    {% if entry.comment %}
+                                        <small class="text-muted">{{ entry.comment|truncatewords:10 }}</small>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">{{ entry.date|date:'d.m.Y H:i' }}</small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-traffic-light text-muted mb-2" style="font-size: 2rem"></i>
+                        <p class="text-muted mb-0">{% trans "Keine Ampelmeldungen vorhanden" %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Newest Images -->
     {% if request.user.customuser.person_cluster.bilder %}
