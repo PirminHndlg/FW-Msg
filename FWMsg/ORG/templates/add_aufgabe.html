@@ -1,0 +1,1393 @@
+{% extends "baseOrg.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block title %}
+{% trans "Neue Aufgabe erstellen" %} - {{ block.super }}
+{% endblock %}
+
+{% block head %}
+<style>
+/* Main Form Container */
+.form-wizard {
+    position: relative;
+}
+
+/* Step Groups */
+.field-group {
+    opacity: 0.4;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(10px);
+    margin-bottom: 3rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+}
+
+.field-group.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    box-shadow: 0 8px 25px rgba(0,123,255,0.15);
+    border-color: #007bff;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.field-group.completed {
+    opacity: 0.8;
+    pointer-events: auto;
+    transform: translateY(0);
+    border-color: #28a745;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fff9 100%);
+    box-shadow: 0 2px 8px rgba(40,167,69,0.1);
+}
+
+.field-group.completed::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #28a745, #20c997);
+}
+
+/* Progress Indicator */
+.progress-indicator {
+    height: 6px;
+    background: linear-gradient(90deg, #e9ecef 0%, #f8f9fa 100%);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #007bff 0%, #0056b3 50%, #28a745 100%);
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Step Headers */
+.step-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem 1.5rem 0;
+    font-weight: 600;
+    color: #495057;
+    font-size: 1.1rem;
+}
+
+.step-number {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e9ecef, #dee2e6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.step-number.active {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+}
+
+.step-number.completed {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    box-shadow: 0 2px 8px rgba(40,167,69,0.2);
+}
+
+/* Field Explanations */
+.field-explanation {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin: 0 1.5rem 1.5rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f8f9fa, #ffffff);
+    border-left: 4px solid #007bff;
+    border-radius: 0 8px 8px 0;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Form Content */
+.field-group .card-body {
+    padding: 1.5rem;
+}
+
+/* Cards within Steps */
+.field-group .card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.field-group .card-header {
+    background: linear-gradient(135deg, #f8f9fa, #ffffff);
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+    color: #495057;
+}
+
+/* Form Controls */
+.field-group .form-control,
+.field-group .form-select {
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.field-group .form-control:focus,
+.field-group .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.15);
+}
+
+/* Checkboxes */
+.field-group .form-check-input {
+    border-radius: 4px;
+    border: 2px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.field-group .form-check-input:checked {
+    background-color: #007bff;
+    border-color: #007bff;
+    box-shadow: 0 2px 4px rgba(0,123,255,0.2);
+}
+
+/* Person Cluster Cards */
+.field-group .card-body.py-2 {
+    background: linear-gradient(135deg, #f8f9fa, #ffffff);
+    border-radius: 6px;
+}
+
+/* Tabs */
+.nav-tabs {
+    border-bottom: 2px solid #e9ecef;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    color: #6c757d;
+    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: -2px;
+}
+
+.nav-tabs .nav-link:hover {
+    border-bottom-color: #007bff;
+    background: linear-gradient(135deg, transparent, rgba(0,123,255,0.05));
+    color: #007bff;
+}
+
+.nav-tabs .nav-link.active {
+    color: #007bff;
+    background: linear-gradient(135deg, #ffffff, #f8fbff);
+    border-bottom-color: #007bff;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,123,255,0.1);
+}
+
+/* Tab Content */
+.tab-content {
+    background: #ffffff;
+    border-radius: 0 0 8px 8px;
+}
+
+.tab-pane {
+    padding: 1.5rem;
+}
+
+/* Alert Info */
+.alert-info {
+    border-left: 4px solid #17a2b8;
+    background: linear-gradient(135deg, rgba(23,162,184,0.1), rgba(23,162,184,0.05));
+    border-radius: 6px;
+    border-color: rgba(23,162,184,0.2);
+}
+
+/* Zwischenschritte Section */
+.zwischenschritte-section {
+    background: linear-gradient(135deg, #f8f9fa, #ffffff);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    border: 1px solid #e9ecef;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.zwischenschritte-section .collapse {
+    transition: all 0.3s ease;
+}
+
+.zwischenschritte-section .card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.zwischenschritt-item {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.zwischenschritt-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.zwischenschritt-item .remove-zwischenschritt {
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.zwischenschritt-item:hover .remove-zwischenschritt {
+    opacity: 1;
+}
+
+#toggle-zwischenschritte {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+#toggle-zwischenschritte:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,123,255,0.2);
+}
+
+#zwischenschritte-icon {
+    transition: transform 0.3s ease;
+}
+
+.btn-add-step {
+    border: 2px dashed #6c757d;
+    color: #6c757d;
+    background: transparent;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    padding: 1rem;
+    font-weight: 500;
+}
+
+.btn-add-step:hover {
+    border-color: #007bff;
+    color: #007bff;
+    background: linear-gradient(135deg, rgba(0,123,255,0.05), rgba(0,123,255,0.1));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,123,255,0.15);
+}
+
+/* Form Actions */
+.form-actions {
+    background: linear-gradient(135deg, #f8f9fa, #ffffff);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* Buttons */
+.btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 6px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,123,255,0.2);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0056b3, #004085);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    border: none;
+    border-radius: 6px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary {
+    border: 2px solid #007bff;
+    color: #007bff;
+    background: transparent;
+    border-radius: 6px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border-color: #007bff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,123,255,0.2);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    border-radius: 6px;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(40,167,69,0.2);
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #20c997, #1e7e34);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40,167,69,0.3);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .step-header {
+        padding: 1rem 1rem 0;
+        font-size: 1rem;
+    }
+    
+    .step-number {
+        width: 2rem;
+        height: 2rem;
+        margin-right: 0.75rem;
+        font-size: 0.8rem;
+    }
+    
+    .field-explanation {
+        margin: 0 1rem 1rem;
+        padding: 0.75rem;
+        font-size: 0.85rem;
+    }
+    
+    .field-group .card-body {
+        padding: 1rem;
+    }
+    
+    .tab-pane {
+        padding: 1rem;
+    }
+}
+
+/* Loading States */
+.field-group.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.field-group.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <!-- Form Errors Display -->
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>{% trans "Fehler:" %}</strong>
+            {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    {% if form.errors %}
+        <div class="alert alert-warning" role="alert">
+            <i class="bi bi-exclamation-circle me-2"></i>
+            <strong>{% trans "Formularfehler:" %}</strong>
+            {% for field, errors in form.errors.items %}
+                <div><strong>{{ field }}:</strong> 
+                    {% for error in errors %}{{ error }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Progress Indicator -->
+    <div class="progress-indicator">
+        <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+    </div>
+
+    <form method="post" class="needs-validation form-wizard" novalidate enctype="multipart/form-data" id="aufgabeForm">
+        {% csrf_token %}
+        
+        <div class="card mb-4 rounded-4">
+            <div class="card-header rounded-4">
+                <h4 class="mb-0">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    {% trans "Neue Aufgabe erstellen" %}
+                </h4>
+                <p class="mb-0 text-muted small">{% trans "Folgen Sie den Schritten, um eine neue Aufgabe zu definieren" %}</p>
+            </div>
+            <div class="card-body">
+                
+                <!-- Step 1: User Groups -->
+                <div class="field-group active" id="step-1">
+                    <div class="step-header">
+                        <span class="step-number active">1</span>
+                        <span>{% trans "Benutzergruppen" %}</span>
+                    </div>
+                    <div class="field-explanation">
+                        <i class="bi bi-people me-2"></i>
+                        {% trans "Wählen Sie die Benutzergruppen aus, für die diese Aufgabe relevant ist." %}
+                    </div>
+                    
+                    <!-- Person Clusters -->
+                    <div class="mb-3 row mx-3">
+                        <label for="{{ form.person_cluster.id_for_label }}" class="col-form-label col-md-3">
+                            <i class="bi bi-people me-1"></i>
+                            {{ form.person_cluster.label }}
+                            {% if form.person_cluster.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        <div class="col-md-9">
+                            <div class="card">
+                                <div class="card-body py-2" style="max-height: 200px; overflow-y: auto;">
+                                    <div class="row g-3">
+                                        {% for value, label in form.person_cluster.field.choices %}
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    <input type="checkbox" 
+                                                           name="{{ form.person_cluster.name }}" 
+                                                           value="{{ value }}" 
+                                                           id="id_{{ form.person_cluster.name }}_{{ forloop.counter }}"
+                                                           class="form-check-input"
+                                                           {% if value in form.person_cluster.value %}checked{% endif %}>
+                                                    <label class="form-check-label" for="id_{{ form.person_cluster.name }}_{{ forloop.counter }}">
+                                                        {{ label }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% if form.person_cluster.help_text %}
+                                <div class="form-text">{{ form.person_cluster.help_text }}</div>
+                            {% endif %}
+                            {% if form.person_cluster.errors %}
+                                <div class="invalid-feedback d-block">{{ form.person_cluster.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Basic Information -->
+                <div class="field-group" id="step-2">
+                    <div class="step-header">
+                        <span class="step-number">2</span>
+                        <span>{% trans "Grundinformationen" %}</span>
+                    </div>
+                    <div class="field-explanation">
+                        <i class="bi bi-info-circle me-2"></i>
+                        {% trans "Geben Sie der Aufgabe einen aussagekräftigen Namen und eine detaillierte Beschreibung." %}
+                    </div>
+
+                    <!-- Name Field -->
+                    <div class="mb-3 row mx-3">
+                        <label for="{{ form.name.id_for_label }}" class="col-form-label col-md-3">
+                            <i class="bi bi-card-heading me-1"></i>
+                            {{ form.name.label }}
+                            {% if form.name.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        <div class="col-md-9">
+                            {{ form.name|add_class:"form-control" }}
+                            {% if form.name.help_text %}
+                                <div class="form-text">{{ form.name.help_text }}</div>
+                            {% endif %}
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Description Field -->
+                    <div class="mb-3 row mx-3">
+                        <label for="{{ form.beschreibung.id_for_label }}" class="col-form-label col-md-3">
+                            <i class="bi bi-card-text me-1"></i>
+                            {{ form.beschreibung.label }}
+                            {% if form.beschreibung.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        <div class="col-md-9">
+                            {{ form.beschreibung|add_class:"form-control" }}
+                            {% if form.beschreibung.help_text %}
+                                <div class="form-text">{{ form.beschreibung.help_text }}</div>
+                            {% endif %}
+                            {% if form.beschreibung.errors %}
+                                <div class="invalid-feedback d-block">{{ form.beschreibung.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Attachment -->
+                    <div class="mb-3 row mx-3">
+                        <label for="{{ form.attachment.id_for_label }}" class="col-form-label col-md-3">
+                            <i class="bi bi-paperclip me-1"></i>
+                            {{ form.attachment.label }}
+                        </label>
+                        <div class="col-md-9">
+                            {{ form.attachment|add_class:"form-control" }}
+                            {% if form.attachment.help_text %}
+                                <div class="form-text">{{ form.attachment.help_text }}</div>
+                            {% endif %}
+                            {% if form.attachment.errors %}
+                                <div class="invalid-feedback d-block">{{ form.attachment.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="mb-3 row mx-3">
+                        <label for="{{ form.faellig_art.id_for_label }}" class="col-form-label col-md-3">
+                            <i class="bi bi-tags me-1"></i>
+                            {{ form.faellig_art.label }}
+                        </label>
+                        <div class="col-md-9">
+                            {{ form.faellig_art|add_class:"form-select" }}
+                            {% if form.faellig_art.help_text %}
+                                <div class="form-text">{{ form.faellig_art.help_text }}</div>
+                            {% endif %}
+                            {% if form.faellig_art.errors %}
+                                <div class="invalid-feedback d-block">{{ form.faellig_art.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Task Configuration -->
+                <div class="field-group" id="step-3">
+                    <div class="step-header">
+                        <span class="step-number">3</span>
+                        <span>{% trans "Aufgaben-Konfiguration" %}</span>
+                    </div>
+                    <div class="field-explanation">
+                        <i class="bi bi-gear me-2"></i>
+                        {% trans "Definieren Sie, wie die Aufgabe bearbeitet werden soll - mit Datei-Upload und/oder Bestätigung." %}
+                    </div>
+
+                    <!-- File Upload Required -->
+                    <div class="mb-3 row mx-3">
+                        <label for="{{ form.mitupload.id_for_label }}" class="col-form-label col-md-3">
+                            <i class="bi bi-file-earmark-text me-1"></i>
+                            {{ form.mitupload.label }}
+                        </label>
+                        <div class="col-md-9">
+                            <div class="form-check">
+                                {{ form.mitupload|add_class:"form-check-input" }}
+                                <label class="form-check-label" for="{{ form.mitupload.id_for_label }}">
+                                    {% trans "Datei-Upload bei dieser Aufgabe erforderlich" %}
+                                </label>
+                            </div>
+                            {% if form.mitupload.help_text %}
+                                <div class="form-text">{{ form.mitupload.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Requires Submission -->
+                    <div class="mb-3 row mx-3">
+                        <label for="{{ form.requires_submission.id_for_label }}" class="col-form-label col-md-3">
+                            <i class="bi bi-check-circle me-1"></i>
+                            {{ form.requires_submission.label }}
+                        </label>
+                        <div class="col-md-9">
+                            <div class="form-check">
+                                {{ form.requires_submission|add_class:"form-check-input" }}
+                                <label class="form-check-label" for="{{ form.requires_submission.id_for_label }}">
+                                    {% trans "Manuelle Bestätigung nach Erledigung erforderlich" %}
+                                    <br>
+                                    {% comment %} <span class="d-inline-flex align-items-center">
+                                        <i class="bi bi-circle text-secondary me-1" title="{% trans 'offen' %}"></i>
+                                        <span class="mx-1 text-muted" style="font-size:1.1em;">&#8594;</span>
+                                        <i class="bi bi-hourglass-split text-warning me-1" title="{% trans 'pending' %}"></i>
+                                        <span class="mx-1 text-muted" style="font-size:1.1em;">&#8594;</span>
+                                        <i class="bi bi-check-circle text-success" title="{% trans 'erledigt' %}"></i>
+                                    </span>
+                                    oder 
+                                    <span class="d-inline-flex align-items-center">
+                                        <i class="bi bi-circle text-secondary me-1" title="{% trans 'offen' %}"></i>
+                                        <span class="mx-1 text-muted" style="font-size:1.1em;">&#8594;</span>
+                                        <i class="bi bi-check-circle text-success" title="{% trans 'erledigt' %}"></i>
+                                    </span> {% endcomment %}
+                                </label>
+                            </div>
+                            {% if form.requires_submission.help_text %}
+                                <div class="form-text">{{ form.requires_submission.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Due Date Configuration -->
+                <div class="field-group" id="step-4">
+                    <div class="step-header">
+                        <span class="step-number">4</span>
+                        <span>{% trans "Fälligkeitstermin" %}</span>
+                    </div>
+                    <div class="field-explanation">
+                        <i class="bi bi-calendar me-2"></i>
+                        {% trans "Bestimmen Sie, wann diese Aufgabe fällig wird." %}
+                    </div>
+
+                    <!-- Due Date Tabs -->
+                    <div class="card m-2">
+                        <div class="card-header p-0">
+                            <ul class="nav nav-tabs card-header-tabs" id="dueDateTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="fixed-date-tab" data-bs-toggle="tab" data-bs-target="#fixed-date-pane" type="button" role="tab" aria-controls="fixed-date-pane" aria-selected="true">
+                                        <i class="bi bi-calendar-date me-2"></i>{% trans "Festes Datum" %}
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="relative-start-tab" data-bs-toggle="tab" data-bs-target="#relative-start-pane" type="button" role="tab" aria-controls="relative-start-pane" aria-selected="false">
+                                        <i class="bi bi-play-circle me-2"></i>{% trans "Relativ zum Einsatzstart" %}
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="relative-end-tab" data-bs-toggle="tab" data-bs-target="#relative-end-pane" type="button" role="tab" aria-controls="relative-end-pane" aria-selected="false">
+                                        <i class="bi bi-stop-circle me-2"></i>{% trans "Relativ zum Einsatzende" %}
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="no-due-date-tab" data-bs-toggle="tab" data-bs-target="#no-due-date-pane" type="button" role="tab" aria-controls="no-due-date-pane" aria-selected="false">
+                                        <i class="bi bi-stop-circle me-2"></i>{% trans "Ohne Fälligkeit" %}
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body">
+                            <div class="tab-content" id="dueDateTabsContent">
+                                
+                                <!-- Fixed Date Tab -->
+                                <!-- Fixed Date Tab -->
+                                <div class="tab-pane fade show active" id="fixed-date-pane" role="tabpanel" aria-labelledby="fixed-date-tab">
+                                    <div class="mb-3">
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            {% trans "Setzen Sie einen festen Termin." %}
+                                        </div>
+                                    </div>
+
+                                    <div class="row mx-3">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.faellig_tag.id_for_label }}" class="form-label">
+                                                    {{ form.faellig_tag.label }}
+                                                    {% if form.faellig_tag.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                </label>
+                                                {{ form.faellig_tag|add_class:"form-control" }}
+                                                {% if form.faellig_tag.help_text %}
+                                                    <div class="form-text">{{ form.faellig_tag.help_text }}</div>
+                                                {% endif %}
+                                                {% if form.faellig_tag.errors %}
+                                                    <div class="invalid-feedback d-block">{{ form.faellig_tag.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ form.faellig_monat.id_for_label }}" class="form-label">
+                                                    {{ form.faellig_monat.label }}
+                                                    {% if form.faellig_monat.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                </label>
+                                                <select name="{{ form.faellig_monat.name }}" class="form-select" id="{{ form.faellig_monat.id_for_label }}">
+                                                    <option value="">{% trans "Monat wählen..." %}</option>
+                                                    <option value="1" {% if form.faellig_monat.value == "1" %}selected{% endif %}>{% trans "Januar" %}</option>
+                                                    <option value="2" {% if form.faellig_monat.value == "2" %}selected{% endif %}>{% trans "Februar" %}</option>
+                                                    <option value="3" {% if form.faellig_monat.value == "3" %}selected{% endif %}>{% trans "März" %}</option>
+                                                    <option value="4" {% if form.faellig_monat.value == "4" %}selected{% endif %}>{% trans "April" %}</option>
+                                                    <option value="5" {% if form.faellig_monat.value == "5" %}selected{% endif %}>{% trans "Mai" %}</option>
+                                                    <option value="6" {% if form.faellig_monat.value == "6" %}selected{% endif %}>{% trans "Juni" %}</option>
+                                                    <option value="7" {% if form.faellig_monat.value == "7" %}selected{% endif %}>{% trans "Juli" %}</option>
+                                                    <option value="8" {% if form.faellig_monat.value == "8" %}selected{% endif %}>{% trans "August" %}</option>
+                                                    <option value="9" {% if form.faellig_monat.value == "9" %}selected{% endif %}>{% trans "September" %}</option>
+                                                    <option value="10" {% if form.faellig_monat.value == "10" %}selected{% endif %}>{% trans "Oktober" %}</option>
+                                                    <option value="11" {% if form.faellig_monat.value == "11" %}selected{% endif %}>{% trans "November" %}</option>
+                                                    <option value="12" {% if form.faellig_monat.value == "12" %}selected{% endif %}>{% trans "Dezember" %}</option>
+                                                </select>
+                                                {% if form.faellig_monat.help_text %}
+                                                    <div class="form-text">{{ form.faellig_monat.help_text }}</div>
+                                                {% endif %}
+                                                {% if form.faellig_monat.errors %}
+                                                    <div class="invalid-feedback d-block">{{ form.faellig_monat.errors }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-muted small">
+                                        <i class="bi bi-lightbulb me-1"></i>
+                                        {% trans "Beispiel: Tag 15, Monat März = Aufgabe ist jedes Jahr am 15. März fällig" %}
+                                    </div>
+                                </div>
+
+                                <!-- Relative Start Tab -->
+                                <div class="tab-pane fade" id="relative-start-pane" role="tabpanel" aria-labelledby="relative-start-tab">
+                                    <div class="mb-3">
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            {% trans "Setzen Sie die Fälligkeit relativ zum Einsatzbeginn der Freiwilligen." %}
+                                        </div>
+                                    </div>
+                                    <div class="mb-3 row mx-3">
+                                        <label for="{{ form.faellig_tage_nach_start.id_for_label }}" class="col-md-4 col-form-label">
+                                            <i class="bi bi-play-circle text-success me-1"></i>
+                                            {{ form.faellig_tage_nach_start.label }}
+                                        </label>
+                                        <div class="col-md-8">
+                                            {{ form.faellig_tage_nach_start|add_class:"form-control" }}
+                                            {% if form.faellig_tage_nach_start.help_text %}
+                                                <div class="form-text">{{ form.faellig_tage_nach_start.help_text }}</div>
+                                            {% endif %}
+                                            {% if form.faellig_tage_nach_start.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.faellig_tage_nach_start.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="text-muted small">
+                                        <i class="bi bi-lightbulb me-1"></i>
+                                        {% trans "Beispiel: 30 Tage = Aufgabe ist 30 Tage nach Einsatzbeginn fällig" %}
+                                    </div>
+                                </div>
+
+                                <!-- Relative End Tab -->
+                                <div class="tab-pane fade" id="relative-end-pane" role="tabpanel" aria-labelledby="relative-end-tab">
+                                    <div class="mb-3">
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            {% trans "Setzen Sie die Fälligkeit relativ zum Einsatzende der Freiwilligen." %}
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3 row mx-3">
+                                        <label for="{{ form.faellig_tage_vor_ende.id_for_label }}" class="col-md-4 col-form-label">
+                                            <i class="bi bi-stop-circle text-danger me-1"></i>
+                                            {{ form.faellig_tage_vor_ende.label }}
+                                        </label>
+                                        <div class="col-md-8">
+                                            {{ form.faellig_tage_vor_ende|add_class:"form-control" }}
+                                            {% if form.faellig_tage_vor_ende.help_text %}
+                                                <div class="form-text">{{ form.faellig_tage_vor_ende.help_text }}</div>
+                                            {% endif %}
+                                            {% if form.faellig_tage_vor_ende.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.faellig_tage_vor_ende.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="text-muted small">
+                                        <i class="bi bi-lightbulb me-1"></i>
+                                        {% trans "Beispiel: 30 Tage = Aufgabe ist 30 Tage vor Einsatzende fällig" %}
+                                    </div>
+                                </div>
+
+                                <!-- No Due Date Tab -->
+                                <div class="tab-pane fade" id="no-due-date-pane" role="tabpanel" aria-labelledby="no-due-date-tab">
+                                    <div class="mb-3">
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            {% trans "Setzen Sie keinen Fälligkeitstermin." %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5: Repetition Settings -->
+                <div class="field-group" id="step-5">
+                    <div class="step-header">
+                        <span class="step-number">5</span>
+                        <span>{% trans "Wiederholung (optional)" %}</span>
+                    </div>
+                    <div class="field-explanation">
+                        <i class="bi bi-arrow-repeat me-2"></i>
+                        {% trans "Soll diese Aufgabe regelmäßig wiederholt werden? Definieren Sie das Intervall und das Enddatum." %}
+                    </div>
+
+                    <div class="card m-2">
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                {{ form.wiederholung|add_class:"form-check-input" }}
+                                <label class="form-check-label" for="{{ form.wiederholung.id_for_label }}">
+                                    {% trans "Diese Aufgabe regelmäßig wiederholen" %}
+                                </label>
+                            </div>
+                            <div class="row mx-3" id="wiederholung-fields" style="display: none;">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.wiederholung_interval_wochen.id_for_label }}" class="form-label">
+                                            <i class="bi bi-calendar-date me-1"></i>
+                                            {{ form.wiederholung_interval_wochen.label }}
+                                        </label>
+                                        {{ form.wiederholung_interval_wochen|add_class:"form-control" }}
+                                        {% if form.wiederholung_interval_wochen.help_text %}
+                                            <div class="form-text">{{ form.wiederholung_interval_wochen.help_text }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.wiederholung_ende.id_for_label }}" class="form-label">
+                                            <i class="bi bi-calendar-date me-1"></i>
+                                            {{ form.wiederholung_ende.label }}
+                                        </label>
+                                        {{ form.wiederholung_ende|add_class:"form-control" }}
+                                        {% if form.wiederholung_ende.help_text %}
+                                            <div class="form-text">{{ form.wiederholung_ende.help_text }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 6: Notifications -->
+                <div class="field-group" id="step-6">
+                    <div class="step-header">
+                        <span class="step-number">6</span>
+                        <span>{% trans "Benachrichtigungen" %}</span>
+                    </div>
+                    <div class="field-explanation">
+                        <i class="bi bi-bell me-2"></i>
+                        {% trans "Bestimmen Sie, wie oft Erinnerungen für nicht erledigte Aufgaben gesendet werden sollen." %}
+                    </div>
+
+                    <!-- Repeat Push Days -->
+                    <div class="mb-3 row mx-3">
+                        <label for="{{ form.repeat_push_days.id_for_label }}" class="col-form-label col-md-3">
+                            <i class="bi bi-bell me-1"></i>
+                            {{ form.repeat_push_days.label }}
+                        </label>
+                        <div class="col-md-9">
+                            {{ form.repeat_push_days|add_class:"form-control" }}
+                            {% if form.repeat_push_days.help_text %}
+                                <div class="form-text">{{ form.repeat_push_days.help_text }}</div>
+                            {% endif %}
+                            {% if form.repeat_push_days.errors %}
+                                <div class="invalid-feedback d-block">{{ form.repeat_push_days.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 7: Intermediate Steps -->
+                <div class="field-group" id="step-7">
+                    <div class="step-header">
+                        <span class="step-number">7</span>
+                        <span>{% trans "Zwischenschritte für pending Aufgaben (optional)" %}</span>
+                    </div>
+                    <div class="field-explanation">
+                        <i class="bi bi-list-check me-2"></i>
+                        {% trans "Wenn eine Aufgabe als pending markiert wird, werden die Zwischenschritte angezeigt, um die Folgeaufgaben für die Organisation in kleinere Teile zu unterteilen." %}
+                        <br>
+                        {% trans "Beispiel: Aufgabe <b>'Flugticket buchen'</b> hat 2 Zwischenschritte: <b>'Partnerorganisation Bescheid geben'</b> und <b>'Abreisedatum aktualisieren'</b>." %}
+                    </div>
+
+                    <div class="zwischenschritte-section d-flex flex-column align-items-center">
+                        <!-- Toggle Button -->
+                        <button type="button" class="btn btn-outline-primary mb-3 w-25" id="toggle-zwischenschritte" data-bs-toggle="collapse" data-bs-target="#zwischenschritte-container" aria-expanded="false" aria-controls="zwischenschritte-container">
+                            <i class="bi bi-chevron-down me-2" id="zwischenschritte-icon"></i>
+                            <span id="zwischenschritte-toggle-text">{% trans "Zwischenschritte hinzufügen" %}</span>
+                        </button>
+                        
+                        <!-- Collapsible Container -->
+                        <div class="collapse w-100" id="zwischenschritte-container">
+                            <div class="card w-100">
+                                <div class="card-body">
+                                    <div id="zwischenschritte-forms" class="row mx-3">
+                                        {% if form.zwischenschritte %}
+                                            {{ form.zwischenschritte.management_form }}
+                                            {% for zwischenschritt_form in form.zwischenschritte %}
+                                                <div class="zwischenschritt-item mb-3 p-3 border rounded bg-light col-md-6 col-12">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <h6 class="mb-0">
+                                                            <i class="bi bi-list-check me-1"></i>
+                                                            {% trans "Zwischenschritt" %} {{ forloop.counter }}
+                                                        </h6>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger remove-zwischenschritt">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                    {% for field in zwischenschritt_form %}
+                                                        {% if field.name != 'DELETE' %}
+                                                            <div class="mb-2">
+                                                                {{ field.label_tag }}
+                                                                {{ field|add_class:"form-control" }}
+                                                                {% if field.errors %}
+                                                                    <div class="invalid-feedback d-block">{{ field.errors }}</div>
+                                                                {% endif %}
+                                                            </div>
+                                                        {% else %}
+                                                            {{ field.as_hidden }}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% comment %} <button type="button" class="btn btn-success w-25" id="add-zwischenschritt">
+                                        <i class="bi bi-plus-circle me-2"></i>
+                                        {% trans "Weiteren Zwischenschritt hinzufügen" %}
+                                    </button> {% endcomment %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="text-muted mt-3">
+                    <small>
+                        <span class="text-danger">*</span> {% trans "Pflichtfelder" %}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions d-flex justify-content-between sticky-bottom border ">
+            <div>
+                <a href="{% url 'list_aufgaben_table' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> {% trans "Zurück" %}
+                </a>
+            </div>
+            <div>
+                <button type="button" class="btn btn-outline-primary me-2" id="prevStep" style="display: none;">
+                    <i class="bi bi-chevron-left"></i> {% trans "Zurück" %}
+                </button>
+                <button type="button" class="btn btn-primary" id="nextStep">
+                    {% trans "Weiter" %} <i class="bi bi-chevron-right"></i>
+                </button>
+                <button type="submit" class="btn btn-success" id="submitBtn" style="display: none;">
+                    <i class="bi bi-check2"></i> {% trans "Aufgabe erstellen" %}
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const totalSteps = 7;
+    let currentStep = 1;
+    const progressBar = document.getElementById('progressBar');
+    const nextBtn = document.getElementById('nextStep');
+    const prevBtn = document.getElementById('prevStep');
+    const submitBtn = document.getElementById('submitBtn');
+    const form = document.getElementById('aufgabeForm');
+
+    // Initialize form
+    updateUI();
+
+    // Handle repetition checkbox
+    const wiederholungCheckbox = document.getElementById('id_wiederholung');
+    const wiederholungFields = document.getElementById('wiederholung-fields');
+    
+    if (wiederholungCheckbox) {
+        wiederholungCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                wiederholungFields.style.display = 'flex';
+            } else {
+                wiederholungFields.style.display = 'none';
+            }
+        });
+    }
+
+    // Handle Zwischenschritte collapse toggle
+    const zwischenschritteToggle = document.getElementById('toggle-zwischenschritte');
+    const zwischenschritteIcon = document.getElementById('zwischenschritte-icon');
+    const zwischenschritteToggleText = document.getElementById('zwischenschritte-toggle-text');
+    const zwischenschritteContainer = document.getElementById('zwischenschritte-container');
+    
+    if (zwischenschritteContainer) {
+        zwischenschritteContainer.addEventListener('shown.bs.collapse', function() {
+            zwischenschritteIcon.className = 'bi bi-chevron-up me-2';
+            zwischenschritteToggleText.textContent = 'Zwischenschritte ausblenden';
+        });
+        
+        zwischenschritteContainer.addEventListener('hidden.bs.collapse', function() {
+            zwischenschritteIcon.className = 'bi bi-chevron-down me-2';
+            zwischenschritteToggleText.textContent = 'Zwischenschritte hinzufügen';
+        });
+    }
+
+    // Handle adding new Zwischenschritte
+    const addZwischenschrittBtn = document.getElementById('add-zwischenschritt');
+    if (addZwischenschrittBtn) {
+        addZwischenschrittBtn.addEventListener('click', function() {
+            // This would need to be implemented with proper Django formset handling
+            // For now, we'll just show a placeholder
+            console.log('Add Zwischenschritt clicked - requires formset handling');
+        });
+    }
+
+    // Handle removing Zwischenschritte
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-zwischenschritt')) {
+            const zwischenschrittItem = e.target.closest('.zwischenschritt-item');
+            const deleteField = zwischenschrittItem.querySelector('input[name*="DELETE"]');
+            if (deleteField) {
+                deleteField.checked = true;
+                zwischenschrittItem.style.display = 'none';
+            }
+        }
+    });
+
+
+    // Auto-advance logic for each step
+    function setupAutoAdvance() {
+        // Step 1: Person clusters - auto-advance when at least one is selected
+        const personClusterCheckboxes = document.querySelectorAll('input[name="person_cluster"]');
+        personClusterCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                if (currentStep === 1) {
+                    setTimeout(() => checkStep1Complete(), 300);
+                }
+            });
+        });
+
+        // Step 2: Name field - also check for completion
+        const nameField = document.getElementById('id_name');
+        if (nameField) {
+            nameField.addEventListener('blur', function() {
+                if (currentStep === 2) {
+                    setTimeout(() => checkStep2Complete(), 300);
+                }
+            });
+        }
+
+        // Step 3: Configuration checkboxes
+        const configFields = ['id_mitupload', 'id_requires_submission'];
+        configFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.addEventListener('change', function() {
+                    if (currentStep === 3) {
+                        setTimeout(() => checkStep3Complete(), 300);
+                    }
+                });
+            }
+        });
+
+        // Step 4: Due date fields (tabs)
+        const dueDateFields = ['id_faellig_art', 'id_faellig_tag', 'id_faellig_monat', 'id_faellig_tage_nach_start', 'id_faellig_tage_vor_ende'];
+        dueDateFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.addEventListener('change', function() {
+                    if (currentStep === 4) {
+                        setTimeout(() => checkStep4Complete(), 300);
+                    }
+                });
+            }
+        });
+
+        // Step 5: Repetition checkbox
+        if (wiederholungCheckbox) {
+            wiederholungCheckbox.addEventListener('change', function() {
+                if (currentStep === 5) {
+                    setTimeout(() => checkStep5Complete(), 300);
+                }
+            });
+        }
+    }
+
+    function checkStep1Complete() {
+        if (currentStep !== 1) return;
+        
+        // Check if at least one person cluster is selected
+        const checkedClusters = document.querySelectorAll('input[name="person_cluster"]:checked');
+        if (checkedClusters.length > 0) {
+            advanceStep();
+        }
+    }
+
+    function checkStep2Complete() {
+        if (currentStep !== 2) return;
+        
+        // Check if name field has content
+        const nameField = document.getElementById('id_name');
+        if (nameField && nameField.value.trim()) {
+            // advanceStep();
+        }
+    }
+
+    function checkStep3Complete() {
+        // Auto-advance after user interacts with config fields
+        if (currentStep === 3) {
+            // advanceStep();
+        }
+    }
+
+    function checkStep4Complete() {
+        if (currentStep !== 4) return;
+        
+        // Check which tab is active and if it has required data
+        const fixedDateTab = document.getElementById('fixed-date-pane');
+        const relativeStartTab = document.getElementById('relative-start-pane');
+        const relativeEndTab = document.getElementById('relative-end-pane');
+        
+        let shouldAdvance = false;
+        
+        // Fixed date tab - check if both day and month are set
+        if (fixedDateTab && fixedDateTab.classList.contains('active')) {
+            const faelligTag = document.getElementById('id_faellig_tag');
+            const faelligMonat = document.getElementById('id_faellig_monat');
+            if (faelligTag && faelligMonat && faelligTag.value && faelligMonat.value) {
+                shouldAdvance = true;
+            }
+        }
+        
+        // Relative start tab - check if field is filled
+        else if (relativeStartTab && relativeStartTab.classList.contains('active')) {
+            const nachStart = document.getElementById('id_faellig_tage_nach_start');
+            if (nachStart && nachStart.value) {
+                shouldAdvance = true;
+            }
+        }
+        
+        // Relative end tab - check if field is filled
+        else if (relativeEndTab && relativeEndTab.classList.contains('active')) {
+            const vorEnde = document.getElementById('id_faellig_tage_vor_ende');
+            if (vorEnde && vorEnde.value) {
+                shouldAdvance = true;
+            }
+        }
+        
+        if (shouldAdvance) {
+            // advanceStep();
+        }
+    }
+
+    function checkStep5Complete() {
+        // Auto-advance after user interacts with repetition settings
+        if (currentStep === 5) {
+            // advanceStep();
+        }
+    }
+
+    // on enter advance step instead of submit
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            // if not focus on textarea, advance step
+            if (!e.target.closest('textarea')) {
+            advanceStep();
+                if (currentStep <= totalSteps) {
+                    e.preventDefault();
+                }
+            }
+        }
+    });
+
+    function advanceStep() {
+        let requiredFields = document.querySelectorAll(`#step-${currentStep} input[required], #step-${currentStep} select[required], #step-${currentStep} textarea[required]`);
+        let valid = true
+        console.log(requiredFields);
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                console.log(field);
+                valid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        console.log(valid);
+
+        if (!valid) {
+            return;
+        }
+        if (currentStep < totalSteps) {
+            goToStep(currentStep + 1);
+        }
+    }
+
+    function goToStep(step) {
+        // Hide current step
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        document.getElementById(`step-${currentStep}`).classList.add('completed');
+        document.querySelector(`#step-${currentStep} .step-number`).classList.remove('active');
+        document.querySelector(`#step-${currentStep} .step-number`).classList.add('completed');
+
+        // Show new step
+        currentStep = step;
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+        document.querySelector(`#step-${currentStep} .step-number`).classList.add('active');
+
+        updateUI();
+        
+        // Focus first input in new step
+        const firstInput = document.querySelector(`#step-${currentStep} input, #step-${currentStep} select, #step-${currentStep} textarea`);
+        if (firstInput && firstInput.type !== 'checkbox') {
+            firstInput.focus();
+        }
+    }
+
+    function updateUI() {
+        // Update progress bar
+        const progress = (currentStep / totalSteps) * 100;
+        progressBar.style.width = progress + '%';
+
+        // Update buttons
+        prevBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
+        
+        if (currentStep === totalSteps) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'inline-block';
+        } else {
+            nextBtn.style.display = 'inline-block';
+            submitBtn.style.display = 'none';
+        }
+    }
+
+    // Button event listeners
+    nextBtn.addEventListener('click', function() {
+        if (validateCurrentStep()) {
+            advanceStep();
+        }
+    });
+
+    prevBtn.addEventListener('click', function() {
+        if (currentStep > 1) {
+            // Hide current step
+            document.getElementById(`step-${currentStep}`).classList.remove('active');
+            document.querySelector(`#step-${currentStep} .step-number`).classList.remove('active');
+
+            // Show previous step
+            currentStep--;
+            document.getElementById(`step-${currentStep}`).classList.remove('completed');
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            document.querySelector(`#step-${currentStep} .step-number`).classList.remove('completed');
+            document.querySelector(`#step-${currentStep} .step-number`).classList.add('active');
+
+            updateUI();
+        }
+    });
+
+    function validateCurrentStep() {
+        let isValid = true;
+        const currentStepElement = document.getElementById(`step-${currentStep}`);
+        const requiredFields = currentStepElement.querySelectorAll('input[required], select[required], textarea[required]');
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        // Special validation for step 1 (person clusters)
+        if (currentStep === 1) {
+            const checkedClusters = document.querySelectorAll('input[name="person_cluster"]:checked');
+            if (checkedClusters.length === 0) {
+                isValid = false;
+                // Show error message
+                const personClusterContainer = document.querySelector('input[name="person_cluster"]').closest('.col-md-9');
+                let errorDiv = personClusterContainer.querySelector('.validation-error');
+                if (!errorDiv) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.className = 'validation-error text-danger small mt-1';
+                    errorDiv.textContent = 'Bitte wählen Sie mindestens eine Benutzergruppe aus.';
+                    personClusterContainer.appendChild(errorDiv);
+                }
+            } else {
+                // Remove error message
+                const errorDiv = document.querySelector('.validation-error');
+                if (errorDiv) {
+                    errorDiv.remove();
+                }
+            }
+        }
+
+        return isValid;
+    }
+
+    // Initialize auto-advance
+    setupAutoAdvance();
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        // Show all steps as completed for final validation
+        for (let i = 1; i <= totalSteps; i++) {
+            const step = document.getElementById(`step-${i}`);
+            const stepNumber = document.querySelector(`#step-${i} .step-number`);
+            if (step && stepNumber) {
+                step.classList.remove('active');
+                step.classList.add('completed');
+                stepNumber.classList.remove('active');
+                stepNumber.classList.add('completed');
+            }
+        }
+        
+        // Remove the novalidate attribute to allow browser validation
+        form.removeAttribute('novalidate');
+        
+        // Let the form submit normally - Django will handle validation
+        return true;
+    });
+});
+</script>
+{% endblock %}

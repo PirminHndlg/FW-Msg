@@ -351,6 +351,28 @@ def add_object(request, model_name):
 @login_required
 @required_role('O')
 @filter_person_cluster
+def add_aufgabe(request):
+    if request.method == 'POST':
+        form = ORGforms.AddAufgabeForm(request.POST, request.FILES, request=request)
+        if form.is_valid():
+            save_form(request, form)
+            next_url = request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
+            return redirect('list_object', model_name='aufgabe')
+        else:
+            messages.error(request, 'Fehler beim Erstellen der Aufgabe. Bitte überprüfen Sie die Eingaben.')
+            print("Form errors:", form.errors)
+            print("Non-field errors:", form.non_field_errors())
+            if hasattr(form, 'zwischenschritte'):
+                print("Zwischenschritte errors:", form.zwischenschritte.errors)
+            return render(request, 'add_aufgabe.html', {'form': form})
+    form = ORGforms.AddAufgabeForm(request=request)
+    return render(request, 'add_aufgabe.html', {'form': form})
+
+@login_required
+@required_role('O')
+@filter_person_cluster
 def add_objects_from_excel(request, model_name):
     if request.method == 'POST':
         excel_file = request.FILES['excel_file']

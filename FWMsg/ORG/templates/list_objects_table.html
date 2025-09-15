@@ -10,11 +10,19 @@
             <h2 class="mb-0">{{ verbose_name }}</h2>
         </div>
         <div>
+            {% if model_name == 'aufgabe' %}
+                <a href="{% url 'add_aufgabe' %}">
+                    <button class="btn btn-sm rounded-4 btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>{% trans "Aufgabe erstellen" %}
+                    </button>
+                </a>
+                {% else %}
             <a href="{% url 'add_object' model_name %}">
                 <button class="btn btn-sm rounded-4 btn-primary">
                     <i class="bi bi-plus-circle me-2"></i>{% trans "Hinzufügen" %}
                 </button>
             </a>
+            {% endif %}
         </div>
     </div>
 
