@@ -9,13 +9,13 @@
     <div class="mb-4">
         <h5 class="form-label fw-semibold text-primary">{% trans "Beschreibung" %}</h5>
         <div class="p-3 bg-light rounded-3 border-start border-primary border-3">
-            <p class="form-text mb-0">{{ task.aufgabe.beschreibung }}</p>
+            <p class="form-text mb-0">{{ task.aufgabe.beschreibung|format_text_with_link }}</p>
         </div>
         {% if task.personalised_description %}
         <div class="mt-3 p-3 bg-light rounded-3 border-start border-success border-3">
             <p class="form-text mb-0">
                 <span class="fw-semibold text-success">{% trans "Persönliche Beschreibung" %}:</span> 
-                {{ task.personalised_description }}
+                {{ task.personalised_description|format_text_with_link }}
             </p>
         </div>
         {% endif %}

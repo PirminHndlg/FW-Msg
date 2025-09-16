@@ -1,5 +1,6 @@
 {% load static %}
 {% load i18n %}
+{% load base_filter %}
 
 <div class="col">
   <div class="card h-100 rounded-4 shadow-sm border border-1 border-light-subtle">
@@ -9,7 +10,7 @@
         
         {% if task.aufgabe.beschreibung %}
         <div class="p-2 bg-light rounded-3 border-start border-primary border-3 mb-3">
-          <p class="card-text mb-0 text-truncate">{{ task.aufgabe.beschreibung }}</p>
+          <p class="card-text mb-0 text-truncate">{{ task.aufgabe.beschreibung|format_text_with_link }}</p>
         </div>
         {% endif %}
         
@@ -17,7 +18,7 @@
         <div class="p-2 bg-light rounded-3 border-start border-success border-3 mb-3">
           <p class="card-text mb-0 text-truncate">
             <span class="fw-semibold text-success">{% trans 'Persönliche Beschreibung' %}:</span> 
-            {{ task.personalised_description }}
+            {{ task.personalised_description|format_text_with_link }}
           </p>
         </div>
         {% endif %}
