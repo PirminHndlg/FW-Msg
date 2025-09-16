@@ -46,7 +46,7 @@
   {% endfor %}
   <th class="p-0">
     <div class="d-flex gap-1 align-items-center">
-      <a href="{% url 'add_object' 'aufgabe' %}?next={% url 'list_aufgaben_table' %}" class="btn btn-sm data-tooltip-bottom" data-tooltip="{% trans 'Neue Aufgabe erstellen' %}"><i class="bi bi-plus-circle"></i></a>
+      <a href="{% url 'add_aufgabe' %}?next={% url 'list_aufgaben_table' %}" class="btn btn-sm data-tooltip-bottom" data-tooltip="{% trans 'Neue Aufgabe erstellen' %}"><i class="bi bi-plus-circle"></i></a>
       <div class="vr border-dark m-0 ms-1 me-1" style="height: 70px; width: 0;"></div>
     </div>
     <hr class="border-dark m-0 mt-1" />
