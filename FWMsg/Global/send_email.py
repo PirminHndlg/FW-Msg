@@ -205,16 +205,12 @@ def format_ampel_email(user_name, ampel_user_name, ampel_user_email, status, com
     # Format the ampel date
     formatted_date = ampel_date.astimezone(timezone.get_current_timezone()).strftime('%d.%m.%Y %H:%M') if ampel_date else ''
     
-    # Truncate comment if it's too long for email
-    max_length = 200
-    truncated_comment = comment if comment and len(comment) <= max_length else (comment[:max_length] + '...' if comment else '')
-    
     context = {
         'user_name': user_name,
         'ampel_user_name': ampel_user_name,
         'ampel_user_email': ampel_user_email,
         'status': status,
-        'comment': truncated_comment,
+        'comment': comment,
         'ampel_date': formatted_date,
         'action_url': action_url,
         'unsubscribe_url': unsubscribe_url,
