@@ -231,6 +231,16 @@ def post_save_handler(sender, instance, created, **kwargs):
         instance._processing_profil_picture = True
         instance.create_small_image()
         delattr(instance, '_processing_profil_picture')
+    
+    from FW.models import Freiwilliger
+    from TEAM.models import Team
+    
+    if instance.person_cluster:
+        if instance.person_cluster.view == 'F' and not hasattr(instance.user, 'freiwilliger'):
+            Freiwilliger.objects.get_or_create(user=instance.user, org=instance.org)
+        elif instance.person_cluster.view == 'T' and not hasattr(instance.user, 'team'):
+            Team.objects.get_or_create(user=instance.user, org=instance.org)
+        
 
 # Add property to User model to access org
 User.add_to_class('org', property(lambda self: self.customuser.org if hasattr(self, 'customuser') else None))
@@ -938,7 +948,7 @@ class PostSurveyAnswer(OrgModel):
 
 class Bilder2(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
-    titel = models.CharField(max_length=50, verbose_name=_('Bildtitel'))
+    titel = models.CharField(max_length=100, verbose_name=_('Bildtitel'))
     beschreibung = models.TextField(blank=True, null=True, verbose_name=_('Beschreibung'))
     date_created = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
     date_updated = models.DateTimeField(auto_now=True, verbose_name=_('Aktualisiert am'))
