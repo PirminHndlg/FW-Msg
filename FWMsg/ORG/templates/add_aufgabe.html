@@ -672,6 +672,25 @@
                             {% endif %}
                         </div>
                     </div>
+
+                    <!-- With Email Notification -->
+                    <div class="mb-3 row mx-3">
+                        <label for="{{ form.with_email_notification.id_for_label }}" class="col-form-label col-md-3">
+                            <i class="bi bi-envelope me-1"></i>
+                            {{ form.with_email_notification.label }}
+                        </label>
+                        <div class="col-md-9">
+                            <div class="form-check">
+                                {{ form.with_email_notification|add_class:"form-check-input" }}
+                                <label class="form-check-label" for="{{ form.with_email_notification.id_for_label }}">
+                                    {% trans "E-Mail-Benachrichtigung" %}
+                                </label>
+                            </div>
+                            {% if form.with_email_notification.help_text %}
+                                <div class="form-text">{{ form.with_email_notification.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Step 4: Due Date Configuration -->
