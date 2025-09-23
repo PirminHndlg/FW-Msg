@@ -6,4 +6,18 @@
 
 {% block content %}
     <h1>Team Home</h1>
+
+    <div class="card rounded-4 shadow-sm mb-4 border-0" style="background: var(--bs-light);">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-bar-chart-line" style="font-size: 2.5rem; color: var(--bs-primary);"></i>
+            <h2 class="mt-3 mb-2" style="font-weight: 600; color: var(--bs-primary);">Dashboard in Arbeit</h2>
+            <p class="mb-4 text-muted" style="font-size: 1.15rem;">
+                Hier entsteht bald ein übersichtliches Dashboard für Dich.<br>
+                Welche Informationen oder Statistiken wären für Dich hilfreich?
+            </p>
+            <a href="{% url 'feedback' %}" class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-chat-dots me-2"></i>Feedback geben
+            </a>
+        </div>
+    </div>
 {% endblock %}
