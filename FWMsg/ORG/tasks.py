@@ -42,7 +42,9 @@ def send_aufgabe_erledigt_email_task(aufgabe_id):
     
     try:
         aufgabe = UserAufgaben.objects.get(id=aufgabe_id)
-        mail_to = ','.join(aufgabe.benachrichtigung_cc.split(',')) if aufgabe.benachrichtigung_cc else None
+        if not aufgabe.aufgabe.with_email_notification:
+            return False
+        mail_to = aufgabe.benachrichtigung_cc.split(',') if aufgabe.benachrichtigung_cc else []
         
         # Create action URL
         action_url = f"{settings.DOMAIN_HOST}{reverse('download_aufgabe', args=[aufgabe.id])}"
@@ -63,8 +65,12 @@ def send_aufgabe_erledigt_email_task(aufgabe_id):
         
         subject = f'Aufgabe erledigt: {aufgabe.aufgabe.name} von {aufgabe.user.first_name} {aufgabe.user.last_name}'
         org_email = aufgabe.user.org.email
+        recipient_list = [org_email]
+        if mail_to:
+            recipient_list.extend(mail_to)
+        recipient_list = list(set(recipient_list))
         
-        return send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [org_email], html_message=email_content)
+        return send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, recipient_list, html_message=email_content)
     except Exception as e:
         logging.error(f"Error sending task completion email: {e}")
         return False

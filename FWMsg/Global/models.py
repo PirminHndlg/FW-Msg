@@ -739,6 +739,7 @@ class Aufgabe2(OrgModel):
     beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung', help_text='Ausführliche Beschreibung der Aufgabe')
     mitupload = models.BooleanField(default=True, verbose_name='Datei-Upload erforderlich', help_text='Ermöglicht und erfordert das Hochladen von Dateien bei dieser Aufgabe')
     requires_submission = models.BooleanField(default=True, verbose_name='Bestätigung erforderlich', help_text='Wenn aktiviert, wird die Aufgabe nach Erledigung als pending markiert und muss manuell als erledigt bestätigt werden')
+    with_email_notification = models.BooleanField(default=True, verbose_name='E-Mail-Benachrichtigung', help_text='Wenn aktiviert, wird eine E-Mail-Benachrichtigung an die Organisation gesendet, wenn die Aufgabe erledigt ist')
     faellig_art = models.ForeignKey(AufgabenCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Kategorie', help_text='Kategorie dieser Aufgabe, bestimmt den Zeitraum')
     faellig_tag = models.IntegerField(blank=True, null=True, verbose_name='Fällig am Tag', validators=[validators.MinValueValidator(1), validators.MaxValueValidator(31)], help_text='Tag im Monat, an dem die Aufgabe fällig ist (1-31)')
     faellig_monat = models.IntegerField(blank=True, null=True, verbose_name='Fällig im Monat', validators=[validators.MinValueValidator(1), validators.MaxValueValidator(12)], help_text='Monat, in dem die Aufgabe fällig ist (1-12)')
