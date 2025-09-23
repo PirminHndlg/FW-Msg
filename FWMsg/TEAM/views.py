@@ -1,20 +1,111 @@
-from django.utils import timezone
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from Global.models import Einsatzland2, Einsatzstelle2, UserAttribute
-from FW.models import Freiwilliger
-from TEAM.models import Team
+from datetime import timedelta
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q, Count
+from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
 
-from ORG.views import filter_person_cluster, _get_ampel_matrix
+from FW.models import Freiwilliger
 from FWMsg.decorators import required_role
+from Global.models import (
+    Ampel2, Bilder2, Einsatzland2, Einsatzstelle2, 
+    Post2, UserAufgaben, UserAttribute
+)
+from ORG.views import filter_person_cluster
+from TEAM.models import Team
+
+# Base template for team views
 base_template = 'baseTeam.html'
 
 # Create your views here.
 @login_required
 @required_role('T')
 def home(request):
-    return render(request, 'teamHome.html')
+    """Team dashboard home view with comprehensive data for team members."""
+    team_member = _get_team_member(request)
+    
+    # Initialize default values
+    assigned_countries = []
+    freiwillige_count = 0
+    einsatzstellen_count = 0
+    country_stats = []
+    recent_ampel_entries = []
+    gallery_images = []
+    posts = []
+    
+    if team_member:
+        assigned_countries = team_member.land.all()
+        
+        if assigned_countries.exists():
+            # Get volunteers for assigned countries
+            freiwillige = _get_Freiwillige(request)
+            freiwillige_count = freiwillige.count()
+            freiwillige_users = [fw.user for fw in freiwillige]
+            
+            # Count placement locations
+            einsatzstellen_count = Einsatzstelle2.objects.filter(
+                land__in=assigned_countries
+            ).count()
+            
+            # Get recent ampel entries (last 7 days)
+            recent_ampel_entries = Ampel2.objects.filter(
+                user__in=freiwillige_users,
+                date__gte=timezone.now() - timedelta(days=7)
+            ).select_related('user').order_by('-date')[:10]
+            
+            # Get recent images from volunteers
+            recent_bilder = Bilder2.objects.filter(
+                user__in=freiwillige_users
+            ).select_related('user').order_by('-date_created')[:6]
+            
+            # Group images by gallery
+            for bild in recent_bilder:
+                bilder_gallery = bild.bildergallery2_set.all()
+                if bilder_gallery.exists():
+                    gallery_images.append({
+                        bild: list(bilder_gallery)
+                    })
+            
+            # Get recent posts from volunteers
+            posts = Post2.objects.filter(
+                user__in=freiwillige_users
+            ).select_related('user').order_by('-date')[:3]
+            
+            # Generate country statistics
+            for country in assigned_countries:
+                country_freiwillige = Freiwilliger.objects.filter(einsatzland2=country)
+                country_einsatzstellen = Einsatzstelle2.objects.filter(land=country)
+                
+                country_stats.append({
+                    'country': country,
+                    'freiwillige_count': country_freiwillige.count(),
+                    'einsatzstellen_count': country_einsatzstellen.count(),
+                })
+    
+    # Get team member's personal tasks
+    my_open_tasks = UserAufgaben.objects.none()
+    if team_member:
+        my_open_tasks = UserAufgaben.objects.filter(
+            org=team_member.org,
+            user=request.user,
+            erledigt=False,
+            pending=False,
+        ).select_related('aufgabe').order_by('faellig')
+    
+    context = {
+        'team_member': team_member,
+        'assigned_countries': assigned_countries,
+        'country_stats': country_stats,
+        'freiwillige_count': freiwillige_count,
+        'einsatzstellen_count': einsatzstellen_count,
+        'recent_ampel_entries': recent_ampel_entries,
+        'gallery_images': gallery_images,
+        'posts': posts,
+        'my_open_tasks': my_open_tasks,
+        'today': timezone.now().date(),
+    }
+    
+    return render(request, 'teamHome.html', context)
 
 def _get_team_member(request):
     """Helper function to get the team member record for the current user."""
