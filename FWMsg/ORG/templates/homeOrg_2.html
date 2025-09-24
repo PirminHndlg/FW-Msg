@@ -8,6 +8,7 @@
 
 {% block head %}
   <link rel="stylesheet" href="{% static 'css/homeOrg.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/list_ampel.css' %}" />
   <style>
     .dashboard-section {
       margin-bottom: 2rem;
@@ -29,14 +30,6 @@
     .card-compact {
       border: 1px solid #e9ecef;
       box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    }
-    
-    .status-indicator {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      display: inline-block;
-      margin-right: 0.5rem;
     }
     
     .priority-high { border-left: 4px solid #dc3545; }
@@ -74,68 +67,72 @@
   </div>
   
   <div class="pin-wall p-4 bg-light rounded-4 border">
-    <div class="grid-3">
+    <div class="row g-3">
       {% for notiz in sticky_notes %}
-        <div class="sticky-note">
-          <div class="pin"></div>
-          <div class="note-content {% if notiz.priority == 2 %}bg-danger bg-opacity-10{% elif notiz.priority == 1 %}bg-warning bg-opacity-10{% else %}bg-success bg-opacity-10{% endif %}">
-            <div class="note-header">
-              <div class="d-flex align-items-center gap-2">
-                <small class="text-muted">
-                  <i class="bi bi-clock me-1"></i>
-                  {{ notiz.date|date:'d.m.Y H:i' }}
-                </small>
-                {% if notiz.priority > 0 %}
-                  <span class="priority-badge">
-                    {% if notiz.priority == 1 %}!!{% else %}!!!{% endif %}
-                  </span>
-                {% endif %}
+        <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+          <div class="sticky-note">
+            <div class="pin"></div>
+            <div class="note-content {% if notiz.priority == 2 %}bg-danger bg-opacity-10{% elif notiz.priority == 1 %}bg-warning bg-opacity-10{% else %}bg-success bg-opacity-10{% endif %}">
+              <div class="note-header">
+                <div class="d-flex align-items-center gap-2">
+                  <small class="text-muted">
+                    <i class="bi bi-clock me-1"></i>
+                    {{ notiz.date|date:'d.m.Y H:i' }}
+                  </small>
+                  {% if notiz.priority > 0 %}
+                    <span class="priority-badge">
+                      {% if notiz.priority == 1 %}!!{% else %}!!!{% endif %}
+                    </span>
+                  {% endif %}
+                </div>
+                <form method="post" action="{% url 'delete_sticky_note' %}" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="notiz_id" value="{{ notiz.id }}" />
+                  <button type="submit" class="btn btn-sm btn-link text-danger p-0">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
               </div>
-              <form method="post" action="{% url 'delete_sticky_note' %}" class="d-inline">
-                {% csrf_token %}
-                <input type="hidden" name="notiz_id" value="{{ notiz.id }}" />
-                <button type="submit" class="btn btn-sm btn-link text-danger p-0">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </form>
+              {{ notiz.notiz|linebreaks }}
             </div>
-            {{ notiz.notiz|linebreaks }}
           </div>
         </div>
       {% endfor %}
 
       {% for notiz in pinned_notizen %}
-        <div class="sticky-note">
-          <div class="pin"></div>
-          <div class="note-content bg-info bg-opacity-10">
-            <div class="note-header">
-              <div>
-                <h6 class="mb-1">
-                  <span class="fi fi-{{ notiz.einsatzstelle.land.code|lower }} me-2"></span>
-                  {{ notiz.einsatzstelle.name }}
-                </h6>
-                <small class="text-muted">
-                  <i class="bi bi-person-circle me-1"></i>
-                  {{ notiz.user.get_full_name|default:notiz.user.username }}
-                  <i class="bi bi-clock ms-2 me-1"></i>
-                  {{ notiz.date|date:'d.m.Y H:i' }}
-                </small>
+        <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+          <div class="sticky-note">
+            <div class="pin"></div>
+            <div class="note-content bg-info bg-opacity-10">
+              <div class="note-header">
+                <div>
+                  <h6 class="mb-1">
+                    <span class="fi fi-{{ notiz.einsatzstelle.land.code|lower }} me-2"></span>
+                    {{ notiz.einsatzstelle.name }}
+                  </h6>
+                  <small class="text-muted">
+                    <i class="bi bi-person-circle me-1"></i>
+                    {{ notiz.user.get_full_name|default:notiz.user.username }}
+                    <i class="bi bi-clock ms-2 me-1"></i>
+                    {{ notiz.date|date:'d.m.Y H:i' }}
+                  </small>
+                </div>
+                <div class="d-flex gap-1">
+                  <form method="post" action="{% url 'einsatzstellen_notiz' es_id=notiz.einsatzstelle.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="unpin" />
+                    <input type="hidden" name="notiz_id" value="{{ notiz.id }}" />
+                    <button type="submit" class="btn btn-sm btn-link text-primary p-0">
+                      <i class="bi bi-pin-angle-fill"></i>
+                    </button>
+                  </form>
+                  <a href="{% url 'einsatzstellen_notiz' es_id=notiz.einsatzstelle.id %}" class="btn btn-sm btn-link text-primary p-0">
+                    <i class="bi bi-arrow-right"></i>
+                  </a>
+                </div>
               </div>
-              <div class="d-flex gap-1">
-                <form method="post" action="{% url 'einsatzstellen_notiz' es_id=notiz.einsatzstelle.id %}" class="d-inline">
-                  {% csrf_token %}
-                  <input type="hidden" name="action" value="unpin" />
-                  <input type="hidden" name="notiz_id" value="{{ notiz.id }}" />
-                  <button type="submit" class="btn btn-sm btn-link text-primary p-0">
-                    <i class="bi bi-pin-angle-fill"></i>
-                  </button>
-                </form>
-                <a href="{% url 'einsatzstellen_notiz' es_id=notiz.einsatzstelle.id %}" class="btn btn-sm btn-link text-primary p-0">
-                  <i class="bi bi-arrow-right"></i>
-                </a>
-              </div>
+              {{ notiz.notiz|linebreaks }}
             </div>
-            {{ notiz.notiz|linebreaks }}
           </div>
         </div>
       {% endfor %}
@@ -388,11 +385,11 @@
         {% if recent_ampel_entries %}
           <div class="list-group list-group-flush">
             {% for entry in recent_ampel_entries|slice:":5" %}
-              <div class="list-group-item px-0 border-0 py-2">
+              <div class="list-group-item px-0 border-0 py-2 cursor-pointer" onclick="showAmpelComment('{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ entry.user }}')">
                 <div class="d-flex justify-content-between align-items-start">
                   <div class="me-auto">
-                    <div class="d-flex align-items-center mb-1">
-                      <span class="status-indicator {% if entry.status == 'G' %}bg-success{% elif entry.status == 'Y' %}bg-warning{% else %}bg-danger{% endif %}"></span>
+                    <div class="d-flex align-items-center mb-1 gap-1">
+                      <span class="ampel-dot ampel-{{ entry.status }}"></span>
                       <strong>{{ entry.user.get_full_name|default:entry.user.username }}</strong>
                     </div>
                     {% if entry.comment %}
@@ -403,6 +400,7 @@
                 </div>
               </div>
             {% endfor %}
+            {% include 'components/ampel_modal.html' %}
           </div>
           <div class="text-center mt-3">
             <a href="{% url 'list_ampel' %}" class="btn btn-sm btn-outline-primary">
