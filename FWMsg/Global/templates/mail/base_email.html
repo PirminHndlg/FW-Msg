@@ -11,7 +11,7 @@
         {% block header %}
         <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #eeeeee; margin-bottom: 20px;">
             {% if base64_image %}
-                <img style="width: 60px; height: auto; margin-bottom: 10px; background-color: {{ org_color }};" src="data:image/png;base64,{{ base64_image }}" alt="{{ org_name }} Logo">
+                <img style="width: 60px; height: auto; margin-bottom: 10px; background-color: {{ org_color }}; padding: 5px; border-radius: 5px;" src="data:image/png;base64,{{ base64_image }}" alt="{{ org_name }} Logo">
             {% endif %}
             <h2 style="color: {{ org_color }}; margin: 0; font-weight: 600;">{{ org_name }}{% block header_subtitle %}{% endblock %}</h2>
         </div>
