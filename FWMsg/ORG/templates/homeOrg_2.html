@@ -284,13 +284,13 @@
                         {% if task.faellig %}
                           <small class="text-muted">
                             <i class="bi bi-calendar-event me-1 text-primary"></i>
-                            <span class="fw-medium">{% trans "Fällig" %}:</span> {{ task.faellig|date:'d.m.Y' }}
+                            <span class="fw-medium">{% trans "Fällig" %}:</span> {{ task.faellig|date:'d.m.' }}
                           </small>
                         {% endif %}
                         {% if task.erledigt_am %}
                           <small class="text-muted">
                             <i class="bi bi-send me-1 text-primary"></i>
-                            <span class="fw-medium">{% trans "Eingereicht" %}:</span> {{ task.erledigt_am|date:'d.m.Y' }}
+                            <span class="fw-medium">{% trans "Eingereicht" %}:</span> {{ task.erledigt_am|date:'d.m.' }}
                           </small>
                         {% endif %}
                       </div>
@@ -336,7 +336,7 @@
                         {% if task.faellig %}
                               <small class="text-danger">
                                 <i class="bi bi-calendar-event me-1 text-primary"></i>
-                                <span class="fw-medium">{% trans "Fällig" %}:</span> {{ task.faellig|date:'d.m.Y' }}
+                                <span class="fw-medium">{% trans "Fällig" %}:</span> {{ task.faellig|date:'d.m.' }}
                               </small>
                             {% endif %}
                       </div>
