@@ -6,7 +6,7 @@ import logging
 from FW.models import Freiwilliger
 from TEAM.models import Team
 from Global.push_notification import send_push_notification_to_user
-from Global.send_email import format_register_email_org, format_aufgabe_erledigt_email, format_mail_calendar_reminder_email, format_ampel_email, send_email_with_archive
+from Global.send_email import format_register_email_org, format_aufgabe_erledigt_email, format_mail_calendar_reminder_email, format_ampel_email, send_email_with_archive, get_logo_base64
 from django.core.mail import send_mail
 
 
@@ -28,8 +28,9 @@ def send_register_email_task(customuser_id):
     freiwilliger_name = f"{user.first_name} {user.last_name}"
     username = user.username
     action_url = f'{settings.DOMAIN_HOST}{reverse("first_login_with_params", args=[username, einmalpasswort])}'
+    base64_image = get_logo_base64(org)
     
-    email_content = format_register_email_org(einmalpasswort, action_url, org_name, freiwilliger_name, username)
+    email_content = format_register_email_org(einmalpasswort, action_url, org_name, freiwilliger_name, username, base64_image)
     subject = f'Account erstellt: {freiwilliger_name}'
     if send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [user.email], html_message=email_content):
         return True

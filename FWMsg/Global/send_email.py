@@ -190,8 +190,9 @@ def format_new_post_email(post_title, post_text, author_name, post_date, has_sur
     }
     return render_to_string('mail/new_post.html', context)
 
-def format_register_email_org(einmalpasswort, action_url, org_name, user_name, username):
+def format_register_email_org(einmalpasswort, action_url, org_name, user_name, username, base64_image):
     context = {
+        'base64_image': base64_image,
         'einmalpasswort': einmalpasswort,
         'action_url': action_url,
         'org_name': org_name,
