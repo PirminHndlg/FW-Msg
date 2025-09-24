@@ -3,10 +3,13 @@
 {% block german_content %}
 <p>Es gibt einen neuen Kalendereintrag für Dich:</p>
 
-<div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+<div style="background-color: #f7f9fc; border-left: 4px solid {{ org_color }}; padding: 15px; margin: 15px 0; border-radius: 3px;">
     <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{{ event_name }}</p>
     <p style="margin: 5px 0;"><span style="color: #666666;">Start:</span> <span style="font-weight: 500;">{{ event_start }}</span></p>
     <p style="margin: 5px 0;"><span style="color: #666666;">Ende:</span> <span style="font-weight: 500;">{{ event_end }}</span></p>
+    {% if event_location %}
+    <p style="margin: 5px 0;"><span style="color: #666666;">Ort:</span> <span style="font-weight: 500;">{{ event_location }}</span></p>
+    {% endif %}
     {% if event_description %}
     <p style="margin: 5px 0;"><span style="color: #666666;">Beschreibung:</span> {{ event_description }}</p>
     {% endif %}
@@ -18,10 +21,13 @@
 {% block english_content %}
 <p>There is a new calendar entry for you:</p>
 
-<div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
+<div style="background-color: #f7f9fc; border-left: 4px solid {{ org_color }}; padding: 15px; margin: 15px 0; border-radius: 3px;">
     <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{{ event_name }}</p>
     <p style="margin: 5px 0;"><span style="color: #666666;">Start:</span> <span style="font-weight: 500;">{{ event_start }}</span></p>
     <p style="margin: 5px 0;"><span style="color: #666666;">End:</span> <span style="font-weight: 500;">{{ event_end }}</span></p>
+    {% if event_location %}
+    <p style="margin: 5px 0;"><span style="color: #666666;">Location:</span> <span style="font-weight: 500;">{{ event_location }}</span></p>
+    {% endif %}
     {% if event_description %}
     <p style="margin: 5px 0;"><span style="color: #666666;">Description:</span> {{ event_description }}</p>
     {% endif %}

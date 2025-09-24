@@ -9,7 +9,7 @@
     <div style="padding: 20px; background-color: #ffffff; border: 1px solid #eeeeee; border-radius: 5px;">
         <!-- Header -->
         <div style="text-align: center; padding-bottom: 15px; border-bottom: 1px solid #eeeeee; margin-bottom: 15px;">
-            <h2 style="color: #3273dc; margin: 0; font-weight: 600;">{{ org_name }}</h2>
+            <h2 style="color: {{ org_color }}; margin: 0; font-weight: 600;">{{ org_name }}</h2>
         </div>
         
         <!-- Task Completion Info -->
@@ -42,7 +42,7 @@
             <!-- Action Button -->
             {% if action_button %}
             <div style="text-align: center; margin: 25px 0;">
-                <a href="{{ action_url }}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">Datei herunterladen</a>
+                <a href="{{ action_url }}" style="background-color: {{ org_color }}; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">Datei herunterladen</a>
             </div>
             {% endif %}
         </div>

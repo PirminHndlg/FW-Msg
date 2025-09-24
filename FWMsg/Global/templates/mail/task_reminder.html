@@ -3,8 +3,8 @@
 {% block german_content %}
 <p>Dies ist eine automatische Erinnerung an die folgende Aufgabe:</p>
 
-<div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
-    <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{{ aufgabe_name }}</p>
+<div style="background-color: #f7f9fc; border-left: 4px solid {{ org_color }}; padding: 15px; margin: 15px 0; border-radius: 3px;">
+    <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: {{ org_color }};">{{ aufgabe_name }}</p>
     {% if aufgabe_beschreibung %}
     <p style="margin: 5px 0;"><span style="color: #666666;">Beschreibung:</span> {{ aufgabe_beschreibung }}</p>
     {% endif %}
@@ -19,8 +19,8 @@
 {% block english_content %}
 <p>This is a reminder for the following task:</p>
 
-<div style="background-color: #f7f9fc; border-left: 4px solid #3273dc; padding: 15px; margin: 15px 0; border-radius: 3px;">
-    <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{{ aufgabe_name }}</p>
+<div style="background-color: #f7f9fc; border-left: 4px solid {{ org_color }}; padding: 15px; margin: 15px 0; border-radius: 3px;">
+    <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: {{ org_color }};">{{ aufgabe_name }}</p>
     {% if aufgabe_beschreibung %}
     <p style="margin: 5px 0;"><span style="color: #666666;">Description:</span> {{ aufgabe_beschreibung }}</p>
     {% endif %}
