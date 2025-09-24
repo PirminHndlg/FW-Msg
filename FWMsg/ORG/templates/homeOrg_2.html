@@ -216,7 +216,7 @@
         <div class="d-flex justify-content-between align-items-center">
           <h5 class="mb-0">
             <i class="bi bi-building me-2"></i>
-            {% trans "Organisations-Aufgaben" %}
+            {% trans "Aufgabenmanagement" %}
           </h5>
           <div>
             <span class="badge bg-warning rounded-pill me-1">{{ pending_tasks.count }}</span>
@@ -228,7 +228,6 @@
         {% if pending_tasks or open_tasks %}
           <!-- Custom Tab Navigation -->
           <div class="row mb-3" id="taskTabs" role="tablist">
-            {% if pending_tasks %}
             <div class="col-6">
               <button class="task-tab-card text-center p-3 bg-warning bg-opacity-10 rounded w-100 border-0 active" 
                       id="pending-tab" 
@@ -245,17 +244,15 @@
                 </small>
               </button>
             </div>
-            {% endif %}
-            {% if open_tasks %}
-            <div class="col-6{% if not pending_tasks %} offset-6{% endif %}">
-              <button class="task-tab-card text-center p-3 bg-danger bg-opacity-10 rounded w-100 border-0{% if not pending_tasks %} active{% endif %}" 
+            <div class="col-6">
+              <button class="task-tab-card text-center p-3 bg-danger bg-opacity-10 rounded w-100 border-0" 
                       id="overdue-tab" 
                       data-bs-toggle="tab" 
                       data-bs-target="#overdue-pane" 
                       type="button" 
                       role="tab" 
                       aria-controls="overdue-pane" 
-                      aria-selected="{% if not pending_tasks %}true{% else %}false{% endif %}">
+                      aria-selected="false">
                 <div class="h4 mb-1 text-danger">{{ open_tasks.count }}</div>
                 <small class="text-muted">
                   <i class="bi bi-exclamation-triangle me-1"></i>
@@ -263,20 +260,10 @@
                 </small>
               </button>
             </div>
-            {% endif %}
-            {% if not pending_tasks and not open_tasks %}
-            <div class="col-12">
-              <div class="text-center p-3 bg-success bg-opacity-10 rounded">
-                <div class="h4 mb-1 text-success">0</div>
-                <small class="text-muted">{% trans "Alle Aufgaben erledigt" %}</small>
-              </div>
-            </div>
-            {% endif %}
           </div>
 
           <!-- Tab Content -->
           <div class="tab-content" id="taskTabsContent">
-            {% if pending_tasks %}
             <div class="tab-pane fade show active" 
                  id="pending-pane" 
                  role="tabpanel" 
@@ -284,19 +271,35 @@
               <div class="list-group list-group-flush">
                 {% for task in pending_tasks %}
                   <div class="list-group-item px-0 border-0 py-2">
-                    <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex justify-content-between align-items-center">
                       <div class="me-auto">
                         <h6 class="mb-1">{{ task.aufgabe.name }}</h6>
-                        <small class="text-muted">
-                          <i class="bi bi-person me-1"></i>{{ task.user.get_full_name|default:task.user.username }}
-                          {% if task.faellig %}
-                            <i class="bi bi-calendar ms-2 me-1"></i>{{ task.faellig|date:'d.m.Y' }}
-                          {% endif %}
-                        </small>
+                        <div class="d-flex flex-column gap-1">
+                          <small class="text-muted">
+                            <i class="bi bi-person me-1"></i>{{ task.user.get_full_name|default:task.user.username }}
+                          </small>
+                        </div>
+                      </div>
+                      <div class="d-flex flex-column gap-1 mx-2 align-items-end">
+                        {% if task.faellig %}
+                          <small class="text-muted">
+                            <i class="bi bi-calendar-event me-1 text-primary"></i>
+                            <span class="fw-medium">{% trans "Fällig" %}:</span> {{ task.faellig|date:'d.m.Y' }}
+                          </small>
+                        {% endif %}
+                        {% if task.erledigt_am %}
+                          <small class="text-muted">
+                            <i class="bi bi-send me-1 text-primary"></i>
+                            <span class="fw-medium">{% trans "Eingereicht" %}:</span> {{ task.erledigt_am|date:'d.m.Y' }}
+                          </small>
+                        {% endif %}
                       </div>
                       <div class="d-flex gap-1">
                         <button class="btn btn-sm btn-success" 
                                 onclick="markTaskAsDone({{ task.id }})"
+                                tooltip="true"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
                                 title="{% trans 'Als erledigt markieren' %}">
                           <i class="bi bi-check"></i>
                         </button>
@@ -304,32 +307,45 @@
                     </div>
                   </div>
                 {% endfor %}
+                {% if not pending_tasks %}
+                  <div class="text-center py-4">
+                    <i class="bi bi-check2-circle text-muted mb-2" style="font-size: 2rem"></i>
+                    <p class="text-muted mb-0">{% trans "Keine pending Aufgaben" %}</p>
+                  </div>
+                {% endif %}
               </div>
             </div>
-            {% endif %}
 
-            {% if open_tasks %}
-            <div class="tab-pane fade{% if not pending_tasks %} show active{% endif %}" 
+            <div class="tab-pane fade" 
                  id="overdue-pane" 
                  role="tabpanel" 
                  aria-labelledby="overdue-tab">
               <div class="list-group list-group-flush">
                 {% for task in open_tasks %}
                   <div class="list-group-item px-0 border-0 py-2">
-                    <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex justify-content-between align-items-center">
                       <div class="me-auto">
                         <h6 class="mb-1">{{ task.aufgabe.name }}</h6>
-                        <small class="text-muted">
-                          <i class="bi bi-person me-1"></i>{{ task.user.get_full_name|default:task.user.username }}
-                          {% if task.faellig %}
-                            <i class="bi bi-calendar ms-2 me-1"></i>
-                            <span class="text-danger">{{ task.faellig|date:'d.m.Y' }}</span>
-                          {% endif %}
-                        </small>
+                        <div class="d-flex flex-column gap-1">
+                          <small class="text-muted">
+                            <i class="bi bi-person me-1"></i>{{ task.user.get_full_name|default:task.user.username }}
+                          </small>
+                        </div>
+                      </div>
+                      <div class="d-flex flex-column gap-1 mx-2 align-items-end">
+                        {% if task.faellig %}
+                              <small class="text-danger">
+                                <i class="bi bi-calendar-event me-1 text-primary"></i>
+                                <span class="fw-medium">{% trans "Fällig" %}:</span> {{ task.faellig|date:'d.m.Y' }}
+                              </small>
+                            {% endif %}
                       </div>
                       <div class="d-flex gap-1">
                         <button class="btn btn-sm btn-outline-primary" 
                                 onclick="sendTaskReminder({{ task.id }})"
+                                tooltip="true"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
                                 title="{% trans 'Erinnerung senden' %}">
                           <i class="bi bi-envelope"></i>
                         </button>
@@ -337,9 +353,14 @@
                     </div>
                   </div>
                 {% endfor %}
+                {% if not open_tasks %}
+                  <div class="text-center py-4">
+                    <i class="bi bi-check2-circle text-muted mb-2" style="font-size: 2rem"></i>
+                    <p class="text-muted mb-0">{% trans "Keine überfälligen Aufgaben" %}</p>
+                  </div>
+                {% endif %}
               </div>
             </div>
-            {% endif %}
           </div>
         {% else %}
           <div class="text-center py-4">
@@ -741,7 +762,13 @@
   function markTaskAsDone(taskId) {
     const button = event.target.closest('button');
     const originalContent = button.innerHTML;
-    
+
+    // remove tooltip
+    button.removeAttribute('data-bs-original-title');
+    button.removeAttribute('data-bs-toggle');
+    button.removeAttribute('data-bs-placement');
+    button.removeAttribute('tooltip');
+
     // Show loading state
     button.innerHTML = '<i class="bi bi-hourglass-split"></i>';
     button.disabled = true;
@@ -798,21 +825,6 @@
           // Check if no more pending tasks
           const pendingPane = document.getElementById('pending-pane');
           const remainingTasks = pendingPane ? pendingPane.querySelectorAll('.list-group-item') : [];
-          if (remainingTasks.length === 0) {
-            // Hide the pending tab and switch to overdue tab if it exists
-            const pendingTab = document.getElementById('pending-tab');
-            const overdueTab = document.getElementById('overdue-tab');
-            
-            if (pendingTab) {
-              pendingTab.style.display = 'none';
-            }
-            
-            // Switch to overdue tab if it exists
-            if (overdueTab) {
-              const overdueTabInstance = new bootstrap.Tab(overdueTab);
-              overdueTabInstance.show();
-            }
-          }
         }, 300);
         
         // Show success message
@@ -837,6 +849,12 @@
     const button = event.target.closest('button');
     const originalContent = button.innerHTML;
     
+    // remove tooltip
+    button.removeAttribute('data-bs-original-title');
+    button.removeAttribute('data-bs-toggle');
+    button.removeAttribute('data-bs-placement');
+    button.removeAttribute('tooltip');
+    
     // Show loading state
     button.innerHTML = '<i class="bi bi-hourglass-split"></i>';
     button.disabled = true;
@@ -855,7 +873,21 @@
       
       if (data.success) {
         showToast('{% trans "Erinnerung erfolgreich gesendet" %}', 'success');
+        button.classList.add('btn-outline-success');
+        button.classList.remove('btn-outline-primary');
+        button.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+        button.setAttribute('data-bs-original-title', '{% trans "Erinnerung gesendet" %}');
+        button.setAttribute('data-bs-toggle', 'tooltip');
+        button.setAttribute('data-bs-placement', 'top');
+        button.setAttribute('tooltip', 'true');
       } else {
+        button.classList.add('btn-outline-danger');
+        button.classList.remove('btn-outline-primary');
+        button.innerHTML = '<i class="bi bi-x-circle-fill"></i>';
+        button.setAttribute('data-bs-original-title', data.error);
+        button.setAttribute('data-bs-toggle', 'tooltip');
+        button.setAttribute('data-bs-placement', 'top');
+        button.setAttribute('tooltip', 'true');
         showToast(data.error || '{% trans "Fehler beim Senden der Erinnerung" %}', 'error');
       }
     })
