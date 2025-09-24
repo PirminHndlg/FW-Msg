@@ -42,20 +42,20 @@ class EmailAuthenticationForm(AuthenticationForm):
 class FirstLoginForm(forms.Form):
     username = forms.CharField(
         label=_('Benutzername oder E-Mail'),
-        widget=forms.TextInput(attrs={'class': 'form-control rounded-3', 'placeholder': _('Benutzername')})
+        widget=forms.TextInput(attrs={'class': 'form-control rounded-3', 'placeholder': _('Benutzername'), 'autocomplete': 'username'})
     )
     einmalpasswort = forms.CharField(
         label=_('Einmalpasswort'),
-        widget=forms.TextInput(attrs={'class': 'form-control rounded-3', 'placeholder': _('Einmalpasswort')})
+        widget=forms.TextInput(attrs={'class': 'form-control rounded-3', 'placeholder': _('Einmalpasswort'), 'autocomplete': 'one-time-password'})
     )
     password = forms.CharField(
         label=_('Neues Passwort'),
-        widget=forms.PasswordInput(attrs={'class': 'form-control rounded-3', 'placeholder': _('Neues Passwort')}),
+        widget=forms.PasswordInput(attrs={'class': 'form-control rounded-3', 'placeholder': _('Neues Passwort'), 'autocomplete': 'new-password'}),
         help_text=_('Ihr Passwort muss folgende Anforderungen erfüllen:<br>• Mindestens 8 Zeichen lang<br>• Mindestens ein Großbuchstabe (A-Z)<br>• Mindestens ein Kleinbuchstabe (a-z)<br>• Mindestens eine Zahl (0-9)<br>• Mindestens ein Sonderzeichen (!@#$%^&* etc.)<br>• Nicht zu ähnlich zu Ihren persönlichen Daten')
     )
     password_repeat = forms.CharField(
         label=_('Neues Passwort wiederholen'),
-        widget=forms.PasswordInput(attrs={'class': 'form-control rounded-3', 'placeholder': _('Neues Passwort wiederholen')})
+        widget=forms.PasswordInput(attrs={'class': 'form-control rounded-3', 'placeholder': _('Neues Passwort wiederholen'), 'autocomplete': 'new-password'})
     )
 
     def clean(self):
