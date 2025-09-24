@@ -764,7 +764,25 @@ def image_detail(request, image_id):
     except BilderGallery2.DoesNotExist:
         messages.error(request, 'Bild nicht gefunden')
         return redirect('bilder')
+    
 
+def edit_bild(request, bild_id):
+    try:
+        bild = Bilder2.objects.get(id=bild_id, org=request.user.org, user=request.user)
+        if request.method == 'POST':
+            titel = request.POST.get('titel').strip()
+            beschreibung = request.POST.get('beschreibung').strip()
+            if titel == '':
+                messages.error(request, 'Titel darf nicht leer sein')
+                return redirect('image_detail', image_id=bild_id)
+            bild.titel = titel
+            bild.beschreibung = beschreibung
+            bild.save()
+    except Bilder2.DoesNotExist:
+        messages.error(request, 'Bild nicht gefunden')
+    except Exception as e:
+        messages.error(request, f'Fehler beim Bearbeiten des Bildes: {str(e)}')
+    return redirect(request.META.get('HTTP_REFERER'))
 
 
 @login_required
