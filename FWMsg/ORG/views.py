@@ -8,7 +8,7 @@ import json
 
 from django.db.models import ForeignKey
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseNotFound, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.db.models import Max, F, Min
 from django.contrib.auth.decorators import login_required
@@ -1396,13 +1396,13 @@ def download_aufgabe(request, id):
 
 
 @login_required
-@required_role('O')
+@required_role('OT')
 @filter_person_cluster
 def download_bild_as_zip(request, id):
     try:
         bild = Bilder2.objects.get(pk=id)
         if not bild.org == request.user.org:
-            return HttpResponse('Nicht erlaubt')
+            return HttpResponseNotAllowed('Nicht erlaubt')
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, 'w') as zipf:
             for i, bild_gallery in enumerate(BilderGallery2.objects.filter(bilder=bild)):
@@ -1412,7 +1412,7 @@ def download_bild_as_zip(request, id):
         response['Content-Disposition'] = f'attachment; filename="{bild.user.username}_{bild.titel}_{bild.date_created.strftime("%Y-%m-%d")}.zip"'
         return response
     except Bilder2.DoesNotExist:
-        return HttpResponse('Nicht erlaubt')
+        return HttpResponseNotFound('Nicht gefunden')
 
 
 @login_required
