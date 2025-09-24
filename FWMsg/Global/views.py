@@ -784,6 +784,23 @@ def edit_bild(request, bild_id):
         messages.error(request, f'Fehler beim Bearbeiten des Bildes: {str(e)}')
     return redirect(request.META.get('HTTP_REFERER'))
 
+@login_required
+@required_role('OT')
+# @filter_person_cluster
+def download_bild_as_zip(request, id):
+    try:
+        bild = Bilder2.objects.get(pk=id, org=request.user.org)
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w') as zipf:
+            for i, bild_gallery in enumerate(BilderGallery2.objects.filter(bilder=bild)):
+                zipf.write(bild_gallery.image.path, f"{bild.user.username}-{bild.titel.replace(' ', '_')}-{bild.date_created.strftime('%Y-%m-%d')}_{i}{os.path.splitext(bild_gallery.image.path)[1]}")
+        zip_buffer.seek(0)
+        response = HttpResponse(zip_buffer, content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename="{bild.user.username}_{bild.titel}_{bild.date_created.strftime("%Y-%m-%d")}.zip"'
+        return response
+    except Bilder2.DoesNotExist:
+        return HttpResponseNotFound('Nicht gefunden')
+
 
 @login_required
 @required_person_cluster('dokumente')

@@ -40,7 +40,6 @@ urlpatterns = [
     path('bewerbung-answer-download-fields/<int:bewerber_id>', views.application_answer_download_fields, name='application_answer_download_fields'),
     
     path('download-aufgabe/<int:id>', views.download_aufgabe, name='download_aufgabe'),
-    path('download-bild/<int:id>', views.download_bild_as_zip, name='download_bild_as_zip'),
     path('statistik/', views.statistik, name='statistik'),
 
     path('nginx-statistic/', views.nginx_statistic, name='nginx_statistic'),
