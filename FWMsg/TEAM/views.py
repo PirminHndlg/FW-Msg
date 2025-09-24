@@ -44,18 +44,20 @@ def home(request):
             
             # Count placement locations
             einsatzstellen_count = Einsatzstelle2.objects.filter(
+                org=team_member.org,
                 land__in=assigned_countries
             ).count()
             
             # Get recent ampel entries (last 7 days)
             recent_ampel_entries = Ampel2.objects.filter(
+                org=team_member.org,
                 user__in=freiwillige_users,
                 date__gte=timezone.now() - timedelta(days=7)
             ).select_related('user').order_by('-date')[:10]
             
             # Get recent images from volunteers
             recent_bilder = Bilder2.objects.filter(
-                user__in=freiwillige_users
+                org=team_member.org
             ).select_related('user').order_by('-date_created')[:6]
             
             # Group images by gallery
@@ -68,7 +70,8 @@ def home(request):
             
             # Get recent posts from volunteers
             posts = Post2.objects.filter(
-                user__in=freiwillige_users
+                org=team_member.org,
+                person_cluster=team_member.user.person_cluster
             ).select_related('user').order_by('-date')[:3]
             
             # Generate country statistics

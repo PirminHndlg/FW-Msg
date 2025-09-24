@@ -7,6 +7,7 @@
 {% endblock %}
 
 {% block head %}
+  <link rel="stylesheet" href="{% static 'css/list_ampel.css' %}">
   <style>
     .dashboard-section {
       margin-bottom: 2rem;
@@ -339,7 +340,7 @@
             <div class="card-body">
               <div class="list-group list-group-flush">
                 {% for entry in recent_ampel_entries %}
-                  <div class="list-group-item px-0 border-0 py-2">
+                  <div class="list-group-item px-0 border-0 py-2 cursor-pointer" onclick="showAmpelComment('{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ entry.user.get_full_name|default:entry.user.username }}')">
                     <div class="d-flex justify-content-between align-items-start">
                       <div class="me-auto">
                         <div class="d-flex align-items-center mb-1">
@@ -361,6 +362,7 @@
                     </div>
                   </div>
                 {% endfor %}
+                {% include 'components/ampel_modal.html' %}
               </div>
               <div class="text-center mt-3">
                 <a href="{% url 'team_ampelmeldung' %}" class="btn btn-sm btn-outline-primary">Alle anzeigen</a>
@@ -381,6 +383,7 @@
             <div class="card-body">
               <div class="list-group list-group-flush">
                 {% for post in posts %}
+                <a href="{% url 'post_detail' post.id %}" class="text-decoration-none">
                   <div class="list-group-item px-0 border-0 py-2">
                     <h6 class="mb-1">{{ post.title }}</h6>
                     <p class="mb-1 text-muted small">{{ post.text|truncatewords:15 }}</p>
@@ -389,6 +392,7 @@
                       <i class="bi bi-calendar ms-2 me-1"></i>{{ post.date|date:'d.m.Y' }}
                     </small>
                   </div>
+                </a>
                 {% endfor %}
               </div>
               <div class="text-center mt-3">
