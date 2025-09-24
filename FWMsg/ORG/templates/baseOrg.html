@@ -24,7 +24,7 @@
     <div class="d-flex">
       {# Main Navigation Bar #}
       <div class="content w-100">
-        <nav class="navbar bg-primary navbar-expand-md">
+        <nav class="navbar bg-primary navbar-expand-lg">
           <div class="container-fluid">
             {# Organization Logo and Name #}
             <a class="navbar-brand" href="{% url 'org_home' %}">
@@ -83,6 +83,9 @@
                   </div>
                 </li>
                 <li>
+                  <a href="{% url 'kalender' %}" class="nav-link">{% trans "Kalender" %}</a>
+                </li>
+                <li>
                   <a href="{% url 'bilder' %}" class="nav-link">{% trans "Bilder" %}</a>
                 </li>
                 <li>
@@ -100,6 +103,10 @@
 
                 <!-- Profil Button -->
                 <a href="{% url 'profil' %}" class="btn btn-light"><i class="bi bi-person"></i></a>
+
+                {% if user.is_superuser %}
+                  <a href="{% url 'admin:index' %}" class="btn btn-secondary"><i class="bi bi-person-gear"></i></a>
+                {% endif %}
               </div>
             </div>
           </div>
