@@ -14,7 +14,11 @@
         <span>{{ bild.user.get_full_name|default:bild.user.username }}</span>
         <span class="mx-1">•</span>
         {% endif %}
+        {% if not show_date_with_time %}
         <span>{{ bild.date_created|date:'d.m.Y' }}</span>
+        {% else %}
+        <span>{{ bild.date_created|date:'d.m.Y H:i' }}</span>
+        {% endif %}
       </div>
     </div>
   </div>
