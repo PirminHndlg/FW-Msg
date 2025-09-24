@@ -1314,6 +1314,7 @@ def mark_task_as_done(request):
     try:
         user_aufgabe = UserAufgaben.objects.get(pk=request.GET.get('id'), org=request.user.org)
         user_aufgabe.erledigt = True
+        user_aufgabe.erledigt_am = datetime.now().date()
         user_aufgabe.save()
         return JsonResponse({'success': True})
     except UserAufgaben.DoesNotExist:
@@ -1970,7 +1971,7 @@ def ajax_update_task_status(request):
         
         user_aufgabe.pending = pending
         user_aufgabe.erledigt = erledigt
-        user_aufgabe.erledigt_am = timezone.now() if erledigt else None
+        user_aufgabe.erledigt_am = timezone.now().date() if (erledigt or pending) else None
         user_aufgabe.save()
         
         return JsonResponse({
