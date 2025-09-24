@@ -188,6 +188,7 @@ def contacts(request):
 @required_role('T')
 def ampelmeldung(request):
     from Global.views import check_organization_context
+    from ORG.views import _get_ampel_matrix
 
     freiwillige = _get_Freiwillige(request)
     users = [fw.user for fw in freiwillige]
