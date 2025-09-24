@@ -11,9 +11,9 @@
         {% block header %}
         <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #eeeeee; margin-bottom: 20px;">
             {% if base64_image %}
-                <img style="width: 60px; height: auto; margin-bottom: 10px;" src="data:image/png;base64,{{ base64_image }}" alt="{{ org_name }} Logo">
+                <img style="width: 60px; height: auto; margin-bottom: 10px; background-color: {{ org_color }};" src="data:image/png;base64,{{ base64_image }}" alt="{{ org_name }} Logo">
             {% endif %}
-            <h2 style="color: #3273dc; margin: 0; font-weight: 600;">{{ org_name }}{% block header_subtitle %}{% endblock %}</h2>
+            <h2 style="color: {{ org_color }}; margin: 0; font-weight: 600;">{{ org_name }}{% block header_subtitle %}{% endblock %}</h2>
         </div>
         {% endblock %}
         
@@ -26,7 +26,7 @@
             {% block german_action_button %}
             {% if action_url %}
             <div style="text-align: center; margin: 25px 0;">
-                <a href="{{ action_url }}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">{% block german_button_text %}Zur Plattform{% endblock %}</a>
+                <a href="{{ action_url }}" style="background-color: {{ org_color }}; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">{% block german_button_text %}Zur Plattform{% endblock %}</a>
             </div>
             {% endif %}
             {% endblock %}
@@ -47,7 +47,7 @@
             {% block english_action_button %}
             {% if action_url %}
             <div style="text-align: center; margin: 25px 0;">
-                <a href="{{ action_url }}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">{% block english_button_text %}View Platform{% endblock %}</a>
+                <a href="{{ action_url }}" style="background-color: {{ org_color }}; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">{% block english_button_text %}View Platform{% endblock %}</a>
             </div>
             {% endif %}
             {% endblock %}
@@ -60,7 +60,7 @@
             {% block footer_content %}
             <p style="margin: 5px 0;">Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions</p>
             {% if unsubscribe_url %}
-            <p style="margin: 5px 0;">Um keine weiteren E-Mails zu erhalten, <a href="{{ unsubscribe_url }}" style="color: #3273dc; text-decoration: none;">klicke hier</a></p>
+            <p style="margin: 5px 0;">Um keine weiteren E-Mails zu erhalten, <a href="{{ unsubscribe_url }}" style="color: {{ org_color }}; text-decoration: none;">klicke hier</a></p>
             {% endif %}
             <p style="margin: 5px 0; color: #999999;">This is an automatically generated email - no reply expected</p>
             {% endblock %}

@@ -93,12 +93,13 @@ def send_email_with_archive(subject, message, from_email, recipient_list, html_m
         print(f"Email sending failed: {e}")
         return False
 
-def format_aufgaben_email(aufgabe_name, aufgabe_deadline, base64_image, org_name, user_name, action_url, aufgabe_beschreibung='', unsubscribe_url=None):
+def format_aufgaben_email(aufgabe_name, aufgabe_deadline, base64_image, org_color, org_name, user_name, action_url, aufgabe_beschreibung='', unsubscribe_url=None):
     context = {
         'aufgabe_name': aufgabe_name,
         'aufgabe_beschreibung': aufgabe_beschreibung,
         'aufgabe_deadline': aufgabe_deadline.strftime('%d.%m.%Y') if aufgabe_deadline else '',
         'base64_image': base64_image,
+        'org_color': org_color,
         'org_name': org_name,
         'user_name': user_name,
         'action_url': action_url,
@@ -106,19 +107,20 @@ def format_aufgaben_email(aufgabe_name, aufgabe_deadline, base64_image, org_name
     }
     return render_to_string('mail/task_reminder.html', context)
 
-def format_new_aufgaben_email(aufgaben, base64_image, org_name, user_name, action_url, unsubscribe_url=None):
+def format_new_aufgaben_email(aufgaben, base64_image, org_color, org_name, user_name, action_url, unsubscribe_url=None):
     aufgaben_name = ', '.join([aufgabe.aufgabe.name for aufgabe in aufgaben])
     context = {
         'aufgaben_name': aufgaben_name,
         'base64_image': base64_image,
         'org_name': org_name,
+        'org_color': org_color,
         'user_name': user_name,
         'action_url': action_url,
         'unsubscribe_url': unsubscribe_url
     }
     return render_to_string('mail/new_tasks.html', context)
 
-def format_aufgabe_erledigt_email(aufgabe_name, aufgabe_deadline, org_name, user_name, action_url, requires_confirmation=False, has_file_upload=False, aufgabe_beschreibung='', unsubscribe_url=None):
+def format_aufgabe_erledigt_email(aufgabe_name, aufgabe_deadline, org_color, org_name, user_name, action_url, requires_confirmation=False, has_file_upload=False, aufgabe_beschreibung='', unsubscribe_url=None):
     # Convert boolean values to Yes/No text in German
     requires_confirmation_text = "Ja" if requires_confirmation else "Nein"
     has_file_upload_text = "Ja" if has_file_upload else "Nein"
@@ -128,6 +130,7 @@ def format_aufgabe_erledigt_email(aufgabe_name, aufgabe_deadline, org_name, user
         'aufgabe_beschreibung': aufgabe_beschreibung,
         'aufgabe_deadline': aufgabe_deadline.strftime('%d.%m.%Y') if aufgabe_deadline else '',
         'org_name': org_name,
+        'org_color': org_color,
         'user_name': user_name,
         'requires_confirmation': requires_confirmation_text,
         'has_file_upload': has_file_upload_text,
@@ -137,37 +140,41 @@ def format_aufgabe_erledigt_email(aufgabe_name, aufgabe_deadline, org_name, user
     }
     return render_to_string('mail/task_completed.html', context)
 
-def format_register_email_fw(einmalpasswort, action_url, base64_image, org_name, user_name, username):
+def format_register_email_fw(einmalpasswort, action_url, base64_image, org_color, org_name, user_name, username):
     context = {
         'einmalpasswort': einmalpasswort,
         'action_url': action_url,
         'base64_image': base64_image,
+        'org_color': org_color,
         'org_name': org_name,
         'user_name': user_name,
         'username': username
     }
     return render_to_string('mail/register_volunteer.html', context)
 
-def format_mail_calendar_reminder_email(title, start, end, description, action_url, unsubscribe_url, user_name, org_name, base64_image):
+def format_mail_calendar_reminder_email(title, start, end, location, description, action_url, unsubscribe_url, user_name, org_name, base64_image, org_color):
     event_name = title
     event_start = start.astimezone(timezone.get_current_timezone()).strftime('%d.%m.%Y %H:%M') if start else ''
     event_end = end.astimezone(timezone.get_current_timezone()).strftime('%d.%m.%Y %H:%M') if end else ''
+    event_location = location if location else ''
     event_description = description if description else ''
 
     context = {
         'event_name': event_name,
         'event_start': event_start,
         'event_end': event_end,
+        'event_location': event_location,
         'event_description': event_description,
         'action_url': action_url,
         'unsubscribe_url': unsubscribe_url,
         'base64_image': base64_image,
         'org_name': org_name,
+        'org_color': org_color,
         'user_name': user_name
     }
     return render_to_string('mail/calendar_reminder.html', context)
 
-def format_new_post_email(post_title, post_text, author_name, post_date, has_survey, action_url, unsubscribe_url, user_name, org_name, base64_image):
+def format_new_post_email(post_title, post_text, author_name, post_date, has_survey, action_url, unsubscribe_url, user_name, org_name, base64_image, org_color):
     """Format email for new post notifications"""
     # Format the post date
     formatted_date = post_date.astimezone(timezone.get_current_timezone()).strftime('%d.%m.%Y %H:%M') if post_date else ''
@@ -186,13 +193,15 @@ def format_new_post_email(post_title, post_text, author_name, post_date, has_sur
         'unsubscribe_url': unsubscribe_url,
         'user_name': user_name,
         'org_name': org_name,
-        'base64_image': base64_image
+        'base64_image': base64_image,
+        'org_color': org_color
     }
     return render_to_string('mail/new_post.html', context)
 
-def format_register_email_org(einmalpasswort, action_url, org_name, user_name, username, base64_image):
+def format_register_email_org(einmalpasswort, action_url, org_name, user_name, username, base64_image, org_color):
     context = {
         'base64_image': base64_image,
+        'org_color': org_color,
         'einmalpasswort': einmalpasswort,
         'action_url': action_url,
         'org_name': org_name,
@@ -201,7 +210,7 @@ def format_register_email_org(einmalpasswort, action_url, org_name, user_name, u
     }
     return render_to_string('mail/register_organization.html', context)
 
-def format_ampel_email(user_name, ampel_user_name, ampel_user_email, status, comment, ampel_date, action_url, unsubscribe_url, org_name, base64_image):
+def format_ampel_email(user_name, ampel_user_name, ampel_user_email, status, comment, ampel_date, action_url, unsubscribe_url, org_name, base64_image, org_color):
     """Format email for ampel status notifications to organization"""
     # Format the ampel date
     formatted_date = ampel_date.astimezone(timezone.get_current_timezone()).strftime('%d.%m.%Y %H:%M') if ampel_date else ''
@@ -216,11 +225,12 @@ def format_ampel_email(user_name, ampel_user_name, ampel_user_email, status, com
         'action_url': action_url,
         'unsubscribe_url': unsubscribe_url,
         'org_name': org_name,
-        'base64_image': base64_image
+        'base64_image': base64_image,
+        'org_color': org_color
     }
     return render_to_string('mail/ampel_notification.html', context)
 
-def format_image_uploaded_email(bild_titel, bild_beschreibung, uploader_name, image_count, action_url, unsubscribe_url, user_name, org_name, base64_image):
+def format_image_uploaded_email(bild_titel, bild_beschreibung, uploader_name, image_count, action_url, unsubscribe_url, user_name, org_name, base64_image, org_color):
     """Format email for newly uploaded image notification to organization"""
     context = {
         'bild_titel': bild_titel,
@@ -232,6 +242,7 @@ def format_image_uploaded_email(bild_titel, bild_beschreibung, uploader_name, im
         'user_name': user_name,
         'org_name': org_name,
         'base64_image': base64_image,
+        'org_color': org_color
     }
     return render_to_string('mail/image_uploaded.html', context)
 
@@ -240,11 +251,15 @@ def get_logo_base64(org):
         base64_image = base64.b64encode(org_logo.read()).decode('utf-8')
     return base64_image
 
+def get_org_color(org):
+    return org.farbe
+
 def send_aufgaben_email(aufgabe, org):
     # Get the organization logo URL
     action_url = 'https://volunteer.solutions/aufgaben/' + str(aufgabe.aufgabe.id) + "/"
     unsubscribe_url = aufgabe.user.customuser.get_unsubscribe_url()
     base64_image = get_logo_base64(org)
+    org_color = get_org_color(org)
     aufg_name = aufgabe.aufgabe.name
     aufg_deadline = aufgabe.faellig
     aufg_beschreibung = aufgabe.aufgabe.beschreibung if aufgabe.aufgabe.beschreibung else ''
@@ -254,6 +269,7 @@ def send_aufgaben_email(aufgabe, org):
         aufgabe_name=aufg_name,
         aufgabe_deadline=aufg_deadline,
         base64_image=base64_image,
+        org_color=org_color,
         org_name=org.name,
         user_name=user_name,
         action_url=action_url,
@@ -284,10 +300,12 @@ def send_new_aufgaben_email(aufgaben, org):
     action_url = 'https://volunteer.solutions/aufgaben/'
 
     base64_image = get_logo_base64(org)
+    org_color = get_org_color(org)
 
     email_content = format_new_aufgaben_email(
         aufgaben=aufgaben,
         base64_image=base64_image,
+        org_color=org_color,
         org_name=org.name,
         user_name=f"{aufgaben[0].user.first_name} {aufgaben[0].user.last_name}",
         action_url=action_url,
@@ -324,6 +342,7 @@ def send_new_post_email(post_id):
     
     # Get organization logo
     base64_image = get_logo_base64(org)
+    org_color = get_org_color(org)
     
     # Get author information
     author_name = f"{post.user.first_name} {post.user.last_name}" if post.user.first_name and post.user.last_name else post.user.username
@@ -364,7 +383,8 @@ def send_new_post_email(post_id):
                 unsubscribe_url=unsubscribe_url,
                 user_name=user_name,
                 org_name=org.name,
-                base64_image=base64_image
+                base64_image=base64_image,
+                org_color=org_color
             )
             
             # Send email using Django's send_mail

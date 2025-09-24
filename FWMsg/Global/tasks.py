@@ -4,6 +4,7 @@ from django.conf import settings
 import logging
 from Global.send_email import (
     format_image_uploaded_email,
+    get_org_color,
     send_email_with_archive,
     get_logo_base64,
     send_new_post_email
@@ -30,6 +31,7 @@ def send_image_uploaded_email_task(bild_id):
         org_email = org.email
         uploader_name = f"{bild.user.first_name} {bild.user.last_name}".strip() or bild.user.username
         base64_image = get_logo_base64(org)
+        org_color = get_org_color(org)
         unsubscribe_url = None
         user_name = org.name
         org_name = org.name
@@ -45,6 +47,7 @@ def send_image_uploaded_email_task(bild_id):
             user_name=user_name,
             org_name=org_name,
             base64_image=base64_image,
+            org_color=org_color
         )
 
         send_email_with_archive(

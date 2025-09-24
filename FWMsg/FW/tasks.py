@@ -2,7 +2,7 @@ import base64
 from django.conf import settings
 from django.urls import reverse
 from celery import shared_task
-from Global.send_email import format_register_email_fw, get_logo_base64, send_email_with_archive
+from Global.send_email import format_register_email_fw, get_logo_base64, get_org_color, send_email_with_archive
 
 @shared_task
 def send_register_email_task(custom_user_id):
@@ -12,12 +12,13 @@ def send_register_email_task(custom_user_id):
     org = custom_user.org
 
     base64_image = get_logo_base64(org)
+    org_color = get_org_color(org)
     org_name = org.name
     einmalpasswort = custom_user.einmalpasswort
     user_name = f"{custom_user.user.first_name} {custom_user.user.last_name}"
     username = custom_user.user.username
     action_url = f'{settings.DOMAIN_HOST}{reverse("first_login_with_params", args=[username, einmalpasswort])}'
     
-    email_content = format_register_email_fw(einmalpasswort, action_url, base64_image, org_name, user_name, username)
+    email_content = format_register_email_fw(einmalpasswort, action_url, base64_image, org_color, org_name, user_name, username)
     subject = f'Account erstellt: {user_name}'
     return send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [custom_user.user.email], html_message=email_content)
