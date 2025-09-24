@@ -1093,7 +1093,7 @@ def view_profil(request, user_id=None):
     gallery_images = get_bilder(request.user.org, user)
 
     ampel_of_user = None
-    if this_user:
+    if this_user or request.user.role in 'OT':
         ampel_of_user = Ampel2.objects.filter(user=user).order_by('-date').first()
 
     profil_user_form = ProfilUserForm()
