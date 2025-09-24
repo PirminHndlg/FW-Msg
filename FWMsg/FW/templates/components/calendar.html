@@ -193,6 +193,18 @@
                 dayHeaderDidMount: function(info) {
                     info.el.style.padding = '8px 0';
                     info.el.style.fontWeight = '500';
+                },
+                eventDidMount: function(info) {
+                    // Add tooltip with location and description if available
+                    let tooltipContent = info.event.title;
+                    if (info.event.extendedProps.location) {
+                        tooltipContent += '\n📍 ' + info.event.extendedProps.location;
+                    }
+                    if (info.event.extendedProps.description) {
+                        tooltipContent += '\n📝 ' + info.event.extendedProps.description;
+                    }
+                    info.el.setAttribute('title', tooltipContent);
+                    info.el.style.cursor = 'pointer';
                 }
             });
             calendar.render();

@@ -278,6 +278,7 @@ class KalenderEvent(OrgModel):
     title = models.CharField(max_length=255, verbose_name='Titel', help_text='Titel des Termins')
     start = models.DateTimeField(verbose_name='Beginnt am', help_text='Startdatum und -uhrzeit des Termins')
     end = models.DateTimeField(verbose_name='Endet am', help_text='Enddatum und -uhrzeit des Termins')
+    location = models.CharField(max_length=255, verbose_name='Ort', null=True, blank=True, help_text='Ort des Termins (optional)')
     description = models.TextField(verbose_name='Beschreibung', null=True, blank=True, help_text='Ausführliche Beschreibung des Termins (optional)')
     mail_reminder_sent_to = models.ManyToManyField(User, blank=True, verbose_name='Mail-Erinnerung gesendet an', help_text='Personen, an die eine Mail-Erinnerung gesendet wurde', related_name='calendar_reminders')
 

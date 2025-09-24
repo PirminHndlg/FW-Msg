@@ -1233,7 +1233,11 @@ def get_calendar_events(request):
             'url': reverse('kalender_event', args=[kalender_event.id]),
             'backgroundColor': '#000',
             'borderColor': '#000',
-            'textColor': '#fff'
+            'textColor': '#fff',
+            'extendedProps': {
+                'location': kalender_event.location,
+                'description': kalender_event.description
+            }
         })
             
     return JsonResponse(calendar_events, safe=False)
@@ -1779,6 +1783,14 @@ def kalender_abbonement(request, token):
         for kalender_event in kalender_events:
             ical_event = Event()
             ical_event.add('summary', kalender_event.title)
+            
+            # Add location if available
+            if kalender_event.location:
+                ical_event.add('location', kalender_event.location)
+            
+            # Add description if available
+            if kalender_event.description:
+                ical_event.add('description', kalender_event.description)
             
             # Ensure proper timezone handling
             if kalender_event.start:
