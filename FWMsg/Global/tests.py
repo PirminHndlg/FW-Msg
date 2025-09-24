@@ -1583,10 +1583,10 @@ class ProfileViewsTests(TestCase):
         
         # Create test freiwilliger
         from FW.models import Freiwilliger
-        self.freiwilliger = Freiwilliger.objects.create(
+        self.freiwilliger = Freiwilliger.objects.get_or_create(
             org=self.org,
             user=self.freiwillige_user
-        )
+        )[0]
         
         # Create client
         self.client = Client()

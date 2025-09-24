@@ -74,15 +74,15 @@ class TeamViewsTest(TestCase):
         )
         
         # Create team member
-        self.team = Team.objects.create(org=self.org, user=self.user)
+        self.team = Team.objects.get_or_create(org=self.org, user=self.user)[0]
         self.team.land.add(self.land)
         
         # Create test volunteer
-        self.freiwilliger = Freiwilliger.objects.create(
+        self.freiwilliger = Freiwilliger.objects.get_or_create(
             org=self.org,
             user=self.user,
             einsatzland2=self.land
-        )
+        )[0]
         
         # Create test attributes
         self.phone_attr = Attribute.objects.create(
