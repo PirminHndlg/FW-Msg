@@ -1,17 +1,11 @@
 {% extends "mail/base_email.html" %}
 
-{% block header %}
-<div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #eeeeee; margin-bottom: 20px;">
-    <h2 style="color: #3273dc; margin: 0; font-weight: 600;">Volunteer.Solutions</h2>
-    <p style="margin: 10px 0 0 0; color: #666666;">Plattform für {{ org_name }}</p>
-</div>
-{% endblock %}
-
 {% block show_english %}{% endblock %}
 
+{% block german_content %}
 <!-- German Version -->
 <div style="margin-bottom: 30px;">
-    <p style="font-size: 16px; margin-bottom: 15px;">An {{ org_name }},</p>
+    <!-- <p style="font-size: 16px; margin-bottom: 15px;">An {{ org_name }},</p> -->
     
     <p>Es wurde ein neuer Account auf Volunteer.Solutions erstellt.</p>
     
@@ -20,15 +14,8 @@
         <p style="margin: 5px 0;"><span style="display: inline-block; width: 120px; color: #666666;">Benutzername:</span> <span style="font-weight: 500;">{{ username }}</span></p>
         <p style="margin: 5px 0;"><span style="display: inline-block; width: 120px; color: #666666;">Einmalpasswort:</span> <span style="font-weight: 500; font-family: monospace; font-size: 16px; letter-spacing: 1px;">{{ einmalpasswort }}</span></p>
     </div>
-    
-    {% if action_url %}
-    <div style="text-align: center; margin: 25px 0;">
-        <a href="{{ action_url }}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">Jetzt einloggen</a>
-    </div>
-    {% endif %}
 </div>
-
-{% block german_content %}{% endblock %}
+{% endblock %}
 
 {% block german_button_text %}Jetzt einloggen{% endblock %}
 
