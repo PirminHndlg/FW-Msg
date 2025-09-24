@@ -546,7 +546,7 @@ class AddKalenderEventForm(OrgFormMixin, forms.ModelForm):
                 self.fields['end_time'].initial = end_local.time()
         
         # Reorder fields to put person_cluster right after user
-        field_order = ['title', 'user', 'person_cluster', 'start_date', 'start_time', 'end_date', 'end_time', 'description']
+        field_order = ['title', 'user', 'person_cluster', 'start_date', 'start_time', 'end_date', 'end_time', 'location', 'description']
         self.order_fields(field_order)
         
     def _clean_time(self):
