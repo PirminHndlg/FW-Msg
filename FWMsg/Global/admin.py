@@ -24,9 +24,20 @@ from simple_history.admin import SimpleHistoryAdmin
 class CustomUserAdmin(SimpleHistoryAdmin):
     search_fields = ['user__username', 'user__email', 'user__first_name', 'user__last_name']
     actions = ['send_registration_email', 'create_small_image', 'create_token']
-    list_display = ('user', 'person_cluster', 'mail_notifications', 'get_user_email', 'get_last_login', 'get_online_status_display')
+    list_display = (
+        'user',
+        'person_cluster',
+        'mail_notifications',
+        'get_user_email',
+        'get_last_login',
+        'get_online_status_display',
+    )
     list_filter = ('person_cluster', 'mail_notifications', ('einmalpasswort', admin.EmptyFieldListFilter))
     readonly_fields = ('mail_notifications_unsubscribe_auth_key',)
+
+    def get_online_status_display(self, obj):
+        return obj.get_online_status_display()
+    get_online_status_display.admin_order_field = 'last_seen'
 
     def get_user_email(self, obj):
         return obj.user.email
