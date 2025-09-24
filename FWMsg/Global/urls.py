@@ -19,6 +19,7 @@ urlpatterns = [
     path('bilder/comment/<int:comment_id>/remove/', views.remove_comment_from_bild, name='remove_comment_from_bild'),
     path('bilder/<int:bild_id>/reaction/<str:emoji>/', views.toggle_reaction_to_bild, name='toggle_reaction_to_bild'),
     path('bilder/<int:bild_id>/reactions/', views.get_bild_reactions, name='get_bild_reactions'),
+    path('bilder/edit/<int:bild_id>/', views.edit_bild, name='edit_bild'),
 
     path('posts/', views.posts_overview, name='posts_overview'),
     path('posts/add/', views.post_add, name='post_add'),

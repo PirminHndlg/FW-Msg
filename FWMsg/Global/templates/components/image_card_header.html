@@ -25,20 +25,52 @@
   {% if request.user.role in 'OT' or request.user == bild.user %}
     <div class="d-flex justify-content-end mt-2">
       <div class="btn-group">
+        {% if request.user == bild.user %}
+          <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#editBildModal-{{ bild.id }}" data-tooltip="{% trans 'Bearbeiten' %}">
+            <i class="bi bi-pencil"></i>
+          </button>
+        {% endif %}
+        {% if request.user.role in 'OT' %}
+        <a href="{% url 'download_bild_as_zip' bild.id %}" download class="btn btn-sm btn-outline-primary d-flex align-items-center" data-tooltip="{% trans 'Download' %}">
+          <i class="bi bi-download"></i>
+        </a>
+        {% endif %}
         {% if request.user.role == 'O' or request.user == bild.user %}
           <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#deleteBildModal-{{ bild.id }}" data-tooltip="{% trans 'Löschen' %}">
             <i class="bi bi-trash"></i>
           </button>
         {% endif %}
-        {% if request.user.role in 'OT' %}
-          <a href="{% url 'download_bild_as_zip' bild.id %}" download class="btn btn-sm btn-outline-primary d-flex align-items-center" data-tooltip="{% trans 'Download' %}">
-            <i class="bi bi-download"></i>
-          </a>
-        {% endif %}
       </div>
     </div>
   {% endif %}
 </div>
+
+{% if request.user == bild.user %}
+<div class="modal fade" id="editBildModal-{{ bild.id }}" tabindex="-1" aria-labelledby="editBildModalLabel-{{ bild.id }}" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editBildModalLabel-{{ bild.id }}">{% trans 'Bild bearbeiten' %}</h5>
+      </div>
+      <div class="modal-body">
+        <form method="post" action="{% url 'edit_bild' bild.id %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="titel" class="form-label">{% trans 'Titel' %}</label>
+            <input type="text" class="form-control" id="titel" name="titel" value="{{ bild.titel }}" required>
+          </div>
+          <div class="mb-3">
+            <label for="beschreibung" class="form-label">{% trans 'Beschreibung' %}</label>
+            <textarea class="form-control" id="beschreibung" name="beschreibung" rows="4">{{ bild.beschreibung }}</textarea>
+          </div>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Abbrechen' %}</button>
+          <button type="submit" class="btn btn-primary">{% trans 'Speichern' %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 {% if request.user.role == 'O' or request.user == bild.user %}
 <div class="modal fade" id="deleteBildModal-{{ bild.id }}" tabindex="-1" aria-labelledby="deleteBildModalLabel-{{ bild.id }}" aria-hidden="true">
