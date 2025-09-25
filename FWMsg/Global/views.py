@@ -1123,8 +1123,8 @@ def view_profil(request, user_id=None):
             profil_user.save()
             return redirect('profil')
 
-    profil_users = ProfilUser2.objects.filter(user=user)
-    user_attributes = UserAttribute.objects.filter(user=user) if this_user or request.user.role == 'O' else []
+    profil_users = ProfilUser2.objects.filter(user=user).order_by('attribut')
+    user_attributes = UserAttribute.objects.filter(user=user).order_by('attribute__name') if this_user or request.user.role == 'O' else []
     gallery_images = get_bilder(request.user.org, user)
 
     ampel_of_user = None

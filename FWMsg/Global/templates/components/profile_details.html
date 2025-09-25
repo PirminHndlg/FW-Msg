@@ -13,6 +13,21 @@
             <p class="mb-2"><strong>{{ user_attribute.attribute.name }}:</strong> {{ user_attribute.value|default:"" }}</p>
         {% endfor%}
         <p class="mb-2"><strong>{% trans "Email" %}:</strong> <a href="mailto:{{ user.email|default:'' }}">{{ user.email|default:"" }}</a></p>
+        {% with freiwilliger=user.freiwilliger %}
+        {% if freiwilliger %}
+            {% if freiwilliger.start_real %}
+                <p class="mb-2"><strong>{% trans "Start real" %}:</strong> {{ freiwilliger.start_real|date:"d.m.Y" }}</p>
+            {% elif freiwilliger.start_geplant %}
+                <p class="mb-2"><strong>{% trans "Start geplant" %}:</strong> {{ freiwilliger.start_geplant|date:"d.m.Y" }}</p>
+            {% endif %}
+        
+            {% if freiwilliger.ende_real %}
+                <p class="mb-2"><strong>{% trans "Ende real" %}:</strong> {{ freiwilliger.ende_real|date:"d.m.Y" }}</p>
+            {% elif freiwilliger.ende_geplant %}
+                <p class="mb-2"><strong>{% trans "Ende geplant" %}:</strong> {{ freiwilliger.ende_geplant|date:"d.m.Y" }}</p>
+            {% endif %}
+        {% endif %}
+        {% endwith %}
     {% endif %}
 
     {% if user.customuser.geburtsdatum %}
