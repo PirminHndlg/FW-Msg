@@ -570,20 +570,7 @@
 
 <!-- Calendar Section -->
 {% if request.user.customuser.person_cluster.calendar %}
-<div class="dashboard-section">
-  <div class="section-header">
-    <h2 class="section-title">
-      <i class="bi bi-calendar3 me-2 text-primary"></i>
-      {% trans "Kalender" %}
-    </h2>
-  </div>
-  
-  <div class="card card-compact">
-    <div class="card-body">
-      {% include 'components/calendar.html' %}
-    </div>
-  </div>
-</div>
+  {% include 'components/calendar.html' %}
 {% endif %}
 
 <!-- Sticky Note Modal -->
