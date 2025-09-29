@@ -271,7 +271,7 @@ def home_2(request):
     from Global.views import get_bilder, get_posts
 
     # Get all gallery images and group by bilder
-    gallery_images = get_bilder(request.user.org, limit=6)
+    gallery_images = get_bilder(request.user.org, limit=4)
 
     # Get pending tasks
     now = timezone.now().date()
