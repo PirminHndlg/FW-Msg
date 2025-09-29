@@ -54,6 +54,129 @@
         .alert ul li:last-child {
             margin-bottom: 0;
         }
+        
+        /* Enhanced message block styles */
+        .message-container {
+            position: relative;
+            z-index: 1040;
+        }
+        
+        .message-alert {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+            padding: 1rem 1.25rem;
+            animation: slideInDown 0.4s ease-out;
+            transition: all 0.3s ease;
+        }
+        
+        .message-alert:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+        
+        .message-alert:last-child {
+            margin-bottom: 0;
+        }
+        
+        .message-icon {
+            font-size: 1.1rem;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        .message-content {
+            flex: 1;
+            line-height: 1.4;
+        }
+        
+        .message-close {
+            opacity: 0.6;
+            transition: opacity 0.2s ease;
+        }
+        
+        .message-close:hover {
+            opacity: 1;
+        }
+        
+        /* Message type specific styles */
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        
+        .alert-info {
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .alert-warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .alert-danger, .alert-error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+        
+        /* Auto-dismiss progress bar */
+        .message-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 0 0 12px 12px;
+            overflow: hidden;
+        }
+        
+        .message-progress-bar {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            animation: progressBar 5s linear;
+            transform-origin: left;
+        }
+        
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes progressBar {
+            from {
+                transform: scaleX(1);
+            }
+            to {
+                transform: scaleX(0);
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+        
+        .message-fade-out {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
     </style>
   </head>
   <body class="d-flex flex-column min-vh-100">
@@ -81,7 +204,7 @@
                                 <li><a class="dropdown-item" href="{% url 'bw_application_answer' %}"><i class="bi bi-list-check me-2"></i>Meine Antworten</a></li>
                                 <li><a class="dropdown-item" href="{% url 'bw_application_files_list' %}"><i class="bi bi-file-earmark-text me-2"></i>Dateianhänge</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Abmelden</a></li>
+                                <li><a class="dropdown-item text-warning" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Abmelden</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteAccountModal"><i class="bi bi-trash me-2"></i>Konto löschen und Bewerbung ziehen</a></li>
                             </ul>
@@ -97,11 +220,34 @@
     <!-- Main Content -->
     <main class="flex-grow-1">
         {% if messages %}
-            <div class="container mt-3">
+            <div class="container message-container">
                 {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="alert alert-{{ message.tags }} message-alert alert-dismissible fade show d-flex align-items-start" 
+                         role="alert" 
+                         data-message-type="{{ message.tags }}"
+                         {% if message.tags == 'success' or message.tags == 'info' %}data-auto-dismiss="true"{% endif %}>
+                        <div class="message-icon">
+                            {% if message.tags == 'success' %}
+                                <i class="bi bi-check-circle-fill"></i>
+                            {% elif message.tags == 'info' %}
+                                <i class="bi bi-info-circle-fill"></i>
+                            {% elif message.tags == 'warning' %}
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                            {% elif message.tags == 'error' or message.tags == 'danger' %}
+                                <i class="bi bi-x-circle-fill"></i>
+                            {% else %}
+                                <i class="bi bi-bell-fill"></i>
+                            {% endif %}
+                        </div>
+                        <div class="message-content">
+                            {{ message }}
+                        </div>
+                        <button type="button" class="btn-close message-close ms-2" data-bs-dismiss="alert" aria-label="Schließen"></button>
+                        {% if message.tags == 'success' or message.tags == 'info' %}
+                            <div class="message-progress">
+                                <div class="message-progress-bar"></div>
+                            </div>
+                        {% endif %}
                     </div>
                 {% endfor %}
             </div>
@@ -173,23 +319,82 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Delete account confirmation functionality
             const deleteConfirmation = document.getElementById('deleteConfirmation');
             const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
             
-            deleteConfirmation.addEventListener('input', function() {
-                confirmDeleteBtn.disabled = this.value !== 'DELETE';
-                if (this.value === 'DELETE') {
-                    confirmDeleteBtn.classList.remove('disabled');
-                } else {
-                    confirmDeleteBtn.classList.add('disabled');
+            if (deleteConfirmation && confirmDeleteBtn) {
+                deleteConfirmation.addEventListener('input', function() {
+                    confirmDeleteBtn.disabled = this.value !== 'DELETE';
+                    if (this.value === 'DELETE') {
+                        confirmDeleteBtn.classList.remove('disabled');
+                    } else {
+                        confirmDeleteBtn.classList.add('disabled');
+                    }
+                });
+
+                // Reset input when modal is closed
+                const deleteAccountModal = document.getElementById('deleteAccountModal');
+                if (deleteAccountModal) {
+                    deleteAccountModal.addEventListener('hidden.bs.modal', function() {
+                        deleteConfirmation.value = '';
+                        confirmDeleteBtn.disabled = true;
+                    });
+                }
+            }
+
+            // Enhanced message functionality
+            const messageAlerts = document.querySelectorAll('.message-alert');
+            
+            messageAlerts.forEach(function(alert) {
+                // Auto-dismiss for success and info messages
+                if (alert.dataset.autoDismiss === 'true') {
+                    setTimeout(function() {
+                        if (alert.classList.contains('show')) {
+                            alert.classList.add('message-fade-out');
+                            setTimeout(function() {
+                                const bsAlert = new bootstrap.Alert(alert);
+                                bsAlert.close();
+                            }, 300);
+                        }
+                    }, 5000);
+                }
+
+                // Enhanced close button interaction
+                const closeBtn = alert.querySelector('.btn-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() {
+                        alert.classList.add('message-fade-out');
+                    });
+                }
+
+                // Pause auto-dismiss on hover
+                if (alert.dataset.autoDismiss === 'true') {
+                    const progressBar = alert.querySelector('.message-progress-bar');
+                    if (progressBar) {
+                        alert.addEventListener('mouseenter', function() {
+                            progressBar.style.animationPlayState = 'paused';
+                        });
+
+                        alert.addEventListener('mouseleave', function() {
+                            progressBar.style.animationPlayState = 'running';
+                        });
+                    }
                 }
             });
 
-            // Reset input when modal is closed
-            const deleteAccountModal = document.getElementById('deleteAccountModal');
-            deleteAccountModal.addEventListener('hidden.bs.modal', function() {
-                deleteConfirmation.value = '';
-                confirmDeleteBtn.disabled = true;
+            // Keyboard accessibility for messages
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const visibleAlerts = document.querySelectorAll('.message-alert.show');
+                    visibleAlerts.forEach(function(alert) {
+                        alert.classList.add('message-fade-out');
+                        setTimeout(function() {
+                            const bsAlert = new bootstrap.Alert(alert);
+                            bsAlert.close();
+                        }, 300);
+                    });
+                }
             });
         });
     </script>
