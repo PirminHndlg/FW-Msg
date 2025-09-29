@@ -10,7 +10,7 @@
         <div class="col-12 col-md-8 col-lg-6">
             <div class="card rounded-4 shadow-sm">
                 <div class="card-header bg-light rounded-top-4 py-3">
-                    <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap">
                         <div class="d-flex align-items-center">
                             <div class="account-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
                                 <i class="bi bi-person-plus text-white fs-5"></i>
@@ -21,8 +21,8 @@
                         <div class="d-flex align-items-center gap-2">
                             <img src="{% url 'serve_image' org.id %}" 
                                  alt="{{ org.name }}" 
-                                 class="img-fluid rounded-circle border border-2 border-light shadow-sm" 
-                                 style="height: 42px; object-fit: cover;">
+                                 class="img-fluid rounded-circle border border-2 border-light shadow-sm bg-primary p-1" 
+                                 style="height: 50px; object-fit: cover;">
                             <h4 class="card-subtitle mb-0 fw-semibold text-primary">{{ org.name }}</h4>
                         </div>
                     </div>

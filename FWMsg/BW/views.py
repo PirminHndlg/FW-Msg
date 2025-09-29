@@ -114,8 +114,8 @@ def bw_application_answer(request, question_id=None):
         bewerber = Bewerber.objects.get(user=request.user)
         
         if bewerber.abgeschlossen == True:
-            messages.error(request, 'Sie haben bereits Ihre Bewerbung abgeschlossen.')
-            return redirect('bw_application_complete')
+            messages.error(request, 'Sie haben bereits Ihre Bewerbung abgeschlossen und können keine Antworten mehr ändern.')
+            return redirect('bw_home')
         
         answer = form.save()
         if answer.answer == '':
@@ -125,7 +125,7 @@ def bw_application_answer(request, question_id=None):
         if next_question:
             return redirect('bw_application_answer', question_id=next_question.id)
         else:
-            return redirect('bw_application_complete')
+            return redirect('bw_home')
         
     answered_questions_ids = ApplicationAnswer.objects.filter(user=request.user).values_list('question_id', flat=True)
     print(answered_questions_ids)
@@ -159,7 +159,7 @@ def bw_application_complete(request):
     try:
         application_text = ApplicationText.objects.filter(org=request.user.org).first()
         if application_text.deadline and application_text.deadline < datetime.now().date():
-            messages.error(request, 'Die Abgabefrist ist abgelaufen.')
+            messages.error(request, 'Die Abgabefrist ist abgelaufen und Sie können keine Bewerbung mehr absenden.')
             return redirect('bw_home')
     except ApplicationText.DoesNotExist:
         pass
@@ -196,12 +196,18 @@ def bw_application_file_answer(request, file_question_id):
         form = ApplicationFileAnswerForm(request.POST or None, request.FILES or None, user=request.user, file_question=file_question, instance=answer)
     else:
         form = ApplicationFileAnswerForm(request.POST or None, user=request.user, file_question=file_question, instance=answer)
-
-    if request.method == 'POST' and form.is_valid() and len(request.FILES) == 1:
-        form.save()
-        return redirect('bw_application_files_list')
-    elif request.method == 'POST' and form.is_valid() and len(request.FILES) == 0:
-        return redirect('bw_application_files_list')
+        
+    if request.method == 'POST':
+        bewerber = Bewerber.objects.get(user=request.user)
+        if bewerber.abgeschlossen == True:
+            messages.error(request, 'Sie haben bereits Ihre Bewerbung abgeschlossen und können keine Dateien mehr hochladen.')
+            return redirect('bw_home')
+        
+        if form.is_valid() and len(request.FILES) == 1:
+            form.save()
+            return redirect('bw_application_files_list')
+        elif form.is_valid() and len(request.FILES) == 0:
+            return redirect('bw_application_files_list')
     
     return render(request, 'bw_application_file_answer.html', {'form': form, 'file_question': file_question, 'answer': answer})
 

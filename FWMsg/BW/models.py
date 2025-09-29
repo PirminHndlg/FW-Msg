@@ -329,6 +329,11 @@ class ApplicationFileQuestion(OrgModel):
         blank=True,
         help_text="Die Position der Datei in der Bewerbung. Wenn leer, wird hinten eingefügt.",
     )
+    is_profile_picture = models.BooleanField(
+        verbose_name="Ist Profilbild",
+        default=False,
+        help_text="Dieses Bild wird als Profilbild des Bewerbers:in angezeigt.",
+    )
 
     def save(self, *args, **kwargs):
         if not self.order:
@@ -358,6 +363,15 @@ class ApplicationAnswerFile(OrgModel):
     file = models.FileField(
         verbose_name="Datei", upload_to="bewerbung/", null=True, blank=True
     )
+    
+    def save(self, *args, **kwargs):
+        if self.file_question.is_profile_picture:
+            try:
+                self.user.customuser.profil_picture = self.file
+                self.user.customuser.save()
+            except Exception as e:
+                print(e)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.org.name
