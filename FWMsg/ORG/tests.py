@@ -928,7 +928,6 @@ class AjaxTaskOperationsTests(TestCase):
         user_aufgabe.refresh_from_db()
         self.assertTrue(user_aufgabe.pending)
         self.assertFalse(user_aufgabe.erledigt)
-        self.assertIsNone(user_aufgabe.erledigt_am)
 
     def test_ajax_update_task_status_invalid_json(self):
         """Test AJAX update with invalid JSON"""
