@@ -1236,7 +1236,7 @@ def get_calendar_events(request):
             'textColor': '#000'
         })
 
-    if request.user.is_staff:
+    if request.user.is_staff or request.user.role == 'O':
         custom_users = CustomUser.objects.filter(org=request.user.org)
     else:
         custom_users = CustomUser.objects.filter(person_cluster=request.user.person_cluster)
