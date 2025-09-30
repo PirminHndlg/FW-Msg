@@ -42,6 +42,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login
 from django.conf import settings
 from django.http import (
+    FileResponse,
     HttpResponseForbidden,
     HttpResponseRedirect, 
     HttpResponse, 
@@ -53,6 +54,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
+from BW.models import ApplicationAnswer, ApplicationAnswerFile, Bewerber
 from Global.send_email import send_email_with_archive
 from Global.tasks import send_image_uploaded_email_task
 from TEAM.models import Team
@@ -94,6 +96,7 @@ from ORG.views import base_template as org_base_template
 from TEAM.views import base_template as team_base_template
 from FW.views import base_template as fw_base_template
 from BW.views import base_template as bw_base_template
+from Ehemalige.views import base_template as ehemalige_base_template
 from FWMsg.celery import send_email_aufgaben_daily
 from FWMsg.decorators import required_person_cluster, required_role
 from .forms import EinsatzstelleNotizForm, FeedbackForm, AddPostForm
@@ -239,6 +242,11 @@ def check_organization_context(request, context=None):
         context.update({
             'extends_base': bw_base_template,
             'is_bewerber': True
+        })
+    elif request.user.role == 'E':
+        context.update({
+            'extends_base': ehemalige_base_template,
+            'is_ehemalige': True
         })
 
     return context
@@ -1938,3 +1946,65 @@ def export_data(request):
         
         messages.error(request, 'Beim Export der Daten ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.')
         return redirect('settings')
+
+
+@login_required
+@required_role('ET')
+def list_bewerber(request):
+    bewerber = Bewerber.objects.filter(org=request.user.org, accessible_by_team_member__in=[request.user])
+    context = {
+        'bewerber': bewerber
+    }
+    context = check_organization_context(request, context)
+    return render(request, 'list_bewerber.html', context=context)
+
+
+@login_required
+@required_role('ET')
+def bewerber_detail(request, bewerber_id):
+    try:
+        bewerber = Bewerber.objects.get(id=bewerber_id, org=request.user.org, accessible_by_team_member=request.user)
+        bewerber_fragen = ApplicationAnswer.objects.filter(org=request.user.org, user=bewerber.user)
+        bewerber_files = ApplicationAnswerFile.objects.filter(org=request.user.org, user=bewerber.user)
+        context = {
+            'bewerber': bewerber,
+            'bewerber_fragen': bewerber_fragen,
+            'bewerber_files': bewerber_files
+        }
+        context = check_organization_context(request, context)
+        return render(request, 'bewerber_detail.html', context=context)
+    except Exception as e:
+        messages.error(request, f'Fehler: {e}')
+        return redirect('index_home')
+
+
+@login_required
+@required_role('BOTEr')
+def bw_application_file_answer_download(request, file_answer_id):
+    try:
+        if request.user.customuser.person_cluster.view == 'B':
+            file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, user=request.user)
+        else:
+            file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, file_question__org=request.user.org)
+            if request.user.customuser.person_cluster.view in 'TE':
+                try:
+                    file_answer_user = file_answer.user
+                    file_answer_bewerber = Bewerber.objects.get(user=file_answer_user, org=request.user.org)
+                    if not file_answer_bewerber.accessible_by_team_member.filter(id=request.user.id).exists():
+                        messages.error(request, 'Sie haben keine Berechtigung, diese Datei herunterzuladen')
+                        return redirect('index_home')
+                except Exception as e:
+                    messages.error(request, 'Datei nicht gefunden')
+                    return redirect('index_home')
+                
+    except ApplicationAnswerFile.DoesNotExist:
+        messages.error(request, 'Datei nicht gefunden')
+        return redirect('index_home')
+    
+    if file_answer.file and os.path.exists(file_answer.file.path):
+        response = FileResponse(file_answer.file)
+        response['Content-Disposition'] = f'attachment; filename="{file_answer.file.name}"'
+        return response
+    else:
+        messages.error(request, 'Datei nicht gefunden')
+        return redirect('index_home')

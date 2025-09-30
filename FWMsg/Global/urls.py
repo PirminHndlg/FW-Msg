@@ -67,6 +67,10 @@ urlpatterns = [
     path('einsatzstellen_notiz/', views.einsatzstellen_notiz, name='einsatzstellen_notiz'),
     path('einsatzstellen_notiz/<int:es_id>/', views.einsatzstellen_notiz, name='einsatzstellen_notiz'),
     # path('test_email/', views.test_email, name='test_email'),
+    
+    path('bewerber/', views.list_bewerber, name='list_bewerber'),
+    path('bewerber/<int:bewerber_id>/', views.bewerber_detail, name='bewerber_detail'),
+    path('bewerber/files/download/<int:file_answer_id>/', views.bw_application_file_answer_download, name='bw_application_file_answer_download'),
 ]
 
 # Add these new URL patterns

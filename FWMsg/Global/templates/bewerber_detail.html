@@ -1,0 +1,428 @@
+{% extends extends_base|default:'baseOrg.html' %}
+{% load i18n %}
+{% load base_filter %}
+
+{% block title %}
+  {{ bewerber.user.first_name }} {{ bewerber.user.last_name }} - {% trans "Bewerbungsdetails" %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+      <!-- Header Section -->
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center">
+            <!-- Profilbild -->
+          <div class="me-3">
+            <img src="{% url 'serve_profil_picture' bewerber.user.id %}" 
+                 alt="{% trans 'Profilbild' %}" 
+                 class="rounded-circle cursor-pointer" 
+                 style="height: 60px; object-fit: cover;"
+                 data-bs-toggle="modal" 
+                 data-bs-target="#profileImageModal"
+                 data-image-src="{% url 'serve_profil_picture' bewerber.user.id %}"
+                 data-image-name="{{ bewerber.user.first_name }} {{ bewerber.user.last_name }}">
+          </div>
+          <div>
+            <h2 class="mb-0 fw-bold">{{ bewerber.user.first_name }} {{ bewerber.user.last_name }}</h2>
+            <p class="text-muted mb-0">
+              <i class="bi bi-person-badge me-1"></i>{% trans "Bewerber:in" %} #{{ bewerber.id }}
+            </p>
+          </div>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{% url 'list_bewerber' %}" class="btn btn-outline-secondary rounded-3">
+            <i class="bi bi-arrow-left me-2"></i>{% trans "Zurück zur Liste" %}
+          </a>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <!-- Left Column: Basic Info & Status -->
+        <div class="col-12 col-lg-4">
+          <!-- Status Card -->
+          <div class="card rounded-4 shadow-sm mb-4">
+            <div class="card-header bg-light rounded-top-4 py-3">
+              <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-activity me-2"></i>{% trans "Status & Bewertung" %}
+              </h5>
+            </div>
+            <div class="card-body p-4">
+              <!-- Application Status -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold">{% trans "Bewerbungsstand" %}</label>
+                <div class="d-flex align-items-center">
+                  {% if bewerber.abgeschlossen %}
+                    <span class="badge bg-success d-flex align-items-center fs-6 px-3 py-2">
+                      <i class="bi bi-check-circle-fill me-2"></i>{% trans "Abgeschlossen" %}
+                    </span>
+                  {% else %}
+                    <span class="badge bg-warning d-flex align-items-center fs-6 px-3 py-2">
+                      <i class="bi bi-hourglass-split me-2"></i>{% trans "In Bearbeitung" %}
+                    </span>
+                  {% endif %}
+                </div>
+                {% if bewerber.abgeschlossen_am %}
+                  <small class="text-muted mt-1 d-block">
+                    <i class="bi bi-calendar me-1"></i>{{ bewerber.abgeschlossen_am|date:'d.m.Y H:i' }}
+                  </small>
+                {% endif %}
+              </div>
+
+              <!-- Traffic Light Status -->
+              {% if bewerber.status %}
+                <div class="mb-4">
+                  <label class="form-label fw-semibold">{% trans "Ampel-Status" %}</label>
+                  <div class="d-flex align-items-center">
+                    {% if bewerber.status == 'green' %}
+                      <span class="badge bg-success d-flex align-items-center fs-6 px-3 py-2">
+                        <i class="bi bi-check-circle-fill me-2"></i>{% trans "Grün" %}
+                      </span>
+                    {% elif bewerber.status == 'yellow' %}
+                      <span class="badge bg-warning d-flex align-items-center fs-6 px-3 py-2">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>{% trans "Gelb" %}
+                      </span>
+                    {% elif bewerber.status == 'red' %}
+                      <span class="badge bg-danger d-flex align-items-center fs-6 px-3 py-2">
+                        <i class="bi bi-x-circle-fill me-2"></i>{% trans "Rot" %}
+                      </span>
+                    {% endif %}
+                  </div>
+                  {% if bewerber.status_comment %}
+                    <div class="mt-2 p-3 bg-light rounded-3">
+                      <small class="text-muted fw-semibold">{% trans "Kommentar:" %}</small>
+                      <p class="mb-0 mt-1">{{ bewerber.status_comment }}</p>
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              <!-- Final Evaluation -->
+              {% if bewerber.endbewertung %}
+                <div class="mb-4">
+                  <label class="form-label fw-semibold">{% trans "Endbewertung" %}</label>
+                  <div class="d-flex align-items-center">
+                    {% if bewerber.endbewertung == 'G' %}
+                      <span class="badge bg-success d-flex align-items-center fs-6 px-3 py-2">
+                        <i class="bi bi-check-circle me-2"></i>{% trans "Geeignet" %}
+                      </span>
+                    {% elif bewerber.endbewertung == 'B' %}
+                      <span class="badge bg-warning d-flex align-items-center fs-6 px-3 py-2">
+                        <i class="bi bi-exclamation-triangle me-2"></i>{% trans "Bedingt geeignet" %}
+                      </span>
+                    {% elif bewerber.endbewertung == 'N' %}
+                      <span class="badge bg-danger d-flex align-items-center fs-6 px-3 py-2">
+                        <i class="bi bi-x-circle me-2"></i>{% trans "Nicht geeignet" %}
+                      </span>
+                    {% endif %}
+                  </div>
+                  {% if bewerber.note %}
+                    <div class="mt-2">
+                      <small class="text-muted fw-semibold">{% trans "Note:" %}</small>
+                      <div class="d-flex align-items-center mt-1">
+                        <i class="bi bi-star-fill text-warning me-1"></i>
+                        <span class="fw-bold">{{ bewerber.note }}</span>
+                      </div>
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              <!-- Interviews -->
+              {% if bewerber.interview_1 or bewerber.interview_2 %}
+                <div>
+                  <label class="form-label fw-semibold">{% trans "Interviews" %}</label>
+                  {% if bewerber.interview_1 %}
+                    <div class="d-flex align-items-center mb-2">
+                      <i class="bi bi-person me-2 text-primary"></i>
+                      <span>{{ bewerber.interview_1.get_full_name }}</span>
+                    </div>
+                  {% endif %}
+                  {% if bewerber.interview_2 %}
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-person me-2 text-primary"></i>
+                      <span>{{ bewerber.interview_2.get_full_name }}</span>
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Wishes & Assignment Card -->
+          <div class="card rounded-4 shadow-sm">
+            <div class="card-header bg-light rounded-top-4 py-3">
+              <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-geo-alt me-2"></i>{% trans "Wünsche & Zuteilung" %}
+              </h5>
+            </div>
+            <div class="card-body p-4">
+              {% if bewerber.gegenstand %}
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">{% trans "Gegenstand" %}</label>
+                  <p class="mb-0">{{ bewerber.gegenstand }}</p>
+                </div>
+              {% endif %}
+
+              <!-- Wishes -->
+              {% if bewerber.first_wish or bewerber.second_wish or bewerber.third_wish %}
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">{% trans "Wünsche" %}</label>
+                  {% if bewerber.first_wish %}
+                    <div class="d-flex align-items-center mb-1">
+                      <span class="badge bg-primary me-2">1.</span>
+                      <span>{{ bewerber.first_wish }}</span>
+                      {% if bewerber.first_wish_einsatzland %}
+                        <small class="text-muted ms-2">({{ bewerber.first_wish_einsatzland }})</small>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                  {% if bewerber.second_wish %}
+                    <div class="d-flex align-items-center mb-1">
+                      <span class="badge bg-secondary me-2">2.</span>
+                      <span>{{ bewerber.second_wish }}</span>
+                      {% if bewerber.second_wish_einsatzland %}
+                        <small class="text-muted ms-2">({{ bewerber.second_wish_einsatzland }})</small>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                  {% if bewerber.third_wish %}
+                    <div class="d-flex align-items-center mb-1">
+                      <span class="badge bg-info me-2">3.</span>
+                      <span>{{ bewerber.third_wish }}</span>
+                      {% if bewerber.third_wish_einsatzland %}
+                        <small class="text-muted ms-2">({{ bewerber.third_wish_einsatzland }})</small>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              <!-- No Wishes -->
+              {% if bewerber.no_wish %}
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">{% trans "Nicht gewünscht" %}</label>
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-x-circle text-danger me-2"></i>
+                    <span>{{ bewerber.no_wish }}</span>
+                    {% if bewerber.no_wish_einsatzland %}
+                      <small class="text-muted ms-2">({{ bewerber.no_wish_einsatzland }})</small>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endif %}
+
+              <!-- Assignment -->
+              {% if bewerber.zuteilung %}
+                <div>
+                  <label class="form-label fw-semibold">{% trans "Zuteilung" %}</label>
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-check-circle text-success me-2"></i>
+                    <span class="fw-semibold">{{ bewerber.zuteilung }}</span>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Answers & Files -->
+        <div class="col-12 col-lg-8">
+          <!-- Application Answers -->
+          {% if bewerber_fragen %}
+            <div class="card rounded-4 shadow-sm mb-4">
+              <div class="card-header bg-light rounded-top-4 py-3">
+                <h5 class="mb-0 fw-semibold">
+                  <i class="bi bi-chat-left-text me-2"></i>{% trans "Bewerbungsantworten" %}
+                  <span class="badge bg-primary ms-2">{{ bewerber_fragen|length }}</span>
+                </h5>
+              </div>
+              <div class="card-body p-0">
+                {% for antwort in bewerber_fragen %}
+                  <div class="border-bottom p-4 {% if forloop.last %}border-0{% endif %}">
+                    <div class="d-flex align-items-start">
+                      <div class="question-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 35px; height: 35px;">
+                        <i class="bi bi-question-lg text-white fs-6"></i>
+                      </div>
+                      <div class="flex-grow-1">
+                        <h6 class="fw-semibold mb-2">{{ antwort.question.question }}</h6>
+                        {% if antwort.question.help_text %}
+                          <p class="text-muted small mb-3">{{ antwort.question.help_text }}</p>
+                        {% endif %}
+                        <div class="answer-content">
+                          {% if antwort.answer %}
+                            <div class="bg-light rounded-3 p-3">
+                              <p class="mb-0">{{ antwort.answer|linebreaks }}</p>
+                            </div>
+                          {% else %}
+                            <div class="text-muted fst-italic">
+                              <i class="bi bi-dash-circle me-1"></i>{% trans "Keine Antwort gegeben" %}
+                            </div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Application Files -->
+          {% if bewerber_files %}
+            <div class="card rounded-4 shadow-sm">
+              <div class="card-header bg-light rounded-top-4 py-3">
+                <h5 class="mb-0 fw-semibold">
+                  <i class="bi bi-file-earmark-text me-2"></i>{% trans "Hochgeladene Dateien" %}
+                  <span class="badge bg-primary ms-2">{{ bewerber_files|length }}</span>
+                </h5>
+              </div>
+              <div class="card-body p-0">
+                {% for file in bewerber_files %}
+                  <div class="border-bottom p-4 {% if forloop.last %}border-0{% endif %}">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="d-flex align-items-center">
+                        <div class="file-icon bg-secondary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                          {% if file.file_question.is_profile_picture %}
+                            <i class="bi bi-person-circle text-white"></i>
+                          {% else %}
+                            <i class="bi bi-file-earmark text-white"></i>
+                          {% endif %}
+                        </div>
+                        <div>
+                          <h6 class="mb-1 fw-semibold">{{ file.file_question.question }}</h6>
+                          {% if file.file %}
+                            <div class="d-flex align-items-center text-muted small">
+                              <i class="bi bi-paperclip me-1"></i>
+                              <span>{{ file.file.name|split:'/'|last }}</span>
+                            </div>
+                          {% else %}
+                            <div class="text-muted small">
+                              <i class="bi bi-x-circle me-1"></i>{% trans "Keine Datei hochgeladen" %}
+                            </div>
+                          {% endif %}
+                          {% if file.file_question.help_text %}
+                            <small class="text-muted">{{ file.file_question.help_text }}</small>
+                          {% endif %}
+                        </div>
+                      </div>
+                      <div class="d-flex gap-2">
+                        {% if file.file %}
+                          <a href="{% url 'bw_application_file_answer_download' file.id %}" class="btn btn-outline-secondary btn-sm" download title="{% trans 'Datei herunterladen' %}">
+                            <i class="bi bi-download"></i>
+                          </a>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Summary Comments -->
+          {% if bewerber.kommentar_zusammenfassung %}
+            <div class="card rounded-4 shadow-sm mt-4">
+              <div class="card-header bg-light rounded-top-4 py-3">
+                <h5 class="mb-0 fw-semibold">
+                  <i class="bi bi-chat-square-text me-2"></i>{% trans "Zusammenfassung" %}
+                </h5>
+              </div>
+              <div class="card-body p-4">
+                <div class="bg-light rounded-3 p-3">
+                  <p class="mb-0">{{ bewerber.kommentar_zusammenfassung|linebreaks }}</p>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Empty States -->
+          {% if not bewerber_fragen and not bewerber_files %}
+            <div class="card rounded-4 shadow-sm">
+              <div class="card-body text-center py-5">
+                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                  <i class="bi bi-inbox text-muted" style="font-size: 2rem;"></i>
+                </div>
+                <h5 class="text-muted mb-2">{% trans "Keine Bewerbungsdetails verfügbar" %}</h5>
+                <p class="text-muted mb-0">{% trans "Diese Bewerbung enthält noch keine Antworten oder Dateien." %}</p>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Image Modal -->
+<div class="modal fade" id="profileImageModal" tabindex="-1" aria-labelledby="profileImageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content bg-dark">
+      <div class="modal-header border-0">
+        <h5 class="modal-title text-white" id="profileImageModalLabel">{% trans "Profilbild" %}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'Schließen' %}"></button>
+      </div>
+      <div class="modal-body d-flex align-items-center justify-content-center p-0">
+        <img id="modalProfileImage" src="" alt="{% trans 'Profilbild' %}" class="img-fluid" style="max-height: 90vh; max-width: 90vw; object-fit: contain;">
+      </div>
+      <div class="modal-footer border-0 justify-content-center">
+        <span id="modalImageName" class="text-white fs-5"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Handle profile image modal
+  const profileImageModal = document.getElementById('profileImageModal');
+  if (profileImageModal) {
+    profileImageModal.addEventListener('show.bs.modal', function (event) {
+      const button = event.relatedTarget;
+      const imageSrc = button.getAttribute('data-image-src');
+      const imageName = button.getAttribute('data-image-name');
+      
+      const modalImage = document.getElementById('modalProfileImage');
+      const modalName = document.getElementById('modalImageName');
+      const modalTitle = document.getElementById('profileImageModalLabel');
+      
+      if (modalImage && imageSrc) {
+        modalImage.src = imageSrc;
+      }
+      if (modalName && imageName) {
+        modalName.textContent = imageName;
+      }
+      if (modalTitle && imageName) {
+        modalTitle.textContent = imageName + ' - {% trans "Profilbild" %}';
+      }
+    });
+  }
+});
+</script>
+
+<style>
+.question-icon, .file-icon {
+  flex-shrink: 0;
+}
+
+.answer-content {
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.card {
+  transition: all 0.2s ease;
+}   
+
+.badge {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+</style>
+{% endblock %}

@@ -220,26 +220,6 @@ def bw_application_file_answer(request, file_question_id):
 
 @login_required
 @required_role('BO')
-def bw_application_file_answer_download(request, file_answer_id):
-    try:
-        if request.user.customuser.person_cluster.view == 'B':
-            file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, user=request.user)
-        elif request.user.customuser.person_cluster.view == 'O':
-            file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, file_question__org=request.user.org)
-    except ApplicationAnswerFile.DoesNotExist:
-        messages.error(request, 'Datei nicht gefunden')
-        return redirect('bw_application_files_list')
-    
-    if file_answer.file and os.path.exists(file_answer.file.path):
-        response = FileResponse(file_answer.file)
-        response['Content-Disposition'] = f'attachment; filename="{file_answer.file.name}"'
-        return response
-    else:
-        messages.error(request, 'Datei nicht gefunden')
-        return redirect('bw_application_files_list')
-
-@login_required
-@required_role('BO')
 def bw_application_file_answer_delete(request, file_answer_id):
     file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, user=request.user)
     file_answer.delete()
