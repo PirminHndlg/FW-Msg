@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.db.models import Q
 
+from Ehemalige.models import Ehemalige
 from Global.models import (
     Attribute, Aufgabe2, AufgabenCluster, KalenderEvent,
     UserAufgaben, Post2, Bilder2, CustomUser,
@@ -676,6 +677,32 @@ class AccessibleByTeamMemberForm(OrgFormMixin, forms.ModelForm):
             # Save many-to-many relationships
             self.save_m2m()
         return instance
+    
+    
+class AddEhemaligeForm(OrgFormMixin, forms.ModelForm):
+    class Meta:
+        model = Ehemalige
+        fields = '__all__'
+        exclude = ['org', 'user']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['land'].queryset = Einsatzland2.objects.filter(org=self.request.user.org)
+        add_customuser_fields(self, 'E')
+        order_fields = ['first_name', 'last_name', 'email', 'person_cluster']
+        self.order_fields(order_fields)
+        add_person_cluster_field(self)
+        
+    def save(self, commit=True):
+        if not self.instance.pk:
+            save_and_create_customuser(self)
+            self.instance.save()
+        else:
+            self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
+            self.instance.user.customuser.save()
+        instance = super().save(commit=commit)
+        save_person_cluster_field(self)
+        return instance
 
 
 model_to_form_mapping = {
@@ -693,5 +720,6 @@ model_to_form_mapping = {
     KalenderEvent: AddKalenderEventForm,
     ApplicationText: AddApplicationTextForm,
     ApplicationQuestion: AddApplicationQuestionForm,
-    ApplicationFileQuestion: AddApplicationFileQuestionForm
+    ApplicationFileQuestion: AddApplicationFileQuestionForm,
+    Ehemalige: AddEhemaligeForm
 }

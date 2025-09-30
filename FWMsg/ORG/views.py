@@ -25,6 +25,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils.translation import gettext as _
 
 from BW.models import ApplicationAnswer, ApplicationAnswerFile, ApplicationText, ApplicationQuestion, ApplicationFileQuestion, Bewerber
+from Ehemalige.models import Ehemalige
 from Global.models import (
     Attribute, AufgabenCluster, Aufgabe2, KalenderEvent, Maintenance, PersonCluster, StickyNote, UserAttribute, 
     UserAufgaben, Post2, Bilder2, CustomUser,
@@ -184,6 +185,7 @@ allowed_models_to_edit = {
     'attribute': Attribute,
     'aufgabe': Aufgabe2,
     'notfallkontakt': Notfallkontakt2,
+    'ehemalige': Ehemalige,
     'useraufgaben': UserAufgaben,
     'team': Team,
     'user': CustomUser,

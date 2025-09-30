@@ -28,6 +28,7 @@ urlpatterns = [
     path('fw/', include('FW.urls')),
     path('org/', include('ORG.urls')),
     path('team/', include('TEAM.urls')),
+    path('ehemalige/', include('Ehemalige.urls')),
     path('administrator/', include('ADMIN.urls')),
     path('bw/', include('BW.urls')),
     path('survey/', include('survey.urls')),
