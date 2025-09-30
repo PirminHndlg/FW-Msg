@@ -14,6 +14,39 @@
                         <p class="lead mb-0">{{ survey.title }}</p>
                     </div>
                     <div class="text-end">
+                        {% if total_responses > 0 %}
+                            <div class="btn-group me-2" role="group">
+                                <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
+                                    <i class="fas fa-file-pdf me-2"></i>{% trans "Export PDF" %}
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'survey:export_survey_responses_pdf' survey.id %}">
+                                            <i class="fas fa-download me-2"></i>{% trans "All Responses (ZIP)" %}
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li class="dropdown-header">{% trans "Individual Responses:" %}</li>
+                                    {% for response in responses|slice:":5" %}
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'survey:export_response_pdf' response.id %}">
+                                                <i class="fas fa-file-pdf me-2"></i>
+                                                {% if response.respondent %}
+                                                    {{ response.respondent.username }}
+                                                {% else %}
+                                                    {% trans "Anonymous" %}
+                                                {% endif %}
+                                                ({{ response.submitted_at|date:"M d" }})
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                    {% if responses|length > 5 %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li class="dropdown-header">{% trans "...and" %} {{ responses|length|add:"-5" }} {% trans "more" %}</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        {% endif %}
                         <a href="{% url 'survey:survey_manage' survey.pk %}" class="btn btn-light">
                             <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Survey" %}
                         </a>
@@ -188,6 +221,7 @@
                                     <th>{% trans "Submitted" %}</th>
                                     <th>{% trans "Answers" %}</th>
                                     <th>{% trans "IP Address" %}</th>
+                                    <th>{% trans "Actions" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -206,6 +240,13 @@
                                         </td>
                                         <td>
                                             <small class="text-muted">{{ response.ip_address|default:"-" }}</small>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'survey:export_response_pdf' response.id %}" 
+                                               class="btn btn-sm btn-outline-success" 
+                                               title="{% trans 'Export as PDF' %}">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </a>
                                         </td>
                                     </tr>
                                 {% endfor %}
