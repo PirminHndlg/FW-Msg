@@ -26,5 +26,19 @@
                 <i class="bi bi-globe mb-2" style="font-size: 3rem; color: var(--bs-primary);"></i>
             {% endif %}
         {% endif %}
+        {% if user.ehemalige and user.ehemalige.land.exists %}
+            <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
+            {% for land in user.ehemalige.land.all %}
+                <span class="fi fi-{{ land.code|lower }} mb-2 border" style="font-size: 3rem;"></span>
+            {% endfor %}
+            </div>
+        {% endif %}
+        {% if user.team and user.team.land.exists %}
+            <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
+            {% for land in user.team.land.all %}
+                <span class="fi fi-{{ land.code|lower }} mb-2 border" style="font-size: 3rem;"></span>
+            {% endfor %}
+            </div>
+        {% endif %}
     </div>
 </div> 
