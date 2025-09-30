@@ -67,7 +67,7 @@
                         {% trans "Go to Home" %}
                     </a>
                     
-                    {% if user.is_authenticated %}
+                    {% if user.is_authenticated and user.role == 'O' %}
                         <a href="{% url 'survey:survey_list' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-list me-2"></i>
                             {% trans "My Surveys" %}

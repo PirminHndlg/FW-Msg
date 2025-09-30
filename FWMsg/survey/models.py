@@ -13,17 +13,35 @@ def generate_survey_key():
     return secrets.token_urlsafe(32)
 
 
+class OrderedModelMixin:
+    """Mixin to handle automatic ordering of models"""
+    
+    def save(self, *args, **kwargs):
+        if self.order == -1:
+            # Get max order for this model's specific context
+            queryset = self._get_ordering_queryset()
+            max_order = queryset.aggregate(models.Max('order'))['order__max'] or 0
+            self.order = max_order + 1
+        else:
+            # Handle order conflicts by pushing other items down
+            self._resolve_order_conflicts()
+        super().save(*args, **kwargs)
+    
+    def _get_ordering_queryset(self):
+        """Override in subclasses to define the queryset for ordering"""
+        raise NotImplementedError("Subclasses must implement _get_ordering_queryset")
+    
+    def _resolve_order_conflicts(self):
+        """Resolve conflicts when an order is already taken"""
+        queryset = self._get_ordering_queryset()
+        for item in queryset:
+            if item.order == self.order and item.id != self.id:
+                item.order = item.order + 1
+                item.save()
+
+
 class Survey(OrgModel):
     """Main survey model"""
-    QUESTION_TYPES = [
-        ('text', _('Text')),
-        ('textarea', _('Textarea')),
-        ('select', _('Single Choice')),
-        ('checkbox', _('Multiple Choice')),
-        ('radio', _('Radio Button')),
-        ('email', _('Email')),
-        ('number', _('Number')),
-    ]
     
     title = models.CharField(max_length=200, verbose_name=_('Title'))
     description = models.TextField(blank=True, verbose_name=_('Description'))
@@ -43,7 +61,7 @@ class Survey(OrgModel):
     is_active = models.BooleanField(default=True, verbose_name=_('Is active'))
     allow_anonymous = models.BooleanField(
         default=False, 
-        verbose_name=_('Allow anonymous participation')
+        verbose_name=_('Allow anonymous participation (without login)')
     )
     start_date = models.DateField(
         null=True, blank=True, 
@@ -86,7 +104,7 @@ class Survey(OrgModel):
         return SurveyResponse.objects.filter(survey=self, is_complete=True).count()
 
 
-class SurveyQuestion(OrgModel):
+class SurveyQuestion(OrderedModelMixin, OrgModel):
     """Survey question model"""
     QUESTION_TYPES = [
         ('text', _('Short Text')),
@@ -113,8 +131,8 @@ class SurveyQuestion(OrgModel):
         default='text',
         verbose_name=_('Question Type')
     )
-    is_required = models.BooleanField(default=False, verbose_name=_('Required'))
-    order = models.PositiveIntegerField(default=0, verbose_name=_('Order'))
+    is_required = models.BooleanField(default=False, verbose_name=_('Required'), help_text=_('If the question is required'))
+    order = models.IntegerField(default=-1, null=True, blank=True, verbose_name=_('Order'))
     help_text = models.CharField(
         max_length=200, 
         blank=True, 
@@ -126,11 +144,15 @@ class SurveyQuestion(OrgModel):
         verbose_name_plural = _('Survey Questions')
         ordering = ['order']
     
+    def _get_ordering_queryset(self):
+        """Get questions for the same survey and organization"""
+        return SurveyQuestion.objects.filter(survey=self.survey, org=self.org)
+    
     def __str__(self):
         return f"{self.survey.title} - {self.question_text[:50]}"
 
 
-class SurveyQuestionOption(OrgModel):
+class SurveyQuestionOption(OrderedModelMixin, OrgModel):
     """Options for select, radio, and checkbox questions"""
     question = models.ForeignKey(
         SurveyQuestion, 
@@ -139,12 +161,16 @@ class SurveyQuestionOption(OrgModel):
         verbose_name=_('Question')
     )
     option_text = models.CharField(max_length=200, verbose_name=_('Option text'))
-    order = models.PositiveIntegerField(default=0, verbose_name=_('Order'))
+    order = models.IntegerField(default=-1, verbose_name=_('Order'))
     
     class Meta:
         verbose_name = _('Question Option')
         verbose_name_plural = _('Question Options')
         ordering = ['order']
+    
+    def _get_ordering_queryset(self):
+        """Get options for the same question and organization"""
+        return SurveyQuestionOption.objects.filter(question=self.question, org=self.org)
     
     def __str__(self):
         return f"{self.question.question_text[:30]} - {self.option_text}"
@@ -180,7 +206,18 @@ class SurveyResponse(OrgModel):
         verbose_name = _('Survey Response')
         verbose_name_plural = _('Survey Responses')
         ordering = ['-submitted_at']
-        unique_together = ['survey', 'respondent', 'session_key']
+        constraints = [
+        models.UniqueConstraint(
+            fields=['survey', 'respondent'],
+            condition=models.Q(respondent__isnull=False),
+            name='unique_survey_user'
+        ),
+        models.UniqueConstraint(
+            fields=['survey', 'session_key'],
+            condition=models.Q(session_key__isnull=False, respondent__isnull=True),
+            name='unique_survey_session'
+        ),
+    ]
     
     def __str__(self):
         respondent_info = self.respondent.username if self.respondent else f"Anonymous ({self.session_key[:8]})"

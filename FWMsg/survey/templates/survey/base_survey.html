@@ -250,7 +250,9 @@
                                 <i class="fas fa-user me-1"></i>{{ user.username }}
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'survey:survey_list' %}">{% trans "Home" %}</a></li>
+                                {% if user.role == 'O' %}
+                                    <li><a class="dropdown-item" href="{% url 'survey:survey_list' %}">{% trans "My Surveys" %}</a></li>
+                                {% endif %}
                                 {% if user.is_superuser or user.is_staff %}
                                     <li><a class="dropdown-item" href="{% url 'survey:admin_survey_list' %}">{% trans "Admin: All Surveys" %}</a></li>
                                 {% endif %}
