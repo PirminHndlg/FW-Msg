@@ -1238,8 +1238,16 @@ def get_calendar_events(request):
 
     if request.user.is_staff or request.user.role == 'O':
         custom_users = CustomUser.objects.filter(org=request.user.org)
+    elif request.user.role == 'T':
+        try:
+            team = Team.objects.get(user=request.user)
+            laender_ids = team.land.values_list('id', flat=True)
+            freiwillige_users = Freiwilliger.objects.filter(einsatzland2__in=laender_ids).values_list('user', flat=True)
+            custom_users = CustomUser.objects.filter(org=request.user.org, user__in=freiwillige_users)
+        except Team.DoesNotExist:
+            custom_users = CustomUser.objects.none()
     else:
-        custom_users = CustomUser.objects.filter(person_cluster=request.user.person_cluster)
+        custom_users = CustomUser.objects.filter(org=request.user.org, person_cluster=request.user.person_cluster)
 
     birthday_events = custom_users.filter(geburtsdatum__isnull=False)
     for birthday_event in birthday_events:
