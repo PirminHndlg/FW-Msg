@@ -19,7 +19,14 @@ class BaseOrgTable(tables.Table):
         template_name='components/table_actions.html',
         verbose_name=_('Aktionen'),
         orderable=False,
-        attrs={'th': {'style': 'width: 120px;'}}
+        attrs={
+            'th': {
+                'style': 'width: 120px;',
+            }, 
+            'td': {
+                'style': 'position: sticky; right: 0; background-color: white; z-index: 1;',
+            }
+        }
     )
     
     class Meta:
@@ -170,7 +177,16 @@ class CustomUserTable(BaseOrgTable):
         template_name='components/user_table_actions.html',
         verbose_name=_('Aktionen'),
         orderable=False,
-        attrs={'th': {'style': 'width: 150px;'}},
+        attrs={
+            'th': {
+                'style': 'width: 150px; position: sticky; right: 0; background-color: var(--bs-light); z-index: 10;',
+                'class': 'sticky-actions-header'
+            }, 
+            'td': {
+                'style': 'position: sticky; right: 0; background-color: white; z-index: 9;',
+                'class': 'sticky-actions-cell'
+            }
+        }
     )
     
     class Meta(BaseOrgTable.Meta):
