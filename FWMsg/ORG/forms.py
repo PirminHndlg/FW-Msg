@@ -664,7 +664,7 @@ class AccessibleByTeamMemberForm(OrgFormMixin, forms.ModelForm):
         users = User.objects.filter(
             customuser__person_cluster__in=person_cluster,
             customuser__org=self.org
-        ).distinct()
+        ).order_by('customuser__person_cluster').distinct()
         
         self.fields['accessible_by_team_member'].queryset = users
         
