@@ -281,7 +281,7 @@ class ApplicationAnswer(OrgModel):
 
 class ApplicationText(OrgModel):
     welcome = models.TextField(
-        verbose_name="Begrüßung",
+        verbose_name="Willkommensnachricht",
         help_text="Die Begrüßung, die der Bewerber:in beim Start der Bewerbung sieht.",
     )
     footer = models.TextField(
@@ -333,6 +333,11 @@ class ApplicationFileQuestion(OrgModel):
         verbose_name="Ist Profilbild",
         default=False,
         help_text="Dieses Bild wird als Profilbild des Bewerbers:in angezeigt.",
+    )
+    required = models.BooleanField(
+        verbose_name="Benötigt",
+        default=True,
+        help_text="Diese Datei ist nicht optional und muss bei der Bewerbung hochgeladen werden.",
     )
 
     def save(self, *args, **kwargs):

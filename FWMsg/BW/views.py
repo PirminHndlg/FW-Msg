@@ -31,6 +31,12 @@ def home(request):
     total_file_questions = ApplicationFileQuestion.objects.filter(org=request.user.org).count()
     answered_file_questions = ApplicationAnswerFile.objects.filter(user=request.user).exclude(file='').count()
     
+    required_file_questions_qs = ApplicationFileQuestion.objects.filter(org=request.user.org, required=True)
+    answered_file_questions_qs = ApplicationAnswerFile.objects.filter(user=request.user, file_question__in=required_file_questions_qs)#.exclude(file='')
+    
+    answered_required_questions = answered_file_questions_qs.count() == required_file_questions_qs.count() and answered_questions == total_questions
+    print(answered_required_questions)
+    
     context = {
         'application_text': application_text,
         'total_questions': total_questions,
@@ -42,7 +48,8 @@ def home(request):
         'answered_file_questions': answered_file_questions,
         'answered_file_questions_percentage': int(answered_file_questions / total_file_questions * 100) if total_file_questions > 0 else 0,
         'open_file_questions': total_file_questions - answered_file_questions,
-        'now': datetime.now().date()
+        'now': datetime.now().date(),
+        'answered_required_questions': answered_required_questions
     }
     
     return render(request, 'homeBw.html', context)

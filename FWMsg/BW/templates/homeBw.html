@@ -73,7 +73,7 @@
                 <div class="progress-bar bg-primary bg-gradient" role="progressbar" style="width: {{ answered_file_questions_percentage }}%;" aria-valuenow="{{ answered_file_questions }}" aria-valuemin="0" aria-valuemax="{{ total_file_questions }}"></div>
               </div>
 
-              {% if answered_questions != total_questions or answered_file_questions != total_file_questions %}
+              {% if not answered_required_questions %}
                 <div class="progress-wrapper mt-4">
                   <div class="alert alert-info border-0 rounded-4">
                     <div class="d-flex align-items-center">
@@ -103,7 +103,12 @@
                     <div class="d-flex align-items-center">
                       <i class="bi bi-check-circle-fill me-3 fs-4"></i>
                       <div>
-                        <h5 class="alert-heading mb-1">Alle Fragen und Dateien hochgeladen</h5>
+                        <h5 class="alert-heading mb-1">Alle Fragen und benötigte Dateien hochgeladen</h5>
+                        {% if open_file_questions == 1%}
+                          <p class="mb-0">Sie haben noch eine (optionale) Datei, die Sie nicht hochgeladen haben.</p>
+                        {% elif open_file_questions > 1 %}
+                          <p class="mb-0">Sie haben noch {{ open_file_questions }} (optionale) Dateien, die Sie nicht hochgeladen haben.</p>
+                        {% endif %}
                         <p class="mb-0">Sie können Ihre Bewerbung jetzt abschließen.</p>
                       </div>
                     </div>
