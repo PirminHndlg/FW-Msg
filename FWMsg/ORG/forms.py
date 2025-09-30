@@ -621,7 +621,10 @@ class AddApplicationTextForm(OrgFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['welcome'].widget = forms.Textarea(attrs={'rows': 4})
-        self.fields['deadline'].widget = forms.DateInput(attrs={'type': 'date'})
+        self.fields['deadline'].widget = forms.DateInput(
+            attrs={'type': 'date', 'class': 'form-control'},
+            format='%Y-%m-%d'
+        )
         self.fields['footer'].widget = forms.Textarea(attrs={'rows': 4})
         
 class AddApplicationQuestionForm(OrgFormMixin, forms.ModelForm):
