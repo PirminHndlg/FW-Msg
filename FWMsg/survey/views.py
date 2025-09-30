@@ -1,8 +1,9 @@
+import os
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponse
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.utils.translation import gettext_lazy as _
@@ -21,6 +22,7 @@ from .forms import (
     SurveyForm, SurveyQuestionForm, SurveyQuestionOptionForm, 
     SurveyParticipationForm, SurveyQuestionOptionFormSet
 )
+from .pdf_utils import generate_survey_response_pdf, create_pdf_response
 
 
 def get_client_ip(request):
@@ -400,3 +402,83 @@ def admin_survey_list(request):
     context['page_obj'] = page_obj
     context['surveys'] = page_obj
     return render(request, 'survey/admin_survey_list.html', context)
+
+
+# PDF Export Views
+
+@login_required
+@required_role('O')
+def export_response_pdf(request, response_id):
+    """Export a single survey response as PDF"""
+    response = get_object_or_404(SurveyResponse, id=response_id, is_complete=True)
+    check_survey_access(request, response.survey)
+    
+    # Generate PDF
+    pdf_content = generate_survey_response_pdf(response)
+    
+    # Create filename
+    respondent_name = "Anonymous" if not response.respondent else response.respondent.username
+    filename = f"survey_response_{response.survey.title}_{respondent_name}_{response.id}.pdf"
+    # Clean filename for filesystem compatibility
+    filename = "".join(c for c in filename if c.isalnum() or c in (' ', '-', '_', '.')).rstrip()
+    filename = filename.replace(' ', '_')
+    
+    return create_pdf_response(pdf_content, filename)
+
+
+@login_required
+@required_role('O')
+def export_survey_responses_pdf(request, survey_id):
+    """Export all responses for a survey as individual PDFs in a ZIP file"""
+    import zipfile
+    import tempfile
+    
+    survey = get_object_or_404(Survey, id=survey_id)
+    check_survey_access(request, survey)
+    
+    responses = survey.responses.filter(is_complete=True).select_related('respondent')
+    
+    if not responses.exists():
+        messages.warning(request, _('No completed responses found for this survey.'))
+        return redirect('survey:survey_results', pk=survey.id)
+    
+    # Create a temporary file for the ZIP
+    temp_zip = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
+    
+    try:
+        with zipfile.ZipFile(temp_zip.name, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for response in responses:
+                # Generate PDF for each response
+                pdf_content = generate_survey_response_pdf(response)
+                
+                # Create filename for this response
+                respondent_name = "Anonymous" if not response.respondent else response.respondent.username
+                pdf_filename = f"response_{respondent_name}_{response.id}.pdf"
+                pdf_filename = "".join(c for c in pdf_filename if c.isalnum() or c in (' ', '-', '_', '.')).rstrip()
+                pdf_filename = pdf_filename.replace(' ', '_')
+                
+                # Add PDF to ZIP
+                zip_file.writestr(pdf_filename, pdf_content)
+        
+        # Read the ZIP file content
+        with open(temp_zip.name, 'rb') as zip_content:
+            response_content = zip_content.read()
+        
+        # Clean up temporary file
+        os.unlink(temp_zip.name)
+        
+        # Create response
+        zip_filename = f"survey_responses_{survey.title}_{survey.id}.zip"
+        zip_filename = "".join(c for c in zip_filename if c.isalnum() or c in (' ', '-', '_', '.')).rstrip()
+        zip_filename = zip_filename.replace(' ', '_')
+        
+        response = HttpResponse(response_content, content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename="{zip_filename}"'
+        return response
+        
+    except Exception as e:
+        # Clean up on error
+        if os.path.exists(temp_zip.name):
+            os.unlink(temp_zip.name)
+        messages.error(request, _('Error generating PDF export: %(error)s') % {'error': str(e)})
+        return redirect('survey:survey_results', pk=survey.id)
