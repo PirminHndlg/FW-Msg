@@ -80,7 +80,7 @@ class SurveyQuestionForm(forms.ModelForm):
             }),
             'order': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'min': '0'
+                'min': '-1'
             }),
             'help_text': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -102,7 +102,7 @@ class SurveyQuestionOptionForm(forms.ModelForm):
             }),
             'order': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'min': '0'
+                'min': '-1'
             }),
         }
 

@@ -83,10 +83,11 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-check form-switch mt-5">
-                                {{ form.is_required|add_class:'form-check-input' }}
                                 <label class="form-check-label" for="{{ form.is_required.id_for_label }}">
                                     <strong>{{ form.is_required.label }}</strong>
                                 </label>
+                                {{ form.is_required|add_class:'form-check-input' }}
+                                <div class="form-text">{% trans "This question is required" %}</div>
                                 {% if form.is_required.errors %}
                                     <div class="invalid-feedback d-block">
                                         {{ form.is_required.errors.0 }}
@@ -95,7 +96,7 @@
                             </div>
                         </div>
                     </div>
-                    
+                
                     <div class="mb-4">
                         <label for="{{ form.help_text.id_for_label }}" class="form-label">
                             <strong>{{ form.help_text.label }}</strong>

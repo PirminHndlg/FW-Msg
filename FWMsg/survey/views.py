@@ -9,9 +9,11 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy, reverse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache
+from django.views.decorators.vary import vary_on_headers
 from django.views.decorators.http import require_http_methods
 from Global.views import check_organization_context
+from FWMsg.decorators import required_role
 
 
 from .models import Survey, SurveyQuestion, SurveyQuestionOption, SurveyResponse, SurveyAnswer
@@ -31,8 +33,17 @@ def get_client_ip(request):
     return ip
 
 
+def check_survey_access(request, survey):
+    """Check if user has access to manage this survey"""
+    if request.user.is_authenticated and survey.org != request.user.org:
+        raise Http404("Survey not found")
+    return True
+
+
 # Public Views (accessible without login if survey allows anonymous)
 
+@never_cache
+@vary_on_headers('User-Agent')
 def survey_detail(request, survey_key):
     """Display survey for participation"""
     survey = get_object_or_404(Survey, survey_key=survey_key)
@@ -102,6 +113,7 @@ def survey_thank_you(request, survey_key):
 # Management Views (require login and permissions)
 
 @method_decorator(login_required, name='dispatch')
+@method_decorator(required_role('O'), name='dispatch')
 class SurveyListView(ListView):
     """List all surveys for the logged-in user"""
     model = Survey
@@ -113,12 +125,14 @@ class SurveyListView(ListView):
         qs = Survey.objects.all()
         if self.request.user.is_authenticated:
             qs = qs.filter(org=self.request.user.org)
-        return qs.filter(created_by=self.request.user).annotate(
-            response_count=Count('responses')
-        )
+        return qs
+        # return qs.filter(created_by=self.request.user).annotate(
+        #     response_count=Count('responses')
+        # )
 
 
 @method_decorator(login_required, name='dispatch')
+@method_decorator(required_role('O'), name='dispatch')
 class SurveyCreateView(CreateView):
     """Create a new survey"""
     model = Survey
@@ -138,6 +152,7 @@ class SurveyCreateView(CreateView):
 
 
 @method_decorator(login_required, name='dispatch')
+@method_decorator(required_role('O'), name='dispatch')
 class SurveyUpdateView(UpdateView):
     """Update an existing survey"""
     model = Survey
@@ -146,7 +161,7 @@ class SurveyUpdateView(UpdateView):
     context_object_name = 'survey'
     
     def get_queryset(self):
-        return Survey.objects.filter(created_by=self.request.user)
+        return Survey.objects.filter(org=self.request.user.org)
     
     def get_success_url(self):
         return reverse('survey:survey_manage', kwargs={'pk': self.object.pk})
@@ -157,6 +172,7 @@ class SurveyUpdateView(UpdateView):
 
 
 @method_decorator(login_required, name='dispatch')
+@method_decorator(required_role('O'), name='dispatch')
 class SurveyDeleteView(DeleteView):
     """Delete a survey"""
     model = Survey
@@ -165,7 +181,7 @@ class SurveyDeleteView(DeleteView):
     success_url = reverse_lazy('survey:survey_list')
     
     def get_queryset(self):
-        return Survey.objects.filter(created_by=self.request.user)
+        return Survey.objects.filter(org=self.request.user.org)
     
     def delete(self, request, *args, **kwargs):
         messages.success(request, _('Survey deleted successfully!'))
@@ -175,12 +191,11 @@ class SurveyDeleteView(DeleteView):
 
 
 @login_required
+@required_role('O')
 def survey_manage(request, pk):
     """Manage survey questions and view responses"""
-    survey = get_object_or_404(Survey, pk=pk, created_by=request.user)
-    if request.user.is_authenticated:
-        if survey.org != request.user.org:
-            raise Http404()
+    survey = get_object_or_404(Survey, pk=pk)
+    check_survey_access(request, survey)
     
     questions = survey.questions.all().prefetch_related('options')
     responses = survey.responses.filter(is_complete=True)
@@ -194,12 +209,11 @@ def survey_manage(request, pk):
 
 
 @login_required
+@required_role('O')
 def add_question(request, survey_pk):
     """Add a question to a survey"""
-    survey = get_object_or_404(Survey, pk=survey_pk, created_by=request.user)
-    if request.user.is_authenticated:
-        if survey.org != request.user.org:
-            raise Http404()
+    survey = get_object_or_404(Survey, pk=survey_pk)
+    check_survey_access(request, survey)
     
     if request.method == 'POST':
         form = SurveyQuestionForm(request.POST)
@@ -223,24 +237,16 @@ def add_question(request, survey_pk):
 
 
 @login_required
+@required_role('O')
 def edit_question(request, survey_pk, question_pk):
     """Edit a survey question and its options"""
-    survey = get_object_or_404(Survey, pk=survey_pk, created_by=request.user)
-    if request.user.is_authenticated:
-        if survey.org != request.user.org:
-            raise Http404()
+    survey = get_object_or_404(Survey, pk=survey_pk)
+    check_survey_access(request, survey)
     question = get_object_or_404(SurveyQuestion, pk=question_pk, survey=survey)
     
     if request.method == 'POST':
         form = SurveyQuestionForm(request.POST, instance=question)
         formset = SurveyQuestionOptionFormSet(request.POST, instance=question, prefix='options')
-        
-        print(f"Form valid: {form.is_valid()}")
-        print(f"Form errors: {form.errors}")
-        print(f"Formset valid: {formset.is_valid()}")
-        print(f"Formset errors: {formset.errors}")
-        print(f"Formset non_form_errors: {formset.non_form_errors()}")
-        print(f"POST data: {request.POST}")
         
         if form.is_valid():
             # Save the question first
@@ -259,9 +265,10 @@ def edit_question(request, survey_pk, question_pk):
             return redirect('survey:survey_manage', pk=survey.pk)
         else:
             # Add form errors to messages
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"Question {field}: {error}")
+            if form.errors:
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Question {field}: {error}")
     else:
         form = SurveyQuestionForm(instance=question)
         formset = SurveyQuestionOptionFormSet(instance=question, prefix='options')
@@ -275,9 +282,10 @@ def edit_question(request, survey_pk, question_pk):
 
 
 @login_required
+@required_role('O')
 def delete_question(request, survey_pk, question_pk):
     """Delete a survey question"""
-    survey = get_object_or_404(Survey, pk=survey_pk, created_by=request.user)
+    survey = get_object_or_404(Survey, pk=survey_pk)
     question = get_object_or_404(SurveyQuestion, pk=question_pk, survey=survey)
     
     if request.method == 'POST':
@@ -292,12 +300,11 @@ def delete_question(request, survey_pk, question_pk):
 
 
 @login_required
+@required_role('O')
 def survey_results(request, pk):
     """View detailed survey results"""
-    survey = get_object_or_404(Survey, pk=pk, created_by=request.user)
-    if request.user.is_authenticated:
-        if survey.org != request.user.org:
-            raise Http404()
+    survey = get_object_or_404(Survey, pk=pk)
+    check_survey_access(request, survey)
     
     responses = survey.responses.filter(is_complete=True).prefetch_related(
         'answers__question',
