@@ -1,0 +1,139 @@
+{% load static %}
+{% load base_filter %}
+{% load i18n %}
+
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+  <head>
+    {% include 'header.html' %}
+
+    <title>
+      {% block title %}
+        Ehemalige
+      {% endblock %}
+    </title>
+
+    {% block head %}
+
+    {% endblock %}
+
+    {% block scripts %}
+
+    {% endblock %}
+  </head>
+  <body>
+    <div class="d-flex">
+      {# Main Navigation Bar #}
+      <div class="content w-100">
+        <nav class="navbar bg-primary navbar-expand-md">
+          <div class="container-fluid">
+            {# Organization Logo and Name #}
+            <a class="navbar-brand" href="{% url 'index_home' %}">
+              {% with org=user|get_org %}
+                <img src="{% url 'serve_image' org.id %}"
+                  alt="{% if org.kurzname %}
+                    {{ org.kurzname }}
+                  {% else %}
+                    {{ org.name }}
+                  {% endif %}-Logo"
+                  height="30"
+                  class="d-inline-block align-text-top" />
+              {% endwith %}
+            </a>
+
+            <!-- Hamburger Button for Mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+              <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                  <a class="nav-link text-white" href="{% url 'ehemalige_home' %}">
+                    <i class="bi bi-house me-1"></i>{% trans 'Home' %}
+                  </a>
+                </li>
+                {% if user.customuser.person_cluster.posts %}
+                  <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'posts_overview' %}">
+                      <i class="bi bi-newspaper me-1"></i>{% trans 'Posts' %}
+                    </a>
+                  </li>
+                {% endif %}
+                {% if user.customuser.person_cluster.bilder %}
+                  <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'bilder' %}">
+                      <i class="bi bi-images me-1"></i>{% trans 'Bilder' %}
+                    </a>
+                  </li>
+                {% endif %}
+                {% if user.customuser.person_cluster.aufgaben %}
+                  <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'aufgaben' %}">
+                      <i class="bi bi-list-check me-1"></i>{% trans 'Aufgaben' %}
+                    </a>
+                  </li>
+                {% endif %}
+                {% if user.customuser.person_cluster.calendar %}
+                  <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'kalender' %}">
+                      <i class="bi bi-calendar-date me-1"></i>{% trans 'Kalender' %}
+                    </a>
+                  </li>
+                {% endif %}
+                {% if user.customuser.person_cluster.dokumente %}
+                  <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'dokumente' %}">
+                      <i class="bi bi-file-earmark-text me-1"></i>{% trans 'Dokumente' %}
+                    </a>
+                  </li>
+                {% endif %}
+              </ul>
+
+              <div class="d-flex gap-2">
+                <div class="d-flex">
+                  <a href="{% url 'settings' %}" class="btn btn-light">
+                    <i class="bi bi-gear me-1"></i>
+                  </a>
+                </div>
+
+                <!-- Profile Button -->
+                <div class="d-flex">
+                  <a href="{% url 'profil' %}" class="btn btn-light">
+                    <i class="bi bi-person me-1"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        {# Main Content Area #}
+        <div class="container-fluid mt-3 mb-5">
+          {% include 'error_message.html' %}
+          {% block content %}
+
+          {% endblock %}
+        </div>
+      </div>
+    </div>
+
+    {% block footer %}
+
+    {% endblock %}
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        // Initialize tooltips if needed
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+      });
+    </script>
+
+    {% block scripts_bottom %}
+
+    {% endblock %}
+  </body>
+</html>
