@@ -1,0 +1,198 @@
+{% extends extends_base|default:'baseOrg.html' %}
+{% load i18n %}
+
+{% block title %}
+  Bewerber:innen Liste
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <div class="col-12">
+      <!-- Page Header -->
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center">
+          <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+            <i class="bi bi-people-fill text-white fs-4"></i>
+          </div>
+          <div>
+            <h2 class="mb-0 fw-bold">{% trans "Bewerber:innen" %}</h2>
+            <p class="text-muted mb-0">{% trans "Übersicht aller für dich freigegebenen Bewerbungen" %}</p>
+          </div>
+        </div>
+        <div class="d-flex gap-2">
+          <span class="badge bg-light text-dark fs-6 px-3 py-2">
+            <i class="bi bi-person-check me-1"></i>
+            {{ bewerber|length }} {% trans "Bewerber:innen" %}
+          </span>
+        </div>
+      </div>
+
+      {% if bewerber %}
+        <!-- Applicants Table -->
+        <div class="card rounded-4 shadow-sm">
+          <div class="card-body p-0 rounded-4">
+            <div class="table-responsive">
+                <table class="table table-hover mb-3">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="border-0 px-4 py-3 fw-semibold text-uppercase small">
+                        <i class="bi bi-person me-1"></i>{% trans "Name" %}
+                      </th>
+                      <th class="border-0 px-4 py-3 fw-semibold text-uppercase small">
+                        <i class="bi bi-traffic-light me-1"></i>{% trans "Status" %}
+                      </th>
+                      <th class="border-0 px-4 py-3 fw-semibold text-uppercase small">
+                        <i class="bi bi-calendar me-1"></i>{% trans "Bewerbungsstand" %}
+                      </th>
+                      <th class="border-0 px-4 py-3 fw-semibold text-uppercase small">
+                        <i class="bi bi-star me-1"></i>{% trans "Bewertung" %}
+                      </th>
+                      <th class="border-0 px-4 py-3 fw-semibold text-uppercase small">
+                        <i class="bi bi-gear me-1"></i>{% trans "Aktionen" %}
+                      </th>
+                    </tr>
+                  </thead>
+                <tbody>
+                  {% for bewerberin in bewerber %}
+                    <tr class="bewerber-row cursor-pointer" data-status="{{ bewerberin.status|default:'none' }}" data-href="{% url 'bewerber_detail' bewerberin.id %}">
+                      <td class="px-4 py-3">
+                        <div class="d-flex align-items-center">
+                            <!-- Profilbild -->
+                            <div class="me-3">
+                                <img src="{% url 'serve_profil_picture' bewerberin.user.id %}" alt="{% trans 'Profilbild' %}" class="rounded-circle" style="height: 40px; object-fit: cover;">
+                            </div>
+                          <div>
+                            <div class="fw-semibold">{{ bewerberin.user.first_name }} {{ bewerberin.user.last_name }}</div>
+                            <small class="text-muted">ID: {{ bewerberin.id }}</small>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3">
+                        {% if bewerberin.status %}
+                          <div class="d-flex align-items-center">
+                            {% if bewerberin.status == 'green' %}
+                              <span class="badge bg-success d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill me-1"></i>{% trans "Grün" %}
+                              </span>
+                            {% elif bewerberin.status == 'yellow' %}
+                              <span class="badge bg-warning d-flex align-items-center">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>{% trans "Gelb" %}
+                              </span>
+                            {% elif bewerberin.status == 'red' %}
+                              <span class="badge bg-danger d-flex align-items-center">
+                                <i class="bi bi-x-circle-fill me-1"></i>{% trans "Rot" %}
+                              </span>
+                            {% endif %}
+                            {% if bewerberin.status_comment %}
+                              <i class="bi bi-chat-left-text text-muted ms-2" title="{{ bewerberin.status_comment }}" data-bs-toggle="tooltip"></i>
+                            {% endif %}
+                          </div>
+                        {% else %}
+                          <span class="badge bg-secondary">
+                            <i class="bi bi-question-circle me-1"></i>{% trans "Nicht bewertet" %}
+                          </span>
+                        {% endif %}
+                      </td>
+                      <td class="px-4 py-3">
+                        {% if bewerberin.abgeschlossen %}
+                          <div class="d-flex align-items-center text-success">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <div>
+                              <div class="fw-semibold">{% trans "Abgeschlossen" %}</div>
+                              {% if bewerberin.abgeschlossen_am %}
+                                <small class="text-muted">{{ bewerberin.abgeschlossen_am|date:'d.m.Y H:i' }}</small>
+                              {% endif %}
+                            </div>
+                          </div>
+                        {% else %}
+                          <div class="d-flex align-items-center text-warning">
+                            <i class="bi bi-hourglass-split me-2"></i>
+                            <span class="fw-semibold">{% trans "In Bearbeitung" %}</span>
+                          </div>
+                        {% endif %}
+                      </td>
+                      <td class="px-4 py-3">
+                        {% if bewerberin.endbewertung %}
+                          {% if bewerberin.endbewertung == 'G' %}
+                            <span class="badge bg-success">
+                              <i class="bi bi-check-circle me-1"></i>{% trans "Geeignet" %}
+                            </span>
+                          {% elif bewerberin.endbewertung == 'B' %}
+                            <span class="badge bg-warning">
+                              <i class="bi bi-exclamation-triangle me-1"></i>{% trans "Bedingt geeignet" %}
+                            </span>
+                          {% elif bewerberin.endbewertung == 'N' %}
+                            <span class="badge bg-danger">
+                              <i class="bi bi-x-circle me-1"></i>{% trans "Nicht geeignet" %}
+                            </span>
+                          {% endif %}
+                          {% if bewerberin.note %}
+                            <div class="mt-1">
+                              <small class="text-muted">
+                                <i class="bi bi-star-fill text-warning me-1"></i>{{ bewerberin.note }}
+                              </small>
+                            </div>
+                          {% endif %}
+                        {% else %}
+                          <span class="badge bg-light text-dark">
+                            <i class="bi bi-dash-circle me-1"></i>{% trans "Nicht bewertet" %}
+                          </span>
+                        {% endif %}
+                      </td>
+                      <td class="px-4 py-3">
+                        <div class="d-flex gap-1">
+                          <a href="{% url 'bewerber_detail' bewerberin.id %}" class="btn btn-primary btn-sm" title="{% trans 'Details anzeigen' %}">
+                            <i class="bi bi-eye"></i>
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-5">
+          <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 100px; height: 100px;">
+            <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+          </div>
+          <h4 class="text-muted mb-3">{% trans "Keine Bewerber:innen gefunden" %}</h4>
+          <p class="text-muted mb-0">{% trans "Es sind noch keine Bewerbungen eingegangen oder Sie haben keinen Zugriff auf Bewerbungen." %}</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize tooltips
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+
+  // Make table rows clickable
+  const clickableRows = document.querySelectorAll('.bewerber-row[data-href]');
+  clickableRows.forEach(row => {
+    row.addEventListener('click', function(e) {
+      // Don't navigate if clicking on a button or link
+      if (e.target.closest('a, button')) {
+        return;
+      }
+      
+      const href = this.dataset.href;
+      if (href) {
+        window.location.href = href;
+      }
+    });
+  });
+});
+</script>
+
+{% endblock %}
