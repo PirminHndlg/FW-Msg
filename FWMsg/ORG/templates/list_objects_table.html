@@ -129,7 +129,11 @@
     {% endif %}
     
     // Keyboard shortcut to focus search input when 'f' key is pressed
+    // ignore when cmd or ctrl is pressed
     document.addEventListener('keydown', function(event) {
+        if (event.ctrlKey || event.metaKey) {
+            return;
+        }
         if (event.key === 'f' && event.target.id !== 'search-input') {
             event.preventDefault();
             document.getElementById('search-input').focus();

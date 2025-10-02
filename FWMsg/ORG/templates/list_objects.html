@@ -491,6 +491,9 @@
 
         // Add keyboard shortcut to focus search input when 'f' key is pressed
         document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey || event.metaKey) {
+                return;
+            }
             if (event.key === 'f' && event.target.id !== 'mySearch') {
                 event.preventDefault();
                 document.getElementById('mySearch').focus();
