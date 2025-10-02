@@ -860,11 +860,9 @@ def _handle_default_model(objects, model_fields, person_cluster=None):
     elif 'name' in model_fields:
         objects = objects.order_by('name')
     if person_cluster:
-        print(model_fields, person_cluster)
         if 'person_cluster' in model_fields:
             objects = objects.filter(person_cluster=person_cluster)
         elif 'user' in model_fields:
-            print(objects.first().user.customuser.person_cluster)
             objects = objects.filter(user__customuser__person_cluster=person_cluster)
     return objects
 
