@@ -61,3 +61,32 @@ def send_image_uploaded_email_task(bild_id):
     except Exception as e:
         logging.error(f"Error sending image uploaded email task: {e}")
         return False
+
+
+@shared_task
+def send_birthday_reminder_email_task(user_id):
+    from Global.models import CustomUser
+
+    custom_user = CustomUser.objects.get(id=user_id)
+    org = custom_user.org
+    receiver = [org.email]
+    from Global.send_email import format_birthday_reminder_email
+    
+    subject = f'Morgen ist der Geburtstag von {custom_user.user.first_name} {custom_user.user.last_name}'
+
+    email_content = format_birthday_reminder_email(
+        custom_user.user.first_name + ' ' + custom_user.user.last_name,
+        custom_user.user.email,
+        custom_user.geburtsdatum,
+        custom_user.get_unsubscribe_url(),
+        org.name,
+        get_logo_base64(org),
+        get_org_color(org),
+    )
+    send_email_with_archive(
+        subject,
+        email_content,
+        settings.SERVER_EMAIL,
+        receiver,
+        html_message=email_content,
+    )
