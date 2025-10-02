@@ -229,8 +229,14 @@ class ApplicationQuestion(OrgModel):
     def __str__(self):
         return self.question
 
+    def _reassign_order(self, questions):
+        for i, question in enumerate(questions):
+            question.order = i + 1
+            question.save()
+    
     def save(self, *args, **kwargs):
         if not self.order:
+            self._reassign_order(ApplicationQuestion.objects.filter(org=self.org).exclude(id=self.id))
             max_order = (
                 ApplicationQuestion.objects.filter(org=self.org).aggregate(
                     models.Max("order")
@@ -238,16 +244,22 @@ class ApplicationQuestion(OrgModel):
                 or 0
             )
             self.order = max_order + 1
-
-        questions_same_order = ApplicationQuestion.objects.filter(
-            org=self.org, order=self.order
-        ).exclude(id=self.id)
-        if questions_same_order.exists():
-            for question in questions_same_order:
-                question.order = question.order + 1
-                question.save()
-
+        else:
+            questions_same_order = ApplicationQuestion.objects.filter(
+                org=self.org, order=self.order
+            ).exclude(id=self.id)
+            if questions_same_order.exists():
+                for question in questions_same_order:
+                    question.order = question.order + 1
+                    question.save()
+        
         super().save(*args, **kwargs)
+    
+    def delete(self, using=None, keep_parents=False):
+        # reassign the order of the questions
+        all_questions = ApplicationQuestion.objects.filter(org=self.org).exclude(id=self.id).order_by('order')
+        self._reassign_order(all_questions)
+        return super().delete(using, keep_parents)
 
     class Meta:
         ordering = ["order"]
