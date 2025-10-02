@@ -38,6 +38,11 @@
                             </div>
                         </div>
                     </div>
+                    {% if not forloop.last %}
+                    <div class="col-12 px-4">
+                        <hr class="my-1 border-primary">
+                    </div>
+                    {% endif %}
                 {% endif %}
             {% empty %}
                 <div class="text-muted text-center py-2">
