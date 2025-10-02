@@ -1,4 +1,5 @@
 {% extends "mail/base_email.html" %}
+{% load base_filter %}
 
 {% block german_content %}
 <p>Es gibt einen neuen Kalendereintrag für Dich:</p>
@@ -11,7 +12,7 @@
     <p style="margin: 5px 0;"><span style="color: #666666;">Ort:</span> <span style="font-weight: 500;">{{ event_location }}</span></p>
     {% endif %}
     {% if event_description %}
-    <p style="margin: 5px 0;"><span style="color: #666666;">Beschreibung:</span> {{ event_description }}</p>
+    <p style="margin: 5px 0;"><span style="color: #666666;">Beschreibung:</span> {{ event_description|format_text_with_link }}</p>
     {% endif %}
 </div>
 {% endblock %}
@@ -29,7 +30,7 @@
     <p style="margin: 5px 0;"><span style="color: #666666;">Location:</span> <span style="font-weight: 500;">{{ event_location }}</span></p>
     {% endif %}
     {% if event_description %}
-    <p style="margin: 5px 0;"><span style="color: #666666;">Description:</span> {{ event_description }}</p>
+    <p style="margin: 5px 0;"><span style="color: #666666;">Description:</span> {{ event_description|format_text_with_link }}</p>
     {% endif %}
 </div>
 {% endblock %}
