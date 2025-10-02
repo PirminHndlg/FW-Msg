@@ -1,0 +1,23 @@
+{% extends "mail/base_email.html" %}
+
+{% block german_content %}
+<p>Morgen hat {{ user_name }} Geburtstag:</p>
+
+<div style="background-color: #f7f9fc; border-left: 4px solid {{ org_color }}; padding: 15px; margin: 15px 0; border-radius: 3px;">
+    <p style="font-weight: 600; margin: 0 0 10px 0; color: {{ org_color }};"><a href="mailto:{{ user_email }}">{{ user_email }}</a></p>
+    <p style="margin: 5px 0;"><span style="color: #666666;">Geburtstag:</span> <span style="font-weight: 500;">{{ birthday_formatted }}</span></p>
+</div>
+{% endblock %}
+
+{% block german_button_text %}Zur Plattform{% endblock %}
+
+{% block english_content %}
+<p>Tomorrow is {{ user_name }}'s birthday:</p>
+
+<div style="background-color: #f7f9fc; border-left: 4px solid {{ org_color }}; padding: 15px; margin: 15px 0; border-radius: 3px;">
+    <p style="font-weight: 600; margin: 0 0 10px 0; color: {{ org_color }};"><a href="mailto:{{ user_email }}">{{ user_email }}</a></p>
+    <p style="margin: 5px 0;"><span style="color: #666666;">Birthday:</span> <span style="font-weight: 500;">{{ birthday_formatted }}</span></p>
+</div>
+{% endblock %}
+
+{% block english_button_text %}View Platform{% endblock %}
