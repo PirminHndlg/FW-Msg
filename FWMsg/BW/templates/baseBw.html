@@ -290,26 +290,26 @@
                             <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
                             <div>
                                 <h6 class="alert-heading mb-2">Achtung: Unwiderrufliche Aktion</h6>
-                                <p class="mb-0">Wenn Sie Ihr Konto löschen:</p>
+                                <p class="mb-0">Wenn Du Dein Konto löschst:</p>
                                 <ul class="mb-0 ps-3 mt-2">
-                                    <li>Wird Ihre Bewerbung unwiderruflich zurückgezogen</li>
-                                    <li>Werden alle Ihre Daten und Antworten gelöscht</li>
-                                    <li>Können Sie sich nicht mehr mit diesem Konto bewerben</li>
+                                    <li>Wird Deine Bewerbung unwiderruflich zurückgezogen</li>
+                                    <li>Werden alle Deine Daten und Antworten gelöscht</li>
+                                    <li>Kannst Du Dich nicht mehr mit diesem Konto bewerben</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
-                    <p class="mb-0">Sind Sie sicher, dass Sie Ihr Konto löschen möchten?</p>
+                    <p class="mb-0">Sind Du sicher, dass Du Dein Konto löschen möchtest?</p>
                     <div class="mt-4">
-                        <label for="deleteConfirmation" class="form-label">Bitte geben Sie 'DELETE' ein, um fortzufahren:</label>
+                        <label for="deleteConfirmation" class="form-label">Bitte gib 'DELETE' ein, um fortzufahren:</label>
                         <input type="text" class="form-control" id="deleteConfirmation" placeholder="hier eingeben...">
                     </div>
                 </div>
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light rounded-4" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">
                         <i class="bi bi-x-circle me-2"></i>Abbrechen
                     </button>
-                    <a href="{% url 'bw_delete_account' %}" class="btn btn-danger rounded-4 disabled" id="confirmDeleteBtn" disabled>
+                    <a href="{% url 'bw_delete_account' %}" class="btn btn-danger rounded-3 disabled" id="confirmDeleteBtn" disabled>
                         <i class="bi bi-trash me-2"></i>Ja, Konto löschen
                     </a>
                 </div>

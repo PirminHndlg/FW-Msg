@@ -162,8 +162,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Sie haben ungespeicherte Änderungen in Ihrer Antwort.</p>
-                <p class="mb-0">Möchten Sie die Seite wirklich verlassen? Alle Änderungen gehen verloren.</p>
+                <p>Du hast ungespeicherte Änderungen in Deiner Antwort.</p>
+                <p class="mb-0">Möchtest Du die Seite wirklich verlassen? Alle Änderungen gehen verloren.</p>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">
@@ -238,7 +238,7 @@
             if (formChanged) {
                 // Show browser's native warning
                 e.preventDefault();
-                e.returnValue = 'Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?';
+                e.returnValue = 'Du hast ungespeicherte Änderungen. Möchtest Du die Seite wirklich verlassen?';
                 return e.returnValue;
             }
         });

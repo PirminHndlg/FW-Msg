@@ -42,7 +42,7 @@
                 </div>
                 <div>
                   <h4 class="card-title mb-0 fw-semibold">Fortschritt</h4>
-                  <p class="text-muted mb-0 small">Ihr Bewerbungsfortschritt</p>
+                  <p class="text-muted mb-0 small">Dein Bewerbungsfortschritt</p>
                 </div>
               </div>
               {% if application_text.deadline %}
@@ -85,7 +85,7 @@
                       <i class="bi bi-info-circle-fill me-3 fs-5 flex-shrink-0 mt-1"></i>
                       <div>
                         <h5 class="alert-heading mb-1 small">Bewerbung noch nicht vollständig</h5>
-                        <p class="mb-0 small">Bitte beantworten Sie alle Fragen und laden Sie alle Dateien hoch, bevor Sie Ihre Bewerbung abschließen.</p>
+                        <p class="mb-0 small">Bitte beantworte alle Fragen und lade alle Dateien hoch, bevor Du Deine Bewerbung abschließt.</p>
                       </div>
                     </div>
                   </div>
@@ -97,7 +97,7 @@
                       <i class="bi bi-check-circle-fill me-3 fs-5 flex-shrink-0 mt-1"></i>
                       <div>
                         <h5 class="alert-heading mb-1 small">Bewerbung abgeschlossen</h5>
-                        <p class="mb-0 small">Ihre Bewerbung wurde am {{ user.bewerber.abgeschlossen_am }} erfolgreich eingereicht.</p>
+                        <p class="mb-0 small">Deine Bewerbung wurde am {{ user.bewerber.abgeschlossen_am }} erfolgreich eingereicht.</p>
                       </div>
                     </div>
                   </div>
@@ -110,11 +110,11 @@
                       <div>
                         <h5 class="alert-heading mb-1 small">Alle Fragen und benötigte Dateien hochgeladen</h5>
                         {% if open_file_questions == 1%}
-                          <p class="mb-0 small">Sie haben noch eine (optionale) Datei, die Sie nicht hochgeladen haben.</p>
+                          <p class="mb-0 small">Du hast noch eine (optionale) Datei, die Du nicht hochgeladen hast.</p>
                         {% elif open_file_questions > 1 %}
-                          <p class="mb-0 small">Sie haben noch {{ open_file_questions }} (optionale) Dateien, die Sie nicht hochgeladen haben.</p>
+                          <p class="mb-0 small">Du hast noch {{ open_file_questions }} (optionale) Dateien, die Du nicht hochgeladen hast.</p>
                         {% endif %}
-                        <p class="mb-0 small">Sie können Ihre Bewerbung jetzt abschließen.</p>
+                        <p class="mb-0 small">Du kannst Deine Bewerbung jetzt abschließen.</p>
                       </div>
                     </div>
                   </div>
@@ -154,7 +154,7 @@
               </div>
               <div class="min-width-0">
                 <h4 class="card-title mb-0 fw-semibold">Meine Bewerbung</h4>
-                <p class="text-muted mb-0 small">Verwalten Sie Ihre Bewerbung</p>
+                <p class="text-muted mb-0 small">Fragen beantworten und Bewerbungsunterlagen einreichen</p>
               </div>
             </div>
             <div class="row g-3 g-md-4">
@@ -169,7 +169,7 @@
                         <h5 class="card-title mb-0 fw-semibold text-dark">Meine Antworten</h5>
                       </div>
                     </div>
-                    <p class="text-muted mb-0 small">Überprüfen und bearbeiten Sie Ihre eingereichten Antworten. Stellen Sie sicher, dass alles korrekt ist.</p>
+                    <p class="text-muted mb-0 small">Überprüfe und bearbeite Deine eingereichten Antworten. Stelle sicher, dass alles korrekt ist.</p>
                   </div>
                 </a>
               </div>
@@ -184,7 +184,7 @@
                         <h5 class="card-title mb-0 fw-semibold text-dark">Dateianhänge</h5>
                       </div>
                     </div>
-                    <p class="text-muted mb-0 small">Hier können Sie Ihre Dateianhänge hochladen und verwalten.</p>
+                    <p class="text-muted mb-0 small">Hier kannst Du Deine Dateianhänge hochladen und verwalten.</p>
                   </div>
                 </a>
               </div>
