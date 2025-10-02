@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     "ADMIN.apps.AdminConfig",
     "Global.apps.GlobalConfig",
     "TEAM.apps.TeamConfig",
+    "Ehemalige.apps.EhemaligeConfig",
     "BW.apps.BwConfig",
     "seminar.apps.SeminarConfig",
     "survey.apps.SurveyConfig",
