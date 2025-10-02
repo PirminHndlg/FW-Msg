@@ -155,14 +155,14 @@ def send_application_complete_email(bewerber_id):
             org_email = bewerber.org.email
             send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [org_email], html_message=email_content)
             
-            subject = f'Deine Bewerbung wurde eingereicht'
+            subject = f'Ihre Bewerbung wurde eingereicht'
             action_url = f"https://volunteer.solutions{reverse('bw_home')}"
             email_content = format_application_complete_email(
                 org_name=bewerber.org.name,
                 user_name=f"{bewerber.user.first_name} {bewerber.user.last_name}",
                 changed_at=bewerber.abgeschlossen_am.strftime('%d.%m.%Y %H:%M'),
                 action_url=action_url,
-                text_subject='Deine Bewerbung wurde eingereicht, wir werden uns schnellstmöglich um Ihre Bewerbung kümmern.'
+                text_subject='Ihre Bewerbung wurde eingereicht, wir werden uns schnellstmöglich um Ihre Bewerbung kümmern.'
             )
             send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [bewerber.user.email], html_message=email_content)
             
