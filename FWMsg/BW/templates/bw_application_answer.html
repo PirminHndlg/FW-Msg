@@ -25,8 +25,15 @@
                                 {% for q in all_questions %}
                                 <a href="{% url 'bw_application_answer' q.id %}" 
                                    class="list-group-item list-group-item-action {% if q.id == question.id %}active{% endif %} d-flex align-items-center">
-                                    <span class="badge bg-primary rounded-pill me-2">{{ q.order }}</span>
-                                    <span class="text-truncate">{{ q.question }}</span>
+                                   <div class="d-flex align-items-center justify-content-between w-100">
+                                    <div>
+                                        <span class="badge bg-primary rounded-pill me-2">{{ q.order }}</span>
+                                        <span class="text-truncate">{{ q.question }}</span>
+                                    </div>
+                                    {% if q.id in answered_questions_ids %}
+                                        <span class="badge bg-success rounded-pill ms-2"><i class="bi bi-check-circle"></i></span>
+                                    {% endif %}
+                                    </div>
                                 </a>
                                 {% endfor %}
                             </div>
@@ -45,12 +52,15 @@
                         {% for q in all_questions %}
                         <a href="{% url 'bw_application_answer' q.id %}" 
                            class="list-group-item list-group-item-action {% if q.id == question.id %}active{% endif %} d-flex align-items-center">
-                            <span class="badge bg-primary rounded-pill me-2">{{ q.order }}</span>
-                            <span class="text-truncate">{{ q.question }}</span>
-                            
-                            {% if q.id in answered_questions_ids %}
-                                <span class="badge bg-success rounded-pill ms-2">Beantwortet</span>
-                            {% endif %}
+                            <div class="d-flex align-items-center justify-content-between w-100">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-primary rounded-pill me-2">{{ q.order }}</span>
+                                    <span class="fw-semibold">{{ q.question }}</span>
+                                </div>
+                                {% if q.id in answered_questions_ids %}
+                                <span class="badge bg-success rounded-pill ms-2"><i class="bi bi-check-circle"></i></span>
+                                {% endif %}
+                            </div>
                         </a>
                         {% endfor %}
                     </div>
