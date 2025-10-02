@@ -15,38 +15,42 @@
           <div class="card-header bg-light rounded-top-4 py-3">
             <div class="d-flex align-items-center justify-content-between">
               <div class="d-flex align-items-center">
-                <div class="question-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                <div class="question-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 40px; height: 40px;">
                   <i class="bi bi-file-earmark-text text-white fs-5"></i>
                 </div>
                 <h3 class="card-title mb-0 fw-semibold">Dateianhänge</h3>
               </div>
-              <div class="d-flex align-items-center">
-                <a href="{% url 'bw_home' %}" class="btn btn-primary rounded-3"><i class="bi bi-house me-2"></i>Zurück zur Startseite</a>
-              </div>
             </div>
           </div>
-          <div class="card-body p-4">
+          <div class="card-body p-3 p-md-4">
             {% if file_questions %}
               <div class="list-group list-group-flush">
                 {% for question in file_questions %}
                   <div class="list-group-item px-0 py-3">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex flex-column flex-wrap flex-sm-row justify-content-between align-items-start align-items-sm-center">
                       {% with answer=file_answers|get_item:question.id %}
-                        <div class="d-flex align-items-center gap-2">
-                          <div class="question-number bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                        <div class="d-flex align-items-center mb-2 mb-md-0 flex-grow-1 min-width-0">
+                          <div class="question-number bg-light rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 32px; height: 32px;">
                             <span class="fw-semibold">{{ question.order }}</span>
                           </div>
-                          <h5 class="mb-1">{{ question.name }}</h5>
+                          <h5 class="mb-0">{{ question.name }}</h5>
                         </div>
-                        <div class="d-flex gap-2 align-items-center flex-wrap">
+                        <div class="d-flex gap-2 align-items-stretch align-items-md-center">
                           {% if answer %}
-                            <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                            <div class="d-flex flex-column flex-md-row align-items-center gap-2">
                               <span class="badge bg-success rounded-pill"><i class="bi bi-check-circle me-1"></i>Hochgeladen</span>
-                              <a href="{% url 'bw_application_file_answer_download' answer.id %}" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-download me-1"></i>Herunterladen</a>
-                              <a href="{% url 'bw_application_file_answer' question.id %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil me-1"></i>Bearbeiten</a>
+                              <div class="d-flex gap-1">
+                                <a href="{% url 'bw_application_file_answer_download' answer.id %}" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-download me-1"></i>Herunterladen</a>
+                                <a href="{% url 'bw_application_file_answer' question.id %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil me-1"></i>Bearbeiten</a>
+                              </div>
+                            </div>
+                          {% elif not answer.file.required %}
+                            <div class="d-flex flex-column flex-md-row align-items-center gap-2">
+                              {% comment %} <span class="badge bg-secondary rounded-pill"><i class="bi bi-info-circle me-1"></i>Optional</span> {% endcomment %}
+                              <a href="{% url 'bw_application_file_answer' question.id %}" class="btn btn-sm btn-primary"><i class="bi bi-upload me-1"></i>Datei hochladen</a>
                             </div>
                           {% else %}
-                            <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                            <div class="d-flex flex-column flex-md-row align-items-center gap-2">
                               <span class="badge bg-warning rounded-pill"><i class="bi bi-exclamation-circle me-1"></i>Ausstehend</span>
                               <a href="{% url 'bw_application_file_answer' question.id %}" class="btn btn-sm btn-primary"><i class="bi bi-upload me-1"></i>Datei hochladen</a>
                             </div>
@@ -64,6 +68,11 @@
               </div>
             {% endif %}
           </div>
+        </div>
+        <div class="d-flex gap-2 mt-4 justify-content-end">
+          <a href="{% url 'bw_home' %}" class="btn btn-outline-secondary rounded-3">
+            <i class="bi bi-house me-2"></i>Zurück zur Startseite
+        </a>
         </div>
       </div>
     </div>
