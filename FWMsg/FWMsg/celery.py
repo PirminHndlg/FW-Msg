@@ -198,6 +198,20 @@ def send_email_aufgaben_daily(self):
             except:
                 pass  # Don't let email failure prevent the task from failing
             raise
+        
+@app.task(name='send_birthday_reminder', bind=True, max_retries=3)
+def send_birthday_reminder(self):
+    try:
+        from Global.models import CustomUser
+        from Global.tasks import send_birthday_reminder_email_task
+        # get all users with birthday tomorrow
+        tomorrow = datetime.now().date() + timedelta(days=1)
+        birthday_reminder = CustomUser.objects.filter(geburtsdatum__day=tomorrow.day, geburtsdatum__month=tomorrow.month)
+        for user in birthday_reminder:
+            send_birthday_reminder_email_task(user.id)
+    except Exception as exc:
+        print(f"Error in send_birthday_reminder: {exc}")
+        raise
 
 
 # cronjob, every day at 10:00 AM
@@ -205,5 +219,9 @@ app.conf.beat_schedule = {
     'send_email_aufgaben_daily': {
         'task': 'send_email_aufgaben_daily',
         'schedule': crontab(hour=10, minute=0),
+    },
+    'send_birthday_reminder': {
+        'task': 'send_birthday_reminder',
+        'schedule': crontab(hour=10, minute=31),
     },
 }
