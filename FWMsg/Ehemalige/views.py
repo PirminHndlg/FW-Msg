@@ -25,7 +25,7 @@ def home(request):
     # Get recent images
     gallery_images = []
     if request.user.customuser.person_cluster and request.user.customuser.person_cluster.bilder:
-        gallery_images = get_bilder(request.user.org, limit=6)
+        gallery_images = get_bilder(request.user.org, limit=4)
     
     # Get any tasks assigned to former volunteers
     my_tasks = UserAufgaben.objects.none()
