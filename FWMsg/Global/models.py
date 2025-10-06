@@ -11,6 +11,7 @@ from django.db.models.signals import post_save, post_delete, pre_delete
 from FWMsg.middleware import get_current_request
 import os
 from ORG.models import Organisation
+import uuid
 
 # Add HEIC support to PIL/Pillow
 try:
@@ -708,6 +709,7 @@ class Ampel2(OrgModel):
     status = models.CharField(max_length=1, choices=CHOICES, verbose_name='Status', help_text='Aktueller Status (Grün = alles in Ordnung, Gelb = Aufmerksamkeit nötig, Rot = unmittelbare Hilfe erforderlich)')
     comment = models.TextField(blank=True, null=True, verbose_name='Kommentar', help_text='Kommentar zur Erläuterung des Status')
     date = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
+    submission_key = models.UUIDField(null=True, blank=True)
 
     class Meta:
         verbose_name = 'Ampel'
