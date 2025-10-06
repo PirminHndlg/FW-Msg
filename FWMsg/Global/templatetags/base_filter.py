@@ -1,4 +1,5 @@
 from django import template
+from django.conf import settings
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 import re
@@ -112,7 +113,7 @@ def format_text_with_link(text):
     links = re.findall(r'https?://\S+', text)
     for link in links:
         safe_link = escape(link)
-        target = 'target="_blank"' if not link.startswith("https://volunteer.solutions") else ""
+        target = 'target="_blank"' if not link.startswith(settings.DOMAIN_HOST) else ""
         text = text.replace(safe_link, f'<a href="{safe_link}" class="text-decoration-underline text-body" {target}>{safe_link}</a>')
     
     # Convert www URLs to links

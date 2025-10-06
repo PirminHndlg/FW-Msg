@@ -2,7 +2,7 @@ from django.conf import settings
 from Global.send_email import send_email_with_archive
 from celery import shared_task
 from BW.models import Bewerber
-from django.core.mail import send_mail
+from django.urls import reverse
 
 application_complete_email_template = """
 <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #333333; line-height: 1.6; max-width: 500px; margin: 0 auto;">
@@ -110,13 +110,12 @@ def format_account_created_email(org_name, user_name, verification_url, email, u
 
 @shared_task
 def send_account_created_email(bewerber_id):
-    from django.urls import reverse
     try:
         bewerber = Bewerber.objects.get(id=bewerber_id)
         user = bewerber.user
         
         # Create verification URL with the verification token
-        verification_url = f"https://volunteer.solutions{reverse('verify_account', args=[bewerber.verification_token])}"
+        verification_url = f"{settings.DOMAIN_HOST}{reverse('verify_account', args=[bewerber.verification_token])}"
         
         # Format the email with our template
         email_content = format_account_created_email(
@@ -135,12 +134,11 @@ def send_account_created_email(bewerber_id):
 
 @shared_task
 def send_application_complete_email(bewerber_id):
-    from django.urls import reverse
     try:
         bewerber = Bewerber.objects.get(id=bewerber_id)
         if bewerber.abgeschlossen:
             # Create action URL
-            action_url = f"https://volunteer.solutions{reverse('application_detail', args=[bewerber.id])}"
+            action_url = f"{settings.DOMAIN_HOST}{reverse('application_detail', args=[bewerber.id])}"
             
             # Format the email with our template
             email_content = format_application_complete_email(
@@ -156,7 +154,7 @@ def send_application_complete_email(bewerber_id):
             send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [org_email], html_message=email_content)
             
             subject = f'Ihre Bewerbung wurde eingereicht'
-            action_url = f"https://volunteer.solutions{reverse('bw_home')}"
+            action_url = f"{settings.DOMAIN_HOST}{reverse('bw_home')}"
             email_content = format_application_complete_email(
                 org_name=bewerber.org.name,
                 user_name=f"{bewerber.user.first_name} {bewerber.user.last_name}",
