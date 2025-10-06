@@ -17,10 +17,13 @@
       <div class="d-flex gap-1 align-items-center">
         <div class="d-flex gap-0 align-items-center flex-column">
           {% if aufgabe.beschreibung %}
-            <a class="btn data-tooltip-bottom p-0" data-tooltip="{% trans 'Beschreibung' %}: {{ aufgabe.beschreibung }}"><i class="bi bi-info-circle"></i></a>
+            <a class="btn p-0" data-bs-toggle="tooltip" data-bs-title="{% trans 'Beschreibung' %}: {{ aufgabe.beschreibung }}"><i class="bi bi-info-circle"></i></a>
           {% endif %}
           {% if aufgabe.mitupload %}
-            <a class="btn data-tooltip-bottom p-0" data-tooltip="{% trans 'Diese Aufgabe erfordert eine Datei' %}"><i class="bi bi-file-earmark-arrow-up text-success"></i></a>
+            <a class="btn p-0" data-bs-toggle="tooltip" data-bs-title="{% trans 'Diese Aufgabe erfordert eine Datei' %}"><i class="bi bi-file-earmark-arrow-up text-success"></i></a>
+          {% endif %}
+          {% if aufgabe.wiederholung %}
+            <a class="btn p-0" data-bs-toggle="tooltip" data-bs-title="{% trans 'Mit Wiederholung' %}"><i class="bi bi-repeat"></i></a>
           {% endif %}
         </div>
 
@@ -44,9 +47,9 @@
       <hr class="border-dark m-0 mt-1" />
     </th>
   {% endfor %}
-  <th class="p-0">
+  <th class="p-0 sticky-right with-border-before">
     <div class="d-flex gap-1 align-items-center">
-      <a href="{% url 'add_aufgabe' %}?next={% url 'list_aufgaben_table' %}" class="btn btn-sm data-tooltip-bottom" data-tooltip="{% trans 'Neue Aufgabe erstellen' %}"><i class="bi bi-plus-circle"></i></a>
+      <a href="{% url 'add_aufgabe' %}?next={% url 'list_aufgaben_table' %}" class="btn px-4" data-bs-toggle="tooltip" data-bs-title="{% trans 'Neue Aufgabe erstellen' %}"><i class="bi bi-plus-circle"></i></a>
       <div class="vr border-dark m-0 ms-1 me-1" style="height: 70px; width: 0;"></div>
     </div>
     <hr class="border-dark m-0 mt-1" />
@@ -54,6 +57,15 @@
 </tr>
 
 <style>
+  @media (min-width: 768px) {
+  .sticky-right {
+    position: sticky;
+      right: 0;
+      background-color: var(--bs-body-bg); 
+      z-index: 1;
+    }
+  }
+
   .sticky-top {
     position: sticky;
     top: 0;
@@ -76,6 +88,17 @@
     position: absolute;
     top: 0;
     right: 1px;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
+    color: rgba(var(--bs-dark-rgb), var(--bs-border-opacity));
+  }
+
+  th.with-border-before::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 1px;
     bottom: 0;
     width: 1px;
     background: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
