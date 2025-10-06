@@ -13,6 +13,7 @@
 {% block content %}
 <form method="post" id="ampelForm">
     {% csrf_token %}
+    <input type="hidden" name="submission_key" id="submission_key" value="{{ submission_key }}">
     <div class="card rounded-4 mb-4">
         <div class="card-header rounded-4">
             <h3 class="card-title mb-0">{% trans "Ampelmeldung" %}</h3>
@@ -31,17 +32,20 @@
             </div>
 
             {# Footer with Status and Buttons #}
-            <div class="d-flex justify-content-between align-items-center">
-                {# Last Status Component #}
-                {% include "components/ampel_status.html" with last_ampel=last_ampel %}
-                
-                {# Action Buttons #}
-                <div>
-                    <button type="button" class="btn btn-secondary me-2" onclick="window.location.href = '{% url 'fw_home' %}'">
-                        <i class="bi bi-arrow-left me-2"></i>{% trans "Zurück" %}
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-2">
+                {# Last Status Component (compact on mobile) #}
+                <div class="order-2 order-md-1 text-muted">
+                    {% include "components/ampel_status.html" with last_ampel=last_ampel %}
+                </div>
+
+                {# Action Buttons: full-width on small, inline on md+ #}
+                <div class="order-1 order-md-2 d-grid gap-2 d-flex flex-column-reverse flex-md-row">
+                    <button type="button" class="btn btn-secondary w-100 w-md-auto me-0" onclick="window.location.href = '{% url 'fw_home' %}'">
+                        <span class="d-flex align-items-center justify-content-center"><i class="bi bi-arrow-left me-2"></i>{% trans "Zurück" %}</span>
                     </button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-send me-2"></i>{% trans "Abschicken" %}
+                    <button id="ampelSubmit" type="submit" class="btn btn-primary w-100 w-md-auto">
+                        <span class="d-flex align-items-center justify-content-center"><i class="bi bi-send me-2"></i>{% trans "Abschicken" %}</span>
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                     </button>
                 </div>
             </div>
@@ -50,16 +54,66 @@
 </form>
 
 <script>
-    document.getElementById('ampelForm').addEventListener('submit', (event) => {
-        event.preventDefault();
-        
-        const ampelInput = document.querySelector('input[name="ampel"]');
-        if (!ampelInput.value) {
-            alert('{% trans "Bitte wählen Sie eine Farbe aus" %}');
-            return;
+    (function() {
+        const form = document.getElementById('ampelForm');
+        const btn = document.getElementById('ampelSubmit');
+        let submitted = false;
+
+        // Generate a UUID v4 if template didn't provide one
+        function genUUID() {
+            if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+            // Fallback
+            const s = [];
+            const hex = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+            for (let i = 0; i < hex.length; i++) {
+                const c = hex[i];
+                if (c === 'x' || c === 'y') {
+                    const r = Math.random() * 16 | 0;
+                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    s.push(v.toString(16));
+                } else {
+                    s.push(c);
+                }
+            }
+            return s.join('');
         }
 
-        event.target.submit();
-    });
+        const keyInput = document.getElementById('submission_key');
+        if (!keyInput.value) {
+            keyInput.value = genUUID();
+        }
+
+        form.addEventListener('submit', (event) => {
+            if (submitted) {
+                event.preventDefault();
+                return;
+            }
+
+            const selected = document.querySelector('input[name="ampel"]:checked') || document.querySelector('input[name="ampel"]');
+            if (!selected || !selected.value) {
+                event.preventDefault();
+                alert('{% trans "Bitte wählen Sie eine Farbe aus" %}');
+                return;
+            }
+
+            // Lock UI
+            submitted = true;
+            btn.disabled = true;
+            const label = btn.querySelector('.label');
+            const spinner = btn.querySelector('.spinner-border');
+            if (label) label.classList.add('d-none');
+            if (spinner) spinner.classList.remove('d-none');
+            form.querySelectorAll('input, textarea, button, select').forEach(el => {
+                if (el === btn) return;
+                if (el.tagName === 'INPUT' && (el.type === 'hidden' || el.name === 'csrfmiddlewaretoken' || el.name === 'submission_key')) return;
+                el.disabled = true;
+            });
+        });
+
+        // Prevent accidental Enter submissions except in textarea
+        form.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') e.preventDefault();
+        });
+    })();
 </script>
 {% endblock %}

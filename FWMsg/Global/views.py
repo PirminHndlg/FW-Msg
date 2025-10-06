@@ -53,6 +53,8 @@ from django.http import (
 )
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from uuid import UUID
+import uuid
 
 from BW.models import ApplicationAnswer, ApplicationAnswerFile, Bewerber
 from Global.send_email import send_email_with_archive
@@ -1324,17 +1326,29 @@ def ampel(request):
     if ampel and ampel.upper() in ['R', 'G', 'Y']:
         ampel = ampel.upper()
         comment = request.POST.get('ampel_comment', None)
-        ampel_object = Ampel2.objects.create(
-            user=request.user, 
-            status=ampel, 
-            org=request.user.org,
-            comment=comment
-        )
-        ampel_object.save()
+        key_raw = request.POST.get('submission_key')
+        try:
+            submission_key = UUID(key_raw) if key_raw else uuid.uuid4()
+        except (ValueError, TypeError):
+            submission_key = uuid.uuid4()
+
+        # Try to find an existing submission by key to be idempotent
+        existing = Ampel2.objects.filter(submission_key=submission_key, org=request.user.org).first()
+        if existing:
+            ampel_object = existing
+        else:
+            ampel_object = Ampel2.objects.create(
+                user=request.user,
+                status=ampel,
+                org=request.user.org,
+                comment=comment,
+                submission_key=submission_key
+            )
         
-        # send email to org
-        from ORG.tasks import send_ampel_email_task
-        send_ampel_email_task.s(ampel_object.id).apply_async(countdown=10)
+        # send email to org only if this is a new submission
+        if not existing:
+            from ORG.tasks import send_ampel_email_task
+            send_ampel_email_task.s(ampel_object.id).apply_async(countdown=10)
 
         msg_text = 'Ampel erfolgreich auf ' + (
             'Grün' if ampel == 'G' else 'Rot' if ampel == 'R' else 'Gelb' if ampel == 'Y' else 'error') + ' gesetzt'
@@ -1345,7 +1359,8 @@ def ampel(request):
     last_ampel = Ampel2.objects.filter(user=request.user).order_by('-date').first()
 
     context = {
-        'last_ampel': last_ampel
+        'last_ampel': last_ampel,
+        'submission_key': uuid.uuid4()
     }
     context = check_organization_context(request, context)
     return render(request, 'ampel.html', context=context)
