@@ -1334,7 +1334,7 @@ def ampel(request):
         
         # send email to org
         from ORG.tasks import send_ampel_email_task
-        send_ampel_email_task.delay(ampel_object.id)
+        send_ampel_email_task.s(ampel_object.id).apply_async(countdown=10)
 
         msg_text = 'Ampel erfolgreich auf ' + (
             'Grün' if ampel == 'G' else 'Rot' if ampel == 'R' else 'Gelb' if ampel == 'Y' else 'error') + ' gesetzt'
@@ -1473,7 +1473,7 @@ def aufgabe(request, aufgabe_id):
                 user_aufgabe.erledigt = True
 
             from ORG.tasks import send_aufgabe_erledigt_email_task
-            send_aufgabe_erledigt_email_task.delay(user_aufgabe.id)
+            send_aufgabe_erledigt_email_task.s(user_aufgabe.id).apply_async(countdown=10)
 
             user_aufgabe.erledigt_am = datetime.now()
 
