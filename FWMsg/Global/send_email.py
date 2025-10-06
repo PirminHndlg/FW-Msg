@@ -8,8 +8,9 @@ from email.utils import formatdate
 from django.utils import timezone
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
-from django.conf import settings
 import logging
+from django.conf import settings
+from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 
@@ -269,7 +270,7 @@ def get_org_color(org):
 
 def send_aufgaben_email(aufgabe, org):
     # Get the organization logo URL
-    action_url = 'https://volunteer.solutions/aufgaben/' + str(aufgabe.aufgabe.id) + "/"
+    action_url = f'{settings.DOMAIN_HOST}{reverse("aufgaben_detail", args=[aufgabe.aufgabe.id])}'
     unsubscribe_url = aufgabe.user.customuser.get_unsubscribe_url()
     base64_image = get_logo_base64(org)
     org_color = get_org_color(org)
@@ -310,7 +311,7 @@ def send_aufgaben_email(aufgabe, org):
     return True
 
 def send_new_aufgaben_email(aufgaben, org):
-    action_url = 'https://volunteer.solutions/aufgaben/'
+    action_url = f'{settings.DOMAIN_HOST}{reverse("aufgaben")}'
 
     base64_image = get_logo_base64(org)
     org_color = get_org_color(org)
@@ -345,7 +346,6 @@ def send_new_aufgaben_email(aufgaben, org):
 
 def send_new_post_email(post_id):
     from Global.models import Post2
-    from django.urls import reverse
     
     post = Post2.objects.get(id=post_id)
     org = post.org
