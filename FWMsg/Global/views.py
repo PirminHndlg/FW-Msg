@@ -101,7 +101,7 @@ from BW.views import base_template as bw_base_template
 from Ehemalige.views import base_template as ehemalige_base_template
 from FWMsg.celery import send_email_aufgaben_daily
 from FWMsg.decorators import required_person_cluster, required_role
-from .forms import EinsatzstelleNotizForm, FeedbackForm, AddPostForm
+from .forms import EinsatzstelleNotizForm, FeedbackForm, AddPostForm, AddAmpelmeldungForm
 from ORG.forms import AddNotfallkontaktForm
 from .export_utils import export_user_data_securely
 
@@ -1321,46 +1321,27 @@ def notfallkontakte(request):
 @login_required
 @required_person_cluster('ampel')
 def ampel(request):
+    if request.method == 'POST':
+        form = AddAmpelmeldungForm(request.POST, user=request.user, org=request.user.org)
+        if form.is_valid():
+            ampel_object, created = form.save()
+            if created:
+                from ORG.tasks import send_ampel_email_task
+                send_ampel_email_task.s(ampel_object.id).apply_async(countdown=10)
 
-    ampel = request.POST.get('ampel', None)
-    if ampel and ampel.upper() in ['R', 'G', 'Y']:
-        ampel = ampel.upper()
-        comment = request.POST.get('ampel_comment', None)
-        key_raw = request.POST.get('submission_key')
-        try:
-            submission_key = UUID(key_raw) if key_raw else uuid.uuid4()
-        except (ValueError, TypeError):
-            submission_key = uuid.uuid4()
-
-        # Try to find an existing submission by key to be idempotent
-        existing = Ampel2.objects.filter(submission_key=submission_key, org=request.user.org).first()
-        if existing:
-            ampel_object = existing
-        else:
-            ampel_object = Ampel2.objects.create(
-                user=request.user,
-                status=ampel,
-                org=request.user.org,
-                comment=comment,
-                submission_key=submission_key
-            )
-        
-        # send email to org only if this is a new submission
-        if not existing:
-            from ORG.tasks import send_ampel_email_task
-            send_ampel_email_task.s(ampel_object.id).apply_async(countdown=10)
-
-        msg_text = 'Ampel erfolgreich auf ' + (
-            'Grün' if ampel == 'G' else 'Rot' if ampel == 'R' else 'Gelb' if ampel == 'Y' else 'error') + ' gesetzt'
-
-        messages.success(request, msg_text)
-        return redirect('fw_home')
+            s = form.cleaned_data['status']
+            msg_text = 'Ampel erfolgreich auf ' + (
+                'Grün' if s == 'G' else 'Rot' if s == 'R' else 'Gelb' if s == 'Y' else 'error') + ' gesetzt'
+            messages.success(request, msg_text)
+            return redirect('fw_home')
+    else:
+        form = AddAmpelmeldungForm(initial={'submission_key': uuid.uuid4()}, user=request.user, org=request.user.org)
 
     last_ampel = Ampel2.objects.filter(user=request.user).order_by('-date').first()
-
     context = {
         'last_ampel': last_ampel,
-        'submission_key': uuid.uuid4()
+        'submission_key': form.initial.get('submission_key') if hasattr(form, 'initial') else uuid.uuid4(),
+        'form': form,
     }
     context = check_organization_context(request, context)
     return render(request, 'ampel.html', context=context)

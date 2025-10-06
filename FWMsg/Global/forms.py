@@ -1,9 +1,11 @@
 from django import forms
 
 from FWMsg.middleware import get_current_request
-from .models import Feedback, PersonCluster, Post2, Notfallkontakt2, PostSurveyQuestion, PostSurveyAnswer, EinsatzstelleNotiz
+from .models import Ampel2, Feedback, PersonCluster, Post2, Notfallkontakt2, PostSurveyQuestion, PostSurveyAnswer, EinsatzstelleNotiz
 from django.utils.translation import gettext_lazy as _
 from Global.send_email import send_new_post_email
+from django.forms.widgets import HiddenInput
+import uuid
 
 class FeedbackForm(forms.ModelForm):
     class Meta:
@@ -14,6 +16,58 @@ class AddNotifallkontaktForm(forms.ModelForm):
     class Meta:
         model = Notfallkontakt2
         fields = ['first_name', 'last_name', 'phone_work', 'phone', 'email']
+        
+class AddAmpelmeldungForm(forms.ModelForm):
+    submission_key = forms.UUIDField(widget=HiddenInput, required=False)
+
+    class Meta:
+        model = Ampel2
+        fields = ['status', 'comment']
+        
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        self.org = kwargs.pop('org', None)
+        super().__init__(*args, **kwargs)
+        self.fields['status'].widget.attrs.update({'class': 'form-select'})
+        self.fields['comment'].widget.attrs.update({'class': 'form-control', 'rows': 4, 'required': 'true', 'placeholder': _('Wie geht es dir? Was hast du in der letzten Zeit gemacht? Schreibe einen kurzen Kommentar...')})
+
+        # Map legacy field names from the template to this form
+        if hasattr(self, 'data') and self.data:
+            data = self.data.copy()
+            if 'ampel' in data and 'status' not in data:
+                data['status'] = (data.get('ampel') or '').upper()
+            if 'ampel_comment' in data and 'comment' not in data:
+                data['comment'] = data.get('ampel_comment')
+            # carry through submission_key if present
+            if 'submission_key' in data and 'submission_key' not in data:
+                data['submission_key'] = data.get('submission_key')
+            self.data = data
+
+    def clean_status(self):
+        value = (self.cleaned_data.get('status') or '').upper()
+        if value not in ['R', 'G', 'Y']:
+            raise forms.ValidationError(_('Ungültiger Status'))
+        return value
+
+    def save(self, commit=True):
+        if not self.is_valid():
+            raise ValueError('Form is not valid')
+
+        key = self.cleaned_data.get('submission_key') or uuid.uuid4()
+
+        # Idempotency by submission_key scoped to org
+        existing = Ampel2.objects.filter(submission_key=key, org=self.org).first()
+        if existing:
+            return existing, False
+
+        obj = Ampel2.objects.create(
+            user=self.user,
+            org=self.org,
+            status=self.cleaned_data['status'],
+            comment=self.cleaned_data.get('comment'),
+            submission_key=key
+        )
+        return obj, True
 
 class AddPostForm(forms.ModelForm):
     has_survey = forms.BooleanField(required=False, label=_('Umfrage hinzufügen'), 

@@ -1,23 +1,42 @@
 {% load static %}
 {% load i18n %}
 
-<div class="ampel_container d-flex justify-content-center gap-4 mb-4">
+<div id="ampel_container" class="ampel_container d-flex justify-content-center gap-4 mb-4 p-2 rounded-4">
     <div id="R" class="ampel_element ampel_rot rounded-circle shadow-sm" 
          title="{% trans 'Rot - Dringender Handlungsbedarf' %}"></div>
     <div id="Y" class="ampel_element ampel_gelb rounded-circle shadow-sm" 
          title="{% trans 'Gelb - Aufmerksamkeit erforderlich' %}"></div>
     <div id="G" class="ampel_element ampel_gruen rounded-circle shadow-sm" 
          title="{% trans 'Grün - Alles in Ordnung' %}"></div>
-    <input type="hidden" name="ampel" required>
+    <input type="hidden" name="{{ form.status.name }}" value="{{ form.status.value|default:'' }}" required="true">
+</div>
+<div id="error-message" class="error-message d-none alert alert-danger">
+    {% trans "Bitte wählen Sie eine Farbe aus" %}
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         let ampelElements = document.querySelectorAll('.ampel_element');
-        let ampelInput = document.querySelector('input[name="ampel"]');
+        let ampelInput = document.querySelector('input[name="{{ form.status.name }}"]');
         
+        if (ampelInput.value) {
+            ampelElements.forEach(ampelElement => {
+                if (ampelElement.id === ampelInput.value) {
+                    ampelElement.classList.add('ampel_selected');
+                    ampelElement.classList.remove('ampel_disabled');
+                }
+                else {
+                    ampelElement.classList.remove('ampel_selected');
+                    ampelElement.classList.add('ampel_disabled');
+                }
+            });
+        }
+
         ampelElements.forEach(ampelElement => {
             ampelElement.addEventListener('click', () => {
+                if (window.submitted) {
+                    return;
+                }
                 if (ampelElement.classList.contains('ampel_selected')) {
                     // Deselect if already selected
                     ampelElements.forEach(el => {
