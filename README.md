@@ -14,9 +14,10 @@ Volunteer.solutions is a comprehensive tool for managing volunteer work. It enab
 
 ## Prerequisites
 - Python 3.8 or higher
-- Django 3.0 or higher
-- Redis (for Celery tasks)
+- Django 4.2 or higher
+- Redis (for Celery tasks and caching)
 - SMTP server for email notifications
+- VAPID keys for web push notifications (optional)
 
 ## Installation
 
@@ -42,39 +43,54 @@ pip install -r requirements.txt
 ### 1. Settings Setup
 ```bash
 cd FWMsg
-cp FWMsg/settings.py.example FWMsg/settings.py
-cp FWMsg/.secrets.json.example FWMsg/.secrets.json
+cp FWMsg/example-settings.py FWMsg/settings.py
 ```
 
 ### 2. Configure Settings
-Edit the following files with your specific configuration:
-
-#### settings.py
-- Replace `SECRET_KEY` with your own secret key
-- Configure database settings if not using SQLite
-- Update `ADMINS` and `MANAGERS` with your contact information
-- Set up `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` for web push notifications
-- Update `CSRF_TRUSTED_ORIGINS` with your domain
+Create a `.secrets.json` file in the `FWMsg/FWMsg/` directory with your configuration. The settings.py file will automatically load these secrets.
 
 #### .secrets.json
 ```json
 {
+    "// Django Core Settings": "==========================================",
+    "secret_key": "REPLACE_WITH_YOUR_SECRET_KEY",
+    "debug": true,
+    "// Domain & Hosting Settings": "=====================================",
+    "domain": "yourdomain.com",
+    "domain_host": "https://yourdomain.com",
+    "allowed_hosts": ["yourdomain.com", "www.yourdomain.com"],
+    "// Security Settings": "=============================================",
+    "csrf_trusted_origins": ["https://yourdomain.com"],
+    "trusted_orgins": ["*"],
+    "// Email Configuration": "===========================================",
     "server_mail": "noreply@example.com",
     "smtp_server": "smtp.example.com",
     "port": 587,
     "sender_email": "notifications@example.com",
-    "password": "your_email_password"
+    "password": "your_email_password",
+    "feedback_email": "admin@example.com",
+    "imap_server": "imap.example.com",
+    "imap_port": 993,
+    "imap_use_ssl": true,
+    "// Admin Configuration": "===========================================",
+    "admins": [
+        ["Admin Name", "admin@example.com"]
+    ],
+    "// Push Notification Settings": "=====================================",
+    "vapid_public_key": "YOUR_VAPID_PUBLIC_KEY",
+    "vapid_private_key": "YOUR_VAPID_PRIVATE_KEY"
 }
 ```
 
+**Important:** 
+- Replace all placeholder values with your actual configuration
+- The `secret_key` should be a secure random string
+- For production, set `debug` to `false` and use proper domain values
+- Make sure to add `.secrets.json` to your `.gitignore` file to keep secrets secure
+
 ### 3. Database Setup
-> **Note:** Migration files are not included in the repository. You will need to create them using the commands below.
 
 ```bash
-python manage.py makemigrations Global
-python manage.py makemigrations FW
-python manage.py makemigrations ORG
-python manage.py makemigrations TEAM
 python manage.py migrate
 python manage.py createsuperuser
 ```
@@ -89,6 +105,11 @@ python manage.py runserver
 ### Celery Worker (for background tasks)
 ```bash
 celery -A FWMsg worker -l info
+```
+
+### Celery Beat
+```bash
+celery -A FWMsg beat
 ```
 
 ### To add a new organization to the system:
@@ -111,6 +132,11 @@ FWMsg/
 ├── Home/            # Home page app
 ├── Global/          # Global utilities
 ├── TEAM/            # Team management app
+├── ADMIN/           # Admin interface app
+├── BW/              # Application management app
+├── Ehemalige/       # Alumni management app
+├── seminar/         # Seminar management app
+├── survey/          # Survey management app
 └── FWMsg/           # Project settings
 ```
 
@@ -119,8 +145,11 @@ Static files are organized in app-specific directories:
 - `FW/fw-static/`
 - `ORG/org-static/`
 - `Global/global-static/`
-- `TEAM/team-static/`
+- `Home/home-static/`
+- `seminar/seminar-static/`
 - `logos/`
+
+Note: Some apps like `TEAM`, `ADMIN`, `BW`, `Ehemalige`, and `survey` don't have dedicated static directories and rely on global static files.
 
 ## License
 Volunteer.solutions is licensed under the MIT License. This means you can do whatever you want with the code as long as you keep the license.
