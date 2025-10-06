@@ -17,13 +17,13 @@ class CreateAccountForm(forms.Form):
         max_length=150, 
         required=True, 
         label='Passwort',
-        help_text=_('Ihr Passwort muss folgende Anforderungen erfüllen:<br>• Mindestens 8 Zeichen lang<br>• Mindestens ein Großbuchstabe (A-Z)<br>• Mindestens ein Kleinbuchstabe (a-z)<br>• Mindestens eine Zahl (0-9)<br>• Mindestens ein Sonderzeichen (!@#$%^&* etc.)<br>• Nicht zu ähnlich zu Ihren persönlichen Daten')
+        help_text=_('Das Passwort muss folgende Anforderungen erfüllen:<br>• Mindestens 8 Zeichen lang<br>• Mindestens ein Großbuchstabe (A-Z)<br>• Mindestens ein Kleinbuchstabe (a-z)<br>• Mindestens eine Zahl (0-9)<br>• Mindestens ein Sonderzeichen (!@#$%^&* etc.)<br>• Nicht zu ähnlich zu den persönlichen Daten')
     )
     password2 = forms.CharField(
         max_length=150, 
         required=True, 
         label='Passwort wiederholen',
-        help_text=_('Bitte geben Sie das Passwort erneut ein.')
+        help_text=_('Das Passwort erneut eingeben.')
     )
     
     def __init__(self, *args, **kwargs):
