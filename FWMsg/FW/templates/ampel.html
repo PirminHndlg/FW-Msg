@@ -13,7 +13,12 @@
 {% block content %}
 <form method="post" id="ampelForm">
     {% csrf_token %}
-    <input type="hidden" name="submission_key" id="submission_key" value="{{ submission_key }}">
+    {{ form.submission_key }}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
     <div class="card rounded-4 mb-4">
         <div class="card-header rounded-4">
             <h3 class="card-title mb-0">{% trans "Ampelmeldung" %}</h3>
@@ -27,8 +32,7 @@
             {# Comment Section #}
             <div class="mb-4">
                 <h4 class="mb-3">{% trans "Anmerkungen" %}</h4>
-                <textarea id="ampel_comment" name="ampel_comment" class="form-control" rows="4" required
-                          placeholder="{% trans 'Wie geht es dir? Was hast du in der letzten Zeit gemacht? Schreibe einen kurzen Kommentar...' %}"></textarea>
+                {{ form.comment }}
             </div>
 
             {# Footer with Status and Buttons #}
@@ -57,7 +61,7 @@
     (function() {
         const form = document.getElementById('ampelForm');
         const btn = document.getElementById('ampelSubmit');
-        let submitted = false;
+        window.submitted = false;
 
         // Generate a UUID v4 if template didn't provide one
         function genUUID() {
@@ -78,26 +82,39 @@
             return s.join('');
         }
 
-        const keyInput = document.getElementById('submission_key');
+        let keyInput = document.getElementById('submission_key');
+        if (!keyInput) {
+            keyInput = document.querySelector('input[name="submission_key"]');
+        }
         if (!keyInput.value) {
             keyInput.value = genUUID();
         }
 
         form.addEventListener('submit', (event) => {
-            if (submitted) {
+            if (window.submitted) {
                 event.preventDefault();
                 return;
             }
 
-            const selected = document.querySelector('input[name="ampel"]:checked') || document.querySelector('input[name="ampel"]');
+            const selected = document.querySelector('input[name="{{ form.status.name }}"]:checked') || document.querySelector('input[name="{{ form.status.name }}"]');
             if (!selected || !selected.value) {
                 event.preventDefault();
-                alert('{% trans "Bitte wählen Sie eine Farbe aus" %}');
+                // Show a visual error on the ampel container
+                // dispay a error message
+                const errorMessage = document.getElementById('error-message');
+                if (errorMessage) {
+                    errorMessage.classList.remove('d-none');
+                    errorMessage.classList.add('d-block');
+                }
+                const container = document.getElementById('ampel_container');
+                if (container) {
+                    container.classList.add('border', 'border-danger');
+                }
                 return;
             }
 
             // Lock UI
-            submitted = true;
+            window.submitted = true;
             btn.disabled = true;
             const label = btn.querySelector('.label');
             const spinner = btn.querySelector('.spinner-border');
