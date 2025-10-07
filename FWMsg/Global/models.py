@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from django.dispatch import receiver
@@ -148,12 +149,12 @@ class CustomUser(OrgModel):
             })
             
             # Add the base domain to the relative URL
-            base_url = "https://volunteer.solutions"
+            base_url = settings.DOMAIN_HOST
             return base_url + relative_url
         except Exception as e:
             print(e)
             # Fallback to profile page if there's an error
-            return "https://volunteer.solutions/profil"
+            return f"{settings.DOMAIN_HOST}{reverse('profile')}"
 
     def create_small_image(self):
         if self.profil_picture:
