@@ -71,7 +71,7 @@
     <nav class="navbar navbar-dark bg-primary d-md-none">
       <div class="container-fluid">
         <!-- Logo/Brand -->
-        <a class="navbar-brand" href="{% url 'fw_home' %}">
+        <a class="navbar-brand" href="{% url 'index_home' %}">
           {% with org=user|get_org %}
             <img src="{% url 'serve_image' org.id %}" alt="{{ org.name }}-Logo" style="height: 30px;" />
           {% endwith %}
