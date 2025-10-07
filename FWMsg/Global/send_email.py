@@ -6,7 +6,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate
 from django.utils import timezone
-from django.core.mail import send_mail, EmailMultiAlternatives
+from django.core.mail import get_connection, send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
 import logging
 from django.conf import settings
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 from .push_notification import send_push_notification_to_user
 
 
-def save_email_to_sent_folder(subject, message, from_email, recipient_list, html_message=None):
+def save_email_to_sent_folder(subject, message, from_email, recipient_list, html_message=None, reply_to=None):
     """
     Save a copy of the sent email to the IMAP Sent folder.
     """
@@ -34,6 +34,8 @@ def save_email_to_sent_folder(subject, message, from_email, recipient_list, html
         msg['Subject'] = subject
         msg['From'] = from_email
         msg['To'] = ', '.join(recipient_list)
+        if reply_to:
+            msg['Reply-To'] = ', '.join(reply_to)
         msg['Date'] = formatdate(localtime=True)
         
         if message:
@@ -68,8 +70,44 @@ def save_email_to_sent_folder(subject, message, from_email, recipient_list, html
         logger.error(f"Failed to archive email to IMAP Sent folder: {e}")
         return False
 
+def send_mail(
+    subject,
+    message,
+    from_email,
+    recipient_list,
+    reply_to=None,
+    fail_silently=False,
+    auth_user=None,
+    auth_password=None,
+    connection=None,
+    html_message=None,
+):
+    """
+    Easy wrapper for sending a single message to a recipient list. All members
+    of the recipient list will see the other recipients in the 'To' field.
 
-def send_email_with_archive(subject, message, from_email, recipient_list, html_message=None, save_to_sent=True):
+    If from_email is None, use the DEFAULT_FROM_EMAIL setting.
+    If auth_user is None, use the EMAIL_HOST_USER setting.
+    If auth_password is None, use the EMAIL_HOST_PASSWORD setting.
+
+    Note: The API for this method is frozen. New code wanting to extend the
+    functionality should use the EmailMessage class directly.
+    """
+    connection = connection or get_connection(
+        username=auth_user,
+        password=auth_password,
+        fail_silently=fail_silently,
+    )
+    mail = EmailMultiAlternatives(
+        subject, message, from_email, recipient_list, connection=connection, reply_to=[reply_to]
+    )
+    if html_message:
+        mail.attach_alternative(html_message, "text/html")
+
+    return mail.send()
+
+
+def send_email_with_archive(subject, message, from_email, recipient_list, html_message=None, reply_to_list=None, save_to_sent=True):
     """
     Enhanced email sending function that saves emails to IMAP Sent folder for archiving.
     This ensures sent emails appear in the mail server and external email programs.
@@ -81,12 +119,20 @@ def send_email_with_archive(subject, message, from_email, recipient_list, html_m
             message=message,
             from_email=from_email,
             recipient_list=recipient_list,
-            html_message=html_message
+            html_message=html_message,
+            reply_to=reply_to_list
         )
         
         # If email was sent successfully and archiving is enabled, save to Sent folder
         if result and save_to_sent:
-            save_email_to_sent_folder(subject, message, from_email, recipient_list, html_message)
+            save_email_to_sent_folder(
+                subject=subject,
+                message=message,
+                from_email=from_email,
+                recipient_list=recipient_list,
+                html_message=html_message,
+                reply_to=reply_to_list
+                )
         
         return result
         
@@ -278,7 +324,7 @@ def send_aufgaben_email(aufgabe, org):
     aufg_deadline = aufgabe.faellig
     aufg_beschreibung = aufgabe.aufgabe.beschreibung if aufgabe.aufgabe.beschreibung else ''
     user_name = f"{aufgabe.user.first_name} {aufgabe.user.last_name}"
-    
+
     email_content = format_aufgaben_email(
         aufgabe_name=aufg_name,
         aufgabe_deadline=aufg_deadline,
@@ -290,9 +336,9 @@ def send_aufgaben_email(aufgabe, org):
         aufgabe_beschreibung=aufg_beschreibung,
         unsubscribe_url=unsubscribe_url
     )   
-    
+
     subject = f'Erinnerung: {aufgabe.aufgabe.name}'
-    
+
     faellig_text = ''
     if aufgabe.faellig:
         faellig_text = f'am {aufgabe.faellig.strftime("%d.%m.%Y")} '
@@ -300,14 +346,21 @@ def send_aufgaben_email(aufgabe, org):
     push_content = f'Die Aufgabe "{aufgabe.aufgabe.name}" ist {faellig_text}fällig.'
 
     send_push_notification_to_user(aufgabe.user, subject, push_content, url=action_url)
-    
+
     if aufgabe.user.customuser.mail_notifications:
-        send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [aufgabe.user.email], html_message=email_content)
-    
+        send_email_with_archive(
+            subject=subject,
+            message=email_content,
+            from_email=settings.SERVER_EMAIL,
+            recipient_list=[aufgabe.user.email],
+            html_message=email_content,
+            reply_to_list=[aufgabe.user.email],
+        )
+
     aufgabe.last_reminder = timezone.now()
     aufgabe.currently_sending = False
     aufgabe.save()
-    
+
     return True
 
 def send_new_aufgaben_email(aufgaben, org):
@@ -328,7 +381,7 @@ def send_new_aufgaben_email(aufgaben, org):
 
     subject = f'Neue Aufgaben: {aufgaben[0].aufgabe.name}... und mehr'
         
-    if aufgaben[0].user.customuser.mail_notifications and send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [aufgaben[0].user.email], html_message=email_content):
+    if aufgaben[0].user.customuser.mail_notifications and send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [aufgaben[0].user.email], html_message=email_content, reply_to_list=[org.email]):
         for aufgabe in aufgaben:
             aufgabe.last_reminder = timezone.now()
             aufgabe.currently_sending = False
@@ -413,4 +466,3 @@ def send_new_post_email(post_id):
     
     post.save()
     return successful_sends
-    

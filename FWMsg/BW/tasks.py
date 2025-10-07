@@ -151,7 +151,7 @@ def send_application_complete_email(bewerber_id):
             
             subject = f'Neue Bewerbung eingegangen: {bewerber.user.first_name} {bewerber.user.last_name}'
             org_email = bewerber.org.email
-            send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [org_email], html_message=email_content)
+            send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [org_email], html_message=email_content, reply_to_list=[bewerber.user.email])
             
             subject = f'Ihre Bewerbung wurde eingereicht'
             action_url = f"{settings.DOMAIN_HOST}{reverse('bw_home')}"
@@ -162,7 +162,7 @@ def send_application_complete_email(bewerber_id):
                 action_url=action_url,
                 text_subject='Ihre Bewerbung wurde eingereicht, wir werden uns schnellstmöglich um Ihre Bewerbung kümmern.'
             )
-            send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [bewerber.user.email], html_message=email_content)
+            send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [bewerber.user.email], html_message=email_content, reply_to_list=[org_email])
             
             return True
     except Exception as e:
