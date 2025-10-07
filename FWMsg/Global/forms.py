@@ -29,19 +29,18 @@ class AddAmpelmeldungForm(forms.ModelForm):
         self.org = kwargs.pop('org', None)
         super().__init__(*args, **kwargs)
         self.fields['status'].widget.attrs.update({'class': 'form-select'})
-        self.fields['comment'].widget.attrs.update({'class': 'form-control', 'rows': 4, 'required': 'true', 'placeholder': _('Wie geht es dir? Was hast du in der letzten Zeit gemacht? Schreibe einen kurzen Kommentar...')})
+        self.fields['comment'].widget.attrs.update({
+            'class': 'form-control', 
+            'rows': 4, 
+            'required': 'true', 
+            'placeholder': _('Wie geht es dir? Was hast du in der letzten Zeit gemacht? Schreibe einen kurzen Kommentar...'),
+            'id': 'id_comment'
+        })
+        
+        self.fields['status'].required = True
+        self.fields['comment'].required = True
+        self.fields['submission_key'].required = False
 
-        # Map legacy field names from the template to this form
-        if hasattr(self, 'data') and self.data:
-            data = self.data.copy()
-            if 'ampel' in data and 'status' not in data:
-                data['status'] = (data.get('ampel') or '').upper()
-            if 'ampel_comment' in data and 'comment' not in data:
-                data['comment'] = data.get('ampel_comment')
-            # carry through submission_key if present
-            if 'submission_key' in data and 'submission_key' not in data:
-                data['submission_key'] = data.get('submission_key')
-            self.data = data
 
     def clean_status(self):
         value = (self.cleaned_data.get('status') or '').upper()
@@ -64,7 +63,7 @@ class AddAmpelmeldungForm(forms.ModelForm):
             user=self.user,
             org=self.org,
             status=self.cleaned_data['status'],
-            comment=self.cleaned_data.get('comment'),
+            comment=self.cleaned_data.get('comment', ''),
             submission_key=key
         )
         return obj, True
