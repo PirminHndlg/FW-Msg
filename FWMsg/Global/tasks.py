@@ -56,6 +56,7 @@ def send_image_uploaded_email_task(bild_id):
             settings.SERVER_EMAIL,
             [org_email],
             html_message=email_content,
+            reply_to_list=[bild.user.email]
         )
         return True
     except Exception as e:
@@ -89,4 +90,5 @@ def send_birthday_reminder_email_task(user_id):
         settings.SERVER_EMAIL,
         receiver,
         html_message=email_content,
+        reply_to_list=[org.email]
     )

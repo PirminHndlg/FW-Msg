@@ -5,11 +5,11 @@ from django.conf import settings
 from celery import Celery
 from celery.schedules import crontab
 
-from Global.send_email import send_aufgaben_email, send_new_aufgaben_email, send_email_with_archive
+from Global.send_email import send_aufgaben_email, send_new_aufgaben_email
 
 from datetime import datetime, timedelta
 from django.db.models import Q
-from django.core.mail import send_mail
+from django.core.mail import mail_admins, send_mail
 
 ###
 # start celery:
@@ -181,7 +181,7 @@ def send_email_aufgaben_daily(self):
         Gesamt: {len(response_json['new_aufgaben_sent']) + len(response_json['new_aufgaben_failed'])}
         """
 
-        send_email_with_archive('Aufgabenerinnerungen erfolgreich gesendet', msg, settings.SERVER_EMAIL, [settings.SERVER_EMAIL], html_message=msg)
+        mail_admins(subject='Aufgabenerinnerungen erfolgreich gesendet', message=msg)
 
         return response_json
         
@@ -194,7 +194,7 @@ def send_email_aufgaben_daily(self):
             # If we've exhausted retries, send a notification about the failure
             error_msg = f"Task send_email_aufgaben_daily failed after {self.max_retries} retries. Error: {exc}"
             try:
-                send_email_with_archive('Celery Task Failed', error_msg, settings.SERVER_EMAIL, [settings.SERVER_EMAIL], html_message=error_msg)
+                mail_admins(subject='Celery Task Failed', message=error_msg)
             except:
                 pass  # Don't let email failure prevent the task from failing
             raise

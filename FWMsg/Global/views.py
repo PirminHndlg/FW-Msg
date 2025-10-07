@@ -1915,7 +1915,8 @@ def delete_account(request):
                 message=f'Ein Benutzer hat die Löschung seines Kontos beantragt. {request.user.first_name} {request.user.last_name} ({request.user.email})',
                 from_email=settings.SERVER_EMAIL,
                 recipient_list=[mail_address[1]],
-                html_message=f'Ein Benutzer hat die Löschung seines Kontos beantragt. {request.user.first_name} {request.user.last_name} ({request.user.email})'
+                html_message=f'Ein Benutzer hat die Löschung seines Kontos beantragt. {request.user.first_name} {request.user.last_name} ({request.user.email})',
+                reply_to_list=[request.user.email]
             )
         messages.success(request, 'Konto-Löschung beantragt. Sie erhalten eine E-Mail, sobald Ihr Antrag bearbeitet wurde.')
         return redirect('settings')

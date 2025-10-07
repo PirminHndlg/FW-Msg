@@ -91,7 +91,7 @@ def send_feedback_email_task(feedback_id):
     subject = f'Feedback von {feedback.user.username}' if not feedback.anonymous else 'Anonymes Feedback'
     reply_to = feedback.user.email if not feedback.anonymous else None
 
-    if send_email_with_archive(subject, feedback.text, settings.SERVER_EMAIL, [secrets['feedback_email']], html_message=feedback.text):
+    if send_email_with_archive(subject, feedback.text, settings.SERVER_EMAIL, [secrets['feedback_email']], html_message=feedback.text, reply_to_list=[reply_to]):
         return True
     return False
 
@@ -114,7 +114,7 @@ def send_mail_calendar_reminder_task(kalender_event_id, user_id):
     push_content = f'{kalender_event.start.strftime("%d.%m.%Y")} bis {kalender_event.end.strftime("%d.%m.%Y")}: {kalender_event.title}'
     send_push_notification_to_user(user, subject, push_content, url=action_url)
     
-    if user.customuser.mail_notifications and send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [user.email], html_message=email_content):
+    if user.customuser.mail_notifications and send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [user.email], html_message=email_content, reply_to_list=[user.org.email]):
         return True
     return False
 
@@ -133,6 +133,8 @@ def send_ampel_email_task(ampel_id):
         if not user_name:
             user_name = user.username
         
+        user_email = user.email
+        
         # Create action URL - link to the ampel overview page or user profile
         action_url = f"{settings.DOMAIN_HOST}{reverse('list_ampel')}"
         
@@ -144,7 +146,7 @@ def send_ampel_email_task(ampel_id):
         email_content = format_ampel_email(
             user_name=org.name,
             ampel_user_name=user_name,
-            ampel_user_email=user.email,
+            ampel_user_email=user_email,
             status=ampel.status,
             comment=ampel.comment,
             ampel_date=ampel.date,
@@ -189,7 +191,8 @@ def send_ampel_email_task(ampel_id):
                 message=email_content,
                 from_email=settings.SERVER_EMAIL,
                 recipient_list=[org.email] + team_emails,
-                html_message=email_content
+                html_message=email_content,
+                reply_to_list=[user_email]
             )
         else:
             logging.warning(f"No email address found for organization {org.id}")
