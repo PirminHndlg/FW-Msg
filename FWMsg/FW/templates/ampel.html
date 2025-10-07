@@ -33,6 +33,9 @@
             <div class="mb-4">
                 <h4 class="mb-3">{% trans "Anmerkungen" %}</h4>
                 {{ form.comment }}
+                {% if form.comment.errors %}
+                    <div class="text-danger small mt-1">{{ form.comment.errors|striptags }}</div>
+                {% endif %}
             </div>
 
             {# Footer with Status and Buttons #}
@@ -123,6 +126,7 @@
             form.querySelectorAll('input, textarea, button, select').forEach(el => {
                 if (el === btn) return;
                 if (el.tagName === 'INPUT' && (el.type === 'hidden' || el.name === 'csrfmiddlewaretoken' || el.name === 'submission_key')) return;
+                if (el.tagName === 'TEXTAREA' && el.name === 'comment') return; // Don't disable comment field
                 el.disabled = true;
             });
         });

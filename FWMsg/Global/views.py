@@ -1334,6 +1334,9 @@ def ampel(request):
                 'Grün' if s == 'G' else 'Rot' if s == 'R' else 'Gelb' if s == 'Y' else 'error') + ' gesetzt'
             messages.success(request, msg_text)
             return redirect('fw_home')
+        else:
+            # Form has validation errors, show them to user
+            messages.error(request, 'Bitte korrigieren Sie die Fehler im Formular.' + str(form.errors))
     else:
         form = AddAmpelmeldungForm(initial={'submission_key': uuid.uuid4()}, user=request.user, org=request.user.org)
 
