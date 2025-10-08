@@ -66,10 +66,10 @@ class PersonCluster(OrgModel):
     aufgaben = models.BooleanField(default=False, verbose_name='Aufgaben anzeigen', help_text='Aktivieren, um Aufgaben für diese Gruppe anzuzeigen')
     calendar = models.BooleanField(default=False, verbose_name='Kalender anzeigen', help_text='Aktivieren, um den Kalender für diese Gruppe anzuzeigen')
     dokumente = models.BooleanField(default=False, verbose_name='Dokumente anzeigen', help_text='Aktivieren, um Dokumente für diese Gruppe anzuzeigen')
-    ampel = models.BooleanField(default=False, verbose_name='Ampel anzeigen', help_text='Aktivieren, um die Ampelfunktion für diese Gruppe anzuzeigen')
-    notfallkontakt = models.BooleanField(default=False, verbose_name='Notfallkontakt anzeigen', help_text='Aktivieren, um Notfallkontakte für diese Gruppe anzuzeigen')
-    bilder = models.BooleanField(default=False, verbose_name='Bilder anzeigen', help_text='Aktivieren, um Bilder für diese Gruppe anzuzeigen')
-    posts = models.BooleanField(default=False, verbose_name='Posts anzeigen', help_text='Aktivieren, um Posts für diese Gruppe anzuzeigen')
+    ampel = models.BooleanField(default=False, verbose_name='Ampelmeldungen abgeben', help_text='Aktivieren, um die Ampelmeldungen für diese Gruppe abgeben zu können')
+    notfallkontakt = models.BooleanField(default=False, verbose_name='Notfallkontakt anlegen', help_text='Aktivieren, um Notfallkontakte für diese Gruppe anlegen zu können')
+    bilder = models.BooleanField(default=False, verbose_name='Bilder hochladen', help_text='Aktivieren, um Bilder für diese Gruppe hochladen zu können')
+    posts = models.BooleanField(default=False, verbose_name='Posts verfassen', help_text='Aktivieren, um Posts für diese Gruppe verfassen zu können')
 
     view = models.CharField(max_length=1, choices=view_choices, default='F', verbose_name='Standardansicht', help_text='Bestimmt die Standardansicht für Mitglieder dieser Gruppe')
 
