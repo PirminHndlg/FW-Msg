@@ -957,6 +957,7 @@ class Bilder2(OrgModel):
     beschreibung = models.TextField(blank=True, null=True, verbose_name=_('Beschreibung'))
     date_created = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
     date_updated = models.DateTimeField(auto_now=True, verbose_name=_('Aktualisiert am'))
+    submission_key = models.UUIDField(blank=True, null=True)
 
     history = HistoricalRecords()
 
