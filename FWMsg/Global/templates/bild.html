@@ -73,29 +73,26 @@ function updateInputFiles(input, files) {
         <h3 class="card-title mb-0">{% trans "Bilder hochladen" %}</h3>
     </div>
     <div class="card-body">
-        <form method="post" enctype="multipart/form-data">
-            {% if form_errors %}
-            <div class="alert alert-danger">
-                {{ form_errors }}
-            </div>
-            {% endif %}
-
+        <form method="post" enctype="multipart/form-data" id="bilderForm">
             {% csrf_token %}
+            {{ bilder_form.submission_key }}
 
             <div class="mb-3">
                 {% for field in bilder_form %}
-                <div class="form-group mb-3">
-                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field|add_class:"form-control" }}
-                    {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% if field.name != 'submission_key' %}
+                    <div class="form-group mb-3">
+                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field|add_class:"form-control" }}
+                        {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                        {% for error in field.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
                     {% endif %}
-                    {% if field.errors %}
-                    {% for error in field.errors %}
-                    <div class="invalid-feedback d-block">{{ error }}</div>
-                    {% endfor %}
-                    {% endif %}
-                </div>
                 {% endfor %}
 
                 {% include "components/fullscreen_drop_zone.html" %}
@@ -143,11 +140,87 @@ function updateInputFiles(input, files) {
 
             <div id="previewContainer" class="mb-3"></div>
 
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save me-2"></i>{% trans "Speichern" %}
-            </button>
+            <div class="d-flex justify-content-end">
+                <button id="submitBtn" type="submit" class="btn btn-primary">
+                    <span class="label d-flex align-items-center justify-content-center"><i class="bi bi-save me-2"></i>{% trans "Speichern" %}</span>
+                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                </button>
+            </div>
         </form>
     </div>
 </div>
+
+<script>
+(function() {
+    const form = document.getElementById('bilderForm');
+    const submitBtn = document.getElementById('submitBtn');
+    let submitted = false;
+
+    // Generate UUID if not provided
+    function genUUID() {
+        if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+        const s = [];
+        const hex = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+        for (let i = 0; i < hex.length; i++) {
+            const c = hex[i];
+            if (c === 'x' || c === 'y') {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                s.push(v.toString(16));
+            } else {
+                s.push(c);
+            }
+        }
+        return s.join('');
+    }
+
+    let keyInput = document.querySelector('input[name="submission_key"]');
+    if (keyInput && !keyInput.value) {
+        keyInput.value = genUUID();
+    }
+
+    form.addEventListener('submit', (event) => {
+        if (submitted) {
+            event.preventDefault();
+            return;
+        }
+
+        // Validate: at least one image selected
+        const imageInput = document.querySelector('input[name="image"]');
+        if (!imageInput || !imageInput.files || imageInput.files.length === 0) {
+            event.preventDefault();
+            alert('{% trans "Bitte wählen Sie mindestens ein Bild aus" %}');
+            return;
+        }
+
+        // Lock UI
+        submitted = true;
+        submitBtn.disabled = true;
+        const label = submitBtn.querySelector('.label');
+        const spinner = submitBtn.querySelector('.spinner-border');
+        if (label) label.classList.add('d-none');
+        if (spinner) spinner.classList.remove('d-none');
+        
+        // Make inputs read-only but don't disable them (disabled fields don't get submitted)
+        form.querySelectorAll('input:not([type="hidden"]), textarea').forEach(el => {
+            el.readOnly = true;
+            el.style.pointerEvents = 'none';
+            el.style.opacity = '0.6';
+        });
+        
+        // Disable drop zone
+        const dropZone = document.getElementById('fullscreenDropZone');
+        if (dropZone) {
+            dropZone.style.display = 'none';
+            dropZone.style.pointerEvents = 'none';
+        }
+        
+        // Disable drag and drop on the document
+        document.body.style.pointerEvents = 'none';
+        // But allow the form to still be interactive for submission
+        form.style.pointerEvents = 'auto';
+    });
+})();
+</script>
 
 {% endblock %}

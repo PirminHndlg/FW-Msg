@@ -46,11 +46,11 @@ window.onload = function () {
                 fileName.className = 'card-text small text-muted text-truncate mb-0';
                 fileName.textContent = file.name;
 
-                const removeBtn = document.createElement('button');
+                const removeBtn = document.createElement('input');
                 removeBtn.className = 'btn btn-close position-absolute top-0 end-0 m-2';
                 removeBtn.style.backgroundColor = '#dc3545';
                 removeBtn.style.opacity = '0.8';
-                removeBtn.type = 'button'; // Prevent form submission
+                removeBtn.type = 'button';
                 removeBtn.onclick = function () {
                     // Remove the file from FileList
                     const dt = new DataTransfer();

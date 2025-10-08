@@ -53,6 +53,8 @@ from django.http import (
 )
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
+
 from uuid import UUID
 import uuid
 
@@ -462,58 +464,36 @@ def bilder(request):
 @login_required
 @required_person_cluster('bilder')
 def bild(request):
-    
-    form_errors = None
-
-    if request.POST:
-        bilder_form = BilderForm(request.POST)
+    if request.method == 'POST':
+        bilder_form = BilderForm(request.POST, user=request.user, org=request.user.org)
         images = request.FILES.getlist('image')
 
         if bilder_form.is_valid() and len(images) > 0:
-            bilder_form_data = bilder_form.cleaned_data
-
-            bilder, created = Bilder2.objects.get_or_create(
-                org=request.user.org,
-                user=request.user,
-                titel=bilder_form_data['titel'],
-                beschreibung=bilder_form_data['beschreibung'],
-                defaults={'date_created': datetime.now(), 'date_updated': datetime.now()}
-            )
-
-            if not created:
-                bilder.date_updated = datetime.now()
-                bilder.save()
-
-            # Save each image with a reference to the product
-            for image in images:
-                try:
-                    BilderGallery2.objects.create(
-                        org=request.user.org,
-                        bilder=bilder,
-                        image=image
-                    )
-                except Exception as e:
-                    logging.error(f"Error saving image: {str(e)}")
-                    messages.error(request, f'Error saving image: {str(e)}')
-                    continue
+            # Pass images to the form's save method
+            bilder, created = bilder_form.save(images=images)
             
-            # Enqueue email sending task with a short delay
-            try:
-                send_image_uploaded_email_task.apply_async(args=[bilder.id], countdown=5)
-            except Exception as e:
-                logging.error(f"Error scheduling image uploaded email task: {e}")
+            # Enqueue email sending task only for new submissions
+            if created:
+                try:
+                    send_image_uploaded_email_task.apply_async(args=[bilder.id], countdown=5)
+                except Exception as e:
+                    logging.error(f"Error scheduling image uploaded email task: {e}")
 
+            messages.success(request, _('Bilder erfolgreich hochgeladen'))
             return redirect('bilder')
         else:
-            form_errors = bilder_form.errors
+            if not images:
+                messages.error(request, _('Bitte wählen Sie mindestens ein Bild aus'))
+            else:
+                messages.error(request, _('Bitte korrigieren Sie die Fehler im Formular.') + ' ' + str(bilder_form.errors))
+    else:
+        bilder_form = BilderForm(initial={'submission_key': uuid.uuid4()}, user=request.user, org=request.user.org)
 
-    bilder_form = BilderForm()
     bilder_gallery_form = BilderGalleryForm()
     
     context = {
         'bilder_form': bilder_form,
         'bilder_gallery_form': bilder_gallery_form,
-        'form_errors': form_errors
     }
 
     context = check_organization_context(request, context)
