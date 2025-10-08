@@ -1,6 +1,9 @@
 from django import forms
 from Global.models import Bilder2, BilderGallery2, ProfilUser2
 from django.utils.translation import gettext_lazy as _
+from django.forms.widgets import HiddenInput
+from django.utils import timezone
+import uuid
 
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
@@ -21,12 +24,64 @@ class MultipleFileField(forms.FileField):
 
 
 class BilderForm(forms.ModelForm):
+    submission_key = forms.UUIDField(widget=HiddenInput, required=False)
+    
     class Meta:
         model = Bilder2
         fields = ['titel', 'beschreibung']
         widgets = {
             'beschreibung': forms.Textarea(attrs={'rows': 3}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        self.org = kwargs.pop('org', None)
+        super().__init__(*args, **kwargs)
+        self.fields['titel'].widget.attrs.update({'class': 'form-control', 'placeholder': _('Bildtitel')})
+        self.fields['beschreibung'].widget.attrs.update({'class': 'form-control', 'placeholder': _('Beschreibung (optional)')})
+        self.fields['submission_key'].required = False
+    
+    def save(self, images=None, commit=True):
+        if not self.is_valid():
+            raise ValueError('Form is not valid')
+        
+        key = self.cleaned_data.get('submission_key') or uuid.uuid4()
+        
+        # Idempotency by submission_key scoped to org
+        existing = Bilder2.objects.filter(submission_key=key, org=self.org).first()
+        if existing:
+            # Update existing record
+            existing.titel = self.cleaned_data['titel']
+            existing.beschreibung = self.cleaned_data.get('beschreibung', '')
+            existing.date_updated = timezone.now()
+            existing.save()
+            # Add new images if provided
+            if images:
+                for image in images:
+                    BilderGallery2.objects.create(
+                        org=self.org,
+                        bilder=existing,
+                        image=image
+                    )
+            return existing, False
+        
+        # Create new Bilder2 object
+        obj = Bilder2.objects.create(
+            user=self.user,
+            org=self.org,
+            titel=self.cleaned_data['titel'],
+            beschreibung=self.cleaned_data.get('beschreibung', ''),
+            submission_key=key
+        )
+        # Add images if provided
+        if images:
+            for image in images:
+                BilderGallery2.objects.create(
+                    org=self.org,
+                    bilder=obj,
+                    image=image
+                )
+        return obj, True
 
 
 class BilderGalleryForm(forms.ModelForm):
