@@ -776,47 +776,55 @@ class BilderViewsTests(TestCase):
 
     def test_bild_upload_success(self):
         self.client.force_login(self.user)
+        import uuid
+        
+        # Create test image
         image = Image.new('RGB', (10, 10), color='blue')
         image_io = io.BytesIO()
         image.save(image_io, format='JPEG')
         image_io.seek(0)
-        data = {'titel': 'NewBild', 'beschreibung': 'desc'}
-        files = {'image': [SimpleUploadedFile('img2.jpg', image_io.getvalue(), content_type='image/jpeg')]}
         
-        # First, test without following redirects to see the actual response
-        response = self.client.post(reverse('bild'), data=data, files=files)
+        # Create the uploaded file
+        uploaded_file = SimpleUploadedFile('img2.jpg', image_io.getvalue(), content_type='image/jpeg')
         
-        # The view should either redirect (success) or return 200 with form errors
-        if response.status_code == 302:
-            # Success case - redirect to 'bilder'
-            self.assertEqual(response.url, reverse('bilder'))
-            self.assertTrue(Bilder2.objects.filter(titel='NewBild').exists())
-        elif response.status_code == 200:
-            # Form validation failed - check for form errors in context
-            self.assertIn('form_errors', response.context)
-            # The test should still pass as we're testing the view behavior
-            self.assertTrue(True)
-        else:
-            self.fail(f"Unexpected status code: {response.status_code}")
+        # Build the request data
+        data = {
+            'titel': 'NewBild', 
+            'beschreibung': 'desc',
+            'submission_key': str(uuid.uuid4()),
+            'image': uploaded_file  # Add image to data, not files
+        }
+        
+        response = self.client.post(reverse('bild'), data=data, follow=True)
+        
+        # Check that Bilder2 was created
+        messages_list = list(get_messages(response.wsgi_request))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Bilder2.objects.filter(titel='NewBild').exists(), 
+                       f"Bilder2 not created. Messages: {[str(m) for m in messages_list]}")
+        
+        # Check that messages contain success message
+        self.assertTrue(any('erfolgreich' in str(msg).lower() for msg in messages_list))
 
     def test_bild_upload_debug_form_errors(self):
         """Test to debug form validation errors"""
         self.client.force_login(self.user)
+        import uuid
         image = Image.new('RGB', (10, 10), color='blue')
         image_io = io.BytesIO()
         image.save(image_io, format='JPEG')
         image_io.seek(0)
-        data = {'titel': 'NewBild', 'beschreibung': 'desc'}
-        files = {'image': [SimpleUploadedFile('img2.jpg', image_io.getvalue(), content_type='image/jpeg')]}
-        response = self.client.post(reverse('bild'), data=data, files=files)
-        
-        # If there are form errors, they should be in the context
-        if response.status_code == 200 and 'form_errors' in response.context:
-            print(f"Form errors: {response.context['form_errors']}")
+        data = {
+            'titel': 'NewBild', 
+            'beschreibung': 'desc',
+            'submission_key': str(uuid.uuid4())
+        }
+        files = {'image': SimpleUploadedFile('img2.jpg', image_io.getvalue(), content_type='image/jpeg')}
+        response = self.client.post(reverse('bild'), data=data, files=files, follow=True)
         
         # Check if the form is valid by testing it directly
         from FW.forms import BilderForm
-        form = BilderForm(data=data)
+        form = BilderForm(data=data, user=self.user, org=self.org)
         if not form.is_valid():
             print(f"Form validation errors: {form.errors}")
         
@@ -826,29 +834,45 @@ class BilderViewsTests(TestCase):
     def test_bild_form_validation(self):
         """Test that BilderForm validation works correctly"""
         from FW.forms import BilderForm
+        import uuid
         
         # Test valid data
-        valid_data = {'titel': 'Test Title', 'beschreibung': 'Test description'}
-        form = BilderForm(data=valid_data)
+        valid_data = {
+            'titel': 'Test Title', 
+            'beschreibung': 'Test description',
+            'submission_key': str(uuid.uuid4())
+        }
+        form = BilderForm(data=valid_data, user=self.user, org=self.org)
         self.assertTrue(form.is_valid())
         
         # Test invalid data (missing titel)
-        invalid_data = {'beschreibung': 'Test description'}
-        form = BilderForm(data=invalid_data)
+        invalid_data = {
+            'beschreibung': 'Test description',
+            'submission_key': str(uuid.uuid4())
+        }
+        form = BilderForm(data=invalid_data, user=self.user, org=self.org)
         self.assertFalse(form.is_valid())
         self.assertIn('titel', form.errors)
 
     def test_bild_upload_no_images(self):
         """Test that upload fails when no images are provided"""
         self.client.force_login(self.user)
-        data = {'titel': 'NewBild', 'beschreibung': 'desc'}
-        response = self.client.post(reverse('bild'), data=data)
+        import uuid
+        data = {
+            'titel': 'NewBild', 
+            'beschreibung': 'desc',
+            'submission_key': str(uuid.uuid4())
+        }
+        response = self.client.post(reverse('bild'), data=data, follow=True)
         
-        # Should return 200 with form errors (no images uploaded)
+        # Should return 200 and show error message (no images uploaded)
         self.assertEqual(response.status_code, 200)
-        self.assertIn('form_errors', response.context)
         # No new Bilder2 should be created
         self.assertFalse(Bilder2.objects.filter(titel='NewBild').exists())
+        
+        # Check for error message
+        messages_list = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('bild' in str(msg).lower() for msg in messages_list))
 
     def test_bild_upload_no_permission(self):
         self.client.force_login(self.no_bilder_user)
@@ -857,9 +881,31 @@ class BilderViewsTests(TestCase):
 
     def test_bild_upload_invalid(self):
         self.client.force_login(self.user)
-        response = self.client.post(reverse('bild'), data={'titel': '', 'beschreibung': 'desc'})
+        import uuid
+        
+        # Create an image but send invalid form data (empty titel)
+        image = Image.new('RGB', (10, 10), color='blue')
+        image_io = io.BytesIO()
+        image.save(image_io, format='JPEG')
+        image_io.seek(0)
+        
+        uploaded_file = SimpleUploadedFile('img2.jpg', image_io.getvalue(), content_type='image/jpeg')
+        
+        data = {
+            'titel': '',  # Empty titel should fail validation
+            'beschreibung': 'desc',
+            'submission_key': str(uuid.uuid4()),
+            'image': uploaded_file
+        }
+        
+        response = self.client.post(reverse('bild'), data=data, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn('form_errors', response.context)
+        
+        # Check for error message in messages
+        messages_list = list(get_messages(response.wsgi_request))
+        # The view should show form errors (titel is required)
+        self.assertTrue(any('fehler' in str(msg).lower() or 'korrigieren' in str(msg).lower() for msg in messages_list),
+                       f"No error message found. Messages: {[str(m) for m in messages_list]}")
 
     def test_remove_bild_success(self):
         self.client.force_login(self.user)
