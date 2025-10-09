@@ -739,9 +739,13 @@ def image_detail(request, image_id):
         current_image = Bilder2.objects.get(id=image_id, org=request.user.org)
         bilder_gallery = BilderGallery2.objects.filter(bilder=current_image)
         
+        # Get size of all images - pass to client for smart loading
+        size_of_all_images = current_image.get_size()
+        
         context = {
             'bild': current_image,
             'bilder_gallery': bilder_gallery,
+            'size_of_all_images': size_of_all_images
         }
 
         context = check_organization_context(request, context)
