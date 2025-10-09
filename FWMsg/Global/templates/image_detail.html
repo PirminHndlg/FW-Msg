@@ -80,19 +80,48 @@
   </div>
 
   <script src="{% static 'js/image-interactions.js' %}"></script>
+
+  <!-- Smart image loading based on device and connection -->
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      var images = document.querySelectorAll('.js-progressive-image');
-      images.forEach(function (img) {
-        var fullSrc = img.getAttribute('data-full-src');
-        if (!fullSrc) return;
-        var loader = new Image();
-        loader.onload = function () {
-          // Swap to full-res image once loaded
-          img.src = fullSrc;
-        };
-        loader.src = fullSrc;
-      });
+      // Total size of all images (in bytes)
+      const totalImageSize = {{ size_of_all_images }};
+      
+      // Detect device type
+      const isMobile = /Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      
+      // Detect connection speed if available
+      let isSlowConnection = false;
+      if (navigator.connection) {
+        const effectiveType = navigator.connection.effectiveType;
+        isSlowConnection = effectiveType === 'slow-2g' || 
+                          effectiveType === '2g' || 
+                          effectiveType === '3g';
+      }
+      
+      // Set threshold based on device and connection
+      // Mobile or slow connection: 2MB, Desktop with good connection: 5MB
+      const threshold = (isMobile || isSlowConnection) ? 2000000 : 5000000;
+      
+      // Only load full images if total size is below threshold
+      if (totalImageSize < threshold) {
+        var images = document.querySelectorAll('.js-progressive-image');
+        images.forEach(function (img) {
+          var fullSrc = img.getAttribute('data-full-src');
+          if (!fullSrc) return;
+          
+          var loader = new Image();
+          loader.onload = function () {
+            // Swap to full-res image once loaded
+            img.src = fullSrc;
+          };
+          loader.src = fullSrc;
+        });
+        
+        console.log('Loading full images (Total: ' + (totalImageSize / 1000000).toFixed(2) + 'MB, Threshold: ' + (threshold / 1000000) + 'MB)');
+      } else {
+        console.log('Skipping full image load (Total: ' + (totalImageSize / 1000000).toFixed(2) + 'MB exceeds threshold: ' + (threshold / 1000000) + 'MB)');
+      }
     });
   </script>
 {% endblock %}
