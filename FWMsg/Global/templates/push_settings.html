@@ -45,7 +45,7 @@
 {% endblock %}
 
 {% block content %}
-  <div class="card rounded-4 mb-4">
+  <div class="card rounded-4 mb-3">
     <div class="card-header rounded-4">
       <h3 class="mb-0">{% trans 'Push-Benachrichtigungen' %}</h3>
     </div>
@@ -53,7 +53,7 @@
 
   <div class="row">
     <div class="col-lg-8">
-      <div class="card rounded-4 mb-4">
+      <div class="card rounded-4 mb-3">
         <div class="card-body">
           <p class="card-text text-muted">
             {% trans 'Durch Push-Benachrichtigungen erhältst du sofortige Aufgabenbenachrichtigungen, auch wenn du die Website nicht geöffnet hast.' %}
@@ -94,14 +94,225 @@
           </div>
         </div>
       </div>
+
+      <!-- Mobile Tutorial Section -->
+      <div class="card rounded-4 mb-3">
+        <div class="card-header rounded-4">
+          <h5 class="mb-0">
+            <i class="bi bi-phone me-2"></i>
+            {% trans 'Anleitung für mobile Geräte' %}
+          </h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted">
+            {% trans 'Um Push-Benachrichtigungen auf deinem Smartphone oder Tablet zu erhalten, musst du die Website zuerst als Web-App installieren.' %}
+          </p>
+
+          <!-- Accordion for different platforms -->
+          <div class="accordion" id="mobileTutorialAccordion">
+            
+            <!-- Android / Chrome Tutorial -->
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingAndroid">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAndroid" aria-expanded="false" aria-controls="collapseAndroid">
+                  <i class="bi bi-android2 me-2 text-success"></i>
+                  {% trans 'Android (Chrome/Firefox)' %}
+                </button>
+              </h2>
+              <div id="collapseAndroid" class="accordion-collapse collapse" aria-labelledby="headingAndroid" data-bs-parent="#mobileTutorialAccordion">
+                <div class="accordion-body">
+                  <h6 class="fw-bold">{% trans 'Schritt 1: Website als App installieren' %}</h6>
+                  <ol class="mb-3">
+                    <li>
+                      {% trans 'Öffne die Website in Chrome oder Firefox' %}
+                    </li>
+                    <li>
+                      {% trans 'Tippe auf das Menü-Symbol (drei Punkte) oben rechts' %}
+                    </li>
+                    <li>
+                      {% trans 'Wähle "Zum Startbildschirm hinzufügen" oder "App installieren"' %}
+                    </li>
+                    <li>
+                      {% trans 'Bestätige mit "Hinzufügen" oder "Installieren"' %}
+                    </li>
+                    <li>
+                      {% trans 'Die App erscheint nun auf deinem Startbildschirm' %}
+                    </li>
+                  </ol>
+
+                  <h6 class="fw-bold">{% trans 'Schritt 2: Push-Benachrichtigungen aktivieren' %}</h6>
+                  <ol class="mb-3">
+                    <li>
+                      {% trans 'Öffne die installierte App vom Startbildschirm' %}
+                    </li>
+                    <li>
+                      {% trans 'Navigiere zu dieser Push-Einstellungen-Seite' %}
+                    </li>
+                    <li>
+                      {% trans 'Klicke oben auf "Push-Benachrichtigungen aktivieren"' %}
+                    </li>
+                    <li>
+                      {% trans 'Erlaube Benachrichtigungen, wenn der Browser fragt' %}
+                    </li>
+                  </ol>
+
+                  <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>{% trans 'Wichtig' %}:</strong> 
+                    {% trans 'Push-Benachrichtigungen funktionieren nur, wenn die App über den Startbildschirm installiert wurde. Der normale Browser unterstützt keine Push-Benachrichtigungen auf Android.' %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- iOS / Safari Tutorial -->
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingIOS">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIOS" aria-expanded="false" aria-controls="collapseIOS">
+                  <i class="bi bi-apple me-2"></i>
+                  {% trans 'iOS / iPadOS (Safari)' %}
+                </button>
+              </h2>
+              <div id="collapseIOS" class="accordion-collapse collapse" aria-labelledby="headingIOS" data-bs-parent="#mobileTutorialAccordion">
+                <div class="accordion-body">
+                  <h6 class="fw-bold">{% trans 'Schritt 1: Website zum Home-Bildschirm hinzufügen' %}</h6>
+                  <ol class="mb-3">
+                    <li>
+                      {% trans 'Öffne die Website in Safari' %}
+                      <small class="text-muted d-block">
+                        {% trans '(Andere Browser wie Chrome oder Firefox unterstützen keine Web-Apps auf iOS)' %}
+                      </small>
+                    </li>
+                    <li>
+                      {% trans 'Tippe auf das Teilen-Symbol' %}
+                      <i class="bi bi-box-arrow-up"></i>
+                      {% trans 'unten in der Mitte' %}
+                    </li>
+                    <li>
+                      {% trans 'Scrolle nach unten und wähle "Zum Home-Bildschirm"' %}
+                    </li>
+                    <li>
+                      {% trans 'Gib einen Namen ein (optional) und tippe auf "Hinzufügen"' %}
+                    </li>
+                    <li>
+                      {% trans 'Die App erscheint nun auf deinem Home-Bildschirm' %}
+                    </li>
+                  </ol>
+
+                  <h6 class="fw-bold">{% trans 'Schritt 2: Push-Benachrichtigungen aktivieren' %}</h6>
+                  <ol class="mb-3">
+                    <li>
+                      {% trans 'Öffne die installierte App vom Home-Bildschirm' %}
+                    </li>
+                    <li>
+                      {% trans 'Navigiere zu dieser Push-Einstellungen-Seite' %}
+                    </li>
+                    <li>
+                      {% trans 'Klicke auf "Push-Benachrichtigungen aktivieren"' %}
+                    </li>
+                    <li>
+                      {% trans 'Erlaube Benachrichtigungen, wenn Safari fragt' %}
+                    </li>
+                  </ol>
+
+                  <h6 class="fw-bold">{% trans 'Schritt 3: Benachrichtigungen in iOS-Einstellungen erlauben (falls nötig)' %}</h6>
+                  <ol class="mb-3">
+                    <li>
+                      {% trans 'Öffne die iOS "Einstellungen"-App' %}
+                    </li>
+                    <li>
+                      {% trans 'Gehe zu "Mitteilungen"' %}
+                    </li>
+                    <li>
+                      {% trans 'Suche die installierte Web-App in der Liste' %}
+                    </li>
+                    <li>
+                      {% trans 'Aktiviere "Mitteilungen erlauben"' %}
+                    </li>
+                    <li>
+                      {% trans 'Wähle deine bevorzugten Benachrichtigungsoptionen (Banner, Töne, etc.)' %}
+                    </li>
+                  </ol>
+
+                  <div class="alert alert-warning mb-0">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>{% trans 'Hinweis für iOS' %}:</strong> 
+                    {% trans 'Push-Benachrichtigungen auf iOS funktionieren nur mit Safari und erfordern iOS 16.4 oder neuer. Die App muss über "Zum Home-Bildschirm" installiert werden.' %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Troubleshooting Section -->
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingTroubleshooting">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTroubleshooting" aria-expanded="false" aria-controls="collapseTroubleshooting">
+                  <i class="bi bi-tools me-2 text-warning"></i>
+                  {% trans 'Problembehandlung' %}
+                </button>
+              </h2>
+              <div id="collapseTroubleshooting" class="accordion-collapse collapse" aria-labelledby="headingTroubleshooting" data-bs-parent="#mobileTutorialAccordion">
+                <div class="accordion-body">
+                  <h6 class="fw-bold">{% trans 'Push-Benachrichtigungen funktionieren nicht?' %}</h6>
+                  
+                  <div class="mb-3">
+                    <strong>{% trans 'Prüfe Folgendes' %}:</strong>
+                    <ul class="mt-2">
+                      <li>
+                        {% trans 'Hast du die Website als App installiert? (Nicht nur als Lesezeichen!)' %}
+                      </li>
+                      <li>
+                        {% trans 'Öffnest du die Website über das App-Icon auf dem Startbildschirm?' %}
+                      </li>
+                      <li>
+                        {% trans 'Sind Benachrichtigungen in den System-Einstellungen erlaubt?' %}
+                      </li>
+                      <li>
+                        {% trans 'Ist dein Gerät mit dem Internet verbunden?' %}
+                      </li>
+                      <li>
+                        {% trans 'Hast du Push-Benachrichtigungen auf dieser Seite aktiviert?' %}
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div class="mb-3">
+                    <strong>{% trans 'Falls es immer noch nicht funktioniert' %}:</strong>
+                    <ol class="mt-2">
+                      <li>
+                        {% trans 'Entferne die App vom Startbildschirm' %}
+                      </li>
+                      <li>
+                        {% trans 'Lösche den Browser-Cache und alle Website-Daten' %}
+                      </li>
+                      <li>
+                        {% trans 'Installiere die App erneut' %}
+                      </li>
+                      <li>
+                        {% trans 'Aktiviere Push-Benachrichtigungen erneut' %}
+                      </li>
+                    </ol>
+                  </div>
+
+                  <div class="alert alert-secondary mb-0">
+                    <i class="bi bi-question-circle me-2"></i>
+                    {% trans 'Benötigst du weitere Hilfe? Kontaktiere den Support oder die Administratoren.' %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="col-lg-4">
       <div class="card rounded-4">
-        <div class="card-header">
+        <div class="card-header rounded-4">
           <h5 class="card-title mb-0">{% trans 'Registrierte Geräte' %}</h5>
         </div>
-        <div class="card-body p-0">
+        <div class="card-body p-3">
           <div class="device-list">
             {% if subscriptions %}
               <ul class="list-group list-group-flush">
