@@ -354,7 +354,7 @@ def send_aufgaben_email(aufgabe, org):
             from_email=settings.SERVER_EMAIL,
             recipient_list=[aufgabe.user.email],
             html_message=email_content,
-            reply_to_list=[aufgabe.user.email],
+            reply_to_list=[org.email],
         )
 
     aufgabe.last_reminder = timezone.now()
