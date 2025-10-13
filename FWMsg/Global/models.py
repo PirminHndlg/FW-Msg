@@ -967,6 +967,17 @@ class Bilder2(OrgModel):
 
     def __str__(self):
         return self.titel
+    
+    def get_size(self):
+        """Get the size of the image."""
+        size = 0
+        for gallery_object in self.bildergallery2_set.all():
+            if hasattr(gallery_object.image, 'path'):
+                try:
+                    size += os.path.getsize(gallery_object.image.path)
+                except (OSError, ValueError):
+                    pass
+        return size
 
     def get_comment_count(self):
         """Get total number of comments for this image."""
