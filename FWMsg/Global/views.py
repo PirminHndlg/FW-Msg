@@ -92,7 +92,8 @@ from .models import (
     Post2,
     PostSurveyAnswer,
     PushSubscription,
-    StickyNote
+    StickyNote,
+    ChangeRequest
 )
 from ORG.models import Organisation
 from FW.models import Freiwilliger
@@ -1992,3 +1993,122 @@ def bw_application_file_answer_download(request, file_answer_id):
     else:
         messages.error(request, 'Datei nicht gefunden')
         return redirect('index_home')
+
+
+# ============================================================================
+# Country and Placement Location Information Views (Team & Ehemalige)
+# ============================================================================
+
+def _get_member_and_countries(request):
+    """
+    Get member (Team or Ehemalige) and their assigned countries.
+    Returns tuple of (member, assigned_countries, base_template)
+    """
+    from TEAM.models import Team
+    from Ehemalige.models import Ehemalige
+    
+    user_view = request.user.customuser.person_cluster.view
+    
+    if user_view == 'T':
+        # Team member
+        member = Team.objects.filter(user=request.user).first()
+        if member:
+            return member, member.land.all(), 'baseTeam.html'
+    elif user_view == 'E':
+        # Ehemalige member
+        member = Ehemalige.objects.filter(user=request.user).first()
+        if member:
+            return member, member.land.all(), 'baseEhemalige.html'
+    
+    return None, Einsatzland2.objects.none(), 'base.html'
+
+
+@login_required
+@required_role('TE')
+def laender_info(request):
+    """View for Team and Ehemalige members to view their assigned countries' information."""
+    member, assigned_countries, base_template = _get_member_and_countries(request)
+    
+    if not member:
+        messages.warning(request, 'Ihrem Konto sind keine Einsatzländer zugeordnet. Bitte kontaktieren Sie den Administrator.')
+        return render(request, 'laender_info.html', {
+            'laender': [],
+            'base_template': base_template
+        })
+    
+    # Get assigned countries
+    laender = assigned_countries.order_by('name')
+    
+    # Check if there are any countries assigned
+    if not laender.exists():
+        messages.info(request, 'Ihrem Konto sind derzeit keine Einsatzländer zugeordnet.')
+    
+    # Get pending change requests for this user's countries
+    pending_requests_by_land = {}
+    if laender.exists():
+        pending_requests = ChangeRequest.objects.filter(
+            org=request.user.org,
+            requested_by=request.user,
+            status='pending',
+            change_type='einsatzland',
+            object_id__in=laender.values_list('id', flat=True)
+        ).select_related('requested_by')
+        
+        for req in pending_requests:
+            pending_requests_by_land[req.object_id] = req
+    
+    context = {
+        'laender': laender,
+        'pending_requests_by_land': pending_requests_by_land,
+        'base_template': base_template,
+        'member': member
+    }
+    
+    return render(request, 'laender_info.html', context)
+
+
+@login_required
+@required_role('TE')
+def einsatzstellen_info(request):
+    """View for Team and Ehemalige members to view their assigned placement locations."""
+    member, assigned_countries, base_template = _get_member_and_countries(request)
+    
+    if not member:
+        messages.warning(request, 'Ihrem Konto sind keine Einsatzländer zugeordnet. Bitte kontaktieren Sie den Administrator.')
+        return render(request, 'einsatzstellen_info.html', {
+            'einsatzstellen': [],
+            'base_template': base_template
+        })
+    
+    # Get placement locations for assigned countries
+    einsatzstellen = Einsatzstelle2.objects.filter(
+        org=request.user.org,
+        land__in=assigned_countries
+    ).select_related('land').order_by('land__name', 'name')
+    
+    # Check if there are any placement locations
+    if not einsatzstellen.exists():
+        messages.info(request, 'Es wurden keine Einsatzstellen in Ihren zugewiesenen Ländern gefunden.')
+    
+    # Get pending change requests for this user's einsatzstellen
+    pending_requests_by_stelle = {}
+    if einsatzstellen.exists():
+        pending_requests = ChangeRequest.objects.filter(
+            org=request.user.org,
+            requested_by=request.user,
+            status='pending',
+            change_type='einsatzstelle',
+            object_id__in=einsatzstellen.values_list('id', flat=True)
+        ).select_related('requested_by')
+        
+        for req in pending_requests:
+            pending_requests_by_stelle[req.object_id] = req
+    
+    context = {
+        'einsatzstellen': einsatzstellen,
+        'pending_requests_by_stelle': pending_requests_by_stelle,
+        'base_template': base_template,
+        'member': member
+    }
+    
+    return render(request, 'einsatzstellen_info.html', context)

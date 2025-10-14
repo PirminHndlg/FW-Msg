@@ -1,0 +1,229 @@
+{% extends base_template|default:'base.html' %}
+{% load i18n %}
+{% load base_filter %}
+
+{% block title %}
+  {% trans 'Einsatzländer' %}| {{ user.org.name }}
+{% endblock %}
+
+{% block head %}
+<style>
+  details summary {
+    cursor: pointer;
+    user-select: none;
+  }
+  details summary::-webkit-details-marker {
+    display: none;
+  }
+  details summary::marker {
+    display: none;
+  }
+  details summary::before {
+    content: '▶';
+    display: inline-block;
+    margin-right: 0.5rem;
+    transition: transform 0.2s;
+  }
+  details[open] summary::before {
+    transform: rotate(90deg);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <h2 class="mb-4">{% trans 'Einsatzländer' %}</h2>
+
+  {% if laender %}
+    <div class="row row-cols-1 row-cols-lg-2 g-4">
+      {% for land in laender %}
+        <div class="col">
+          <div class="card h-100 border-0 rounded-4 shadow-sm position-relative {% if land.id in pending_requests_by_land %}border-warning border-3{% endif %}" data-country-id="{{ land.id }}">
+            
+            <!-- Edit Button -->
+            <button class="btn btn-sm btn-light rounded-circle shadow-sm position-absolute top-0 end-0 m-3 z-3" 
+                    data-bs-toggle="modal" data-bs-target="#editModal-{{ land.id }}" 
+                    title="{% trans 'Bearbeiten' %}">
+              <i class="bi bi-pencil"></i>
+            </button>
+
+            <!-- Country Header -->
+            <div class="card-header bg-primary text-white border-0 rounded-top-4 p-3">
+              <h5 class="card-title mb-0 fw-bold">
+                <span class="fi fi-{{ land.code|lower }} me-2"></span>{{ land.name }}
+              </h5>
+            </div>
+
+            <!-- Country Information -->
+            <div class="card-body p-4">
+              <!-- Pending Change Request Info -->
+              {% if land.id in pending_requests_by_land %}
+                {% with request=pending_requests_by_land|get_item:land.id %}
+                <div class="alert alert-warning border-0 mb-4">
+                  <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-clock-fill me-2"></i>
+                    <strong>{% trans 'Änderungsvorschlag ausstehend' %}</strong>
+                  </div>
+                  <small class="text-muted d-block mb-2">
+                    {% trans 'Eingereicht am' %} {{ request.created_at|date:"d.m.Y H:i" }}
+                  </small>
+                  {% if request.reason %}
+                    <p class="mb-2 small"><strong>{% trans 'Begründung:' %}</strong> {{ request.reason }}</p>
+                  {% endif %}
+                  <details class="small">
+                    <summary class="cursor-pointer text-primary fw-medium">{% trans 'Vorgeschlagene Änderungen anzeigen' %}</summary>
+                    <div class="mt-2">
+                      {% for change in request.get_field_changes_display %}
+                        <div class="mb-2 ps-3 border-start border-primary border-2">
+                          <strong class="d-block text-primary">{{ change.field }}</strong>
+                          <div class="text-muted">{% trans 'Von:' %} <em>{{ change.current|default:"Leer"|truncatewords:10 }}</em></div>
+                          <div class="text-muted">{% trans 'Zu:' %} <em>{{ change.new|default:"Leer"|truncatewords:10 }}</em></div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </details>
+                </div>
+                {% endwith %}
+              {% endif %}
+              
+              <!-- Emergency Numbers Section -->
+              <div class="mb-4">
+                <h5 class="border-bottom pb-2 mb-3 d-flex align-items-center text-primary">
+                  <i class="bi bi-telephone-fill me-2"></i> {% trans 'Notfallnummern' %}
+                </h5>
+                <div class="info-content">
+                  {% if land.notfallnummern %}
+                    <div class="small">{{ land.notfallnummern|linebreaks }}</div>
+                  {% else %}
+                    <div class="text-muted small">
+                      <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine Notfallnummern hinterlegt' %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Medical Practices Section -->
+              <div class="mb-4">
+                <h5 class="border-bottom pb-2 mb-3 d-flex align-items-center text-primary">
+                  <i class="bi bi-hospital me-2"></i> {% trans 'Arztpraxen' %}
+                </h5>
+                <div class="info-content">
+                  {% if land.arztpraxen %}
+                    <div class="small">{{ land.arztpraxen|linebreaks }}</div>
+                  {% else %}
+                    <div class="text-muted small">
+                      <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine Arztpraxen hinterlegt' %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Pharmacies Section -->
+              <div class="mb-4">
+                <h5 class="border-bottom pb-2 mb-3 d-flex align-items-center text-primary">
+                  <i class="bi bi-capsule me-2"></i> {% trans 'Apotheken' %}
+                </h5>
+                <div class="info-content">
+                  {% if land.apotheken %}
+                    <div class="small">{{ land.apotheken|linebreaks }}</div>
+                  {% else %}
+                    <div class="text-muted small">
+                      <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine Apotheken hinterlegt' %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Additional Information Section -->
+              <div class="mb-0">
+                <h5 class="border-bottom pb-2 mb-3 d-flex align-items-center text-primary">
+                  <i class="bi bi-info-circle me-2"></i> {% trans 'Weitere Informationen' %}
+                </h5>
+                <div class="info-content">
+                  {% if land.informationen %}
+                    <div class="small">{{ land.informationen|linebreaks }}</div>
+                  {% else %}
+                    <div class="text-muted small">
+                      <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine weiteren Informationen hinterlegt' %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Edit Modal -->
+          <div class="modal fade" id="editModal-{{ land.id }}" tabindex="-1" aria-labelledby="editModalLabel-{{ land.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content rounded-4 border-0">
+                <div class="modal-header bg-primary text-white border-0">
+                  <h5 class="modal-title" id="editModalLabel-{{ land.id }}">
+                    <i class="bi bi-pencil-square me-2"></i>{% trans 'Informationen bearbeiten' %}: {{ land.name }}
+                  </h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                  <form method="post" action="{% url 'save_land_info' land.id %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                      <label for="notfallnummern-{{ land.id }}" class="form-label fw-medium d-flex align-items-center">
+                        <i class="bi bi-telephone-fill me-2 text-primary"></i> {% trans 'Notfallnummern' %}
+                      </label>
+                      <textarea class="form-control rounded-3" rows="4" id="notfallnummern-{{ land.id }}" name="notfallnummern" placeholder="{% trans 'Notfallnummern hier eingeben...' %}">{{ land.notfallnummern|default:'' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                      <label for="arztpraxen-{{ land.id }}" class="form-label fw-medium d-flex align-items-center">
+                        <i class="bi bi-hospital me-2 text-primary"></i> {% trans 'Arztpraxen' %}
+                      </label>
+                      <textarea class="form-control rounded-3" rows="4" id="arztpraxen-{{ land.id }}" name="arztpraxen" placeholder="{% trans 'Arztpraxen hier eingeben...' %}">{{ land.arztpraxen|default:'' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                      <label for="apotheken-{{ land.id }}" class="form-label fw-medium d-flex align-items-center">
+                        <i class="bi bi-capsule me-2 text-primary"></i> {% trans 'Apotheken' %}
+                      </label>
+                      <textarea class="form-control rounded-3" rows="4" id="apotheken-{{ land.id }}" name="apotheken" placeholder="{% trans 'Apotheken hier eingeben...' %}">{{ land.apotheken|default:'' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                      <label for="informationen-{{ land.id }}" class="form-label fw-medium d-flex align-items-center">
+                        <i class="bi bi-info-circle me-2 text-primary"></i> {% trans 'Weitere Informationen' %}
+                      </label>
+                      <textarea class="form-control rounded-3" rows="4" id="informationen-{{ land.id }}" name="informationen" placeholder="{% trans 'Weitere Informationen hier eingeben...' %}">{{ land.informationen|default:'' }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                      <label for="reason-{{ land.id }}" class="form-label fw-medium d-flex align-items-center">
+                        <i class="bi bi-chat-text me-2 text-warning"></i> {% trans 'Begründung für Änderung' %}
+                      </label>
+                      <textarea class="form-control rounded-3" rows="3" id="reason-{{ land.id }}" name="reason" placeholder="{% trans 'Warum diese Änderungen? Was ist neu? Was ist anders?' %}" required></textarea>
+                      <div class="form-text">
+                        <i class="bi bi-info-circle me-1"></i>
+                        {% trans 'Deine Änderungen wird zur Prüfung an die Organisation gesendet.' %}
+                      </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                      <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>{% trans 'Abbrechen' %}
+                      </button>
+                      <button type="submit" class="btn btn-warning rounded-3">
+                        <i class="bi bi-send me-2"></i>{% trans 'Änderung vorschlagen' %}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info rounded-3">
+      <i class="bi bi-info-circle me-2"></i>{% trans 'Keine Einsatzländer gefunden. Bitte wenden Sie sich an den Administrator, um Einsatzländer zugewiesen zu bekommen.' %}
+    </div>
+  {% endif %}
+{% endblock %}
+

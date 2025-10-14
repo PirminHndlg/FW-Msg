@@ -1,0 +1,67 @@
+{% load i18n %}
+
+<div class="col-12 col-md-6 col-lg-4">
+    <div class="card h-100 border-0 shadow-sm rounded-4 request-card">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-start justify-content-between mb-3">
+          <div class="d-flex align-items-center">
+            <div class="bg-primary-subtle rounded-circle p-2 me-2">
+              <i class="bi bi-{% if request.change_type == 'einsatzstelle' %}building{% else %}geo-alt{% endif %} text-primary"></i>
+            </div>
+            <div>
+              <h6 class="mb-0">{{ request.get_object_name|truncatechars:30 }}</h6>
+              <small class="text-muted">{{ request.get_change_type_display }}</small>
+            </div>
+          </div>
+          {% with request.get_status_display as status %}
+          {% if status == 'Ausstehend' %}
+          <span class="badge bg-warning text-dark rounded-pill">
+            <i class="bi bi-clock me-1"></i>{% trans 'Ausstehend' %}
+          </span>
+          {% elif status == 'Genehmigt' %}
+          <span class="badge bg-success text-white rounded-pill">
+            <i class="bi bi-check-circle me-1"></i>{% trans 'Genehmigt' %}
+          </span>
+          {% elif status == 'Abgelehnt' %}
+          <span class="badge bg-danger text-white rounded-pill">
+            <i class="bi bi-x-circle me-1"></i>{% trans 'Abgelehnt' %}
+          </span>
+          {% endif %}
+          {% endwith %}
+        </div>
+        
+        <div class="mb-3">
+          <p class="text-muted small mb-2">
+            <i class="bi bi-person me-1"></i>{{ request.requested_by.get_full_name|default:request.requested_by.username }}
+          </p>
+          <p class="text-muted small mb-0">
+            <i class="bi bi-calendar me-1"></i>{{ request.created_at|date:"d.m.Y H:i" }}
+          </p>
+        </div>
+        
+        {% if request.reason %}
+          <div class="mb-3 p-3 bg-light rounded-3">
+            <small class="text-muted d-block mb-1 fw-medium">{% trans 'Begründung:' %}</small>
+            <p class="mb-0 small">{{ request.reason|truncatewords:15 }}</p>
+          </div>
+        {% endif %}
+        
+        <div class="mb-3">
+          <small class="text-muted d-block mb-2 fw-medium">{% trans 'Geänderte Felder:' %}</small>
+          <div class="d-flex flex-wrap gap-1">
+            {% for field, value in request.field_changes.items %}
+              <span class="badge bg-primary-subtle text-primary border border-primary">{{ field }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      
+      {% if request.status == 'pending' %}
+      <div class="card-footer bg-white border-0 p-3">
+        <a href="{% url 'review_change_request' request.id %}" class="btn btn-primary w-100 rounded-pill">
+            <i class="bi bi-eye me-2"></i>{% trans 'Prüfen' %}
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>

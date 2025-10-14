@@ -32,7 +32,7 @@ from Global.models import (
     BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2,
     Einsatzland2, Einsatzstelle2,
     AufgabeZwischenschritte2, UserAufgabenZwischenschritte,
-    EinsatzstelleNotiz
+    EinsatzstelleNotiz, ChangeRequest
 )
 from TEAM.models import Team
 from FW.models import Freiwilliger
@@ -327,6 +327,12 @@ def home_2(request):
         date__gte=timezone.now() - timezone.timedelta(days=5)
     ).select_related('user').order_by('-date')[:10]
 
+    # Get pending change requests
+    pending_change_requests = ChangeRequest.objects.filter(
+        org=request.user.org,
+        status='pending'
+    ).select_related('requested_by').order_by('-created_at')
+
     context = {
         'gallery_images': gallery_images,
         'pending_tasks': pending_tasks,
@@ -336,6 +342,7 @@ def home_2(request):
         'pinned_notizen': pinned_notizen,
         'sticky_notes': sticky_notes,
         'recent_ampel_entries': recent_ampel_entries,
+        'pending_change_requests': pending_change_requests,
         'large_container': True,
         'today': date.today()
     }
@@ -2101,3 +2108,106 @@ def copy_links(request):
     ]
     
     return render(request, 'copy_links.html', {'page_elements': page_elements})
+
+
+@login_required
+@required_role('O')
+def change_requests(request):
+    """List all pending change requests for review."""
+    pending_requests = ChangeRequest.objects.filter(
+        org=request.user.org,
+        status='pending'
+    ).select_related('requested_by').order_by('-created_at')
+    
+    # Get all change requests for statistics
+    all_requests = ChangeRequest.objects.filter(org=request.user.org)
+    
+    context = {
+        'change_requests': pending_requests,
+        'total_pending': pending_requests.count(),
+        'total_approved': all_requests.filter(status='approved').count(),
+        'total_rejected': all_requests.filter(status='rejected').count(),
+    }
+    
+    return render(request, 'change_requests.html', context)
+
+
+@login_required
+@required_role('O')
+def review_change_request(request, request_id):
+    """Review and approve/reject a change request."""
+    change_request = get_object_or_404(ChangeRequest, id=request_id, org=request.user.org)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        review_comment = request.POST.get('review_comment', '')
+        
+        if action in ['approved', 'rejected']:
+            change_request.status = action
+            change_request.reviewed_by = request.user
+            change_request.reviewed_at = timezone.now()
+            change_request.review_comment = review_comment
+            change_request.save()
+            
+            if action == 'approved':
+                try:
+                    # Apply the changes
+                    change_request.apply_changes()
+                    messages.success(request, 'Änderungsantrag wurde genehmigt und angewendet.')
+                except Exception as e:
+                    messages.error(request, f'Fehler beim Anwenden der Änderungen: {str(e)}')
+                    change_request.status = 'pending'  # Revert status on error
+                    change_request.save()
+            else:
+                messages.success(request, 'Änderungsantrag wurde abgelehnt.')
+            
+            # Notify the requester
+            from Global.views_change_requests import _notify_requester_of_decision
+            _notify_requester_of_decision(change_request)
+            
+        return redirect('change_requests')
+    
+    # Get the object and current values for comparison
+    obj = change_request.get_object()
+    field_changes_display = change_request.get_field_changes_display()
+    
+    context = {
+        'change_request': change_request,
+        'object': obj,
+        'field_changes_display': field_changes_display,
+    }
+    
+    return render(request, 'review_change_request.html', context)
+
+
+@login_required
+@required_role('O')
+def change_request_history(request):
+    """View all change requests (approved, rejected, pending)."""
+    all_requests = ChangeRequest.objects.filter(
+        org=request.user.org
+    ).select_related('requested_by', 'reviewed_by').order_by('-created_at')
+    
+    # Filter by status if requested
+    status_filter = request.GET.get('status')
+    if status_filter and status_filter in ['pending', 'approved', 'rejected', 'cancelled']:
+        all_requests = all_requests.filter(status=status_filter)
+    
+    # Pagination
+    paginator = Paginator(all_requests, 25)  # Show 25 requests per page
+    page = request.GET.get('page')
+    
+    try:
+        change_requests = paginator.page(page)
+    except PageNotAnInteger:
+        change_requests = paginator.page(1)
+    except EmptyPage:
+        change_requests = paginator.page(paginator.num_pages)
+    
+    context = {
+        'change_requests': change_requests,
+        'status_filter': status_filter,
+        'status_choices': ChangeRequest.STATUS_CHOICES,
+    }
+    
+    return render(request, 'change_request_history.html', context)

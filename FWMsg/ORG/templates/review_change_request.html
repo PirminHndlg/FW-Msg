@@ -1,0 +1,245 @@
+{% extends 'baseOrg.html' %}
+{% load i18n %}
+
+{% block title %}
+  {% trans 'Änderungsvorschlag prüfen' %} | {{ user.org.name }}
+{% endblock %}
+
+{% block head %}
+  <style>
+    .change-comparison {
+      transition: transform 0.2s ease;
+    }
+    
+    .info-badge {
+      background: #f8f9fa;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      border-left: 3px solid var(--bs-primary);
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-1">{% trans 'Änderungsvorschlag prüfen' %}</h1>
+    <p class="text-muted mb-0">{% trans 'Überprüfen und entscheiden Sie über die vorgeschlagenen Änderungen' %}</p>
+  </div>
+  <a href="{% url 'change_requests' %}" class="btn btn-outline-secondary rounded-pill">
+    <i class="bi bi-arrow-left me-2"></i>{% trans 'Zurück' %}
+  </a>
+</div>
+
+<!-- Request Information Card -->
+<div class="dashboard-section">
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-start justify-content-between mb-4">
+        <div class="d-flex align-items-center">
+          <div class="bg-primary-subtle rounded-circle p-3 me-3">
+            <i class="bi bi-{% if change_request.change_type == 'einsatzstelle' %}building{% else %}geo-alt{% endif %} text-primary" style="font-size: 1.5rem;"></i>
+          </div>
+          <div>
+            <h4 class="mb-1">{{ change_request.get_object_name }}</h4>
+            <small class="text-muted">{{ change_request.get_change_type_display }}</small>
+          </div>
+        </div>
+        {% with change_request.get_status_display as status %}
+          {% if status == 'Ausstehend' %}
+          <span class="badge bg-warning text-dark rounded-pill">
+            <i class="bi bi-clock me-1"></i>{% trans 'Ausstehend' %}
+          </span>
+          {% elif status == 'Genehmigt' %}
+          <span class="badge bg-success text-white rounded-pill">
+            <i class="bi bi-check-circle me-1"></i>{% trans 'Genehmigt' %}
+          </span>
+          {% elif status == 'Abgelehnt' %}
+          <span class="badge bg-danger text-white rounded-pill">
+            <i class="bi bi-x-circle me-1"></i>{% trans 'Abgelehnt' %}
+          </span>
+          {% endif %}
+          {% endwith %}
+      </div>
+      
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="info-badge">
+            <small class="text-muted d-block mb-1">
+              <i class="bi bi-person me-1"></i>{% trans 'Vorgeschlagen von' %}
+            </small>
+            <div class="fw-medium d-flex align-items-center gap-2 flex-wrap">
+              {{ change_request.requested_by.get_full_name|default:change_request.requested_by.username }}
+              <a href="mailto:{{ change_request.requested_by.email }}">
+                <i class="bi bi-envelope me-1"></i>{{ change_request.requested_by.email }}
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="info-badge">
+            <small class="text-muted d-block mb-1">
+              <i class="bi bi-calendar me-1"></i>{% trans 'Datum' %}
+            </small>
+            <div class="fw-medium">{{ change_request.created_at|date:"d.m.Y H:i" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reason -->
+{% if change_request.reason %}
+  <div class="dashboard-section">
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-center mb-3">
+          <div class="bg-info-subtle rounded-circle p-2 me-2">
+            <i class="bi bi-chat-text text-info"></i>
+          </div>
+          <h5 class="mb-0 fw-semibold">{% trans 'Begründung' %}</h5>
+        </div>
+        <div class="p-3 bg-light rounded-3">
+          <p class="mb-0">{{ change_request.reason }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Field Changes -->
+<div class="dashboard-section">
+  <div class="section-header">
+    <h2 class="section-title">
+      <i class="bi bi-arrow-left-right me-2 text-primary"></i>{% trans 'Geplante Änderungen' %}
+    </h2>
+  </div>
+  
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-4">
+      {% for change in field_changes_display %}
+        <div class="mb-4 {% if not forloop.last %}pb-4 border-bottom{% endif %}">
+          <div class="d-flex align-items-center mb-3">
+            <span class="badge bg-primary-subtle text-primary px-3 py-2">{{ change.field }}</span>
+          </div>
+          <div class="row g-3 change-comparison">
+            <div class="col-md-6">
+              <div class="p-3 bg-light border-start border-3 border-secondary rounded-3">
+                <div class="d-flex align-items-center mb-2">
+                  <i class="bi bi-circle-fill me-2 text-secondary" style="font-size: 0.5rem;"></i>
+                  <strong class="text-muted small text-uppercase">{% trans 'Aktuell' %}</strong>
+                </div>
+                <div class="text-muted">
+                  {% if change.current %}
+                    {{ change.current|linebreaks }}
+                  {% else %}
+                    <em class="text-muted">{% trans 'Leer' %}</em>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 bg-primary-subtle border-start border-3 border-primary rounded-3">
+                <div class="d-flex align-items-center mb-2">
+                  <i class="bi bi-arrow-right-circle-fill me-2 text-primary" style="font-size: 0.75rem;"></i>
+                  <strong class="text-primary small text-uppercase">{% trans 'Neu' %}</strong>
+                </div>
+                <div class="fw-medium">
+                  {% if change.new %}
+                    {{ change.new|linebreaks }}
+                  {% else %}
+                    <em class="text-muted">{% trans 'Leer' %}</em>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Review Form -->
+<div class="dashboard-section">
+  <div class="section-header">
+    <h2 class="section-title">
+      <i class="bi bi-clipboard-check me-2 text-primary"></i>{% trans 'Prüfung & Entscheidung' %}
+    </h2>
+  </div>
+  
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-4">
+      <form method="post" id="reviewForm">
+        {% csrf_token %}
+        
+        <div class="mb-4">
+          <label for="review_comment" class="form-label fw-medium">
+            <i class="bi bi-chat-dots me-1"></i>{% trans 'Kommentar' %} 
+            <span class="text-muted small">({% trans 'optional' %})</span>
+          </label>
+          <textarea class="form-control rounded-3 border-2" id="review_comment" name="review_comment" rows="4" 
+                    placeholder="{% trans 'Fügen Sie einen Kommentar zu Ihrer Entscheidung hinzu...' %}" value="{{ change_request.review_comment }}"></textarea>
+          <small class="text-muted d-block mt-2">
+            <i class="bi bi-info-circle me-1"></i>{% trans 'Dieser Kommentar wird an' %} {{ change_request.requested_by.get_full_name|default:change_request.requested_by.username }} {% trans 'gesendet' %}
+          </small>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="submit" name="action" value="rejected" class="btn btn-danger rounded-pill px-4">
+            <i class="bi bi-x-circle me-2"></i>{% trans 'Ablehnen' %}
+          </button>
+          <button type="submit" name="action" value="approved" class="btn btn-success rounded-pill px-4">
+            <i class="bi bi-check-circle me-2"></i>{% trans 'Genehmigen' %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .dashboard-section {
+    margin-bottom: 2rem;
+  }
+  
+  .section-header {
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+  }
+</style>
+
+<script>
+  // Confirmation for actions
+  document.addEventListener('DOMContentLoaded', function() {
+    const approveBtn = document.querySelector('button[value="approved"]');
+    const rejectBtn = document.querySelector('button[value="rejected"]');
+    
+    if (approveBtn) {
+      approveBtn.addEventListener('click', function(e) {
+        if (!confirm('{% trans "Sicher, dass Du diesen Änderungsvorschlag genehmigen möchtest? Die Änderungen werden sofort angewendet." %}')) {
+          e.preventDefault();
+        }
+      });
+    }
+    
+    if (rejectBtn) {
+      rejectBtn.addEventListener('click', function(e) {
+        if (!confirm('{% trans "Sicher, dass Du diesen Änderungsvorschlag ablehnen möchtest?" %}')) {
+          e.preventDefault();
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

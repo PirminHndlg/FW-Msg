@@ -4,6 +4,8 @@ from django.conf import settings
 import logging
 from Global.send_email import (
     format_image_uploaded_email,
+    format_change_request_new_email,
+    format_change_request_decision_email,
     get_org_color,
     send_email_with_archive,
     get_logo_base64,
@@ -92,3 +94,143 @@ def send_birthday_reminder_email_task(user_id):
         html_message=email_content,
         reply_to_list=[org.email]
     )
+
+
+@shared_task
+def send_change_request_new_email_task(change_request_id):
+    """Send email notification to organization member about new change request."""
+    from Global.models import ChangeRequest
+    from django.contrib.auth.models import User
+    from Global.push_notification import send_push_notification_to_user
+    
+    try:
+        change_request = ChangeRequest.objects.get(id=change_request_id)
+        org = change_request.org
+        
+        # Prepare email content
+        obj_name = change_request.get_object_name()
+        requester_name = f"{change_request.requested_by.first_name} {change_request.requested_by.last_name}"
+        if not requester_name.strip():
+            requester_name = change_request.requested_by.username
+        
+        change_type_display = change_request.get_change_type_display()
+        
+        # Get organization logo and color
+        base64_image = get_logo_base64(change_request.org)
+        org_color = get_org_color(change_request.org)
+        
+        # Generate action URL
+        action_url = f'{settings.DOMAIN_HOST}{reverse("review_change_request", args=[change_request.id])}'
+        
+        subject = f'Neuer Änderungsvorschlag: {change_type_display} - {obj_name}'
+        
+        user_name = f"{org.name}"
+        if not user_name.strip():
+            user_name = org.name
+        
+        # Generate HTML email
+        email_content = format_change_request_new_email(
+            change_type=change_type_display,
+            object_name=obj_name,
+            requester_name=requester_name,
+            reason=change_request.reason,
+            action_url=action_url,
+            user_name=user_name,
+            org_name=change_request.org.name,
+            base64_image=base64_image,
+            org_color=org_color
+        )
+        
+        # Send email if user has notifications enabled
+        send_email_with_archive(
+            subject=subject,
+            message='',  # Plain text fallback
+            from_email=settings.SERVER_EMAIL,
+            recipient_list=[org.email],
+            html_message=email_content,
+            reply_to_list=[change_request.requested_by.email] if change_request.requested_by.email else None
+        )
+        
+        return True
+        
+    except Exception as e:
+        logging.error(f"Error in send_change_request_new_email_task: {e}")
+        return False
+
+
+@shared_task
+def send_change_request_decision_email_task(change_request_id):
+    """Send email notification to requester about change request decision."""
+    from Global.models import ChangeRequest
+    from Global.push_notification import send_push_notification_to_user
+    
+    try:
+        change_request = ChangeRequest.objects.get(id=change_request_id)
+        user = change_request.requested_by
+        
+        obj_name = change_request.get_object_name()
+        reviewer_name = f"{change_request.reviewed_by.first_name} {change_request.reviewed_by.last_name}" if change_request.reviewed_by else "Administrator"
+        if not reviewer_name.strip() or reviewer_name == " ":
+            reviewer_name = change_request.reviewed_by.username if change_request.reviewed_by else "Administrator"
+        
+        user_name = f"{user.first_name} {user.last_name}"
+        if not user_name.strip():
+            user_name = user.username
+        
+        status = change_request.status
+        status_display = change_request.get_status_display()
+        change_type_display = change_request.get_change_type_display()
+        
+        # Get organization logo and color
+        base64_image = get_logo_base64(change_request.org)
+        org_color = get_org_color(change_request.org)
+        
+        # Generate action URL - redirect to their info page
+        action_url = f'{settings.DOMAIN_HOST}{reverse("laender_info")}'
+        
+        # Get unsubscribe URL
+        unsubscribe_url = user.customuser.get_unsubscribe_url() if hasattr(user, 'customuser') else None
+        
+        subject = f'Änderungsvorschlag {status_display}: {change_type_display} - {obj_name}'
+        
+        # Generate HTML email
+        email_content = format_change_request_decision_email(
+            status=status,
+            status_display=status_display,
+            change_type=change_type_display,
+            object_name=obj_name,
+            reviewer_name=reviewer_name,
+            review_comment=change_request.review_comment,
+            action_url=action_url,
+            unsubscribe_url=unsubscribe_url,
+            user_name=user_name,
+            org_name=change_request.org.name,
+            base64_image=base64_image,
+            org_color=org_color
+        )
+        
+        # Send email if user has notifications enabled
+        if hasattr(user, 'customuser') and user.customuser.mail_notifications:
+            send_email_with_archive(
+                subject=subject,
+                message='',  # Plain text fallback
+                from_email=settings.SERVER_EMAIL,
+                recipient_list=[user.email],
+                html_message=email_content,
+                reply_to_list=[change_request.org.email] if change_request.org.email else None
+            )
+        
+        # Send push notification
+        status_text = "genehmigt" if status == 'approved' else "abgelehnt"
+        send_push_notification_to_user(
+            user,
+            subject,
+            f'Änderungsvorschlag {status_text}',
+            url=reverse('laender_info')  # Redirect to their info page
+        )
+        
+        return True
+        
+    except Exception as e:
+        logging.error(f"Error in send_change_request_decision_email_task: {e}")
+        return False

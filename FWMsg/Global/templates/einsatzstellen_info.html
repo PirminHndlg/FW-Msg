@@ -1,28 +1,33 @@
-{% extends 'baseTeam.html' %}
+{% extends base_template|default:'base.html' %}
 {% load i18n %}
+{% load base_filter %}
 
 {% block title %}
   {% trans 'Einsatzstellen' %}| {{ user.org.name }}
 {% endblock %}
 
 {% block head %}
-  <style>
-    /* Minimal custom styles to augment Bootstrap */
-    .card {
-      transition: all 0.3s ease;
-    }
-    .info-content {
-      padding-left: 1.5rem;
-    }
-    .empty-info {
-      color: var(--bs-secondary);
-      font-style: italic;
-    }
-    .country-badge {
-      background-color: rgba(var(--bs-primary-rgb), 0.1);
-      color: var(--bs-primary);
-    }
-  </style>
+<style>
+  details summary {
+    cursor: pointer;
+    user-select: none;
+  }
+  details summary::-webkit-details-marker {
+    display: none;
+  }
+  details summary::marker {
+    display: none;
+  }
+  details summary::before {
+    content: '▶';
+    display: inline-block;
+    margin-right: 0.5rem;
+    transition: transform 0.2s;
+  }
+  details[open] summary::before {
+    transform: rotate(90deg);
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -32,7 +37,8 @@
     <div class="row row-cols-1 row-cols-lg-2 g-4">
       {% for stelle in einsatzstellen %}
         <div class="col">
-          <div class="card h-100 border-0 rounded-4 shadow-sm position-relative" data-placement-id="{{ stelle.id }}">
+          <div class="card h-100 border-0 rounded-4 shadow-sm position-relative {% if stelle.id in pending_requests_by_stelle %}border-warning border-3{% endif %}" data-placement-id="{{ stelle.id }}">
+            
             <!-- Edit Button -->
             <button class="btn btn-sm btn-light rounded-circle shadow-sm position-absolute top-0 end-0 m-3 z-3" 
                     data-bs-toggle="modal" data-bs-target="#editModal-{{ stelle.id }}" 
@@ -42,9 +48,9 @@
 
             <!-- Placement Header -->
             <div class="card-header bg-primary text-white border-0 rounded-top-4 p-3">
-              <h5 class="card-title mb-0 fw-bold text-on-org-color">{{ stelle.name }}</h5>
+              <h5 class="card-title mb-0 fw-bold">{{ stelle.name }}</h5>
               {% if stelle.land %}
-                <div class="country-badge badge mt-2 fw-normal text-on-org-color">
+                <div class="badge bg-light text-dark mt-2 fw-normal">
                   <i class="bi bi-geo-alt-fill me-1"></i>{{ stelle.land.name }}
                 </div>
               {% endif %}
@@ -52,6 +58,36 @@
 
             <!-- Placement Information -->
             <div class="card-body p-4">
+              <!-- Pending Change Request Info -->
+              {% if stelle.id in pending_requests_by_stelle %}
+                {% with request=pending_requests_by_stelle|get_item:stelle.id %}
+                <div class="alert alert-warning border-0 mb-4">
+                  <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-clock-fill me-2"></i>
+                    <strong>{% trans 'Änderungsvorschlag ausstehend' %}</strong>
+                  </div>
+                  <small class="text-muted d-block mb-2">
+                    {% trans 'Eingereicht am' %} {{ request.created_at|date:"d.m.Y H:i" }}
+                  </small>
+                  {% if request.reason %}
+                    <p class="mb-2 small"><strong>{% trans 'Begründung:' %}</strong> {{ request.reason }}</p>
+                  {% endif %}
+                  <details class="small">
+                    <summary class="cursor-pointer text-primary fw-medium">{% trans 'Vorgeschlagene Änderungen anzeigen' %}</summary>
+                    <div class="mt-2">
+                      {% for change in request.get_field_changes_display %}
+                        <div class="mb-2 ps-3 border-start border-primary border-2">
+                          <strong class="d-block text-primary">{{ change.field }}</strong>
+                          <div class="text-muted">{% trans 'Von:' %} <em>{{ change.current|default:"Leer"|truncatewords:10 }}</em></div>
+                          <div class="text-muted">{% trans 'Zu:' %} <em>{{ change.new|default:"Leer"|truncatewords:10 }}</em></div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </details>
+                </div>
+                {% endwith %}
+              {% endif %}
+              
               <!-- Partner Organization Section -->
               <div class="mb-4">
                 <h5 class="border-bottom pb-2 mb-3 d-flex align-items-center text-primary">
@@ -61,7 +97,7 @@
                   {% if stelle.partnerorganisation %}
                     <div class="small">{{ stelle.partnerorganisation|linebreaks }}</div>
                   {% else %}
-                    <div class="empty-info small">
+                    <div class="text-muted small">
                       <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine Partnerorganisation hinterlegt' %}
                     </div>
                   {% endif %}
@@ -77,7 +113,7 @@
                   {% if stelle.arbeitsvorgesetzter %}
                     <div class="small">{{ stelle.arbeitsvorgesetzter|linebreaks }}</div>
                   {% else %}
-                    <div class="empty-info small">
+                    <div class="text-muted small">
                       <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine Arbeitsvorgesetzte:r hinterlegt' %}
                     </div>
                   {% endif %}
@@ -93,7 +129,7 @@
                   {% if stelle.mentor %}
                     <div class="small">{{ stelle.mentor|linebreaks }}</div>
                   {% else %}
-                    <div class="empty-info small">
+                    <div class="text-muted small">
                       <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine Mentor:in hinterlegt' %}
                     </div>
                   {% endif %}
@@ -109,7 +145,7 @@
                   {% if stelle.botschaft %}
                     <div class="small">{{ stelle.botschaft|linebreaks }}</div>
                   {% else %}
-                    <div class="empty-info small">
+                    <div class="text-muted small">
                       <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine Botschaftsinformationen hinterlegt' %}
                     </div>
                   {% endif %}
@@ -125,7 +161,7 @@
                   {% if stelle.konsulat %}
                     <div class="small">{{ stelle.konsulat|linebreaks }}</div>
                   {% else %}
-                    <div class="empty-info small">
+                    <div class="text-muted small">
                       <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine Konsulatsinformationen hinterlegt' %}
                     </div>
                   {% endif %}
@@ -141,7 +177,7 @@
                   {% if stelle.informationen %}
                     <div class="small">{{ stelle.informationen|linebreaks }}</div>
                   {% else %}
-                    <div class="empty-info small">
+                    <div class="text-muted small">
                       <i class="bi bi-exclamation-circle me-1"></i>{% trans 'Keine weiteren Informationen hinterlegt' %}
                     </div>
                   {% endif %}
@@ -161,7 +197,7 @@
                   <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                  <form method="post" action="{% url 'team_save_einsatzstelle_info' stelle.id %}">
+                  <form method="post" action="{% url 'save_einsatzstelle_info' stelle.id %}">
                     {% csrf_token %}
                     
                     <div class="mb-3">
@@ -199,19 +235,30 @@
                       <textarea class="form-control rounded-3" rows="4" id="konsulat-{{ stelle.id }}" name="konsulat" placeholder="{% trans 'Konsulatsinformationen hier eingeben...' %}">{{ stelle.konsulat|default:'' }}</textarea>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="mb-3">
                       <label for="informationen-{{ stelle.id }}" class="form-label fw-medium d-flex align-items-center">
                         <i class="bi bi-info-circle me-2 text-primary"></i> {% trans 'Weitere Informationen' %}
                       </label>
                       <textarea class="form-control rounded-3" rows="4" id="informationen-{{ stelle.id }}" name="informationen" placeholder="{% trans 'Weitere Informationen hier eingeben...' %}">{{ stelle.informationen|default:'' }}</textarea>
                     </div>
 
+                    <div class="mb-4">
+                      <label for="reason-{{ stelle.id }}" class="form-label fw-medium d-flex align-items-center">
+                        <i class="bi bi-chat-text me-2 text-warning"></i> {% trans 'Begründung für Änderung' %}
+                      </label>
+                      <textarea class="form-control rounded-3" rows="3" id="reason-{{ stelle.id }}" name="reason" placeholder="{% trans 'Warum diese Änderungen? Was ist neu? Was ist anders?' %}" required></textarea>
+                      <div class="form-text">
+                        <i class="bi bi-info-circle me-1"></i>
+                        {% trans 'Deine Änderungen wird zur Prüfung an die Organisation gesendet.' %}
+                      </div>
+                    </div>
+
                     <div class="d-flex justify-content-end gap-2">
                       <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">
                         <i class="bi bi-x-circle me-2"></i>{% trans 'Abbrechen' %}
                       </button>
-                      <button type="submit" class="btn btn-primary rounded-3">
-                        <i class="bi bi-save me-2"></i>{% trans 'Änderungen speichern' %}
+                      <button type="submit" class="btn btn-warning rounded-3">
+                        <i class="bi bi-send me-2"></i>{% trans 'Änderung vorschlagen' %}
                       </button>
                     </div>
                   </form>
@@ -225,33 +272,8 @@
   {% else %}
     <div class="alert alert-info rounded-3">
       <i class="bi bi-info-circle me-2"></i>
-      {% if msg %}
-        {{ msg }}
-      {% else %}
-        {% trans 'Keine Einsatzstellen gefunden. Bitte wenden Sie sich an den Administrator.' %}
-      {% endif %}
+      {% trans 'Keine Einsatzstellen gefunden. Bitte wenden Sie sich an den Administrator.' %}
     </div>
   {% endif %}
+{% endblock %}
 
-  <script>
-    // Auto-highlight saved placement from URL parameter
-    document.addEventListener('DOMContentLoaded', function () {
-      const urlParams = new URLSearchParams(window.location.search)
-      const savedId = urlParams.get('saved')
-    
-      if (savedId && savedId !== 'true') {
-        // Find the placement card and highlight it temporarily
-        const placementCard = document.querySelector(`.card[data-placement-id="${savedId}"]`)
-        if (placementCard) {
-          placementCard.classList.add('border-success')
-          setTimeout(() => {
-            placementCard.classList.remove('border-success')
-          }, 3000)
-    
-          // Scroll to the saved placement
-          placementCard.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        }
-      }
-    })
-  </script>
-{% endblock %} 

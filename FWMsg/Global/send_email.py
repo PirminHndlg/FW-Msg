@@ -306,6 +306,39 @@ def format_image_uploaded_email(bild_titel, bild_beschreibung, uploader_name, im
     }
     return render_to_string('mail/image_uploaded.html', context)
 
+def format_change_request_new_email(change_type, object_name, requester_name, reason, action_url, user_name, org_name, base64_image, org_color):
+    """Format email for new change request notification to organization members"""
+    context = {
+        'change_type': change_type,
+        'object_name': object_name,
+        'requester_name': requester_name,
+        'reason': reason,
+        'action_url': action_url,
+        'user_name': user_name,
+        'org_name': org_name,
+        'base64_image': base64_image,
+        'org_color': org_color
+    }
+    return render_to_string('mail/change_request_new.html', context)
+
+def format_change_request_decision_email(status, status_display, change_type, object_name, reviewer_name, review_comment, action_url, unsubscribe_url, user_name, org_name, base64_image, org_color):
+    """Format email for change request decision notification to requester"""
+    context = {
+        'status': status,
+        'status_display': status_display,
+        'change_type': change_type,
+        'object_name': object_name,
+        'reviewer_name': reviewer_name,
+        'review_comment': review_comment,
+        'action_url': action_url,
+        'unsubscribe_url': unsubscribe_url,
+        'user_name': user_name,
+        'org_name': org_name,
+        'base64_image': base64_image,
+        'org_color': org_color
+    }
+    return render_to_string('mail/change_request_decision.html', context)
+
 def get_logo_base64(org):
     with open(org.logo.path, "rb") as org_logo:
         base64_image = base64.b64encode(org_logo.read()).decode('utf-8')

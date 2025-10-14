@@ -1,0 +1,131 @@
+{% extends 'baseOrg.html' %}
+{% load i18n %}
+
+{% block title %}
+  {% trans 'Änderungsvorschläge' %} | {{ user.org.name }}
+{% endblock %}
+
+{% block head %}
+  <style>
+    .stat-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .request-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-1">{% trans 'Änderungsvorschläge' %}</h1>
+    <p class="text-muted mb-0">{% trans 'Verwalte eingehende Änderungsanfragen' %}</p>
+  </div>
+  <a href="{% url 'change_request_history' %}" class="btn btn-outline-primary rounded-pill">
+    <i class="bi bi-clock-history me-2"></i>{% trans 'Verlauf' %}
+  </a>
+</div>
+
+<!-- Statistics Cards -->
+<div class="dashboard-section">
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 stat-card">
+        <div class="card-body text-center py-4">
+          <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+            <i class="bi bi-clock-fill text-warning" style="font-size: 1.75rem;"></i>
+          </div>
+          <h3 class="mb-1">{{ total_pending }}</h3>
+          <small class="text-muted">{% trans 'Ausstehend' %}</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 stat-card">
+        <div class="card-body text-center py-4">
+          <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+            <i class="bi bi-check-circle-fill text-success" style="font-size: 1.75rem;"></i>
+          </div>
+          <h3 class="mb-1">{{ total_approved }}</h3>
+          <small class="text-muted">{% trans 'Genehmigt' %}</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 stat-card">
+        <div class="card-body text-center py-4">
+          <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+            <i class="bi bi-x-circle-fill text-danger" style="font-size: 1.75rem;"></i>
+          </div>
+          <h3 class="mb-1">{{ total_rejected }}</h3>
+          <small class="text-muted">{% trans 'Abgelehnt' %}</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 stat-card">
+        <div class="card-body text-center py-4">
+          <div class="bg-primary-subtle rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+            <i class="bi bi-list-ul text-primary" style="font-size: 1.75rem;"></i>
+          </div>
+          <h3 class="mb-1">{{ total_pending|add:total_approved|add:total_rejected }}</h3>
+          <small class="text-muted">{% trans 'Gesamt' %}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Change Requests List -->
+{% if change_requests %}
+  <div class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <i class="bi bi-pencil-square me-2 text-primary"></i>
+        {% trans 'Ausstehende Anfragen' %}
+      </h2>
+    </div>
+    
+    <div class="row g-3">
+      {% for request in change_requests %}
+        {% include 'components/change_request_item.html' with request=request %}
+      {% endfor %}
+    </div>
+  </div>
+{% else %}
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body text-center py-5">
+      <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">
+        <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
+      </div>
+      <h4 class="mb-2">{% trans 'Keine ausstehenden Änderungsvorschläge' %}</h4>
+      <p class="text-muted mb-4">{% trans 'Alle Änderungsvorschläge wurden bearbeitet.' %}</p>
+      <a href="{% url 'change_request_history' %}" class="btn btn-outline-primary rounded-pill">
+        <i class="bi bi-clock-history me-2"></i>{% trans 'Verlauf anzeigen' %}
+      </a>
+    </div>
+  </div>
+{% endif %}
+
+<style>
+  .dashboard-section {
+    margin-bottom: 2rem;
+  }
+  
+  .section-header {
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+  }
+</style>
+{% endblock %}

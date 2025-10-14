@@ -1,6 +1,7 @@
 from . import views
 from django.urls import path 
 from . import views_push
+from . import views_change_requests
 
 urlpatterns = [
     path('logos/<int:org_id>', views.serve_logo, name='serve_image'),
@@ -71,6 +72,14 @@ urlpatterns = [
     path('bewerber/', views.list_bewerber, name='list_bewerber'),
     path('bewerber/<int:bewerber_id>/', views.bewerber_detail, name='bewerber_detail'),
     path('bewerber/files/download/<int:file_answer_id>/', views.bw_application_file_answer_download, name='bw_application_file_answer_download'),
+    
+    # Country and Placement Location Information (for Team and Ehemalige members)
+    path('laender/', views.laender_info, name='laender_info'),
+    path('einsatzstellen/', views.einsatzstellen_info, name='einsatzstellen_info'),
+    
+    # Change Request Actions
+    path('einsatzstellen/save/<int:stelle_id>/', views_change_requests.save_einsatzstelle_info, name='save_einsatzstelle_info'),
+    path('laender/save/<int:land_id>/', views_change_requests.save_land_info, name='save_land_info'),
 ]
 
 # Add these new URL patterns

@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import random
 from django.contrib import admin
+from django.utils import timezone
 from django.http import HttpResponseRedirect
 from django.urls import path
 from django.contrib import messages
@@ -12,7 +13,7 @@ from .models import (
     Ordner2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, PushSubscription, 
     UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, 
     AufgabenCluster, Bilder2, BilderGallery2, BilderComment, BilderReaction, ProfilUser2, Maintenance,
-    PostSurveyAnswer, PostSurveyQuestion, EinsatzstelleNotiz, StickyNote
+    PostSurveyAnswer, PostSurveyQuestion, EinsatzstelleNotiz, StickyNote, ChangeRequest
 )
 from TEAM.models import Team
 from FW.models import Freiwilliger
@@ -594,3 +595,61 @@ class BilderReactionAdmin(SimpleHistoryAdmin):
     search_fields = ['bilder__titel', 'user__username', 'user__first_name', 'user__last_name']
     list_filter = ['emoji', 'date_created', 'bilder__user']
     raw_id_fields = ['bilder', 'user']
+
+
+@admin.register(ChangeRequest)
+class ChangeRequestAdmin(SimpleHistoryAdmin):
+    list_display = ['get_object_name', 'change_type', 'status', 'requested_by', 'created_at', 'reviewed_by']
+    list_filter = ['change_type', 'status', 'created_at', 'reviewed_at']
+    search_fields = ['requested_by__username', 'requested_by__first_name', 'requested_by__last_name', 'reason']
+    readonly_fields = ['created_at', 'reviewed_at']
+    raw_id_fields = ['requested_by', 'reviewed_by']
+    
+    fieldsets = (
+        ('Grundinformationen', {
+            'fields': ('change_type', 'object_id', 'status')
+        }),
+        ('Benutzer', {
+            'fields': ('requested_by', 'reviewed_by')
+        }),
+        ('Änderungsdetails', {
+            'fields': ('field_changes', 'reason', 'review_comment')
+        }),
+        ('Zeitstempel', {
+            'fields': ('created_at', 'reviewed_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_object_name(self, obj):
+        return obj.get_object_name()
+    get_object_name.short_description = 'Objekt'
+    
+    actions = ['approve_requests', 'reject_requests']
+    
+    def approve_requests(self, request, queryset):
+        updated = 0
+        for change_request in queryset.filter(status='pending'):
+            try:
+                change_request.status = 'approved'
+                change_request.reviewed_by = request.user
+                change_request.reviewed_at = timezone.now()
+                change_request.save()
+                change_request.apply_changes()
+                updated += 1
+            except Exception as e:
+                messages.error(request, f'Fehler beim Genehmigen von {change_request}: {str(e)}')
+        
+        if updated:
+            messages.success(request, f'{updated} Änderungsanträge wurden genehmigt.')
+    approve_requests.short_description = 'Ausgewählte Anträge genehmigen'
+    
+    def reject_requests(self, request, queryset):
+        updated = queryset.filter(status='pending').update(
+            status='rejected',
+            reviewed_by=request.user,
+            reviewed_at=timezone.now()
+        )
+        if updated:
+            messages.success(request, f'{updated} Änderungsanträge wurden abgelehnt.')
+    reject_requests.short_description = 'Ausgewählte Anträge ablehnen'
