@@ -2676,7 +2676,7 @@ class ChangeRequestTests(TestCase):
         for call in mock_apply_async.call_args_list:
             args, kwargs = call
             self.assertIn('args', kwargs)  # Should have args in kwargs
-            self.assertEqual(len(kwargs['args']), 2)  # Should have [change_request_id, user_id]
+            self.assertEqual(len(kwargs['args']), 1)  # Should have [change_request_id]
             self.assertEqual(kwargs['args'][0], change_request.id)
             self.assertEqual(kwargs['countdown'], 5)
 
