@@ -111,9 +111,10 @@
   </div>
 </div>
 
+{% if not without_reactions_modal %}
 <!-- Reactions Modal -->
 <div class="modal fade" id="reactionsModal" tabindex="-1" aria-labelledby="reactionsModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+  <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down modal-lg">
     <div class="modal-content border-0 shadow-lg">
       <div class="modal-header bg-light border-0 pb-2">
         <h5 class="modal-title fw-bold" id="reactionsModalLabel">
@@ -132,6 +133,7 @@
     </div>
   </div>
 </div>
+{% endif %}
 
 <!-- Custom CSS for the reactions modal -->
 <style>
@@ -187,3 +189,4 @@
   background: #a8a8a8;
 }
 </style>
+
