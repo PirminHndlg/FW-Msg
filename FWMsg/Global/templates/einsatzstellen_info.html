@@ -34,9 +34,34 @@
   <h2 class="mb-4">{% trans 'Einsatzstellen' %}</h2>
 
   {% if einsatzstellen %}
-    <div class="row row-cols-1 row-cols-lg-2 g-4">
+    <!-- Get unique countries -->
+    {% regroup einsatzstellen by land as laender_list %}
+    
+    <!-- Filter Section - Only show if multiple countries -->
+    {% if laender_list|length > 1 %}
+      <div class="mb-4">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="fw-medium text-muted">
+            <i class="bi bi-funnel me-1"></i>{% trans 'Filtern nach Land:' %}
+          </span>
+          <div class="btn-group" role="group" aria-label="{% trans 'Land Filter' %}">
+            <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">
+              {% trans 'Alle' %} <span class="badge bg-primary ms-1">{{ einsatzstellen|length }}</span>
+            </button>
+            {% for land_group in laender_list %}
+              {% if land_group.grouper %}
+                <button type="button" class="btn btn-sm btn-outline-primary" data-filter="{{ land_group.grouper.id }}">
+                  {{ land_group.grouper.name }} <span class="badge bg-primary ms-1">{{ land_group.list|length }}</span>
+                </button>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+    <div class="row row-cols-1 row-cols-lg-2 g-4" id="einsatzstellen-grid">
       {% for stelle in einsatzstellen %}
-        <div class="col">
+        <div class="col einsatzstelle-item" data-land-id="{{ stelle.land.id|default:'none' }}">
           <div class="card h-100 border-0 rounded-4 shadow-sm position-relative {% if stelle.id in pending_requests_by_stelle %}border-warning border-3{% endif %}" data-placement-id="{{ stelle.id }}">
             
             <!-- Edit Button -->
@@ -275,5 +300,69 @@
       {% trans 'Keine Einsatzstellen gefunden. Bitte wenden Sie sich an den Administrator.' %}
     </div>
   {% endif %}
+
+  <!-- Filter JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get all filter buttons
+      const filterButtons = document.querySelectorAll('[data-filter]');
+      
+      if (filterButtons.length > 0) {
+        filterButtons.forEach(button => {
+          button.addEventListener('click', function() {
+            // Get filter value
+            const filterValue = this.getAttribute('data-filter');
+            
+            // Update active state
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Get all einsatzstelle items
+            const items = document.querySelectorAll('.einsatzstelle-item');
+            
+            // Filter items
+            items.forEach(item => {
+              const landId = item.getAttribute('data-land-id');
+              
+              if (filterValue === 'all') {
+                // Show all items
+                item.style.display = '';
+                item.classList.add('fade-in');
+              } else if (landId === filterValue) {
+                // Show matching items
+                item.style.display = '';
+                item.classList.add('fade-in');
+              } else {
+                // Hide non-matching items
+                item.style.display = 'none';
+                item.classList.remove('fade-in');
+              }
+            });
+          });
+        });
+      }
+    });
+  </script>
+
+  <style>
+    .einsatzstelle-item {
+      transition: opacity 0.3s ease;
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
 {% endblock %}
 
