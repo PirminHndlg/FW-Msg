@@ -75,7 +75,7 @@ def send_mail(
     message,
     from_email,
     recipient_list,
-    reply_to=None,
+    reply_to_list=None,
     fail_silently=False,
     auth_user=None,
     auth_password=None,
@@ -99,7 +99,7 @@ def send_mail(
         fail_silently=fail_silently,
     )
     mail = EmailMultiAlternatives(
-        subject, message, from_email, recipient_list, connection=connection, reply_to=[reply_to]
+        subject, message, from_email, recipient_list, connection=connection, reply_to=reply_to_list
     )
     if html_message:
         mail.attach_alternative(html_message, "text/html")
@@ -120,7 +120,7 @@ def send_email_with_archive(subject, message, from_email, recipient_list, html_m
             from_email=from_email,
             recipient_list=recipient_list,
             html_message=html_message,
-            reply_to=reply_to_list
+            reply_to_list=reply_to_list
         )
         
         # If email was sent successfully and archiving is enabled, save to Sent folder
