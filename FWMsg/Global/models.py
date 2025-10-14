@@ -1180,3 +1180,126 @@ class StickyNote(OrgModel):
     
     def __str__(self):
         return f"{self.notiz[:10]}"
+
+
+class ChangeRequest(OrgModel):
+    CHANGE_TYPE_CHOICES = [
+        ('einsatzland', 'Einsatzland'),
+        ('einsatzstelle', 'Einsatzstelle'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pending', 'Ausstehend'),
+        ('approved', 'Genehmigt'),
+        ('rejected', 'Abgelehnt'),
+        ('cancelled', 'Storniert'),
+    ]
+    
+    # Core fields
+    change_type = models.CharField(max_length=20, choices=CHANGE_TYPE_CHOICES, verbose_name='Änderungstyp')
+    object_id = models.PositiveIntegerField(verbose_name='Objekt-ID')  # ID of Einsatzland2 or Einsatzstelle2
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='Status')
+    
+    # Users involved
+    requested_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='change_requests_made', verbose_name='Angefragt von')
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='change_requests_reviewed', verbose_name='Geprüft von')
+    
+    # Change data
+    field_changes = models.JSONField(verbose_name='Feldänderungen', help_text='Gespeicherte Feldänderungen als JSON')
+    reason = models.TextField(blank=True, verbose_name='Begründung', help_text='Begründung für die Änderung')
+    review_comment = models.TextField(blank=True, verbose_name='Prüfungskommentar', help_text='Kommentar des Prüfers')
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
+    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name='Geprüft am')
+    
+    history = HistoricalRecords()
+    
+    class Meta:
+        verbose_name = 'Änderungsantrag'
+        verbose_name_plural = 'Änderungsanträge'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        obj_name = self.get_object_name()
+        return f'{self.get_change_type_display()}: {obj_name} - {self.get_status_display()}'
+    
+    def get_object(self):
+        """Get the actual object being changed"""
+        try:
+            if self.change_type == 'einsatzland':
+                return Einsatzland2.objects.filter(id=self.object_id, org=self.org).first()
+            elif self.change_type == 'einsatzstelle':
+                return Einsatzstelle2.objects.filter(id=self.object_id, org=self.org).first()
+        except Exception as e:
+            logger.error(f"Error getting object for ChangeRequest {self.id}: {e}")
+        return None
+    
+    def get_object_name(self):
+        """Get the name of the object being changed"""
+        try:
+            obj = self.get_object()
+            return str(obj) if obj else '[Gelöschtes Objekt]'
+        except Exception as e:
+            logger.error(f"Error getting object name for ChangeRequest {self.id}: {e}")
+            return '[Gelöschtes Objekt]'
+    
+    def apply_changes(self):
+        """Apply the approved changes to the actual object"""
+        if self.status != 'approved':
+            raise ValueError('Nur genehmigte Änderungsanträge können angewendet werden')
+        
+        try:
+            # Get object without org filtering for proper security check
+            if self.change_type == 'einsatzland':
+                obj = Einsatzland2.objects.filter(id=self.object_id).first()
+            elif self.change_type == 'einsatzstelle':
+                obj = Einsatzstelle2.objects.filter(id=self.object_id).first()
+            else:
+                obj = None
+                
+            if not obj:
+                raise ValueError(f'Objekt mit ID {self.object_id} wurde nicht gefunden')
+            
+            # Verify object belongs to same org for security
+            if obj.org != self.org:
+                raise ValueError('Sicherheitsfehler: Objekt gehört zu einer anderen Organisation')
+            
+            for field, new_value in self.field_changes.items():
+                # Verify field exists on model
+                if not hasattr(obj, field):
+                    logger.warning(f"Field {field} does not exist on {obj.__class__.__name__}")
+                    continue
+                setattr(obj, field, new_value)
+            obj.save()
+            return True
+        except Exception as e:
+            logger.error(f"Error applying changes for ChangeRequest {self.id}: {e}")
+            raise
+    
+    def get_field_changes_display(self):
+        """Get a human-readable display of field changes"""
+        changes = []
+        try:
+            obj = self.get_object()
+            if obj:
+                for field, new_value in self.field_changes.items():
+                    try:
+                        current_value = getattr(obj, field, '') or ''
+                        field_obj = obj._meta.get_field(field)
+                        field_verbose = field_obj.verbose_name
+                        changes.append({
+                            'field': field_verbose,
+                            'current': current_value,
+                            'new': new_value
+                        })
+                    except Exception as e:
+                        logger.warning(f"Error getting field {field} display: {e}")
+                        changes.append({
+                            'field': field,
+                            'current': 'Fehler beim Laden',
+                            'new': new_value
+                        })
+        except Exception as e:
+            logger.error(f"Error getting field changes display for ChangeRequest {self.id}: {e}")
+        return changes

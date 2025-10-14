@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.core import signing
 from datetime import datetime, timedelta
-from .models import CustomUser, ProfilUser2, UserAufgaben, Aufgabe2, KalenderEvent, PersonCluster, Bilder2, BilderGallery2, Dokument2, Ordner2, DokumentColor2
+from .models import CustomUser, ProfilUser2, UserAufgaben, Aufgabe2, KalenderEvent, PersonCluster, Bilder2, BilderGallery2, Dokument2, Ordner2, DokumentColor2, ChangeRequest, Einsatzland2, Einsatzstelle2
 from ORG.models import Organisation
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.files.base import ContentFile
@@ -13,6 +13,9 @@ from PIL import Image
 import io
 from django.db.models.signals import post_save
 from django.contrib.messages import get_messages
+from unittest.mock import patch, Mock
+from TEAM.models import Team
+from Ehemalige.models import Ehemalige
 
 
 class KalenderAbbonementTests(TestCase):
@@ -774,7 +777,8 @@ class BilderViewsTests(TestCase):
         response = self.client.get(reverse('bilder'))
         self.assertEqual(response.status_code, 302)
 
-    def test_bild_upload_success(self):
+    @patch('Global.views.send_image_uploaded_email_task.apply_async')
+    def test_bild_upload_success(self, mock_email_task):
         self.client.force_login(self.user)
         import uuid
         
@@ -805,6 +809,9 @@ class BilderViewsTests(TestCase):
         
         # Check that messages contain success message
         self.assertTrue(any('erfolgreich' in str(msg).lower() for msg in messages_list))
+        
+        # Verify email task was scheduled (but not actually sent due to mock)
+        mock_email_task.assert_called_once()
 
     def test_bild_upload_debug_form_errors(self):
         """Test to debug form validation errors"""
@@ -2076,3 +2083,781 @@ class ProfileViewsTests(TestCase):
         self.assertEqual(response.status_code, 302)  # Redirect after success
 
 
+class ChangeRequestTests(TestCase):
+    """Tests for ChangeRequest functionality including views, models, and notifications."""
+    
+    def setUp(self):
+        # Create test organization
+        self.org = Organisation.objects.create(name="Test Org")
+        
+        # Create different person clusters for testing permissions
+        self.org_cluster = PersonCluster.objects.create(
+            name="Org Cluster",
+            org=self.org,
+            view='O'  # Organization view
+        )
+        
+        self.team_cluster = PersonCluster.objects.create(
+            name="Team Cluster",
+            org=self.org,
+            view='T'  # Team view
+        )
+        
+        self.ehemalige_cluster = PersonCluster.objects.create(
+            name="Ehemalige Cluster",
+            org=self.org,
+            view='E'  # Ehemalige view
+        )
+        
+        self.freiwillige_cluster = PersonCluster.objects.create(
+            name="Freiwillige Cluster",
+            org=self.org,
+            view='F'  # Freiwillige view
+        )
+        
+        # Create test users
+        self.org_user = User.objects.create_user(
+            username='orguser',
+            email='org@example.com',
+            password='testpass123',
+            first_name='Org',
+            last_name='User'
+        )
+        self.org_custom_user = CustomUser.objects.create(
+            user=self.org_user,
+            org=self.org,
+            person_cluster=self.org_cluster
+        )
+        
+        self.team_user = User.objects.create_user(
+            username='teamuser',
+            email='team@example.com',
+            password='testpass123',
+            first_name='Team',
+            last_name='User'
+        )
+        self.team_custom_user = CustomUser.objects.create(
+            user=self.team_user,
+            org=self.org,
+            person_cluster=self.team_cluster
+        )
+        
+        self.ehemalige_user = User.objects.create_user(
+            username='ehemaligeuser',
+            email='ehemalige@example.com',
+            password='testpass123',
+            first_name='Ehemalige',
+            last_name='User'
+        )
+        self.ehemalige_custom_user = CustomUser.objects.create(
+            user=self.ehemalige_user,
+            org=self.org,
+            person_cluster=self.ehemalige_cluster
+        )
+        
+        self.freiwillige_user = User.objects.create_user(
+            username='freiwilligeuser',
+            email='freiwillige@example.com',
+            password='testpass123',
+            first_name='Freiwillige',
+            last_name='User'
+        )
+        self.freiwillige_custom_user = CustomUser.objects.create(
+            user=self.freiwillige_user,
+            org=self.org,
+            person_cluster=self.freiwillige_cluster
+        )
+        
+        # Create another organization for cross-org testing
+        self.other_org = Organisation.objects.create(name="Other Org")
+        self.other_cluster = PersonCluster.objects.create(
+            name="Other Cluster",
+            org=self.other_org,
+            view='T'
+        )
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='testpass123',
+            first_name='Other',
+            last_name='User'
+        )
+        self.other_custom_user = CustomUser.objects.create(
+            user=self.other_user,
+            org=self.other_org,
+            person_cluster=self.other_cluster
+        )
+        
+        # Create test countries and placement locations
+        self.einsatzland = Einsatzland2.objects.create(
+            org=self.org,
+            name='Test Country',
+            notfallnummern='Emergency: 123',
+            arztpraxen='Doctors: 456',
+            apotheken='Pharmacies: 789',
+            informationen='Test information'
+        )
+        
+        self.einsatzstelle = Einsatzstelle2.objects.create(
+            org=self.org,
+            land=self.einsatzland,
+            partnerorganisation='Test Partner',
+            arbeitsvorgesetzter='Test Arbeitsvorgesetzter',
+            mentor='Test Mentor',
+            botschaft='Test Botschaft',
+            konsulat='Test Konsulat',
+            informationen='Test information'
+        )
+        
+        # Create team member with assigned countries
+        self.team_member, _ = Team.objects.get_or_create(
+            user=self.team_user,
+            org=self.org
+        )
+        self.team_member.land.add(self.einsatzland)
+
+        # Create ehemalige member
+        self.ehemalige_member, _ = Ehemalige.objects.get_or_create(
+            user=self.ehemalige_user,
+            org=self.org
+        )
+        self.ehemalige_member.land.add(self.einsatzland)
+        
+        # Create client
+        self.client = Client()
+
+    def test_change_request_model_creation(self):
+        """Test creating a ChangeRequest model instance."""
+        change_request = ChangeRequest.objects.create(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id,
+            field_changes={'notfallnummern': 'New value'},
+            reason='Test reason'
+        )
+        
+        self.assertEqual(change_request.org, self.org)
+        self.assertEqual(change_request.requested_by, self.team_user)
+        self.assertEqual(change_request.change_type, 'einsatzland')
+        self.assertEqual(change_request.object_id, self.einsatzland.id)
+        self.assertEqual(change_request.status, 'pending')
+        self.assertEqual(change_request.reason, 'Test reason')
+
+    def test_change_request_get_object(self):
+        """Test ChangeRequest.get_object() method."""
+        change_request = ChangeRequest.objects.create(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id,
+            field_changes={'notfallnummern': 'New value'},
+            reason='Test reason'
+        )
+        
+        obj = change_request.get_object()
+        self.assertEqual(obj, self.einsatzland)
+        
+        # Test with non-existent object
+        change_request.object_id = 99999
+        change_request.save()
+        obj = change_request.get_object()
+        self.assertIsNone(obj)
+
+    def test_change_request_get_object_name(self):
+        """Test ChangeRequest.get_object_name() method."""
+        change_request = ChangeRequest.objects.create(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id,
+            field_changes={'notfallnummern': 'New value'},
+            reason='Test reason'
+        )
+        
+        obj_name = change_request.get_object_name()
+        self.assertEqual(obj_name, 'Test Country')
+        
+        # Test with non-existent object
+        change_request.object_id = 99999
+        change_request.save()
+        obj_name = change_request.get_object_name()
+        self.assertEqual(obj_name, '[Gelöschtes Objekt]')
+
+    def test_change_request_apply_changes(self):
+        """Test ChangeRequest.apply_changes() method."""
+        change_request = ChangeRequest.objects.create(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id,
+            field_changes={'notfallnummern': 'Emergency: 999'},
+            reason='Test reason',
+            status='approved'
+        )
+        
+        # Apply changes
+        result = change_request.apply_changes()
+        self.assertTrue(result)
+        
+        # Check that changes were applied
+        self.einsatzland.refresh_from_db()
+        self.assertEqual(self.einsatzland.notfallnummern, 'Emergency: 999')
+        
+        # Check that change request status was updated
+        change_request.refresh_from_db()
+        self.assertEqual(change_request.status, 'approved')
+
+    def test_change_request_apply_changes_wrong_org(self):
+        """Test that apply_changes fails for wrong organization."""
+        change_request = ChangeRequest.objects.create(
+            org=self.other_org,
+            requested_by=self.other_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id,  # Object from different org
+            field_changes={'notfallnummern': 'Emergency: 999'},
+            reason='Test reason',
+            status='approved'
+        )
+        
+        # Should raise ValueError for wrong organization
+        with self.assertRaises(ValueError) as context:
+            change_request.apply_changes()
+        self.assertIn('Sicherheitsfehler', str(context.exception))
+
+    def test_change_request_apply_changes_deleted_object(self):
+        """Test that apply_changes fails for deleted object."""
+        change_request = ChangeRequest.objects.create(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzland',
+            object_id=99999,  # Non-existent object
+            field_changes={'notfallnummern': 'Emergency: 999'},
+            reason='Test reason',
+            status='approved'
+        )
+        
+        # Should raise ValueError for non-existent object
+        with self.assertRaises(ValueError) as context:
+            change_request.apply_changes()
+        self.assertIn('wurde nicht gefunden', str(context.exception))
+
+    def test_change_request_get_field_changes_display(self):
+        """Test ChangeRequest.get_field_changes_display() method."""
+        change_request = ChangeRequest.objects.create(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id,
+            field_changes={
+                'notfallnummern': 'Emergency: 999',
+                'arztpraxen': 'Doctors: 888'
+            },
+            reason='Test reason'
+        )
+        
+        changes = change_request.get_field_changes_display()
+        self.assertEqual(len(changes), 2)
+        
+        # Check field names are translated
+        field_names = [change['field'] for change in changes]
+        self.assertIn('Notfallnummern', field_names)
+        self.assertIn('Arztpraxen', field_names)
+
+    @patch('Global.views_change_requests._notify_org_members_of_change_request')
+    def test_save_land_info_team_member(self, mock_notify):
+        """Test save_land_info view for team member."""
+        self.client.force_login(self.team_user)
+        
+        data = {
+            'notfallnummern': 'Updated Emergency: 999',
+            'arztpraxen': 'Updated Doctors: 888',
+            'apotheken': 'Updated Pharmacies: 777',
+            'informationen': 'Updated information',
+            'reason': 'Test reason for change'
+        }
+        
+        response = self.client.post(
+            reverse('save_land_info', args=[self.einsatzland.id]),
+            data
+        )
+        
+        # Should redirect to laender_info
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('laender', response.url)
+        
+        # Check that ChangeRequest was created
+        change_request = ChangeRequest.objects.filter(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id
+        ).first()
+        
+        self.assertIsNotNone(change_request)
+        self.assertEqual(change_request.reason, 'Test reason for change')
+        
+        # Check that notification was called
+        mock_notify.assert_called_once_with(change_request)
+
+    @patch('Global.views_change_requests._notify_org_members_of_change_request')
+    def test_save_land_info_ehemalige_member(self, mock_notify):
+        """Test save_land_info view for ehemalige member."""
+        self.client.force_login(self.ehemalige_user)
+        
+        data = {
+            'notfallnummern': 'Updated Emergency: 999',
+            'arztpraxen': 'Updated Doctors: 888',
+            'apotheken': 'Updated Pharmacies: 777',
+            'informationen': 'Updated information',
+            'reason': 'Test reason for change'
+        }
+        
+        response = self.client.post(
+            reverse('save_land_info', args=[self.einsatzland.id]),
+            data
+        )
+        
+        # Should redirect to laender_info
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('laender', response.url)
+        
+        # Check that ChangeRequest was created
+        change_request = ChangeRequest.objects.filter(
+            org=self.org,
+            requested_by=self.ehemalige_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id
+        ).first()
+        
+        self.assertIsNotNone(change_request)
+        self.assertEqual(change_request.reason, 'Test reason for change')
+        
+        # Check that notification was called
+        mock_notify.assert_called_once_with(change_request)
+
+    @patch('Global.views_change_requests._notify_org_members_of_change_request')
+    def test_save_einsatzstelle_info_team_member(self, mock_notify):
+        """Test save_einsatzstelle_info view for team member."""
+        self.client.force_login(self.team_user)
+        
+        data = {
+            'adresse': 'Updated Address',
+            'telefon': 'Updated Phone',
+            'email': 'updated@placement.com',
+            'ansprechpartner': 'Updated Contact',
+            'informationen': 'Updated placement information',
+            'reason': 'Test reason for change'
+        }
+        
+        response = self.client.post(
+            reverse('save_einsatzstelle_info', args=[self.einsatzstelle.id]),
+            data
+        )
+        
+        # Should redirect to einsatzstellen_info
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('einsatzstellen', response.url)
+        
+        # Check that ChangeRequest was created
+        change_request = ChangeRequest.objects.filter(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzstelle',
+            object_id=self.einsatzstelle.id
+        ).first()
+        
+        self.assertIsNotNone(change_request)
+        self.assertEqual(change_request.reason, 'Test reason for change')
+        
+        # Check that notification was called
+        mock_notify.assert_called_once_with(change_request)
+
+    def test_save_land_info_unauthorized_user(self):
+        """Test that unauthorized users cannot create change requests."""
+        self.client.force_login(self.freiwillige_user)
+        
+        data = {
+            'notfallnummern': 'Updated Emergency: 999',
+            'reason': 'Test reason'
+        }
+        
+        response = self.client.post(
+            reverse('save_land_info', args=[self.einsatzland.id]),
+            data
+        )
+        
+        # Should be forbidden
+        self.assertEqual(response.status_code, 403)
+
+    def test_save_land_info_wrong_organization(self):
+        """Test that users cannot create change requests for other organizations."""
+        self.client.force_login(self.other_user)
+        
+        data = {
+            'notfallnummern': 'Updated Emergency: 999',
+            'reason': 'Test reason'
+        }
+        
+        response = self.client.post(
+            reverse('save_land_info', args=[self.einsatzland.id]),
+            data
+        )
+        
+        # Should redirect to laender_info with error message
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('laender_info'))
+        
+        # Verify no ChangeRequest was created
+        change_requests = ChangeRequest.objects.filter(
+            org=self.other_org,
+            requested_by=self.other_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id
+        )
+        self.assertEqual(change_requests.count(), 0)
+
+    def test_save_land_info_unauthenticated(self):
+        """Test that unauthenticated users are redirected to login."""
+        data = {
+            'notfallnummern': 'Updated Emergency: 999',
+            'reason': 'Test reason'
+        }
+        
+        response = self.client.post(
+            reverse('save_land_info', args=[self.einsatzland.id]),
+            data
+        )
+        
+        # Should redirect to login
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('login', response.url)
+
+    def test_laender_info_view_team_member(self):
+        """Test laender_info view for team member."""
+        self.client.force_login(self.team_user)
+        response = self.client.get(reverse('laender_info'))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('laender', response.context)
+        self.assertIn('base_template', response.context)
+        self.assertIn('member', response.context)
+        
+        # Check that assigned countries are in context
+        laender = response.context['laender']
+        self.assertEqual(len(laender), 1)
+        self.assertEqual(laender[0], self.einsatzland)
+
+    def test_laender_info_view_ehemalige_member(self):
+        """Test laender_info view for ehemalige member."""
+        self.client.force_login(self.ehemalige_user)
+        response = self.client.get(reverse('laender_info'))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('laender', response.context)
+        self.assertIn('base_template', response.context)
+        self.assertIn('member', response.context)
+
+    def test_einsatzstellen_info_view_team_member(self):
+        """Test einsatzstellen_info view for team member."""
+        self.client.force_login(self.team_user)
+        response = self.client.get(reverse('einsatzstellen_info'))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('einsatzstellen', response.context)
+        self.assertIn('base_template', response.context)
+        self.assertIn('member', response.context)
+        
+        # Check that placement locations are in context
+        einsatzstellen = response.context['einsatzstellen']
+        self.assertEqual(len(einsatzstellen), 1)
+        self.assertEqual(einsatzstellen[0], self.einsatzstelle)
+
+    def test_laender_info_view_unauthorized_user(self):
+        """Test that unauthorized users cannot access laender_info."""
+        self.client.force_login(self.freiwillige_user)
+        response = self.client.get(reverse('laender_info'))
+        
+        # Should be forbidden
+        self.assertEqual(response.status_code, 403)
+
+    def test_einsatzstellen_info_view_unauthorized_user(self):
+        """Test that unauthorized users cannot access einsatzstellen_info."""
+        self.client.force_login(self.freiwillige_user)
+        response = self.client.get(reverse('einsatzstellen_info'))
+        
+        # Should be forbidden
+        self.assertEqual(response.status_code, 403)
+
+    def test_laender_info_view_unauthenticated(self):
+        """Test that unauthenticated users are redirected to login."""
+        response = self.client.get(reverse('laender_info'))
+        
+        # Should redirect to login
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('login', response.url)
+
+    def test_einsatzstellen_info_view_unauthenticated(self):
+        """Test that unauthenticated users are redirected to login."""
+        response = self.client.get(reverse('einsatzstellen_info'))
+        
+        # Should redirect to login
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('login', response.url)
+
+    def test_laender_info_with_pending_requests(self):
+        """Test laender_info view shows pending change requests."""
+        # Create pending change request
+        change_request = ChangeRequest.objects.create(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id,
+            field_changes={'notfallnummern': 'New'},
+            reason='Test reason'
+        )
+        
+        self.client.force_login(self.team_user)
+        response = self.client.get(reverse('laender_info'))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('pending_requests_by_land', response.context)
+        
+        # Check that pending request is in context
+        pending_requests = response.context['pending_requests_by_land']
+        self.assertIn(self.einsatzland.id, pending_requests)
+        self.assertEqual(pending_requests[self.einsatzland.id], change_request)
+
+    def test_einsatzstellen_info_with_pending_requests(self):
+        """Test einsatzstellen_info view shows pending change requests."""
+        # Create pending change request
+        change_request = ChangeRequest.objects.create(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzstelle',
+            object_id=self.einsatzstelle.id,
+            field_changes={'adresse': 'New'},
+            reason='Test reason'
+        )
+        
+        self.client.force_login(self.team_user)
+        response = self.client.get(reverse('einsatzstellen_info'))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('pending_requests_by_stelle', response.context)
+        
+        # Check that pending request is in context
+        pending_requests = response.context['pending_requests_by_stelle']
+        self.assertIn(self.einsatzstelle.id, pending_requests)
+        self.assertEqual(pending_requests[self.einsatzstelle.id], change_request)
+
+    @patch('Global.tasks.send_change_request_new_email_task.apply_async')
+    def test_notify_org_members_of_change_request(self, mock_apply_async):
+        """Test notification function for new change requests."""
+        from Global.views_change_requests import _notify_org_members_of_change_request
+        
+        # Create change request
+        change_request = ChangeRequest.objects.create(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id,
+            field_changes={'notfallnummern': 'New'},
+            reason='Test reason'
+        )
+        
+        # Call notification function
+        _notify_org_members_of_change_request(change_request)
+        
+        # Check that Celery task was queued for org users
+        # Should be called for each org member (at least once)
+        self.assertTrue(mock_apply_async.called)
+        # Verify countdown parameter
+        for call in mock_apply_async.call_args_list:
+            args, kwargs = call
+            self.assertIn('args', kwargs)  # Should have args in kwargs
+            self.assertEqual(len(kwargs['args']), 2)  # Should have [change_request_id, user_id]
+            self.assertEqual(kwargs['args'][0], change_request.id)
+            self.assertEqual(kwargs['countdown'], 5)
+
+    @patch('Global.tasks.send_change_request_decision_email_task.apply_async')
+    def test_notify_requester_of_decision(self, mock_apply_async):
+        """Test notification function for change request decisions."""
+        from Global.views_change_requests import _notify_requester_of_decision
+        
+        # Create change request
+        change_request = ChangeRequest.objects.create(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id,
+            field_changes={'notfallnummern': 'New'},
+            reason='Test reason',
+            status='approved',
+            reviewed_by=self.org_user,
+            review_comment='Approved'
+        )
+        
+        # Call notification function
+        _notify_requester_of_decision(change_request)
+        
+        # Check that Celery task was queued
+        mock_apply_async.assert_called_once()
+        args, kwargs = mock_apply_async.call_args
+        self.assertEqual(kwargs['args'], [change_request.id])
+        self.assertEqual(kwargs['countdown'], 5)
+
+    def test_change_request_form_validation(self):
+        """Test that form validation works correctly."""
+        self.client.force_login(self.team_user)
+        
+        # Test with optional reason field (reason is not required)
+        data = {
+            'notfallnummern': 'Updated Emergency: 999',
+            # reason is optional
+        }
+        
+        response = self.client.post(
+            reverse('save_land_info', args=[self.einsatzland.id]),
+            data
+        )
+        
+        # Should redirect and ChangeRequest should be created (reason is optional)
+        self.assertEqual(response.status_code, 302)
+        
+        # ChangeRequest should be created even without reason
+        change_requests = ChangeRequest.objects.filter(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id
+        )
+        self.assertEqual(change_requests.count(), 1)
+        # Verify reason is empty string
+        self.assertEqual(change_requests.first().reason, '')
+
+    def test_change_request_with_no_changes(self):
+        """Test that no ChangeRequest is created when no changes are made."""
+        self.client.force_login(self.team_user)
+        
+        # Submit form with no changes
+        data = {
+            'notfallnummern': self.einsatzland.notfallnummern,  # Same value
+            'arztpraxen': self.einsatzland.arztpraxen,  # Same value
+            'apotheken': self.einsatzland.apotheken,  # Same value
+            'informationen': self.einsatzland.informationen,  # Same value
+            'reason': 'No changes made'
+        }
+        
+        response = self.client.post(
+            reverse('save_land_info', args=[self.einsatzland.id]),
+            data
+        )
+        
+        # Should redirect
+        self.assertEqual(response.status_code, 302)
+        
+        # No ChangeRequest should be created
+        change_requests = ChangeRequest.objects.filter(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id
+        )
+        self.assertEqual(change_requests.count(), 0)
+
+    def test_change_request_multiple_users_same_object(self):
+        """Test that multiple users can create change requests for the same object."""
+        self.client.force_login(self.team_user)
+        
+        # First user creates change request
+        data = {
+            'notfallnummern': 'Updated Emergency: 999',
+            'reason': 'Team user reason'
+        }
+        
+        response = self.client.post(
+            reverse('save_land_info', args=[self.einsatzland.id]),
+            data
+        )
+        
+        self.assertEqual(response.status_code, 302)
+        
+        # Second user creates change request
+        self.client.force_login(self.ehemalige_user)
+        data = {
+            'notfallnummern': 'Updated Emergency: 888',
+            'reason': 'Ehemalige user reason'
+        }
+        
+        response = self.client.post(
+            reverse('save_land_info', args=[self.einsatzland.id]),
+            data
+        )
+        
+        self.assertEqual(response.status_code, 302)
+        
+        # Check that both change requests exist
+        change_requests = ChangeRequest.objects.filter(
+            org=self.org,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id
+        )
+        self.assertEqual(change_requests.count(), 2)
+        
+        # Check that both users have their own requests
+        team_request = change_requests.filter(requested_by=self.team_user).first()
+        ehemalige_request = change_requests.filter(requested_by=self.ehemalige_user).first()
+        
+        self.assertIsNotNone(team_request)
+        self.assertIsNotNone(ehemalige_request)
+        self.assertEqual(team_request.reason, 'Team user reason')
+        self.assertEqual(ehemalige_request.reason, 'Ehemalige user reason')
+
+    def test_change_request_status_choices(self):
+        """Test ChangeRequest status choices."""
+        change_request = ChangeRequest.objects.create(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id,
+            field_changes={'notfallnummern': 'New'},
+            reason='Test reason'
+        )
+        
+        # Test initial status
+        self.assertEqual(change_request.status, 'pending')
+        
+        # Test status display
+        self.assertEqual(change_request.get_status_display(), 'Ausstehend')
+        
+        # Test approved status
+        change_request.status = 'approved'
+        change_request.save()
+        self.assertEqual(change_request.get_status_display(), 'Genehmigt')
+        
+        # Test rejected status
+        change_request.status = 'rejected'
+        change_request.save()
+        self.assertEqual(change_request.get_status_display(), 'Abgelehnt')
+
+    def test_change_request_change_type_choices(self):
+        """Test ChangeRequest change type choices."""
+        # Test einsatzland change type
+        change_request = ChangeRequest.objects.create(
+            org=self.org,
+            requested_by=self.team_user,
+            change_type='einsatzland',
+            object_id=self.einsatzland.id,
+            field_changes={'notfallnummern': 'New'},
+            reason='Test reason'
+        )
+        
+        self.assertEqual(change_request.get_change_type_display(), 'Einsatzland')
+        
+        # Test einsatzstelle change type
+        change_request.change_type = 'einsatzstelle'
+        change_request.object_id = self.einsatzstelle.id
+        change_request.save()
+        
+        self.assertEqual(change_request.get_change_type_display(), 'Einsatzstelle')

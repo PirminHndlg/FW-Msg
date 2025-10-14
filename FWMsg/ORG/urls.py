@@ -50,4 +50,9 @@ urlpatterns = [
     path('delete-sticky-note/', views.delete_sticky_note, name='delete_sticky_note'),
     
     path("copy-links", views.copy_links, name="copy_links"),
+    
+    # Change request management
+    path('change-requests/', views.change_requests, name='change_requests'),
+    path('change-requests/<int:request_id>/review/', views.review_change_request, name='review_change_request'),
+    path('change-requests/history/', views.change_request_history, name='change_request_history'),
 ]

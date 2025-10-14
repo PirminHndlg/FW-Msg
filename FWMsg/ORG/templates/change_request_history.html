@@ -1,0 +1,178 @@
+{% extends 'baseOrg.html' %}
+{% load i18n %}
+
+{% block title %}
+  {% trans 'Änderungsvorschläge Verlauf' %} | {{ user.org.name }}
+{% endblock %}
+
+{% block head %}
+  <style>
+    .history-item {
+      transition: background-color 0.2s ease;
+    }
+    
+    .status-badge {
+      min-width: 100px;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-1">{% trans 'Änderungsvorschläge Verlauf' %}</h1>
+    <p class="text-muted mb-0">{% trans 'Übersicht aller bearbeiteten Änderungsanfragen' %}</p>
+  </div>
+  <a href="{% url 'change_requests' %}" class="btn btn-primary rounded-pill">
+    <i class="bi bi-arrow-left me-2"></i>{% trans 'Ausstehende Anträge' %}
+  </a>
+</div>
+
+<!-- Filter Section -->
+<div class="dashboard-section">
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-4">
+      <form method="get" class="row g-3 align-items-center">
+        <div class="col-auto">
+          <label for="status" class="form-label mb-0 fw-medium">
+            <i class="bi bi-funnel me-1"></i>{% trans 'Status filtern:' %}
+          </label>
+        </div>
+        <div class="col-auto">
+          <select name="status" id="status" class="form-select rounded-pill" onchange="this.form.submit()">
+            <option value="">{% trans 'Alle anzeigen' %}</option>
+            {% for value, label in status_choices %}
+              <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% if status_filter %}
+          <div class="col-auto">
+            <a href="?" class="btn btn-outline-secondary rounded-pill">
+              <i class="bi bi-x-circle me-1"></i>{% trans 'Filter entfernen' %}
+            </a>
+          </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Change Requests List -->
+{% if change_requests %}
+  <div class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <i class="bi bi-{% if status_filter %}funnel{% else %}list-ul{% endif %} me-2 text-primary"></i>
+        {% if status_filter %}
+          {% trans 'Gefilterte Anträge' %}
+        {% else %}
+          {% trans 'Alle Anträge' %}
+        {% endif %}
+      </h2>
+    </div>
+    
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-0">
+        <div class="row g-3">
+          {% for request in change_requests %}
+            {% include 'components/change_request_item.html' with request=request %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if change_requests.has_other_pages %}
+    <nav aria-label="{% trans 'Seitennummerierung' %}" class="mt-4">
+      <ul class="pagination justify-content-center gap-1">
+        {% if change_requests.has_previous %}
+          <li class="page-item">
+            <a class="page-link rounded-pill" href="?page={{ change_requests.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+        {% endif %}
+
+        {% for num in change_requests.paginator.page_range %}
+          {% if change_requests.number == num %}
+            <li class="page-item active">
+              <span class="page-link rounded-pill">{{ num }}</span>
+            </li>
+          {% elif num > change_requests.number|add:'-3' and num < change_requests.number|add:'3' %}
+            <li class="page-item">
+              <a class="page-link rounded-pill" href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}">{{ num }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if change_requests.has_next %}
+          <li class="page-item">
+            <a class="page-link rounded-pill" href="?page={{ change_requests.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+{% else %}
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body text-center py-5">
+      <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">
+        <i class="bi bi-inbox text-secondary" style="font-size: 4rem;"></i>
+      </div>
+      <h4 class="mb-2">
+        {% if status_filter %}
+          {% trans 'Keine Änderungsvorschläge mit diesem Status' %}
+        {% else %}
+          {% trans 'Keine Änderungsvorschläge' %}
+        {% endif %}
+      </h4>
+      <p class="text-muted mb-4">
+        {% if status_filter %}
+          {% trans 'Es wurden keine Änderungsvorschläge mit dem gewählten Status gefunden.' %}
+        {% else %}
+          {% trans 'Es wurden noch keine Änderungsvorschläge gestellt.' %}
+        {% endif %}
+      </p>
+      {% if status_filter %}
+        <a href="?" class="btn btn-primary rounded-pill px-4">
+          <i class="bi bi-arrow-clockwise me-2"></i>{% trans 'Alle anzeigen' %}
+        </a>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+
+<style>
+  .dashboard-section {
+    margin-bottom: 2rem;
+  }
+  
+  .section-header {
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+  }
+  
+  .pagination .page-link {
+    min-width: 40px;
+    text-align: center;
+  }
+  
+  .pagination .page-item.active .page-link {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+  }
+</style>
+{% endblock %}

@@ -148,79 +148,6 @@ class TeamViewsTest(TestCase):
         self.assertIn('months', response.context)
         self.assertIn('current_month', response.context)
 
-    def test_einsatzstellen_view(self):
-        """Test the einsatzstellen view"""
-        response = self.client.get(reverse('team_einsatzstellen'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'teamEinsatzstellen.html')
-        
-        # Check if placement locations are in context
-        self.assertIn('einsatzstellen', response.context)
-        self.assertEqual(len(response.context['einsatzstellen']), 1)
-        self.assertEqual(response.context['einsatzstellen'][0].name, 'Test Placement')
-
-    def test_save_einsatzstelle_info(self):
-        """Test saving einsatzstelle information"""
-        data = {
-            'partnerorganisation': 'Updated Org',
-            'arbeitsvorgesetzter': 'Updated Boss',
-            'mentor': 'Updated Mentor',
-            'botschaft': 'Updated Embassy',
-            'konsulat': 'Updated Consulate',
-            'informationen': 'Updated info'
-        }
-        
-        response = self.client.post(
-            reverse('team_save_einsatzstelle_info', args=[self.einsatzstelle.id]),
-            data
-        )
-        
-        # Check redirect
-        self.assertEqual(response.status_code, 302)
-        
-        # Verify data was updated
-        updated_stelle = Einsatzstelle2.objects.get(id=self.einsatzstelle.id)
-        self.assertEqual(updated_stelle.partnerorganisation, 'Updated Org')
-        self.assertEqual(updated_stelle.arbeitsvorgesetzter, 'Updated Boss')
-        self.assertEqual(updated_stelle.mentor, 'Updated Mentor')
-        self.assertEqual(updated_stelle.botschaft, 'Updated Embassy')
-        self.assertEqual(updated_stelle.konsulat, 'Updated Consulate')
-        self.assertEqual(updated_stelle.informationen, 'Updated info')
-
-    def test_laender_view(self):
-        """Test the laender view"""
-        response = self.client.get(reverse('team_laender'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'teamLaender.html')
-        
-        # Check if countries are in context
-        self.assertIn('laender', response.context)
-        self.assertEqual(len(response.context['laender']), 1)
-        self.assertEqual(response.context['laender'][0].name, 'Test Country')
-
-    def test_save_land_info(self):
-        """Test saving country information"""
-        data = {
-            'notfallnummern': 'Updated Emergency: 999',
-            'arztpraxen': 'Updated Doctors: 888',
-            'apotheken': 'Updated Pharmacies: 777',
-            'informationen': 'Updated information'
-        }
-        
-        response = self.client.post(
-            reverse('team_save_land_info', args=[self.land.id]),
-            data
-        )
-        
-        # Check redirect
-        self.assertEqual(response.status_code, 302)
-        
-        # Verify data was updated
-        updated_land = Einsatzland2.objects.get(id=self.land.id)
-        self.assertEqual(updated_land.notfallnummern, 'Updated Emergency: 999')
-        self.assertEqual(updated_land.arztpraxen, 'Updated Doctors: 888')
-        self.assertEqual(updated_land.apotheken, 'Updated Pharmacies: 777')
-        self.assertEqual(updated_land.informationen, 'Updated information')
 
     def test_unauthorized_access(self):
         """Test unauthorized access to team views"""
@@ -236,8 +163,6 @@ class TeamViewsTest(TestCase):
             'team_home',
             'team_contacts',
             'team_ampelmeldung',
-            'team_einsatzstellen',
-            'team_laender'
         ]
         
         for view_name in views:
