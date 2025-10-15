@@ -222,6 +222,6 @@ app.conf.beat_schedule = {
     },
     'send_birthday_reminder': {
         'task': 'send_birthday_reminder',
-        'schedule': crontab(hour=10, minute=31),
+        'schedule': crontab(hour=10, minute=0),
     },
 }
