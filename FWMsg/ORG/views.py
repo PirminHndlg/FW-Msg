@@ -1211,101 +1211,33 @@ def _create_ampel_matrix(freiwillige, months, ampel_entries):
 @required_role('O')
 @filter_person_cluster
 def list_aufgaben_table(request, scroll_to=None):
-
-
+    """Render the aufgaben table page with minimal context - data loaded via AJAX."""
     users, person_cluster = get_filtered_user_queryset(request, 'aufgaben')
+    
+    # Get filter type from request or cookie for initial state
+    filter_type = request.GET.get('f')
+    if not filter_type:
+        filter_type = request.COOKIES.get('filter_aufgaben_table') or 'None'
+
+    # Get basic cluster data for filter display (lightweight)
+    aufgaben_cluster = AufgabenCluster.objects.filter(org=request.user.org)
+    if person_cluster:
+        aufgaben_cluster = aufgaben_cluster.filter(person_cluster=person_cluster)
+    
+    # Convert filter_type to proper object for template consistency
+    filter_object = None
+    if filter_type and filter_type.isdigit() and filter_type != 'None':
+        filter_object = aufgaben_cluster.filter(id=filter_type).first()
 
     if not person_cluster or person_cluster.aufgaben:
-        aufgaben = Aufgabe2.objects.filter(org=request.user.org)
-        if person_cluster:
-            aufgaben = aufgaben.filter(person_cluster=person_cluster).distinct()
-
-        # Apply ordering
-        aufgaben = aufgaben.order_by(
-            'faellig_art',
-            'faellig_monat',
-            'faellig_tag',
-            'faellig_tage_nach_start',
-            'faellig_tage_vor_ende',
-            'name'
-        )
-
-        # Get filter type from request or cookie
-        filter_type = request.GET.get('f')
-        if not filter_type:
-            filter_type = request.COOKIES.get('filter_aufgaben_table') or 'None'
-
-        # Apply filter if provided
-        if filter_type and filter_type.isdigit() and filter_type != 'None':
-            aufgaben_cluster = AufgabenCluster.objects.filter(id=filter_type)
-            if person_cluster:
-                aufgaben_cluster = aufgaben_cluster.filter(person_cluster=person_cluster)
-            if aufgaben_cluster:
-                aufgaben = aufgaben.filter(faellig_art__in=aufgaben_cluster)
-                filter_type = aufgaben_cluster.first()
-
-
-        # Instead of querying in loops
-        user_aufgaben = UserAufgaben.objects.filter(
-            org=request.user.org,
-            user__in=users,
-            aufgabe__in=aufgaben
-        ).select_related('user', 'aufgabe').prefetch_related(
-            Prefetch(
-                'useraufgabenzwischenschritte_set',
-                queryset=UserAufgabenZwischenschritte.objects.all(),
-                to_attr='prefetched_zwischenschritte'
-            )
-        )
-
-        # Create a lookup dictionary for faster access
-        user_aufgaben_dict = {}
-        for ua in user_aufgaben:
-            if ua.user_id not in user_aufgaben_dict:
-                user_aufgaben_dict[ua.user_id] = {}
-            user_aufgaben_dict[ua.user_id][ua.aufgabe_id] = ua
-
-        # Then modify your matrix building to use the dictionary
-        user_aufgaben_matrix = {}
-        for user in users:
-            user_aufgaben_matrix[user] = []
-            for aufgabe in aufgaben:
-                ua = user_aufgaben_dict.get(user.id, {}).get(aufgabe.id, None)
-                if ua:
-                    zwischenschritte = ua.prefetched_zwischenschritte
-                    zwischenschritte_count = len(zwischenschritte)
-                    zwischenschritte_done_count = sum(1 for z in zwischenschritte if z.erledigt)
-                    user_aufgaben_matrix[user].append({
-                        'user_aufgabe': ua,
-                        'zwischenschritte': zwischenschritte,
-                        'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
-                        'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
-                    })
-                elif user.person_cluster in aufgabe.person_cluster.all():
-                    user_aufgaben_matrix[user].append(aufgabe.id)
-                else:
-                    user_aufgaben_matrix[user].append(None)
-
-        # Get countries for users
-        countries = Einsatzland2.objects.filter(org=request.user.org)
-
-        aufgaben_cluster = AufgabenCluster.objects.filter(org=request.user.org)
-        if person_cluster:
-            aufgaben_cluster = aufgaben_cluster.filter(person_cluster=person_cluster)
-
         context = {
             'current_person_cluster': get_person_cluster(request),
-            'users': users,
-            'aufgaben': aufgaben,
-            'today': date.today(),
-            'user_aufgaben_matrix': user_aufgaben_matrix,
             'aufgaben_cluster': aufgaben_cluster,
-            'filter': filter_type,
+            'filter': filter_object,  # Use the object, not the string
             'scroll_to': scroll_to,
-            'countries': countries,
-            'large_container': True
+            'large_container': True,
+            'ajax_loading': True  # Flag to indicate AJAX loading
         }
-    
     else:
         context = {
             'error': f'{person_cluster.name} hat keine Aufgaben-Funktion aktiviert',
@@ -2211,3 +2143,126 @@ def change_request_history(request):
     }
     
     return render(request, 'change_request_history.html', context)
+
+
+@login_required
+@required_role('O')
+@require_http_methods(["GET"])
+def ajax_load_aufgaben_table_data(request):
+    """Load aufgaben table data via AJAX for better performance."""
+    try:
+        # Use the same logic as the original view but return rendered HTML
+        users, person_cluster = get_filtered_user_queryset(request, 'aufgaben')
+
+        if not person_cluster or person_cluster.aufgaben:
+            aufgaben = Aufgabe2.objects.filter(org=request.user.org)
+            if person_cluster:
+                aufgaben = aufgaben.filter(person_cluster=person_cluster).distinct()
+
+            # Apply ordering
+            aufgaben = aufgaben.order_by(
+                'faellig_art',
+                'faellig_monat',
+                'faellig_tag',
+                'faellig_tage_nach_start',
+                'faellig_tage_vor_ende',
+                'name'
+            )
+
+            # Get filter type from request or cookie
+            filter_type = request.GET.get('f')
+            if not filter_type:
+                filter_type = request.COOKIES.get('filter_aufgaben_table') or 'None'
+
+            # Apply filter if provided
+            if filter_type and filter_type.isdigit() and filter_type != 'None':
+                aufgaben_cluster = AufgabenCluster.objects.filter(id=filter_type)
+                if person_cluster:
+                    aufgaben_cluster = aufgaben_cluster.filter(person_cluster=person_cluster)
+                if aufgaben_cluster:
+                    aufgaben = aufgaben.filter(faellig_art__in=aufgaben_cluster)
+                    filter_type = aufgaben_cluster.first()
+
+            # Optimized query for user_aufgaben with better prefetching
+            user_aufgaben = UserAufgaben.objects.filter(
+                org=request.user.org,
+                user__in=users,
+                aufgabe__in=aufgaben
+            ).select_related('user', 'aufgabe').prefetch_related(
+                Prefetch(
+                    'useraufgabenzwischenschritte_set',
+                    queryset=UserAufgabenZwischenschritte.objects.all(),
+                    to_attr='prefetched_zwischenschritte'
+                )
+            )
+
+            # Create a lookup dictionary for faster access
+            user_aufgaben_dict = {}
+            for ua in user_aufgaben:
+                if ua.user_id not in user_aufgaben_dict:
+                    user_aufgaben_dict[ua.user_id] = {}
+                user_aufgaben_dict[ua.user_id][ua.aufgabe_id] = ua
+
+            # Build matrix using the same logic as original
+            user_aufgaben_matrix = {}
+            for user in users:
+                user_aufgaben_matrix[user] = []
+                for aufgabe in aufgaben:
+                    ua = user_aufgaben_dict.get(user.id, {}).get(aufgabe.id, None)
+                    if ua:
+                        zwischenschritte = ua.prefetched_zwischenschritte
+                        zwischenschritte_count = len(zwischenschritte)
+                        zwischenschritte_done_count = sum(1 for z in zwischenschritte if z.erledigt)
+                        user_aufgaben_matrix[user].append({
+                            'user_aufgabe': ua,
+                            'zwischenschritte': zwischenschritte,
+                            'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
+                            'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
+                        })
+                    elif user.person_cluster in aufgabe.person_cluster.all():
+                        user_aufgaben_matrix[user].append(aufgabe.id)
+                    else:
+                        user_aufgaben_matrix[user].append(None)
+
+            # Get countries for users
+            countries = Einsatzland2.objects.filter(org=request.user.org)
+
+            aufgaben_cluster = AufgabenCluster.objects.filter(org=request.user.org)
+            if person_cluster:
+                aufgaben_cluster = aufgaben_cluster.filter(person_cluster=person_cluster)
+
+            # Render only the table content (filter buttons are already shown in loading state)
+            table_html = render_to_string('components/task_table.html', {
+                'user_aufgaben_matrix': user_aufgaben_matrix,
+                'users': users,
+                'aufgaben': aufgaben,
+                'today': date.today(),
+                'current_person_cluster': get_person_cluster(request)
+            })
+
+            response_data = {
+                'success': True,
+                'data': {
+                    'table_html': table_html,
+                    'countries': list(countries.values('id', 'name')),
+                    'today': date.today().isoformat()
+                }
+            }
+            
+        else:
+            response_data = {
+                'success': False,
+                'error': f'{person_cluster.name} hat keine Aufgaben-Funktion aktiviert'
+            }
+        
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"AJAX Error: {str(e)}")
+        print(f"Traceback: {error_details}")
+        return JsonResponse({
+            'success': False,
+            'error': f'Fehler beim Laden der Daten: {str(e)}'
+        }, status=500)
