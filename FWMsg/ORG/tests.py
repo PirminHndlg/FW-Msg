@@ -1431,18 +1431,22 @@ class TaskTemplateStateTests(TestCase):
         return UserAufgaben.objects.create(**defaults)
 
     def test_task_template_states_in_response(self):
-        """Test that the task table view includes all template states"""
+        """Test that the AJAX endpoint includes all template states"""
         user_aufgabe = self._create_task_assignment()
         
-        response = self.client.get(reverse('list_aufgaben_table'))
+        # Test the AJAX endpoint that renders the table content
+        response = self.client.get(reverse('ajax_load_aufgaben_table_data'))
         self.assertEqual(response.status_code, 200)
         
-        # Check that all template IDs are present in the HTML
-        content = response.content.decode()
-        self.assertIn(f'id="completed-task-template-{user_aufgabe.id}"', content)
-        self.assertIn(f'id="pending-task-template-{user_aufgabe.id}"', content)
-        self.assertIn(f'id="upcoming-task-template-{user_aufgabe.id}"', content)
-        self.assertIn(f'id="task-table-row-{user_aufgabe.id}"', content)
+        data = json.loads(response.content)
+        self.assertTrue(data['success'])
+        
+        # Check that all template IDs are present in the rendered HTML
+        table_html = data['data']['table_html']
+        self.assertIn(f'id="completed-task-template-{user_aufgabe.id}"', table_html)
+        self.assertIn(f'id="pending-task-template-{user_aufgabe.id}"', table_html)
+        self.assertIn(f'id="upcoming-task-template-{user_aufgabe.id}"', table_html)
+        self.assertIn(f'id="task-table-row-{user_aufgabe.id}"', table_html)
 
     def test_task_state_visibility_upcoming(self):
         """Test that upcoming tasks show the correct template"""
@@ -1451,14 +1455,18 @@ class TaskTemplateStateTests(TestCase):
             pending=False
         )
         
-        response = self.client.get(reverse('list_aufgaben_table'))
-        content = response.content.decode()
+        response = self.client.get(reverse('ajax_load_aufgaben_table_data'))
+        self.assertEqual(response.status_code, 200)
+        
+        data = json.loads(response.content)
+        self.assertTrue(data['success'])
+        table_html = data['data']['table_html']
         
         # Upcoming template should be visible (no d-none class)
-        self.assertNotIn(f'id="upcoming-task-template-{user_aufgabe.id}" class="d-none"', content)
+        self.assertNotIn(f'id="upcoming-task-template-{user_aufgabe.id}" class="d-none"', table_html)
         # Other templates should be hidden
-        self.assertIn(f'id="completed-task-template-{user_aufgabe.id}" class="d-none"', content)
-        self.assertIn(f'id="pending-task-template-{user_aufgabe.id}" class="d-none"', content)
+        self.assertIn(f'id="completed-task-template-{user_aufgabe.id}" class="d-none"', table_html)
+        self.assertIn(f'id="pending-task-template-{user_aufgabe.id}" class="d-none"', table_html)
 
     def test_task_state_visibility_pending(self):
         """Test that pending tasks show the correct template"""
@@ -1467,14 +1475,18 @@ class TaskTemplateStateTests(TestCase):
             pending=True
         )
         
-        response = self.client.get(reverse('list_aufgaben_table'))
-        content = response.content.decode()
+        response = self.client.get(reverse('ajax_load_aufgaben_table_data'))
+        self.assertEqual(response.status_code, 200)
+        
+        data = json.loads(response.content)
+        self.assertTrue(data['success'])
+        table_html = data['data']['table_html']
         
         # Pending template should be visible
-        self.assertNotIn(f'id="pending-task-template-{user_aufgabe.id}" class="d-none"', content)
+        self.assertNotIn(f'id="pending-task-template-{user_aufgabe.id}" class="d-none"', table_html)
         # Other templates should be hidden
-        self.assertIn(f'id="completed-task-template-{user_aufgabe.id}" class="d-none"', content)
-        self.assertIn(f'id="upcoming-task-template-{user_aufgabe.id}" class="d-none"', content)
+        self.assertIn(f'id="completed-task-template-{user_aufgabe.id}" class="d-none"', table_html)
+        self.assertIn(f'id="upcoming-task-template-{user_aufgabe.id}" class="d-none"', table_html)
 
     def test_task_state_visibility_completed(self):
         """Test that completed tasks show the correct template"""
@@ -1484,14 +1496,18 @@ class TaskTemplateStateTests(TestCase):
             pending=False
         )
         
-        response = self.client.get(reverse('list_aufgaben_table'))
-        content = response.content.decode()
+        response = self.client.get(reverse('ajax_load_aufgaben_table_data'))
+        self.assertEqual(response.status_code, 200)
+        
+        data = json.loads(response.content)
+        self.assertTrue(data['success'])
+        table_html = data['data']['table_html']
         
         # Completed template should be visible
-        self.assertNotIn(f'id="completed-task-template-{user_aufgabe.id}" class="d-none"', content)
+        self.assertNotIn(f'id="completed-task-template-{user_aufgabe.id}" class="d-none"', table_html)
         # Other templates should be hidden
-        self.assertIn(f'id="pending-task-template-{user_aufgabe.id}" class="d-none"', content)
-        self.assertIn(f'id="upcoming-task-template-{user_aufgabe.id}" class="d-none"', content)
+        self.assertIn(f'id="pending-task-template-{user_aufgabe.id}" class="d-none"', table_html)
+        self.assertIn(f'id="upcoming-task-template-{user_aufgabe.id}" class="d-none"', table_html)
 
     def test_task_row_background_classes(self):
         """Test that task rows have correct background classes based on state"""
@@ -1502,14 +1518,18 @@ class TaskTemplateStateTests(TestCase):
             pending=False
         )
         
-        response = self.client.get(reverse('list_aufgaben_table'))
-        content = response.content.decode()
+        response = self.client.get(reverse('ajax_load_aufgaben_table_data'))
+        self.assertEqual(response.status_code, 200)
+        
+        data = json.loads(response.content)
+        self.assertTrue(data['success'])
+        table_html = data['data']['table_html']
         
         # Check that completed task has success background
-        self.assertIn('bg-success bg-opacity-25', content)
+        self.assertIn('bg-success bg-opacity-25', table_html)
         
         # Check that the task row ID is present
-        self.assertIn(f'id="task-table-row-{completed_task.id}"', content)
+        self.assertIn(f'id="task-table-row-{completed_task.id}"', table_html)
 
     def test_overdue_task_styling(self):
         """Test that overdue tasks have danger background"""
@@ -1519,11 +1539,34 @@ class TaskTemplateStateTests(TestCase):
             pending=False
         )
         
-        response = self.client.get(reverse('list_aufgaben_table'))
-        content = response.content.decode()
+        response = self.client.get(reverse('ajax_load_aufgaben_table_data'))
+        self.assertEqual(response.status_code, 200)
+        
+        data = json.loads(response.content)
+        self.assertTrue(data['success'])
+        table_html = data['data']['table_html']
         
         # Should have danger background for overdue
-        self.assertIn('bg-danger bg-opacity-25', content)
+        self.assertIn('bg-danger bg-opacity-25', table_html)
+
+    def test_main_view_loads_with_ajax_loading(self):
+        """Test that the main view loads correctly with AJAX loading approach"""
+        response = self.client.get(reverse('list_aufgaben_table'))
+        self.assertEqual(response.status_code, 200)
+        
+        content = response.content.decode()
+        
+        # Check that the main view includes AJAX loading elements
+        self.assertIn('id="loadingState"', content)
+        self.assertIn('id="actualContent"', content)
+        self.assertIn('id="dynamicContent"', content)
+        
+        # Check that AJAX loading is enabled
+        self.assertIn('ajax_loading', response.context)
+        self.assertTrue(response.context['ajax_loading'])
+        
+        # Check that filter buttons are present
+        self.assertIn('Filter', content)
 
     def test_ajax_state_change_response_format(self):
         """Test that AJAX responses include all necessary data for state switching"""

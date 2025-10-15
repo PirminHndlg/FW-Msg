@@ -8,13 +8,13 @@
 {% block head %}
   <link rel="stylesheet" href="{% static 'css/list_aufgaben.css' %}" />
   <style>
-    /* Essential styles that Bootstrap doesn't cover */
+    /* Table Layout & Responsive Design */
     .table-responsive {
       max-height: calc(100vh - 200px);
       overflow: auto;
     }
     
-    /* Sticky first column */
+    /* Sticky Table Headers & First Column */
     .table th:first-child,
     .table td:first-child {
       position: sticky;
@@ -23,7 +23,6 @@
       z-index: 2;
     }
     
-    /* Sticky header */
     .table thead th {
       position: sticky;
       top: 0;
@@ -31,12 +30,11 @@
       z-index: 1;
     }
     
-    /* Extra z-index for the corner cell */
     .table thead th:first-child {
       z-index: 3;
     }
     
-    /* Simplified tooltip styles */
+    /* Tooltip System */
     [data-tooltip] {
       position: relative;
     }
@@ -59,11 +57,39 @@
       transition-delay: 0.4s;
     }
     
-    /* Special tooltip positioning for add-all button */
+    /* Special tooltip positioning */
     .data-tooltip-bottom[data-tooltip]::before {
       bottom: auto;
       top: 100%;
       margin-top: 5px;
+    }
+    
+    /* Loading Overlay Styles */
+    #loadingState {
+      position: relative;
+    }
+    
+    #loadingState .card-body {
+      position: relative;
+    }
+    
+    /* Loading Animations */
+    .spinner-border {
+      animation: spinner-border 0.75s linear infinite;
+    }
+    
+    /* Smooth transition for content switching */
+    #actualContent {
+      transition: opacity 0.3s ease-in-out;
+    }
+    
+    #actualContent.show {
+      opacity: 1;
+    }
+    
+    /* Loading state positioning */
+    .position-relative {
+      position: relative;
     }
   </style>
 {% endblock %}
@@ -80,44 +106,118 @@
       {{ error }}
     </div>
   {% else %}
+    <!-- Main Content Container -->
     <div class="card rounded-4">
-      {% include 'components/task_filter.html' %}
-      <div class="card-body p-2">
-        {% include 'components/task_table.html' %}
+      <!-- Filter buttons (always visible) -->
+      <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-center align-items-center gap-1 flex-wrap">
+        <div class="d-flex gap-1 mb-2 justify-content-center align-items-center">
+          <strong>{% trans "Filter" %}</strong>
+          <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center">
+            <!-- Filter buttons that work immediately -->
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if not filter %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f=None">
+              {% trans "Alle" %}
+            </a>
+            {% for cluster in aufgaben_cluster %}
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if filter == cluster %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f={{ cluster.id }}">
+              {{ cluster.name }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
       </div>
-    </div>
+      
+      <!-- Loading State Overlay -->
+      <div id="loadingState" 
+           class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-primary-subtle bg-opacity-75 loading-overlay" 
+           style="z-index: 9999;" 
+           role="dialog" 
+           aria-modal="true" 
+           aria-labelledby="loadingTitle">
+        
+        <!-- Loading Content Card -->
+        <div class="d-flex flex-column align-items-center justify-content-center bg-white rounded-4 p-4 shadow">
+          <!-- Loading Spinner -->
+          <div class="spinner-border text-primary mb-3" 
+               role="status" 
+               style="width: 3rem; height: 3rem;" 
+               aria-hidden="true">
+            <span class="visually-hidden">{% trans "Laden..." %}</span>
+          </div>
+          
+          <!-- Loading Title -->
+          <h3 id="loadingTitle" class="text-muted mb-2 h5">
+            {% trans "Aufgaben werden geladen..." %}
+          </h3>
+          
+          <!-- Progress Bar -->
+          <div class="progress mb-3" 
+               style="width: 200px; height: 6px;" 
+               role="progressbar" 
+               aria-valuemin="0" 
+               aria-valuemax="100">
+            <div id="loadingProgress" 
+                 class="progress-bar progress-bar-striped progress-bar-animated" 
+                 style="width: 0%" 
+                 aria-valuenow="0">
+            </div>
+          </div>
+          
+          <!-- Loading Status Text -->
+          <small class="text-muted mb-3" id="loadingText">
+            {% trans "Vorbereitung..." %}
+          </small>
+          
+          <!-- Cancel Button -->
+          <a href="{% url 'index_home' %}" 
+             class="btn btn-outline-secondary btn-sm" 
+             title="{% trans 'Laden abbrechen und zur Startseite zurückkehren' %}">
+            <i class="bi bi-x-circle me-1" aria-hidden="true"></i>
+            {% trans "Abbrechen" %}
+          </a>
+        </div>
+      </div>
 
-    {% include 'components/task_country_modal.html' with countries=countries %}
-
-    <!-- Delete Task Modal -->
-    <div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="deleteTaskModalLabel">{% trans 'Aufgabe löschen' %}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <p>
-              {% trans 'Die Datei' %} <strong id="deleteTaskFileName" class="text-break"></strong> {% trans 'der Aufgabe' %} <strong id="deleteTaskName"></strong> {% trans 'für' %} <strong id="deleteTaskFreiwilliger"></strong> {% trans 'wirklich löschen?' %}
-            </p>
-            <p class="text-danger">
-              <i class="bi bi-exclamation-triangle-fill"></i> {% trans 'Diese Aktion kann nicht rückgängig gemacht werden!' %}
-            </p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Abbrechen' %}</button>
-            <form id="deleteTaskForm" method="POST">
-              {% csrf_token %}
-              <input type="hidden" name="delete_file_of_aufgabe" id="deleteTaskId" />
-              <button type="submit" class="btn btn-danger">{% trans 'Löschen' %}</button>
-            </form>
-          </div>
+      <!-- Main Content Area -->
+      <div id="actualContent" class="d-none">
+        <!-- Dynamic content container for AJAX-loaded table -->
+        <div id="dynamicContent" role="main" aria-live="polite">
+          <!-- Table content will be populated via AJAX -->
         </div>
       </div>
     </div>
 
-    {% include 'components/task_zwischenschritte_modal.html' %}
+      {% include 'components/task_country_modal.html' with countries=countries %}
+
+      <!-- Delete Task Modal -->
+      <div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="deleteTaskModalLabel">{% trans 'Aufgabe löschen' %}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>
+                {% trans 'Die Datei' %} <strong id="deleteTaskFileName" class="text-break"></strong> {% trans 'der Aufgabe' %} <strong id="deleteTaskName"></strong> {% trans 'für' %} <strong id="deleteTaskFreiwilliger"></strong> {% trans 'wirklich löschen?' %}
+              </p>
+              <p class="text-danger">
+                <i class="bi bi-exclamation-triangle-fill"></i> {% trans 'Diese Aktion kann nicht rückgängig gemacht werden!' %}
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Abbrechen' %}</button>
+              <form id="deleteTaskForm" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="delete_file_of_aufgabe" id="deleteTaskId" />
+                <button type="submit" class="btn btn-danger">{% trans 'Löschen' %}</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% include 'components/task_zwischenschritte_modal.html' %}
+    </div>
 
     <script>
       function showDeleteTaskModal(taskId, taskName, taskFileName, freiwilligerName) {
@@ -140,27 +240,121 @@
       }
       
       document.addEventListener('DOMContentLoaded', function () {
+        // Handle loading state transition
+        const loadingState = document.getElementById('loadingState')
+        const actualContent = document.getElementById('actualContent')
+        const loadingProgress = document.getElementById('loadingProgress')
+        const loadingText = document.getElementById('loadingText')
+        
+        {% if ajax_loading %}
+        // AJAX Loading Mode - Load data via AJAX
+        loadDataViaAjax()
+        
+        // Add click handlers to filter buttons for AJAX loading
+        addFilterClickHandlers()
+        {% else %}
+        // Traditional Loading Mode - Wait for server-rendered content
+        loadDataTraditionally()
+        {% endif %}
+        
+        function loadDataViaAjax() {
+          const progressManager = new ProgressManager(loadingProgress, loadingText)
+          
+          const loadingSteps = [
+            { progress: 20, text: "{% trans 'Aufgaben werden abgerufen...' %}" },
+            { progress: 60, text: "{% trans 'Tabellendaten werden verarbeitet...' %}" },
+            { progress: 80, text: "{% trans 'Benutzerdaten werden geladen...' %}" },
+            { progress: 95, text: "{% trans 'Abschließende Vorbereitung...' %}" }
+          ]
+          
+          // Start progress simulation
+          progressManager.simulateProgress(loadingSteps)
+          
+          // Load data via AJAX
+          const filterParam = new URLSearchParams(window.location.search).get('f') || 'None'
+          fetch(`{% url 'ajax_load_aufgaben_table_data' %}?f=${filterParam}`, {
+            method: 'GET',
+            headers: {
+              'X-CSRFToken': getCookie('csrftoken')
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Complete progress and render content
+              progressManager.complete(() => {
+                renderAjaxContent(data.data)
+              })
+            } else {
+              // Handle error
+              progressManager.cleanup()
+              showError(data.error)
+            }
+          })
+          .catch(error => {
+            console.error('Error loading data:', error)
+            showError('Fehler beim Laden der Daten')
+          })
+        }
+        
+        function loadDataTraditionally() {
+          const progressManager = new ProgressManager(loadingProgress, loadingText)
+          
+          const loadingSteps = [
+            { progress: 20, text: "{% trans 'Filter werden geladen...' %}" },
+            { progress: 40, text: "{% trans 'Aufgaben werden abgerufen...' %}" },
+            { progress: 60, text: "{% trans 'Tabellendaten werden verarbeitet...' %}" },
+            { progress: 80, text: "{% trans 'Benutzerdaten werden geladen...' %}" },
+            { progress: 95, text: "{% trans 'Abschließende Vorbereitung...' %}" }
+          ]
+          
+          // Start progress simulation
+          progressManager.simulateProgress(loadingSteps)
+          
+          // Function to show actual content and hide loading
+          function showActualContent() {
+            if (loadingState && actualContent) {
+              progressManager.complete(() => {
+                DOM.show(actualContent)
+                DOM.setDisplay(loadingState, 'none')
+              })
+            }
+          }
+          
+          // Check if content is ready (all images loaded, scripts executed)
+          function checkContentReady() {
+            
+            // Wait for any async operations to complete
+            const checkInterval = setInterval(() => {
+              // Check if table rows are present and rendered
+              const tableRows = actualContent.querySelectorAll('tbody tr')
+              if (tableRows.length > 0) {
+                clearInterval(checkInterval)
+                // Add a small delay to ensure everything is rendered
+                setTimeout(showActualContent, 500)
+              }
+            }, 100)
+            
+            // Fallback timeout in case something goes wrong
+            setTimeout(() => {
+              clearInterval(checkInterval)
+              showActualContent()
+            }, 8000)
+          }
+          
+          // Start checking for content readiness
+          checkContentReady()
+        }
+        
         const scrollToElement = document.getElementById('scroll-to')
         if (scrollToElement) {
           scrollToElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
         }
 
-        // Add search functionality
-        const searchInput = document.getElementById('userSearch')
-        const tableRows = document.querySelectorAll('tbody tr')
-        
-        searchInput.addEventListener('input', function() {
-          const searchTerm = this.value.toLowerCase()
-          
-          tableRows.forEach(row => {
-            const userName = row.querySelector('th').textContent.toLowerCase()
-            if (userName.includes(searchTerm)) {
-              row.style.display = ''
-            } else {
-              row.style.display = 'none'
-            }
-          })
-        })
+        // Initialize search functionality after content loads
+        setTimeout(() => {
+          initializeSearchFunctionality()
+        }, 1000)
       })
       
       function setTaskId(taskId, taskName) {
@@ -171,7 +365,13 @@
   {% endif %}
   
   <script>
-    // CSRF token for AJAX requests
+    // ========================================
+    // UTILITY FUNCTIONS & CONSTANTS
+    // ========================================
+    
+    /**
+     * Get CSRF token from cookies
+     */
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -189,7 +389,95 @@
 
     const csrftoken = getCookie('csrftoken');
 
-    // Helper function to update task state UI
+    /**
+     * Unified progress management system
+     */
+    class ProgressManager {
+        constructor(loadingProgress, loadingText) {
+            this.loadingProgress = loadingProgress;
+            this.loadingText = loadingText;
+            this.currentStep = 0;
+            this.progressValue = 0;
+            this.timeouts = [];
+        }
+
+        updateProgress(progress, text) {
+            if (this.loadingProgress) {
+                this.loadingProgress.style.width = progress + '%';
+                this.loadingProgress.setAttribute('aria-valuenow', progress);
+            }
+            if (this.loadingText && text) {
+                this.loadingText.textContent = text;
+            }
+            this.progressValue = progress;
+        }
+
+        simulateProgress(steps, onComplete = null) {
+            this.currentStep = 0;
+            
+            const simulate = () => {
+                if (this.currentStep < steps.length) {
+                    const step = steps[this.currentStep];
+                    this.updateProgress(step.progress, step.text);
+                    this.currentStep++;
+                    
+                    const delay = Math.random() * 800 + 400;
+                    const timeout = setTimeout(simulate, delay);
+                    this.timeouts.push(timeout);
+                } else if (onComplete) {
+                    onComplete();
+                }
+            };
+            
+            const initialTimeout = setTimeout(simulate, 300);
+            this.timeouts.push(initialTimeout);
+        }
+
+        complete(onComplete = null) {
+            this.updateProgress(100, "{% trans 'Fertig!' %}");
+            if (onComplete) {
+                setTimeout(onComplete, 300);
+            }
+        }
+
+        cleanup() {
+            this.timeouts.forEach(timeout => clearTimeout(timeout));
+            this.timeouts = [];
+        }
+    }
+
+    /**
+     * DOM manipulation utilities
+     */
+    const DOM = {
+        show: (element) => {
+            if (element) {
+                element.classList.remove('d-none');
+                element.classList.add('show');
+            }
+        },
+        
+        hide: (element) => {
+            if (element) {
+                element.classList.add('d-none');
+                element.classList.remove('show');
+            }
+        },
+        
+        setDisplay: (element, display) => {
+            if (element) {
+                element.style.display = display;
+            }
+        }
+    };
+
+    // ========================================
+    // TASK MANAGEMENT FUNCTIONS
+    // ========================================
+    
+    /**
+     * Update task state UI elements
+     */
     function updateTaskState(taskId, state) {
         const row = document.getElementById(`task-table-row-${taskId}`);
         const completed = document.getElementById(`completed-task-template-${taskId}`);
@@ -413,6 +701,204 @@
             console.error('Error:', error);
             alert('An error occurred while assigning tasks by country.');
         });
+    }
+
+    // ========================================
+    // AJAX & LOADING MANAGEMENT
+    // ========================================
+    
+    /**
+     * Render AJAX-loaded content and handle transitions
+     */
+    function renderAjaxContent(data) {
+      // Replace the table content with server-rendered HTML
+      const dynamicContent = document.getElementById('dynamicContent')
+      if (dynamicContent && data.table_html) {
+        dynamicContent.innerHTML = data.table_html
+      }
+      
+      // Update countries in modal if present
+      if (data.countries) {
+        updateCountriesModal(data.countries)
+      }
+      
+      // Hide loading state and show actual content
+      const loadingState = document.getElementById('loadingState')
+      const actualContent = document.getElementById('actualContent')
+      
+      DOM.hide(loadingState)
+      DOM.show(actualContent)
+      
+      // Update filter button states to match the loaded content
+      updateFilterButtonStates()
+      
+      // Re-initialize any JavaScript functionality that might be needed
+      initializeTableFunctionality()
+    }
+    
+    /**
+     * Update filter button active states based on current URL
+     */
+    function updateFilterButtonStates() {
+      const currentUrl = new URL(window.location.href)
+      const currentFilter = currentUrl.searchParams.get('f') || 'None'
+      
+      const filterButtons = document.querySelectorAll('.card-header a[href*="list_aufgaben_table"]')
+      filterButtons.forEach(button => {
+        const buttonUrl = new URL(button.href)
+        const buttonFilter = buttonUrl.searchParams.get('f') || 'None'
+        
+        // Remove active class from all buttons
+        button.classList.remove('active')
+        
+        // Add active class to the button that matches current filter
+        if (buttonFilter === currentFilter) {
+          button.classList.add('active')
+        }
+      })
+    }
+    
+    function initializeTableFunctionality() {
+      // Re-initialize tooltips and other interactive elements
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+      
+      // Re-initialize search functionality
+      initializeSearchFunctionality()
+    }
+    
+    function initializeSearchFunctionality() {
+      const searchInput = document.getElementById('userSearch')
+      if (searchInput) {
+        // Remove existing event listeners to avoid duplicates
+        searchInput.removeEventListener('input', searchHandler)
+        searchInput.addEventListener('input', searchHandler)
+      }
+    }
+    
+    function searchHandler(event) {
+      const searchTerm = event.target.value.toLowerCase()
+      const tableRows = document.querySelectorAll('tbody tr')
+      
+      tableRows.forEach(row => {
+        const userName = row.querySelector('th').textContent.toLowerCase()
+        if (userName.includes(searchTerm)) {
+          row.style.display = ''
+        } else {
+          row.style.display = 'none'
+        }
+      })
+    }
+    
+    function addFilterClickHandlers() {
+      // Add click handlers to filter buttons in the card header
+      const filterButtons = document.querySelectorAll('.card-header a[href*="list_aufgaben_table"]')
+      filterButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.preventDefault()
+          
+          // Get the filter value from the URL
+          const url = new URL(this.href)
+          const filterValue = url.searchParams.get('f') || 'None'
+          
+          // Update the URL without page reload
+          window.history.pushState({}, '', this.href)
+          
+          // Show loading state
+          showLoadingState()
+          
+          // Load new data with the filter
+          loadDataWithFilter(filterValue)
+        })
+      })
+    }
+    
+    function loadDataWithFilter(filterValue) {
+      const loadingProgress = document.getElementById('loadingProgress')
+      const loadingText = document.getElementById('loadingText')
+      const progressManager = new ProgressManager(loadingProgress, loadingText)
+      
+      // Start progress simulation for filter loading
+      const filterSteps = [
+        { progress: 30, text: "{% trans 'Filter wird angewendet...' %}" },
+        { progress: 60, text: "{% trans 'Daten werden neu geladen...' %}" },
+        { progress: 90, text: "{% trans 'Tabelle wird aktualisiert...' %}" }
+      ]
+      progressManager.simulateProgress(filterSteps)
+      
+      fetch(`{% url 'ajax_load_aufgaben_table_data' %}?f=${filterValue}`, {
+        method: 'GET',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Complete progress and render content
+          progressManager.complete(() => {
+            renderAjaxContent(data.data)
+          })
+        } else {
+          // Handle error
+          progressManager.cleanup()
+          showError(data.error)
+        }
+      })
+      .catch(error => {
+        console.error('Error loading data:', error)
+        progressManager.cleanup()
+        showError('Fehler beim Laden der Daten')
+      })
+    }
+    
+    function showLoadingState() {
+      const actualContent = document.getElementById('actualContent')
+      const loadingState = document.getElementById('loadingState')
+      const loadingProgress = document.getElementById('loadingProgress')
+      const loadingText = document.getElementById('loadingText')
+      
+      // Hide actual content and show loading state
+      DOM.hide(actualContent)
+      DOM.setDisplay(loadingState, 'flex')
+      
+      // Reset progress
+      if (loadingProgress) {
+        loadingProgress.style.width = '0%'
+        loadingProgress.setAttribute('aria-valuenow', 0)
+      }
+      if (loadingText) {
+        loadingText.textContent = "{% trans 'Filter wird angewendet...' %}"
+      }
+    }
+    
+    function updateCountriesModal(countries) {
+      const countrySelect = document.getElementById('countrySelect')
+      if (!countrySelect) return
+      
+      countrySelect.innerHTML = ''
+      countries.forEach(country => {
+        const option = document.createElement('option')
+        option.value = country.id
+        option.textContent = country.name
+        countrySelect.appendChild(option)
+      })
+    }
+    
+    function showError(message) {
+      // Hide loading state
+      const loadingState = document.getElementById('loadingState')
+      DOM.setDisplay(loadingState, 'none')
+      
+      // Show error message
+      const errorDiv = document.createElement('div')
+      errorDiv.className = 'alert alert-danger'
+      errorDiv.innerHTML = `<i class="bi bi-exclamation-triangle-fill"></i> ${message}`
+      
+      const container = document.querySelector('.container-fluid')
+      if (container) {
+        container.insertBefore(errorDiv, container.firstChild)
+      }
     }
   </script>
 {% endblock %}
