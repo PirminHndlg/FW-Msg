@@ -92,9 +92,8 @@
 <script>
     // Registration mail functionality for user tables
     {% if model_name == 'user' %}
-    function sendRegistrationMail(userId) {
-        const csrfTokenElement = document.querySelector('[name=csrfmiddlewaretoken]');
-        const csrfToken = csrfTokenElement.value;
+    function sendRegistrationMail(userId, button) {
+        const csrfToken = '{{ csrf_token }}';
         
         fetch('{% url "send_registration_mail" %}', {
             method: 'POST',
@@ -109,7 +108,6 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const button = document.getElementById(`sendRegistrationMailButton-${userId}`);
                 if (button) {
                     button.classList.add('btn-success', 'text-white', 'disabled');
                     button.classList.remove('btn-outline-info');

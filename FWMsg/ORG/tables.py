@@ -2,6 +2,8 @@ import django_tables2 as tables
 from django_tables2 import TemplateColumn
 from django.urls import reverse
 from django.utils.html import format_html
+from django.template.loader import render_to_string
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from Global.models import (
@@ -93,6 +95,19 @@ class EinsatzstelleTable(BaseOrgTable):
     konsulat = tables.Column(verbose_name=_('Konsulat'), orderable=False)
     informationen = tables.Column(verbose_name=_('Weitere Informationen'), orderable=False)
     
+    def render_actions(self, value, record):
+        context = {
+            'model_name': 'einsatzstelle',
+            'action_url': reverse('einsatzstellen_notiz', args=[record.pk]),
+            'color': 'primary',
+            'icon': 'bi bi-journal-text',
+            'title': _('Notizen'),
+            'record': record,
+            'button_text': '',
+        }
+        html = render_to_string('components/additional_table_actions.html', context)
+        return mark_safe(html)
+
     class Meta(BaseOrgTable.Meta):
         model = Einsatzstelle2
         fields = ('name', 'land', 'partnerorganisation', 'arbeitsvorgesetzter', 'mentor', 'botschaft', 'konsulat', 'informationen', 'max_freiwillige', 'actions')
@@ -172,22 +187,19 @@ class UserAufgabenTable(BaseOrgTable):
 
 
 class CustomUserTable(BaseOrgTable):
-    # Add special action for sending registration mail
-    actions = TemplateColumn(
-        template_name='components/user_table_actions.html',
-        verbose_name=_('Aktionen'),
-        orderable=False,
-        attrs={
-            'th': {
-                'style': 'width: 150px; position: sticky; right: 0; background-color: var(--bs-light); z-index: 10;',
-                'class': 'sticky-actions-header'
-            }, 
-            'td': {
-                'style': 'position: sticky; right: 0; background-color: white; z-index: 9;',
-                'class': 'sticky-actions-cell'
-            }
+    def render_actions(self, value, record):
+        context = {
+            'model_name': 'user',
+            'action_url': '',
+            'onclick': f'sendRegistrationMail({record.pk}, this)',
+            'color': 'info',
+            'icon': 'bi bi-envelope',
+            'title': _('Registrierungsmail senden'),
+            'record': record,
+            'button_text': '',
         }
-    )
+        html = render_to_string('components/additional_table_actions.html', context)
+        return mark_safe(html)
     
     class Meta(BaseOrgTable.Meta):
         model = CustomUser
