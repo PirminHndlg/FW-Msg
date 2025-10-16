@@ -75,16 +75,16 @@ def send_birthday_reminder_email_task(user_id):
     receiver = [org.email]
     from Global.send_email import format_birthday_reminder_email
     
-    subject = f'Morgen ist der Geburtstag von {custom_user.user.first_name} {custom_user.user.last_name}'
+    subject = f'Morgen hat {custom_user.user.first_name} {custom_user.user.last_name} Geburtstag'
 
     email_content = format_birthday_reminder_email(
-        custom_user.user.first_name + ' ' + custom_user.user.last_name,
-        custom_user.user.email,
-        custom_user.geburtsdatum,
-        custom_user.get_unsubscribe_url(),
-        org.name,
-        get_logo_base64(org),
-        get_org_color(org),
+        birthday_user_name=f"{custom_user.user.first_name} {custom_user.user.last_name}",
+        user_email=custom_user.user.email,
+        birthday=custom_user.geburtsdatum,
+        unsubscribe_url=custom_user.get_unsubscribe_url(),
+        org_name=org.name,
+        base64_image=get_logo_base64(org),
+        org_color=get_org_color(org),
     )
     send_email_with_archive(
         subject,
@@ -92,7 +92,6 @@ def send_birthday_reminder_email_task(user_id):
         settings.SERVER_EMAIL,
         receiver,
         html_message=email_content,
-        reply_to_list=[org.email]
     )
 
 
