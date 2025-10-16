@@ -16,7 +16,7 @@
                 bg-success bg-opacity-25
             {% elif aufgabe.pending %}
                 bg-warning bg-opacity-25
-            {% elif aufgabe.faellig < today %}
+            {% elif aufgabe.faellig <= today %}
                 bg-danger bg-opacity-25
             {% else %}
                 bg-dark bg-opacity-10
