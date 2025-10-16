@@ -271,7 +271,13 @@
           progressManager.simulateProgress(loadingSteps)
           
           // Load data via AJAX
-          const filterParam = new URLSearchParams(window.location.search).get('f') || 'None'
+          let filterParam;
+          const cookieFilter = getCookie('filter_aufgaben_table')
+          if (cookieFilter) {
+            filterParam = cookieFilter
+          } else {
+            filterParam = new URLSearchParams(window.location.search).get('f')
+          }
           fetch(`{% url 'ajax_load_aufgaben_table_data' %}?f=${filterParam}`, {
             method: 'GET',
             headers: {
