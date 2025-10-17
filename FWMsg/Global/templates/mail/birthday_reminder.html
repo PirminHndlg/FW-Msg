@@ -1,7 +1,11 @@
 {% extends "mail/base_email.html" %}
 
 {% block german_content %}
+{% if is_tomorrow %}
 <p>Morgen hat {{ birthday_user_name }} Geburtstag:</p>
+{% else %}
+<p>Heute hat {{ birthday_user_name }} Geburtstag:</p>
+{% endif %}
 
 <div style="background-color: #f7f9fc; border-left: 4px solid {{ org_color }}; padding: 15px; margin: 15px 0; border-radius: 3px;">
     <p style="font-weight: 600; margin: 0 0 10px 0; color: {{ org_color }};"><a href="mailto:{{ user_email }}">{{ user_email }}</a></p>
@@ -12,7 +16,11 @@
 {% block german_button_text %}Zur Plattform{% endblock %}
 
 {% block english_content %}
+{% if is_tomorrow %}
 <p>Tomorrow is {{ birthday_user_name }}'s birthday:</p>
+{% else %}
+<p>Today is {{ birthday_user_name }}'s birthday:</p>
+{% endif %}
 
 <div style="background-color: #f7f9fc; border-left: 4px solid {{ org_color }}; padding: 15px; margin: 15px 0; border-radius: 3px;">
     <p style="font-weight: 600; margin: 0 0 10px 0; color: {{ org_color }};"><a href="mailto:{{ user_email }}">{{ user_email }}</a></p>

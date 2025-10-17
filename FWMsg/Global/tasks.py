@@ -67,7 +67,7 @@ def send_image_uploaded_email_task(bild_id):
 
 
 @shared_task
-def send_birthday_reminder_email_task(user_id):
+def send_birthday_reminder_email_task(user_id, is_tomorrow=True):
     from Global.models import CustomUser
 
     custom_user = CustomUser.objects.get(id=user_id)
@@ -75,7 +75,10 @@ def send_birthday_reminder_email_task(user_id):
     receiver = [org.email]
     from Global.send_email import format_birthday_reminder_email
     
-    subject = f'Morgen hat {custom_user.user.first_name} {custom_user.user.last_name} Geburtstag'
+    if is_tomorrow:
+        subject = f'Morgen hat {custom_user.user.first_name} {custom_user.user.last_name} Geburtstag'
+    else:
+        subject = f'Heute hat {custom_user.user.first_name} {custom_user.user.last_name} Geburtstag'
 
     email_content = format_birthday_reminder_email(
         birthday_user_name=f"{custom_user.user.first_name} {custom_user.user.last_name}",
@@ -85,6 +88,7 @@ def send_birthday_reminder_email_task(user_id):
         org_name=org.name,
         base64_image=get_logo_base64(org),
         org_color=get_org_color(org),
+        is_tomorrow=is_tomorrow
     )
     send_email_with_archive(
         subject,
