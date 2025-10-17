@@ -154,7 +154,7 @@ def format_aufgaben_email(aufgabe_name, aufgabe_deadline, base64_image, org_colo
     }
     return render_to_string('mail/task_reminder.html', context)
 
-def format_birthday_reminder_email(birthday_user_name, user_email, birthday, unsubscribe_url, org_name, base64_image, org_color):
+def format_birthday_reminder_email(birthday_user_name, user_email, birthday, unsubscribe_url, org_name, base64_image, org_color, is_tomorrow=True):
     context = {
         'user_name': org_name,
         'birthday_user_name': birthday_user_name,
@@ -164,7 +164,8 @@ def format_birthday_reminder_email(birthday_user_name, user_email, birthday, uns
         'unsubscribe_url': unsubscribe_url,
         'org_name': org_name,
         'base64_image': base64_image,
-        'org_color': org_color
+        'org_color': org_color,
+        'is_tomorrow': is_tomorrow
     }
     return render_to_string('mail/birthday_reminder.html', context)
 
