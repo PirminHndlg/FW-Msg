@@ -181,12 +181,16 @@ class Bewerber(OrgModel):
         null=True,
         verbose_name="Interviewperson 2",
     )
-
-    def __str__(self):
-        return self.user.first_name + " " + self.user.last_name
-
+    
+    application_pdf = models.FileField(
+        verbose_name="PDF der Bewerbung",
+        upload_to="bewerbung/",
+        null=True,
+        blank=True,
+        help_text="Falls die Bewerbung per Mail versendet wurde, kann hier das PDF der Bewerbung hochgeladen werden.",
+    )
+    
     class Meta:
-        ordering = ["user__first_name", "user__last_name"]
         verbose_name = "Bewerber:in"
         verbose_name_plural = "Bewerber:innen"
 

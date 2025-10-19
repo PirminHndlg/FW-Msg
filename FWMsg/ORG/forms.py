@@ -270,7 +270,48 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
         save_person_cluster_field(self)
         
         return instance
+    
 
+# Form to create a new Bewerber and upload the application PDF
+class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
+    class Meta:
+        model = Bewerber
+        fields = ['application_pdf']
+        exclude = ['org']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        add_customuser_fields(self, 'B')
+        order_fields = ['first_name', 'last_name', 'email', 'person_cluster']
+        self.order_fields(order_fields)
+        add_person_cluster_field(self)
+        
+    def save(self, commit=True):
+        if not self.instance.pk:
+            save_and_create_customuser(self)
+            self.instance.save()
+        else:
+            self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
+            self.instance.user.customuser.save()
+
+        instance = super().save(commit=commit)
+        
+        if self.cleaned_data['first_name'] != self.instance.user.first_name:
+            self.instance.user.first_name = self.cleaned_data['first_name']
+            self.instance.user.save()
+        
+        if self.cleaned_data['last_name'] != self.instance.user.last_name:
+            self.instance.user.last_name = self.cleaned_data['last_name']
+            self.instance.user.save()
+        
+        if self.cleaned_data['email'] != self.instance.user.email:
+            self.instance.user.email = self.cleaned_data['email']
+            self.instance.user.save()
+        
+        save_person_cluster_field(self)
+        
+        return instance
+        
 
 class AddAufgabenClusterForm(OrgFormMixin, forms.ModelForm):
     class Meta:
@@ -718,6 +759,7 @@ model_to_form_mapping = {
     PersonCluster: AddPersonClusterForm,
     AufgabenCluster: AddAufgabenClusterForm,
     KalenderEvent: AddKalenderEventForm,
+    Bewerber: AddBewerberApplicationPdfForm,
     ApplicationText: AddApplicationTextForm,
     ApplicationQuestion: AddApplicationQuestionForm,
     ApplicationFileQuestion: AddApplicationFileQuestionForm,

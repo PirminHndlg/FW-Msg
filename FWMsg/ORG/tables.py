@@ -11,7 +11,7 @@ from Global.models import (
     Notfallkontakt2, UserAufgaben, CustomUser, PersonCluster, 
     AufgabenCluster, KalenderEvent
 )
-from BW.models import ApplicationText, ApplicationQuestion, ApplicationFileQuestion
+from BW.models import ApplicationText, ApplicationQuestion, ApplicationFileQuestion, Bewerber
 
 
 class BaseOrgTable(tables.Table):
@@ -281,6 +281,24 @@ class ApplicationFileQuestionTable(BaseOrgTable):
     class Meta(BaseOrgTable.Meta):
         model = ApplicationFileQuestion
         fields = ('order', 'name', 'description', 'actions')
+        
+
+class BewerberTable(BaseOrgTable):
+    user = tables.Column(verbose_name=_('Benutzer'))
+    application_pdf = tables.Column(verbose_name=_('PDF der Bewerbung'))
+    
+    class Meta(BaseOrgTable.Meta):
+        model = Bewerber
+        fields = ('user', 'application_pdf', 'actions')
+        # fields = ('user', 'application_pdf', 'gegenstand', 'first_wish', 'first_wish_einsatzland', 'first_wish_einsatzstelle', 'second_wish', 'second_wish_einsatzland', 'second_wish_einsatzstelle', 'third_wish', 'actions')
+        
+    def render_application_pdf(self, record):
+        if record.application_pdf:
+            return format_html('<a href="{}" target="_blank"><i class="bi bi-file-earmark-pdf"></i>{}</a>', record.application_pdf.url, _('PDF der Bewerbung'))
+        
+    def render_user(self, record):
+        url = reverse('profil', args=[record.user.id])
+        return format_html('<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', url, record.user.first_name + ' ' + record.user.last_name)
 
 
 # Mapping of model names to table classes
@@ -298,4 +316,5 @@ MODEL_TABLE_MAPPING = {
     'bewerbung-text': ApplicationTextTable,
     'bewerbung-frage': ApplicationQuestionTable,
     'bewerbung-datei': ApplicationFileQuestionTable,
+    'bewerber': BewerberTable,
 }
