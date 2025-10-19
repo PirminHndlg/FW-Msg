@@ -5,6 +5,78 @@ body {
     padding: 0;
 }
 
+/* Enhanced Dropdown Navigation Styles */
+.dropdown-menu-wide {
+    min-width: 280px;
+    max-width: 350px;
+}
+
+.dropdown-header {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.5rem 1rem 0.25rem;
+    margin-top: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.dropdown-header:first-child {
+    margin-top: 0;
+}
+
+.dropdown-header i {
+    font-size: 0.8rem;
+}
+
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.15s ease-in-out;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: #495057;
+}
+
+.dropdown-item i {
+    width: 16px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.dropdown-divider {
+    margin: 0;
+}
+
+/* Navigation Icons */
+.nav-link i {
+    font-size: 1rem;
+}
+
+/* Mobile Navigation Improvements */
+@media (max-width: 991.98px) {
+    .dropdown-menu-wide {
+        min-width: auto;
+        max-width: none;
+        width: 100%;
+    }
+    
+    .dropdown-header {
+        font-size: 0.7rem;
+        padding: 0.4rem 1rem 0.2rem;
+    }
+    
+    .dropdown-item {
+        padding: 0.6rem 1rem;
+    }
+}
+
+/* Legacy navigation styles - commented out to prevent conflicts with Bootstrap navbar */
+/*
 header {
     background-color: var(--color);
     color: var(--text_color);
@@ -52,7 +124,10 @@ nav ul a {
 nav ul a li:hover {
     background-color: #ddd;
 }
+*/
 
+/* Legacy media queries - commented out to prevent conflicts with Bootstrap navbar */
+/*
 @media (min-width: 800px) {
     nav {
         display: block;
@@ -99,3 +174,4 @@ nav ul a li:hover {
         position: static;
     }
 }
+*/
