@@ -2019,8 +2019,8 @@ def _get_member_and_countries(request):
         member = Ehemalige.objects.filter(user=request.user).first()
         if member:
             return member, member.land.all(), 'baseEhemalige.html'
-    
-    return None, Einsatzland2.objects.none(), 'base.html'
+        
+    return None, None, 'base.html'
 
 
 @login_required
@@ -2031,10 +2031,7 @@ def laender_info(request):
     
     if not member:
         messages.warning(request, 'Ihrem Konto sind keine Einsatzländer zugeordnet. Bitte kontaktieren Sie den Administrator.')
-        return render(request, 'laender_info.html', {
-            'laender': [],
-            'base_template': base_template
-        })
+        return redirect('index_home')
     
     # Get assigned countries
     laender = assigned_countries.order_by('name')
@@ -2074,11 +2071,8 @@ def einsatzstellen_info(request):
     member, assigned_countries, base_template = _get_member_and_countries(request)
     
     if not member:
-        messages.warning(request, 'Ihrem Konto sind keine Einsatzländer zugeordnet. Bitte kontaktieren Sie den Administrator.')
-        return render(request, 'einsatzstellen_info.html', {
-            'einsatzstellen': [],
-            'base_template': base_template
-        })
+        messages.warning(request, 'Ihrem Konto sind keine Einsatzstellen zugeordnet. Bitte kontaktieren Sie den Administrator.')
+        return redirect('index_home')
     
     # Get placement locations for assigned countries
     einsatzstellen = Einsatzstelle2.objects.filter(
