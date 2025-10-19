@@ -206,9 +206,14 @@ def send_birthday_reminder(self):
         from Global.tasks import send_birthday_reminder_email_task
         # get all users with birthday tomorrow
         tomorrow = datetime.now().date() + timedelta(days=1)
-        birthday_reminder = CustomUser.objects.filter(geburtsdatum__day=tomorrow.day, geburtsdatum__month=tomorrow.month)
-        for user in birthday_reminder:
-            send_birthday_reminder_email_task(user.id)
+        birthday_reminder_tomorrow = CustomUser.objects.filter(geburtsdatum__day=tomorrow.day, geburtsdatum__month=tomorrow.month)
+        for user in birthday_reminder_tomorrow:
+            send_birthday_reminder_email_task(user.id, is_tomorrow=True)
+        
+        today = datetime.now().date()
+        birthday_reminder_today = CustomUser.objects.filter(geburtsdatum__day=today.day, geburtsdatum__month=today.month)
+        for user in birthday_reminder_today:
+            send_birthday_reminder_email_task(user.id, is_tomorrow=False)
     except Exception as exc:
         print(f"Error in send_birthday_reminder: {exc}")
         raise
