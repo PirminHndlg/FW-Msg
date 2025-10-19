@@ -692,7 +692,7 @@ def auto_assign(request):
 
 
 @required_role('O')
-def settings(request):
+def seminar_settings(request):
     from .forms import SeminarForm, EinheitForm, FragekategorieForm, FrageForm
     from .models import Seminar, Einheit, Fragekategorie, Frage
     
@@ -715,7 +715,7 @@ def settings(request):
                 seminar.org = org
                 seminar.save()
                 messages.success(request, 'Seminar erfolgreich gespeichert!')
-                return HttpResponseRedirect(reverse('settings') + '#seminar')
+                return HttpResponseRedirect(reverse('seminar_settings') + '#seminar')
                 
         elif form_type == 'einheit':
             if 'einheit_id' in request.POST and request.POST['einheit_id'] != '':
@@ -729,7 +729,7 @@ def settings(request):
                 einheit.org = org
                 einheit.save()
                 messages.success(request, 'Einheit erfolgreich gespeichert!')
-                return HttpResponseRedirect(reverse('settings') + '#einheit')
+                return HttpResponseRedirect(reverse('seminar_settings') + '#einheit')
                 
         elif form_type == 'fragekategorie':
             if 'kategorie_id' in request.POST and request.POST['kategorie_id'] != '':
@@ -743,7 +743,7 @@ def settings(request):
                 kategorie.org = org
                 kategorie.save()
                 messages.success(request, 'Fragekategorie erfolgreich gespeichert!')
-                return HttpResponseRedirect(reverse('settings') + '#kategorie')
+                return HttpResponseRedirect(reverse('seminar_settings') + '#kategorie')
                 
         elif form_type == 'frage':
             if 'frage_id' in request.POST and request.POST['frage_id'] != '':
@@ -757,7 +757,7 @@ def settings(request):
                 frage.org = org
                 frage.save()
                 messages.success(request, 'Frage erfolgreich gespeichert!')
-                return HttpResponseRedirect(reverse('settings') + '#frage')
+                return HttpResponseRedirect(reverse('seminar_settings') + '#frage')
     
     # Handle deletions
     if request.method == 'GET' and 'delete' in request.GET:
@@ -768,24 +768,24 @@ def settings(request):
             seminar = get_object_or_404(Seminar, id=delete_id, org=org)
             seminar.delete()
             messages.success(request, 'Seminar erfolgreich gelöscht!')
-            return HttpResponseRedirect(reverse('settings') + '#seminar')
+            return HttpResponseRedirect(reverse('seminar_settings') + '#seminar')
         elif delete_type == 'einheit':
             einheit = get_object_or_404(Einheit, id=delete_id, org=org)
             einheit.delete()
             messages.success(request, 'Einheit erfolgreich gelöscht!')
-            return HttpResponseRedirect(reverse('settings') + '#einheit')
+            return HttpResponseRedirect(reverse('seminar_settings') + '#einheit')
         elif delete_type == 'fragekategorie':
             kategorie = get_object_or_404(Fragekategorie, id=delete_id, org=org)
             kategorie.delete()
             messages.success(request, 'Fragekategorie erfolgreich gelöscht!')
-            return HttpResponseRedirect(reverse('settings') + '#kategorie')
+            return HttpResponseRedirect(reverse('seminar_settings') + '#kategorie')
         elif delete_type == 'frage':
             frage = get_object_or_404(Frage, id=delete_id, org=org)
             frage.delete()
             messages.success(request, 'Frage erfolgreich gelöscht!')
-            return HttpResponseRedirect(reverse('settings') + '#frage')
+            return HttpResponseRedirect(reverse('seminar_settings') + '#frage')
         
-        return redirect('settings')
+        return redirect('seminar_settings')
     
     # Get all objects for the current org
     seminare = Seminar.objects.filter(org=org)

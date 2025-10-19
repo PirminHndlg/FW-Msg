@@ -125,17 +125,22 @@
                                                     {% endif %}
                                                 </p>
                                             </div>
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                                                    <i class="bi bi-three-dots"></i>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bi bi-three-dots-vertical"></i>
                                                 </button>
-                                                <ul class="dropdown-menu">
-                                                    <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#einheitModal" onclick="editEinheit({{ einheit.id }}, '{{ einheit.name|escapejs }}', '{{ einheit.short_name|default:''|escapejs }}')">
-                                                        <i class="bi bi-pencil-square me-1"></i>Bearbeiten
-                                                    </button></li>
-                                                    <li><a class="dropdown-item text-danger" href="?delete=einheit&id={{ einheit.id }}" onclick="return confirm('Einheit löschen?')">
-                                                        <i class="bi bi-trash me-1"></i>Löschen
-                                                    </a></li>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li>
+                                                        <button class="dropdown-item" type="button" onclick="editEinheit({{ einheit.id }}, '{{ einheit.name|escapejs }}', '{{ einheit.short_name|default:''|escapejs }}')">
+                                                            <i class="bi bi-pencil-square me-2"></i>Bearbeiten
+                                                        </button>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="?delete=einheit&id={{ einheit.id }}" onclick="return confirm('Einheit löschen?')">
+                                                            <i class="bi bi-trash me-2"></i>Löschen
+                                                        </a>
+                                                    </li>
                                                 </ul>
                                             </div>
                                         </div>
@@ -187,17 +192,22 @@
                                                     {% endif %}
                                                 </p>
                                             </div>
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                                                    <i class="bi bi-three-dots"></i>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bi bi-three-dots-vertical"></i>
                                                 </button>
-                                                <ul class="dropdown-menu">
-                                                    <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#kategorieModal" onclick="editKategorie({{ kategorie.id }}, '{{ kategorie.name|escapejs }}', '{{ kategorie.short_name|default:''|escapejs }}')">
-                                                        <i class="bi bi-pencil-square me-1"></i>Bearbeiten
-                                                    </button></li>
-                                                    <li><a class="dropdown-item text-danger" href="?delete=fragekategorie&id={{ kategorie.id }}" onclick="return confirm('Kategorie löschen?')">
-                                                        <i class="bi bi-trash me-1"></i>Löschen
-                                                    </a></li>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li>
+                                                        <button class="dropdown-item" type="button" onclick="editKategorie({{ kategorie.id }}, '{{ kategorie.name|escapejs }}', '{{ kategorie.short_name|default:''|escapejs }}')">
+                                                            <i class="bi bi-pencil-square me-2"></i>Bearbeiten
+                                                        </button>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="?delete=fragekategorie&id={{ kategorie.id }}" onclick="return confirm('Kategorie löschen?')">
+                                                            <i class="bi bi-trash me-2"></i>Löschen
+                                                        </a>
+                                                    </li>
                                                 </ul>
                                             </div>
                                         </div>
@@ -249,17 +259,22 @@
                                                     <span class="badge bg-info">{{ frage.min }}-{{ frage.max }} Punkte</span>
                                                 </div>
                                             </div>
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                                                    <i class="bi bi-three-dots"></i>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bi bi-three-dots-vertical"></i>
                                                 </button>
-                                                <ul class="dropdown-menu">
-                                                    <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#frageModal" onclick="editFrage({{ frage.id }}, '{{ frage.text|escapejs }}', '{{ frage.explanation|escapejs|default:"" }}', {{ frage.kategorie.id }}, {{ frage.min }}, {{ frage.max }})">
-                                                        <i class="bi bi-pencil-square me-1"></i>Bearbeiten
-                                                    </button></li>
-                                                    <li><a class="dropdown-item text-danger" href="?delete=frage&id={{ frage.id }}" onclick="return confirm('Frage löschen?')">
-                                                        <i class="bi bi-trash me-1"></i>Löschen
-                                                    </a></li>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li>
+                                                        <button class="dropdown-item" type="button" onclick="editFrage({{ frage.id }}, '{{ frage.text|escapejs }}', '{{ frage.explanation|escapejs|default:"" }}', {{ frage.kategorie.id }}, {{ frage.min }}, {{ frage.max }})">
+                                                            <i class="bi bi-pencil-square me-2"></i>Bearbeiten
+                                                        </button>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="?delete=frage&id={{ frage.id }}" onclick="return confirm('Frage löschen?')">
+                                                            <i class="bi bi-trash me-2"></i>Löschen
+                                                        </a>
+                                                    </li>
                                                 </ul>
                                             </div>
                                         </div>
@@ -478,6 +493,10 @@ function editEinheit(id, name, short_name) {
     document.querySelector('#einheitForm #id_name').value = name;
     document.querySelector('#einheitForm #id_short_name').value = short_name;
     document.getElementById('einheitModalTitle').textContent = 'Einheit bearbeiten';
+    
+    // Open the modal
+    const modal = new bootstrap.Modal(document.getElementById('einheitModal'));
+    modal.show();
 }
 
 function resetEinheitForm() {
@@ -492,6 +511,10 @@ function editKategorie(id, name, short_name) {
     document.querySelector('#kategorieForm #id_name').value = name;
     document.querySelector('#kategorieForm #id_short_name').value = short_name;
     document.getElementById('kategorieModalTitle').textContent = 'Kategorie bearbeiten';
+    
+    // Open the modal
+    const modal = new bootstrap.Modal(document.getElementById('kategorieModal'));
+    modal.show();
 }
 
 function resetKategorieForm() {
@@ -509,6 +532,10 @@ function editFrage(id, text, explanation, kategorie_id, min, max) {
     document.querySelector('#frageForm #id_min').value = min;
     document.querySelector('#frageForm #id_max').value = max;
     document.getElementById('frageModalTitle').textContent = 'Frage bearbeiten';
+    
+    // Open the modal
+    const modal = new bootstrap.Modal(document.getElementById('frageModal'));
+    modal.show();
 }
 
 function resetFrageForm() {
@@ -519,6 +546,37 @@ function resetFrageForm() {
 
 // Focus first input when modal opens and close modal after form submission
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all dropdowns manually
+    const dropdownToggles = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+    dropdownToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const dropdownMenu = this.nextElementSibling;
+            const isOpen = dropdownMenu.classList.contains('show');
+            
+            // Close all other dropdowns
+            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                menu.classList.remove('show');
+            });
+            
+            // Toggle current dropdown
+            if (!isOpen) {
+                dropdownMenu.classList.add('show');
+            }
+        });
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.btn-group')) {
+            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+    });
+    
     // Handle URL fragments to activate correct tab
     function activateTabFromHash() {
         const hash = window.location.hash;
