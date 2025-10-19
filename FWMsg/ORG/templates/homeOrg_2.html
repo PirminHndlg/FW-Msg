@@ -356,6 +356,23 @@
                         {% endif %}
                       </div>
                       <div class="d-flex gap-1">
+                        <!-- Download file -->
+                        {% if task.file %}
+                          <a href="{% url 'download_aufgabe' task.id %}" class="btn btn-sm btn-outline-primary"
+                              tooltip="true"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="{% if task.file_downloaded_of.count > 0 %}
+                                {% trans 'Heruntergeladen von:' %}
+                                {% for user in task.file_downloaded_of.all %}
+                                  {{ user.get_full_name|default:user.username }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                              {% else %}
+                                {% trans 'Noch nicht heruntergeladen.' %}
+                              {% endif %}">
+                            <i class="bi bi-download"></i>
+                          </a>
+                        {% endif %}
                         <button class="btn btn-sm btn-success" 
                                 onclick="markTaskAsDone(this, {{ task.id }})"
                                 tooltip="true"
