@@ -192,6 +192,7 @@ allowed_models_to_edit = {
     'einsatzland': Einsatzland2,
     'einsatzstelle': Einsatzstelle2,
     'freiwilliger': Freiwilliger,
+    'bewerber': Bewerber,
     'attribute': Attribute,
     'aufgabe': Aufgabe2,
     'notfallkontakt': Notfallkontakt2,
@@ -1985,30 +1986,6 @@ def ajax_assign_task_to_all(request):
 def copy_links(request):
     page_elements = [
         {
-        'name': 'Freiwillige',
-        'pages': [
-            {
-                'name': 'Aufgaben',
-                'url': reverse('aufgaben')
-            },
-            {
-                'name': 'Kalender',
-                'url': reverse('kalender')
-            },
-            {
-                'name': 'Ampelmeldungen abgeben',
-                'url': reverse('ampel')
-            },
-            {
-                'name': 'Notfallkontakte eintragen',
-                'url': reverse('notfallkontakte')
-            },
-            {
-                'name': 'Einsatzlandinformationen einsehen',
-                'url': reverse('laenderinfo')
-            }
-        ]
-    }, {
         'name': 'Allgemein',
         'pages': [
             {
@@ -2034,6 +2011,69 @@ def copy_links(request):
             {
                 'name': 'Einstellungen',
                 'url': reverse('settings')
+            }
+        ]
+    },
+        {
+        'name': 'Freiwillige',
+        'pages': [
+            {
+                'name': 'Aufgaben',
+                'url': reverse('aufgaben')
+            },
+            {
+                'name': 'Kalender',
+                'url': reverse('kalender')
+            },
+            {
+                'name': 'Ampelmeldungen abgeben',
+                'url': reverse('ampel')
+            },
+            {
+                'name': 'Notfallkontakte eintragen',
+                'url': reverse('notfallkontakte')
+            },
+            {
+                'name': 'Einsatzlandinformationen einsehen',
+                'url': reverse('laenderinfo')
+            }
+        ]
+    }, 
+        {
+        'name': 'Team',
+        'pages': [
+            {
+                'name': 'Kontakte',
+                'url': reverse('team_contacts')
+            },
+            {
+                'name': 'Ampelmeldung einsehen',
+                'url': reverse('team_ampelmeldung')
+            },
+            {
+                'name': 'Einsatzstelleninformationen',
+                'url': reverse('einsatzstellen_info')
+            },
+            {
+                'name': 'Einsatzstellen Notizen',
+                'url': reverse('einsatzstellen_notiz')
+            },
+            {
+                'name': 'Länderinformationen',
+                'url': reverse('laender_info')
+            }
+        ]
+    },
+        {
+        'name': 'Ehemalige',
+        'pages': [
+            {
+                'name': 'Länderinformationen',
+                'url': reverse('laender_info')
+            },
+            {
+                'name': 'Einsatzstelleninformationen',
+                'url': reverse('einsatzstellen_info')
             }
         ]
     }
