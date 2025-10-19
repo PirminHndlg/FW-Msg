@@ -51,16 +51,17 @@
   <div>
     <h1 class="h3 mb-1">{% trans "Dashboard" %}</h1>
   </div>
-  <button type="button" class="btn btn-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#stickyNoteModal">
+  <button type="button" class="btn btn-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#stickyNoteModal" title="{% trans 'Sticky Notes für schnelle Notizen' %}">
     <i class="bi bi-sticky me-1"></i>{% trans "Neue Notiz" %}
+    <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Sticky Notes für schnelle Notizen' %}"></i>
   </button>
 </div>
 
 <!-- Pending Change Requests Section -->
 {% if pending_change_requests %}
 <div class="dashboard-section">
-  <div class="section-header">
-    <div class="d-flex align-items-center justify-content-between">
+  <div class="card card-compact">
+    <div class="card-header bg-white border-bottom-0 d-flex align-items-center justify-content-between">
       <h2 class="section-title mb-0">
         <i class="bi bi-pencil-square me-2 text-warning"></i>
         {% trans "Änderungsvorschläge" %}
@@ -70,44 +71,46 @@
         <i class="bi bi-eye me-2"></i>{% trans "Alle anzeigen" %}
       </a>
     </div>
-  </div>
-  
-  <div class="row g-3">
-    {% for request in pending_change_requests|slice:":3" %}
-    <div class="col-12 col-md-6 col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-body">
-          <div class="d-flex align-items-center mb-3">
-            <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-2">
-              <i class="bi bi-{% if request.change_type == 'einsatzstelle' %}building{% else %}geo-alt{% endif %} text-warning"></i>
-            </div>
-            <div class="flex-grow-1">
-              <h6 class="mb-0">{{ request.get_object_name }}</h6>
-              <small class="text-muted">{{ request.get_change_type_display }}</small>
+    
+    <div class="card-body">
+      <div class="row g-3">
+        {% for request in pending_change_requests|slice:":3" %}
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card shadow-sm rounded-4 border border-1 border-light-subtle">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-3">
+                <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-2">
+                  <i class="bi bi-{% if request.change_type == 'einsatzstelle' %}building{% else %}geo-alt{% endif %} text-warning"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="mb-0">{{ request.get_object_name }}</h6>
+                  <small class="text-muted">{{ request.get_change_type_display }}</small>
+                </div>
+              </div>
+              <p class="text-muted small mb-2">
+                <i class="bi bi-person me-1"></i>{{ request.requested_by.get_full_name|default:request.requested_by.username }}
+              </p>
+              <p class="text-muted small mb-3">
+                <i class="bi bi-clock me-1"></i>{{ request.created_at|date:"d.m.Y H:i" }}
+              </p>
+              <a href="{% url 'review_change_request' request.id %}" class="btn btn-sm btn-primary rounded-3 w-100">
+                <i class="bi bi-eye me-1"></i>{% trans "Prüfen" %}
+              </a>
             </div>
           </div>
-          <p class="text-muted small mb-2">
-            <i class="bi bi-person me-1"></i>{{ request.requested_by.get_full_name|default:request.requested_by.username }}
-          </p>
-          <p class="text-muted small mb-3">
-            <i class="bi bi-clock me-1"></i>{{ request.created_at|date:"d.m.Y H:i" }}
-          </p>
-          <a href="{% url 'review_change_request' request.id %}" class="btn btn-sm btn-primary rounded-3 w-100">
-            <i class="bi bi-eye me-1"></i>{% trans "Prüfen" %}
-          </a>
         </div>
+        {% endfor %}
+        {% if pending_change_requests.count > 3 %}
+        <div class="col-12">
+          <div class="text-center">
+            <a href="{% url 'change_requests' %}" class="btn btn-outline-warning rounded-3">
+              {% trans "Alle" %} {{ pending_change_requests.count }} {% trans "Vorschläge anzeigen" %}
+            </a>
+          </div>
+        </div>
+        {% endif %}
       </div>
     </div>
-    {% endfor %}
-    {% if pending_change_requests.count > 3 %}
-    <div class="col-12">
-      <div class="text-center">
-        <a href="{% url 'change_requests' %}" class="btn btn-outline-warning rounded-3">
-          {% trans "Alle" %} {{ pending_change_requests.count }} {% trans "Vorschläge anzeigen" %}
-        </a>
-      </div>
-    </div>
-    {% endif %}
   </div>
 </div>
 {% endif %}
@@ -115,12 +118,12 @@
 <!-- Sticky Notes & Pinned Items Section -->
 {% if pinned_notizen or sticky_notes %}
 <div class="dashboard-section">
-  <div class="section-header">
+  {% comment %} <div class="section-header">
     <h2 class="section-title">
       <i class="bi bi-pin-angle-fill me-2 text-primary"></i>
       {% trans "Angeheftete Notizen" %}
     </h2>
-  </div>
+  </div> {% endcomment %}
   
   <div class="pin-wall p-4 bg-light rounded-4 border">
     <div class="row g-3">
@@ -199,12 +202,12 @@
 
 <!-- Tasks Overview Section -->
 <div class="dashboard-section">
-  <div class="section-header">
+  {% comment %} <div class="section-header">
     <h2 class="section-title">
       <i class="bi bi-list-task me-2 text-primary"></i>
       {% trans "Aufgabenübersicht" %}
     </h2>
-  </div>
+  </div> {% endcomment %}
   
   <div class="grid-2 gap-3">
     <!-- My Tasks -->
@@ -447,12 +450,12 @@
 
 <!-- Status & Content Section -->
 <div class="dashboard-section">
-  <div class="section-header">
+  {% comment %} <div class="section-header">
     <h2 class="section-title">
       <i class="bi bi-activity me-2 text-primary"></i>
       {% trans "Status & Inhalte" %}
     </h2>
-  </div>
+  </div> {% endcomment %}
   
   <div class="row g-3">
     <!-- Recent Ampel Entries -->
@@ -487,6 +490,10 @@
                   <small class="text-muted">{{ entry.date|date:'d.m H:i' }}</small>
                 </div>
               </div>
+
+              {% if not forloop.last %}
+              <hr class="my-2">
+              {% endif %}
             {% endfor %}
             {% include 'components/ampel_modal.html' %}
           </div>
@@ -521,10 +528,9 @@
       </div>
       <div class="card-body">
         {% if posts %}
-          <div class="list-group list-group-flush">
-            {% for post in posts|slice:":3" %}
-            <a href="{% url 'post_detail' post.id %}" class="text-decoration-none">
-              <div class="list-group-item px-0 border-0 py-2">
+            {% for post in posts|slice:":4" %}
+            <a href="{% url 'post_detail' post.id %}" class="text-decoration-none text-body">
+              <div class="px-0 border-0 py-2">
                 <h6 class="mb-1">{{ post.title }}</h6>
                 <p class="mb-1 text-muted small">{{ post.text|truncatewords:15 }}</p>
                 <small class="text-muted">
@@ -533,8 +539,10 @@
                 </small>
               </div>
             </a>
+            {% if not forloop.last %}
+            <hr class="my-2">
+            {% endif %}
             {% endfor %}
-          </div>
           <div class="text-center mt-3">
             <a href="{% url 'posts_overview' %}" class="btn btn-sm btn-outline-primary">
               {% trans "Alle Posts" %}

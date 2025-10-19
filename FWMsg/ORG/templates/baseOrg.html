@@ -15,6 +15,9 @@
     </title>
 
     <script src="{% static 'js/baseOrg.js' %}"></script>
+    
+    {# Include ORG-specific CSS #}
+    <link rel="stylesheet" href="{% static 'css/baseOrg.css' %}">
 
     {% block head %}
 
@@ -47,51 +50,120 @@
             <div class="collapse navbar-collapse" id="navbarResponsive">
               <ul class="navbar-nav me-auto mb-2 mb-md-0">
                 <li class="nav-item">
-                  <a href="{% url 'org_home' %}" class="nav-link" aria-current="page">{% trans "Home" %}</a>
+                  <a href="{% url 'org_home' %}" class="nav-link" aria-current="page">
+                    <i class="bi bi-house me-1"></i>{% trans "Home" %}
+                  </a>
                 </li>
+                
+                {# People Management Dropdown #}
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">{% trans "Tabellen" %}</a>
-                  <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a href="{% url 'list_object' 'freiwilliger' %}" class="dropdown-item">{% trans "Freiwillige" %}</a>
-                    <a href="{% url 'list_object' 'notfallkontakt' %}" class="dropdown-item">{% trans "Notfallkontakte" %}</a>
-                    <a href="{% url 'list_object' 'team' %}" class="dropdown-item">{% trans "Team" %}</a>
-                    <a href="{% url 'list_object' 'ehemalige' %}" class="dropdown-item">{% trans "Ehemalige" %}</a>
-                    <hr class="dropdown-divider" />
-                    <a href="{% url 'list_object' 'aufgabe' %}" class="dropdown-item">{% trans "Aufgaben" %}</a>
-                    <a href="{% url 'list_aufgaben_table' %}" class="dropdown-item">{% trans "Aufgabenübersicht" %}</a>
-                    <a href="{% url 'list_ampel' %}" class="dropdown-item">{% trans "Ampelmeldungen" %}</a>
-                    <hr class="dropdown-divider" />
-                    <a href="{% url 'list_object' 'einsatzland' %}" class="dropdown-item">{% trans "Einsatzländer" %}</a>
-                    <a href="{% url 'list_object' 'einsatzstelle' %}" class="dropdown-item">{% trans "Einsatzstellen" %}</a>
-                    <a href="{% url 'einsatzstellen_notiz' %}" class="dropdown-item">{% trans "Einsatzstellen Notizen" %}</a>
-                    <a href="{% url 'change_requests' %}" class="dropdown-item">{% trans "Änderungsvorschläge" %}</a>
-                    <hr class="dropdown-divider" />
-                    <a href="{% url 'list_object' 'kalender' %}" class="dropdown-item">{% trans "Kalender-Termine" %}</a>
+                  <a class="nav-link dropdown-toggle" id="peopleDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-people me-1"></i>{% trans "Personen" %}
+                  </a>
+                  <div class="dropdown-menu dropdown-menu-wide" aria-labelledby="peopleDropdown">
+                    <a href="{% url 'list_object' 'freiwilliger' %}" class="dropdown-item">
+                      <i class="bi bi-person me-2"></i>{% trans "Freiwillige" %}
+                    </a>
+                    <a href="{% url 'list_object' 'team' %}" class="dropdown-item">
+                      <i class="bi bi-people me-2"></i>{% trans "Team" %}
+                    </a>
+                    <a href="{% url 'list_object' 'ehemalige' %}" class="dropdown-item">
+                      <i class="bi bi-person-check me-2"></i>{% trans "Ehemalige" %}
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'list_object' 'notfallkontakt' %}" class="dropdown-item">
+                      <i class="bi bi-telephone me-2"></i>{% trans "Notfallkontakte" %}
+                    </a>
                   </div>
                 </li>
+
+                {# Task Management Dropdown #}
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">{% trans "Einstellungen" %}</a>
-                  <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a href="{% url 'list_object' 'user' %}" class="dropdown-item">{% trans "Benutzer:innen" %}</a>
-                    <a href="{% url 'list_object' 'personcluster' %}" class="dropdown-item">{% trans "Benutzergruppen" %}</a>
-                    <a href="{% url 'list_object' 'attribute' %}" class="dropdown-item">{% trans "Attribute" %}</a>
-                    <a href="{% url 'list_object' 'aufg-filter' %}" class="dropdown-item">{% trans "Aufgaben Filter" %}</a>
-                    <hr class="dropdown-divider" />
-                    <a href="{% url 'application_overview' %}" class="dropdown-item">{% trans "Bewerbungen" %}</a>
-                    <a href="{% url 'seminar_home' %}" class="dropdown-item">{% trans "Seminar" %}</a>
-                    <a href="{% url 'survey:survey_list' %}" class="dropdown-item">{% trans "Umfragen" %}</a>
-                    <hr class="dropdown-divider" />
-                    <a href="{% url 'copy_links' %}" class="dropdown-item">{% trans "Links kopieren" %}</a>
+                  <a class="nav-link dropdown-toggle" id="tasksDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-list-check me-1"></i>{% trans "Aufgaben" %}
+                  </a>
+                  <div class="dropdown-menu dropdown-menu-wide" aria-labelledby="tasksDropdown">
+                    <a href="{% url 'list_aufgaben_table' %}" class="dropdown-item">
+                      <i class="bi bi-grid me-2"></i>{% trans "Aufgabenübersicht" %}
+                    </a>
+                    <a href="{% url 'list_object' 'aufgabe' %}" class="dropdown-item">
+                      <i class="bi bi-list-ul me-2"></i>{% trans "Aufgabenliste" %}
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'list_ampel' %}" class="dropdown-item">
+                      <i class="bi bi-stoplights me-2"></i>{% trans "Ampelmeldungen" %}
+                    </a>
                   </div>
                 </li>
-                <li>
-                  <a href="{% url 'kalender' %}" class="nav-link">{% trans "Kalender" %}</a>
+
+                {# Content Management Dropdown #}
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" id="contentDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-folder me-1"></i>{% trans "Inhalte" %}
+                  </a>
+                  <div class="dropdown-menu dropdown-menu-wide" aria-labelledby="contentDropdown">
+                    <a href="{% url 'dokumente' %}" class="dropdown-item">
+                      <i class="bi bi-file-text me-2"></i>{% trans "Dokumente" %}
+                    </a>
+                    <a href="{% url 'bilder' %}" class="dropdown-item">
+                      <i class="bi bi-image me-2"></i>{% trans "Bilder" %}
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'kalender' %}" class="dropdown-item">
+                      <i class="bi bi-calendar-date me-2"></i>{% trans "Kalender" %}
+                    </a>
+                    <a href="{% url 'list_object' 'kalender' %}" class="dropdown-item">
+                      <i class="bi bi-calendar-week me-2"></i>{% trans "Kalender-Termine" %}
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'list_object' 'einsatzland' %}" class="dropdown-item">
+                      <i class="bi bi-globe me-2"></i>{% trans "Einsatzländer" %}
+                    </a>
+                    <a href="{% url 'list_object' 'einsatzstelle' %}" class="dropdown-item">
+                      <i class="bi bi-building me-2"></i>{% trans "Einsatzstellen" %}
+                    </a>
+                    {% comment %} <a href="{% url 'einsatzstellen_notiz' %}" class="dropdown-item">
+                      <i class="bi bi-sticky me-2"></i>{% trans "Einsatzstellen Notizen" %}
+                    </a> {% endcomment %}
+                    <a href="{% url 'change_requests' %}" class="dropdown-item">
+                      <i class="bi bi-arrow-repeat me-2"></i>{% trans "Änderungsvorschläge" %}
+                    </a>
+                  </div>
                 </li>
-                <li>
-                  <a href="{% url 'bilder' %}" class="nav-link">{% trans "Bilder" %}</a>
-                </li>
-                <li>
-                  <a href="{% url 'dokumente' %}" class="nav-link">{% trans "Dokumente" %}</a>
+
+                {# Administration Dropdown #}
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-gear me-1"></i>{% trans "Einstellungen" %}
+                  </a>
+                  <div class="dropdown-menu dropdown-menu-wide" aria-labelledby="adminDropdown">
+                    <a href="{% url 'list_object' 'user' %}" class="dropdown-item">
+                      <i class="bi bi-person-gear me-2"></i>{% trans "Benutzer:innen" %}
+                    </a>
+                    <a href="{% url 'list_object' 'personcluster' %}" class="dropdown-item">
+                      <i class="bi bi-diagram-3 me-2"></i>{% trans "Benutzergruppen" %}
+                    </a>
+                    <a href="{% url 'list_object' 'attribute' %}" class="dropdown-item">
+                      <i class="bi bi-tags me-2"></i>{% trans "Attribute" %}
+                    </a>
+                    <a href="{% url 'list_object' 'aufg-filter' %}" class="dropdown-item">
+                      <i class="bi bi-funnel me-2"></i>{% trans "Aufgaben Filter" %}
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'application_overview' %}" class="dropdown-item">
+                      <i class="bi bi-file-earmark-person me-2"></i>{% trans "Bewerbungen" %}
+                    </a>
+                    <a href="{% url 'seminar_home' %}" class="dropdown-item">
+                      <i class="bi bi-mortarboard me-2"></i>{% trans "Seminar" %}
+                    </a>
+                    <a href="{% url 'survey:survey_list' %}" class="dropdown-item">
+                      <i class="bi bi-bar-chart me-2"></i>{% trans "Umfragen" %}
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'copy_links' %}" class="dropdown-item">
+                      <i class="bi bi-link-45deg me-2"></i>{% trans "Links kopieren" %}
+                    </a>
+                  </div>
                 </li>
               </ul>
 
