@@ -1,5 +1,6 @@
 {% load i18n %}
 <div class="d-flex gap-1">
+    {% if not hide_button %}
     <a type="button" 
         {% if action_url %}
         href="{{ action_url }}"
@@ -15,6 +16,7 @@
             <i class="bi {{ icon }}"></i>
         {% endif %}
     </a>
+    {% endif %}
     <div class="btn-group" role="group">
         <a class="btn btn-sm btn-outline-primary" 
         href="{% url 'edit_object' model_name record.pk %}"
