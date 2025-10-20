@@ -230,6 +230,15 @@ class EinsatzstelleAdmin(admin.ModelAdmin):
     list_display = ['name', 'land']
     search_fields = ['name', 'partnerorganisation', 'arbeitsvorgesetzter']
     list_filter = ['land']
+    actions = ['change_number_of_freiwillige_to_one']
+    
+    def change_number_of_freiwillige_to_one(self, request, queryset):
+        for einsatzstelle in queryset:
+            einsatzstelle.max_freiwillige = 1
+            einsatzstelle.save()
+        self.message_user(request, f"Anzahl der Freiwilligen für {queryset.count()} Einsatzstellen aktualisiert.", messages.SUCCESS)
+        
+    change_number_of_freiwillige_to_one.short_description = "Anzahl der Freiwilligen auf 1 setzen"
 
 
 @admin.register(Notfallkontakt2)
