@@ -638,7 +638,7 @@ def list_object(request, model_name, highlight_id=None):
     model, response = _check_model_exists(model_name)
     if response:
         return response
-
+    
     # Use djangotables2 for other models
     return _list_object_with_tables2(request, model_name, model, highlight_id)
 
@@ -646,21 +646,27 @@ def list_object(request, model_name, highlight_id=None):
 def _list_object_with_tables2(request, model_name, model, highlight_id=None):
     """New implementation using djangotables2"""
     from django_tables2 import RequestConfig
-    from .tables import MODEL_TABLE_MAPPING, get_bewerber_table_class, get_freiwilliger_table_class, get_team_table_class
+    from .tables import MODEL_TABLE_MAPPING, get_bewerber_table_class, get_freiwilliger_table_class, get_team_table_class, get_ehemalige_table_class
     
-    if model_name.lower() in ['bewerber', 'freiwilliger', 'team']:
+    if model_name.lower() in ['bewerber', 'freiwilliger', 'team', 'ehemalige']:
+        person_cluster = get_person_cluster(request)
+        print(person_cluster)
+        if not person_cluster:
+            first_letter_of_model_name = model_name[0].upper()
+            possible_person_clusters = PersonCluster.objects.filter(view=first_letter_of_model_name, org=request.user.org)
+            print(possible_person_clusters)
+            if possible_person_clusters.count() == 1:
+                person_cluster = possible_person_clusters.first()
+                print(person_cluster)
+        
         if model_name.lower() == 'freiwilliger':
-            person_cluster = PersonCluster.objects.filter(view='F', org=request.user.org).first()
             table_class, data = get_freiwilliger_table_class(person_cluster, request.user.org)
         elif model_name.lower() == 'team':
-            person_cluster = PersonCluster.objects.filter(view='T', org=request.user.org).first()
             table_class, data = get_team_table_class(person_cluster, request.user.org)
+        elif model_name.lower() == 'ehemalige':
+            table_class, data = get_ehemalige_table_class(person_cluster, request.user.org)
         else:
-            person_cluster = PersonCluster.objects.filter(view='B', org=request.user.org).first()
             table_class, data = get_bewerber_table_class(person_cluster, request.user.org)
-        
-        # Generate dynamic table with attribute columns
-        total_objects_count = len(data)
         
         # Apply search filter
         search_query = request.GET.get('search', '').strip()
@@ -668,6 +674,9 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
             search_lower = search_query.lower()
             # search in every field of the data
             data = [d for d in data if any(search_lower in str(value).lower() for value in d.values())]
+        
+        # Generate dynamic table with attribute columns
+        total_objects_count = len(data)
         
         # Create table and configure pagination/sorting
         table = table_class(data)
@@ -707,9 +716,6 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
     
     # Get the appropriate table class
     table_class = MODEL_TABLE_MAPPING.get(model_name.lower())
-    if not table_class:
-        # Fallback to legacy implementation if no table defined
-        return _list_object_legacy(request, model_name, model, highlight_id)
     
     # Create table instance
     table = table_class(objects, model_name=model_name.lower())

@@ -603,8 +603,70 @@ def get_team_table_class(person_cluster, org):
         person_cluster, org, Team, 'team',
         base_columns, column_sequence, render_methods, actions_renderer
     )
-
-
+    
+def get_ehemalige_table_class(person_cluster, org):
+    """
+    Create a dynamic EhemaligeTable with attribute columns.
+    Returns: (table_class, data_list)
+    """
+    from Ehemalige.models import Ehemalige
+    
+    # Define render methods
+    def render_user(self, value, record):
+        ehemalige = record['ehemalige']
+        return format_html(
+            '<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', 
+            reverse('profil', args=[ehemalige.user.id]), 
+            f"{ehemalige.user.first_name} {ehemalige.user.last_name}"
+        )
+    
+    def render_land(self, value, record):
+        ehemalige = record['ehemalige']
+        lands = ehemalige.land.all()
+        if lands:
+            return ', '.join([land.name for land in lands])
+        return '—'
+    
+    def actions_renderer(record, org):
+        ehemalige = record['ehemalige']
+        context = {
+            'record': ehemalige,
+            'model_name': 'ehemalige',
+            'action_url': '',
+            'color': 'primary',
+            'icon': '',
+            'title': '',
+            'button_text': '',
+            'hide_button': True,
+        }
+        return render_to_string('components/additional_table_actions.html', context)
+    
+    # Define base columns
+    base_columns = {
+        'user': tables.Column(
+            verbose_name=_('Benutzer'),
+            accessor='ehemalige.user',
+            order_by='ehemalige.user__first_name'
+        ),
+        'land': tables.Column(
+            verbose_name=_('Länderzuständigkeit'),
+            accessor='ehemalige.land',
+            orderable=False
+        ),
+    }
+    
+    column_sequence = ['user', 'land']
+    
+    render_methods = {
+        'render_user': render_user,
+        'render_land': render_land
+    }
+    
+    return _create_dynamic_table_class(
+        person_cluster, org, Ehemalige, 'ehemalige',
+        base_columns, column_sequence, render_methods, actions_renderer
+    )
+    
 # Mapping of model names to table classes
 MODEL_TABLE_MAPPING = {
     'einsatzland': EinsatzlandTable,
