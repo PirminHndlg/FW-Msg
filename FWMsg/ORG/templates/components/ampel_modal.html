@@ -4,11 +4,11 @@
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header border-0 pb-3">
+            <div class="modal-header border-0">
                 <div class="d-flex flex-column w-100">
                     <div class="d-flex justify-content-between align-items-start w-100">
-                        <h5 class="modal-title mb-0" id="ampelCommentModalLabel">
-                            <i class="bi bi-traffic-light me-2 text-primary"></i>
+                        <h5 class="modal-title mb-0 d-flex align-items-center gap-2" id="ampelCommentModalLabel">
+                            <div id="modalStatus" class="ampel-dot me-3"></div>
                             {% trans "Ampelmeldung" %}
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -26,25 +26,53 @@
                 </div>
             </div>
             <div class="modal-body">
-                <div class="d-flex align-items-center mb-3 gap-1">
-                    <div id="modalStatus" class="ampel-dot me-3"></div>
-                    <h6 class="mb-0">{% trans "Status" %}</h6>
-                </div>
                 <div class="comment-box p-3 bg-light rounded">
                     <p id="modalComment" class="mb-0"></p>
                 </div>
+            </div>
+
+            <div id="modalRead" class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="markAsRead()"><i class="bi bi-check-circle-fill"></i> {% trans 'Gelesen' %}</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    function showAmpelComment(date, status, comment, user) {
+    let ampel_id = null;
+    function markAsRead() {
+        fetch(`{% url 'ampel_mark_as_read' %}?id=${ampel_id}`, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                $('#ampelCommentModal').modal('hide');
+                window.location.reload();
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+
+    function showAmpelComment(id, date, status, comment, user, read=false) {
         const modal = new bootstrap.Modal(document.getElementById('ampelCommentModal'));
         document.getElementById('modalDate').textContent = date;
         document.getElementById('modalStatus').className = `ampel-dot ampel-${status}`;
         document.getElementById('modalComment').textContent = comment;
         document.getElementById('modalUser').textContent = user;
+        ampel_id = id;
+        if (read.toLowerCase() == 'true') {
+            $('#modalRead').addClass('d-none');
+        } else {
+            $('#modalRead').removeClass('d-none');
+        }
         modal.show();
     }
 

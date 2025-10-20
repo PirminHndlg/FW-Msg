@@ -323,7 +323,7 @@
                 {% if recent_ampel_entries %}
                     <div class="list-group list-group-flush">
                         {% for entry in recent_ampel_entries %}
-                            <div class="list-group-item d-flex justify-content-between align-items-start px-0 border-0 cursor-pointer" onclick="showAmpelComment('{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ entry.user }}')">
+                            <div class="list-group-item d-flex justify-content-between align-items-start px-0 border-0 cursor-pointer" onclick="showAmpelComment({{ entry.id }}, '{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ entry.user }}', '{{entry.read}}')">
                                 <div class="me-auto">
                                     <div class="d-flex align-items-center mb-1">
                                         <span class="badge rounded-circle me-2 {% if entry.status == 'G' %}bg-success{% elif entry.status == 'Y' %}bg-warning{% else %}bg-danger{% endif %}" style="width: 15px; height: 15px; display: inline-block;"></span>
