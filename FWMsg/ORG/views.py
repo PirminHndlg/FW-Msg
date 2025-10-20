@@ -1107,6 +1107,20 @@ def list_ampel(request):
     }
     return render(request, 'list_ampel.html', context=context)
 
+def ampel_mark_as_read(request):
+    try:
+        ampel_id = request.GET.get('id')
+        if not ampel_id:
+            return JsonResponse({'success': False, 'error': 'Ampel-ID is required'})
+        ampel = Ampel2.objects.get(id=ampel_id)
+        if not ampel:
+            return JsonResponse({'success': False, 'error': 'Ampel not found'})
+        ampel.read = True
+        ampel.save()
+        return JsonResponse({'success': True, 'message': 'Ampel markiert als gelesen'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
 def _get_ampel_date_range(org):
     """
     Helper function to determine the date range for ampel entries.

@@ -30,7 +30,7 @@
                     <div class="ampel-dot-container">
                         {% for entry in months_data|get_item:month %}
                         <span class="ampel-dot ampel-{{ entry.status }} d-flex align-items-center justify-content-center"
-                            onclick="showAmpelComment('{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ user }}')"
+                            onclick="showAmpelComment({{ entry.id }}, '{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ user }}', '{{entry.read}}')"
                             {% comment %} data-bs-toggle="tooltip" data-bs-html="true"
                             title="<strong>{{ entry.date }}</strong><br>{{ entry.comment|default:'' }}"{% endcomment %}>
                             {% if entry.comment %}

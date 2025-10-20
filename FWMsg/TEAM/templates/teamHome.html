@@ -340,7 +340,7 @@
             <div class="card-body">
               <div class="list-group list-group-flush">
                 {% for entry in recent_ampel_entries %}
-                  <div class="list-group-item px-0 border-0 py-2 cursor-pointer" onclick="showAmpelComment('{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ entry.user.get_full_name|default:entry.user.username }}')">
+                  <div class="list-group-item px-0 border-0 py-2 cursor-pointer" onclick="showAmpelComment({{ entry.id }}, '{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ entry.user.get_full_name|default:entry.user.username }}', '{{entry.read}}')">
                     <div class="d-flex justify-content-between align-items-start">
                       <div class="me-auto">
                         <div class="d-flex align-items-center mb-1">

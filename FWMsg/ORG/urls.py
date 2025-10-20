@@ -15,6 +15,7 @@ urlpatterns = [
     
     path('delete-zwischenschritt/', views.delete_zwischenschritt, name='delete_zwischenschritt'),
     path('list-ampel/', views.list_ampel, name='list_ampel'),
+    path('ampel-mark-as-read/', views.ampel_mark_as_read, name='ampel_mark_as_read'),
     path('list-aufgaben-table/', views.list_aufgaben_table, name='list_aufgaben_table'),
     path('list-aufgaben-table/<int:scroll_to>', views.list_aufgaben_table, name='list_aufgaben_table_scroll'),
     path('mark-task-as-done/', views.mark_task_as_done, name='mark_task_as_done'),
