@@ -73,14 +73,18 @@ def add_customuser_fields(self, view):
     if self.instance and self.instance.pk:
         self.fields['email'].initial = self.instance.user.email
 
+    person_clusters = PersonCluster.objects.filter(org=self.request.user.org, view=view)
     self.fields['person_cluster'] = forms.ModelChoiceField(
-        queryset=PersonCluster.objects.filter(org=self.request.user.org, view=view),
+        queryset=person_clusters,
         widget=forms.Select(attrs={'class': 'form-control'}),
         required=True,
         label='Benutzergruppe'
     )
     if self.instance and self.instance.pk:
         self.fields['person_cluster'].initial = self.instance.user.person_cluster
+        
+    if person_clusters.count() == 1:
+        self.fields['person_cluster'].initial = person_clusters.first()
 
 
 def add_person_cluster_field(self):
@@ -284,10 +288,29 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
         add_customuser_fields(self, 'B')
         order_fields = ['first_name', 'last_name', 'email', 'person_cluster']
         self.order_fields(order_fields)
-        add_person_cluster_field(self)
         # Allow only PDF uploads for application_pdf
         self.fields['application_pdf'].widget.attrs.update({'accept': 'application/pdf'})
         self.fields['application_pdf'].validators.append(self.validate_pdf_only)
+        
+        # Separate, non-model field for profile picture upload
+        self.fields['profil_picture'] = forms.ImageField(required=False)
+        self.fields['profil_picture'].widget = forms.FileInput(attrs={'accept': 'image/*'})
+        self.fields['profil_picture'].validators.append(self.validate_image_only)
+        
+        self.fields['profil_picture'].label = 'Profilbild'
+        
+        add_person_cluster_field(self)
+        
+        
+    def validate_image_only(self, value):
+        """Ensure only image files are uploaded"""
+        if value and hasattr(value, 'content_type'):
+            if value.content_type not in ['image/jpeg', 'image/png', 'image/gif', 'image/webp']:
+                raise forms.ValidationError("Nur Bilddateien werden akzeptiert.")
+        elif value and hasattr(value, 'name'):
+            if not value.name.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
+                raise forms.ValidationError("Nur Bilddateien werden akzeptiert.")
+        return value
 
     def validate_pdf_only(self, value):
         """Ensure only PDF files are uploaded"""
@@ -306,6 +329,9 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
             self.instance.save()
         else:
             self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
+            if self.cleaned_data.get('profil_picture'):
+                self.instance.user.customuser.profil_picture = self.cleaned_data['profil_picture']
+                self.instance.user.customuser.create_small_image()
             self.instance.user.customuser.save()
 
         instance = super().save(commit=commit)
