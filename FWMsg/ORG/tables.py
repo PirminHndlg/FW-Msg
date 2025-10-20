@@ -7,7 +7,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from Global.models import (
-    Einsatzland2, Einsatzstelle2, Attribute, Aufgabe2,
+    BewerberKommentar, Einsatzland2, Einsatzstelle2, Attribute, Aufgabe2,
     Notfallkontakt2, UserAufgaben, CustomUser, PersonCluster,
     AufgabenCluster, KalenderEvent, UserAttribute
 )
@@ -355,14 +355,15 @@ def get_bewerber_table_class(person_cluster, org):
     class ActionsColumn(tables.TemplateColumn):
         def render(self, record, table, value, bound_column, **kwargs):
             bewerber = record['bewerber']
+            bewerber_kommentare_count = BewerberKommentar.objects.filter(bewerber=bewerber, org=org).count()
             context = {
                 'record': bewerber,
                 'model_name': 'bewerber',
                 'action_url': reverse('bewerber_kommentar', args=[bewerber.pk]),
                 'color': 'primary',
-                'icon': 'bi bi-chat-dots',
+                'icon': '',
                 'title': '',
-                'button_text': 'Kommentar',
+                'button_text': f'Kommentare ({bewerber_kommentare_count})',
             }
             return render_to_string(self.template_name, context)
     
