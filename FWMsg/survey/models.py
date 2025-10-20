@@ -61,7 +61,11 @@ class Survey(OrgModel):
     is_active = models.BooleanField(default=True, verbose_name=_('Is active'))
     allow_anonymous = models.BooleanField(
         default=False, 
-        verbose_name=_('Allow anonymous participation (without login)')
+        verbose_name=_('Allow participation without login')
+    )
+    responses_are_anonymous = models.BooleanField(
+        default=False,
+        verbose_name=_('Responses are anonymous'),
     )
     start_date = models.DateField(
         null=True, blank=True, 

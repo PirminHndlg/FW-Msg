@@ -63,21 +63,24 @@ def survey_detail(request, survey_key):
         next_url = reverse('survey:survey_detail', kwargs={'survey_key': survey_key})
         return redirect(reverse('login') + '?next=' + next_url)
     
-    # Check if user has already participated
-    user = request.user if request.user.is_authenticated else None
-    session_key = request.session.session_key if not user else None
-    
-    existing_response = SurveyResponse.objects.filter(
-        survey=survey,
-        respondent=user,
-        session_key=session_key
-    ).first()
-    
-    if existing_response:
-        return render(request, 'survey/survey_already_completed.html', {
-            'survey': survey,
-            'response': existing_response
-        })
+    # Check if user has already participated (skip this check for anonymous surveys)
+    if not survey.responses_are_anonymous:
+        user = request.user if request.user.is_authenticated else None
+        session_key = request.session.session_key if not user else None
+        
+        existing_response = SurveyResponse.objects.filter(
+            survey=survey,
+            respondent=user,
+            session_key=session_key
+        ).first()
+        
+        if existing_response:
+            return render(request, 'survey/survey_already_completed.html', {
+                'survey': survey,
+                'response': existing_response
+            })
+    else:
+        user = None
     
     if request.method == 'POST':
         form = SurveyParticipationForm(survey, request.POST)
@@ -417,8 +420,11 @@ def export_response_pdf(request, response_id):
     pdf_content = generate_survey_response_pdf(response)
     
     # Create filename
-    respondent_name = "Anonymous" if not response.respondent else response.respondent.username
-    filename = f"survey_response_{response.survey.title}_{respondent_name}_{response.id}.pdf"
+    if response.survey.responses_are_anonymous:
+        respondent_name = f"Response_{response.id}"
+    else:
+        respondent_name = "Anonymous" if not response.respondent else response.respondent.username
+    filename = f"survey_response_{response.survey.title}_{respondent_name}.pdf"
     # Clean filename for filesystem compatibility
     filename = "".join(c for c in filename if c.isalnum() or c in (' ', '-', '_', '.')).rstrip()
     filename = filename.replace(' ', '_')
@@ -452,8 +458,11 @@ def export_survey_responses_pdf(request, survey_id):
                 pdf_content = generate_survey_response_pdf(response)
                 
                 # Create filename for this response
-                respondent_name = "Anonymous" if not response.respondent else response.respondent.username
-                pdf_filename = f"response_{respondent_name}_{response.id}.pdf"
+                if survey.responses_are_anonymous:
+                    respondent_name = f"Response_{response.id}"
+                else:
+                    respondent_name = "Anonymous" if not response.respondent else response.respondent.username
+                pdf_filename = f"response_{respondent_name}.pdf"
                 pdf_filename = "".join(c for c in pdf_filename if c.isalnum() or c in (' ', '-', '_', '.')).rstrip()
                 pdf_filename = pdf_filename.replace(' ', '_')
                 

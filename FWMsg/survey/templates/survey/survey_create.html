@@ -122,6 +122,21 @@
                         </div>
                     </div>
                     
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            {{ form.responses_are_anonymous|add_class:'form-check-input' }}
+                            <label class="form-check-label" for="{{ form.responses_are_anonymous.id_for_label }}">
+                                <strong>{{ form.responses_are_anonymous.label }}</strong>
+                            </label>
+                            {% if form.responses_are_anonymous.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.responses_are_anonymous.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">{% trans "Do not save or display respondent names in results" %}</div>
+                        </div>
+                    </div>
+                    
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'survey:survey_list' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>

@@ -235,11 +235,16 @@ def generate_survey_response_pdf(survey_response):
     if org:
         survey_info.append([Paragraph(_("Organisation:"), info_label_style), org.name])
     
-    survey_info.extend([
+    survey_info_data = [
         [Paragraph(_("Umfrage:"), info_label_style), survey_response.survey.title],
         [Paragraph(_("Datum:"), info_label_style), survey_response.submitted_at.strftime("%d.%m.%Y um %H:%M")],
-        [Paragraph(_("Teilnehmer:"), info_label_style), _get_respondent_name(survey_response)],
-    ])
+    ]
+    
+    # Only add participant name if survey is not set to anonymous responses
+    if not survey_response.survey.responses_are_anonymous:
+        survey_info_data.append([Paragraph(_("Teilnehmer:"), info_label_style), _get_respondent_name(survey_response)])
+    
+    survey_info.extend(survey_info_data)
     
     info_table = Table(survey_info, colWidths=[1.2*inch, 4.3*inch])
     info_table.setStyle(TableStyle([
@@ -316,6 +321,10 @@ def generate_survey_response_pdf(survey_response):
 
 def _get_respondent_name(survey_response):
     """Get the respondent name or anonymous indicator"""
+    # If survey is set to anonymous responses, always return "Anonym"
+    if survey_response.survey.responses_are_anonymous:
+        return _("Anonym")
+    
     if survey_response.respondent:
         # Try to get full name, fallback to username
         if hasattr(survey_response.respondent, 'first_name') and survey_response.respondent.first_name:
