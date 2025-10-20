@@ -629,7 +629,7 @@ class Einsatzstelle2(OrgModel):
     konsulat = models.TextField(verbose_name='Konsulat', null=True, blank=True)
     informationen = models.TextField(verbose_name='Weitere Informationen', null=True, blank=True)
     
-    max_freiwillige = models.IntegerField(blank=True, null=True, verbose_name='Maximale Anzahl Freiwillige')
+    max_freiwillige = models.IntegerField(blank=True, null=True, default=1, verbose_name='Maximale Anzahl Freiwillige')
 
 
     history = HistoricalRecords()
