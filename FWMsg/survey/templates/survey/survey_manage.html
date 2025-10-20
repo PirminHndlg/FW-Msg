@@ -54,21 +54,21 @@
 
 {% block content %}
 <!-- Survey Stats -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="stats-card">
+<div class="row mb-4 justify-content-center">
+    <div class="col-6 col-md-4 col-lg-2 mb-3 mb-lg-0">
+        <div class="stats-card h-100 d-flex flex-column align-items-center justify-content-center">
             <div class="stats-number">{{ questions.count }}</div>
             <div class="stats-label">{% trans "Questions" %}</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stats-card">
+    <div class="col-6 col-md-4 col-lg-2 mb-3 mb-lg-0">
+        <div class="stats-card h-100 d-flex flex-column align-items-center justify-content-center">
             <div class="stats-number">{{ response_count }}</div>
             <div class="stats-label">{% trans "Responses" %}</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stats-card">
+    <div class="col-6 col-md-4 col-lg-2 mb-3 mb-lg-0">
+        <div class="stats-card h-100 d-flex flex-column align-items-center justify-content-center">
             {% if survey.is_active %}
                 <div class="stats-number text-success">
                     <i class="fas fa-check-circle"></i>
@@ -82,8 +82,8 @@
             {% endif %}
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stats-card">
+    <div class="col-6 col-md-6 col-lg-2 mb-3 mb-lg-0">
+        <div class="stats-card h-100 d-flex flex-column align-items-center justify-content-center">
             {% if survey.allow_anonymous %}
                 <div class="stats-number text-info">
                     <i class="fas fa-globe"></i>
@@ -94,6 +94,21 @@
                     <i class="fas fa-lock"></i>
                 </div>
                 <div class="stats-label">{% trans "Private" %}</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-6 col-md-6 col-lg-2 mb-3 mb-lg-0">
+        <div class="stats-card h-100 d-flex flex-column align-items-center justify-content-center">
+            {% if survey.responses_are_anonymous %}
+                <div class="stats-number text-dark">
+                    <i class="fas fa-user-secret"></i>
+                </div>
+                <div class="stats-label">{% trans "Anonymous" %}</div>
+            {% else %}
+                <div class="stats-number text-dark">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="stats-label">{% trans "Not Anonymous" %}</div>
             {% endif %}
         </div>
     </div>
@@ -233,7 +248,9 @@
                     <table class="table table-sm">
                         <thead>
                             <tr>
+                                {% if not survey.responses_are_anonymous %}
                                 <th>{% trans "Participant" %}</th>
+                                {% endif %}
                                 <th>{% trans "Submitted" %}</th>
                                 <th>{% trans "Answers" %}</th>
                             </tr>
@@ -241,6 +258,7 @@
                         <tbody>
                             {% for response in responses|slice:":5" %}
                                 <tr>
+                                    {% if not survey.responses_are_anonymous %}
                                     <td>
                                         {% if response.respondent %}
                                             <i class="fas fa-user me-1"></i>{{ response.respondent.username }}
@@ -248,6 +266,7 @@
                                             <i class="fas fa-user-secret me-1"></i>{% trans "Anonymous" %}
                                         {% endif %}
                                     </td>
+                                    {% endif %}
                                     <td>
                                         <small class="text-muted">{{ response.submitted_at|date:"M d, Y H:i" }}</small>
                                     </td>

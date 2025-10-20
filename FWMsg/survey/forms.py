@@ -27,7 +27,7 @@ class SurveyForm(forms.ModelForm):
     class Meta:
         model = Survey
         fields = [
-            'title', 'description', 'allow_anonymous', 
+            'title', 'description', 'allow_anonymous', 'responses_are_anonymous',
             'start_date', 'end_date', 'max_responses'
         ]
         widgets = {
@@ -41,6 +41,9 @@ class SurveyForm(forms.ModelForm):
                 'placeholder': _('Optional description of the survey')
             }),
             'allow_anonymous': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'responses_are_anonymous': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
             'start_date': forms.DateInput(attrs={
@@ -199,6 +202,12 @@ class SurveyParticipationForm(forms.Form):
     
     def save_response(self, survey, user=None, session_key=None, ip_address=None):
         """Save the form data as a survey response"""
+        # If survey is set to anonymous responses, don't save user information
+        if survey.responses_are_anonymous:
+            user = None
+            session_key = None
+            ip_address = None
+        
         response = SurveyResponse.objects.create(
             survey=survey,
             respondent=user,
