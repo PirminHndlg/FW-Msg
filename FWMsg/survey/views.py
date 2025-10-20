@@ -96,7 +96,6 @@ def survey_detail(request, survey_key):
                 ip_address=get_client_ip(request)
             )
             
-            messages.success(request, _('Thank you for participating in the survey!'))
             return redirect('survey:survey_thank_you', survey_key=survey_key)
     else:
         form = SurveyParticipationForm(survey)
