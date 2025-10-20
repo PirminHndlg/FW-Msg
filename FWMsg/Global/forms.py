@@ -1,7 +1,7 @@
 from django import forms
 
 from FWMsg.middleware import get_current_request
-from .models import Ampel2, Feedback, PersonCluster, Post2, Notfallkontakt2, PostSurveyQuestion, PostSurveyAnswer, EinsatzstelleNotiz
+from .models import Ampel2, BewerberKommentar, Feedback, PersonCluster, Post2, Notfallkontakt2, PostSurveyQuestion, PostSurveyAnswer, EinsatzstelleNotiz
 from django.utils.translation import gettext_lazy as _
 from Global.send_email import send_new_post_email
 from django.forms.widgets import HiddenInput
@@ -242,3 +242,18 @@ class EinsatzstelleNotizForm(forms.ModelForm):
         if commit:
             notiz.save()
         return notiz
+
+
+class BewerberKommentarForm(forms.ModelForm):
+    class Meta:
+        model = BewerberKommentar
+        fields = ['comment']
+        labels = {
+            'comment': _('Kommentar'),
+        }
+        widgets = {
+            'comment': forms.Textarea(attrs={
+                'rows': 6,
+                'placeholder': _('Geben Sie hier Ihren Kommentar ein...')
+            }),
+        }

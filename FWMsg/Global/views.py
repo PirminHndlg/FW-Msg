@@ -74,6 +74,7 @@ from FW.forms import BilderForm, BilderGalleryForm, ProfilUserForm
 from .models import (
     Ampel2, 
     Aufgabe2,
+    BewerberKommentar,
     Bilder2, 
     BilderGallery2,
     Einsatzstelle2,
@@ -104,7 +105,7 @@ from BW.views import base_template as bw_base_template
 from Ehemalige.views import base_template as ehemalige_base_template
 from FWMsg.celery import send_email_aufgaben_daily
 from FWMsg.decorators import required_person_cluster, required_role
-from .forms import EinsatzstelleNotizForm, FeedbackForm, AddPostForm, AddAmpelmeldungForm
+from .forms import BewerberKommentarForm, EinsatzstelleNotizForm, FeedbackForm, AddPostForm, AddAmpelmeldungForm
 from ORG.forms import AddNotfallkontaktForm
 from .export_utils import export_user_data_securely
 
@@ -1962,9 +1963,45 @@ def bewerber_detail(request, bewerber_id):
         messages.error(request, f'Fehler: {e}')
         return redirect('index_home')
 
+@login_required
+@required_role('O')
+def bewerber_kommentar(request, bewerber_id):
+    try:
+        bewerber = Bewerber.objects.get(id=bewerber_id, org=request.user.org)
+        
+        if request.method == 'POST':
+            form = BewerberKommentarForm(request.POST)
+            if form.is_valid():
+                kommentar = form.save(commit=False)
+                kommentar.bewerber = bewerber
+                kommentar.org = request.user.org
+                kommentar.user = request.user
+                kommentar.save()
+                return redirect('bewerber_kommentar', bewerber_id=bewerber.id)
+        else:
+            form = BewerberKommentarForm()
+        
+        # Get all comments for this bewerber
+        all_comments = BewerberKommentar.objects.filter(
+            bewerber=bewerber,
+            org=request.user.org
+        ).select_related('user').order_by('-date_created')
+        
+        context = {
+            'bewerber': bewerber,
+            'form': form,
+            'all_comments': all_comments,
+        }
+        
+        return render(request, 'bewerber_kommentar.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Fehler: {e}')
+        return redirect('index_home')
+    
 
 @login_required
-@required_role('BOTEr')
+@required_role('BOTE')
 def bw_application_file_answer_download(request, file_answer_id):
     try:
         if request.user.customuser.person_cluster.view == 'B':

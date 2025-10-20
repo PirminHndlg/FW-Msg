@@ -1303,3 +1303,20 @@ class ChangeRequest(OrgModel):
         except Exception as e:
             logger.error(f"Error getting field changes display for ChangeRequest {self.id}: {e}")
         return changes
+    
+
+class BewerberKommentar(OrgModel):
+    from BW.models import Bewerber
+    
+    bewerber = models.ForeignKey(Bewerber, on_delete=models.CASCADE, verbose_name=_('Bewerber:in'))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, verbose_name=_('Erstellt von'))
+    comment = models.TextField(verbose_name=_('Kommentar'))
+    date_created = models.DateTimeField(auto_now_add=True, null=True, verbose_name=_('Erstellt am'))
+    
+    class Meta:
+        verbose_name = _('Bewerber Kommentar')
+        verbose_name_plural = _('Bewerber Kommentare')
+        ordering = ['-date_created']
+    
+    def __str__(self):
+        return f'{self.user.get_full_name() if self.user else "Unknown"}: {self.comment[:50]}...'
