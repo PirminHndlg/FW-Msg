@@ -14,18 +14,14 @@
                 {% if survey.description %}
                     <p class="lead">{{ survey.description|linebreaks }}</p>
                 {% endif %}
+                {% if not survey.allow_anonymous %}
                 <div class="mt-4">
-                    <span class="badge bg-light text-dark">
-                        <i class="fas fa-users me-1"></i>
-                        {{ survey.response_count }} {% trans "responses" %}
+                    <span class="badge bg-warning">
+                        <i class="fas fa-lock me-1"></i>
+                        {% trans "Login required" %}
                     </span>
-                    {% if not survey.allow_anonymous %}
-                        <span class="badge bg-warning">
-                            <i class="fas fa-lock me-1"></i>
-                            {% trans "Login required" %}
-                        </span>
-                    {% endif %}
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -124,22 +120,6 @@
                         </div>
                     {% endif %}
                 </form>
-            </div>
-        </div>
-        
-        <!-- Survey Info -->
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <div class="stats-card">
-                    <div class="stats-number">{{ survey.response_count }}</div>
-                    <div class="stats-label">{% trans "Total Responses" %}</div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="stats-card">
-                    <div class="stats-number">{{ survey.questions.count }}</div>
-                    <div class="stats-label">{% trans "Questions" %}</div>
-                </div>
             </div>
         </div>
     </div>
