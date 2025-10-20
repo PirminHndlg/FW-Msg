@@ -7,11 +7,13 @@
         {% if onclick %}
         onclick="{{ onclick }}"
         {% endif %}
-        class="btn btn-sm btn-outline-{{ color }} d-flex align-items-center gap-1"
+        class="btn btn-sm btn-outline-{{ color }} d-flex align-items-center gap-1 text-nowrap"
         data-bs-toggle="tooltip"
         data-bs-title="{{ title }}">
         {{ button_text }}
-        <i class="bi {{ icon }}"></i>
+        {% if icon %}
+            <i class="bi {{ icon }}"></i>
+        {% endif %}
     </a>
     <div class="btn-group" role="group">
         <a class="btn btn-sm btn-outline-primary" 
