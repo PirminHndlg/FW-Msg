@@ -710,6 +710,7 @@ class Ampel2(OrgModel):
     status = models.CharField(max_length=1, choices=CHOICES, verbose_name='Status', help_text='Aktueller Status (Grün = alles in Ordnung, Gelb = Aufmerksamkeit nötig, Rot = unmittelbare Hilfe erforderlich)')
     comment = models.TextField(blank=True, null=True, verbose_name='Kommentar', help_text='Kommentar zur Erläuterung des Status')
     date = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
+    read = models.BooleanField(default=False, verbose_name='Gelesen', help_text='Zeigt an, ob die Ampel als gelesen markiert ist')
     submission_key = models.UUIDField(null=True, blank=True)
 
     class Meta:

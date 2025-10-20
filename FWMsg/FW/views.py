@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.utils.translation import gettext as _
 from Global.models import (
-    UserAufgaben, Post2, Bilder2,
+    Ampel2, UserAufgaben, Post2, Bilder2,
 )
 from django.contrib.auth import get_user_model
 from FW.models import Freiwilliger
@@ -86,12 +86,21 @@ def home(request):
         days_until_start = ((freiwilliger.start_real or freiwilliger.start_geplant) - datetime.now().date()).days
     else:
         days_until_start = None
+        
+    try:
+        last_ampel = Ampel2.objects.filter(user=request.user).order_by('-date').first()
+    except Ampel2.DoesNotExist:
+        last_ampel = None
+    except Exception as e:
+        messages.error(request, 'Error: ' + str(e))
+        last_ampel = None
 
     context = {
         'aufgaben': user_aufgaben,
         'feed': feed,
         'freiwilliger': freiwilliger,
         'days_until_start': days_until_start,
+        'last_ampel': last_ampel,
     }
 
     return render(request, 'homeFw.html', context=context)
