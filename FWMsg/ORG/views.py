@@ -639,74 +639,35 @@ def list_object(request, model_name, highlight_id=None):
     if response:
         return response
 
-    # Check if this model should use the old approach (freiwilliger and team)
-    if model_name.lower() in ['freiwilliger', 'team']:
-        return _list_object_legacy(request, model_name, model, highlight_id)
-    
     # Use djangotables2 for other models
     return _list_object_with_tables2(request, model_name, model, highlight_id)
-
-
-def _list_object_legacy(request, model_name, model, highlight_id=None):
-    """Legacy implementation for freiwilliger and team models"""
-    # Get base queryset with organization filter
-    objects = model.objects.filter(org=request.user.org)
-    
-    # Get person cluster and check permissions
-    person_cluster = get_person_cluster(request)
-    error = _check_person_cluster_permissions(model, person_cluster)
-    
-    # Get field metadata and model fields
-    field_metadata, model_fields = _get_field_metadata(model)
-    
-    # Apply model-specific logic
-    objects = _apply_model_specific_logic(model, objects, person_cluster, field_metadata, model_fields)
-    
-    # Add many-to-many fields
-    field_metadata.extend(_get_m2m_fields(model))
-    
-    # Count total objects before pagination
-    total_objects_count = objects.count()
-    
-    # Apply pagination
-    paginated_objects, query_string = _apply_pagination(objects, request)
-    
-    return render(request, 'list_objects.html',
-                 {'objects': paginated_objects, 
-                  'field_metadata': field_metadata, 
-                  'model_name': model_name,
-                  'verbose_name': model._meta.verbose_name_plural,
-                  'highlight_id': highlight_id,
-                  'error': error,
-                  'paginator': paginated_objects.paginator,
-                  'page_obj': paginated_objects,
-                  'total_count': total_objects_count,
-                  'query_string': query_string,
-                  'large_container': True})
 
 
 def _list_object_with_tables2(request, model_name, model, highlight_id=None):
     """New implementation using djangotables2"""
     from django_tables2 import RequestConfig
-    from .tables import MODEL_TABLE_MAPPING, get_bewerber_table_class
+    from .tables import MODEL_TABLE_MAPPING, get_bewerber_table_class, get_freiwilliger_table_class, get_team_table_class
     
-    if model_name.lower() == 'bewerber':
-        person_cluster = PersonCluster.objects.filter(view='B', org=request.user.org).first()
+    if model_name.lower() in ['bewerber', 'freiwilliger', 'team']:
+        if model_name.lower() == 'freiwilliger':
+            person_cluster = PersonCluster.objects.filter(view='F', org=request.user.org).first()
+            table_class, data = get_freiwilliger_table_class(person_cluster, request.user.org)
+        elif model_name.lower() == 'team':
+            person_cluster = PersonCluster.objects.filter(view='T', org=request.user.org).first()
+            table_class, data = get_team_table_class(person_cluster, request.user.org)
+        else:
+            person_cluster = PersonCluster.objects.filter(view='B', org=request.user.org).first()
+            table_class, data = get_bewerber_table_class(person_cluster, request.user.org)
         
         # Generate dynamic table with attribute columns
-        table_class, data = get_bewerber_table_class(person_cluster, request.user.org)
         total_objects_count = len(data)
         
         # Apply search filter
         search_query = request.GET.get('search', '').strip()
         if search_query:
             search_lower = search_query.lower()
-            data = [
-                d for d in data 
-                if search_lower in d['bewerber'].user.first_name.lower() 
-                or search_lower in d['bewerber'].user.last_name.lower()
-                or search_lower in d['bewerber'].user.email.lower()
-            ]
+            # search in every field of the data
+            data = [d for d in data if any(search_lower in str(value).lower() for value in d.values())]
         
         # Create table and configure pagination/sorting
         table = table_class(data)

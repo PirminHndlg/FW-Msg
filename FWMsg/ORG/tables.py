@@ -6,6 +6,7 @@ from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
+from FW.models import Freiwilliger
 from Global.models import (
     BewerberKommentar, Einsatzland2, Einsatzstelle2, Attribute, Aufgabe2,
     Notfallkontakt2, UserAufgaben, CustomUser, PersonCluster,
@@ -38,7 +39,7 @@ class BaseOrgTable(tables.Table):
             'class': 'table table-hover align-middle',
             'thead': {'class': 'z-1'},
         }
-        per_page = 25
+        per_page = 100
     
     def __init__(self, *args, **kwargs):
         self.model_name = kwargs.pop('model_name', None)
@@ -58,7 +59,7 @@ class BaseOrgTable(tables.Table):
             else:
                 model_name = ''
         return {
-            'record': record,
+            'record': record['freiwilliger'],
             'model_name': model_name,
             'edit_url': reverse('edit_object', args=[model_name, record.pk]),
             'delete_url': reverse('delete_object', args=[model_name, record.pk]),
@@ -282,40 +283,61 @@ class ApplicationFileQuestionTable(BaseOrgTable):
     class Meta(BaseOrgTable.Meta):
         model = ApplicationFileQuestion
         fields = ('order', 'name', 'description', 'actions')
+        
 
-
-def get_bewerber_table_class(person_cluster, org):
+def _create_dynamic_table_class(
+    person_cluster, 
+    org, 
+    model_class, 
+    model_name, 
+    base_columns, 
+    column_sequence, 
+    render_methods, 
+    actions_renderer
+):
     """
-    Create a dynamic BewerberTable with attribute columns.
-    Returns: (table_class, data_list)
+    Generic function to create a dynamic table with attribute columns.
+    
+    Args:
+        person_cluster: The person cluster to filter by
+        org: The organization
+        model_class: The model class (Freiwilliger, Bewerber, Team)
+        model_name: String name for the model ('freiwilliger', 'bewerber', 'team')
+        base_columns: Dict of base table columns
+        column_sequence: List of column names in order
+        render_methods: Dict of custom render methods
+        actions_renderer: Function to render actions column
+    
+    Returns:
+        (table_class, data_list)
     """
-    # Fetch bewerbers and attributes
-    bewerbers = Bewerber.objects.filter(
+    # Fetch objects and attributes
+    objects = model_class.objects.filter(
         org=org, 
         user__customuser__person_cluster=person_cluster
     ).select_related('user', 'user__customuser')
     
     attributes = Attribute.objects.filter(org=org, person_cluster=person_cluster)
     
-    # Build data structure: list of dicts with bewerber object and attrs dict
+    # Build data structure: list of dicts with object and attrs dict
     data = []
-    for bewerber in bewerbers:
-        bewerber_data = {'bewerber': bewerber, 'attrs': {}}
+    for obj in objects:
+        obj_data = {model_name: obj, 'attrs': {}}
         
         # Fetch all user attributes
         user_attributes = UserAttribute.objects.filter(
-            org=org, user=bewerber.user, attribute__in=attributes
+            org=org, user=obj.user, attribute__in=attributes
         ).select_related('attribute')
         
         # Populate attrs dict
         for user_attr in user_attributes:
-            bewerber_data['attrs'][user_attr.attribute.name] = user_attr.value or ''
+            obj_data['attrs'][user_attr.attribute.name] = user_attr.value or ''
         
         # Ensure all attributes have keys (even if empty)
         for attribute in attributes:
-            bewerber_data['attrs'].setdefault(attribute.name, '')
+            obj_data['attrs'].setdefault(attribute.name, '')
         
-        data.append(bewerber_data)
+        data.append(obj_data)
     
     # Helper to create attribute column with proper closure
     def make_attribute_column(attr_name):
@@ -332,7 +354,133 @@ def get_bewerber_table_class(person_cluster, org):
                 return '—'
         return AttributeColumn
     
-    # Render methods for base columns
+    # Actions column with custom rendering
+    class ActionsColumn(tables.TemplateColumn):
+        def render(self, record, table, value, bound_column, **kwargs):
+            return actions_renderer(record, org)
+    
+    # Build table attributes dictionary
+    table_attrs = base_columns.copy()
+    table_attrs.update(render_methods)
+    table_attrs['Meta'] = type('Meta', (), {
+        'template_name': 'django_tables2/bootstrap5.html',
+        'attrs': {'class': 'table table-hover align-middle', 'thead': {'class': 'z-1'}},
+        'per_page': 100
+    })
+    
+    # Add attribute columns dynamically
+    final_column_sequence = column_sequence.copy()
+    for attribute in attributes:
+        column_name = f'attr_{attribute.id}'
+        AttributeColumnClass = make_attribute_column(attribute.name)
+        table_attrs[column_name] = AttributeColumnClass(verbose_name=attribute.name)
+        final_column_sequence.append(column_name)
+        
+    # Add actions column
+    table_attrs['actions'] = ActionsColumn(
+        template_name='components/additional_table_actions.html',
+        verbose_name=_('Aktionen'),
+        orderable=False,
+        attrs={
+            'th': {'style': 'width: 120px;'},
+            'td': {'style': 'position: sticky; right: 0; background-color: white; z-index: 1;'}
+        }
+    )
+    final_column_sequence.append('actions')
+    table_attrs['Meta'].sequence = final_column_sequence
+    
+    # Create and return the table class
+    table_name = f'Dynamic{model_class.__name__}Table'
+    return type(table_name, (tables.Table,), table_attrs), data
+
+
+def get_freiwilliger_table_class(person_cluster, org):
+    """
+    Create a dynamic FreiwilligerTable with attribute columns.
+    Returns: (table_class, data_list)
+    """
+    # Define render methods
+    def render_user(self, value, record):
+        freiwilliger = record['freiwilliger']
+        return format_html(
+            '<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', 
+            reverse('profil', args=[freiwilliger.user.id]), 
+            f"{freiwilliger.user.first_name} {freiwilliger.user.last_name}"
+        )
+    
+    def actions_renderer(record, org):
+        freiwilliger = record['freiwilliger']
+        context = {
+            'record': freiwilliger,
+            'model_name': 'freiwilliger',
+            'action_url': '',
+            'color': 'primary',
+            'icon': '',
+            'title': '',
+            'button_text': '',
+            'hide_button': True,
+        }
+        return render_to_string('components/additional_table_actions.html', context)
+    
+    # Define base columns
+    base_columns = {
+        'user': tables.Column(
+            verbose_name=_('Benutzer'),
+            accessor='freiwilliger.user',
+            order_by='freiwilliger.user__first_name'
+        ),
+        'einsatzland2': tables.Column(
+            verbose_name=_('Einsatzland'),
+            accessor='freiwilliger.einsatzland2',
+            order_by='freiwilliger.einsatzland2__name'
+        ),
+        'einsatzstelle2': tables.Column(
+            verbose_name=_('Einsatzstelle'),
+            accessor='freiwilliger.einsatzstelle2',
+            order_by='freiwilliger.einsatzstelle2__name'
+        ),
+        'start_geplant': tables.DateColumn(
+            verbose_name=_('Start geplant'),
+            accessor='freiwilliger.start_geplant',
+            format='d.m.Y'
+        ),
+        'start_real': tables.DateColumn(
+            verbose_name=_('Start real'),
+            accessor='freiwilliger.start_real',
+            format='d.m.Y'
+        ),
+        'ende_geplant': tables.DateColumn(
+            verbose_name=_('Ende geplant'),
+            accessor='freiwilliger.ende_geplant',
+            format='d.m.Y'
+        ),
+        'ende_real': tables.DateColumn(
+            verbose_name=_('Ende real'),
+            accessor='freiwilliger.ende_real',
+            format='d.m.Y'
+        ),
+    }
+    
+    column_sequence = [
+        'user', 'einsatzland2', 'einsatzstelle2', 
+        'start_geplant', 'start_real', 'ende_geplant', 'ende_real'
+    ]
+    
+    render_methods = {'render_user': render_user}
+    
+    return _create_dynamic_table_class(
+        person_cluster, org, Freiwilliger, 'freiwilliger',
+        base_columns, column_sequence, render_methods, actions_renderer
+    )
+
+
+
+def get_bewerber_table_class(person_cluster, org):
+    """
+    Create a dynamic BewerberTable with attribute columns.
+    Returns: (table_class, data_list)
+    """
+    # Define render methods
     def render_user(self, value, record):
         bewerber = record['bewerber']
         return format_html(
@@ -351,24 +499,23 @@ def get_bewerber_table_class(person_cluster, org):
             )
         return '—'
     
-    # Actions column with custom rendering
-    class ActionsColumn(tables.TemplateColumn):
-        def render(self, record, table, value, bound_column, **kwargs):
-            bewerber = record['bewerber']
-            bewerber_kommentare_count = BewerberKommentar.objects.filter(bewerber=bewerber, org=org).count()
-            context = {
-                'record': bewerber,
-                'model_name': 'bewerber',
-                'action_url': reverse('bewerber_kommentar', args=[bewerber.pk]),
-                'color': 'primary',
-                'icon': '',
-                'title': '',
-                'button_text': f'Kommentare ({bewerber_kommentare_count})',
-            }
-            return render_to_string(self.template_name, context)
+    def actions_renderer(record, org):
+        bewerber = record['bewerber']
+        bewerber_kommentare_count = BewerberKommentar.objects.filter(bewerber=bewerber, org=org).count()
+        context = {
+            'record': bewerber,
+            'model_name': 'bewerber',
+            'action_url': reverse('bewerber_kommentar', args=[bewerber.pk]),
+            'color': 'primary',
+            'icon': '',
+            'title': '',
+            'button_text': f'Kommentare ({bewerber_kommentare_count})',
+            'hide_button': False,
+        }
+        return render_to_string('components/additional_table_actions.html', context)
     
-    # Build table attributes dictionary
-    table_attrs = {
+    # Define base columns
+    base_columns = {
         'user': tables.Column(
             verbose_name=_('Benutzer'),
             accessor='bewerber.user',
@@ -379,45 +526,83 @@ def get_bewerber_table_class(person_cluster, org):
             accessor='bewerber.application_pdf',
             orderable=False
         ),
-        'render_user': render_user,
-        'render_application_pdf': render_application_pdf,
-        'Meta': type('Meta', (), {
-            'template_name': 'django_tables2/bootstrap5.html',
-            'attrs': {'class': 'table table-hover align-middle', 'thead': {'class': 'z-1'}},
-            'per_page': 25
-        })
     }
     
-    # Add attribute columns dynamically
     column_sequence = ['user', 'application_pdf']
-    for attribute in attributes:
-        column_name = f'attr_{attribute.id}'
-        AttributeColumnClass = make_attribute_column(attribute.name)
-        table_attrs[column_name] = AttributeColumnClass(verbose_name=attribute.name)
-        column_sequence.append(column_name)
-        
-    # Add actions column
-    table_attrs['actions'] = ActionsColumn(
-        template_name='components/additional_table_actions.html',
-        verbose_name=_('Aktionen'),
-        orderable=False,
-        attrs={
-            'th': {'style': 'width: 120px;'},
-            'td': {'style': 'position: sticky; right: 0; background-color: white; z-index: 1;'}
-        }
-    )
-    column_sequence.append('actions')
-    table_attrs['Meta'].sequence = column_sequence
     
-    # Create and return the table class
-    return type('DynamicBewerberTable', (tables.Table,), table_attrs), data
+    render_methods = {
+        'render_user': render_user,
+        'render_application_pdf': render_application_pdf
+    }
+    
+    return _create_dynamic_table_class(
+        person_cluster, org, Bewerber, 'bewerber',
+        base_columns, column_sequence, render_methods, actions_renderer
+    )
 
 
-class BewerberTable(BaseOrgTable):
-    """Simple BewerberTable for backwards compatibility (no dynamic attributes)"""
-    class Meta(BaseOrgTable.Meta):
-        model = Bewerber
-        fields = ('user', 'application_pdf', 'actions')
+def get_team_table_class(person_cluster, org):
+    """
+    Create a dynamic TeamTable with attribute columns.
+    Returns: (table_class, data_list)
+    """
+    from TEAM.models import Team
+    
+    # Define render methods
+    def render_user(self, value, record):
+        team = record['team']
+        return format_html(
+            '<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', 
+            reverse('profil', args=[team.user.id]), 
+            f"{team.user.first_name} {team.user.last_name}"
+        )
+    
+    def render_land(self, value, record):
+        team = record['team']
+        lands = team.land.all()
+        if lands:
+            return ', '.join([land.name for land in lands])
+        return '—'
+    
+    def actions_renderer(record, org):
+        team = record['team']
+        context = {
+            'record': team,
+            'model_name': 'team',
+            'action_url': '',
+            'color': 'primary',
+            'icon': '',
+            'title': '',
+            'button_text': '',
+            'hide_button': True,
+        }
+        return render_to_string('components/additional_table_actions.html', context)
+    
+    # Define base columns
+    base_columns = {
+        'user': tables.Column(
+            verbose_name=_('Benutzer'),
+            accessor='team.user',
+            order_by='team.user__first_name'
+        ),
+        'land': tables.Column(
+            verbose_name=_('Länderzuständigkeit'),
+            accessor='team.land',
+            orderable=False
+        ),
+    }
+    
+    column_sequence = ['user', 'land']
+    
+    render_methods = {
+        'render_user': render_user,
+        'render_land': render_land
+    }
+    
+    return _create_dynamic_table_class(
+        person_cluster, org, Team, 'team',
+        base_columns, column_sequence, render_methods, actions_renderer
+    )
 
 
 # Mapping of model names to table classes
@@ -435,5 +620,4 @@ MODEL_TABLE_MAPPING = {
     'bewerbung-text': ApplicationTextTable,
     'bewerbung-frage': ApplicationQuestionTable,
     'bewerbung-datei': ApplicationFileQuestionTable,
-    'bewerber': BewerberTable,
 }
