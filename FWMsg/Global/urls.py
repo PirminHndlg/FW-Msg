@@ -72,6 +72,7 @@ urlpatterns = [
     path('bewerber/', views.list_bewerber, name='list_bewerber'),
     path('bewerber/<int:bewerber_id>/', views.bewerber_detail, name='bewerber_detail'),
     path('bewerber/files/download/<int:file_answer_id>/', views.bw_application_file_answer_download, name='bw_application_file_answer_download'),
+    path('bewerber/kommentar/<int:bewerber_id>/', views.bewerber_kommentar, name='bewerber_kommentar'),
     
     # Country and Placement Location Information (for Team and Ehemalige members)
     path('laender/', views.laender_info, name='laender_info'),
