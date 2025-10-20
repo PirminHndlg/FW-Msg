@@ -1251,7 +1251,7 @@ def get_calendar_events(request):
         for i in range(5):
             birthday = birthday_event.geburtsdatum.replace(year=datetime.now().year + i)
             calendar_events.append({
-                'title': f'Geburtstag: {birthday_event.user.first_name} {birthday_event.user.last_name}',
+                'title': f'🎂 Geburtstag: {birthday_event.user.first_name} {birthday_event.user.last_name}',
                 'start': birthday.strftime('%Y-%m-%d') if birthday else '',
                 'url': reverse('profil', args=[birthday_event.user.id]),
                 'backgroundColor': '#ff69b4', # Hot pink - cheerful color for birthdays
