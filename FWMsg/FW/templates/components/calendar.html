@@ -210,7 +210,15 @@
                     if (info.event.extendedProps.description) {
                         tooltipContent += '\n📝 ' + info.event.extendedProps.description;
                     }
-                    info.el.setAttribute('title', tooltipContent);
+                    
+                    // add bs tooltip
+                    new bootstrap.Tooltip(info.el, {
+                        title: tooltipContent,
+                        placement: 'top',
+                        trigger: 'hover',
+                        container: 'body'
+                    });
+
                     info.el.style.cursor = 'pointer';
                 }
             });
