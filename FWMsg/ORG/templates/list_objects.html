@@ -180,7 +180,7 @@
                         {% if page_obj.paginator.count != total_count %}
                             {% trans "Anzeige gefiltert:" %} {{ page_obj.paginator.count }} {% trans "von" %} {{ total_count }} {{ verbose_name }}
                         {% else %}
-                            {% trans "insgesamt" %} {{ total_count }} {{ verbose_name }}
+                            {% trans "insgesamt" %} {{ total_count }}
                         {% endif %}
                     </small>
                     {% if model_name == 'freiwilliger' %}
