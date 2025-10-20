@@ -688,7 +688,40 @@ def _list_object_legacy(request, model_name, model, highlight_id=None):
 def _list_object_with_tables2(request, model_name, model, highlight_id=None):
     """New implementation using djangotables2"""
     from django_tables2 import RequestConfig
-    from .tables import MODEL_TABLE_MAPPING
+    from .tables import MODEL_TABLE_MAPPING, get_bewerber_table_class
+    
+    if model_name.lower() == 'bewerber':
+        person_cluster = PersonCluster.objects.filter(view='B', org=request.user.org).first()
+        
+        # Generate dynamic table with attribute columns
+        table_class, data = get_bewerber_table_class(person_cluster, request.user.org)
+        total_objects_count = len(data)
+        
+        # Apply search filter
+        search_query = request.GET.get('search', '').strip()
+        if search_query:
+            search_lower = search_query.lower()
+            data = [
+                d for d in data 
+                if search_lower in d['bewerber'].user.first_name.lower() 
+                or search_lower in d['bewerber'].user.last_name.lower()
+                or search_lower in d['bewerber'].user.email.lower()
+            ]
+        
+        # Create table and configure pagination/sorting
+        table = table_class(data)
+        RequestConfig(request).configure(table)
+        
+        return render(request, 'list_objects_table.html', {
+            'table': table,
+            'model_name': model_name,
+            'verbose_name': model._meta.verbose_name_plural,
+            'highlight_id': highlight_id,
+            'error': None,
+            'total_count': total_objects_count,
+            'search_query': search_query,
+            'large_container': True
+        })
     
     # Get person cluster and check permissions
     person_cluster = get_person_cluster(request)
