@@ -7,10 +7,11 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from Global.models import (
-    Einsatzland2, Einsatzstelle2, Attribute, Aufgabe2, 
-    Notfallkontakt2, UserAufgaben, CustomUser, PersonCluster, 
-    AufgabenCluster, KalenderEvent
+    Einsatzland2, Einsatzstelle2, Attribute, Aufgabe2,
+    Notfallkontakt2, UserAufgaben, CustomUser, PersonCluster,
+    AufgabenCluster, KalenderEvent, UserAttribute
 )
+from django.db.models import OuterRef, Subquery
 from BW.models import ApplicationText, ApplicationQuestion, ApplicationFileQuestion, Bewerber
 
 
@@ -281,24 +282,141 @@ class ApplicationFileQuestionTable(BaseOrgTable):
     class Meta(BaseOrgTable.Meta):
         model = ApplicationFileQuestion
         fields = ('order', 'name', 'description', 'actions')
+
+
+def get_bewerber_table_class(person_cluster, org):
+    """
+    Create a dynamic BewerberTable with attribute columns.
+    Returns: (table_class, data_list)
+    """
+    # Fetch bewerbers and attributes
+    bewerbers = Bewerber.objects.filter(
+        org=org, 
+        user__customuser__person_cluster=person_cluster
+    ).select_related('user', 'user__customuser')
+    
+    attributes = Attribute.objects.filter(org=org, person_cluster=person_cluster)
+    
+    # Build data structure: list of dicts with bewerber object and attrs dict
+    data = []
+    for bewerber in bewerbers:
+        bewerber_data = {'bewerber': bewerber, 'attrs': {}}
         
+        # Fetch all user attributes
+        user_attributes = UserAttribute.objects.filter(
+            org=org, user=bewerber.user, attribute__in=attributes
+        ).select_related('attribute')
+        
+        # Populate attrs dict
+        for user_attr in user_attributes:
+            bewerber_data['attrs'][user_attr.attribute.name] = user_attr.value or ''
+        
+        # Ensure all attributes have keys (even if empty)
+        for attribute in attributes:
+            bewerber_data['attrs'].setdefault(attribute.name, '')
+        
+        data.append(bewerber_data)
+    
+    # Helper to create attribute column with proper closure
+    def make_attribute_column(attr_name):
+        class AttributeColumn(tables.Column):
+            def __init__(self, *args, **kwargs):
+                kwargs['accessor'] = f'attrs__{attr_name}'
+                kwargs['orderable'] = True
+                super().__init__(*args, **kwargs)
+                
+            def render(self, value, record, bound_column):
+                if isinstance(record, dict):
+                    val = record.get('attrs', {}).get(attr_name, '')
+                    return val if val else '—'
+                return '—'
+        return AttributeColumn
+    
+    # Render methods for base columns
+    def render_user(self, value, record):
+        bewerber = record['bewerber']
+        return format_html(
+            '<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', 
+            reverse('profil', args=[bewerber.user.id]), 
+            f"{bewerber.user.first_name} {bewerber.user.last_name}"
+        )
+    
+    def render_application_pdf(self, value, record):
+        bewerber = record['bewerber']
+        if bewerber.application_pdf:
+            return format_html(
+                '<a href="{}" target="_blank"><i class="bi bi-file-earmark-pdf"></i> {}</a>', 
+                reverse('application_answer_download', args=[bewerber.id]), 
+                _('PDF herunterladen')
+            )
+        return '—'
+    
+    # Actions column with custom rendering
+    class ActionsColumn(tables.TemplateColumn):
+        def render(self, record, table, value, bound_column, **kwargs):
+            bewerber = record['bewerber']
+            context = {
+                'record': bewerber,
+                'model_name': 'bewerber',
+                'action_url': reverse('bewerber_kommentar', args=[bewerber.pk]),
+                'color': 'primary',
+                'icon': 'bi bi-chat-dots',
+                'title': '',
+                'button_text': 'Kommentar',
+            }
+            return render_to_string(self.template_name, context)
+    
+    # Build table attributes dictionary
+    table_attrs = {
+        'user': tables.Column(
+            verbose_name=_('Benutzer'),
+            accessor='bewerber.user',
+            order_by='bewerber.user__first_name'
+        ),
+        'application_pdf': tables.Column(
+            verbose_name=_('PDF der Bewerbung'),
+            accessor='bewerber.application_pdf',
+            orderable=False
+        ),
+        'render_user': render_user,
+        'render_application_pdf': render_application_pdf,
+        'Meta': type('Meta', (), {
+            'template_name': 'django_tables2/bootstrap5.html',
+            'attrs': {'class': 'table table-hover align-middle', 'thead': {'class': 'z-1'}},
+            'per_page': 25
+        })
+    }
+    
+    # Add attribute columns dynamically
+    column_sequence = ['user', 'application_pdf']
+    for attribute in attributes:
+        column_name = f'attr_{attribute.id}'
+        AttributeColumnClass = make_attribute_column(attribute.name)
+        table_attrs[column_name] = AttributeColumnClass(verbose_name=attribute.name)
+        column_sequence.append(column_name)
+        
+    # Add actions column
+    table_attrs['actions'] = ActionsColumn(
+        template_name='components/additional_table_actions.html',
+        verbose_name=_('Aktionen'),
+        orderable=False,
+        attrs={
+            'th': {'style': 'width: 120px;'},
+            'td': {'style': 'position: sticky; right: 0; background-color: white; z-index: 1;'}
+        }
+    )
+    column_sequence.append('actions')
+    table_attrs['Meta'].sequence = column_sequence
+    
+    # Create and return the table class
+    return type('DynamicBewerberTable', (tables.Table,), table_attrs), data
+
 
 class BewerberTable(BaseOrgTable):
-    user = tables.Column(verbose_name=_('Benutzer'))
-    application_pdf = tables.Column(verbose_name=_('PDF der Bewerbung'))
-    
+    """Simple BewerberTable for backwards compatibility (no dynamic attributes)"""
     class Meta(BaseOrgTable.Meta):
         model = Bewerber
         fields = ('user', 'application_pdf', 'actions')
-        # fields = ('user', 'application_pdf', 'gegenstand', 'first_wish', 'first_wish_einsatzland', 'first_wish_einsatzstelle', 'second_wish', 'second_wish_einsatzland', 'second_wish_einsatzstelle', 'third_wish', 'actions')
-        
-    def render_application_pdf(self, record):
-        if record.application_pdf:
-            return format_html('<a href="{}" target="_blank"><i class="bi bi-file-earmark-pdf"></i>{}</a>', reverse('application_answer_download', args=[record.id]), _('PDF herunterladen'))
-        
-    def render_user(self, record):
-        url = reverse('profil', args=[record.user.id])
-        return format_html('<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', url, record.user.first_name + ' ' + record.user.last_name)
 
 
 # Mapping of model names to table classes
