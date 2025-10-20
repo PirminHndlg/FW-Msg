@@ -294,7 +294,7 @@ class BewerberTable(BaseOrgTable):
         
     def render_application_pdf(self, record):
         if record.application_pdf:
-            return format_html('<a href="{}" target="_blank"><i class="bi bi-file-earmark-pdf"></i>{}</a>', record.application_pdf.url, _('PDF der Bewerbung'))
+            return format_html('<a href="{}" target="_blank"><i class="bi bi-file-earmark-pdf"></i>{}</a>', reverse('application_answer_download', args=[record.id]), _('PDF herunterladen'))
         
     def render_user(self, record):
         url = reverse('profil', args=[record.user.id])

@@ -45,9 +45,14 @@
                       <span class="badge bg-warning"><i class="bi bi-hourglass-split me-1"></i>In Bearbeitung</span>
                     {% endif %}
                     {% if bewerber.abgeschlossen_am %}
-                      <small class="text-muted ms-2">am {{ bewerber.abgeschlossen_am|date:'d.m.Y H:i' }}</small>
+                      <small class="text-muted ms-2">am {{ bewerber.abgeschlossen_am|date:'d.m. H:i' }}</small>
                     {% endif %}
                   </p>
+                  
+                  <!-- Edit Bewerbung -->
+                  <a href="{% url 'edit_object' 'bewerber' bewerber.id %}?next={% url 'application_detail' bewerber.id %}" class="btn btn-sm btn-outline-primary rounded-3 mt-2">
+                    <i class="bi bi-pencil-square me-2"></i>{% trans "Bearbeiten" %}
+                  </a>
                 </div>
 
                 <div class="col-md-6">
@@ -68,10 +73,9 @@
                   <form method="post">
                     {% csrf_token %}
                     <div class="mt-2">
-                      <h5>//to be named</h5>
-                      <small class="text-muted">Dieses Feld ist für für den aktuellen Stand der Bewerbung. Z.B. "Eingeladen", "Abgelehnt", ...</small>
+                      <small class="text-muted">Aktueller Stand der Bewerbung.</small>
                       <div class="d-flex gap-2">
-                        <input type="text" name="status_comment" value="{{ bewerber.status_comment|default:'' }}" class="form-control">
+                        <input type="text" name="status_comment" value="{{ bewerber.status_comment|default:'' }}" class="form-control" placeholder='Z.B. "Eingeladen", "Abgelehnt", ...'>
                         <button type="submit" class="btn btn-sm btn-outline-primary rounded-3"><i class="bi bi-check-circle me-1"></i></button>
                       </div>
                     </div>
@@ -108,14 +112,16 @@
             </div>
 
             <!-- Text Answers -->
-            {% if application_answers.exists %}
+            {% if application_answers.exists or bewerber.application_pdf %}
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="mb-0">Textantworten</h5>
                 <div class="d-flex gap-2">
                   <a href="{% url 'application_answer_download' bewerber.id %}" class="btn btn-primary rounded-3"><i class="bi bi-file-earmark-text me-2"></i>PDF herunterladen</a>
+                  {% if application_answers.exists %}
                   <button type="button" class="btn btn-primary rounded-3" data-bs-toggle="modal" data-bs-target="#selectQuestionsModal">
-                    <i class="bi bi-file-earmark-text me-2"></i>Ausgewählte Antworten als PDF
-                  </button>
+                      <i class="bi bi-file-earmark-text me-2"></i>Ausgewählte Antworten als PDF
+                    </button>
+                  {% endif %}
                 </div>
               </div>
               <div class="list-group list-group-flush mb-4">

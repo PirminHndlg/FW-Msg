@@ -1639,13 +1639,15 @@ def application_detail(request, id):
 def application_answer_download(request, bewerber_id):
     bewerber = get_object_or_404(Bewerber, id=bewerber_id, org=request.user.org)
     
-    # Generate PDF using the new utils
-    pdf_content = generate_full_application_pdf(bewerber)
-    
     # Create filename
     filename = f"bewerbung_{bewerber.user.first_name}_{bewerber.user.last_name}_{datetime.now().strftime('%Y%m%d')}.pdf"
     filename = "".join(c for c in filename if c.isalnum() or c in (' ', '-', '_', '.')).rstrip()
     filename = filename.replace(' ', '_')
+    
+    if bewerber.application_pdf:
+        pdf_content = bewerber.application_pdf.read()
+    else:
+        pdf_content = generate_full_application_pdf(bewerber)
     
     return create_pdf_response(pdf_content, filename)
 

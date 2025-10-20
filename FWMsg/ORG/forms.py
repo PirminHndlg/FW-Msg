@@ -278,14 +278,28 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
         model = Bewerber
         fields = ['application_pdf']
         exclude = ['org']
-        
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         add_customuser_fields(self, 'B')
         order_fields = ['first_name', 'last_name', 'email', 'person_cluster']
         self.order_fields(order_fields)
         add_person_cluster_field(self)
-        
+        # Allow only PDF uploads for application_pdf
+        self.fields['application_pdf'].widget.attrs.update({'accept': 'application/pdf'})
+        self.fields['application_pdf'].validators.append(self.validate_pdf_only)
+
+    def validate_pdf_only(self, value):
+        """Ensure only PDF files are uploaded"""
+        if value and hasattr(value, 'content_type'):
+            if value.content_type != 'application/pdf':
+                raise forms.ValidationError("Nur PDF-Dateien werden akzeptiert.")
+        elif value and hasattr(value, 'name'):
+            if not value.name.lower().endswith('.pdf'):
+                raise forms.ValidationError("Nur PDF-Dateien werden akzeptiert.")
+        # Allow empty if field is not required
+        return value
+
     def save(self, commit=True):
         if not self.instance.pk:
             save_and_create_customuser(self)
@@ -307,6 +321,10 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
         if self.cleaned_data['email'] != self.instance.user.email:
             self.instance.user.email = self.cleaned_data['email']
             self.instance.user.save()
+            
+        instance.abgeschlossen = True
+        instance.abgeschlossen_am = timezone.now()
+        instance.save()
         
         save_person_cluster_field(self)
         
