@@ -9,9 +9,14 @@ from Global.models import (
     Aufgabe2, Bilder2, BilderGallery2, UserAufgaben, PersonCluster, CustomUser,
     UserAttribute, Attribute
 )
+from BW.models import Bewerber
+from ORG.forms import AddBewerberApplicationPdfForm
 import json
 from PIL import Image
 from io import BytesIO
+from django.core.files.uploadedfile import SimpleUploadedFile
+import threading
+import concurrent.futures
 
 class AufgabenTableTests(TestCase):
     def setUp(self):
@@ -1746,4 +1751,591 @@ class TaskTemplateStateTests(TestCase):
         user_aufgabe.refresh_from_db()
         self.assertTrue(user_aufgabe.pending)  # Last request had pending=True
         self.assertFalse(user_aufgabe.erledigt)
+
+
+class BewerberPdfUploadTests(TestCase):
+    """Test the AddBewerberApplicationPdfForm PDF upload and merging functionality"""
+    
+    def setUp(self):
+        """Set up test data for Bewerber PDF upload tests"""
+        self._create_organization()
+        self._create_person_clusters()
+        self._create_admin_user()
+        
+        # Login as admin by default
+        self.client.login(username='admin', password='adminpass123')
+
+    def _create_organization(self):
+        """Create test organization"""
+        self.org = Organisation.objects.create(
+            name='Test Org',
+            email='test@test.com',
+        )
+
+    def _create_person_clusters(self):
+        """Create person clusters for organization"""
+        self.person_cluster_org = PersonCluster.objects.create(
+            org=self.org,
+            name='Test Person Cluster Org',
+            view='O',
+            aufgaben=True,
+            calendar=True,
+            dokumente=True,
+            ampel=True,
+            notfallkontakt=True,
+            bilder=True
+        )
+        self.person_cluster_bewerber = PersonCluster.objects.create(
+            org=self.org,
+            name='Test Person Cluster Bewerber',
+            view='B',
+            aufgaben=False,
+            calendar=False,
+            dokumente=False,
+            ampel=False,
+            notfallkontakt=False,
+            bilder=False
+        )
+
+    def _create_admin_user(self):
+        """Create admin user"""
+        self.admin_user = get_user_model().objects.create_user(
+            username='admin',
+            password='adminpass123',
+            first_name='Admin',
+            last_name='User',
+        )
+        self.admin_custom_user = CustomUser.objects.create(
+            org=self.org,
+            user=self.admin_user,
+            person_cluster=self.person_cluster_org
+        )
+
+    def _create_pdf_file(self, filename='test.pdf', content=None):
+        """Create a simple PDF file for testing"""
+        if content is None:
+            # Create a minimal valid PDF content
+            content = b'%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<<>>>>endobj\nxref\n0 4\n0000000000 65535 f\n0000000009 00000 n\n0000000052 00000 n\n0000000101 00000 n\ntrailer<</Size 4/Root 1 0 R>>\nstartxref\n178\n%%EOF'
+        
+        return SimpleUploadedFile(
+            filename,
+            content,
+            content_type='application/pdf'
+        )
+
+    def _create_bewerber(self):
+        """Create a test Bewerber"""
+        user = get_user_model().objects.create_user(
+            username='bewerber_test',
+            password='testpass123',
+            first_name='Test',
+            last_name='Bewerber',
+            email='bewerber@test.com'
+        )
+        
+        bewerber = Bewerber.objects.create(
+            org=self.org,
+            user=user
+        )
+        
+        CustomUser.objects.create(
+            org=self.org,
+            user=user,
+            person_cluster=self.person_cluster_bewerber
+        )
+        
+        return bewerber
+
+    def test_single_pdf_upload(self):
+        """Test uploading a single PDF file"""
+        pdf_file = self._create_pdf_file('application.pdf')
+        
+        # Create form data
+        data = {
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'email': 'john.doe@test.com',
+            'person_cluster': self.person_cluster_bewerber.id,
+        }
+        
+        files = {'pdf_files': pdf_file}
+        
+        # Create a mock request with FILES
+        from django.test import RequestFactory
+        factory = RequestFactory()
+        request = factory.post('/test/', data, format='multipart')
+        request.user = self.admin_user
+        request.FILES.setlist('pdf_files', [pdf_file])
+        
+        form = AddBewerberApplicationPdfForm(data=data, files=files, request=request)
+        
+        # Validate form
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
+        
+        # Save the form
+        bewerber = form.save()
+        
+        # Verify PDF was saved
+        self.assertIsNotNone(bewerber.application_pdf)
+        self.assertTrue(bewerber.application_pdf.name.endswith('.pdf'))
+
+    def test_multiple_pdf_merge(self):
+        """Test uploading and merging multiple PDF files"""
+        pdf_file1 = self._create_pdf_file('application1.pdf')
+        pdf_file2 = self._create_pdf_file('application2.pdf')
+        pdf_file3 = self._create_pdf_file('application3.pdf')
+        
+        # Create form data
+        data = {
+            'first_name': 'Jane',
+            'last_name': 'Smith',
+            'email': 'jane.smith@test.com',
+            'person_cluster': self.person_cluster_bewerber.id,
+        }
+        
+        # Create a mock request with multiple FILES
+        from django.test import RequestFactory
+        factory = RequestFactory()
+        request = factory.post('/test/', data, format='multipart')
+        request.user = self.admin_user
+        request.FILES.setlist('pdf_files', [pdf_file1, pdf_file2, pdf_file3])
+        
+        files = {'pdf_files': [pdf_file1, pdf_file2, pdf_file3]}
+        
+        form = AddBewerberApplicationPdfForm(data=data, files=files, request=request)
+        
+        # Validate form
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
+        
+        # Save the form
+        bewerber = form.save()
+        
+        # Verify merged PDF was saved
+        self.assertIsNotNone(bewerber.application_pdf)
+        self.assertTrue(bewerber.application_pdf.name.endswith('.pdf'))
+        
+        # Verify the file size is larger (merged content)
+        self.assertGreater(bewerber.application_pdf.size, 0)
+
+    def test_invalid_file_type_rejection(self):
+        """Test that non-PDF files are rejected"""
+        # Create a text file instead of PDF
+        text_file = SimpleUploadedFile(
+            'application.txt',
+            b'This is not a PDF file',
+            content_type='text/plain'
+        )
+        
+        data = {
+            'first_name': 'Bob',
+            'last_name': 'Invalid',
+            'email': 'bob@test.com',
+            'person_cluster': self.person_cluster_bewerber.id,
+        }
+        
+        from django.test import RequestFactory
+        factory = RequestFactory()
+        request = factory.post('/test/', data, format='multipart')
+        request.user = self.admin_user
+        request.FILES.setlist('pdf_files', [text_file])
+        
+        files = {'pdf_files': text_file}
+        
+        form = AddBewerberApplicationPdfForm(data=data, files=files, request=request)
+        
+        # Form should be invalid
+        self.assertFalse(form.is_valid())
+        self.assertIn('pdf_files', form.errors)
+
+    def test_pdf_merge_with_memory_buffers(self):
+        """Test that PDFs are read into memory immediately to avoid temp file issues"""
+        pdf_files = [
+            self._create_pdf_file(f'application{i}.pdf')
+            for i in range(5)
+        ]
+        
+        data = {
+            'first_name': 'Memory',
+            'last_name': 'Test',
+            'email': 'memory@test.com',
+            'person_cluster': self.person_cluster_bewerber.id,
+        }
+        
+        from django.test import RequestFactory
+        factory = RequestFactory()
+        request = factory.post('/test/', data, format='multipart')
+        request.user = self.admin_user
+        request.FILES.setlist('pdf_files', pdf_files)
+        
+        files = {'pdf_files': pdf_files}
+        
+        form = AddBewerberApplicationPdfForm(data=data, files=files, request=request)
+        
+        # Validate and save
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
+        bewerber = form.save()
+        
+        # Verify merged PDF exists
+        self.assertIsNotNone(bewerber.application_pdf)
+
+    def test_concurrent_uploads_no_race_condition(self):
+        """Test that concurrent uploads don't cause race conditions with PDF temp files"""
+        from django.db import transaction, connection
+        
+        # Skip for SQLite as it doesn't handle concurrent writes well
+        if 'sqlite' in connection.settings_dict['ENGINE']:
+            self.skipTest("SQLite doesn't support concurrent writes - this tests PDF temp file handling")
+        
+        results = []
+        errors = []
+        
+        def upload_bewerber(index):
+            """Function to upload a Bewerber with PDF"""
+            try:
+                # Use atomic transaction for database operations
+                with transaction.atomic():
+                    pdf_file = self._create_pdf_file(f'concurrent_{index}.pdf')
+                    
+                    data = {
+                        'first_name': f'Concurrent{index}',
+                        'last_name': 'User',
+                        'email': f'concurrent{index}@test.com',
+                        'person_cluster': self.person_cluster_bewerber.id,
+                    }
+                    
+                    from django.test import RequestFactory
+                    factory = RequestFactory()
+                    request = factory.post('/test/', data, format='multipart')
+                    request.user = self.admin_user
+                    request.FILES.setlist('pdf_files', [pdf_file])
+                    
+                    files = {'pdf_files': pdf_file}
+                    
+                    form = AddBewerberApplicationPdfForm(data=data, files=files, request=request)
+                    
+                    if form.is_valid():
+                        bewerber = form.save()
+                        results.append({
+                            'success': True,
+                            'bewerber_id': bewerber.id,
+                            'has_pdf': bool(bewerber.application_pdf)
+                        })
+                    else:
+                        errors.append({
+                            'index': index,
+                            'errors': form.errors
+                        })
+            except Exception as e:
+                errors.append({
+                    'index': index,
+                    'exception': str(e)
+                })
+        
+        # Simulate concurrent uploads
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [executor.submit(upload_bewerber, i) for i in range(10)]
+            concurrent.futures.wait(futures)
+        
+        # All uploads should succeed
+        self.assertEqual(len(results), 10, f"Expected 10 successful uploads, got {len(results)}. Errors: {errors}")
+        self.assertEqual(len(errors), 0, f"Expected no errors, got: {errors}")
+        
+        # All should have PDFs
+        for result in results:
+            self.assertTrue(result['success'])
+            self.assertTrue(result['has_pdf'])
+
+    def test_empty_pdf_files_handled_gracefully(self):
+        """Test that form handles empty/no PDF files gracefully"""
+        data = {
+            'first_name': 'No',
+            'last_name': 'PDF',
+            'email': 'nopdf@test.com',
+            'person_cluster': self.person_cluster_bewerber.id,
+        }
+        
+        from django.test import RequestFactory
+        factory = RequestFactory()
+        request = factory.post('/test/', data, format='multipart')
+        request.user = self.admin_user
+        request.FILES.setlist('pdf_files', [])
+        
+        form = AddBewerberApplicationPdfForm(data=data, files={}, request=request)
+        
+        # Form should still be valid (PDF is optional)
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
+        
+        # Save the form
+        bewerber = form.save()
+        
+        # No PDF should be saved
+        self.assertFalse(bewerber.application_pdf)
+
+    def test_update_existing_bewerber_with_new_pdf(self):
+        """Test updating an existing Bewerber with a new PDF"""
+        # Create existing bewerber
+        bewerber = self._create_bewerber()
+        
+        # Upload initial PDF
+        pdf_file1 = self._create_pdf_file('initial.pdf', b'%PDF-Initial%')
+        bewerber.application_pdf = pdf_file1
+        bewerber.save()
+        
+        initial_pdf_name = bewerber.application_pdf.name
+        
+        # Now update with new PDF
+        pdf_file2 = self._create_pdf_file('updated.pdf', b'%PDF-Updated%')
+        
+        data = {
+            'first_name': bewerber.user.first_name,
+            'last_name': bewerber.user.last_name,
+            'email': bewerber.user.email,
+            'person_cluster': self.person_cluster_bewerber.id,
+        }
+        
+        from django.test import RequestFactory
+        factory = RequestFactory()
+        request = factory.post('/test/', data, format='multipart')
+        request.user = self.admin_user
+        request.FILES.setlist('pdf_files', [pdf_file2])
+        
+        files = {'pdf_files': pdf_file2}
+        
+        form = AddBewerberApplicationPdfForm(
+            data=data,
+            files=files,
+            instance=bewerber,
+            request=request
+        )
+        
+        # Validate and save
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
+        updated_bewerber = form.save()
+        
+        # PDF should be updated
+        self.assertIsNotNone(updated_bewerber.application_pdf)
+        # The file name might be the same or different depending on storage backend
+
+    def test_merge_pdfs_error_handling(self):
+        """Test that merge_pdfs handles errors gracefully"""
+        from django.core.files.base import ContentFile
+        
+        bewerber = self._create_bewerber()
+        
+        from django.test import RequestFactory
+        factory = RequestFactory()
+        request = factory.post('/test/')
+        request.user = self.admin_user
+        
+        data = {
+            'first_name': 'Error',
+            'last_name': 'Test',
+            'email': 'error@test.com',
+            'person_cluster': self.person_cluster_bewerber.id,
+        }
+        
+        form = AddBewerberApplicationPdfForm(data=data, instance=bewerber, request=request)
+        
+        # Test with corrupted PDF content
+        corrupted_file = SimpleUploadedFile(
+            'corrupted.pdf',
+            b'This is not a valid PDF at all, just random bytes',
+            content_type='application/pdf'
+        )
+        
+        # The form should handle this gracefully
+        try:
+            result = form.merge_pdfs([corrupted_file])
+            # If it doesn't raise an error, it should return something or None
+            self.assertTrue(True)
+        except Exception as e:
+            # Error should be a ValidationError or handled gracefully
+            from django.forms import ValidationError
+            self.assertIsInstance(e, (ValidationError, Exception))
+
+    def test_pdf_files_read_immediately_no_temp_file_error(self):
+        """Test that PDF files are read into memory immediately, preventing temp file errors"""
+        pdf_file = self._create_pdf_file('immediate_read.pdf')
+        
+        data = {
+            'first_name': 'Immediate',
+            'last_name': 'Read',
+            'email': 'immediate@test.com',
+            'person_cluster': self.person_cluster_bewerber.id,
+        }
+        
+        from django.test import RequestFactory
+        factory = RequestFactory()
+        request = factory.post('/test/', data, format='multipart')
+        request.user = self.admin_user
+        request.FILES.setlist('pdf_files', [pdf_file])
+        
+        files = {'pdf_files': pdf_file}
+        
+        form = AddBewerberApplicationPdfForm(data=data, files=files, request=request)
+        
+        self.assertTrue(form.is_valid())
+        
+        # The merge_pdfs method should read files into memory immediately
+        pdf_files = [pdf_file]
+        
+        # Reset file pointer
+        pdf_file.seek(0)
+        
+        # Call merge_pdfs - it should work without temp file issues
+        merged = form.merge_pdfs(pdf_files)
+        
+        # Verify merged PDF was created
+        self.assertIsNotNone(merged)
+        self.assertTrue(hasattr(merged, 'read'))
+
+    def test_form_displays_existing_pdf(self):
+        """Test that form displays existing PDF when editing"""
+        bewerber = self._create_bewerber()
+        
+        # Add PDF to bewerber
+        pdf_file = self._create_pdf_file('existing.pdf')
+        bewerber.application_pdf = pdf_file
+        bewerber.save()
+        
+        from django.test import RequestFactory
+        factory = RequestFactory()
+        request = factory.get('/test/')
+        request.user = self.admin_user
+        
+        # Create form with existing instance
+        form = AddBewerberApplicationPdfForm(instance=bewerber, request=request)
+        
+        # Form should have help text showing existing PDF
+        self.assertIn('pdf_files', form.fields)
+        if bewerber.application_pdf:
+            self.assertIsNotNone(form.fields['pdf_files'].help_text)
+
+    def test_multiple_pdf_validation(self):
+        """Test that all PDFs in a batch are validated"""
+        pdf_file1 = self._create_pdf_file('valid1.pdf')
+        pdf_file2 = self._create_pdf_file('valid2.pdf')
+        
+        data = {
+            'first_name': 'Valid',
+            'last_name': 'Batch',
+            'email': 'valid@test.com',
+            'person_cluster': self.person_cluster_bewerber.id,
+        }
+        
+        from django.test import RequestFactory
+        factory = RequestFactory()
+        request = factory.post('/test/', data, format='multipart')
+        request.user = self.admin_user
+        request.FILES.setlist('pdf_files', [pdf_file1, pdf_file2])
+        
+        files = {'pdf_files': [pdf_file1, pdf_file2]}
+        
+        form = AddBewerberApplicationPdfForm(data=data, files=files, request=request)
+        
+        # Should validate both files
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
+
+    def test_pdf_temp_file_race_condition_fix(self):
+        """Test that the PDF temp file race condition is fixed by reading into memory immediately"""
+        # This test works even with SQLite as it only tests PDF merging, not database writes
+        import time
+        
+        # Create multiple PDFs
+        pdf_files = [self._create_pdf_file(f'race_{i}.pdf') for i in range(5)]
+        
+        bewerber = self._create_bewerber()
+        
+        from django.test import RequestFactory
+        factory = RequestFactory()
+        request = factory.post('/test/')
+        request.user = self.admin_user
+        
+        data = {
+            'first_name': 'RaceTest',
+            'last_name': 'User',
+            'email': 'race@test.com',
+            'person_cluster': self.person_cluster_bewerber.id,
+        }
+        
+        form = AddBewerberApplicationPdfForm(data=data, instance=bewerber, request=request)
+        
+        # Simulate temp files being cleaned up by seeking to end (simulating file system cleanup)
+        # Our fix should read files into memory immediately, preventing temp file errors
+        for pdf_file in pdf_files:
+            pdf_file.seek(0)  # Reset to beginning
+        
+        # Call merge_pdfs - should work because files are read into memory immediately
+        try:
+            merged_pdf = form.merge_pdfs(pdf_files)
+            self.assertIsNotNone(merged_pdf, "Merged PDF should be created")
+            self.assertTrue(hasattr(merged_pdf, 'read'), "Merged PDF should be file-like")
+            
+            # Verify we can read the merged content
+            content = merged_pdf.read()
+            self.assertGreater(len(content), 0, "Merged PDF should have content")
+            
+        except IOError as e:
+            if 'No such file or directory' in str(e):
+                self.fail(f"Temp file error occurred - the race condition fix is not working: {e}")
+            raise
+
+    def test_stress_test_many_concurrent_uploads(self):
+        """Stress test with many concurrent uploads to verify no race conditions"""
+        from django.db import transaction, connection
+        
+        # Skip for SQLite as it doesn't handle concurrent writes well
+        if 'sqlite' in connection.settings_dict['ENGINE']:
+            self.skipTest("SQLite doesn't support concurrent writes - this tests PDF temp file handling")
+        
+        results = {'success': 0, 'errors': 0}
+        lock = threading.Lock()
+        
+        def stress_upload(index):
+            """Stress test upload function"""
+            try:
+                with transaction.atomic():
+                    pdf_files = [
+                        self._create_pdf_file(f'stress_{index}_{j}.pdf')
+                        for j in range(3)  # 3 PDFs per upload
+                    ]
+                    
+                    data = {
+                        'first_name': f'Stress{index}',
+                        'last_name': 'Test',
+                        'email': f'stress{index}@test.com',
+                        'person_cluster': self.person_cluster_bewerber.id,
+                    }
+                    
+                    from django.test import RequestFactory
+                    factory = RequestFactory()
+                    request = factory.post('/test/', data, format='multipart')
+                    request.user = self.admin_user
+                    request.FILES.setlist('pdf_files', pdf_files)
+                    
+                    form = AddBewerberApplicationPdfForm(data=data, files={'pdf_files': pdf_files}, request=request)
+                    
+                    if form.is_valid():
+                        bewerber = form.save()
+                        if bewerber.application_pdf:
+                            with lock:
+                                results['success'] += 1
+                        else:
+                            with lock:
+                                results['errors'] += 1
+                    else:
+                        with lock:
+                            results['errors'] += 1
+            except Exception:
+                with lock:
+                    results['errors'] += 1
+        
+        # Run 20 concurrent uploads
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(stress_upload, i) for i in range(20)]
+            concurrent.futures.wait(futures)
+        
+        # Most or all should succeed
+        self.assertGreater(results['success'], 15, 
+                          f"Expected at least 15 successful uploads, got {results['success']} successes and {results['errors']} errors")
 

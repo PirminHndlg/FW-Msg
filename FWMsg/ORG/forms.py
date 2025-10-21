@@ -386,42 +386,94 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
         if not pdf_files:
             return None
         
-        # If only one file, return it as is
+        # Filter out None values
+        pdf_files = [f for f in pdf_files if f]
+        
+        if not pdf_files:
+            return None
+        
+        # If only one file, read it into memory and return
         if len(pdf_files) == 1:
-            return pdf_files[0]
+            pdf_file = pdf_files[0]
+            pdf_file.seek(0)
+            file_content = pdf_file.read()
+            return ContentFile(file_content, name=pdf_file.name)
         
         # Merge multiple PDFs
         merger = PdfMerger()
+        file_buffers = []
         
         try:
+            # Read all files into memory immediately to avoid temp file cleanup issues
             for pdf_file in pdf_files:
-                # Reset file pointer to beginning
-                pdf_file.seek(0)
-                merger.append(pdf_file)
+                try:
+                    # Read the entire file into a BytesIO buffer
+                    pdf_file.seek(0)
+                    file_data = pdf_file.read()
+                    buffer = io.BytesIO(file_data)
+                    file_buffers.append(buffer)
+                except Exception as read_error:
+                    # Log individual file read errors
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Error reading PDF file {getattr(pdf_file, 'name', 'unknown')}: {str(read_error)}")
+                    raise forms.ValidationError(f"Fehler beim Lesen der Datei '{getattr(pdf_file, 'name', 'unknown')}'. Bitte versuchen Sie es erneut.")
+            
+            # Now merge from the in-memory buffers
+            for buffer in file_buffers:
+                buffer.seek(0)
+                merger.append(buffer)
             
             # Write merged PDF to a BytesIO object
             output = io.BytesIO()
             merger.write(output)
-            merger.close()
             
             # Reset pointer to beginning
             output.seek(0)
             
             # Create a ContentFile from the merged PDF
             merged_filename = f"bewerbung_{pdf_files[0].name}"
-            return ContentFile(output.read(), name=merged_filename)
+            result = ContentFile(output.read(), name=merged_filename)
             
+            return result
+            
+        except forms.ValidationError:
+            # Re-raise validation errors as-is
+            raise
         except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error merging PDFs: {str(e)}", exc_info=True)
             raise forms.ValidationError(f"Fehler beim Zusammenführen der PDFs: {str(e)}")
+        finally:
+            # Always cleanup resources
+            try:
+                merger.close()
+            except:
+                pass
+            
+            # Close all buffers
+            for buffer in file_buffers:
+                try:
+                    buffer.close()
+                except:
+                    pass
     
     def clean_pdf_files(self):
         """Validate PDF files from request"""
         # The MultipleFileField already handles getting the files
         files = self.cleaned_data.get('pdf_files', [])
         
+        # Handle None case
+        if files is None:
+            return []
+        
         # Ensure files is always a list
-        if files and not isinstance(files, list):
-            files = [files]
+        if not isinstance(files, list):
+            files = [files] if files else []
+        
+        # Filter out None/empty values
+        files = [f for f in files if f]
         
         if files:
             self.validate_pdf_files(files)
@@ -444,9 +496,17 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
         # Handle PDF files - merge if multiple files uploaded
         pdf_files = self.cleaned_data.get('pdf_files')
         if pdf_files:
-            merged_pdf = self.merge_pdfs(pdf_files)
-            if merged_pdf:
-                self.instance.application_pdf = merged_pdf
+            try:
+                merged_pdf = self.merge_pdfs(pdf_files)
+                if merged_pdf:
+                    self.instance.application_pdf = merged_pdf
+            except Exception as e:
+                # Log the error for debugging in production
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error merging PDFs for Bewerber: {str(e)}", exc_info=True)
+                # Re-raise as a validation error so user gets feedback
+                raise forms.ValidationError(f"Fehler beim Verarbeiten der PDF-Dateien. Bitte versuchen Sie es erneut.")
 
         instance = super().save(commit=commit)
         
