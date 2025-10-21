@@ -302,7 +302,7 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
         widget=MultipleFileInput(attrs={'accept': 'application/pdf'}),
         required=False,
         label='PDF-Dateien der Bewerbung',
-        help_text='Sie können mehrere PDF-Dateien auswählen. Diese werden zu einer einzigen PDF zusammengeführt.'
+        help_text='Mehrere PDF-Dateien können ausgewählt werden. Diese werden zu einer einzigen PDF zusammengeführt.'
     )
     
     class Meta:
@@ -333,6 +333,24 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
                 f'<p>Aktuelles Profilbild:</p>'
                 f'<img src="{picture_url}" alt="Profilbild" style="max-width: 200px; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">'
                 f'</div>'
+            )
+        
+        # Show existing application PDF if it exists
+        if self.instance.pk and self.instance.application_pdf:
+            from django.urls import reverse
+            from django.utils.safestring import mark_safe
+            pdf_url = reverse('application_answer_download', args=[self.instance.id])
+            self.fields['pdf_files'].help_text = mark_safe(
+                f'<div style="margin-top: 10px; padding: 12px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #007bff;">'
+                f'<p style="margin-bottom: 8px;"><strong>Aktuelles Bewerbungs-PDF:</strong></p>'
+                f'<a href="{pdf_url}" target="_blank" class="btn btn-sm btn-outline-primary" style="text-decoration: none;">'
+                f'<i class="bi bi-file-earmark-pdf me-1"></i>PDF herunterladen'
+                f'</a>'
+                f'<p style="margin-top: 8px; margin-bottom: 0; font-size: 0.875rem; color: #6c757d;">'
+                f'Wenn neue PDFs hochgeladen werden, wird das aktuelle PDF ersetzt.'
+                f'</p>'
+                f'</div>'
+                f'<div style="margin-top: 5px;">{self.fields["pdf_files"].help_text or ""}</div>'
             )
         
         add_person_cluster_field(self)
