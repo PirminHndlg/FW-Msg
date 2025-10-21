@@ -22,6 +22,25 @@ from TEAM.models import Team
 from BW.models import ApplicationText, ApplicationQuestion, ApplicationFileQuestion, Bewerber
 
 
+# Custom widget for multiple file uploads
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            result = [single_file_clean(d, initial) for d in data]
+        else:
+            result = single_file_clean(data, initial)
+        return result
+
+
 class OrgFormMixin:
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
@@ -278,19 +297,24 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
 
 # Form to create a new Bewerber and upload the application PDF
 class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
+    # Custom field for multiple PDF uploads
+    pdf_files = MultipleFileField(
+        widget=MultipleFileInput(attrs={'accept': 'application/pdf'}),
+        required=False,
+        label='PDF-Dateien der Bewerbung',
+        help_text='Sie können mehrere PDF-Dateien auswählen. Diese werden zu einer einzigen PDF zusammengeführt.'
+    )
+    
     class Meta:
         model = Bewerber
-        fields = ['application_pdf']
-        exclude = ['org']
+        fields = []
+        exclude = ['org', 'application_pdf']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         add_customuser_fields(self, 'B')
-        order_fields = ['first_name', 'last_name', 'email', 'person_cluster']
+        order_fields = ['first_name', 'last_name', 'email', 'person_cluster', 'pdf_files']
         self.order_fields(order_fields)
-        # Allow only PDF uploads for application_pdf
-        self.fields['application_pdf'].widget.attrs.update({'accept': 'application/pdf'})
-        self.fields['application_pdf'].validators.append(self.validate_pdf_only)
         
         # Separate, non-model field for profile picture upload
         self.fields['profil_picture'] = forms.ImageField(required=False)
@@ -324,16 +348,67 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
                 raise forms.ValidationError("Nur Bilddateien werden akzeptiert.")
         return value
 
-    def validate_pdf_only(self, value):
-        """Ensure only PDF files are uploaded"""
-        if value and hasattr(value, 'content_type'):
-            if value.content_type != 'application/pdf':
-                raise forms.ValidationError("Nur PDF-Dateien werden akzeptiert.")
-        elif value and hasattr(value, 'name'):
-            if not value.name.lower().endswith('.pdf'):
-                raise forms.ValidationError("Nur PDF-Dateien werden akzeptiert.")
-        # Allow empty if field is not required
-        return value
+    def validate_pdf_files(self, files):
+        """Validate that all uploaded files are PDFs"""
+        for file in files:
+            if hasattr(file, 'content_type'):
+                if file.content_type != 'application/pdf':
+                    raise forms.ValidationError(f"Die Datei '{file.name}' ist kein PDF. Nur PDF-Dateien werden akzeptiert.")
+            elif hasattr(file, 'name'):
+                if not file.name.lower().endswith('.pdf'):
+                    raise forms.ValidationError(f"Die Datei '{file.name}' ist kein PDF. Nur PDF-Dateien werden akzeptiert.")
+        return files
+    
+    def merge_pdfs(self, pdf_files):
+        """Merge multiple PDF files into a single PDF"""
+        from PyPDF2 import PdfMerger
+        from django.core.files.base import ContentFile
+        import io
+        
+        if not pdf_files:
+            return None
+        
+        # If only one file, return it as is
+        if len(pdf_files) == 1:
+            return pdf_files[0]
+        
+        # Merge multiple PDFs
+        merger = PdfMerger()
+        
+        try:
+            for pdf_file in pdf_files:
+                # Reset file pointer to beginning
+                pdf_file.seek(0)
+                merger.append(pdf_file)
+            
+            # Write merged PDF to a BytesIO object
+            output = io.BytesIO()
+            merger.write(output)
+            merger.close()
+            
+            # Reset pointer to beginning
+            output.seek(0)
+            
+            # Create a ContentFile from the merged PDF
+            merged_filename = f"bewerbung_{pdf_files[0].name}"
+            return ContentFile(output.read(), name=merged_filename)
+            
+        except Exception as e:
+            raise forms.ValidationError(f"Fehler beim Zusammenführen der PDFs: {str(e)}")
+    
+    def clean_pdf_files(self):
+        """Validate PDF files from request"""
+        # The MultipleFileField already handles getting the files
+        files = self.cleaned_data.get('pdf_files', [])
+        
+        # Ensure files is always a list
+        if files and not isinstance(files, list):
+            files = [files]
+        
+        if files:
+            self.validate_pdf_files(files)
+        
+        return files
 
     def save(self, commit=True):
         if not self.instance.pk:
@@ -347,6 +422,13 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
             self.instance.user.customuser.profil_picture = self.cleaned_data['profil_picture']
             self.instance.user.customuser.create_small_image()
             self.instance.user.customuser.save()
+
+        # Handle PDF files - merge if multiple files uploaded
+        pdf_files = self.cleaned_data.get('pdf_files')
+        if pdf_files:
+            merged_pdf = self.merge_pdfs(pdf_files)
+            if merged_pdf:
+                self.instance.application_pdf = merged_pdf
 
         instance = super().save(commit=commit)
         
