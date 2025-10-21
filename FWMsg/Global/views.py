@@ -1009,7 +1009,7 @@ def serve_profil_picture(request, user_id):
         if if_none_match and if_none_match.strip('"') == etag:
             not_modified = HttpResponse(status=304)
             not_modified['ETag'] = f'"{etag}"'
-            not_modified['Cache-Control'] = 'public, max-age=86400, immutable'
+            not_modified['Cache-Control'] = 'public, max-age=86400'
             not_modified['Last-Modified'] = last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT')
             return not_modified
 
@@ -1017,10 +1017,11 @@ def serve_profil_picture(request, user_id):
         if if_modified_since:
             try:
                 ims_dt = datetime.strptime(if_modified_since, '%a, %d %b %Y %H:%M:%S GMT')
+                ims_dt = ims_dt.replace(tzinfo=dt_timezone.utc)
                 if last_modified <= ims_dt:
                     not_modified = HttpResponse(status=304)
                     not_modified['ETag'] = f'"{etag}"'
-                    not_modified['Cache-Control'] = 'public, max-age=86400, immutable'
+                    not_modified['Cache-Control'] = 'public, max-age=86400'
                     not_modified['Last-Modified'] = last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT')
                     return not_modified
             except Exception:
@@ -1032,7 +1033,7 @@ def serve_profil_picture(request, user_id):
             response['Content-Disposition'] = f'inline; filename="{os.path.basename(download_name)}"'
             response['ETag'] = f'"{etag}"'
             response['Last-Modified'] = last_modified.strftime('%a, %d %b %Y %H:%M:%S GMT')
-            response['Cache-Control'] = 'public, max-age=86400, immutable'
+            response['Cache-Control'] = 'public, max-age=86400'
             return response
 
     if requested_user.org != request.user.org:
@@ -1062,7 +1063,17 @@ def serve_profil_picture(request, user_id):
                 # Return a simple 404 or placeholder
                 return HttpResponseNotFound('Default profile picture not found')
 
-    return _serve_cached_image(requested_user.customuser.profil_picture.path, requested_user.customuser.profil_picture.name)
+    # Serve profile picture without caching
+    file_path = requested_user.customuser.profil_picture.path
+    mime_type = mimetypes.guess_type(file_path)[0] or 'application/octet-stream'
+    with open(file_path, 'rb') as img_file:
+        response = HttpResponse(img_file.read(), content_type=mime_type)
+        response['Content-Disposition'] = f'inline; filename="{os.path.basename(requested_user.customuser.profil_picture.name)}"'
+        # Disable all caching
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+        return response
 
 
 def unsubscribe_mail_notifications(request, user_id, auth_key):
