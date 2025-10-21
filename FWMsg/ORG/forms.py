@@ -296,8 +296,20 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
         self.fields['profil_picture'] = forms.ImageField(required=False)
         self.fields['profil_picture'].widget = forms.FileInput(attrs={'accept': 'image/*'})
         self.fields['profil_picture'].validators.append(self.validate_image_only)
-        
         self.fields['profil_picture'].label = 'Profilbild'
+        self.fields['profil_picture'].initial = self.instance.user.customuser.profil_picture
+        
+        # Show existing profile picture if it exists
+        if self.instance.pk and self.instance.user.customuser.profil_picture:
+            from django.urls import reverse
+            from django.utils.safestring import mark_safe
+            picture_url = reverse('serve_profil_picture', kwargs={'user_id': self.instance.user.id})
+            self.fields['profil_picture'].help_text = mark_safe(
+                f'<div style="margin-top: 10px;">'
+                f'<p>Aktuelles Profilbild:</p>'
+                f'<img src="{picture_url}" alt="Profilbild" style="max-width: 200px; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">'
+                f'</div>'
+            )
         
         add_person_cluster_field(self)
         
@@ -329,9 +341,11 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
             self.instance.save()
         else:
             self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
-            if self.cleaned_data.get('profil_picture'):
-                self.instance.user.customuser.profil_picture = self.cleaned_data['profil_picture']
-                self.instance.user.customuser.create_small_image()
+            self.instance.user.customuser.save()
+            
+        if self.cleaned_data.get('profil_picture'):
+            self.instance.user.customuser.profil_picture = self.cleaned_data['profil_picture']
+            self.instance.user.customuser.create_small_image()
             self.instance.user.customuser.save()
 
         instance = super().save(commit=commit)
