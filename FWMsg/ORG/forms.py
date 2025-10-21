@@ -321,7 +321,7 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
         self.fields['profil_picture'].widget = forms.FileInput(attrs={'accept': 'image/*'})
         self.fields['profil_picture'].validators.append(self.validate_image_only)
         self.fields['profil_picture'].label = 'Profilbild'
-        self.fields['profil_picture'].initial = self.instance.user.customuser.profil_picture
+        self.fields['profil_picture'].initial = self.instance.user.customuser.profil_picture if self.instance and self.instance.pk else None
         
         # Show existing profile picture if it exists
         if self.instance.pk and self.instance.user.customuser.profil_picture:
