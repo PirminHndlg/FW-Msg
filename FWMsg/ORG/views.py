@@ -1215,9 +1215,11 @@ def _create_ampel_matrix(freiwillige, months, ampel_entries):
         month_key = entry.date.strftime("%b %y")
         if month_key in months and entry.user in freiwillige:
             matrix[entry.user][month_key].append({
+                'id': entry.id,
                 'status': entry.status,
                 'comment': entry.comment,
-                'date': entry.date.strftime("%d.%m.%y %H:%M")
+                'date': entry.date.strftime("%d.%m.%y %H:%M"),
+                'read': entry.read
             })
             
     return matrix
