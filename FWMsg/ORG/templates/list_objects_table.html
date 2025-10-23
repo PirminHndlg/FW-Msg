@@ -156,6 +156,10 @@
         if (event.ctrlKey || event.metaKey) {
             return;
         }
+        // ignore when input is focused
+        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.tagName === 'SELECT') {
+            return;
+        }
         if (event.key === 'f' && event.target.id !== 'search-input') {
             event.preventDefault();
             document.getElementById('search-input').focus();
