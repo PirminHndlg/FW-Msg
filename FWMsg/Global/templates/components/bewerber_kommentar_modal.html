@@ -152,8 +152,6 @@ function open_bewerber_kommentar_modal(button, bewerber_id) {
                 <div>
                     <h5 class="modal-title mb-0">${data.bewerber.first_name} ${data.bewerber.last_name}</h5>
                     <small class="text-muted">
-                        <i class="bi bi-person-badge me-1"></i>{% trans "Bewerber:in" %} #${data.bewerber.id}
-                        <span class="mx-2">•</span>
                         <i class="bi bi-chat-left-text me-1"></i>${data.comments.length} {% trans "Kommentare" %}
                     </small>
                 </div>
