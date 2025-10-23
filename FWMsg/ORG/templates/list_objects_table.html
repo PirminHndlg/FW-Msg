@@ -92,6 +92,11 @@
 <!-- Include delete modal -->
 {% include "components/cascade_modal.html" %}
 
+{% if model_name == 'bewerber' %}
+<!-- Include bewerber kommentar modal -->
+{% include "components/bewerber_kommentar_modal.html" %}
+{% endif %}
+
 {% endif %}
 
 <script>

@@ -2009,6 +2009,100 @@ def bewerber_kommentar(request, bewerber_id):
     except Exception as e:
         messages.error(request, f'Fehler: {e}')
         return redirect('index_home')
+
+
+@login_required
+@required_role('O')
+def api_bewerber_kommentare(request, bewerber_id):
+    """
+    API endpoint for bewerber comments.
+    GET: Retrieve all comments for a bewerber
+    POST: Create a new comment for a bewerber
+    """
+    try:
+        bewerber = Bewerber.objects.get(id=bewerber_id, org=request.user.org)
+    except Bewerber.DoesNotExist:
+        return JsonResponse({'error': 'Bewerber nicht gefunden'}, status=404)
+    
+    # Handle GET request - fetch all comments
+    if request.method == 'GET':
+        # Get all comments for this bewerber
+        comments = BewerberKommentar.objects.filter(
+            bewerber=bewerber,
+            org=request.user.org
+        ).select_related('user').order_by('-date_created')
+        
+        # Format comments data
+        comments_data = []
+        for comment in comments:
+            comments_data.append({
+                'id': comment.id,
+                'comment': comment.comment,
+                'date_created': comment.date_created.strftime('%d.%m.%Y %H:%M') if comment.date_created else '',
+                'user': {
+                    'id': comment.user.id,
+                    'full_name': comment.user.get_full_name() or comment.user.username,
+                    'profile_picture_url': reverse('serve_profil_picture', args=[comment.user.id])
+                }
+            })
+        
+        # Return response
+        return JsonResponse({
+            'success': True,
+            'bewerber': {
+                'id': bewerber.id,
+                'first_name': bewerber.user.first_name,
+                'last_name': bewerber.user.last_name,
+                'profile_picture_url': reverse('serve_profil_picture', args=[bewerber.user.id])
+            },
+            'comments': comments_data
+        })
+    
+    # Handle POST request - create new comment
+    elif request.method == 'POST':
+        try:
+            # Parse JSON body
+            data = json.loads(request.body)
+            comment_text = data.get('comment', '').strip()
+            
+            # Validate comment
+            if not comment_text:
+                return JsonResponse({'error': 'Kommentar darf nicht leer sein'}, status=400)
+            
+            if len(comment_text) > 5000:
+                return JsonResponse({'error': 'Kommentar ist zu lang (max. 5000 Zeichen)'}, status=400)
+            
+            # Create comment
+            kommentar = BewerberKommentar.objects.create(
+                bewerber=bewerber,
+                org=request.user.org,
+                user=request.user,
+                comment=comment_text
+            )
+            
+            # Return success response with comment data
+            return JsonResponse({
+                'success': True,
+                'message': 'Kommentar erfolgreich erstellt',
+                'comment': {
+                    'id': kommentar.id,
+                    'comment': kommentar.comment,
+                    'date_created': kommentar.date_created.strftime('%d.%m.%Y %H:%M') if kommentar.date_created else '',
+                    'user': {
+                        'id': kommentar.user.id,
+                        'full_name': kommentar.user.get_full_name() or kommentar.user.username,
+                        'profile_picture_url': reverse('serve_profil_picture', args=[kommentar.user.id])
+                    }
+                }
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Ungültige JSON-Daten'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': f'Fehler beim Erstellen des Kommentars: {str(e)}'}, status=500)
+    
+    else:
+        return JsonResponse({'error': 'Methode nicht erlaubt'}, status=405)
     
 
 @login_required

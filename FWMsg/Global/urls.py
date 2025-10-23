@@ -74,6 +74,9 @@ urlpatterns = [
     path('bewerber/files/download/<int:file_answer_id>/', views.bw_application_file_answer_download, name='bw_application_file_answer_download'),
     path('bewerber/kommentar/<int:bewerber_id>/', views.bewerber_kommentar, name='bewerber_kommentar'),
     
+    # API endpoints for bewerber comments
+    path('api/bewerber/<int:bewerber_id>/kommentare/', views.api_bewerber_kommentare, name='api_bewerber_kommentare'),
+    
     # Country and Placement Location Information (for Team and Ehemalige members)
     path('laender/', views.laender_info, name='laender_info'),
     path('einsatzstellen/', views.einsatzstellen_info, name='einsatzstellen_info'),
