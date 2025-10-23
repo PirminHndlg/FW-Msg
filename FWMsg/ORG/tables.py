@@ -484,9 +484,12 @@ def get_bewerber_table_class(person_cluster, org):
     def render_user(self, value, record):
         bewerber = record['bewerber']
         return format_html(
-            '<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', 
-            reverse('profil', args=[bewerber.user.id]), 
-            f"{bewerber.user.first_name} {bewerber.user.last_name}"
+            '<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a> '
+            '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" title="Email senden" class="ms-1">'
+            '<i class="bi bi-envelope-arrow-up"></a>',
+            reverse('profil', args=[bewerber.user.id]),
+            f"{bewerber.user.first_name} {bewerber.user.last_name}",
+            bewerber.user.email,
         )
     
     def render_application_pdf(self, value, record):
