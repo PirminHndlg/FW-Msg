@@ -100,6 +100,20 @@
 {% endif %}
 
 <script>
+    // Initialize all Bootstrap tooltips on the page
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList
+            .filter(function(tooltipTriggerEl) {
+                // Only initialize tooltips that have a valid title
+                const title = tooltipTriggerEl.getAttribute('title') || tooltipTriggerEl.getAttribute('data-bs-original-title');
+                return title && title.trim() !== '';
+            })
+            .map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+    });
+    
     // Registration mail functionality for user tables
     {% if model_name == 'user' %}
     function sendRegistrationMail(userId, button) {
