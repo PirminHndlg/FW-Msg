@@ -508,7 +508,8 @@ def get_bewerber_table_class(person_cluster, org):
         context = {
             'record': bewerber,
             'model_name': 'bewerber',
-            'action_url': reverse('bewerber_kommentar', args=[bewerber.pk]),
+            'action_url': '',
+            'onclick': f"open_bewerber_kommentar_modal(this, {bewerber.pk})",
             'color': 'primary',
             'icon': '',
             'title': '',

@@ -1,0 +1,474 @@
+{% load static %}
+{% load i18n %}
+
+<!-- Bewerber Kommentar Modal -->
+<div class="modal fade" id="bewerberKommentarModal" tabindex="-1" aria-labelledby="bewerberKommentarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-bottom">
+                <div class="d-flex align-items-center" id="modalHeaderContent">
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">{% trans "Lädt..." %}</span>
+                    </div>
+                    <h5 class="modal-title mb-0">{% trans "Lädt Kommentare..." %}</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalBodyContent">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">{% trans "Lädt..." %}</span>
+                    </div>
+                    <p class="text-muted mt-3">{% trans "Lade Daten..." %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #bewerberKommentarModal .card-compact {
+        border: 1px solid #e9ecef;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    #bewerberKommentarModal .comment-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #e9ecef;
+    }
+    
+    #bewerberKommentarModal .comment-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    #bewerberKommentarModal .comment-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    #bewerberKommentarModal .user-avatar {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border: 2px solid #dee2e6;
+    }
+    
+    #bewerberKommentarModal .user-avatar-large {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+    }
+    
+    #bewerberKommentarModal .comment-meta {
+        flex-grow: 1;
+    }
+    
+    #bewerberKommentarModal .comment-text {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #495057;
+        white-space: pre-wrap;
+    }
+    
+    #bewerberKommentarModal .quick-comment-form {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+</style>
+
+<script>
+/**
+ * Opens the bewerber kommentar modal and loads data via AJAX
+ * @param {HTMLElement} button - The button element that triggered the modal (to update count)
+ * @param {number} bewerber_id - The ID of the bewerber
+ */
+function open_bewerber_kommentar_modal(button, bewerber_id) {
+    const modal = new bootstrap.Modal(document.getElementById('bewerberKommentarModal'));
+    const modalHeaderContent = document.getElementById('modalHeaderContent');
+    const modalBodyContent = document.getElementById('modalBodyContent');
+    
+    // Store the button reference for later updates
+    const modalElement = document.getElementById('bewerberKommentarModal');
+    modalElement.dataset.bewerberId = bewerber_id;
+    
+    // Store button reference globally for this modal session
+    if (button) {
+        // Use bewerber_id as the unique identifier for the button
+        if (!button.getAttribute('data-button-id')) {
+            button.setAttribute('data-button-id', 'bewerber-btn-' + bewerber_id);
+        }
+        window.bewerberKommentarModalTriggerButton = button;
+    }
+    
+    // Show loading state
+    modalHeaderContent.innerHTML = `
+        <div class="spinner-border spinner-border-sm me-2" role="status">
+            <span class="visually-hidden">{% trans "Lädt..." %}</span>
+        </div>
+        <h5 class="modal-title mb-0">{% trans "Lädt Kommentare..." %}</h5>
+    `;
+    
+    modalBodyContent.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">{% trans "Lädt..." %}</span>
+            </div>
+            <p class="text-muted mt-3">{% trans "Lade Daten..." %}</p>
+        </div>
+    `;
+    
+    // Show modal
+    modal.show();
+    
+    // API endpoint (to be created)
+    const apiUrl = `/api/bewerber/${bewerber_id}/kommentare/`;
+    
+    // Fetch data via AJAX
+    fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Update modal header
+        modalHeaderContent.innerHTML = `
+            <div class="d-flex align-items-center">
+                <img src="${data.bewerber.profile_picture_url}" 
+                     alt="{% trans 'Profilbild' %}" 
+                     class="rounded-circle user-avatar-large border border-2 me-3">
+                <div>
+                    <h5 class="modal-title mb-0">${data.bewerber.first_name} ${data.bewerber.last_name}</h5>
+                    <small class="text-muted">
+                        <i class="bi bi-person-badge me-1"></i>{% trans "Bewerber:in" %} #${data.bewerber.id}
+                        <span class="mx-2">•</span>
+                        <i class="bi bi-chat-left-text me-1"></i>${data.comments.length} {% trans "Kommentare" %}
+                    </small>
+                </div>
+            </div>
+        `;
+        
+        // Update modal body
+        renderModalContent(data);
+    })
+    .catch(error => {
+        console.error('Error fetching bewerber comments:', error);
+        modalHeaderContent.innerHTML = `
+            <h5 class="modal-title mb-0 text-danger">
+                <i class="bi bi-exclamation-triangle me-2"></i>{% trans "Fehler beim Laden" %}
+            </h5>
+        `;
+        modalBodyContent.innerHTML = `
+            <div class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>{% trans "Fehler!" %}</strong> {% trans "Die Kommentare konnten nicht geladen werden." %}
+                <br><small>${error.message}</small>
+            </div>
+        `;
+    });
+}
+
+/**
+ * Renders the modal content with bewerber data and comments
+ * @param {Object} data - The data object containing bewerber and comments
+ */
+function renderModalContent(data) {
+    const modalBodyContent = document.getElementById('modalBodyContent');
+    const currentUserId = {{ request.user.id|default:'null' }};
+    const currentUserProfilePic = "{% url 'serve_profil_picture' request.user.id %}";
+    
+    let commentsHtml = '';
+    
+    if (data.comments && data.comments.length > 0) {
+        commentsHtml = `
+            <div class="mt-3">
+                <h6 class="mb-3">
+                    <i class="bi bi-chat-dots me-2 text-primary"></i>
+                    {% trans "Alle Kommentare" %}
+                </h6>
+                <div class="d-flex flex-column gap-3">
+        `;
+        
+        data.comments.forEach(comment => {
+            const isCurrentUser = comment.user.id === currentUserId;
+            const userBadge = isCurrentUser ? `
+                <span class="badge bg-primary-subtle text-primary">
+                    <i class="bi bi-person-check me-1"></i>{% trans "Du" %}
+                </span>
+            ` : '';
+            
+            commentsHtml += `
+                <div class="card comment-card rounded-3 shadow-sm">
+                    <div class="card-body p-3">
+                        <div class="comment-header">
+                            <img src="${comment.user.profile_picture_url}" 
+                                 alt="${comment.user.full_name}" 
+                                 class="rounded-circle user-avatar">
+                            <div class="comment-meta">
+                                <h6 class="mb-0 fw-semibold">${comment.user.full_name}</h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-clock me-1"></i>${comment.date_created}
+                                </small>
+                            </div>
+                            ${userBadge}
+                        </div>
+                        <div class="comment-text">${escapeHtml(comment.comment).replace(/\n/g, '<br>')}</div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        commentsHtml += `
+                </div>
+            </div>
+        `;
+    } else {
+        commentsHtml = `
+            <div class="card card-compact rounded-3 mt-3">
+                <div class="card-body text-center py-4">
+                    <i class="bi bi-chat-left-text text-muted mb-2" style="font-size: 2.5rem;"></i>
+                    <h6 class="text-muted">{% trans "Noch keine Kommentare" %}</h6>
+                    <p class="text-muted mb-0 small">{% trans "Sei der/die Erste und füge einen Kommentar hinzu!" %}</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    modalBodyContent.innerHTML = `
+        <!-- New Comment Section -->
+        <div class="card card-compact rounded-3 mb-3">
+            <div class="card-header bg-white border-bottom py-2">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="bi bi-pencil-square me-2 text-primary"></i>
+                    {% trans "Neuen Kommentar hinzufügen" %}
+                </h6>
+            </div>
+            <div class="card-body p-3">
+                <form id="commentForm" class="needs-validation" novalidate>
+                    <div class="quick-comment-form">
+                        <img src="${currentUserProfilePic}" 
+                             alt="{% trans 'Dein Profilbild' %}" 
+                             class="rounded-circle user-avatar">
+                        <div class="flex-grow-1">
+                            <textarea 
+                                name="comment" 
+                                id="commentTextarea" 
+                                class="form-control" 
+                                rows="3" 
+                                placeholder="{% trans 'Schreibe einen Kommentar...' %}"
+                                required></textarea>
+                            <div class="invalid-feedback">
+                                {% trans "Bitte gib einen Kommentar ein." %}
+                            </div>
+                            <div class="d-flex justify-content-end mt-2">
+                                <button type="submit" class="btn btn-primary btn-sm rounded-3">
+                                    <i class="bi bi-send me-1"></i>{% trans "Kommentar senden" %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Comments Feed -->
+        ${commentsHtml}
+    `;
+    
+    // Attach form submit handler
+    attachCommentFormHandler(data.bewerber.id);
+}
+
+/**
+ * Attaches the submit handler to the comment form
+ * @param {number} bewerber_id - The ID of the bewerber
+ */
+function attachCommentFormHandler(bewerber_id) {
+    const form = document.getElementById('commentForm');
+    
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
+        }
+        
+        const commentTextarea = document.getElementById('commentTextarea');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        
+        // Disable submit button and show loading state
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>{% trans "Wird gesendet..." %}';
+        
+        // API endpoint (to be created)
+        const apiUrl = `/api/bewerber/${bewerber_id}/kommentare/`;
+        
+        // Get CSRF token
+        const csrftoken = getCookie('csrftoken');
+        
+        // Send comment via AJAX
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                comment: commentTextarea.value
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Show success message
+            showToast('success', '{% trans "Kommentar erfolgreich hinzugefügt!" %}');
+            
+            // Update the button count
+            updateBewerberKommentarButtonCount();
+            
+            // Reload modal content with the stored button reference
+            const triggerButton = window.bewerberKommentarModalTriggerButton;
+            open_bewerber_kommentar_modal(triggerButton, bewerber_id);
+        })
+        .catch(error => {
+            console.error('Error submitting comment:', error);
+            showToast('error', '{% trans "Fehler beim Senden des Kommentars." %}');
+            
+            // Re-enable submit button
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalButtonText;
+        });
+    });
+}
+
+/**
+ * Updates the button text to increment the comment count
+ */
+function updateBewerberKommentarButtonCount() {
+    const button = window.bewerberKommentarModalTriggerButton;
+    if (!button) return;
+    
+    // Extract current count from button text like "Kommentare (2)"
+    const currentText = button.textContent || button.innerText;
+    const match = currentText.match(/\((\d+)\)/);
+    
+    if (match) {
+        const currentCount = parseInt(match[1], 10);
+        const newCount = currentCount + 1;
+        const newText = currentText.replace(/\(\d+\)/, `(${newCount})`);
+        button.textContent = newText;
+    }
+}
+
+/**
+ * Gets a cookie value by name
+ * @param {string} name - The cookie name
+ * @returns {string|null} The cookie value or null
+ */
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+/**
+ * Shows a toast notification
+ * @param {string} type - The toast type (success, error, info)
+ * @param {string} message - The message to display
+ */
+function showToast(type, message) {
+    const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+    
+    const iconMap = {
+        'success': 'bi-check-circle',
+        'error': 'bi-exclamation-triangle',
+        'info': 'bi-info-circle'
+    };
+    
+    const bgMap = {
+        'success': 'bg-success',
+        'error': 'bg-danger',
+        'info': 'bg-info'
+    };
+    
+    const toastHtml = `
+        <div class="toast align-items-center text-white ${bgMap[type]} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi ${iconMap[type]} me-2"></i>${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    
+    const toastElement = toastContainer.lastElementChild;
+    const toast = new bootstrap.Toast(toastElement, {
+        autohide: true,
+        delay: 3000
+    });
+    toast.show();
+    
+    // Remove toast element after it's hidden
+    toastElement.addEventListener('hidden.bs.toast', () => {
+        toastElement.remove();
+    });
+}
+
+/**
+ * Creates the toast container if it doesn't exist
+ * @returns {HTMLElement} The toast container element
+ */
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'position-fixed bottom-0 end-0 p-3';
+    container.style.zIndex = '9999';
+    document.body.appendChild(container);
+    return container;
+}
+
+/**
+ * Escapes HTML special characters
+ * @param {string} text - The text to escape
+ * @returns {string} The escaped text
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+
