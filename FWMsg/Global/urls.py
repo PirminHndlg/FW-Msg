@@ -76,6 +76,7 @@ urlpatterns = [
     
     # API endpoints for bewerber comments
     path('api/bewerber/<int:bewerber_id>/kommentare/', views.api_bewerber_kommentare, name='api_bewerber_kommentare'),
+    path('api/bewerber/<int:bewerber_id>/kommentare/<int:kommentar_id>/', views.api_bewerber_kommentare, name='api_bewerber_kommentar_detail'),
     
     # Country and Placement Location Information (for Team and Ehemalige members)
     path('laender/', views.laender_info, name='laender_info'),
