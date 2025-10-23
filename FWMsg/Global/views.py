@@ -2013,19 +2013,50 @@ def bewerber_kommentar(request, bewerber_id):
 
 @login_required
 @required_role('O')
-def api_bewerber_kommentare(request, bewerber_id):
+def api_bewerber_kommentare(request, bewerber_id, kommentar_id=None):
     """
     API endpoint for bewerber comments.
     GET: Retrieve all comments for a bewerber
     POST: Create a new comment for a bewerber
+    DELETE: Delete a specific comment (requires kommentar_id)
     """
     try:
         bewerber = Bewerber.objects.get(id=bewerber_id, org=request.user.org)
     except Bewerber.DoesNotExist:
         return JsonResponse({'error': 'Bewerber nicht gefunden'}, status=404)
     
+    # Handle DELETE request - delete a specific comment
+    if request.method == 'DELETE':
+        if not kommentar_id:
+            return JsonResponse({'error': 'Kommentar-ID erforderlich'}, status=400)
+        
+        try:
+            # Get the comment
+            kommentar = BewerberKommentar.objects.get(
+                id=kommentar_id,
+                bewerber=bewerber,
+                org=request.user.org
+            )
+            
+            # Check if the user owns this comment
+            if kommentar.user != request.user:
+                return JsonResponse({'error': 'Sie haben keine Berechtigung, diesen Kommentar zu löschen'}, status=403)
+            
+            # Delete the comment
+            kommentar.delete()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Kommentar erfolgreich gelöscht'
+            })
+            
+        except BewerberKommentar.DoesNotExist:
+            return JsonResponse({'error': 'Kommentar nicht gefunden'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': f'Fehler beim Löschen des Kommentars: {str(e)}'}, status=500)
+    
     # Handle GET request - fetch all comments
-    if request.method == 'GET':
+    elif request.method == 'GET':
         # Get all comments for this bewerber
         comments = BewerberKommentar.objects.filter(
             bewerber=bewerber,
@@ -2103,7 +2134,7 @@ def api_bewerber_kommentare(request, bewerber_id):
     
     else:
         return JsonResponse({'error': 'Methode nicht erlaubt'}, status=405)
-    
+
 
 @login_required
 @required_role('BOTE')

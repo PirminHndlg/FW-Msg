@@ -124,8 +124,8 @@ function open_bewerber_kommentar_modal(button, bewerber_id) {
     // Show modal
     modal.show();
     
-    // API endpoint (to be created)
-    const apiUrl = `/api/bewerber/${bewerber_id}/kommentare/`;
+    // API endpoint using Django URL reverse
+    const apiUrl = "{% url 'api_bewerber_kommentare' bewerber_id=0 %}".replace('/0/', `/${bewerber_id}/`);
     
     // Fetch data via AJAX
     fetch(apiUrl, {
@@ -207,8 +207,17 @@ function renderModalContent(data) {
                 </span>
             ` : '';
             
+            const deleteButton = isCurrentUser ? `
+                <button type="button" 
+                        class="btn btn-sm btn-outline-danger ms-2" 
+                        onclick="deleteBewerberKommentar(${comment.id}, ${data.bewerber.id})"
+                        title="{% trans 'Kommentar löschen' %}">
+                    <i class="bi bi-trash"></i>
+                </button>
+            ` : '';
+            
             commentsHtml += `
-                <div class="card comment-card rounded-3 shadow-sm">
+                <div class="card comment-card rounded-3 shadow-sm" id="comment-${comment.id}">
                     <div class="card-body p-3">
                         <div class="comment-header">
                             <img src="${comment.user.profile_picture_url}" 
@@ -221,6 +230,7 @@ function renderModalContent(data) {
                                 </small>
                             </div>
                             ${userBadge}
+                            ${deleteButton}
                         </div>
                         <div class="comment-text">${escapeHtml(comment.comment).replace(/\n/g, '<br>')}</div>
                     </div>
@@ -313,8 +323,8 @@ function attachCommentFormHandler(bewerber_id) {
         submitButton.disabled = true;
         submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>{% trans "Wird gesendet..." %}';
         
-        // API endpoint (to be created)
-        const apiUrl = `/api/bewerber/${bewerber_id}/kommentare/`;
+        // API endpoint using Django URL reverse
+        const apiUrl = "{% url 'api_bewerber_kommentare' bewerber_id=0 %}".replace('/0/', `/${bewerber_id}/`);
         
         // Get CSRF token
         const csrftoken = getCookie('csrftoken');
@@ -362,8 +372,9 @@ function attachCommentFormHandler(bewerber_id) {
 
 /**
  * Updates the button text to increment the comment count
+ * @param {number} delta - The change in count (+1 for add, -1 for delete)
  */
-function updateBewerberKommentarButtonCount() {
+function updateBewerberKommentarButtonCount(delta = 1) {
     const button = window.bewerberKommentarModalTriggerButton;
     if (!button) return;
     
@@ -373,10 +384,74 @@ function updateBewerberKommentarButtonCount() {
     
     if (match) {
         const currentCount = parseInt(match[1], 10);
-        const newCount = currentCount + 1;
+        const newCount = Math.max(0, currentCount + delta); // Prevent negative counts
         const newText = currentText.replace(/\(\d+\)/, `(${newCount})`);
         button.textContent = newText;
     }
+}
+
+/**
+ * Deletes a bewerber comment
+ * @param {number} kommentar_id - The ID of the comment to delete
+ * @param {number} bewerber_id - The ID of the bewerber
+ */
+function deleteBewerberKommentar(kommentar_id, bewerber_id) {
+    // Confirm deletion
+    if (!confirm('{% trans "Möchten Sie diesen Kommentar wirklich löschen?" %}')) {
+        return;
+    }
+    
+    // API endpoint using Django URL reverse
+    const apiUrl = "{% url 'api_bewerber_kommentar_detail' bewerber_id=0 kommentar_id=0 %}"
+        .replace('/0/kommentare/0/', `/${bewerber_id}/kommentare/${kommentar_id}/`);
+    
+    // Get CSRF token
+    const csrftoken = getCookie('csrftoken');
+    
+    // Show loading state on the comment card
+    const commentCard = document.getElementById(`comment-${kommentar_id}`);
+    if (commentCard) {
+        commentCard.style.opacity = '0.5';
+        commentCard.style.pointerEvents = 'none';
+    }
+    
+    // Send DELETE request
+    fetch(apiUrl, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Show success message
+        showToast('success', '{% trans "Kommentar erfolgreich gelöscht!" %}');
+        
+        // Update the button count (decrement by 1)
+        updateBewerberKommentarButtonCount(-1);
+        
+        // Reload modal content with the stored button reference
+        const triggerButton = window.bewerberKommentarModalTriggerButton;
+        open_bewerber_kommentar_modal(triggerButton, bewerber_id);
+    })
+    .catch(error => {
+        console.error('Error deleting comment:', error);
+        showToast('error', '{% trans "Fehler beim Löschen des Kommentars." %}');
+        
+        // Restore comment card state
+        if (commentCard) {
+            commentCard.style.opacity = '1';
+            commentCard.style.pointerEvents = 'auto';
+        }
+    });
 }
 
 /**
