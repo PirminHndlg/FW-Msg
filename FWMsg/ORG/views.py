@@ -1729,7 +1729,9 @@ def application_download_all_excel(request):
                 if attr_type == 'N':  # Number (Zahl)
                     df[attr_name] = pd.to_numeric(df[attr_name], errors='coerce')
                 elif attr_type == 'D':  # Date (Datum)
+                    # Convert to datetime first, then format as German date string (dd.mm.yyyy)
                     df[attr_name] = pd.to_datetime(df[attr_name], errors='coerce')
+                    df[attr_name] = df[attr_name].apply(lambda x: x.strftime('%d.%m.%Y') if pd.notna(x) else None)
                 elif attr_type == 'B':  # Boolean (Wahrheitswert)
                     # Convert string values to boolean
                     df[attr_name] = df[attr_name].map(lambda x: True if str(x).lower() in ['true', '1', 'ja', 'yes'] else (False if str(x).lower() in ['false', '0', 'nein', 'no'] else None) if pd.notna(x) else None)
