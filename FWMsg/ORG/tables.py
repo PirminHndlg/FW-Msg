@@ -131,7 +131,7 @@ class AttributeTable(BaseOrgTable):
     
     class Meta(BaseOrgTable.Meta):
         model = Attribute
-        fields = ('name', 'type_display', 'value_for_choices', 'person_cluster', 'actions')
+        fields = ('name', 'type_display', 'value_for_choices', 'person_cluster', 'visible_in_profile', 'actions')
 
 
 class AufgabeTable(BaseOrgTable):

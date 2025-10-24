@@ -661,6 +661,7 @@ class Attribute(OrgModel):
     type = models.CharField(max_length=1, choices=TYPE_CHOICES, verbose_name='Datentyp', default='T', help_text='Art der Daten, die in diesem Feld gespeichert werden')
     value_for_choices = models.CharField(null=True, blank=True, max_length=250, verbose_name='Auswahloptionen', help_text='Nur für Datentyp "Auswahl": Kommagetrennte Optionen, z.B. "Vegan, Vegetarisch, Konventionell"')
     person_cluster = models.ManyToManyField(PersonCluster, verbose_name='Für Benutzergruppen', help_text='Benutzergruppen, für die dieses Feld relevant ist')
+    visible_in_profile = models.BooleanField(default=True, verbose_name='Im Profil anzeigen', help_text='Aktivieren, um das Feld im Profil auch für die Freiwillige sichtbar zu machen')
 
     class Meta:
         verbose_name = 'Benutzerdatenfeld'
