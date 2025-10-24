@@ -40,6 +40,7 @@ urlpatterns = [
     path('bewerbung-detail/<int:id>', views.application_detail, name='application_detail'),
     path('bewerbung-answer-download/<int:bewerber_id>', views.application_answer_download, name='application_answer_download'),
     path('bewerbung-answer-download-fields/<int:bewerber_id>', views.application_answer_download_fields, name='application_answer_download_fields'),
+    path('bewerbung-download-all-excel/', views.application_download_all_excel, name='application_download_all_excel'),
     
     path('download-aufgabe/<int:id>', views.download_aufgabe, name='download_aufgabe'),
     path('statistik/', views.statistik, name='statistik'),

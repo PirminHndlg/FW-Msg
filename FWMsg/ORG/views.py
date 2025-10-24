@@ -1688,6 +1688,84 @@ def application_answer_download_fields(request, bewerber_id):
     
     return create_pdf_response(pdf_content, filename)
 
+
+def application_download_all_excel(request):
+    bewerber = Bewerber.objects.filter(org=request.user.org)
+    user_ids = bewerber.values_list('user_id', flat=True)
+    
+    # Create base DataFrame with bewerber data (including user_id for merging)
+    df = pd.DataFrame(bewerber.values(
+        'id', 'user_id', 'user__first_name', 'user__last_name', 'user__email'
+        # 'status', 'status_comment', 'abgeschlossen',
+        # 'gegenstand', 'endbewertung', 'note'
+    ))
+    
+    # Get user attributes with their types and pivot them to create columns for each attribute
+    user_attributes = UserAttribute.objects.filter(user_id__in=user_ids).values(
+        'user_id', 'attribute__name', 'attribute__type', 'value'
+    )
+    
+    if user_attributes.exists():
+        # Create a DataFrame from user attributes
+        attr_df = pd.DataFrame(user_attributes)
+        
+        # Store attribute types for later formatting
+        attribute_types = attr_df[['attribute__name', 'attribute__type']].drop_duplicates().set_index('attribute__name')['attribute__type'].to_dict()
+        
+        # Pivot the attributes so each attribute name becomes a column
+        attr_pivot = attr_df.pivot_table(
+            index='user_id',
+            columns='attribute__name',
+            values='value',
+            aggfunc='first'  # In case there are duplicates, take the first value
+        ).reset_index()
+        
+        # Merge with the main DataFrame on user_id
+        df = df.merge(attr_pivot, on='user_id', how='left')
+        
+        # Format attribute columns based on their type
+        for attr_name, attr_type in attribute_types.items():
+            if attr_name in df.columns:
+                if attr_type == 'N':  # Number (Zahl)
+                    df[attr_name] = pd.to_numeric(df[attr_name], errors='coerce')
+                elif attr_type == 'D':  # Date (Datum)
+                    df[attr_name] = pd.to_datetime(df[attr_name], errors='coerce')
+                elif attr_type == 'B':  # Boolean (Wahrheitswert)
+                    # Convert string values to boolean
+                    df[attr_name] = df[attr_name].map(lambda x: True if str(x).lower() in ['true', '1', 'ja', 'yes'] else (False if str(x).lower() in ['false', '0', 'nein', 'no'] else None) if pd.notna(x) else None)
+                # For 'T' (Text), 'L' (Long Text), 'E' (Email), 'P' (Phone), 'C' (Choice) - keep as string (no conversion needed)
+    
+    # Remove user_id from the final output (it was only needed for merging)
+    if 'user_id' in df.columns:
+        df = df.drop(columns=['user_id'])
+    
+    # Rename columns to German headers
+    column_rename_mapping = {
+        'id': 'ID',
+        'user__first_name': 'Vorname',
+        'user__last_name': 'Nachname',
+        'user__email': 'E-Mail',
+        'status': 'Status',
+        'status_comment': 'Status Kommentar',
+        'abgeschlossen': 'Abgeschlossen',
+        'gegenstand': 'Gegenstand',
+        'endbewertung': 'Endbewertung',
+        'note': 'Notiz',
+        'kommentar_zusammenfassung': 'Kommentar Zusammenfassung'
+    }
+    df = df.rename(columns=column_rename_mapping)
+    
+    # create excel file and return response
+    import io
+    excel_buffer = io.BytesIO()
+    df.to_excel(excel_buffer, index=False)
+    excel_buffer.seek(0)
+    response = HttpResponse(excel_buffer.getvalue(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="bewerbung_all_excel.xlsx"'
+    return response
+    
+
+
 @login_required
 @required_role('O')
 @require_http_methods(["POST"])

@@ -28,6 +28,11 @@
                     <i class="bi bi-bar-chart me-2"></i>{% trans "Statistik" %}
                 </a>
             {% endif %}
+            {% if model_name == 'bewerber' %}
+                <a href="{% url 'application_download_all_excel' %}" class="btn btn-sm rounded-4 btn-outline-primary">
+                    <i class="bi bi-file-earmark-excel me-2"></i>{% trans "Excel exportieren" %}
+                </a>
+            {% endif %}
         </div>
     </div>
 
