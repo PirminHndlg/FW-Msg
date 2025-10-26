@@ -10,19 +10,23 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from BW.tasks import send_account_created_email, send_application_complete_email
+from seminar.models import Seminar
 from ORG.models import Organisation
 from .forms import CreateAccountForm, ApplicationAnswerForm, ApplicationFileAnswerForm
 from FWMsg.decorators import required_role
 from .models import ApplicationQuestion, ApplicationAnswer, ApplicationText, Bewerber, ApplicationAnswerFile, ApplicationFileQuestion
 from django.contrib import messages
 from django.contrib.auth.models import User
+from .decorators import application_or_seminar_is_open
 
 base_template = 'baseBw.html'
 
 # Create your views here.
 @login_required
 @required_role('B')
+@application_or_seminar_is_open
 def home(request):
+    
     application_text = ApplicationText.objects.filter(org=request.user.org).first()
     
     total_questions = ApplicationQuestion.objects.filter(org=request.user.org).count()
@@ -35,7 +39,6 @@ def home(request):
     answered_file_questions_qs = ApplicationAnswerFile.objects.filter(user=request.user, file_question__in=required_file_questions_qs)#.exclude(file='')
     
     answered_required_questions = answered_file_questions_qs.count() == required_file_questions_qs.count() and answered_questions == total_questions
-    print(answered_required_questions)
     
     context = {
         'application_text': application_text,
@@ -107,6 +110,7 @@ def verify_account(request, token):
 
 @login_required
 @required_role('B')
+@application_or_seminar_is_open
 def bw_application_answer(request, question_id=None):
     all_questions = ApplicationQuestion.objects.filter(org=request.user.org).order_by('order')
     try:
@@ -149,6 +153,7 @@ def bw_application_answer(request, question_id=None):
 
 @login_required
 @required_role('B')
+@application_or_seminar_is_open
 def bw_application_answers_list(request):
     answers = ApplicationAnswer.objects.filter(org=request.user.org, user=request.user).order_by('question__order')
     file_answers = ApplicationAnswerFile.objects.filter(org=request.user.org, user=request.user).order_by('file_question__order')
@@ -162,6 +167,7 @@ def bw_application_answers_list(request):
 
 @login_required
 @required_role('B')
+@application_or_seminar_is_open
 def bw_application_complete(request):
     try:
         application_text = ApplicationText.objects.filter(org=request.user.org).first()
@@ -180,6 +186,7 @@ def bw_application_complete(request):
 
 @login_required
 @required_role('B')
+@application_or_seminar_is_open
 def bw_application_files_list(request):
     file_questions = ApplicationFileQuestion.objects.filter(org=request.user.org).order_by('order')
     file_answers = ApplicationAnswerFile.objects.filter(user=request.user, file_question__in=file_questions)
@@ -196,6 +203,7 @@ def bw_application_files_list(request):
 
 @login_required
 @required_role('B')
+@application_or_seminar_is_open
 def bw_application_file_answer(request, file_question_id):
     file_question = ApplicationFileQuestion.objects.get(org=request.user.org, id=file_question_id)
     answer = ApplicationAnswerFile.objects.filter(user=request.user, file_question=file_question).first()
@@ -220,6 +228,7 @@ def bw_application_file_answer(request, file_question_id):
 
 @login_required
 @required_role('BO')
+@application_or_seminar_is_open
 def bw_application_file_answer_delete(request, file_answer_id):
     file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, user=request.user)
     file_answer.delete()
@@ -229,6 +238,7 @@ def bw_application_file_answer_delete(request, file_answer_id):
 
 @login_required
 @required_role('B')
+@application_or_seminar_is_open
 def delete_account(request):
     try:
         # Store user info before deletion
@@ -249,3 +259,8 @@ def delete_account(request):
         messages.error(request, f'Fehler beim Löschen des Kontos: {str(e)}')
     
     return redirect('bw_home')
+
+@login_required
+@required_role('B')
+def no_application(request):
+    return render(request, 'no_application.html')
