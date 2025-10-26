@@ -29,15 +29,16 @@ def required_role(roles):
     """
     def decorator(view_func):
         def _wrapped_view(request, *args, **kwargs):
+            # Superusers bypass role checks
+            if request.user.is_superuser:
+                return view_func(request, *args, **kwargs)
+            
+            # Empty string means allow all authenticated users
+            if roles == '':
+                return view_func(request, *args, **kwargs)
+            
+            # Perform permission checks with AttributeError handling
             try:
-                # Superusers bypass role checks
-                if request.user.is_superuser:
-                    return view_func(request, *args, **kwargs)
-                
-                # Empty string means allow all authenticated users
-                if roles == '':
-                    return view_func(request, *args, **kwargs)
-                
                 # Check if user has customuser with person_cluster
                 if not hasattr(request.user, 'customuser') or not request.user.customuser.person_cluster:
                     raise PermissionDenied
@@ -49,9 +50,12 @@ def required_role(roles):
                 if user_view not in roles:
                     raise PermissionDenied
                 
-                return view_func(request, *args, **kwargs)
             except AttributeError:
+                # Only catch AttributeErrors during permission checking
                 raise PermissionDenied
+            
+            # Execute view function - errors here will propagate as 500s
+            return view_func(request, *args, **kwargs)
             
         return _wrapped_view
     return decorator
