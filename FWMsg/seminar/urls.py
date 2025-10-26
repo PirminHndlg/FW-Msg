@@ -9,7 +9,7 @@ urlpatterns = [
     path('evaluate-post/', views.evaluate_post, name='evaluate-post'),
     path('einheit/', views.einheit, name='einheit'),
     path('choose/', views.choose, name='choose'),
-    path('land/', views.land, name='land'),
+    path('land/', views.seminar_land, name='seminar_land'),
     path('verschwiegenheit/', views.verschwiegenheit, name='verschwiegenheit'),
 
     path('auswertung/', views.evaluate_all, name='evaluate_all'),

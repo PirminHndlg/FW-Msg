@@ -73,7 +73,6 @@ def refresh(request):
                     edited.append(cookie_name)
 
             response.delete_cookie(cookie_name)
-            print(f'Deleted cookie: {cookie_name}')
 
         if cookie_name.startswith('comment'):
             data = {}
@@ -112,7 +111,6 @@ def refresh(request):
                 edited.append(cookie)
 
             response.delete_cookie(cookie_name)
-            print(f'Deleted cookie: {cookie_name}')
 
     messages.success(request,
                      f'Erfolgreich bewertet, {len(inserted)} Bewertungen hinzugefügt, {len(edited)} bearbeitet')
@@ -192,7 +190,6 @@ def evaluate(request):
     for key, value in freiwillige_arg.items():
         if value == 'on' and key.isdigit():
             fw_ids.append(str(key))
-            print(f'key: {key}')
             if Bewertung.objects.filter(bewerber_id=key, einheit_id=einheit_arg, bewerter=bewerter).exists():
                 bewertungen = Bewertung.objects.filter(bewerber_id=key, einheit_id=einheit_arg, bewerter=bewerter)
                 kommentare = Kommentar.objects.filter(bewerber_id=key, einheit_id=einheit_arg, bewerter=bewerter)
@@ -216,8 +213,6 @@ def evaluate(request):
                     fw_bewertet[key]['comment'][kategorie]['text'] = kommentar.text
                     fw_bewertet[key]['comment'][kategorie]['name'] = kommentar.show_name_at_presentation
 
-    print(fw_bewertet)
-
     frewillige = Bewerber.objects.filter(id__in=fw_ids)
     fragen = Frage.objects.all()
     fragenkategorien = Fragekategorie.objects.all()
@@ -236,7 +231,6 @@ def evaluate(request):
 
 
 def insert_bewertung(data):
-    # print(data)
     try:
         freiwilliger = Bewerber.objects.get(id=data['freiwilliger'])
         bewerter = User.objects.get(id=data['bewerter'])
@@ -261,13 +255,11 @@ def insert_bewertung(data):
         return 1
 
     except Exception as e:
-        print('Error while inserting Bewertung')
-        print(e)
+        messages.error(request, 'Fehler beim Einfügen der Bewertung')
     return 0
 
 
 def insert_comment(data):
-    # print(data)
     try:
         freiwilliger = Bewerber.objects.get(id=data['freiwilliger'])
         bewerter = Bewerter.objects.get(user_id=data['bewerter'])
@@ -301,8 +293,7 @@ def insert_comment(data):
 
         return 1
     except Exception as e:
-        print('Error while inserting Kommentar')
-        print(e)
+        messages.error(request, 'Fehler beim Einfügen des Kommentars')
         return 0
 
 
@@ -311,7 +302,6 @@ def insert_comment(data):
 @required_role('OTE')
 def evaluate_post(request):
     request_dict = request.POST.dict()
-    # print(request_dict)
     inserted = []
     edited = []
 
@@ -323,8 +313,6 @@ def evaluate_post(request):
         if 'csrfmiddlewaretoken' in k or 'refresh' in k or 'only' in k:
             continue
         
-        print(k, v)
-
         k = k.strip()
         v = v.strip()
 
@@ -401,7 +389,6 @@ def evaluate_post(request):
 
             if cookie_name in request.COOKIES:
                 response.delete_cookie(cookie_name)
-                print(f'Deleted cookie: {cookie_name}')
 
     messages.success(request,
                      f'Erfolgreich bewertet, {len(inserted)} Bewertungen hinzugefügt, {len(edited)} bearbeitet')
@@ -433,7 +420,6 @@ def evaluate_all(request):
     freiwilliger = Bewerber.objects.get(id=freiwilliger_id)
 
     fid = int(request.GET.get('fid') or 0)
-    print(fid)
     if fid:
         freiwilliger_id = fid
         freiwilliger = Bewerber.objects.get(id=freiwilliger_id)
@@ -441,8 +427,6 @@ def evaluate_all(request):
             if item['freiwilliger'] == freiwilliger_id:
                 i = index
                 break
-
-    print(freiwilliger_id, i)
 
     average_bewertung_per_freiwilliger = (
         Bewertung.objects
@@ -545,12 +529,9 @@ def summerizeComments(request):
 @required_role('O')
 def insert_geeingnet(request):
     data = request.GET.dict()
-    print(data)
 
     f = data['f']
     g = data['g']
-
-    print(Bewerber.bewertungsmoeglicheiten)
 
     if g not in dict(Bewerber.bewertungsmoeglicheiten).keys() and g != 'None':
         return HttpResponse('Invalid value', status=400)
@@ -558,8 +539,6 @@ def insert_geeingnet(request):
     freiwilliger = Bewerber.objects.get(id=f)
     freiwilliger.endbewertung = g
     freiwilliger.save()
-
-    print(freiwilliger.endbewertung)
 
     return HttpResponse('Success', status=200)
 
@@ -815,8 +794,8 @@ def seminar_settings(request):
 
 
 @required_role('B')
-def land(request):
-    seminar = Seminar.objects.filter(org=request.org).first()
+def seminar_land(request):
+    seminar = Seminar.objects.filter(org=request.user.org).first()
     
     if timezone.now() < seminar.get_deadline_start():
         message_text = 'Die Frist für die Auswahl des Einsatzlandes ist noch nicht begonnen.'
@@ -850,4 +829,4 @@ def land(request):
             return redirect('start')
         form = WishForm(instance=Bewerber.objects.get(user=request.user))
         deadline_hour_left = int((seminar.get_deadline_end() - timezone.now()).total_seconds() // 3600)
-    return render(request, 'land.html', {'form': form, 'deadline_hour_left': deadline_hour_left})
+    return render(request, 'seminar_land.html', {'form': form, 'deadline_hour_left': deadline_hour_left})
