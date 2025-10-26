@@ -398,18 +398,41 @@ def evaluate_post(request):
 
 @required_role('O')
 def evaluate_all(request):
+    from django.db.models import Q
+    
     Kategorien = Fragekategorie.objects.all()
 
-    average_total_per_freiwilliger = (
-        Bewertung.objects
-        .values('bewerber', 'bewerber__user__first_name', 'bewerber__user__last_name',
-                'bewerber__endbewertung')  # Group by 'freiwilliger'
-        .annotate(avg_total=Round(Avg('bewertung'), 2))  # Calculate total average 'bewertung'
-        .order_by('avg_total')
+    # Get all Bewerber with their average scores (if they have evaluations)
+    # Include those without evaluations as well
+    all_bewerber = Bewerber.objects.annotate(
+        avg_total=Round(Avg('bewertung__bewertung'), 2)
+    ).values(
+        'id',
+        'user__first_name',
+        'user__last_name',
+        'endbewertung',
+        'avg_total'
+    ).order_by(
+        # Put those without scores at the end, then order by score
+        'avg_total',
+        'user__last_name',
+        'user__first_name'
     )
+    
+    # Format the data to match the expected structure
+    average_total_per_freiwilliger = [
+        {
+            'bewerber': b['id'],
+            'bewerber__user__first_name': b['user__first_name'],
+            'bewerber__user__last_name': b['user__last_name'],
+            'bewerber__endbewertung': b['endbewertung'],
+            'avg_total': b['avg_total'] or 0
+        }
+        for b in all_bewerber
+    ]
 
     if not average_total_per_freiwilliger:
-        msg_text = 'Noch keine Bewertungen vorhanden'
+        msg_text = 'Keine Bewerber:innen vorhanden'
         messages.info(request, msg_text)
         return redirect('seminar_home')
 
@@ -477,7 +500,7 @@ def evaluate_all(request):
     )
 
     note = average_total_per_freiwilliger[i]['avg_total']
-    if not freiwilliger.note or freiwilliger.note != note:
+    if note and (not freiwilliger.note or freiwilliger.note != note):
         freiwilliger.note = note
         freiwilliger.save()
 

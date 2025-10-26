@@ -23,7 +23,7 @@
         body { padding-bottom: 70px; }
         
         /* Profile image with status colors */
-        .profile-img { max-width: 200px; height: 200px; object-fit: cover; transition: transform 0.3s, border-color 0.3s; }
+        .profile-img { width: 200px; height: auto; object-fit: cover; transition: transform 0.3s, border-color 0.3s; }
         .profile-img:hover { transform: scale(1.05); }
         .profile-img.status-geeignet { border-color: var(--seminar-green) !important; }
         .profile-img.status-bedingt { border-color: var(--seminar-yellow) !important; }
@@ -39,9 +39,10 @@
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
         .status-changed { animation: pulse 0.5s ease; }
 
-        /* Total score gradient text */
+        /* Total score gradient text, bold */
         .total-score {
             font-size: 3rem;
+            font-weight: bold;
             background: linear-gradient(135deg, var(--color-primary), var(--secondary_color));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -52,7 +53,7 @@
         .total-score:hover { transform: scale(1.1); }
 
         /* Chart sizing */
-        .category-chart { height: 80px !important; }
+        .category-chart { height: 60px !important; }
 
         /* Comment collapsible styling */
         .comment-details summary { cursor: pointer; transition: background-color 0.2s; }
@@ -108,7 +109,13 @@
                 </span>
                 <div class="flex-grow-1">
                     <div class="fw-bold">{{result.bewerber__user__first_name}} {{result.bewerber__user__last_name}}</div>
-                    <small class="text-muted">Ø {{result.avg_total|myround:1}}</small>
+                    <small class="text-muted">
+                        {% if result.avg_total %}
+                            Ø {{result.avg_total|myround:1}}
+            {% else %}
+                            Keine Bewertung
+            {% endif %}
+                    </small>
         </div>
             </a>
             {% endfor %}
@@ -186,16 +193,38 @@
         <div class="col-lg-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body d-flex flex-column">
-                    <h4 class="card-title text-secondary mb-4">
-                        <i class="bi bi-bar-chart-fill me-2"></i>Bewertungen
-                    </h4>
+                    <!-- Header with Title and Total Score -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="card-title text-secondary mb-0">
+                            <i class="bi bi-bar-chart-fill me-2"></i>Bewertungen
+                        </h4>
+                        <!-- Total Score Badge -->
+                        <div class="text-center">
+                            <div class="text-muted small mb-1" style="font-size: 0.7rem;">GESAMT</div>
+                            {% if avg.avg_total %}
+                            <div class="total-score" 
+                                 id="totalScore" 
+                                 data-score-full="{{avg.avg_total|myround:2}}"
+                                 data-score-short="{{avg.avg_total|myround:1}}"
+                                 style="font-size: 2rem;"
+                                 title="Für mehr Details hovern">
+                                {{avg.avg_total|myround:1}}
+                            </div>
+                            {% else %}
+                            <div class="text-muted" style="font-size: 1.2rem;">
+                                -
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
                     
+                    {% if result %}
                     <!-- Category Charts -->
-                    <div class="flex-grow-1 mb-4">
+                    <div class="flex-grow-1">
                 {% for k in kategorien %}
-                        <div class="border-bottom pb-3 mb-3 last-child-no-border">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="mb-0">{{ k.short_name|default:k }}</h6>
+                        <div class="pb-2 mb-2 {% if not forloop.last %}border-bottom{% endif %}">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h6 class="mb-0" style="font-size: 0.95rem;">{{ k.short_name|default:k }}</h6>
                                 <span class="badge bg-info rounded-pill">
                         {% for r in result %}
                         {% if r.frage__kategorie == k.id %}
@@ -208,18 +237,13 @@
                         </div>
                         {% endfor %}
                     </div>
-
-                    <!-- Total Score Display -->
-                    <div class="text-center py-4 border-top mt-auto">
-                        <div class="text-muted small mb-2">GESAMTBEWERTUNG</div>
-                        <div class="total-score" 
-                             id="totalScore" 
-                             data-score-full="{{avg.avg_total|myround:2}}"
-                             data-score-short="{{avg.avg_total|myround:1}}"
-                             title="Für mehr Details hovern">
-                            {{avg.avg_total|myround:1}}
-                        </div>
+                    {% else %}
+                    <!-- No evaluations message -->
+                    <div class="flex-grow-1 text-center py-5">
+                        <i class="bi bi-bar-chart fs-1 text-muted"></i>
+                        <p class="text-muted mt-3 mb-0">Noch keine Bewertungen vorhanden</p>
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -297,7 +321,7 @@
                         {% endfor %}
                     {% else %}
                         -
-                    {% endif %}
+                                {% endif %}
                 </small>
             </div>
 
@@ -376,8 +400,8 @@ const CONFIG = {
     urlInsertGeeignet: "{% url 'insert_geeignet' %}",
     bewertungen: {{ bewertungen|safe }},
     scores: {
-        full: '{{avg.avg_total|myround:2}}',
-        short: '{{avg.avg_total|myround:1}}'
+        full: {% if avg.avg_total %}'{{avg.avg_total|myround:2}}'{% else %}null{% endif %},
+        short: {% if avg.avg_total %}'{{avg.avg_total|myround:1}}'{% else %}null{% endif %}
     }
 };
 
@@ -402,21 +426,21 @@ function initializeCharts() {
         }));
 
         new Chart(ctx, {
-            type: 'scatter',
+                type: 'scatter',
             data: {
                 datasets: [{
-                    pointRadius: 6,
-                    pointBackgroundColor: "rgba(98,51,149,0.6)",
-                    pointHoverRadius: 8,
-                    pointHoverBackgroundColor: "rgba(98,51,149,0.8)",
-                    data: dataPoints,
+                    pointRadius: 5,
+                        pointBackgroundColor: "rgba(98,51,149,0.6)",
+                        pointHoverRadius: 7,
+                        pointHoverBackgroundColor: "rgba(98,51,149,0.8)",
+                        data: dataPoints,
                     showLine: false,
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
-                aspectRatio: 4,
+                    maintainAspectRatio: true,
+                    aspectRatio: 5,
                 plugins: {
                     legend: { display: false },
                     tooltip: {
@@ -430,11 +454,11 @@ function initializeCharts() {
                 },
                 scales: {
                     x: {
-                        beginAtZero: true,
-                        min: 1,
-                        max: 5,
-                        ticks: { stepSize: 1, font: { size: 11 } },
-                        grid: { color: 'rgba(0,0,0,0.05)' }
+                            beginAtZero: true,
+                            min: 1,
+                            max: 5,
+                            ticks: { stepSize: 1, font: { size: 10 } },
+                            grid: { color: 'rgba(0,0,0,0.05)' }
                     },
                     y: {
                         beginAtZero: true,
@@ -452,7 +476,7 @@ function initializeCharts() {
 // ========== Total Score Hover Effect ==========
 function initializeTotalScoreHover() {
     const totalScore = document.getElementById('totalScore');
-    if (!totalScore) return;
+    if (!totalScore || !CONFIG.scores.full) return;
 
     totalScore.addEventListener('mouseenter', () => {
         totalScore.textContent = CONFIG.scores.full;
