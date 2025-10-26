@@ -161,3 +161,10 @@ def get_date(value):
 @register.filter
 def split(value, separator):
     return value.split(separator)
+
+@register.filter
+def get_current_seminar(org):
+    from seminar.models import Seminar
+    from django.utils import timezone
+    current_date = timezone.now().date()
+    return Seminar.objects.filter(org=org, seminar_start__lte=current_date, seminar_end__gte=current_date)

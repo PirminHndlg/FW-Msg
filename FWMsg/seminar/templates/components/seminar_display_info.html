@@ -1,0 +1,38 @@
+{% load i18n %}
+{% load base_filter %}
+
+{% with current_seminar=request.user.org|get_current_seminar %}
+{% if current_seminar %}
+<div class="dashboard-section">
+    <div class="row g-3">
+    {% for seminar in current_seminar %}
+      <div class="col-12">
+        <div class="card card-compact">
+          <div class="card-body">
+            <div class="row align-items-center g-3">
+              <div class="col-12 col-md-8">
+                <div class="d-flex align-items-start">
+                  <div class="bg-primary-subtle rounded-circle p-2 p-md-3 me-2 me-md-3 flex-shrink-0">
+                    <i class="bi bi-calendar-event text-primary d-block" style="font-size: 1.25rem;"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <h4 class="mb-2 fs-5 fs-md-4">{{ seminar.name }}</h4>
+                    <p class="text-muted mb-0 small"><i class="bi bi-calendar-event me-1"></i>{{ seminar.seminar_start|date:'d.m.' }} - {{ seminar.seminar_end|date:'d.m.Y' }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-4 text-center text-md-end">
+                <a href="{% url 'seminar_home' %}" class="btn btn-primary btn-lg w-100 w-md-auto">
+                  <i class="bi bi-arrow-right-circle me-2"></i>
+                  {% trans "Zum Seminar" %}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endwith %}
