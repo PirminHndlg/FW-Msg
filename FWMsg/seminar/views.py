@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from FWMsg.decorators import required_role
 from seminar.models import Einheit, Frage, Fragekategorie, Bewertung, Kommentar, Seminar
-from Global.models import Einsatzland2 as Einsatzland, Einsatzstelle2 as Einsatzstelle
+from Global.models import Attribute, Einsatzland2 as Einsatzland, Einsatzstelle2 as Einsatzstelle, UserAttribute
 from BW.models import Bewerber
 from .forms import WishForm, BewerterForm
 from django.db.models import Avg, Case, When, IntegerField
@@ -417,16 +417,36 @@ def evaluate_all(request):
     if i < 0 or i >= len(average_total_per_freiwilliger):
         i = 0
     freiwilliger_id = average_total_per_freiwilliger[i]['bewerber']
-    freiwilliger = Bewerber.objects.get(id=freiwilliger_id)
+    freiwilliger = Bewerber.objects.prefetch_related('interview_persons').get(id=freiwilliger_id)
 
     fid = int(request.GET.get('fid') or 0)
     if fid:
         freiwilliger_id = fid
-        freiwilliger = Bewerber.objects.get(id=freiwilliger_id)
+        freiwilliger = Bewerber.objects.prefetch_related('interview_persons').get(id=freiwilliger_id)
         for index, item in enumerate(average_total_per_freiwilliger):
-            if item['freiwilliger'] == freiwilliger_id:
+            if item['bewerber'] == freiwilliger_id:
                 i = index
                 break
+    
+    # Get all attributes for this person_cluster (after final freiwilliger is determined)
+    attributes = Attribute.objects.filter(
+        visible_in_profile=True, 
+        person_cluster=freiwilliger.user.customuser.person_cluster
+    ).order_by('name')
+    
+    # Get existing user attribute values
+    existing_user_attributes = {
+        ua.attribute_id: ua.value 
+        for ua in UserAttribute.objects.filter(user=freiwilliger.user, attribute__in=attributes)
+    }
+    
+    # Combine all attributes with their values (if they exist)
+    user_attributes = []
+    for attr in attributes:
+        user_attributes.append({
+            'name': attr.name,
+            'value': existing_user_attributes.get(attr.id, None)
+        })
 
     average_bewertung_per_freiwilliger = (
         Bewertung.objects
@@ -467,6 +487,7 @@ def evaluate_all(request):
         'bewertungen': bewertung_data,
         'all_results': average_total_per_freiwilliger,
         'freiwilliger': freiwilliger,
+        'user_attributes': user_attributes,
         'kategorien': Kategorien,
         'avg': average_total_per_freiwilliger[i],
         'back': i - 1 if i > 0 else -1,

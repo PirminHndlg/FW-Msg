@@ -502,6 +502,12 @@ def get_bewerber_table_class(person_cluster, org):
             )
         return '—'
     
+    def render_interview_persons(self, value, record):
+        bewerber = record['bewerber']
+        if bewerber.interview_persons.all():
+            return ', '.join([f"{interview_person}" for interview_person in bewerber.interview_persons.all()])
+        return '—'
+    
     def actions_renderer(record, org):
         bewerber = record['bewerber']
         bewerber_kommentare_count = BewerberKommentar.objects.filter(bewerber=bewerber, org=org).count()
@@ -530,13 +536,19 @@ def get_bewerber_table_class(person_cluster, org):
             accessor='bewerber.application_pdf',
             orderable=False
         ),
+        'interview_persons': tables.Column(
+            verbose_name=_('Interviewpersonen/Ehemalige'),
+            accessor='bewerber.interview_persons',
+            orderable=False
+        ),
     }
     
-    column_sequence = ['user', 'application_pdf']
+    column_sequence = ['user', 'application_pdf', 'interview_persons']
     
     render_methods = {
         'render_user': render_user,
-        'render_application_pdf': render_application_pdf
+        'render_application_pdf': render_application_pdf,
+        'render_interview_persons': render_interview_persons
     }
     
     return _create_dynamic_table_class(

@@ -5,387 +5,621 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMW AWS2024 - Auswertung</title>
+    <title>{{request.user.org}} - Seminar Auswertung</title>
 
-    <link rel="stylesheet" href="{% static 'css-seminar/style.css' %}">
-    <link rel="stylesheet" href="{% static 'css-seminar/auswertung.css' %}">
-
+    {% include 'header.html' %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{% static 'js/global.js' %}"></script>
+
+    <style>
+        /* Seminar-specific color variables */
+        :root {
+            --seminar-green: #8ec649;
+            --seminar-yellow: #f9cb40;
+            --seminar-red: #e84855;
+        }
+
+        /* Minimal custom styles - Bootstrap handles most styling */
+        body { padding-bottom: 70px; }
+        
+        /* Profile image with status colors */
+        .profile-img { max-width: 200px; height: 200px; object-fit: cover; transition: transform 0.3s, border-color 0.3s; }
+        .profile-img:hover { transform: scale(1.05); }
+        .profile-img.status-geeignet { border-color: var(--seminar-green) !important; }
+        .profile-img.status-bedingt { border-color: var(--seminar-yellow) !important; }
+        .profile-img.status-nicht { border-color: var(--seminar-red) !important; }
+
+        /* Status indicators */
+        .status-indicator { width: 12px; height: 12px; flex-shrink: 0; }
+        .status-geeignet-bg { background-color: var(--seminar-green); }
+        .status-bedingt-bg { background-color: var(--seminar-yellow); }
+        .status-nicht-bg { background-color: var(--seminar-red); }
+        .status-none-bg { background-color: #E6E6E6; }
+        
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+        .status-changed { animation: pulse 0.5s ease; }
+
+        /* Total score gradient text */
+        .total-score {
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--color-primary), var(--secondary_color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .total-score:hover { transform: scale(1.1); }
+
+        /* Chart sizing */
+        .category-chart { height: 80px !important; }
+
+        /* Comment collapsible styling */
+        .comment-details summary { cursor: pointer; transition: background-color 0.2s; }
+        .comment-details summary:hover { background-color: rgba(0,0,0,0.05); }
+        .comment-details[open] summary { background-color: rgba(0,0,0,0.075); margin-bottom: 10px; }
+
+        /* Vote button transitions */
+        .vote-btn { transition: all 0.3s; border-width: 3px !important; }
+        .vote-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+
+        /* Print & responsive */
+        @media print { body { padding-bottom: 0; } .btn, .offcanvas, [data-bs-toggle] { display: none !important; } }
+        @media (max-width: 768px) { .profile-img { max-width: 150px; height: 150px; } .total-score { font-size: 2rem; } }
+    </style>
 </head>
 <body>
 
-<a class="pp_hamburger_button" onclick="hamburgerMenu(true)">≡</a>
+<!-- ========== Participant Menu Button ========== -->
+<button class="btn btn-primary position-fixed top-0 end-0 m-3 rounded-circle shadow" 
+        style="width: 60px; height: 60px; z-index: 1050; font-size: 24px;"
+        type="button" 
+        data-bs-toggle="offcanvas" 
+        data-bs-target="#participantMenu" 
+        aria-label="Teilnehmerliste öffnen">
+    <i class="bi bi-list"></i>
+</button>
 
-<div id="menu" class="pp_hamburger_menu">
-    <a class="pp_hamburger_button_close" onclick="hamburgerMenu(false)">×</a>
-    <div class="pp_hamburger_submenu">
+<!-- ========== Participant Offcanvas Menu ========== -->
+<div class="offcanvas offcanvas-end bg-light" 
+     tabindex="-1" 
+     id="participantMenu" 
+     aria-labelledby="participantMenuLabel">
+    <div class="offcanvas-header border-bottom bg-white">
+        <h5 class="offcanvas-title fw-bold" id="participantMenuLabel">
+            <i class="bi bi-people-fill me-2"></i>Teilnehmer
+        </h5>
+        <button type="button" 
+                class="btn-close" 
+                data-bs-dismiss="offcanvas" 
+                aria-label="Menü schließen"></button>
+    </div>
+    <div class="offcanvas-body p-2">
+        <div class="list-group list-group-flush">
         {% for result in all_results %}
-        <div style="display: flex; align-items: center;">
-            <div style="height: 10px; width: 10px; background-color:
-            {% if result.freiwilliger__endbewertung == 'G' %}
-                var(--green-color)
-            {% elif result.freiwilliger__endbewertung == 'B' %}
-                var(--yellow-color)
-            {% elif result.freiwilliger__endbewertung == 'N' %}
-                var(--red-color)
-            {% else %}
-                #E6E6E6
-            {% endif %}
-            ; border-radius: 50%"></div>
-            <a class="pp_hamburger_menu_point" href="{% url 'evaluate_all' %}?f={{forloop.counter|subtract:1}}"
-            >{{result.bewerber__user__first_name}} {{result.bewerber__user__last_name}} <small>({{result.avg_total|myround:1}})</small></a>
+            <a href="{% url 'evaluate_all' %}?f={{forloop.counter|subtract:1}}" 
+               class="list-group-item list-group-item-action d-flex align-items-center border-0 rounded mb-1 p-2"
+               data-participant-name="{{result.bewerber__user__first_name}} {{result.bewerber__user__last_name}}">
+                <span class="status-indicator me-2 d-inline-block
+                    {% if result.freiwilliger__endbewertung == 'G' %}status-geeignet-bg
+                    {% elif result.freiwilliger__endbewertung == 'B' %}status-bedingt-bg
+                    {% elif result.freiwilliger__endbewertung == 'N' %}status-nicht-bg
+                    {% else %}status-none-bg{% endif %}">
+                </span>
+                <div class="flex-grow-1">
+                    <div class="fw-bold">{{result.bewerber__user__first_name}} {{result.bewerber__user__last_name}}</div>
+                    <small class="text-muted">Ø {{result.avg_total|myround:1}}</small>
         </div>
-
+            </a>
             {% endfor %}
+        </div>
     </div>
 </div>
 
-<div class="body_div">
-
-    <div class="pp_top_div">
-
-
-        <div class="pp_profil_img_div"><img class="pp_profil_img" style="border-color:
-            {% if freiwilliger.endbewertung == 'G' %}
-                var(--green-color)
-            {% elif freiwilliger.endbewertung == 'B' %}
-                var(--yellow-color)
-            {% elif freiwilliger.endbewertung == 'N' %}
-                var(--red-color)
-            {% endif %}
-            ;" src="{% url 'serve_profil_picture' freiwilliger.user.id %}" alt="Bild von {{freiwilliger.first_name}}">
+<!-- ========== Main Content Container ========== -->
+<div class="container-fluid px-3 px-lg-4 mt-4 mt-lg-5" style="max-width: 1400px;">
+    
+    <!-- ========== Profile Section ========== -->
+    <div class="row g-4 mb-4">
+        <!-- Profile Image -->
+        <div class="col-lg-2 col-md-3 text-center">
+            <img class="profile-img w-100 rounded-3 border border-5 border-white shadow
+                {% if freiwilliger.endbewertung == 'G' %}status-geeignet
+                {% elif freiwilliger.endbewertung == 'B' %}status-bedingt
+                {% elif freiwilliger.endbewertung == 'N' %}status-nicht{% endif %}" 
+                src="{% url 'serve_profil_picture' freiwilliger.user.id %}" 
+                alt="Profilbild von {{freiwilliger.user.first_name}} {{freiwilliger.user.last_name}}"
+                id="profileImg">
         </div>
 
-        <div class="pp_second_top_div">
-            <h1 class="pp_name_field">{{freiwilliger.user.first_name}} {{freiwilliger.user.last_name}}</h1>
-
-            <div class="pp_second_top_subdiv">
-                <div class="pp_steckbrief_container">
-                    <h2>Steckbrief:</h2>
-                    <p><strong>Gegenstand:</strong> {{freiwilliger.gegenstand|default:""}}</p>
-                    <p style="display: flex; align-items: center"><strong>Kirchenzugehörigkeit:</strong>
-                        <img src="/static/img/{{freiwilliger.kirchenzugehoerigkeit}}.png" alt="{{freiwilliger.kirchenzugehoerigkeit}}" class="kirchen_logo">
-                    </p>
-                    <p><strong>Adresse:</strong> {{freiwilliger.stadt|default:""}}</p>
-                    <p><strong>Sprachen:</strong> {{freiwilliger.sprachen|default:""}}</p>
-                    <p><strong>Geburtstag:</strong> <a
-                            {% if freiwilliger.birthdate|is_age %}
-                                style="color: var(--red-color)"
+        <!-- Profile Information Card -->
+        <div class="col-lg-10 col-md-9">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h1 class="card-title display-6 fw-bold mb-4 text-primary">
+                        {{freiwilliger.user.first_name}} {{freiwilliger.user.last_name}}
+                    </h1>
+                    
+                    <div class="row">
+                        <!-- Steckbrief (Profile Details) -->
+                        <div class="col-lg-6 mb-3 mb-lg-0">
+                            <h5 class="text-secondary mb-3">
+                                <i class="bi bi-person-badge me-2"></i>Steckbrief
+                            </h5>
+                            <ul class="list-unstyled mb-0">
+                                <!-- Additional User Attributes -->
+                                {% if user_attributes %}
+                                    {% for attr in user_attributes %}
+                                    <li class="mb-2">
+                                        <strong>{{attr.name}}:</strong> 
+                                        <span class="text-muted">{{attr.value|default:"Nicht angegeben"}}</span>
+                                    </li>
+                                    {% endfor %}
                             {% endif %}
-                    >{{freiwilliger.birthdate|default:""|date:"d.m.Y"}}</a></p>
+                            </ul>
                 </div>
-                <div class="pp_prefer_container">
-                    <div class="pp_prefer_subcontainer">
-                        <h2>Länderwünsche:</h2>
-                        <ol>
-                            <li>{{freiwilliger.first_wish|default:"-"}}</li>
-                            <li>{{freiwilliger.second_wish|default:"-"}}</li>
-                            <li>{{freiwilliger.third_wish|default:"-"}}</li>
+
+                        <!-- Country Preferences -->
+                        <div class="col-lg-6">
+                            <h5 class="text-secondary mb-3">
+                                <i class="bi bi-globe-americas me-2"></i>Länderwünsche
+                            </h5>
+                            <ol class="list-group list-group-numbered list-group-flush mb-3">
+                                <li class="list-group-item border-0 px-0">{{freiwilliger.first_wish|default:"-"}}</li>
+                                <li class="list-group-item border-0 px-0">{{freiwilliger.second_wish|default:"-"}}</li>
+                                <li class="list-group-item border-0 px-0">{{freiwilliger.third_wish|default:"-"}}</li>
                         </ol>
-                        <p><strong>nicht:</strong> {{freiwilliger.no_wish|default:"-"}}</p>
+                            <div class="mt-2">
+                                <strong>Nicht:</strong> 
+                                <span class="badge bg-danger">{{freiwilliger.no_wish|default:"-"}}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="pp_sub_div">
-
-        <div class="pp_result_container">
-            <div class="pp_category_container">
-                <h2 class="pp_bewertungen_h">Bewertungen:</h2>
+    <!-- ========== Evaluations & Comments Section ========== -->
+    <div class="row g-4 mb-5">
+        <!-- Category Evaluations Card -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title text-secondary mb-4">
+                        <i class="bi bi-bar-chart-fill me-2"></i>Bewertungen
+                    </h4>
+                    
+                    <!-- Category Charts -->
+                    <div class="flex-grow-1 mb-4">
                 {% for k in kategorien %}
-                <div>
-                    <h3>{{ k.short_name|default:k }}</h3>
-                    <canvas id="lineChart{{k.id}}"></canvas>
-                    <p>
+                        <div class="border-bottom pb-3 mb-3 last-child-no-border">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">{{ k.short_name|default:k }}</h6>
+                                <span class="badge bg-info rounded-pill">
                         {% for r in result %}
                         {% if r.frage__kategorie == k.id %}
-                        {{r.avg_bewertung}}
+                                            {{r.avg_bewertung|floatformat:1}}
                         {% endif %}
+                                    {% endfor %}
+                                </span>
+                            </div>
+                            <canvas id="lineChart{{k.id}}" class="category-chart"></canvas>
+                        </div>
                         {% endfor %}
-                    </p>
+                    </div>
+
+                    <!-- Total Score Display -->
+                    <div class="text-center py-4 border-top mt-auto">
+                        <div class="text-muted small mb-2">GESAMTBEWERTUNG</div>
+                        <div class="total-score" 
+                             id="totalScore" 
+                             data-score-full="{{avg.avg_total|myround:2}}"
+                             data-score-short="{{avg.avg_total|myround:1}}"
+                             title="Für mehr Details hovern">
+                            {{avg.avg_total|myround:1}}
+                        </div>
+                    </div>
                 </div>
-
-                {% endfor %}
             </div>
+        </div>
 
-            <div class="pp_result_total">{{avg.avg_total|myround:1}}</div>
+        <!-- Comments Card -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title text-secondary mb-3">
+                        <i class="bi bi-chat-left-text me-2"></i>Kommentare
+                    </h4>
+                    
+                    <div class="overflow-auto flex-grow-1" style="max-height: 500px;">
+                        {% if freiwilliger.kommentar_zusammenfassung %}
+                        <div class="alert alert-info mb-3" role="alert">
+                            <strong><i class="bi bi-info-circle me-1"></i>Zusammenfassung:</strong>
+                            <p class="mb-0 mt-1">{{freiwilliger.kommentar_zusammenfassung}}</p>
+                        </div>
+                        {% endif %}
 
-            <div class="pp_comment_container">
-                <h2>Kommentare:</h2>
-                {{freiwilliger.kommentar_zusammenfassung}}
                 {% for kommentar in kommentare %}
-                <details>
-                    <summary>
+                        <details class="comment-details mb-2">
+                            <summary class="fw-bold">
+                                <i class="bi bi-person-circle me-2"></i>
                         {% if kommentar.show_name_at_presentation %}
                         {{kommentar.bewerter__first_name}} {{kommentar.bewerter__last_name}}
                         {% else %}
-                        Anonym
+                                    <span class="text-muted">Anonym</span>
                         {% endif %}
-                        <a style="font-style: italic;">
+                                <span class="badge bg-secondary ms-2 rounded-pill">
                             {% if kommentar.einheit__short_name %}
                                 {{ kommentar.einheit__short_name }}
                             {% else %}
                                 {{ kommentar.einheit__name }}
                             {% endif %}
-                        </a>
-                        <br>
-                        <p class="pp_comment_preview">{{kommentar.text}}</p>
+                                </span>
+                                <div class="text-muted small mt-1" style="font-weight: normal; 
+                                     display: -webkit-box; -webkit-line-clamp: 2; 
+                                     -webkit-box-orient: vertical; overflow: hidden;">
+                                    {{kommentar.text}}
+                                </div>
                     </summary>
-                    <p>{{kommentar.text}}</p>
+                            <div class="mt-2 p-3 bg-light rounded">
+                                {{kommentar.text}}
+                            </div>
                 </details>
                 {% if not forloop.last %}
-                <hr>
+                        <hr class="my-2">
                 {% endif %}
+                        {% empty %}
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-chat-dots fs-1"></i>
+                            <p class="mt-2">Keine Kommentare vorhanden</p>
+                        </div>
                 {% endfor %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- ========== Fixed Footer Bar ========== -->
+<footer class="fixed-bottom bg-primary text-white shadow-lg py-2">
+    <div class="container-fluid px-3">
+        <div class="row align-items-center g-2">
+            <!-- Interview Information -->
+            <div class="col-md-3 text-start">
+                <small class="d-none d-md-block text-white">
+                    <i class="bi bi-people me-1"></i>
+                    <strong>Interview:</strong> 
+                    {% if freiwilliger.interview_persons.exists %}
+                        {% for person in freiwilliger.interview_persons.all %}
+                            {{person.last_name}}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        -
+                    {% endif %}
+                </small>
+            </div>
 
-    <div class="pp_footer">
-        <h3>Interview: {{freiwilliger.interview_1.last_name|default:"-"}}, {{freiwilliger.interview_2.last_name|default:"-"}}</h3>
-        <div class="pp_bewertungen_container">
-            <button id="geeignet" style="border-color: var(--green-color);
-                        {% if freiwilliger.endbewertung == 'G' %}
-                                background-color: var(--green-color);
-                                {% endif %}
-            " onclick="geeignet_button(this.id, 'G');">geeignet</button>
-            <button id="bedingt" style="border-color: var(--yellow-color);
-                        {% if freiwilliger.endbewertung == 'B' %}
-                                background-color: var(--yellow-color);
-                                {% endif %}
-                        >bedingt geeignet</button>
-            " onclick="geeignet_button(this.id, 'B');">bedingt geeignet</button>
-            <button id="nicht" style="border-color: var(--red-color);
-                        {% if freiwilliger.endbewertung == 'N' %}
-                                background-color: var(--red-color);
-                                {% endif %}
-                        >nicht geeignet</button>
-            " onclick="geeignet_button(this.id, 'N');">nicht geeignet</button>
+            <!-- Voting Buttons -->
+            <div class="col-md-6 text-center">
+                <div class="btn-group" role="group" aria-label="Bewertungsoptionen">
+                    <button type="button" 
+                            class="btn btn-outline-light vote-btn fw-semibold {% if freiwilliger.endbewertung == 'G' %}active{% endif %}" 
+                            id="geeignet"
+                            data-vote="G"
+                            onclick="voteHandler('G')"
+                            style="border-color: var(--seminar-green); {% if freiwilliger.endbewertung == 'G' %}background-color: var(--seminar-green);{% endif %}"
+                            aria-label="Als geeignet markieren">
+                        <i class="bi bi-check-circle me-1"></i><span class="d-none d-sm-inline">Geeignet</span>
+                    </button>
+                    <button type="button" 
+                            class="btn btn-outline-light vote-btn fw-semibold {% if freiwilliger.endbewertung == 'B' %}active{% endif %}" 
+                            id="bedingt"
+                            data-vote="B"
+                            onclick="voteHandler('B')"
+                            style="border-color: var(--seminar-yellow); {% if freiwilliger.endbewertung == 'B' %}background-color: var(--seminar-yellow);{% endif %}"
+                            aria-label="Als bedingt geeignet markieren">
+                        <i class="bi bi-dash-circle me-1"></i><span class="d-none d-sm-inline">Bedingt</span>
+                    </button>
+                    <button type="button" 
+                            class="btn btn-outline-light vote-btn fw-semibold {% if freiwilliger.endbewertung == 'N' %}active{% endif %}" 
+                            id="nicht"
+                            data-vote="N"
+                            onclick="voteHandler('N')"
+                            style="border-color: var(--seminar-red); {% if freiwilliger.endbewertung == 'N' %}background-color: var(--seminar-red);{% endif %}"
+                            aria-label="Als nicht geeignet markieren">
+                        <i class="bi bi-x-circle me-1"></i><span class="d-none d-sm-inline">Nicht geeignet</span>
+                    </button>
+                </div>
         </div>
 
-        <div class="pp_navigate_div">
-            <button style="transform: rotate(180deg);" id="back" onclick="window.location = '{% url 'evaluate_all' %}?f={{back}}'"
-            {% if back == -1 %}
-                disabled
-            {% endif %}>
-                <img src="/static/img/arrow.png" alt="arrow">
+            <!-- Navigation & Logo -->
+            <div class="col-md-3 text-end d-flex justify-content-end align-items-center gap-2">
+                <button class="btn btn-light rounded-circle p-2" 
+                        style="width: 40px; height: 40px;"
+                        onclick="navigateTo('{{back}}')"
+                        {% if back == -1 %}disabled{% endif %}
+                        aria-label="Vorheriger Teilnehmer"
+                        title="Vorheriger (←)">
+                    <i class="bi bi-arrow-left"></i>
             </button>
-            <button id="next" onclick="window.location = '{% url 'evaluate_all' %}?f={{next}}'"
-            {% if next == -1 %}
-                disabled
-            {% endif %}>
-                    <img src="/static/img/arrow.png" alt="arrow">
+                <button class="btn btn-light rounded-circle p-2" 
+                        style="width: 40px; height: 40px;"
+                        onclick="navigateTo('{{next}}')"
+                        {% if next == -1 %}disabled{% endif %}
+                        aria-label="Nächster Teilnehmer"
+                        title="Nächster (→)">
+                    <i class="bi bi-arrow-right"></i>
             </button>
+                <a href="{% url 'seminar_home' %}" 
+                   class="ms-2 d-none d-sm-block"
+                   title="Zurück zur Übersicht">
+                    <img src="{% url 'serve_image' request.user.org.id %}" 
+                         alt="{{request.user.org}} Logo" 
+                         class="object-fit-contain"
+                         style="height: 35px;">
+                </a>
+            </div>
         </div>
-
-        <a class="bmw_logo" href="{% url 'seminar_home' %}">
-            <img id="logo" src="{% url 'serve_image' request.user.org.id %}" alt="{{request.user.org}} Logo" class="bmw_logo">
-        </a>
-
     </div>
+</footer>
 
-
+<!-- ========== JavaScript Code ========== -->
 <script>
-    function resize() {
-        let width = window.innerWidth - 20
-        let height = window.innerHeight - 20
-        let body_div = document.getElementsByClassName('body_div')[0]
+'use strict';
 
-        let width_ratio = width / body_div.offsetWidth
-        let height_ratio = height / body_div.offsetHeight
-
-        if (width_ratio < height_ratio) {
-            body_div.style.scale = width_ratio
-        } else {
-            body_div.style.scale = height_ratio
-        }
-
-        body_div.style.transformOrigin = '0 0'
+// ========== Configuration & Constants ==========
+const CONFIG = {
+    participantName: '{{freiwilliger.user.first_name}} {{freiwilliger.user.last_name}}',
+    participantId: '{{freiwilliger.id}}',
+    urlInsertGeeignet: "{% url 'insert_geeignet' %}",
+    bewertungen: {{ bewertungen|safe }},
+    scores: {
+        full: '{{avg.avg_total|myround:2}}',
+        short: '{{avg.avg_total|myround:1}}'
     }
+};
 
-    window.onload = function () {
-        resize()
+const STATUS_COLORS = {
+    'G': 'var(--seminar-green)',
+    'B': 'var(--seminar-yellow)',
+    'N': 'var(--seminar-red)'
+};
 
-        const isFullscreen = localStorage.getItem('isFullscreen');
-        console.log(isFullscreen)
-        if (isFullscreen === 'true' && !document.fullscreenElement) {
-            openFullscreen();
-        }
-    }
-
-    window.onresize = resize
-
-    function openFullscreen() {
-        const docEl = document.documentElement;
-        if (docEl.requestFullscreen) {
-            docEl.requestFullscreen();
-        } else if (docEl.mozRequestFullScreen) { // Firefox
-            docEl.mozRequestFullScreen();
-        } else if (docEl.webkitRequestFullscreen) { // Chrome, Safari and Opera
-            docEl.webkitRequestFullscreen();
-        } else if (docEl.msRequestFullscreen) { // IE/Edge
-            docEl.msRequestFullscreen();
-        }
-    }
-
-    function closeFullscreen() {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.mozCancelFullScreen) { // Firefox
-            document.mozCancelFullScreen();
-        } else if (document.webkitExitFullscreen) { // Chrome, Safari and Opera
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) { // IE/Edge
-            document.msExitFullscreen();
-        }
-    }
-
-    document.addEventListener('keydown', function (event) {
-        if (event.key === 'f' || event.key === 'F') {
-            openFullscreen();
-        } else if (event.key === 'e' || event.key === 'E') {
-            closeFullscreen();
-        } else if (event.key === 'ArrowRight') {
-            document.getElementById('next').click()
-        } else if (event.key === 'ArrowLeft') {
-            document.getElementById('back').click()
-        }
-    });
-
-    let canvas = document.querySelectorAll('canvas')
-    canvas.forEach((c) => {
-        const ctx = c.getContext('2d')
-        let category = c.id.replace('lineChart', '')
-        let bewertungen = {{ bewertungen }}
-        let xyValues = []
-
-        let bewertungen_category = bewertungen[category]
-        bewertungen_category.forEach((b) => {
-            xyValues.push({x: Math.round(parseFloat(b) * 100) / 100, y: 0.05})
-        })
+// ========== Chart Initialization ==========
+function initializeCharts() {
+    const canvases = document.querySelectorAll('canvas');
+    
+    canvases.forEach((canvas) => {
+        const ctx = canvas.getContext('2d');
+        const categoryId = canvas.id.replace('lineChart', '');
+        const categoryData = CONFIG.bewertungen[categoryId] || [];
+        
+        const dataPoints = categoryData.map(value => ({
+            x: Math.round(parseFloat(value) * 100) / 100,
+            y: 0.05
+        }));
 
         new Chart(ctx, {
-            type: 'scatter', // Line chart type
+            type: 'scatter',
             data: {
                 datasets: [{
-                    /*data: bewertungen[category], // Y-axis data points {{bewertungen[category]
-                    borderColor: '#623395', // Line color
-                    backgroundColor: 'rgba(98, 51, 149, 0.4)', // Fill under the line
-                    borderWidth: 2, // Line width
-                    fill: true // Enable the area fill under the line*/
-                    pointRadius: 5,
-                    pointBackgroundColor: "rgba(98,51,149,0.2)",
-                    data: xyValues,
+                    pointRadius: 6,
+                    pointBackgroundColor: "rgba(98,51,149,0.6)",
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: "rgba(98,51,149,0.8)",
+                    data: dataPoints,
                     showLine: false,
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true, // Set to false to allow for custom size
-                aspectRatio: 2.5,
+                maintainAspectRatio: true,
+                aspectRatio: 4,
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     tooltip: {
-                        enabled: true, // Enable tooltips
+                        enabled: true,
+                        backgroundColor: 'rgba(98,51,149,0.9)',
+                        padding: 10,
                         callbacks: {
-                            label: function (context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += context.parsed.x; // Display the X value
-                                return label;
-                            }
+                            label: (context) => `Bewertung: ${context.parsed.x}`
                         }
                     }
                 },
                 scales: {
                     x: {
-                        beginAtZero: true, // X-axis starts at zero
-                        ticks: {
-                            display: true, // Hide X-axis labels
-                            stepSize: 1, // Set the step size of the X-axis
-                        },
-                        min: 1,  // Set the minimum value of the X-axis
-                        max: 5,  // Set the maximum value of the X-axis
+                        beginAtZero: true,
+                        min: 1,
+                        max: 5,
+                        ticks: { stepSize: 1, font: { size: 11 } },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
                     },
                     y: {
-                        beginAtZero: true, // Y-axis starts at zero
-                        min: 0,  // Set the minimum value of the Y-axis
-                        max: 0.1,  // Set the maximum value of the Y-axis
-                        ticks: {
-                            display: false, // Hide Y-axis labels
-                            stepSize: 0.05,
-                        }
+                        beginAtZero: true,
+                        min: 0,
+                        max: 0.1,
+                        ticks: { display: false, stepSize: 0.05 },
+                        grid: { display: false }
                     }
                 }
             }
         });
-        c.style.height = '100px'
-    })
+    });
+}
 
-    function hamburgerMenu(open) {
-        let menu = document.getElementById('menu')
-        if (open) {
-            menu.style.display = 'flex'
-        } else {
-            menu.style.display = 'none'
+// ========== Total Score Hover Effect ==========
+function initializeTotalScoreHover() {
+    const totalScore = document.getElementById('totalScore');
+    if (!totalScore) return;
+
+    totalScore.addEventListener('mouseenter', () => {
+        totalScore.textContent = CONFIG.scores.full;
+    });
+    
+    totalScore.addEventListener('mouseleave', () => {
+        totalScore.textContent = CONFIG.scores.short;
+    });
+}
+
+// ========== Voting System ==========
+function updateVoteUI(vote) {
+    const color = STATUS_COLORS[vote] || '';
+    
+    // Update all vote buttons
+    document.querySelectorAll('.vote-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.backgroundColor = '';
+    });
+    
+    if (vote !== 'None') {
+        const activeButton = document.querySelector(`[data-vote="${vote}"]`);
+        if (activeButton) {
+            activeButton.classList.add('active');
+            activeButton.style.backgroundColor = color;
         }
     }
-
-    document.querySelector('div.pp_result_total').addEventListener('mouseenter', function () {
-        this.innerHTML = '{{avg.avg_total|myround:2}}'
-    })
-    document.querySelector('div.pp_result_total').addEventListener('mouseleave', function () {
-        this.innerHTML = '{{avg.avg_total|myround:1}}'
-    })
-
-    function geeignet_button(id, g) {
-        let g_arg = g
-        let buttons = document.getElementsByClassName('pp_bewertungen_container')[0].children
-        for (let b of buttons) {
-            console.log(b.style.backgroundColor)
-            if (b.id === id && b.style.backgroundColor.startsWith('var')) {
-                g_arg = 'None'
-            }
-
-            b.style.backgroundColor = '#E6E6E6'
+    
+    // Update profile image border color
+    const profileImg = document.getElementById('profileImg');
+    if (profileImg) {
+        // Remove old status classes but keep all Bootstrap classes
+        profileImg.classList.remove('status-geeignet', 'status-bedingt', 'status-nicht');
+        
+        // Add new status class
+        if (vote === 'G') profileImg.classList.add('status-geeignet');
+        else if (vote === 'B') profileImg.classList.add('status-bedingt');
+        else if (vote === 'N') profileImg.classList.add('status-nicht');
+        
+        // Add pulse animation
+        if (vote !== 'None') {
+            profileImg.classList.add('status-changed');
+            setTimeout(() => profileImg.classList.remove('status-changed'), 500);
         }
+    }
+    
+    // Update menu status indicators
+    document.querySelectorAll('.participant-link').forEach(link => {
+        const participantName = link.getAttribute('data-participant-name');
+        if (participantName === CONFIG.participantName) {
+            const indicator = link.querySelector('.status-indicator');
+            if (indicator) {
+                // Remove old status classes
+                indicator.classList.remove('status-geeignet-bg', 'status-bedingt-bg', 'status-nicht-bg', 'status-none-bg');
+                
+                // Add new status class
+                if (vote === 'G') indicator.classList.add('status-geeignet-bg');
+                else if (vote === 'B') indicator.classList.add('status-bedingt-bg');
+                else if (vote === 'N') indicator.classList.add('status-nicht-bg');
+                else indicator.classList.add('status-none-bg');
+            }
+        }
+    });
+}
 
-        console.log(g_arg, g, id)
+function voteHandler(vote) {
+    const button = document.querySelector(`[data-vote="${vote}"]`);
+    
+    // Toggle if already selected
+    const finalVote = button?.classList.contains('active') ? 'None' : vote;
+    
+    // Send to server
+    const url = `${CONFIG.urlInsertGeeignet}?f=${CONFIG.participantId}&g=${finalVote}`;
+    http(url);
+    
+    // Update UI
+    updateVoteUI(finalVote);
+}
 
-        http("{% url 'insert_geeignet' %}" + '?f={{freiwilliger.id}}&g=' + g_arg)
+// ========== Navigation ==========
+function navigateTo(index) {
+    if (index === '-1') return;
+    window.location.href = `{% url 'evaluate_all' %}?f=${index}`;
+}
 
-        let as = document.getElementsByClassName('pp_hamburger_menu_point')
-        for (let a of as) {
-            if (a.innerHTML.includes('{{freiwilliger.first_name}} {{freiwilliger.last_name}}')) {
-                let color = '#E6E6E6'
-                if (g_arg === 'G') {
-                    color = 'var(--green-color)'
-                } else if (g_arg === 'B') {
-                    color = 'var(--yellow-color)'
-                } else if (g_arg === 'N') {
-                    color = 'var(--red-color)'
-                }
-                console.log(color)
-                a.parentElement.querySelector('div').style.backgroundColor = color
-                document.getElementById(id).style.backgroundColor = color
+// ========== Fullscreen Functionality ==========
+function openFullscreen() {
+    const docEl = document.documentElement;
+    const requestFS = docEl.requestFullscreen || 
+                      docEl.mozRequestFullScreen || 
+                      docEl.webkitRequestFullscreen || 
+                      docEl.msRequestFullscreen;
+    
+    if (requestFS) {
+        requestFS.call(docEl);
+        localStorage.setItem('isFullscreen', 'true');
+    }
+}
 
-                if (g_arg === 'None') {
-                    document.querySelector('img.pp_profil_img').style.borderColor = 'white'
+function closeFullscreen() {
+    const exitFS = document.exitFullscreen || 
+                   document.mozCancelFullScreen || 
+                   document.webkitExitFullscreen || 
+                   document.msExitFullscreen;
+    
+    if (exitFS) {
+        exitFS.call(document);
+        localStorage.setItem('isFullscreen', 'false');
+    }
+}
+
+function toggleFullscreen() {
+    if (document.fullscreenElement) {
+        closeFullscreen();
                 } else {
-                    document.querySelector('img.pp_profil_img').style.borderColor = color
-                }
-            }
-        }
+        openFullscreen();
     }
+}
+
+// ========== Keyboard Shortcuts ==========
+function handleKeyboardShortcuts(event) {
+    // Ignore if typing in input/textarea
+    if (['INPUT', 'TEXTAREA'].includes(event.target.tagName)) return;
+    
+    const keyActions = {
+        'f': openFullscreen,
+        'F': openFullscreen,
+        'Escape': closeFullscreen,
+        'ArrowRight': () => {
+            const btn = document.querySelector('[aria-label="Nächster Teilnehmer"]');
+            if (btn && !btn.disabled) btn.click();
+        },
+        'ArrowLeft': () => {
+            const btn = document.querySelector('[aria-label="Vorheriger Teilnehmer"]');
+            if (btn && !btn.disabled) btn.click();
+        },
+        '1': () => voteHandler('G'),
+        '2': () => voteHandler('B'),
+        '3': () => voteHandler('N')
+    };
+    
+    const action = keyActions[event.key];
+    if (action) {
+        event.preventDefault();
+        action();
+    }
+}
+
+// ========== Initialization ==========
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize charts
+    initializeCharts();
+    
+    // Initialize total score hover
+    initializeTotalScoreHover();
+    
+    // Setup keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+    
+    // Auto-fullscreen if previously enabled
+    const wasFullscreen = localStorage.getItem('isFullscreen');
+    if (wasFullscreen === 'true' && !document.fullscreenElement) {
+        openFullscreen();
+    }
+    
+    console.log('✓ Presentation initialized successfully');
+});
 </script>
 
 </body>

@@ -307,13 +307,21 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
     
     class Meta:
         model = Bewerber
-        fields = []
+        fields = ['interview_persons']
         exclude = ['org', 'application_pdf']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         add_customuser_fields(self, 'B')
-        order_fields = ['first_name', 'last_name', 'email', 'person_cluster', 'pdf_files']
+        
+        # Filter interview_persons to only show users from team, ehemalige, or org
+        self.fields['interview_persons'].queryset = User.objects.filter(
+            customuser__person_cluster__view__in=['T', 'E', 'O']
+        ).order_by('last_name', 'first_name')
+        self.fields['interview_persons'].label = 'Interviewpersonen'
+        self.fields['interview_persons'].help_text = 'Wählen Sie die Personen aus, die das Interview durchgeführt haben.'
+        
+        order_fields = ['first_name', 'last_name', 'email', 'person_cluster', 'interview_persons', 'pdf_files']
         self.order_fields(order_fields)
         
         # Separate, non-model field for profile picture upload

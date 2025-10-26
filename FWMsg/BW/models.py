@@ -59,10 +59,6 @@ class Bewerber(OrgModel):
         related_name="accessible_applications",
     )
     
-    gegenstand = models.CharField(
-        max_length=200, blank=True, null=True, verbose_name="Gegenstand"
-    )
-    
     # Wish preferences for deployment locations - applicants can specify up to 3 preferred locations
     # and one location they definitely don't want to be assigned to
     first_wish = models.CharField(
@@ -165,21 +161,12 @@ class Bewerber(OrgModel):
     )
 
     # Interview fields for tracking who conducted the interviews
-    interview_1 = models.ForeignKey(
+    interview_persons = models.ManyToManyField(
         User,
-        on_delete=models.DO_NOTHING,
-        related_name="interview_1",
+        verbose_name="Interviewpersonen/Ehemalige",
         blank=True,
-        null=True,
-        verbose_name="Interviewperson 1",
-    )
-    interview_2 = models.ForeignKey(
-        User,
-        on_delete=models.DO_NOTHING,
-        related_name="interview_2",
-        blank=True,
-        null=True,
-        verbose_name="Interviewperson 2",
+        help_text="Die Personen, die das Interview mit dem Bewerber:in geführt haben.",
+        related_name="interview_persons"
     )
     
     application_pdf = models.FileField(

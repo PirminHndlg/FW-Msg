@@ -130,21 +130,15 @@
               {% endif %}
 
               <!-- Interviews -->
-              {% if bewerber.interview_1 or bewerber.interview_2 %}
+              {% if bewerber.interview_persons.all %}
                 <div>
                   <label class="form-label fw-semibold">{% trans "Interviews" %}</label>
-                  {% if bewerber.interview_1 %}
+                  {% for interview_person in bewerber.interview_persons.all %}
                     <div class="d-flex align-items-center mb-2">
                       <i class="bi bi-person me-2 text-primary"></i>
-                      <span>{{ bewerber.interview_1.get_full_name }}</span>
+                      <span>{{ interview_person.get_full_name }}</span>
                     </div>
-                  {% endif %}
-                  {% if bewerber.interview_2 %}
-                    <div class="d-flex align-items-center">
-                      <i class="bi bi-person me-2 text-primary"></i>
-                      <span>{{ bewerber.interview_2.get_full_name }}</span>
-                    </div>
-                  {% endif %}
+                  {% endfor %}
                 </div>
               {% endif %}
             </div>
