@@ -110,12 +110,6 @@ class SeminarForm(forms.ModelForm):
                 'type': 'datetime-local'
             }),
         }
-        labels = {
-            'name': 'Name',
-            'description': 'Beschreibung',
-            'deadline_start': 'Deadline Start',
-            'deadline_end': 'Deadline Ende',
-        }
 
 
 class EinheitForm(forms.ModelForm):

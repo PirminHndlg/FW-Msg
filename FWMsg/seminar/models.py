@@ -152,10 +152,10 @@ class Kommentar(OrgModel):
 
 class Seminar(models.Model):
     org = models.OneToOneField(Org, on_delete=models.CASCADE)
-    name = models.CharField(max_length=200)
-    description = models.TextField()
-    deadline_start = models.DateTimeField(verbose_name="Deadline Start", null=True, blank=True)
-    deadline_end = models.DateTimeField(verbose_name="Deadline Ende", null=True, blank=True)
+    name = models.CharField(max_length=200, verbose_name="Seminarname", help_text="Der Name des Seminars, der Bewerber:innen und Teammitglieder beim Start des Seminars sehen.")
+    description = models.TextField(verbose_name="Seminar Beschreibung", help_text="Die Beschreibung des Seminars, die Bewerber:innen und Teammitglieder beim Start des Seminars sehen.")
+    deadline_start = models.DateTimeField(verbose_name="Länderwahl Start", null=True, blank=True, help_text="Die Startzeit des Seminars, ab welcher die Bewerber:innen für die Auswahl des Einsatzlandes beginnen können.")
+    deadline_end = models.DateTimeField(verbose_name="Länderwahl Ende", null=True, blank=True, help_text="Die Endzeit des Seminars, bis zu welcher die Bewerber:innen für die Auswahl des Einsatzlandes ihre Auswahl treffen müssen.")
     verschwiegenheit_von_user = models.ManyToManyField(User, blank=True, verbose_name="Verschwiegenheit von User")
 
     class Meta:

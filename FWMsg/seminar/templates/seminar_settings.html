@@ -30,12 +30,12 @@
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="einheit-tab" data-bs-toggle="tab" data-bs-target="#einheit" type="button" role="tab">
-                <i class="bi bi-people me-1"></i>Einheiten
+                <i class="bi bi-people me-1"></i>Seminareinheiten
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="kategorie-tab" data-bs-toggle="tab" data-bs-target="#kategorie" type="button" role="tab">
-                <i class="bi bi-tags me-1"></i>Kategorien
+                <i class="bi bi-tags me-1"></i>Fragekategorien
             </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -101,7 +101,7 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
-                        <i class="bi bi-people me-2"></i>Einheiten
+                        <i class="bi bi-people me-2"></i>Seminareinheiten
                     </h5>
                     <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#einheitModal" onclick="resetEinheitForm()">
                         <i class="fas fa-plus me-1"></i>Hinzufügen
@@ -152,10 +152,10 @@
                     {% else %}
                         <div class="text-center py-5">
                             <i class="bi bi-people fa-4x text-muted mb-3 opacity-25"></i>
-                            <h5 class="text-muted mb-2">Keine Einheiten vorhanden</h5>
-                            <p class="text-muted mb-3">Erstellen Sie Einheiten für die Bewertung</p>
+                            <h5 class="text-muted mb-2">Keine Seminareinheiten vorhanden</h5>
+                            <p class="text-muted mb-3">Erstellen Sie Seminareinheiten für die Bewertung</p>
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#einheitModal" onclick="resetEinheitForm()">
-                                <i class="bi bi-plus-lg me-1"></i>Erste Einheit erstellen
+                                <i class="bi bi-plus-lg me-1"></i>Erste Seminareinheit erstellen
                             </button>
                         </div>
                     {% endif %}
@@ -204,7 +204,7 @@
                                                     </li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
-                                                        <a class="dropdown-item text-danger" href="?delete=fragekategorie&id={{ kategorie.id }}" onclick="return confirm('Kategorie löschen?')">
+                                                        <a class="dropdown-item text-danger" href="?delete=fragekategorie&id={{ kategorie.id }}" onclick="return confirm('Fragekategorie löschen?')">
                                                             <i class="bi bi-trash me-2"></i>Löschen
                                                         </a>
                                                     </li>
@@ -321,16 +321,25 @@
                     <div class="mb-3">
                         {{ seminar_form.description.label_tag }}
                         {{ seminar_form.description }}
+                        <small class="text-muted">
+                            {{ seminar_form.description.help_text }}
+                        </small>
                     </div>
                     
                     <div class="mb-3">
                         {{ seminar_form.deadline_start.label_tag }}
                         {{ seminar_form.deadline_start }}
+                        <small class="text-muted">
+                            {{ seminar_form.deadline_start.help_text }}
+                        </small>
                     </div>
                     
                     <div class="mb-3">
                         {{ seminar_form.deadline_end.label_tag }}
                         {{ seminar_form.deadline_end }}
+                        <small class="text-muted">
+                            {{ seminar_form.deadline_end.help_text }}
+                        </small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -349,7 +358,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="einheitModalTitle">Einheit hinzufügen</h5>
+                <h5 class="modal-title" id="einheitModalTitle">Seminareinheit hinzufügen</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post" id="einheitForm">
@@ -384,7 +393,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="kategorieModalTitle">Kategorie hinzufügen</h5>
+                <h5 class="modal-title" id="kategorieModalTitle">Fragekategorie hinzufügen</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post" id="kategorieForm">
@@ -492,7 +501,7 @@ function editEinheit(id, name, short_name) {
     document.getElementById('einheit_id').value = id;
     document.querySelector('#einheitForm #id_name').value = name;
     document.querySelector('#einheitForm #id_short_name').value = short_name;
-    document.getElementById('einheitModalTitle').textContent = 'Einheit bearbeiten';
+    document.getElementById('einheitModalTitle').textContent = 'Seminareinheit bearbeiten';
     
     // Open the modal
     const modal = new bootstrap.Modal(document.getElementById('einheitModal'));
@@ -502,7 +511,7 @@ function editEinheit(id, name, short_name) {
 function resetEinheitForm() {
     document.getElementById('einheitForm').reset();
     document.getElementById('einheit_id').value = '';
-    document.getElementById('einheitModalTitle').textContent = 'Einheit hinzufügen';
+    document.getElementById('einheitModalTitle').textContent = 'Seminareinheit hinzufügen';
 }
 
 // Kategorie functions
@@ -510,7 +519,7 @@ function editKategorie(id, name, short_name) {
     document.getElementById('kategorie_id').value = id;
     document.querySelector('#kategorieForm #id_name').value = name;
     document.querySelector('#kategorieForm #id_short_name').value = short_name;
-    document.getElementById('kategorieModalTitle').textContent = 'Kategorie bearbeiten';
+    document.getElementById('kategorieModalTitle').textContent = 'Fragekategorie bearbeiten';
     
     // Open the modal
     const modal = new bootstrap.Modal(document.getElementById('kategorieModal'));
@@ -520,7 +529,7 @@ function editKategorie(id, name, short_name) {
 function resetKategorieForm() {
     document.getElementById('kategorieForm').reset();
     document.getElementById('kategorie_id').value = '';
-    document.getElementById('kategorieModalTitle').textContent = 'Kategorie hinzufügen';
+    document.getElementById('kategorieModalTitle').textContent = 'Fragekategorie hinzufügen';
 }
 
 // Frage functions
