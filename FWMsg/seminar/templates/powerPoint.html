@@ -54,9 +54,8 @@
             {% elif freiwilliger.endbewertung == 'N' %}
                 var(--red-color)
             {% endif %}
-            ;" src="/{{freiwilliger.file}}" alt="Bild von {{freiwilliger.first_name}}"
-                onerror="this.onerror=null; this.src='/static/img/default_img.png';"
-        ></div>
+            ;" src="{% url 'serve_profil_picture' freiwilliger.user.id %}" alt="Bild von {{freiwilliger.first_name}}">
+        </div>
 
         <div class="pp_second_top_div">
             <h1 class="pp_name_field">{{freiwilliger.user.first_name}} {{freiwilliger.user.last_name}}</h1>
