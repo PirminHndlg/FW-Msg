@@ -63,17 +63,29 @@
                             <div class="col-md-8">
                                 <h6 class="mb-2">{{ seminar.name }}</h6>
                                 <p class="text-muted mb-2">{{ seminar.description|default:"Keine Beschreibung vorhanden" }}</p>
-                                <div class="d-flex gap-2">
-                                    {% if seminar.deadline_start %}
-                                        <span class="badge bg-info">Start: {{ seminar.deadline_start|date:"d.m.Y H:i" }}</span>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    {% if seminar.seminar_start %}
+                                        <span class="badge bg-secondary">Seminar: {{ seminar.seminar_start|date:"d.m.Y" }} - {{ seminar.seminar_end|date:"d.m.Y" }}</span>
                                     {% endif %}
-                                    {% if seminar.deadline_end %}
-                                        <span class="badge bg-warning">Ende: {{ seminar.deadline_end|date:"d.m.Y H:i" }}</span>
+                                    {% if seminar.deadline_start or seminar.deadline_end %}
+                                        <span class="badge bg-info">
+                                            {% if seminar.deadline_start %}Länderwahl ab: {{ seminar.deadline_start|date:"d.m.Y H:i" }}{% endif %}
+                                            {% if seminar.deadline_end %}bis: {{ seminar.deadline_end|date:"d.m.Y H:i" }}{% endif %}
+                                        </span>
                                     {% endif %}
                                 </div>
                             </div>
                             <div class="col-md-4 text-end">
-                                <button class="btn btn-outline-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#seminarModal" onclick="editSeminar({{ seminar.id }}, '{{ seminar.name|escapejs }}', '{{ seminar.description|escapejs }}', '{{ seminar.deadline_start|date:"Y-m-d\TH:i"|default:"" }}', '{{ seminar.deadline_end|date:"Y-m-d\TH:i"|default:"" }}')">
+                                <button class="btn btn-outline-primary btn-sm me-2 edit-seminar-btn" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#seminarModal"
+                                        data-id="{{ seminar.id }}"
+                                        data-name="{{ seminar.name }}"
+                                        data-description="{{ seminar.description }}"
+                                        data-seminar-start="{{ seminar.seminar_start|date:'Y-m-d'|default:'' }}"
+                                        data-seminar-end="{{ seminar.seminar_end|date:'Y-m-d'|default:'' }}"
+                                        data-deadline-start="{{ seminar.deadline_start|date:'Y-m-d\TH:i'|default:'' }}"
+                                        data-deadline-end="{{ seminar.deadline_end|date:'Y-m-d\TH:i'|default:'' }}">
                                     <i class="bi bi-pencil-square me-1"></i>Bearbeiten
                                 </button>
                                 <a href="?delete=seminar&id={{ seminar.id }}" class="btn btn-outline-danger btn-sm" onclick="return confirm('Seminar zurücksetzen und löschen?')">
@@ -316,30 +328,59 @@
                     <div class="mb-3">
                         {{ seminar_form.name.label_tag }}
                         {{ seminar_form.name }}
+                        {% if seminar_form.name.help_text %}
+                            <small class="text-muted d-block mt-1">{{ seminar_form.name.help_text }}</small>
+                        {% endif %}
                     </div>
                     
                     <div class="mb-3">
                         {{ seminar_form.description.label_tag }}
                         {{ seminar_form.description }}
-                        <small class="text-muted">
-                            {{ seminar_form.description.help_text }}
-                        </small>
+                        {% if seminar_form.description.help_text %}
+                            <small class="text-muted d-block mt-1">{{ seminar_form.description.help_text }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ seminar_form.seminar_start.label_tag }}
+                                {{ seminar_form.seminar_start }}
+                                {% if seminar_form.seminar_start.help_text %}
+                                    <small class="text-muted d-block mt-1">{{ seminar_form.seminar_start.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ seminar_form.seminar_end.label_tag }}
+                                {{ seminar_form.seminar_end }}
+                                {% if seminar_form.seminar_end.help_text %}
+                                    <small class="text-muted d-block mt-1">{{ seminar_form.seminar_end.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        {{ seminar_form.deadline_start.label_tag }}
-                        {{ seminar_form.deadline_start }}
-                        <small class="text-muted">
-                            {{ seminar_form.deadline_start.help_text }}
-                        </small>
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ seminar_form.deadline_end.label_tag }}
-                        {{ seminar_form.deadline_end }}
-                        <small class="text-muted">
-                            {{ seminar_form.deadline_end.help_text }}
-                        </small>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ seminar_form.deadline_start.label_tag }}
+                                {{ seminar_form.deadline_start }}
+                                {% if seminar_form.deadline_start.help_text %}
+                                    <small class="text-muted d-block mt-1">{{ seminar_form.deadline_start.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ seminar_form.deadline_end.label_tag }}
+                                {{ seminar_form.deadline_end }}
+                                {% if seminar_form.deadline_end.help_text %}
+                                    <small class="text-muted d-block mt-1">{{ seminar_form.deadline_end.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -481,15 +522,6 @@
 <!-- JavaScript -->
 <script>
 // Seminar functions
-function editSeminar(id, name, description, deadline_start, deadline_end) {
-    document.getElementById('seminar_id').value = id;
-    document.getElementById('id_name').value = name;
-    document.getElementById('id_description').value = description;
-    document.getElementById('id_deadline_start').value = deadline_start;
-    document.getElementById('id_deadline_end').value = deadline_end;
-    document.getElementById('seminarModalTitle').textContent = 'Seminar bearbeiten';
-}
-
 function resetSeminarForm() {
     document.getElementById('seminarForm').reset();
     document.getElementById('seminar_id').value = '';
@@ -555,6 +587,28 @@ function resetFrageForm() {
 
 // Focus first input when modal opens and close modal after form submission
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle seminar edit buttons with data attributes
+    document.querySelectorAll('.edit-seminar-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const seminarId = this.dataset.id;
+            const name = this.dataset.name;
+            const description = this.dataset.description;
+            const seminarStart = this.dataset.seminarStart;
+            const seminarEnd = this.dataset.seminarEnd;
+            const deadlineStart = this.dataset.deadlineStart;
+            const deadlineEnd = this.dataset.deadlineEnd;
+            
+            document.getElementById('seminar_id').value = seminarId;
+            document.getElementById('id_name').value = name;
+            document.getElementById('id_description').value = description;
+            document.getElementById('id_seminar_start').value = seminarStart;
+            document.getElementById('id_seminar_end').value = seminarEnd;
+            document.getElementById('id_deadline_start').value = deadlineStart;
+            document.getElementById('id_deadline_end').value = deadlineEnd;
+            document.getElementById('seminarModalTitle').textContent = 'Seminar bearbeiten';
+        });
+    });
+    
     // Initialize all dropdowns manually
     const dropdownToggles = document.querySelectorAll('[data-bs-toggle="dropdown"]');
     dropdownToggles.forEach(toggle => {

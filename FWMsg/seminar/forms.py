@@ -90,26 +90,47 @@ class BewerterForm(forms.ModelForm):
 class SeminarForm(forms.ModelForm):
     class Meta:
         model = Seminar
-        fields = ['name', 'description', 'deadline_start', 'deadline_end']
+        fields = ['name', 'description', 'seminar_start', 'seminar_end', 'deadline_start', 'deadline_end']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Seminar Name',
+                'placeholder': 'z.B. Einführungsseminar 2024',
             }),
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
                 'placeholder': 'Beschreibung des Seminars',
                 'rows': 3
             }),
+            'seminar_start': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }, format='%Y-%m-%d'),
+            'seminar_end': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }, format='%Y-%m-%d'),
             'deadline_start': forms.DateTimeInput(attrs={
                 'class': 'form-control',
                 'type': 'datetime-local'
-            }),
+            }, format='%Y-%m-%dT%H:%M'),
             'deadline_end': forms.DateTimeInput(attrs={
                 'class': 'form-control',
                 'type': 'datetime-local'
-            }),
+            }, format='%Y-%m-%dT%H:%M'),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set input formats to match HTML5 inputs
+        if self.instance and self.instance.pk:
+            if self.instance.seminar_start:
+                self.initial['seminar_start'] = self.instance.seminar_start.strftime('%Y-%m-%d')
+            if self.instance.seminar_end:
+                self.initial['seminar_end'] = self.instance.seminar_end.strftime('%Y-%m-%d')
+            if self.instance.deadline_start:
+                self.initial['deadline_start'] = self.instance.deadline_start.strftime('%Y-%m-%dT%H:%M')
+            if self.instance.deadline_end:
+                self.initial['deadline_end'] = self.instance.deadline_end.strftime('%Y-%m-%dT%H:%M')
 
 
 class EinheitForm(forms.ModelForm):
