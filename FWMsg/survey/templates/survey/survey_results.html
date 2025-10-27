@@ -184,7 +184,7 @@
                                     {% for answer in question_data.answers|slice:":10" %}
                                         <div class="col-12 mb-2">
                                             <div class="border rounded p-2 bg-light">
-                                                {{ answer|truncatechars:200 }}
+                                                {{ answer }}
                                             </div>
                                         </div>
                                     {% endfor %}
