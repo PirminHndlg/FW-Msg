@@ -37,7 +37,10 @@ class BaseOrgTable(tables.Table):
         template_name = 'django_tables2/bootstrap5.html'
         attrs = {
             'class': 'table table-hover align-middle',
-            'thead': {'class': 'z-1'},
+            'thead': {
+                'class': 'z-1',
+                'style': 'position: sticky; top: 0; background-color: white;'
+            },
         }
         per_page = 100
     
@@ -364,7 +367,7 @@ def _create_dynamic_table_class(
     table_attrs.update(render_methods)
     table_attrs['Meta'] = type('Meta', (), {
         'template_name': 'django_tables2/bootstrap5.html',
-        'attrs': {'class': 'table table-hover align-middle', 'thead': {'class': 'z-1'}},
+        'attrs': {'class': 'table table-hover align-middle', 'thead': {'class': 'z-1', 'style': 'position: sticky; top: 0; background-color: white;'}},
         'per_page': 100
     })
     
