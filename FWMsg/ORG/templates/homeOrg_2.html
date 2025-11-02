@@ -494,7 +494,7 @@
       <div class="card-body">
         {% if recent_ampel_entries %}
           <div class="list-group list-group-flush">
-            {% for entry in recent_ampel_entries|slice:":5" %}
+            {% for entry in recent_ampel_entries %}
               <div class="list-group-item px-0 border-0 py-2 cursor-pointer" onclick="showAmpelComment({{ entry.id }}, '{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ entry.user }}', '{{entry.read}}')">
                 <div class="d-flex justify-content-between align-items-start">
                   <div class="me-auto">
