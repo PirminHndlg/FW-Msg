@@ -14,25 +14,48 @@
         {% elif field.field.widget.input_type == 'date' %}
             <input type="date" id="{{ field.id_for_label }}" name="{{ field.name }}" class="form-control" value="{{ field.value|date:"Y-m-d" }}">
         {% elif field.field.widget|class_name == 'SelectMultiple' %}
-            <div class="card">
-                <div class="card-body py-2" style="max-height: 200px; overflow-y: auto;">
-                    <div class="row g-3">
+            <div class="border rounded overflow-hidden select-multiple-wrapper">
+                {% if field.field.choices|length > 10 %}
+                <div class="bg-light border-bottom p-2">
+                    <div class="position-relative">
+                        <input type="text" 
+                               class="form-control form-control-sm select-multiple-search border-0 shadow-none bg-white pe-5" 
+                               placeholder="{% trans 'Suchen...' %}"
+                               data-target="{{ field.name }}"
+                               autocomplete="off">
+                        <button type="button" 
+                                class="btn btn-sm position-absolute top-50 end-0 translate-middle-y select-multiple-clear d-none px-2"
+                                data-target="{{ field.name }}"
+                                type="button">
+                            <i class="bi bi-x-circle-fill text-secondary"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="p-3 bg-white overflow-auto select-multiple-scroll-area" style="max-height: 250px;">
+                    <div class="row g-1 p-3 select-multiple-options" data-field="{{ field.name }}">
                         {% for value, label in field.field.choices %}
-                            <div class="col-md-4">
-                                <div class="form-check">
+                            <div class="col-md-4 select-multiple-option" data-label="{{ label|lower }}">
+                                <div class="form-check p-2 rounded select-multiple-checkbox">
                                     <input type="checkbox" 
                                            name="{{ field.name }}" 
                                            value="{{ value }}" 
                                            id="id_{{ field.name }}_{{ forloop.counter }}"
                                            class="form-check-input"
                                            {% if value in field.value %}checked{% endif %}>
-                                    <label class="form-check-label" for="id_{{ field.name }}_{{ forloop.counter }}">
+                                    <label class="form-check-label user-select-none" for="id_{{ field.name }}_{{ forloop.counter }}">
                                         {{ label }}
                                     </label>
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
+                </div>
+                <div class="bg-light border-top px-3 py-2">
+                    <small class="text-muted select-multiple-counter d-flex align-items-center gap-1" data-field="{{ field.name }}">
+                        <i class="bi bi-check2-square"></i>
+                        <span class="selected-count fw-semibold">0</span> {% trans "ausgewählt" %}
+                    </small>
                 </div>
             </div>
         {% elif field.field.widget.input_type == 'select' %}

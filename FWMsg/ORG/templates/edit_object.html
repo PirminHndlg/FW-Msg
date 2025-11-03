@@ -174,6 +174,81 @@ document.addEventListener('DOMContentLoaded', function() {
             fetchAndPopulate(landSelect.value, false);
         });
     }
+    
+    // SelectMultiple counter and search functionality
+    const updateCounter = (fieldName) => {
+        const optionsContainer = document.querySelector(`.select-multiple-options[data-field="${fieldName}"]`);
+        const counter = document.querySelector(`.select-multiple-counter[data-field="${fieldName}"] .selected-count`);
+        
+        if (optionsContainer && counter) {
+            const checkedBoxes = optionsContainer.querySelectorAll('input[type="checkbox"]:checked');
+            counter.textContent = checkedBoxes.length;
+        }
+    };
+    
+    // Initialize counters for all SelectMultiple fields
+    const allOptionsContainers = document.querySelectorAll('.select-multiple-options');
+    allOptionsContainers.forEach(container => {
+        const fieldName = container.dataset.field;
+        
+        // Set initial count
+        updateCounter(fieldName);
+        
+        // Update counter on checkbox change
+        const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                updateCounter(fieldName);
+            });
+        });
+    });
+    
+    // Search functionality
+    const searchInputs = document.querySelectorAll('.select-multiple-search');
+    searchInputs.forEach(searchInput => {
+        const fieldName = searchInput.dataset.target;
+        const optionsContainer = document.querySelector(`.select-multiple-options[data-field="${fieldName}"]`);
+        const clearButton = document.querySelector(`.select-multiple-clear[data-target="${fieldName}"]`);
+        
+        if (optionsContainer) {
+            const filterOptions = (searchTerm) => {
+                const options = optionsContainer.querySelectorAll('.select-multiple-option');
+                options.forEach(option => {
+                    const label = option.dataset.label;
+                    if (label.includes(searchTerm)) {
+                        option.classList.remove('d-none');
+                    } else {
+                        option.classList.add('d-none');
+                    }
+                });
+            };
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                
+                // Show/hide clear button
+                if (clearButton) {
+                    if (this.value) {
+                        clearButton.classList.remove('d-none');
+                    } else {
+                        clearButton.classList.add('d-none');
+                    }
+                }
+                
+                filterOptions(searchTerm);
+            });
+            
+            // Clear button functionality
+            if (clearButton) {
+                clearButton.addEventListener('click', function() {
+                    searchInput.value = '';
+                    this.classList.add('d-none');
+                    filterOptions('');
+                    searchInput.focus();
+                });
+            }
+        }
+    });
 });
 </script>
 {% endblock %}
