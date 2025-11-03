@@ -316,6 +316,7 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
         
         # Filter interview_persons to only show users from team, ehemalige, or org
         self.fields['interview_persons'].queryset = User.objects.filter(
+            customuser__org=self.request.user.org,
             customuser__person_cluster__view__in=['T', 'E', 'O']
         ).order_by('last_name', 'first_name')
         self.fields['interview_persons'].label = 'Interviewpersonen'
