@@ -84,7 +84,6 @@ def send_birthday_reminder_email_task(user_id, is_tomorrow=True):
         birthday_user_name=f"{custom_user.user.first_name} {custom_user.user.last_name}",
         user_email=custom_user.user.email,
         birthday=custom_user.geburtsdatum,
-        unsubscribe_url=custom_user.get_unsubscribe_url(),
         org_name=org.name,
         base64_image=get_logo_base64(org),
         org_color=get_org_color(org),
