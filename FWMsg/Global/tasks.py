@@ -8,7 +8,7 @@ from Global.send_email import (
     format_change_request_decision_email,
     get_org_color,
     send_email_with_archive,
-    get_logo_base64,
+    get_logo_url,
     send_new_post_email
 )
 
@@ -32,7 +32,7 @@ def send_image_uploaded_email_task(bild_id):
         subject = f"Neues Bild hochgeladen: {bild.titel}"
         org_email = org.email
         uploader_name = f"{bild.user.first_name} {bild.user.last_name}".strip() or bild.user.username
-        base64_image = get_logo_base64(org)
+        image_url = get_logo_url(org)
         org_color = get_org_color(org)
         unsubscribe_url = None
         user_name = org.name
@@ -48,7 +48,7 @@ def send_image_uploaded_email_task(bild_id):
             unsubscribe_url=unsubscribe_url,
             user_name=user_name,
             org_name=org_name,
-            base64_image=base64_image,
+            image_url=image_url,
             org_color=org_color
         )
 
@@ -85,7 +85,7 @@ def send_birthday_reminder_email_task(user_id, is_tomorrow=True):
         user_email=custom_user.user.email,
         birthday=custom_user.geburtsdatum,
         org_name=org.name,
-        base64_image=get_logo_base64(org),
+        image_url=get_logo_url(org),
         org_color=get_org_color(org),
         is_tomorrow=is_tomorrow
     )
@@ -118,7 +118,7 @@ def send_change_request_new_email_task(change_request_id):
         change_type_display = change_request.get_change_type_display()
         
         # Get organization logo and color
-        base64_image = get_logo_base64(change_request.org)
+        image_url = get_logo_url(change_request.org)
         org_color = get_org_color(change_request.org)
         
         # Generate action URL
@@ -139,7 +139,7 @@ def send_change_request_new_email_task(change_request_id):
             action_url=action_url,
             user_name=user_name,
             org_name=change_request.org.name,
-            base64_image=base64_image,
+            image_url=image_url,
             org_color=org_color
         )
         
@@ -184,7 +184,7 @@ def send_change_request_decision_email_task(change_request_id):
         change_type_display = change_request.get_change_type_display()
         
         # Get organization logo and color
-        base64_image = get_logo_base64(change_request.org)
+        image_url = get_logo_url(change_request.org)
         org_color = get_org_color(change_request.org)
         
         # Generate action URL - redirect to their info page
@@ -207,7 +207,7 @@ def send_change_request_decision_email_task(change_request_id):
             unsubscribe_url=unsubscribe_url,
             user_name=user_name,
             org_name=change_request.org.name,
-            base64_image=base64_image,
+            image_url=image_url,
             org_color=org_color
         )
         
