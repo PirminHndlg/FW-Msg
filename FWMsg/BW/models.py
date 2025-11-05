@@ -180,6 +180,9 @@ class Bewerber(OrgModel):
     class Meta:
         verbose_name = "Bewerber:in"
         verbose_name_plural = "Bewerber:innen"
+        
+    def __str__(self):
+        return f"{self.user}"
 
 
 class ApplicationQuestion(OrgModel):
