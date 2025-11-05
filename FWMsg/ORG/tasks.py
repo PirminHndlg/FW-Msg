@@ -6,7 +6,7 @@ import logging
 from FW.models import Freiwilliger
 from TEAM.models import Team
 from Global.push_notification import send_push_notification_to_user
-from Global.send_email import format_register_email_org, format_aufgabe_erledigt_email, format_mail_calendar_reminder_email, format_ampel_email, get_org_color, send_email_with_archive, get_logo_base64
+from Global.send_email import format_register_email_org, format_aufgabe_erledigt_email, format_mail_calendar_reminder_email, format_ampel_email, get_org_color, send_email_with_archive, get_logo_url
 from django.core.mail import send_mail
 
 
@@ -28,9 +28,9 @@ def send_register_email_task(customuser_id):
     freiwilliger_name = f"{user.first_name} {user.last_name}"
     username = user.username
     action_url = f'{settings.DOMAIN_HOST}{reverse("first_login_with_params", args=[username, einmalpasswort])}'
-    base64_image = get_logo_base64(org)
+    image_url = get_logo_url(org)
     org_color = get_org_color(org)
-    email_content = format_register_email_org(einmalpasswort=einmalpasswort, action_url=action_url, org_name=org_name, user_name=freiwilliger_name, username=username, base64_image=base64_image, org_color=org_color)
+    email_content = format_register_email_org(einmalpasswort=einmalpasswort, action_url=action_url, org_name=org_name, user_name=freiwilliger_name, username=username, image_url=image_url, org_color=org_color)
     subject = f'Account erstellt: {freiwilliger_name}'
     if send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [user.email], html_message=email_content):
         return True
@@ -106,10 +106,10 @@ def send_mail_calendar_reminder_task(kalender_event_id, user_id):
     unsubscribe_url = user.customuser.get_unsubscribe_url()
     org_name = kalender_event.org.name
     user_name = f"{user.first_name} {user.last_name}"
-    base64_image = get_logo_base64(kalender_event.org)
+    image_url = get_logo_url(kalender_event.org)
     org_color = get_org_color(kalender_event.org)
     
-    email_content = format_mail_calendar_reminder_email(title=kalender_event.title, start=kalender_event.start, end=kalender_event.end, location=kalender_event.location, description=kalender_event.description, action_url=action_url, unsubscribe_url=unsubscribe_url, user_name=user_name, org_name=org_name, base64_image=base64_image, org_color=org_color)
+    email_content = format_mail_calendar_reminder_email(title=kalender_event.title, start=kalender_event.start, end=kalender_event.end, location=kalender_event.location, description=kalender_event.description, action_url=action_url, unsubscribe_url=unsubscribe_url, user_name=user_name, org_name=org_name, image_url=image_url, org_color=org_color)
     
     push_content = f'{kalender_event.start.strftime("%d.%m.%Y")} bis {kalender_event.end.strftime("%d.%m.%Y")}: {kalender_event.title}'
     send_push_notification_to_user(user, subject, push_content, url=action_url)
@@ -139,7 +139,7 @@ def send_ampel_email_task(ampel_id):
         action_url = f"{settings.DOMAIN_HOST}{reverse('list_ampel')}"
         
         # Get organization logo as base64
-        base64_image = get_logo_base64(org)
+        image_url = get_logo_url(org)
         org_color = get_org_color(org)
         
         # Format the email content
@@ -153,7 +153,7 @@ def send_ampel_email_task(ampel_id):
             action_url=action_url,
             unsubscribe_url=None,  # Organizations don't have unsubscribe URLs
             org_name=org.name,
-            base64_image=base64_image,
+            image_url=image_url,
             org_color=org_color
         )
         
