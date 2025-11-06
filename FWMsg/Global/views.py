@@ -997,7 +997,10 @@ def update_profil_picture(request):
 
 @login_required
 def serve_profil_picture(request, user_id):
-    requested_user = User.objects.get(id=user_id)
+    try:
+        requested_user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return HttpResponseNotFound('Benutzer nicht gefunden')
 
     def _serve_cached_image(file_path, download_name):
         stat = os.stat(file_path)
