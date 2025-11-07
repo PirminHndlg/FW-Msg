@@ -2287,9 +2287,9 @@ def change_request_history(request):
 @required_role('O')
 @require_http_methods(["GET"])
 def ajax_load_aufgaben_table_data(request):
-    """Load aufgaben table data via AJAX for better performance."""
+    """Load aufgaben table data via AJAX - returns JSON for client-side rendering."""
     try:
-        # Use the same logic as the original view but return rendered HTML
+        # Use the same logic as the original view but return JSON data
         users, person_cluster = get_filtered_user_queryset(request, 'aufgaben')
 
         if not person_cluster or person_cluster.aufgaben:
@@ -2326,12 +2326,13 @@ def ajax_load_aufgaben_table_data(request):
                 org=request.user.org,
                 user__in=users,
                 aufgabe__in=aufgaben
-            ).select_related('user', 'aufgabe').prefetch_related(
+            ).select_related('user', 'aufgabe', 'user__customuser').prefetch_related(
                 Prefetch(
                     'useraufgabenzwischenschritte_set',
                     queryset=UserAufgabenZwischenschritte.objects.all(),
                     to_attr='prefetched_zwischenschritte'
-                )
+                ),
+                'file_downloaded_of'
             )
 
             # Create a lookup dictionary for faster access
@@ -2341,49 +2342,73 @@ def ajax_load_aufgaben_table_data(request):
                     user_aufgaben_dict[ua.user_id] = {}
                 user_aufgaben_dict[ua.user_id][ua.aufgabe_id] = ua
 
-            # Build matrix using the same logic as original
+            # Build matrix using the same logic as original - but serialize to JSON
             user_aufgaben_matrix = {}
             for user in users:
-                user_aufgaben_matrix[user] = []
+                user_aufgaben_matrix[user.id] = []
                 for aufgabe in aufgaben:
                     ua = user_aufgaben_dict.get(user.id, {}).get(aufgabe.id, None)
                     if ua:
                         zwischenschritte = ua.prefetched_zwischenschritte
                         zwischenschritte_count = len(zwischenschritte)
                         zwischenschritte_done_count = sum(1 for z in zwischenschritte if z.erledigt)
-                        user_aufgaben_matrix[user].append({
-                            'user_aufgabe': ua,
-                            'zwischenschritte': zwischenschritte,
+                        
+                        # Get file downloaded by names
+                        file_downloaded_of_names = ', '.join([
+                            f"{u.first_name} {u.last_name}" for u in ua.file_downloaded_of.all()
+                        ]) if ua.file else None
+                        
+                        user_aufgaben_matrix[user.id].append({
+                            'user_aufgabe': {
+                                'id': ua.id,
+                                'aufgabe_name': ua.aufgabe.name,
+                                'erledigt': ua.erledigt,
+                                'erledigt_am': ua.erledigt_am.isoformat() if ua.erledigt_am else None,
+                                'pending': ua.pending,
+                                'faellig': ua.faellig.isoformat() if ua.faellig else None,
+                                'file': bool(ua.file),
+                                'file_name': ua.file.name.split('/')[-1] if ua.file else None,
+                                'file_downloaded_of_names': file_downloaded_of_names,
+                                'mail_notifications': ua.user.customuser.mail_notifications if hasattr(ua.user, 'customuser') else True,
+                                'currently_sending': getattr(ua, 'currently_sending', False),
+                                'last_reminder': ua.last_reminder.isoformat() if hasattr(ua, 'last_reminder') and ua.last_reminder else None,
+                            },
                             'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
                             'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
                         })
                     elif user.person_cluster in aufgabe.person_cluster.all():
-                        user_aufgaben_matrix[user].append(aufgabe.id)
+                        user_aufgaben_matrix[user.id].append(aufgabe.id)
                     else:
-                        user_aufgaben_matrix[user].append(None)
+                        user_aufgaben_matrix[user.id].append(None)
 
             # Get countries for users
             countries = Einsatzland2.objects.filter(org=request.user.org)
 
-            aufgaben_cluster = AufgabenCluster.objects.filter(org=request.user.org)
-            if person_cluster:
-                aufgaben_cluster = aufgaben_cluster.filter(person_cluster=person_cluster)
+            # Serialize data for JSON response
+            users_data = [{
+                'id': user.id,
+                'username': user.username,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+            } for user in users]
 
-            # Render only the table content (filter buttons are already shown in loading state)
-            table_html = render_to_string('components/task_table.html', {
-                'user_aufgaben_matrix': user_aufgaben_matrix,
-                'users': users,
-                'aufgaben': aufgaben,
-                'today': date.today(),
-                'current_person_cluster': get_person_cluster(request)
-            })
+            aufgaben_data = [{
+                'id': aufgabe.id,
+                'name': aufgabe.name,
+                'beschreibung': aufgabe.beschreibung,
+                'mitupload': aufgabe.mitupload,
+                'wiederholung': aufgabe.wiederholung,
+            } for aufgabe in aufgaben]
 
             response_data = {
                 'success': True,
                 'data': {
-                    'table_html': table_html,
+                    'users': users_data,
+                    'aufgaben': aufgaben_data,
+                    'user_aufgaben_matrix': user_aufgaben_matrix,
                     'countries': list(countries.values('id', 'name')),
-                    'today': date.today().isoformat()
+                    'today': date.today().isoformat(),
+                    'current_person_cluster': str(get_person_cluster(request)) if get_person_cluster(request) else 'Person'
                 }
             }
             

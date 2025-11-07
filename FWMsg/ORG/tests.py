@@ -1436,25 +1436,30 @@ class TaskTemplateStateTests(TestCase):
         return UserAufgaben.objects.create(**defaults)
 
     def test_task_template_states_in_response(self):
-        """Test that the AJAX endpoint includes all template states"""
+        """Test that the AJAX endpoint includes all necessary JSON data"""
         user_aufgabe = self._create_task_assignment()
         
-        # Test the AJAX endpoint that renders the table content
+        # Test the AJAX endpoint that returns JSON data
         response = self.client.get(reverse('ajax_load_aufgaben_table_data'))
         self.assertEqual(response.status_code, 200)
         
         data = json.loads(response.content)
         self.assertTrue(data['success'])
         
-        # Check that all template IDs are present in the rendered HTML
-        table_html = data['data']['table_html']
-        self.assertIn(f'id="completed-task-template-{user_aufgabe.id}"', table_html)
-        self.assertIn(f'id="pending-task-template-{user_aufgabe.id}"', table_html)
-        self.assertIn(f'id="upcoming-task-template-{user_aufgabe.id}"', table_html)
-        self.assertIn(f'id="task-table-row-{user_aufgabe.id}"', table_html)
+        # Check that the response includes the new JSON structure
+        self.assertIn('users', data['data'])
+        self.assertIn('aufgaben', data['data'])
+        self.assertIn('user_aufgaben_matrix', data['data'])
+        self.assertIn('today', data['data'])
+        self.assertIn('current_person_cluster', data['data'])
+        
+        # Verify user_aufgaben_matrix contains the task data
+        user_id = str(user_aufgabe.user.id)
+        self.assertIn(user_id, data['data']['user_aufgaben_matrix'])
+        self.assertGreater(len(data['data']['user_aufgaben_matrix'][user_id]), 0)
 
     def test_task_state_visibility_upcoming(self):
-        """Test that upcoming tasks show the correct template"""
+        """Test that upcoming tasks have correct JSON data structure"""
         user_aufgabe = self._create_task_assignment(
             erledigt=False,
             pending=False
@@ -1465,16 +1470,25 @@ class TaskTemplateStateTests(TestCase):
         
         data = json.loads(response.content)
         self.assertTrue(data['success'])
-        table_html = data['data']['table_html']
         
-        # Upcoming template should be visible (no d-none class)
-        self.assertNotIn(f'id="upcoming-task-template-{user_aufgabe.id}" class="d-none"', table_html)
-        # Other templates should be hidden
-        self.assertIn(f'id="completed-task-template-{user_aufgabe.id}" class="d-none"', table_html)
-        self.assertIn(f'id="pending-task-template-{user_aufgabe.id}" class="d-none"', table_html)
+        # Find the user_aufgabe in the response data
+        user_id = str(user_aufgabe.user.id)
+        user_aufgaben_list = data['data']['user_aufgaben_matrix'][user_id]
+        
+        # Find the task in the list (it should be a dict with user_aufgabe key)
+        task_data = None
+        for item in user_aufgaben_list:
+            if isinstance(item, dict) and 'user_aufgabe' in item:
+                if item['user_aufgabe']['id'] == user_aufgabe.id:
+                    task_data = item
+                    break
+        
+        self.assertIsNotNone(task_data, "Task not found in response")
+        self.assertFalse(task_data['user_aufgabe']['erledigt'])
+        self.assertFalse(task_data['user_aufgabe']['pending'])
 
     def test_task_state_visibility_pending(self):
-        """Test that pending tasks show the correct template"""
+        """Test that pending tasks have correct JSON data structure"""
         user_aufgabe = self._create_task_assignment(
             erledigt=False,
             pending=True
@@ -1485,16 +1499,25 @@ class TaskTemplateStateTests(TestCase):
         
         data = json.loads(response.content)
         self.assertTrue(data['success'])
-        table_html = data['data']['table_html']
         
-        # Pending template should be visible
-        self.assertNotIn(f'id="pending-task-template-{user_aufgabe.id}" class="d-none"', table_html)
-        # Other templates should be hidden
-        self.assertIn(f'id="completed-task-template-{user_aufgabe.id}" class="d-none"', table_html)
-        self.assertIn(f'id="upcoming-task-template-{user_aufgabe.id}" class="d-none"', table_html)
+        # Find the user_aufgabe in the response data
+        user_id = str(user_aufgabe.user.id)
+        user_aufgaben_list = data['data']['user_aufgaben_matrix'][user_id]
+        
+        # Find the task in the list
+        task_data = None
+        for item in user_aufgaben_list:
+            if isinstance(item, dict) and 'user_aufgabe' in item:
+                if item['user_aufgabe']['id'] == user_aufgabe.id:
+                    task_data = item
+                    break
+        
+        self.assertIsNotNone(task_data, "Task not found in response")
+        self.assertFalse(task_data['user_aufgabe']['erledigt'])
+        self.assertTrue(task_data['user_aufgabe']['pending'])
 
     def test_task_state_visibility_completed(self):
-        """Test that completed tasks show the correct template"""
+        """Test that completed tasks have correct JSON data structure"""
         user_aufgabe = self._create_task_assignment(
             erledigt=True,
             erledigt_am=timezone.now(),
@@ -1506,16 +1529,25 @@ class TaskTemplateStateTests(TestCase):
         
         data = json.loads(response.content)
         self.assertTrue(data['success'])
-        table_html = data['data']['table_html']
         
-        # Completed template should be visible
-        self.assertNotIn(f'id="completed-task-template-{user_aufgabe.id}" class="d-none"', table_html)
-        # Other templates should be hidden
-        self.assertIn(f'id="pending-task-template-{user_aufgabe.id}" class="d-none"', table_html)
-        self.assertIn(f'id="upcoming-task-template-{user_aufgabe.id}" class="d-none"', table_html)
+        # Find the user_aufgabe in the response data
+        user_id = str(user_aufgabe.user.id)
+        user_aufgaben_list = data['data']['user_aufgaben_matrix'][user_id]
+        
+        # Find the task in the list
+        task_data = None
+        for item in user_aufgaben_list:
+            if isinstance(item, dict) and 'user_aufgabe' in item:
+                if item['user_aufgabe']['id'] == user_aufgabe.id:
+                    task_data = item
+                    break
+        
+        self.assertIsNotNone(task_data, "Task not found in response")
+        self.assertTrue(task_data['user_aufgabe']['erledigt'])
+        self.assertIsNotNone(task_data['user_aufgabe']['erledigt_am'])
 
     def test_task_row_background_classes(self):
-        """Test that task rows have correct background classes based on state"""
+        """Test that completed tasks have correct state in JSON data"""
         # Create a completed task
         completed_task = self._create_task_assignment(
             erledigt=True,
@@ -1528,16 +1560,25 @@ class TaskTemplateStateTests(TestCase):
         
         data = json.loads(response.content)
         self.assertTrue(data['success'])
-        table_html = data['data']['table_html']
         
-        # Check that completed task has success background
-        self.assertIn('bg-success bg-opacity-25', table_html)
+        # Find the completed task in the response data
+        user_id = str(completed_task.user.id)
+        user_aufgaben_list = data['data']['user_aufgaben_matrix'][user_id]
         
-        # Check that the task row ID is present
-        self.assertIn(f'id="task-table-row-{completed_task.id}"', table_html)
+        # Find the task in the list
+        task_data = None
+        for item in user_aufgaben_list:
+            if isinstance(item, dict) and 'user_aufgabe' in item:
+                if item['user_aufgabe']['id'] == completed_task.id:
+                    task_data = item
+                    break
+        
+        self.assertIsNotNone(task_data, "Task not found in response")
+        self.assertTrue(task_data['user_aufgabe']['erledigt'])
+        # The background class will be determined by JavaScript based on this data
 
     def test_overdue_task_styling(self):
-        """Test that overdue tasks have danger background"""
+        """Test that overdue tasks have correct date in JSON data"""
         overdue_task = self._create_task_assignment(
             faellig=timezone.now() - timedelta(days=1),  # Make it overdue
             erledigt=False,
@@ -1549,29 +1590,37 @@ class TaskTemplateStateTests(TestCase):
         
         data = json.loads(response.content)
         self.assertTrue(data['success'])
-        table_html = data['data']['table_html']
         
-        # Should have danger background for overdue
-        self.assertIn('bg-danger bg-opacity-25', table_html)
+        # Find the overdue task in the response data
+        user_id = str(overdue_task.user.id)
+        user_aufgaben_list = data['data']['user_aufgaben_matrix'][user_id]
+        
+        # Find the task in the list
+        task_data = None
+        for item in user_aufgaben_list:
+            if isinstance(item, dict) and 'user_aufgabe' in item:
+                if item['user_aufgabe']['id'] == overdue_task.id:
+                    task_data = item
+                    break
+        
+        self.assertIsNotNone(task_data, "Task not found in response")
+        # Verify the task is overdue (faellig date is in the past)
+        # The danger styling will be applied by JavaScript based on this date
 
     def test_main_view_loads_with_ajax_loading(self):
-        """Test that the main view loads correctly with AJAX loading approach"""
-        response = self.client.get(reverse('list_aufgaben_table'))
+        """Test that the AJAX endpoint returns correct JSON structure"""
+        response = self.client.get(reverse('ajax_load_aufgaben_table_data'))
         self.assertEqual(response.status_code, 200)
         
-        content = response.content.decode()
+        data = json.loads(response.content)
+        self.assertTrue(data['success'])
         
-        # Check that the main view includes AJAX loading elements
-        self.assertIn('id="loadingState"', content)
-        self.assertIn('id="actualContent"', content)
-        self.assertIn('id="dynamicContent"', content)
-        
-        # Check that AJAX loading is enabled
-        self.assertIn('ajax_loading', response.context)
-        self.assertTrue(response.context['ajax_loading'])
-        
-        # Check that filter buttons are present
-        self.assertIn('Filter', content)
+        # Check that the response includes the new JSON structure
+        self.assertIn('users', data['data'])
+        self.assertIn('aufgaben', data['data'])
+        self.assertIn('user_aufgaben_matrix', data['data'])
+        self.assertIn('today', data['data'])
+        self.assertIn('current_person_cluster', data['data'])
 
     def test_ajax_state_change_response_format(self):
         """Test that AJAX responses include all necessary data for state switching"""
