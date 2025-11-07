@@ -7,6 +7,22 @@
 
 {% block head %}
   <link rel="stylesheet" href="{% static 'css/list_aufgaben.css' %}" />
+  
+  {# Global URL variables for JavaScript #}
+  <script>
+    // Define Django URL patterns as global variables for use in external JS files
+    window.DJANGO_URLS = {
+      editAufgabe: "{% url 'edit_object' 'aufgabe' 999999 %}".replace('/999999', '/{id}'),
+      editUserAufgaben: "{% url 'edit_object' 'useraufgaben' 999999 %}".replace('/999999', '/{id}'),
+      addAufgabe: "{% url 'add_aufgabe' %}",
+      listAufgabenTable: "{% url 'list_aufgaben_table' %}",
+      downloadAufgabe: "{% url 'download_aufgabe' 999999 %}".replace('/999999', '/{id}'),
+      getAufgabenZwischenschritte: "{% url 'get_aufgaben_zwischenschritte' %}",
+      toggleZwischenschrittStatus: "{% url 'toggle_zwischenschritt_status' %}",
+    };
+  </script>
+  
+  <script src="{% static 'js/loadAufgabenTable.js' %}"></script>
   <style>
     /* Table Layout & Responsive Design */
     .table-responsive {
@@ -717,10 +733,12 @@
      * Render AJAX-loaded content and handle transitions
      */
     function renderAjaxContent(data) {
-      // Replace the table content with server-rendered HTML
+      // Build table from JSON data using the new JavaScript approach
       const dynamicContent = document.getElementById('dynamicContent')
-      if (dynamicContent && data.table_html) {
-        dynamicContent.innerHTML = data.table_html
+      if (dynamicContent) {
+        // Use the buildTableFromJSON function from loadAufgabenTable.js
+        const tableHtml = buildTableFromJSON(data)
+        dynamicContent.innerHTML = tableHtml
       }
       
       // Update countries in modal if present
