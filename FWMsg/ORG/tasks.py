@@ -42,20 +42,15 @@ def send_aufgabe_erledigt_email_task(aufgabe_id):
     from Global.models import UserAufgaben
     
     try:
-        aufgabe = UserAufgaben.objects.get(id=aufgabe_id)
+        aufgabe = UserAufgaben.objects.get(id=aufgabe_id, erledigt=True)
         if not aufgabe.aufgabe.with_email_notification:
             return False
+        
         mail_to = aufgabe.benachrichtigung_cc.split(',') if aufgabe.benachrichtigung_cc else []
-        
-        # Create action URL
         action_url = f"{settings.DOMAIN_HOST}{reverse('download_aufgabe', args=[aufgabe.id])}"
-        
-        # Check if there's a file uploaded
         has_file_upload = bool(aufgabe.file)
-        
         org_color = get_org_color(aufgabe.user.org)
         
-        # Format the email with our template
         email_content = format_aufgabe_erledigt_email(
             aufgabe_name=aufgabe.aufgabe.name,
             aufgabe_deadline=aufgabe.faellig,
@@ -99,24 +94,42 @@ def send_feedback_email_task(feedback_id):
 def send_mail_calendar_reminder_task(kalender_event_id, user_id):
     from Global.models import KalenderEvent
     from Global.models import User
-    kalender_event = KalenderEvent.objects.get(id=kalender_event_id)
-    user = User.objects.get(id=user_id)
-    subject = f'Neuer Kalendereintrag: {kalender_event.title}'
-    action_url = f"{settings.DOMAIN_HOST}{reverse('kalender_event', args=[kalender_event.id])}"
-    unsubscribe_url = user.customuser.get_unsubscribe_url()
-    org_name = kalender_event.org.name
-    user_name = f"{user.first_name} {user.last_name}"
-    image_url = get_logo_url(kalender_event.org)
-    org_color = get_org_color(kalender_event.org)
-    
-    email_content = format_mail_calendar_reminder_email(title=kalender_event.title, start=kalender_event.start, end=kalender_event.end, location=kalender_event.location, description=kalender_event.description, action_url=action_url, unsubscribe_url=unsubscribe_url, user_name=user_name, org_name=org_name, image_url=image_url, org_color=org_color)
-    
-    push_content = f'{kalender_event.start.strftime("%d.%m.%Y")} bis {kalender_event.end.strftime("%d.%m.%Y")}: {kalender_event.title}'
-    send_push_notification_to_user(user, subject, push_content, url=action_url)
-    
-    if user.customuser.mail_notifications and send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [user.email], html_message=email_content, reply_to_list=[user.org.email]):
+    from django.db import models
+    try:
+        kalender_event = KalenderEvent.objects.get(id=kalender_event_id)
+        user = User.objects.get(id=user_id)
+        
+        if not user.customuser.mail_notifications:
+            return False
+
+        if not kalender_event.user.filter(id=user.id).exists():
+            return True  # user is not a participant
+
+        if kalender_event.mail_reminder_sent_to.filter(id=user.id).exists():
+            return True  # already reminded
+        
+        subject = f'Neuer Kalendereintrag: {kalender_event.title}'
+        action_url = f"{settings.DOMAIN_HOST}{reverse('kalender_event', args=[kalender_event.id])}"
+        unsubscribe_url = user.customuser.get_unsubscribe_url()
+        org_name = kalender_event.org.name
+        user_name = f"{user.first_name} {user.last_name}"
+        image_url = get_logo_url(kalender_event.org)
+        org_color = get_org_color(kalender_event.org)
+        email_content = format_mail_calendar_reminder_email(title=kalender_event.title, start=kalender_event.start, end=kalender_event.end, location=kalender_event.location, description=kalender_event.description, action_url=action_url, unsubscribe_url=unsubscribe_url, user_name=user_name, org_name=org_name, image_url=image_url, org_color=org_color)
+        push_content = f'{kalender_event.start.strftime("%d.%m.%Y")} bis {kalender_event.end.strftime("%d.%m.%Y")}: {kalender_event.title}'
+        send_push_notification_to_user(user, subject, push_content, url=action_url)
+        
+        if send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [user.email], html_message=email_content, reply_to_list=[user.org.email]):
+            kalender_event.mail_reminder_sent_to.add(user)
+            return True
+        
+        return False
+    except models.DoesNotExist:
+        # kalender event has been deleted before email was sent
         return True
-    return False
+    except Exception as e:
+        logging.error(f"Error sending mail calendar reminder task: {e}")
+        return False
 
 @shared_task
 def send_ampel_email_task(ampel_id):

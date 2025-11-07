@@ -11,6 +11,7 @@ from Global.send_email import (
     get_logo_url,
     send_new_post_email
 )
+from django.db import models
 
 @shared_task
 def send_new_post_email_task(post_id):
@@ -60,6 +61,9 @@ def send_image_uploaded_email_task(bild_id):
             html_message=email_content,
             reply_to_list=[bild.user.email]
         )
+        return True
+    except models.DoesNotExist:
+        # image has been deleted before email was sent
         return True
     except Exception as e:
         logging.error(f"Error sending image uploaded email task: {e}")
@@ -155,6 +159,9 @@ def send_change_request_new_email_task(change_request_id):
         
         return True
         
+    except models.DoesNotExist:
+        # change request has been deleted before email was sent
+        return True
     except Exception as e:
         logging.error(f"Error in send_change_request_new_email_task: {e}")
         return False
@@ -233,6 +240,9 @@ def send_change_request_decision_email_task(change_request_id):
         
         return True
         
+    except models.DoesNotExist:
+        # change request has been deleted before email was sent
+        return True
     except Exception as e:
         logging.error(f"Error in send_change_request_decision_email_task: {e}")
         return False

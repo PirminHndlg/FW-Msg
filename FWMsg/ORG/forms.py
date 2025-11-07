@@ -2,12 +2,14 @@ from datetime import datetime
 import random
 import string
 from django import forms
+from django.contrib import messages
 from django.db import models
 from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
 from django.utils import timezone
 from django.conf import settings
 from django.db.models import Q
+from django.utils.translation import gettext as _
 
 from Ehemalige.models import Ehemalige
 from Global.models import (
@@ -873,11 +875,12 @@ class AddKalenderEventForm(OrgFormMixin, forms.ModelForm):
                     # Add them to the event's users
                     instance.user.add(*users)
         
-            users = instance.user.all()
-            for current_user in users:
+            mail_task_delay = 5*60
+            for current_user in instance.user.all():
                 if not instance.mail_reminder_sent_to.filter(id=current_user.id).exists():
-                    instance.mail_reminder_sent_to.add(current_user)
-                    send_mail_calendar_reminder_task.s(instance.id, current_user.id).apply_async(countdown=2)
+                    send_mail_calendar_reminder_task.s(instance.id, current_user.id).apply_async(countdown=mail_task_delay)
+            
+            messages.success(self.request, _('Kalendereintrag erfolgreich gespeichert. Mail-Erinnerung wird in {mail_task_delay_formatted} Minuten gesendet.').format(mail_task_delay_formatted=int(mail_task_delay/60)))
         
         return instance
     

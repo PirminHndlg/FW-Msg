@@ -178,10 +178,10 @@ def _notify_org_members_of_change_request(change_request):
     try:
         # Queue Celery tasks for org
         try:
-            # Send email notification as Celery task with 5 second delay
+            # Send email notification as Celery task with 5 minutes delay
             send_change_request_new_email_task.apply_async(
                 args=[change_request.id],
-                countdown=5
+                countdown=5*60
             )
         except Exception as e:
             logger.error(f"Error queuing notification task for org member {change_request.org.id}: {e}")
@@ -195,10 +195,10 @@ def _notify_requester_of_decision(change_request):
     from .tasks import send_change_request_decision_email_task
     
     try:
-        # Queue Celery task for decision notification with 5 second delay
+        # Queue Celery task for decision notification with 5 minutes delay
         send_change_request_decision_email_task.apply_async(
             args=[change_request.id],
-            countdown=5
+            countdown=5*60
         )
         
     except Exception as e:
