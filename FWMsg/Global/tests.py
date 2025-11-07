@@ -2678,7 +2678,7 @@ class ChangeRequestTests(TestCase):
             self.assertIn('args', kwargs)  # Should have args in kwargs
             self.assertEqual(len(kwargs['args']), 1)  # Should have [change_request_id]
             self.assertEqual(kwargs['args'][0], change_request.id)
-            self.assertEqual(kwargs['countdown'], 5)
+            self.assertEqual(kwargs['countdown'], 300) # 5 minutes
 
     @patch('Global.tasks.send_change_request_decision_email_task.apply_async')
     def test_notify_requester_of_decision(self, mock_apply_async):
@@ -2705,7 +2705,7 @@ class ChangeRequestTests(TestCase):
         mock_apply_async.assert_called_once()
         args, kwargs = mock_apply_async.call_args
         self.assertEqual(kwargs['args'], [change_request.id])
-        self.assertEqual(kwargs['countdown'], 5)
+        self.assertEqual(kwargs['countdown'], 300) # 5 minutes
 
     def test_change_request_form_validation(self):
         """Test that form validation works correctly."""

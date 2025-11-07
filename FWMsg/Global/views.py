@@ -477,7 +477,8 @@ def bild(request):
             # Enqueue email sending task only for new submissions
             if created:
                 try:
-                    send_image_uploaded_email_task.apply_async(args=[bilder.id], countdown=5)
+                    # send with 15minutes delay
+                    send_image_uploaded_email_task.apply_async(args=[bilder.id], countdown=15*60)
                 except Exception as e:
                     logging.error(f"Error scheduling image uploaded email task: {e}")
 
@@ -1472,7 +1473,7 @@ def aufgabe(request, aufgabe_id):
                 user_aufgabe.erledigt = True
 
             from ORG.tasks import send_aufgabe_erledigt_email_task
-            send_aufgabe_erledigt_email_task.s(user_aufgabe.id).apply_async(countdown=10)
+            send_aufgabe_erledigt_email_task.s(user_aufgabe.id).apply_async(countdown=5*60)
 
             user_aufgabe.erledigt_am = datetime.now()
 
