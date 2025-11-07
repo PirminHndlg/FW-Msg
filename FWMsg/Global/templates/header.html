@@ -47,6 +47,9 @@
         --bs-secondary-bg-rgb: {{ user|get_secondary_color|hex_to_rgb }};
         --bs-secondary: {{ user|get_secondary_color }};
     }
+    .text-primary {
+        color: var(--bs-primary) !important;
+    }
     .cursor-pointer{
         cursor: pointer;
       }
