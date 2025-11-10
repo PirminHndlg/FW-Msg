@@ -454,14 +454,4 @@
   {% if request.user.customuser.person_cluster.calendar %}
     {% include 'components/calendar.html' %}
   {% endif %}
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      // Initialize tooltips if needed
-      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-      })
-    })
-  </script>
 {% endblock %}
