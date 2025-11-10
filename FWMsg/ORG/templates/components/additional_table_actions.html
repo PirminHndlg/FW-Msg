@@ -8,9 +8,12 @@
         {% if onclick %}
         onclick="{{ onclick }}"
         {% endif %}
-        class="btn btn-sm btn-outline-{{ color }} d-flex align-items-center gap-1 text-nowrap"
+        class="btn btn-sm btn-outline-{{ color }} d-flex align-items-baseline gap-1 text-nowrap"
+        {% if title %}
         data-bs-toggle="tooltip"
-        data-bs-title="{{ title }}">
+        data-bs-title="{{ title }}"
+        {% endif %}
+        >
         {{ button_text }}
         {% if icon %}
             <i class="bi {{ icon }}"></i>
