@@ -1,4 +1,5 @@
 {% load custom_filters %}
+{% load base_filter %}
 {% load static %}
 <!DOCTYPE html>
 <html lang="de">
@@ -12,12 +13,14 @@
     <style>
         :root { --avatar-size: 60px; }
         
-        .volunteer-card { cursor: pointer; transition: all .3s; border: 2px solid transparent; }
-        .volunteer-card:hover { transform: translateY(-2px); box-shadow: 0 .25rem .5rem rgba(0,0,0,.1); }
-        .volunteer-card.selected { border-color: var(--bs-primary); background-color: var(--bs-primary-bg-subtle); }
+        .card-compact { border: 1px solid #e9ecef; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); }
         
-        .position-slot { min-height: 120px; border: 2px dashed var(--bs-border-color); border-radius: var(--bs-border-radius); transition: all .3s; cursor: pointer; }
-        .position-slot:hover { border-color: var(--bs-primary); background-color: var(--bs-light); }
+        .volunteer-card { cursor: pointer; transition: all .3s; border: 1px solid #e9ecef; }
+        .volunteer-card:hover { transform: translateY(-2px); box-shadow: 0 .25rem .5rem rgba(0,0,0,.1); }
+        .volunteer-card.selected { border-color: var(--bs-primary); background-color: var(--bs-primary-bg-subtle); box-shadow: 0 .25rem .5rem rgba(13,110,253,.15); }
+        
+        .position-slot { min-height: 120px; border: 2px dashed #dee2e6; border-radius: .375rem; transition: all .3s; cursor: pointer; }
+        .position-slot:hover { border-color: var(--bs-primary); background-color: #f8f9fa; }
         .position-slot.drop-target { border-color: var(--bs-success); border-style: solid; background-color: var(--bs-success-bg-subtle); }
         
         .remove-btn { position: absolute; top: -.5rem; right: -.5rem; width: 1.5rem; height: 1.5rem; padding: 0; border-radius: 50%; opacity: 0; transition: opacity .3s; }
@@ -28,18 +31,17 @@
         .evaluation-B { background-color: var(--bs-warning); }
         .evaluation-N { background-color: var(--bs-danger); }
         
-        .country-section { border-left: 4px solid var(--bs-primary); }
-        .position-section { background-color: var(--bs-light); border: 1px solid var(--bs-border-color); transition: border-color .3s; }
+        .country-section { border-left: 4px solid var(--bs-primary); box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); }
+        .position-section { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: .375rem; transition: border-color .3s; }
         .position-section.border-success { border-left: 4px solid var(--bs-success) !important; }
         .position-section.border-danger { border-left: 4px solid var(--bs-danger) !important; }
         
-        .volunteer-avatar { width: var(--avatar-size); height: var(--avatar-size); border-radius: 50%; object-fit: cover; border: 2px solid var(--bs-border-color); }
+        .volunteer-avatar { width: var(--avatar-size); height: var(--avatar-size); border-radius: 50%; object-fit: cover; border: 2px solid #e9ecef; }
         .wish-list { font-size: .8125rem; color: var(--bs-secondary); line-height: 1.4; }
         .volunteers-list { max-height: 90vh; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--bs-secondary) transparent; }
         .volunteers-list::-webkit-scrollbar { width: .375rem; }
         .volunteers-list::-webkit-scrollbar-track { background: transparent; }
         .volunteers-list::-webkit-scrollbar-thumb { background-color: var(--bs-secondary); border-radius: .375rem; }
-        .country-btn { min-width: 100px; }
         
         @media (max-width: 991.98px) {
             :root { --avatar-size: 50px; }
@@ -50,34 +52,50 @@
         
         @media (max-width: 575.98px) {
             :root { --avatar-size: 45px; }
-            .country-btn { min-width: auto; flex: 1 1 auto; }
         }
     </style>
 </head>
 <body class="bg-light">
-    <div class="container-fluid py-4">
-        <!-- Header -->
-        <div class="row mb-4">
-            <div class="col">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h1 class="h3 mb-0">
-                        <i class="bi bi-people-fill text-primary me-2"></i>
-                        Freiwillige Zuteilung
-                    </h1>
-                    <div class="btn-group">
-                        <a href="{% url 'auto_assign' %}" class="btn btn-success">
-                            <i class="bi bi-magic me-2"></i>
+    <!-- Navigation Bar -->
+    <nav class="navbar bg-primary navbar-expand-lg mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'seminar_home' %}">
+                {% with org=user|get_org %}
+                    <img src="{% url 'serve_image' org.id %}"
+                         alt="{% if org.kurzname %}{{ org.kurzname }}{% else %}{{ org.name }}{% endif %}-Logo"
+                         height="30"
+                         class="d-inline-block align-text-top me-2" />
+                {% endwith %}
+                <span class="text-white">
+                    <i class="bi bi-people-fill me-2"></i>
+                    Freiwillige Zuteilung
+                </span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a href="{% url 'auto_assign' %}" class="nav-link text-white">
+                            <i class="bi bi-magic me-1"></i>
                             Automatische Zuteilung
                         </a>
-                        <a href="{% url 'seminar_home' %}" class="btn btn-outline-primary">
-                            <i class="bi bi-house me-2"></i>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'seminar_home' %}" class="nav-link text-white">
+                            <i class="bi bi-house me-1"></i>
                             Zurück zur Übersicht
                         </a>
-                    </div>
-                </div>
+                    </li>
+                </ul>
             </div>
         </div>
+    </nav>
 
+    <div class="container-fluid px-4 pb-4">
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }}">{{ message }}</div>
@@ -87,16 +105,16 @@
         <div class="row">
             <!-- Countries and Positions -->
             <div class="col-lg-8">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-primary text-white">
+                <div class="card card-compact shadow-sm rounded-4">
+                    <div class="card-header bg-white border-bottom-0">
                         <h5 class="mb-0">
-                            <i class="bi bi-geo-alt me-2"></i>
+                            <i class="bi bi-geo-alt me-2 text-primary"></i>
                             Einsatzländer und Stellen
                         </h5>
                     </div>
                     <div class="card-body">
                         {% for land in laender %}
-                            <div class="country-section p-3 mb-4 bg-white rounded border-primary" id="{{ land.land.id }}">
+                            <div class="country-section p-3 mb-4 bg-white rounded-4" id="{{ land.land.id }}">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h5 class="mb-0">
                                         <span class="fi fi-{{ land.land.code|lower }} me-2"></span>
@@ -128,7 +146,7 @@
                                             <!-- Assigned volunteers -->
                                             {% for freiwilliger in stelle.1 %}
                                                 <div class="col-md-4 col-lg-3">
-                                                    <div class="assigned-volunteer card border-success">
+                                                    <div class="assigned-volunteer card rounded-4 border-success shadow-sm">
                                                         <div class="card-body p-2 text-center">
                                                             <a class="btn btn-sm btn-danger remove-btn" 
                                                                 href="{% url 'assign' %}?fw={{ freiwilliger.id }}&land=None">
@@ -188,8 +206,15 @@
                         {% endfor %}
 
                         <!-- Quick jump to position, sticky bottom -->
-                        <div class="sticky-bottom p-3 bg-white rounded border country-nav">
-                            <div class="d-flex flex-wrap gap-1">
+                        <div class="sticky-bottom p-3 bg-white rounded-4 border border-3 border-primary shadow-sm p-3 m-0">
+                            <div class="d-flex flex-wrap gap-1 align-items-center">
+                            <!-- Info button hover with bs tile-->
+                            <i class="bi bi-question-circle text-muted mx-3" 
+                                    data-bs-toggle="tooltip" 
+                                    data-bs-title="Schnellzugriff zu den Einsatzländern">
+                            </i>
+
+                            <!-- Laender quick access-->
                             {% for land in laender %}
                                 <a href="#{{ land.land.id }}" class="border rounded p-1">
                                     <span class="fi fi-{{ land.land.code|lower }} me-2"></span>{{ land.land.code }}
@@ -203,10 +228,10 @@
 
             <!-- Volunteers -->
             <div class="col-lg-4">
-                <div class="card shadow-sm sticky-top">
-                    <div class="card-header bg-secondary text-white">
+                <div class="card card-compact shadow-sm rounded-4 sticky-top">
+                    <div class="card-header bg-white border-bottom-0">
                         <h5 class="mb-0">
-                            <i class="bi bi-person-lines-fill me-2"></i>
+                            <i class="bi bi-person-lines-fill me-2 text-primary"></i>
                             Freiwillige
                         </h5>
                     </div>
@@ -232,7 +257,7 @@
                             <div class="tab-pane fade show active" id="unassigned">
                                 <div class="p-3 volunteers-list">
                                     {% for freiwilliger in freiwillige_ohne_zuteilung %}
-                                        <div class="volunteer-card card mb-2" 
+                                        <div class="volunteer-card card mb-2 rounded-4" 
                                              data-volunteer-id="{{ freiwilliger.id }}"
                                              data-first-wish-land="{{ freiwilliger.first_wish_einsatzland.id|default:'' }}"
                                              data-first-wish-stelle="{{ freiwilliger.first_wish_einsatzstelle.id|default:'' }}"
@@ -302,7 +327,7 @@
                             <div class="tab-pane fade" id="assigned">
                                 <div class="p-3 volunteers-list">
                                     {% for freiwilliger in freiwillige_mit_zuteilung %}
-                                        <div class="card mb-2 border-success">
+                                        <div class="card mb-2 rounded-4 border-success">
                                             <div class="card-body p-2">
                                                 <div class="d-flex align-items-center">
                                                     <div class="position-relative me-3">
