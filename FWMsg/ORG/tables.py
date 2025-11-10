@@ -287,6 +287,37 @@ class ApplicationFileQuestionTable(BaseOrgTable):
         model = ApplicationFileQuestion
         fields = ('order', 'name', 'description', 'actions')
         
+class MaterializeCssCheckboxColumn(tables.CheckBoxColumn):
+    def render(self, value, bound_column, record):
+        default = {"type": "checkbox", "name": bound_column.name, "value": value, "class": "row-checkbox"}
+        if self.is_checked(value, record):
+            default.update({"checked": "checked"})
+            
+        general = self.attrs.get("input")
+        specific = self.attrs.get("td__input")
+        attrs = tables.utils.AttributeDict(default, **(specific or general or {}))
+        return mark_safe("<p><label><input %s/><span></span></label></p>" % attrs.as_html())
+    
+    @property
+    def header(self):
+        header_checkbox = '<label><input type="checkbox" id="select-all-checkbox" class="select-all-checkbox"/><span></span></label>'
+        script = """
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAllCheckbox = document.getElementById('select-all-checkbox');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    const checkboxes = document.querySelectorAll('.row-checkbox');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = this.checked;
+                    });
+                });
+            }
+        });
+        </script>
+        """
+        return mark_safe(header_checkbox + script)
+        
 
 def _create_dynamic_table_class(
     person_cluster, 
@@ -488,7 +519,7 @@ def get_bewerber_table_class(person_cluster, org):
         bewerber = record['bewerber']
         return format_html(
             '<a href="{}" title="Zum Profil"><i class="bi bi-person-fill me-1"></i>{}</a> '
-            '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" title="Email senden" aria-label="Email senden" class="ms-1">'
+            '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
             '<i class="bi bi-envelope-arrow-up"></i></a>',
             reverse('profil', args=[bewerber.user.id]),
             f"{bewerber.user.first_name} {bewerber.user.last_name}",
@@ -527,15 +558,20 @@ def get_bewerber_table_class(person_cluster, org):
             'action_url': '',
             'onclick': f"open_bewerber_kommentar_modal(this, {bewerber.pk})",
             'color': 'primary',
-            'icon': '',
-            'title': '',
-            'button_text': f'Kommentare ({bewerber_kommentare_count})',
+            'icon': 'bi bi-chat-left-text',
+            'title': 'Kommentare anzeigen',
+            'button_text': f'{bewerber_kommentare_count}',
             'hide_button': False,
         }
         return render_to_string('components/additional_table_actions.html', context)
     
     # Define base columns
     base_columns = {
+        'checkbox': MaterializeCssCheckboxColumn(
+            verbose_name=_('Ausgewählt'),
+            accessor='bewerber.id',
+            orderable=False
+        ),
         'user': tables.Column(
             verbose_name=_('Benutzer'),
             accessor='bewerber.user',
@@ -558,7 +594,7 @@ def get_bewerber_table_class(person_cluster, org):
         ),
     }
     
-    column_sequence = ['user', 'application_pdf', 'has_seminar', 'interview_persons']
+    column_sequence = ['checkbox', 'user', 'application_pdf', 'has_seminar', 'interview_persons']
     
     render_methods = {
         'render_user': render_user,

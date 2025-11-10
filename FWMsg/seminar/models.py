@@ -158,7 +158,8 @@ class Seminar(models.Model):
     seminar_end = models.DateField(verbose_name="Seminar Ende", null=True, blank=True, help_text="Die Enddatum des Seminars.")
     deadline_start = models.DateTimeField(verbose_name="Länderwahl Start", null=True, blank=True, help_text="Die Startzeit des Seminars, ab welcher die Bewerber:innen für die Auswahl des Einsatzlandes beginnen können.")
     deadline_end = models.DateTimeField(verbose_name="Länderwahl Ende", null=True, blank=True, help_text="Die Endzeit des Seminars, bis zu welcher die Bewerber:innen für die Auswahl des Einsatzlandes ihre Auswahl treffen müssen.")
-    verschwiegenheit_von_user = models.ManyToManyField(User, blank=True, verbose_name="Verschwiegenheit von User")
+    verschwiegenheit_von_user = models.ManyToManyField(User, blank=True, verbose_name="Verschwiegenheit von User", related_name="verschwiegenheit_von_user")
+    bewerber = models.ManyToManyField(Bewerber, blank=True, verbose_name="Bewerber:innen", related_name="seminar_bewerber")
 
     class Meta:
         verbose_name = "Seminar"
