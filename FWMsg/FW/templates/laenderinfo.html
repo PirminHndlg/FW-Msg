@@ -87,15 +87,3 @@
     {% include 'components/info_section.html' with section_title=_('Generelle Informationen') cards=general_cards %}
   {% endif %}
 {% endblock %}
-
-{% block scripts %}
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      // Initialize all tooltips
-      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-      tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-      })
-    })
-  </script>
-{% endblock %}

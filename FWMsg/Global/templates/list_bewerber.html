@@ -85,7 +85,7 @@
                               </span>
                             {% endif %}
                             {% if bewerberin.status_comment %}
-                              <i class="bi bi-chat-left-text text-muted ms-2" title="{{ bewerberin.status_comment }}" data-bs-toggle="tooltip"></i>
+                              <i class="bi bi-chat-left-text text-muted ms-2" data-bs-title="{{ bewerberin.status_comment }}" data-bs-toggle="tooltip"></i>
                             {% endif %}
                           </div>
                         {% else %}
@@ -171,12 +171,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialize tooltips
-  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl);
-  });
-
   // Make table rows clickable
   const clickableRows = document.querySelectorAll('.bewerber-row[data-href]');
   clickableRows.forEach(row => {

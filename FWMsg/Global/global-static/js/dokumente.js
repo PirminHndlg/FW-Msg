@@ -1,8 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Initialize all tooltips
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-
     // Initialize modals
     const dokumentModal = new bootstrap.Modal(document.getElementById('dokumentModal'));
     const ordnerModal = new bootstrap.Modal(document.getElementById('ordnerModal'));
