@@ -757,6 +757,7 @@ class Aufgabe2(OrgModel):
     wiederholung_interval_wochen = models.IntegerField(blank=True, null=True, verbose_name='Wiederholung alle x Wochen', validators=[validators.MinValueValidator(0)], help_text='Wiederholungsintervall in Wochen')
     wiederholung_ende = models.DateField(blank=True, null=True, verbose_name='Wiederholung bis', help_text='Datum, bis zu dem die Aufgabe wiederholt wird')
     attachment = models.FileField(upload_to='aufgaben_attachments/', blank=True, null=True, verbose_name='Anhang', help_text='Optionale Datei als Anhang für diese Aufgabe')
+    visible_by_team = models.BooleanField(default=False, verbose_name='Für Team sichtbar', help_text='Aktivieren, um die Aufgabe auch für Teammitglieder mit gleichem Land sichtbar zu machen (nur für Aufgaben für Freiwillige)')
 
     history = HistoricalRecords()
 

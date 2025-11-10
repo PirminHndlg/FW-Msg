@@ -511,6 +511,13 @@ def get_bewerber_table_class(person_cluster, org):
             return ', '.join([f"{interview_person}" for interview_person in bewerber.interview_persons.all()])
         return '—'
     
+    def render_has_seminar(self, value, record):
+        bewerber = record['bewerber']
+        if bewerber.has_seminar():
+            return format_html('<i class="bi bi-check-circle-fill text-success"></i>')
+        else:
+            return format_html('<i class="bi bi-x-circle-fill text-danger"></i>')
+    
     def actions_renderer(record, org):
         bewerber = record['bewerber']
         bewerber_kommentare_count = BewerberKommentar.objects.filter(bewerber=bewerber, org=org).count()
@@ -544,15 +551,21 @@ def get_bewerber_table_class(person_cluster, org):
             accessor='bewerber.interview_persons',
             orderable=False
         ),
+        'has_seminar': tables.Column(
+            verbose_name=_('Seminar'),
+            accessor='bewerber.has_seminar',
+            orderable=True
+        ),
     }
     
-    column_sequence = ['user', 'application_pdf', 'interview_persons']
+    column_sequence = ['user', 'application_pdf', 'has_seminar', 'interview_persons']
     
     render_methods = {
         'render_user': render_user,
         'render_application_pdf': render_application_pdf,
-        'render_interview_persons': render_interview_persons
-    }
+        'render_interview_persons': render_interview_persons,
+        'render_has_seminar': render_has_seminar
+    }   
     
     return _create_dynamic_table_class(
         person_cluster, org, Bewerber, 'bewerber',

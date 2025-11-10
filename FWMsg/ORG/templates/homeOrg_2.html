@@ -360,7 +360,7 @@
                       <div class="d-flex gap-1">
                         <!-- Download file -->
                         {% if task.file %}
-                          <a href="{% url 'download_aufgabe' task.id %}" class="btn btn-sm btn-outline-primary"
+                          <a href="{% url 'download_aufgabe' task.id %}" target="_blank" class="btn btn-sm btn-outline-primary"
                               tooltip="true"
                               data-bs-toggle="tooltip"
                               data-bs-placement="top"

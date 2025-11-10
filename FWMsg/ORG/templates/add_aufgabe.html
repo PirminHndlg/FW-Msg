@@ -622,7 +622,7 @@
                     </div>
 
                     <!-- File Upload Required -->
-                    <div class="mb-3 row mx-3">
+                    <div class="mb-3 row mx-3 align-items-center">
                         <label for="{{ form.mitupload.id_for_label }}" class="col-form-label col-md-3">
                             <i class="bi bi-file-earmark-text me-1"></i>
                             {{ form.mitupload.label }}
@@ -631,17 +631,16 @@
                             <div class="form-check">
                                 {{ form.mitupload|add_class:"form-check-input" }}
                                 <label class="form-check-label" for="{{ form.mitupload.id_for_label }}">
-                                    {% trans "Datei-Upload bei dieser Aufgabe erforderlich" %}
+                                    {% if form.mitupload.help_text %}
+                                        {{ form.mitupload.help_text }}
+                                    {% endif %}
                                 </label>
                             </div>
-                            {% if form.mitupload.help_text %}
-                                <div class="form-text">{{ form.mitupload.help_text }}</div>
-                            {% endif %}
                         </div>
                     </div>
 
                     <!-- Requires Submission -->
-                    <div class="mb-3 row mx-3">
+                    <div class="mb-3 row mx-3 align-items-center">
                         <label for="{{ form.requires_submission.id_for_label }}" class="col-form-label col-md-3">
                             <i class="bi bi-check-circle me-1"></i>
                             {{ form.requires_submission.label }}
@@ -650,7 +649,9 @@
                             <div class="form-check">
                                 {{ form.requires_submission|add_class:"form-check-input" }}
                                 <label class="form-check-label" for="{{ form.requires_submission.id_for_label }}">
-                                    {% trans "Manuelle Bestätigung nach Erledigung erforderlich" %}
+                                    {% if form.requires_submission.help_text %}
+                                        {{ form.requires_submission.help_text }}
+                                    {% endif %}
                                     <br>
                                     {% comment %} <span class="d-inline-flex align-items-center">
                                         <i class="bi bi-circle text-secondary me-1" title="{% trans 'offen' %}"></i>
@@ -667,14 +668,11 @@
                                     </span> {% endcomment %}
                                 </label>
                             </div>
-                            {% if form.requires_submission.help_text %}
-                                <div class="form-text">{{ form.requires_submission.help_text }}</div>
-                            {% endif %}
                         </div>
                     </div>
 
                     <!-- With Email Notification -->
-                    <div class="mb-3 row mx-3">
+                    <div class="mb-3 row mx-3 align-items-center">
                         <label for="{{ form.with_email_notification.id_for_label }}" class="col-form-label col-md-3">
                             <i class="bi bi-envelope me-1"></i>
                             {{ form.with_email_notification.label }}
@@ -683,13 +681,33 @@
                             <div class="form-check">
                                 {{ form.with_email_notification|add_class:"form-check-input" }}
                                 <label class="form-check-label" for="{{ form.with_email_notification.id_for_label }}">
-                                    {% trans "E-Mail-Benachrichtigung" %}
+                                    {% if form.with_email_notification.help_text %}
+                                        {{ form.with_email_notification.help_text }}
+                                    {% endif %}
                                 </label>
                             </div>
-                            {% if form.with_email_notification.help_text %}
-                                <div class="form-text">{{ form.with_email_notification.help_text }}</div>
-                            {% endif %}
                         </div>
+                    </div>
+
+                    <!-- Visible by Team with Same Land -->
+                    <div class="mb-3 row mx-3 align-items-center">
+                        <label for="{{ form.visible_by_team.id_for_label }}" class="col-form-label col-md-3">
+                            <i class="bi bi-people me-1"></i>
+                            {{ form.visible_by_team.label }}
+                        </label>
+                        <div class="col-md-9">
+                            <div class="form-check">
+                                {{ form.visible_by_team|add_class:"form-check-input" }}
+                                <label class="form-check-label" for="{{ form.visible_by_team.id_for_label }}">
+                                    {% if form.visible_by_team.help_text %}
+                                        {{ form.visible_by_team.help_text }}
+                                    {% endif %}
+                                </label>
+                            </div>
+                        </div>
+                        {% if form.visible_by_team.errors %}
+                            <div class="invalid-feedback d-block">{{ form.visible_by_team.errors }}</div>
+                        {% endif %}
                     </div>
                 </div>
 

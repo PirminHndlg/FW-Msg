@@ -1335,30 +1335,47 @@ def get_aufgaben_zwischenschritte(request):
 
 
 @login_required
-@required_role('O')
+@required_role('OT')
 @filter_person_cluster
 def download_aufgabe(request, id):
     try:
-        aufgabe = UserAufgaben.objects.get(pk=id)
-        if not aufgabe.org == request.user.org:
-            return HttpResponse('Nicht erlaubt')
+        aufgabe = UserAufgaben.objects.get(pk=id, org=request.user.org)
         if not aufgabe.file:
-            return HttpResponse('Keine Datei gefunden')
+            return render(request, '403.html', {'error_message': 'Keine Datei gefunden.'}, status=403)
         if not aufgabe.file.path:
-            return HttpResponse('Datei nicht gefunden')
+            return render(request, '403.html', {'error_message': 'Datei nicht gefunden.'}, status=403)
         if not os.path.exists(aufgabe.file.path):
-            return HttpResponse('Datei nicht gefunden')
+            return render(request, '403.html', {'error_message': 'Datei nicht gefunden.'}, status=403)
+        
+        if request.user.role == 'T':
+            team_members = Team.objects.filter(org=request.user.org, user=request.user)
+            if not aufgabe.aufgabe.visible_by_team:
+                return render(request, '403.html', {'error_message': 'Sie sind nicht berechtigt, diese Datei herunterzuladen. Die Aufgabe ist nicht für Team-Mitglieder sichtbar.'}, status=403)
+            
+            try:
+                land = aufgabe.user.freiwilliger.einsatzland2
+            except Exception as e:
+                return render(request, '403.html', {'error_message': 'Sie sind nicht berechtigt, diese Datei herunterzuladen. Freiwilliger nicht gefunden.'}, status=403)
+            
+            if land.id not in team_members.values_list('land__id', flat=True):
+                    return render(request, '403.html', {'error_message': 'Sie sind nicht berechtigt, diese Datei herunterzuladen. Sie sind nicht als Teammitglied für diesen Freiwilligen zuständig.'}, status=403)
         
         if not aufgabe.file_downloaded_of.filter(id=request.user.id).exists():
             aufgabe.file_downloaded_of.add(request.user)
             aufgabe.save()
             
-        response = HttpResponse(aufgabe.file.read(), content_type='application/octet-stream')
-        response['Content-Disposition'] = f'attachment; filename="{aufgabe.file.name.replace(" ", "_")}"'
-
-        return response
+        # if pdf, open in new tab, otherwise download
+        if aufgabe.file.name.lower().endswith('.pdf'):
+            response = HttpResponse(aufgabe.file.read(), content_type='application/pdf')
+            response['Content-Disposition'] = f'inline; filename="{aufgabe.file.name.replace(" ", "_")}"'
+            return response
+        else:
+            response = HttpResponse(aufgabe.file.read(), content_type='application/octet-stream')
+            response['Content-Disposition'] = f'attachment; filename="{aufgabe.file.name.replace(" ", "_")}"'
+            return response
+        
     except UserAufgaben.DoesNotExist:
-        return HttpResponse('Nicht erlaubt')
+        return render(request, '403.html', {'error_message': 'Sie sind nicht berechtigt, auf diese Aufgabe zuzugreifen.'}, status=403)
 
 @login_required
 @required_role('O')
