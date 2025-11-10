@@ -649,15 +649,14 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
     from .tables import MODEL_TABLE_MAPPING, get_bewerber_table_class, get_freiwilliger_table_class, get_team_table_class, get_ehemalige_table_class
     
     if model_name.lower() in ['bewerber', 'freiwilliger', 'team', 'ehemalige']:
+        checkbox_submit_text = None
+        
         person_cluster = get_person_cluster(request)
-        print(person_cluster)
         if not person_cluster:
             first_letter_of_model_name = model_name[0].upper()
             possible_person_clusters = PersonCluster.objects.filter(view=first_letter_of_model_name, org=request.user.org)
-            print(possible_person_clusters)
             if possible_person_clusters.count() == 1:
                 person_cluster = possible_person_clusters.first()
-                print(person_cluster)
         
         if model_name.lower() == 'freiwilliger':
             table_class, data = get_freiwilliger_table_class(person_cluster, request.user.org)
@@ -666,8 +665,9 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
         elif model_name.lower() == 'ehemalige':
             table_class, data = get_ehemalige_table_class(person_cluster, request.user.org)
         else:
+            checkbox_submit_text = 'Zum Seminar hinzufügen'
             table_class, data = get_bewerber_table_class(person_cluster, request.user.org)
-        
+            
         # Apply search filter
         search_query = request.GET.get('search', '').strip()
         if search_query:
@@ -690,7 +690,8 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
             'error': None,
             'total_count': total_objects_count,
             'search_query': search_query,
-            'large_container': True
+            'large_container': True,
+            'checkbox_submit_text': checkbox_submit_text
         })
     
     # Get person cluster and check permissions
@@ -894,6 +895,28 @@ def _apply_pagination(objects, request):
     query_string = query_params.urlencode()
     
     return paginated_objects, query_string
+
+
+@login_required
+@required_role('O')
+@filter_person_cluster
+def list_object_checkbox(request, model_name):
+    model, response = _check_model_exists(model_name)
+    if response:
+        return response
+    
+    objects = request.GET.getlist('checkbox')
+    if objects:
+        for object_id in objects:
+            instance, response = _get_object_with_org_check(model, int(object_id), request)
+            if response:
+                return response
+            # do something with the object
+            if model_name == 'bewerber':
+                instance.default_checkbox_action(request.user.org)
+        
+    return redirect('list_object', model_name=model_name)
+
 
 @login_required
 @required_role('O')

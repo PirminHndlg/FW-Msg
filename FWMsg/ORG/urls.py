@@ -11,6 +11,7 @@ urlpatterns = [
     path('edit/<str:model_name>/<int:id>', views.edit_object, name='edit_object'),
     path('list/<str:model_name>/', views.list_object, name='list_object'),
     path('list/<str:model_name>/<int:highlight_id>', views.list_object, name='list_object_highlight'),
+    path('list/<str:model_name>/checkbox/', views.list_object_checkbox, name='list_object_checkbox'),
     path('delete/<str:model_name>/<int:id>', views.delete_object, name='delete_object'),
     
     path('delete-zwischenschritt/', views.delete_zwischenschritt, name='delete_zwischenschritt'),

@@ -177,6 +177,22 @@ class Bewerber(OrgModel):
         help_text="Falls die Bewerbung per Mail versendet wurde, kann hier das PDF der Bewerbung hochgeladen werden.",
     )
     
+    def has_seminar(self):
+        from seminar.models import Seminar
+        return Seminar.objects.filter(org=self.org, bewerber=self).exists()
+    
+    def default_checkbox_action(self, org):
+        from seminar.models import Seminar
+        # add the user to the seminar
+        try:
+            seminar = Seminar.objects.get(org=org)
+            seminar.bewerber.add(self)
+            seminar.save()
+            return True
+        except Exception as e:
+            print(e)
+            return False
+    
     class Meta:
         verbose_name = "Bewerber:in"
         verbose_name_plural = "Bewerber:innen"
