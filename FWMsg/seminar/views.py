@@ -614,6 +614,7 @@ def assign(request, scroll_to=None):
     freiwillige = (
         Bewerber.objects
         .filter(org=request.user.org)
+        .filter(seminar_bewerber__isnull=False)
         .select_related('user', 'zuteilung', 'first_wish_einsatzstelle', 'first_wish_einsatzland',
                        'second_wish_einsatzstelle', 'second_wish_einsatzland',
                        'third_wish_einsatzstelle', 'third_wish_einsatzland',
@@ -628,6 +629,7 @@ def assign(request, scroll_to=None):
             )
         )
         .order_by('custom_order', 'note')
+        .distinct()
     )
 
     freiwillige_ohne_zuteilung = freiwillige.filter(zuteilung=None)
