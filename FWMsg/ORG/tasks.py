@@ -42,8 +42,12 @@ def send_aufgabe_erledigt_email_task(aufgabe_id):
     from Global.models import UserAufgaben
     
     try:
-        aufgabe = UserAufgaben.objects.get(id=aufgabe_id, erledigt=True)
+        aufgabe = UserAufgaben.objects.get(id=aufgabe_id)
         if not aufgabe.aufgabe.with_email_notification:
+            return False
+        
+        # only send email if aufgabe is erledigt or pending
+        if not (aufgabe.erledigt or aufgabe.pending):
             return False
         
         mail_to = aufgabe.benachrichtigung_cc.split(',') if aufgabe.benachrichtigung_cc else []
@@ -67,6 +71,10 @@ def send_aufgabe_erledigt_email_task(aufgabe_id):
         recipient_list = [org_email]
         if mail_to:
             recipient_list.extend(mail_to)
+        if aufgabe.aufgabe.visible_by_team and aufgabe.user.freiwilliger and aufgabe.user.freiwilliger.einsatzland2:
+            team_members = Team.objects.filter(org=aufgabe.user.org, land=aufgabe.user.freiwilliger.einsatzland2, user__email__isnull=False, user__customuser__isnull=False, user__customuser__mail_notifications=True)
+            recipient_list.extend(team_members.values_list('user__email', flat=True))
+            
         recipient_list = list(set(recipient_list))
         
         return send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, recipient_list, html_message=email_content)

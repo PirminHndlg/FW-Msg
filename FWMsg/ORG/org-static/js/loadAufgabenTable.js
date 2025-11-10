@@ -359,6 +359,7 @@ function buildCompletedTemplate(ua, user) {
             ${ua.file ? `
                 <a href="${buildUrl(window.DJANGO_URLS.downloadAufgabe, ua.id)}" 
                     class="btn btn-sm btn-outline-primary download-btn mt-1"
+                    target="_blank"
                     data-bs-toggle="tooltip"
                     data-bs-placement="top"
                     title="${escapeHtml(downloadedBy)}">
@@ -408,6 +409,7 @@ function buildPendingTemplate(ua, user, zwischenschritteDoneOpen, zwischenschrit
             ${ua.file ? `
                 <a href="${buildUrl(window.DJANGO_URLS.downloadAufgabe, ua.id)}"
                     class="btn btn-sm btn-outline-primary download-btn" 
+                    target="_blank"
                     data-bs-toggle="tooltip"
                     data-bs-placement="top"
                     title="${escapeHtml(ua.file_downloaded_of_names ? `Heruntergeladen von ${ua.file_downloaded_of_names}` : 'Noch nicht heruntergeladen')}">
