@@ -721,8 +721,7 @@ class DownloadTests(TestCase):
         self.user_aufgabe.file = None
         self.user_aufgabe.save()
         response = self.client.get(reverse('download_aufgabe', args=[self.user_aufgabe.id]))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content.decode(), 'Keine Datei gefunden')
+        self.assertEqual(response.status_code, 403)
 
     def test_download_bild_as_zip(self):
         """Test downloading images as zip"""
@@ -747,8 +746,7 @@ class DownloadTests(TestCase):
         )
         
         response = self.client.get(reverse('download_aufgabe', args=[other_aufgabe.id]))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content.decode(), 'Nicht erlaubt')
+        self.assertEqual(response.status_code, 403)
 
 
 class AjaxTaskOperationsTests(TestCase):
