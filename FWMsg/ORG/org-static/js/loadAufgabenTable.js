@@ -165,7 +165,7 @@ function buildTableHeader(aufgaben, current_person_cluster) {
         <tr class="">
             <th class="p-0 sticky-top with-border">
                 <div class="d-flex gap-1 align-items-center justify-content-between pe-0">
-                    ${escapeHtml(current_person_cluster || 'Person')}
+                    Person
                 </div>
                 <div class="search-container mt-2">
                     <div class="input-group">

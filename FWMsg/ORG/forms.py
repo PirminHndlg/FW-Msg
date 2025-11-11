@@ -583,9 +583,6 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
         return super().is_valid() and self.zwischenschritte.is_valid()
 
     def save(self, commit=True):
-        from ORG.views import get_person_cluster
-
-        # self.instance.person_cluster = get_person_cluster(self.request)
         instance = super().save(commit=commit)
         if commit:
             self.zwischenschritte.instance = instance

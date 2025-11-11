@@ -440,24 +440,9 @@ def serve_dokument(request, dokument_id):
 @required_person_cluster('bilder')
 def bilder(request):
     
-    error = None
+    gallery_images = get_bilder(request.user.org)
 
-    if request.user.role == 'O':
-        from ORG.views import get_person_cluster
-        person_cluster = get_person_cluster(request)
-        if person_cluster:
-            if person_cluster.bilder:
-                gallery_images = get_bilder(request.user.org, filter_person_cluster=person_cluster)
-            else:
-                error = f'{person_cluster.name} hat keine Bilder-Funktion aktiviert'
-                gallery_images = []
-        else:
-            gallery_images = get_bilder(request.user.org)
-
-    else:
-        gallery_images = get_bilder(request.user.org)
-
-    context={'gallery_images': gallery_images, 'error': error}
+    context={'gallery_images': gallery_images}
 
     context = check_organization_context(request, context)
 
@@ -804,22 +789,7 @@ def download_bild_as_zip(request, id):
 def dokumente(request, ordner_id=None):
     folder_structure = []
 
-    if request.user.role == 'O':
-        from ORG.views import get_person_cluster
-        person_cluster_typ = get_person_cluster(request)
-    else:
-        person_cluster_typ = request.user.person_cluster
-
-    ordners = []
-    error = None
-
-    if person_cluster_typ:
-        if person_cluster_typ.dokumente:
-            ordners = Ordner2.objects.filter(org=request.user.org).filter(Q(typ=None) | Q(typ=person_cluster_typ)).order_by('color', 'ordner_name')
-        else:
-            error = f'{person_cluster_typ.name} hat keine Dokumenten-Funktion aktiviert'
-    else:
-        ordners = Ordner2.objects.filter(org=request.user.org).order_by('color', 'ordner_name')
+    ordners = Ordner2.objects.filter(org=request.user.org).order_by('color', 'ordner_name')
     
     for ordner in ordners:
         folder_structure.append({
@@ -835,7 +805,6 @@ def dokumente(request, ordner_id=None):
         'ordner_id': ordner_id,
         'person_clusters': PersonCluster.objects.filter(org=request.user.org, dokumente=True).order_by('name'),
         'colors': colors,
-        'error': error
     }
 
     context = check_organization_context(request, context)
