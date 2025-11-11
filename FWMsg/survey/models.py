@@ -224,7 +224,12 @@ class SurveyResponse(OrgModel):
     ]
     
     def __str__(self):
-        respondent_info = self.respondent.username if self.respondent else f"Anonymous ({self.session_key[:8]})"
+        if self.respondent:
+            respondent_info = self.respondent.username
+        elif self.session_key:
+            respondent_info = f"Anonymous ({self.session_key[:8]})"
+        else:
+            respondent_info = "Anonymous"
         return f"{self.survey.title} - {respondent_info}"
 
 

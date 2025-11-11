@@ -986,25 +986,47 @@ def get_cascade_info(request):
             # if hasattr(obj, 'org') and obj.org != request.user.org:
             #     continue
                 
-            # Get a display name for the object
-            display_name = str(obj)
-            
-            # # Try to get a user-friendly name for the object
-            # for field_name in ['name', 'title', 'username', 'ordner_name', 'titel']:
-            #     if hasattr(obj, field_name) and getattr(obj, field_name):
-            #         display_name = getattr(obj, field_name)
-            #         break
-            
-            # # Handle user names specially
-            # if hasattr(obj, 'first_name') and hasattr(obj, 'last_name'):
-            #     if obj.first_name and obj.last_name:
-            #         display_name = f"{obj.first_name} {obj.last_name}"
-            
-            # # Handle user relation
-            # if hasattr(obj, 'user'):
-            #     if hasattr(obj.user, 'first_name') and hasattr(obj.user, 'last_name'):
-            #         if obj.user.first_name and obj.user.last_name:
-            #             display_name = f"{obj.user.first_name} {obj.user.last_name}"
+            # Get a display name for the object, with error handling
+            try:
+                display_name = str(obj)
+            except (AttributeError, TypeError, ValueError, KeyError):
+                # Fallback: try to get a meaningful name from common fields
+                display_name = None
+                
+                # Try common name fields
+                for field_name in ['name', 'title', 'username', 'ordner_name', 'titel', 'email']:
+                    if hasattr(obj, field_name):
+                        try:
+                            value = getattr(obj, field_name)
+                            if value:
+                                display_name = str(value)
+                                break
+                        except (AttributeError, TypeError):
+                            continue
+                
+                # Handle user objects specially
+                if display_name is None:
+                    if hasattr(obj, 'first_name') and hasattr(obj, 'last_name'):
+                        try:
+                            if obj.first_name or obj.last_name:
+                                display_name = f"{obj.first_name or ''} {obj.last_name or ''}".strip()
+                        except (AttributeError, TypeError):
+                            pass
+                    
+                    # Handle user relation
+                    if display_name is None and hasattr(obj, 'user'):
+                        try:
+                            if hasattr(obj.user, 'first_name') and hasattr(obj.user, 'last_name'):
+                                if obj.user.first_name or obj.user.last_name:
+                                    display_name = f"{obj.user.first_name or ''} {obj.user.last_name or ''}".strip()
+                            elif hasattr(obj.user, 'username'):
+                                display_name = obj.user.username
+                        except (AttributeError, TypeError):
+                            pass
+                
+                # Final fallback: use model name and ID
+                if display_name is None:
+                    display_name = f"{model_obj._meta.verbose_name} (ID: {obj.pk})"
             
             related_objects.append({
                 'id': obj.pk,
