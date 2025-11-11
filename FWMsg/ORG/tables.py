@@ -19,6 +19,18 @@ from BW.models import ApplicationText, ApplicationQuestion, ApplicationFileQuest
 class BaseOrgTable(tables.Table):
     """Base table with common functionality for all org tables"""
     
+    # Optional filter configuration
+    # Override in subclasses to enable filters
+    # Format: {
+    #     'field_name': {
+    #         'label': 'Display Label',
+    #         'queryset': QuerySet or callable that returns QuerySet,
+    #         'display_attr': 'name',  # attribute to display on buttons
+    #         'filter_field': 'field__to__filter',  # field path for filtering
+    #     }
+    # }
+    filters = {}
+    
     actions = TemplateColumn(
         template_name='components/table_actions.html',
         verbose_name=_('Aktionen'),
@@ -46,6 +58,7 @@ class BaseOrgTable(tables.Table):
     
     def __init__(self, *args, **kwargs):
         self.model_name = kwargs.pop('model_name', None)
+        self.filter_options = kwargs.pop('filter_options', None)
         super().__init__(*args, **kwargs)
         
     def get_actions_context(self, record):
@@ -211,6 +224,26 @@ class CustomUserTable(BaseOrgTable):
         fields = ('user__username', 'user__first_name', 'user__last_name', 'user__email', 'geburtsdatum', 'person_cluster', 'einmalpasswort', 'mail_notifications', 'actions')
 
 
+def get_customuser_filter(request, org, objects):
+    """
+    Apply PersonCluster filter to CustomUser queryset.
+    Returns: (filtered_objects, filter_options)
+    """
+    filter_options = []
+    
+    # Build PersonCluster filter (no view restriction, all PersonClusters)
+    pc_filter, selected_cluster = build_person_cluster_filter(request, org, view=None, min_clusters=2)
+    
+    if pc_filter:
+        filter_options.append(pc_filter)
+        
+        # Apply filter if a specific cluster is selected
+        if selected_cluster:
+            objects = objects.filter(person_cluster=selected_cluster)
+    
+    return objects, filter_options
+
+
 class PersonClusterTable(BaseOrgTable):
     name = tables.Column(verbose_name=_('Name'))
     
@@ -287,6 +320,85 @@ class ApplicationFileQuestionTable(BaseOrgTable):
         model = ApplicationFileQuestion
         fields = ('order', 'name', 'description', 'actions')
         
+def build_person_cluster_filter(request, org, view=None, min_clusters=2):
+    """
+    Build PersonCluster filter options that can be used by multiple tables.
+    
+    Args:
+        request: The HTTP request object
+        org: The organization
+        view: Optional view filter (e.g. 'F', 'B', 'T', 'E') - None for all
+        min_clusters: Minimum number of clusters required to show filter (default: 2)
+    
+    Returns:
+        tuple: (filter_dict or None, selected_cluster or None)
+    """
+    if not request:
+        return None, None
+    
+    # Helper function to build URL preserving other filters
+    def build_filter_url(param_name, value):
+        from urllib.parse import urlencode
+        params = request.GET.copy()
+        if value:
+            params[param_name] = value
+        elif param_name in params:
+            del params[param_name]
+        # Remove page parameter when filtering
+        if 'page' in params:
+            del params['page']
+        return '?' + urlencode(params) if params else '?'
+    
+    # Get all person clusters for this org
+    if view:
+        all_person_clusters = PersonCluster.objects.filter(org=org, view=view).order_by('name')
+    else:
+        all_person_clusters = PersonCluster.objects.filter(org=org).order_by('name')
+    
+    # Show filter only if there are enough clusters
+    if not all_person_clusters.exists() or all_person_clusters.count() < min_clusters:
+        return None, None
+    
+    # Get selected filter from request
+    selected_filter = request.GET.get('person_cluster_filter')
+    
+    # Build filter options
+    filter_dict = {
+        'label': _('Benutzergruppe'),
+        'param_name': 'person_cluster_filter',
+        'options': [
+            {
+                'value': '',
+                'label': _('Alle'),
+                'is_active': not selected_filter,
+                'url': build_filter_url('person_cluster_filter', '')
+            }
+        ] + [
+            {
+                'value': str(pc.id),
+                'label': pc.name,
+                'is_active': selected_filter == str(pc.id),
+                'url': build_filter_url('person_cluster_filter', str(pc.id))
+            }
+            for pc in all_person_clusters
+        ],
+        'has_active_filter': bool(selected_filter)
+    }
+    
+    # Get the selected PersonCluster object if one is selected
+    selected_cluster = None
+    if selected_filter:
+        try:
+            if view:
+                selected_cluster = PersonCluster.objects.get(id=int(selected_filter), org=org, view=view)
+            else:
+                selected_cluster = PersonCluster.objects.get(id=int(selected_filter), org=org)
+        except Exception:
+            pass
+    
+    return filter_dict, selected_cluster
+
+
 class MaterializeCssCheckboxColumn(tables.CheckBoxColumn):
     def render(self, value, bound_column, record):
         default = {"type": "checkbox", "name": bound_column.name, "value": value, "class": "row-checkbox"}
@@ -333,7 +445,7 @@ def _create_dynamic_table_class(
     Generic function to create a dynamic table with attribute columns.
     
     Args:
-        person_cluster: The person cluster to filter by
+        person_cluster: The person cluster to filter by (None for all clusters)
         org: The organization
         model_class: The model class (Freiwilliger, Bewerber, Team)
         model_name: String name for the model ('freiwilliger', 'bewerber', 'team')
@@ -346,12 +458,17 @@ def _create_dynamic_table_class(
         (table_class, data_list)
     """
     # Fetch objects and attributes
-    objects = model_class.objects.filter(
-        org=org, 
-        user__customuser__person_cluster=person_cluster
-    ).select_related('user', 'user__customuser')
-    
-    attributes = Attribute.objects.filter(org=org, person_cluster=person_cluster)
+    if person_cluster:
+        objects = model_class.objects.filter(
+            org=org, 
+            user__customuser__person_cluster=person_cluster
+        ).select_related('user', 'user__customuser')
+        attributes = Attribute.objects.filter(org=org, person_cluster=person_cluster)
+    else:
+        # Show all objects from org without person_cluster filter
+        objects = model_class.objects.filter(org=org).select_related('user', 'user__customuser')
+        # Get attributes from all person clusters for this org
+        attributes = Attribute.objects.filter(org=org)
     
     # Build data structure: list of dicts with object and attrs dict
     data = []
@@ -428,11 +545,20 @@ def _create_dynamic_table_class(
     return type(table_name, (tables.Table,), table_attrs), data
 
 
-def get_freiwilliger_table_class(person_cluster, org):
+def get_freiwilliger_table_class(org, request=None):
     """
     Create a dynamic FreiwilligerTable with attribute columns.
-    Returns: (table_class, data_list)
+    Returns: (table_class, data_list, filter_options)
     """
+    # Build filter options for PersonCluster
+    filter_options = []
+    
+    # Build PersonCluster filter for Freiwillige (view='F')
+    pc_filter, filter_field = build_person_cluster_filter(request, org, view='F', min_clusters=2)
+    
+    if pc_filter:
+        filter_options.append(pc_filter)
+    
     # Define render methods
     def render_user(self, value, record):
         freiwilliger = record['freiwilliger']
@@ -502,18 +628,92 @@ def get_freiwilliger_table_class(person_cluster, org):
     
     render_methods = {'render_user': render_user}
     
-    return _create_dynamic_table_class(
+    person_cluster = None
+    # Determine which person_cluster to use:
+    # - If filter_options exist and a filter is selected, use filter_field
+    # - If filter_options exist but no filter is selected (Alle), use None to show all
+    # - If no filter_options, use the person_cluster from cookie
+    if filter_options:
+        # Filter is available
+        if filter_field:
+            # Specific cluster selected
+            person_cluster = filter_field
+    
+    table_class, data = _create_dynamic_table_class(
         person_cluster, org, Freiwilliger, 'freiwilliger',
         base_columns, column_sequence, render_methods, actions_renderer
     )
+    
+    return table_class, data, filter_options
 
 
 
-def get_bewerber_table_class(person_cluster, org):
+def get_bewerber_table_class(org, request=None):
     """
     Create a dynamic BewerberTable with attribute columns.
-    Returns: (table_class, data_list)
+    Returns: (table_class, data_list, filter_options)
     """
+    # Build filter options list (can have multiple filter groups)
+    filter_options = []
+    filter_has_seminar = None
+    filter_person_cluster = None
+    
+    if request:
+        # Helper function to build URL preserving other filters
+        def build_filter_url(param_name, value):
+            from urllib.parse import urlencode
+            params = request.GET.copy()
+            if value:
+                params[param_name] = value
+            elif param_name in params:
+                del params[param_name]
+            # Remove page parameter when filtering
+            if 'page' in params:
+                del params['page']
+            return '?' + urlencode(params) if params else '?'
+        
+        # Build PersonCluster filter for Bewerber (view='B')
+        pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='B', min_clusters=2)
+        
+        if pc_filter:
+            filter_options.append(pc_filter)
+        
+        # Build Seminar filter
+        selected_seminar_filter = request.GET.get('has_seminar_filter')
+        
+        seminar_filter_options = {
+            'label': _('Seminar'),
+            'param_name': 'has_seminar_filter',
+            'options': [
+                {
+                    'value': '',
+                    'label': _('Alle'),
+                    'is_active': not selected_seminar_filter,
+                    'url': build_filter_url('has_seminar_filter', '')
+                },
+                {
+                    'value': 'yes',
+                    'label': _('Mit Seminar'),
+                    'is_active': selected_seminar_filter == 'yes',
+                    'url': build_filter_url('has_seminar_filter', 'yes')
+                },
+                {
+                    'value': 'no',
+                    'label': _('Ohne Seminar'),
+                    'is_active': selected_seminar_filter == 'no',
+                    'url': build_filter_url('has_seminar_filter', 'no')
+                }
+            ],
+            'has_active_filter': bool(selected_seminar_filter)
+        }
+        filter_options.append(seminar_filter_options)
+        
+        # Set filter value for Seminar
+        if selected_seminar_filter == 'yes':
+            filter_has_seminar = True
+        elif selected_seminar_filter == 'no':
+            filter_has_seminar = False
+    
     # Define render methods
     def render_user(self, value, record):
         bewerber = record['bewerber']
@@ -603,13 +803,40 @@ def get_bewerber_table_class(person_cluster, org):
         'render_has_seminar': render_has_seminar
     }   
     
-    return _create_dynamic_table_class(
+    # Determine which person_cluster to use - apply PersonCluster filter if specified
+    person_cluster = filter_person_cluster if filter_person_cluster else None
+    
+    table_class, data = _create_dynamic_table_class(
         person_cluster, org, Bewerber, 'bewerber',
         base_columns, column_sequence, render_methods, actions_renderer
     )
+    
+    # Apply has_seminar filter if specified
+    if filter_has_seminar is not None:
+        from seminar.models import Seminar
+        if filter_has_seminar:
+            # Filter to only bewerber with seminar
+            seminar_bewerber_ids = []
+            try:
+                seminar = Seminar.objects.get(org=org)
+                seminar_bewerber_ids = [b.id for b in seminar.bewerber.all()]
+            except Exception:
+                pass
+            data = [d for d in data if d['bewerber'].id in seminar_bewerber_ids]
+        else:
+            # Filter to only bewerber without seminar
+            seminar_bewerber_ids = []
+            try:
+                seminar = Seminar.objects.get(org=org)
+                seminar_bewerber_ids = [b.id for b in seminar.bewerber.all()]
+            except Exception:
+                pass
+            data = [d for d in data if d['bewerber'].id not in seminar_bewerber_ids]
+    
+    return table_class, data, filter_options
 
 
-def get_team_table_class(person_cluster, org):
+def get_team_table_class(org):
     """
     Create a dynamic TeamTable with attribute columns.
     Returns: (table_class, data_list)
@@ -668,11 +895,11 @@ def get_team_table_class(person_cluster, org):
     }
     
     return _create_dynamic_table_class(
-        person_cluster, org, Team, 'team',
+        None, org, Team, 'team',
         base_columns, column_sequence, render_methods, actions_renderer
     )
     
-def get_ehemalige_table_class(person_cluster, org):
+def get_ehemalige_table_class(org):
     """
     Create a dynamic EhemaligeTable with attribute columns.
     Returns: (table_class, data_list)
@@ -731,7 +958,7 @@ def get_ehemalige_table_class(person_cluster, org):
     }
     
     return _create_dynamic_table_class(
-        person_cluster, org, Ehemalige, 'ehemalige',
+        None, org, Ehemalige, 'ehemalige',
         base_columns, column_sequence, render_methods, actions_renderer
     )
     

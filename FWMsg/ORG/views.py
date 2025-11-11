@@ -49,27 +49,6 @@ from .pdf_utils import (
 
 base_template = 'baseOrg.html'
 
-class PersonenClusterFilteredQuerySet(QuerySet):
-    """Custom QuerySet that automatically filters by personen_cluster from cookie."""
-    def __init__(self, *args, **kwargs):
-        self._person_cluster_id = None
-        super().__init__(*args, **kwargs)
-
-    def set_person_cluster_id(self, person_cluster_id):
-        self._person_cluster_id = person_cluster_id
-        return self
-
-    def _clone(self):
-        clone = super()._clone()
-        clone._person_cluster_id = self._person_cluster_id
-        return clone
-
-    def filter(self, *args, **kwargs):
-        queryset = super().filter(*args, **kwargs)
-        if self._person_cluster_id and self.model == Freiwilliger:
-            queryset = queryset.filter(person_cluster=self._person_cluster_id)
-        return queryset
-
 def get_person_cluster(request):
     person_cluster_id = request.COOKIES.get('selectedPersonCluster')
     if person_cluster_id and not PersonCluster.objects.filter(id=person_cluster_id, org=request.user.org).exists():
@@ -81,19 +60,8 @@ def get_person_cluster(request):
             response.delete_cookie('selectedPersonClusterName')
         return response
     else:
-        return PersonCluster.objects.get(id=person_cluster_id) if person_cluster_id else None
-    
-
-def set_person_cluster(request, person_cluster):
-    response = HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-    if 'selectedPersonCluster' in request.COOKIES:
-        response.delete_cookie('selectedPersonCluster')
-    if 'selectedPersonClusterName' in request.COOKIES:
-        response.delete_cookie('selectedPersonClusterName')
-    response.set_cookie('selectedPersonCluster', person_cluster.id)
-    response.set_cookie('selectedPersonClusterName', person_cluster.name)
-    return response
-
+        return None
+        # return PersonCluster.objects.get(id=person_cluster_id) if person_cluster_id else None
 
 @login_required
 @required_role('O')
@@ -212,7 +180,6 @@ allowed_models_to_edit = {
 # Create your views here.
 @login_required
 @required_role('O')
-@filter_person_cluster
 def home(request):
     from Global.views import get_bilder, get_posts
 
@@ -279,7 +246,6 @@ def home(request):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def home_2(request):
     from Global.views import get_bilder, get_posts
 
@@ -381,7 +347,6 @@ def nginx_statistic(request):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def save_form(request, form):
     """
     Save a form with proper organization assignment and handle related forms.
@@ -418,7 +383,6 @@ def save_form(request, form):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def add_object(request, model_name):
     freiwilliger_id = request.GET.get('freiwilliger')
     aufgabe_id = request.GET.get('aufgabe')
@@ -444,7 +408,6 @@ def add_object(request, model_name):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def add_aufgabe(request):
     if request.method == 'POST':
         form = ORGforms.AddAufgabeForm(request.POST, request.FILES, request=request)
@@ -466,7 +429,6 @@ def add_aufgabe(request):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def add_objects_from_excel(request, model_name):
     if request.method == 'POST':
         excel_file = request.FILES['excel_file']
@@ -510,7 +472,6 @@ def add_objects_from_excel(request, model_name):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def delete_zwischenschritt(request):
     zwischenschritt_id = request.POST.get('zwischenschritt_id')
     zwischenschritt = AufgabeZwischenschritte2.objects.get(id=zwischenschritt_id)
@@ -520,7 +481,6 @@ def delete_zwischenschritt(request):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def toggle_zwischenschritt_status(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
@@ -563,7 +523,6 @@ def toggle_zwischenschritt_status(request):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def get_zwischenschritt_form(request):
     if request.method != 'GET':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
@@ -577,7 +536,6 @@ def get_zwischenschritt_form(request):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def edit_object(request, model_name, id):
     # Check if model exists and has a form mapping
     model, response = _check_model_exists(model_name.lower())
@@ -632,7 +590,6 @@ def edit_object(request, model_name, id):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def list_object(request, model_name, highlight_id=None):
     # Check if model exists using the helper function
     model, response = _check_model_exists(model_name)
@@ -651,22 +608,17 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
     if model_name.lower() in ['bewerber', 'freiwilliger', 'team', 'ehemalige']:
         checkbox_submit_text = None
         
-        person_cluster = get_person_cluster(request)
-        if not person_cluster:
-            first_letter_of_model_name = model_name[0].upper()
-            possible_person_clusters = PersonCluster.objects.filter(view=first_letter_of_model_name, org=request.user.org)
-            if possible_person_clusters.count() == 1:
-                person_cluster = possible_person_clusters.first()
-        
         if model_name.lower() == 'freiwilliger':
-            table_class, data = get_freiwilliger_table_class(person_cluster, request.user.org)
+            table_class, data, filter_options = get_freiwilliger_table_class(request.user.org, request)
         elif model_name.lower() == 'team':
-            table_class, data = get_team_table_class(person_cluster, request.user.org)
+            table_class, data = get_team_table_class(request.user.org)
+            filter_options = None
         elif model_name.lower() == 'ehemalige':
-            table_class, data = get_ehemalige_table_class(person_cluster, request.user.org)
+            table_class, data = get_ehemalige_table_class(request.user.org)
+            filter_options = None
         else:
             checkbox_submit_text = 'Zum Seminar hinzufügen'
-            table_class, data = get_bewerber_table_class(person_cluster, request.user.org)
+            table_class, data, filter_options = get_bewerber_table_class(request.user.org, request)
             
         # Apply search filter
         search_query = request.GET.get('search', '').strip()
@@ -682,6 +634,9 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
         table = table_class(data)
         RequestConfig(request).configure(table)
         
+        # Check if any filter is active
+        has_active_filters = any(f.get('has_active_filter', False) for f in filter_options) if filter_options else False
+        
         return render(request, 'list_objects_table.html', {
             'table': table,
             'model_name': model_name,
@@ -691,12 +646,10 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
             'total_count': total_objects_count,
             'search_query': search_query,
             'large_container': True,
-            'checkbox_submit_text': checkbox_submit_text
+            'checkbox_submit_text': checkbox_submit_text,
+            'filter_options': filter_options,
+            'has_active_filters': has_active_filters
         })
-    
-    # Get person cluster and check permissions
-    person_cluster = get_person_cluster(request)
-    error = _check_person_cluster_permissions(model, person_cluster)
     
     # Get base queryset with organization filter
     objects = model.objects.filter(org=request.user.org)
@@ -705,9 +658,26 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
     field_metadata, model_fields = _get_field_metadata(model)
     
     # Apply model-specific logic
-    objects = _apply_model_specific_logic(model, objects, person_cluster, field_metadata, model_fields)
+    objects = _apply_model_specific_logic(model, objects, field_metadata, model_fields)
     
-    # Count total objects before filtering
+    # Build filter options (can contain multiple filter groups)
+    filter_options = []
+
+    if model_name.lower() == 'user':
+        from .tables import get_customuser_filter
+        objects, user_filters = get_customuser_filter(request, request.user.org, objects)
+        filter_options.extend(user_filters)
+    elif model_name.lower() == 'attribute':
+        from .tables import build_person_cluster_filter
+        pc_filter, selected_cluster = build_person_cluster_filter(
+            request, request.user.org, view=None, min_clusters=2
+        )
+        if pc_filter:
+            filter_options.append(pc_filter)
+            if selected_cluster:
+                objects = objects.filter(person_cluster=selected_cluster).distinct()
+    
+    # Count total objects before search filtering
     total_objects_count = objects.count()
     
     # Apply search filter if provided
@@ -718,21 +688,32 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
     # Get the appropriate table class
     table_class = MODEL_TABLE_MAPPING.get(model_name.lower())
     
+    if table_class is None:
+        return render(request, 'list_objects_table.html', {
+            'error': _('Table not found for model: {}').format(model_name),
+            'model_name': model_name,
+            'verbose_name': model._meta.verbose_name_plural,
+        })
+    
     # Create table instance
     table = table_class(objects, model_name=model_name.lower())
 
     # Configure pagination and sorting
     RequestConfig(request).configure(table)
+    
+    # Check if any filter is active
+    has_active_filters = any(f.get('has_active_filter', False) for f in filter_options) if filter_options else False
 
     return render(request, 'list_objects_table.html', {
         'table': table,
         'model_name': model_name,
         'verbose_name': model._meta.verbose_name_plural,
         'highlight_id': highlight_id,
-        'error': error,
         'total_count': total_objects_count,
         'search_query': search_query,
-        'large_container': True
+        'large_container': True,
+        'filter_options': filter_options,
+        'has_active_filters': has_active_filters
     })
 
 
@@ -799,7 +780,7 @@ def _get_m2m_fields(model):
         for field in model._meta.many_to_many
     ]
 
-def _apply_model_specific_logic(model, objects, person_cluster, field_metadata, model_fields):
+def _apply_model_specific_logic(model, objects, field_metadata, model_fields):
     """Apply model-specific logic to the queryset."""
     model_name = model._meta.object_name
     
@@ -810,55 +791,12 @@ def _apply_model_specific_logic(model, objects, person_cluster, field_metadata, 
         {'name': 'user_email', 'verbose_name': 'Email', 'type': 'E'}
     ]
     
-    if model_name in ['Freiwilliger', 'Team']:
-        objects = _handle_freiwilliger_team_model(objects, person_cluster, field_metadata, model_fields, user_fields, model_name)
-        if model_name == 'Freiwilliger':
-            pass
-    else:
-        objects = _handle_default_model(objects, model_fields, person_cluster)
+    objects = _handle_default_model(objects, model_fields)
     
     return objects
 
-def _handle_freiwilliger_team_model(objects, person_cluster, field_metadata, model_fields, user_fields, model_name):
-    """Handle Freiwilliger and Team model specific logic."""
-    objects = objects.order_by('user__first_name', 'user__last_name')
-    
-    # Add user fields
-    field_metadata[0:0] = user_fields
-    model_fields[0:0] = [field['name'] for field in user_fields]
-    objects = objects.annotate(
-        **{field['name']: F(f'user__{field["name"].replace("user_", "")}') 
-           for field in user_fields}
-    )
-    
-    if model_name.lower() == 'freiwilliger':
-        # Add birthday field
-        field_metadata.append({'name': 'geburtsdatum', 'verbose_name': 'Geburtsdatum', 'type': 'D'})
-        model_fields.append('geburtsdatum')
-        objects = objects.annotate(geburtsdatum=F('user__customuser__geburtsdatum'))
-    
-    # Handle attributes
-    if person_cluster and objects.exists():
-        attributes = Attribute.objects.filter(org=objects.first().org, person_cluster=person_cluster)
-        for attr in attributes:
-            field_metadata.append({
-                'name': attr.name,
-                'verbose_name': attr.name,
-                'type': attr.type
-            })
-            objects = objects.annotate(**{
-                attr.name.replace(" ", "_"): Subquery(
-                    UserAttribute.objects.filter(
-                        attribute__id=attr.id,
-                        user_id=OuterRef('user_id'),
-                        org=objects.first().org
-                    ).values('value')[:1]
-                )
-            })
-    
-    return objects
 
-def _handle_default_model(objects, model_fields, person_cluster=None):
+def _handle_default_model(objects, model_fields):
     """Handle default model ordering logic."""
     if 'freiwilliger' in model_fields:
         objects = objects.order_by('freiwilliger__first_name', 'freiwilliger__last_name')
@@ -868,11 +806,6 @@ def _handle_default_model(objects, model_fields, person_cluster=None):
         objects = objects.order_by('last_name')
     elif 'name' in model_fields:
         objects = objects.order_by('name')
-    if person_cluster:
-        if 'person_cluster' in model_fields:
-            objects = objects.filter(person_cluster=person_cluster)
-        elif 'user' in model_fields:
-            objects = objects.filter(user__customuser__person_cluster=person_cluster)
     return objects
 
 def _apply_pagination(objects, request):
@@ -899,7 +832,6 @@ def _apply_pagination(objects, request):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def list_object_checkbox(request, model_name):
     model, response = _check_model_exists(model_name)
     if response:
@@ -920,7 +852,6 @@ def list_object_checkbox(request, model_name):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def delete_object(request, model_name, id):
     # Check if model exists
     model, response = _check_model_exists(model_name)
@@ -1045,7 +976,6 @@ def _get_ampel_matrix(request, users):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def list_ampel(request):
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
@@ -1078,21 +1008,13 @@ def list_ampel(request):
         return redirect('list_ampel')
 
     # Base queryset for freiwillige
-    user_qs, person_cluster = get_filtered_user_queryset(request, 'ampel')
-    error = None
-    
-    if not person_cluster or person_cluster.ampel:
-        ampel_matrix, months = _get_ampel_matrix(request, user_qs)
-    else:
-        ampel_matrix = {}
-        months = []
-        error = f'{person_cluster.name} hat keine Ampel-Funktion aktiviert'
+    user_qs = User.objects.filter(customuser__person_cluster__isnull=False, customuser__org=request.user.org, customuser__person_cluster__ampel=True)
+    ampel_matrix, months = _get_ampel_matrix(request, user_qs)
     
     context = {
         'months': months,
         'ampel_matrix': ampel_matrix,
         'current_month': timezone.now().strftime("%b %y"),
-        'error': error,
         'today': timezone.now().date(),
     }
     return render(request, 'list_ampel.html', context=context)
@@ -1249,10 +1171,11 @@ def _create_ampel_matrix(freiwillige, months, ampel_entries):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def list_aufgaben_table(request, scroll_to=None):
     """Render the aufgaben table page with minimal context - data loaded via AJAX."""
-    users, person_cluster = get_filtered_user_queryset(request, 'aufgaben')
+    
+    person_cluster_id = request.GET.get('person_cluster_filter')
+    person_cluster = PersonCluster.objects.get(id=int(person_cluster_id), org=request.user.org) if person_cluster_id else None
     
     # Get filter type from request or cookie for initial state
     filter_type = request.GET.get('f')
@@ -1271,7 +1194,8 @@ def list_aufgaben_table(request, scroll_to=None):
 
     if not person_cluster or person_cluster.aufgaben:
         context = {
-            'current_person_cluster': get_person_cluster(request),
+            'current_person_cluster': person_cluster,
+            'all_person_clusters': PersonCluster.objects.filter(org=request.user.org, aufgaben=True),
             'aufgaben_cluster': aufgaben_cluster,
             'filter': filter_object,  # Use the object, not the string
             'scroll_to': scroll_to,
@@ -1298,7 +1222,6 @@ def list_aufgaben_table(request, scroll_to=None):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def mark_task_as_done(request):
     try:
         user_aufgabe = UserAufgaben.objects.get(pk=request.GET.get('id'), org=request.user.org)
@@ -1313,7 +1236,6 @@ def mark_task_as_done(request):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def send_task_reminder(request):
     try:
         user_aufgabe = UserAufgaben.objects.get(pk=request.GET.get('id'), org=request.user.org)
@@ -1331,7 +1253,6 @@ def send_task_reminder(request):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def get_aufgaben_zwischenschritte(request):
     taskId = request.GET.get('taskId')
     if not UserAufgaben.objects.filter(pk=taskId, org=request.user.org).exists():
@@ -1359,7 +1280,6 @@ def get_aufgaben_zwischenschritte(request):
 
 @login_required
 @required_role('OT')
-@filter_person_cluster
 def download_aufgabe(request, id):
     try:
         aufgabe = UserAufgaben.objects.get(pk=id, org=request.user.org)
@@ -1402,7 +1322,6 @@ def download_aufgabe(request, id):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def statistik(request):
     field_name = request.GET.get('field')
 
@@ -1458,12 +1377,7 @@ def statistik(request):
     all_fields = Freiwilliger._meta.fields
     fields = [field for field in all_fields if field.name in filter_for_fields]
     
-    # Get UserAttribute fields
-    person_cluster = get_person_cluster(request)
-    if person_cluster:
-        attributes = Attribute.objects.filter(org=request.user.org, person_cluster=person_cluster, type__in=fields_types_for_stats)
-    else:
-        attributes = Attribute.objects.filter(org=request.user.org, type__in=fields_types_for_stats)
+    attributes = Attribute.objects.filter(org=request.user.org, type__in=fields_types_for_stats)
     
     # Convert attributes to field-like objects
     attribute_fields = [type('AttributeField', (), {
@@ -1575,7 +1489,6 @@ def _redirect_after_action(request, model_name, object_id=None):
     
 @login_required
 @required_role('O')
-@filter_person_cluster
 def application_overview(request):
     # Get or create application texts
     application_texts, created = ApplicationText.objects.get_or_create(
@@ -1621,7 +1534,6 @@ def application_overview(request):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def application_list(request):
     filter_status = request.GET.get('status', 'completed')
     
@@ -1642,7 +1554,6 @@ def application_list(request):
 
 @login_required
 @required_role('O')
-@filter_person_cluster
 def application_detail(request, id):
     bewerber = Bewerber.objects.get(id=id)
     
@@ -2075,10 +1986,8 @@ def ajax_assign_task_to_all(request):
         if error_response:
             return error_response
         
-        # Get all eligible users
-        users, person_cluster = get_filtered_user_queryset(request, 'aufgaben')
-        users = users.filter(customuser__person_cluster__in=aufgabe.person_cluster.all())
-        
+        # TODO: filter if a filter is applied in the aufgaben table
+        users = User.objects.filter(customuser__person_cluster__isnull=False, customuser__org=request.user.org, customuser__person_cluster__in=aufgabe.person_cluster.all())
         assigned_count = 0
         error_messages = []
         
@@ -2330,136 +2239,123 @@ def ajax_load_aufgaben_table_data(request):
     """Load aufgaben table data via AJAX - returns JSON for client-side rendering."""
     try:
         # Use the same logic as the original view but return JSON data
-        users, person_cluster = get_filtered_user_queryset(request, 'aufgaben')
+        users = User.objects.filter(customuser__person_cluster__isnull=False, customuser__org=request.user.org, customuser__person_cluster__aufgaben=True).order_by('-customuser__person_cluster', 'first_name', 'last_name')
+        # TODO: filter if a filter is applied in the aufgaben table (AufgabenCluster).
 
-        if not person_cluster or person_cluster.aufgaben:
-            aufgaben = Aufgabe2.objects.filter(org=request.user.org)
-            if person_cluster:
-                aufgaben = aufgaben.filter(person_cluster=person_cluster).distinct()
+        aufgaben = Aufgabe2.objects.filter(org=request.user.org)
+        # Apply ordering
+        aufgaben = aufgaben.order_by(
+            'faellig_art',
+            'faellig_monat',
+            'faellig_tag',
+            'faellig_tage_nach_start',
+            'faellig_tage_vor_ende',
+            'name'
+        )
 
-            # Apply ordering
-            aufgaben = aufgaben.order_by(
-                'faellig_art',
-                'faellig_monat',
-                'faellig_tag',
-                'faellig_tage_nach_start',
-                'faellig_tage_vor_ende',
-                'name'
-            )
+        # Get filter type from request or cookie
+        filter_type = request.GET.get('f')
+        if not filter_type:
+            filter_type = request.COOKIES.get('filter_aufgaben_table') or 'None'
 
-            # Get filter type from request or cookie
-            filter_type = request.GET.get('f')
-            if not filter_type:
-                filter_type = request.COOKIES.get('filter_aufgaben_table') or 'None'
+        # Apply filter if provided
+        if filter_type and filter_type.isdigit() and filter_type != 'None':
+            aufgaben_cluster = AufgabenCluster.objects.filter(id=filter_type)
+            if aufgaben_cluster:
+                aufgaben = aufgaben.filter(faellig_art__in=aufgaben_cluster)
+                filter_type = aufgaben_cluster.first()
 
-            # Apply filter if provided
-            if filter_type and filter_type.isdigit() and filter_type != 'None':
-                aufgaben_cluster = AufgabenCluster.objects.filter(id=filter_type)
-                if person_cluster:
-                    aufgaben_cluster = aufgaben_cluster.filter(person_cluster=person_cluster)
-                if aufgaben_cluster:
-                    aufgaben = aufgaben.filter(faellig_art__in=aufgaben_cluster)
-                    filter_type = aufgaben_cluster.first()
+        # Optimized query for user_aufgaben with better prefetching
+        user_aufgaben = UserAufgaben.objects.filter(
+            org=request.user.org,
+            user__in=users,
+            aufgabe__in=aufgaben
+        ).select_related('user', 'aufgabe', 'user__customuser').prefetch_related(
+            Prefetch(
+                'useraufgabenzwischenschritte_set',
+                queryset=UserAufgabenZwischenschritte.objects.all(),
+                to_attr='prefetched_zwischenschritte'
+            ),
+            'file_downloaded_of'
+        )
 
-            # Optimized query for user_aufgaben with better prefetching
-            user_aufgaben = UserAufgaben.objects.filter(
-                org=request.user.org,
-                user__in=users,
-                aufgabe__in=aufgaben
-            ).select_related('user', 'aufgabe', 'user__customuser').prefetch_related(
-                Prefetch(
-                    'useraufgabenzwischenschritte_set',
-                    queryset=UserAufgabenZwischenschritte.objects.all(),
-                    to_attr='prefetched_zwischenschritte'
-                ),
-                'file_downloaded_of'
-            )
+        # Create a lookup dictionary for faster access
+        user_aufgaben_dict = {}
+        for ua in user_aufgaben:
+            if ua.user_id not in user_aufgaben_dict:
+                user_aufgaben_dict[ua.user_id] = {}
+            user_aufgaben_dict[ua.user_id][ua.aufgabe_id] = ua
 
-            # Create a lookup dictionary for faster access
-            user_aufgaben_dict = {}
-            for ua in user_aufgaben:
-                if ua.user_id not in user_aufgaben_dict:
-                    user_aufgaben_dict[ua.user_id] = {}
-                user_aufgaben_dict[ua.user_id][ua.aufgabe_id] = ua
+        # Build matrix using the same logic as original - but serialize to JSON
+        user_aufgaben_matrix = {}
+        for user in users:
+            user_aufgaben_matrix[user.id] = []
+            for aufgabe in aufgaben:
+                ua = user_aufgaben_dict.get(user.id, {}).get(aufgabe.id, None)
+                if ua:
+                    zwischenschritte = ua.prefetched_zwischenschritte
+                    zwischenschritte_count = len(zwischenschritte)
+                    zwischenschritte_done_count = sum(1 for z in zwischenschritte if z.erledigt)
+                    
+                    # Get file downloaded by names
+                    file_downloaded_of_names = ', '.join([
+                        f"{u.first_name} {u.last_name}" for u in ua.file_downloaded_of.all()
+                    ]) if ua.file else None
+                    
+                    user_aufgaben_matrix[user.id].append({
+                        'user_aufgabe': {
+                            'id': ua.id,
+                            'aufgabe_name': ua.aufgabe.name,
+                            'erledigt': ua.erledigt,
+                            'erledigt_am': ua.erledigt_am.isoformat() if ua.erledigt_am else None,
+                            'pending': ua.pending,
+                            'faellig': ua.faellig.isoformat() if ua.faellig else None,
+                            'file': bool(ua.file),
+                            'file_name': ua.file.name.split('/')[-1] if ua.file else None,
+                            'file_downloaded_of_names': file_downloaded_of_names,
+                            'mail_notifications': ua.user.customuser.mail_notifications if hasattr(ua.user, 'customuser') else True,
+                            'currently_sending': getattr(ua, 'currently_sending', False),
+                            'last_reminder': ua.last_reminder.isoformat() if hasattr(ua, 'last_reminder') and ua.last_reminder else None,
+                        },
+                        'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
+                        'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
+                    })
+                elif user.person_cluster in aufgabe.person_cluster.all():
+                    user_aufgaben_matrix[user.id].append(aufgabe.id)
+                else:
+                    user_aufgaben_matrix[user.id].append(None)
 
-            # Build matrix using the same logic as original - but serialize to JSON
-            user_aufgaben_matrix = {}
-            for user in users:
-                user_aufgaben_matrix[user.id] = []
-                for aufgabe in aufgaben:
-                    ua = user_aufgaben_dict.get(user.id, {}).get(aufgabe.id, None)
-                    if ua:
-                        zwischenschritte = ua.prefetched_zwischenschritte
-                        zwischenschritte_count = len(zwischenschritte)
-                        zwischenschritte_done_count = sum(1 for z in zwischenschritte if z.erledigt)
-                        
-                        # Get file downloaded by names
-                        file_downloaded_of_names = ', '.join([
-                            f"{u.first_name} {u.last_name}" for u in ua.file_downloaded_of.all()
-                        ]) if ua.file else None
-                        
-                        user_aufgaben_matrix[user.id].append({
-                            'user_aufgabe': {
-                                'id': ua.id,
-                                'aufgabe_name': ua.aufgabe.name,
-                                'erledigt': ua.erledigt,
-                                'erledigt_am': ua.erledigt_am.isoformat() if ua.erledigt_am else None,
-                                'pending': ua.pending,
-                                'faellig': ua.faellig.isoformat() if ua.faellig else None,
-                                'file': bool(ua.file),
-                                'file_name': ua.file.name.split('/')[-1] if ua.file else None,
-                                'file_downloaded_of_names': file_downloaded_of_names,
-                                'mail_notifications': ua.user.customuser.mail_notifications if hasattr(ua.user, 'customuser') else True,
-                                'currently_sending': getattr(ua, 'currently_sending', False),
-                                'last_reminder': ua.last_reminder.isoformat() if hasattr(ua, 'last_reminder') and ua.last_reminder else None,
-                            },
-                            'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
-                            'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
-                        })
-                    elif user.person_cluster in aufgabe.person_cluster.all():
-                        user_aufgaben_matrix[user.id].append(aufgabe.id)
-                    else:
-                        user_aufgaben_matrix[user.id].append(None)
+        # Get countries for users
+        countries = Einsatzland2.objects.filter(org=request.user.org)
 
-            # Get countries for users
-            countries = Einsatzland2.objects.filter(org=request.user.org)
+        # Serialize data for JSON response
+        users_data = [{
+            'id': user.id,
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+        } for user in users]
 
-            # Serialize data for JSON response
-            users_data = [{
-                'id': user.id,
-                'username': user.username,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-            } for user in users]
+        aufgaben_data = [{
+            'id': aufgabe.id,
+            'name': aufgabe.name,
+            'beschreibung': aufgabe.beschreibung,
+            'mitupload': aufgabe.mitupload,
+            'wiederholung': aufgabe.wiederholung,
+        } for aufgabe in aufgaben]
 
-            aufgaben_data = [{
-                'id': aufgabe.id,
-                'name': aufgabe.name,
-                'beschreibung': aufgabe.beschreibung,
-                'mitupload': aufgabe.mitupload,
-                'wiederholung': aufgabe.wiederholung,
-            } for aufgabe in aufgaben]
-
-            response_data = {
-                'success': True,
-                'data': {
-                    'users': users_data,
-                    'aufgaben': aufgaben_data,
-                    'user_aufgaben_matrix': user_aufgaben_matrix,
-                    'countries': list(countries.values('id', 'name')),
-                    'today': date.today().isoformat(),
-                    'current_person_cluster': str(get_person_cluster(request)) if get_person_cluster(request) else 'Person'
-                }
+        response_data = {
+            'success': True,
+            'data': {
+                'users': users_data,
+                'aufgaben': aufgaben_data,
+                'user_aufgaben_matrix': user_aufgaben_matrix,
+                'countries': list(countries.values('id', 'name')),
+                'today': date.today().isoformat(),
             }
-            
-        else:
-            response_data = {
-                'success': False,
-                'error': f'{person_cluster.name} hat keine Aufgaben-Funktion aktiviert'
-            }
-        
+        }
         return JsonResponse(response_data)
-        
+    
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()

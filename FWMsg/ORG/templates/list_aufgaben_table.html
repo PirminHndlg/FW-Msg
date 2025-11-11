@@ -125,21 +125,36 @@
     <!-- Main Content Container -->
     <div class="card rounded-4">
       <!-- Filter buttons (always visible) -->
-      <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-center align-items-center gap-1 flex-wrap">
+      <div class="card-header bg-transparent border-bottom-0">
+        <div class="d-flex gap-1 mb-2 justify-content-center align-items-center">
+          <strong>{% trans "Benutzergruppe" %}</strong>
+          <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center">
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if not current_person_cluster %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f=None">
+              {% trans "Alle" %}
+            </a>
+            {% for person_cluster in all_person_clusters %}
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if current_person_cluster == person_cluster %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?person_cluster_filter={{ person_cluster.id }}&f=None">
+              {{ person_cluster.name }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% if aufgaben_cluster %}
         <div class="d-flex gap-1 mb-2 justify-content-center align-items-center">
           <strong>{% trans "Filter" %}</strong>
           <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center">
             <!-- Filter buttons that work immediately -->
-            <a class="btn btn-sm rounded-4 btn-outline-primary {% if not filter %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f=None">
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if not filter %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f=None&person_cluster_filter={{ current_person_cluster.id }}">
               {% trans "Alle" %}
             </a>
             {% for cluster in aufgaben_cluster %}
-            <a class="btn btn-sm rounded-4 btn-outline-primary {% if filter == cluster %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f={{ cluster.id }}">
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if filter == cluster %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f={{ cluster.id }}&person_cluster_filter={{ current_person_cluster.id }}">
               {{ cluster.name }}
             </a>
             {% endfor %}
           </div>
         </div>
+        {% endif %}
       </div>
       
       <!-- Loading State Overlay -->
