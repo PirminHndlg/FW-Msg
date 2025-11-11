@@ -166,7 +166,8 @@ def einheit(request):
 def choose(request):
     einheit_arg = request.GET.get('einheit')
 
-    freiwillige = Bewerber.objects.all().order_by('user__first_name')
+    # choose only freiwillige that have a seminar
+    freiwillige = Bewerber.objects.filter(seminar_bewerber__isnull=False).order_by('user__first_name')
     this_einheit = get_object_or_404(Einheit, pk=einheit_arg)
 
     context = {
@@ -213,7 +214,7 @@ def evaluate(request):
                     fw_bewertet[key]['comment'][kategorie]['text'] = kommentar.text
                     fw_bewertet[key]['comment'][kategorie]['name'] = kommentar.show_name_at_presentation
 
-    frewillige = Bewerber.objects.filter(id__in=fw_ids)
+    frewillige = Bewerber.objects.filter(id__in=fw_ids, seminar_bewerber__isnull=False)
     fragen = Frage.objects.all()
     fragenkategorien = Fragekategorie.objects.all()
     einheit = get_object_or_404(Einheit, pk=einheit_arg)
@@ -232,7 +233,7 @@ def evaluate(request):
 
 def insert_bewertung(data):
     try:
-        freiwilliger = Bewerber.objects.get(id=data['freiwilliger'])
+        freiwilliger = Bewerber.objects.get(id=data['freiwilliger'], seminar_bewerber__isnull=False)
         bewerter = User.objects.get(id=data['bewerter'])
         einheit = Einheit.objects.get(id=data['einheit'])
         antwort = data['antwort']
@@ -261,7 +262,7 @@ def insert_bewertung(data):
 
 def insert_comment(data):
     try:
-        freiwilliger = Bewerber.objects.get(id=data['freiwilliger'])
+        freiwilliger = Bewerber.objects.get(id=data['freiwilliger'], seminar_bewerber__isnull=False)
         bewerter = Bewerter.objects.get(user_id=data['bewerter'])
         einheit = Einheit.objects.get(id=data['einheit'])
         category = Fragekategorie.objects.get(id=data['category']) if 'category' in data else None
@@ -440,12 +441,12 @@ def evaluate_all(request):
     if i < 0 or i >= len(average_total_per_freiwilliger):
         i = 0
     freiwilliger_id = average_total_per_freiwilliger[i]['bewerber']
-    freiwilliger = Bewerber.objects.prefetch_related('interview_persons').get(id=freiwilliger_id)
+    freiwilliger = Bewerber.objects.prefetch_related('interview_persons').get(id=freiwilliger_id, seminar_bewerber__isnull=False)
 
     fid = int(request.GET.get('fid') or 0)
     if fid:
         freiwilliger_id = fid
-        freiwilliger = Bewerber.objects.prefetch_related('interview_persons').get(id=freiwilliger_id)
+        freiwilliger = Bewerber.objects.prefetch_related('interview_persons').get(id=freiwilliger_id, seminar_bewerber__isnull=False)
         for index, item in enumerate(average_total_per_freiwilliger):
             if item['bewerber'] == freiwilliger_id:
                 i = index
@@ -532,9 +533,9 @@ def summerizeComments(request):
     )
 
     if all:
-        freiwillige = Bewerber.objects.all()
+        freiwillige = Bewerber.objects.filter(seminar_bewerber__isnull=False)
     else:
-        freiwillige = Bewerber.objects.filter(kommentar_zusammenfassung='')
+        freiwillige = Bewerber.objects.filter(kommentar_zusammenfassung='', seminar_bewerber__isnull=False)
 
     alle_kommentare = {}
 
@@ -580,7 +581,7 @@ def insert_geeingnet(request):
     if g not in dict(Bewerber.bewertungsmoeglicheiten).keys() and g != 'None':
         return HttpResponse('Invalid value', status=400)
 
-    freiwilliger = Bewerber.objects.get(id=f)
+    freiwilliger = Bewerber.objects.get(id=f, seminar_bewerber__isnull=False)
     freiwilliger.endbewertung = g
     freiwilliger.save()
 
@@ -594,7 +595,7 @@ def assign(request, scroll_to=None):
 
     if stelle and freiwilliger:
         try:
-            freiwilliger_obj = Bewerber.objects.get(id=freiwilliger, org=request.user.org)
+            freiwilliger_obj = Bewerber.objects.get(id=freiwilliger, org=request.user.org, seminar_bewerber__isnull=False)
             if stelle == 'None':
                 freiwilliger_obj.zuteilung = None
             else:
@@ -613,7 +614,7 @@ def assign(request, scroll_to=None):
     # Get all volunteers for the current organization
     freiwillige = (
         Bewerber.objects
-        .filter(org=request.user.org)
+        .filter(org=request.user.org, seminar_bewerber__isnull=False)
         .filter(seminar_bewerber__isnull=False)
         .select_related('user', 'zuteilung', 'first_wish_einsatzstelle', 'first_wish_einsatzland',
                        'second_wish_einsatzstelle', 'second_wish_einsatzland',
@@ -678,10 +679,10 @@ def auto_assign(request):
     org = request.user.org
     
     freiwillige_geeignet = Bewerber.objects.filter(
-        org=org, endbewertung__startswith='G', zuteilung=None
+        org=org, endbewertung__startswith='G', zuteilung=None, seminar_bewerber__isnull=False
     ).order_by('note')
     freiwillige_bedingt_geeignet = Bewerber.objects.filter(
-        org=org, endbewertung__startswith='B', zuteilung=None
+        org=org, endbewertung__startswith='B', zuteilung=None, seminar_bewerber__isnull=False
     ).order_by('note')
 
     all_freiwille = list(freiwillige_geeignet) + list(freiwillige_bedingt_geeignet)
@@ -692,7 +693,7 @@ def auto_assign(request):
         def stelle_verfuegbar(stelle):
             if not stelle or stelle.max_freiwillige is None:
                 return False
-            freiwilliger_with_stelle = Bewerber.objects.filter(zuteilung=stelle, org=org)
+            freiwilliger_with_stelle = Bewerber.objects.filter(zuteilung=stelle, org=org, seminar_bewerber__isnull=False)
             return freiwilliger_with_stelle.count() < stelle.max_freiwillige
 
         first_wish = freiwilliger.first_wish_einsatzstelle
@@ -855,7 +856,7 @@ def seminar_land(request):
 
     if request.method == 'POST':
         try:
-            freiwilliger_instance = Bewerber.objects.get(user=request.user)
+            freiwilliger_instance = Bewerber.objects.get(user=request.user, seminar_bewerber__isnull=False)
         except Bewerber.DoesNotExist:
             # Handle the case where the user does not have a Bewerber instance
             return HttpResponse('User not found', status=404)
@@ -868,11 +869,11 @@ def seminar_land(request):
             # Redirect to a new URL or render a success message
             return redirect('start')
     else:
-        freiwilliger_exists = Bewerber.objects.filter(user=request.user).exists()
+        freiwilliger_exists = Bewerber.objects.filter(user=request.user, seminar_bewerber__isnull=False).exists()
         if not freiwilliger_exists:
-            msg_text = 'Du bist kein Bewerber/keine Bewerberin. Bitte einen anderen Login nutzen'
+            msg_text = 'Du bist kein Bewerber/keine Bewerberin, der für das Seminar eingeladen wurde. Bitte einen anderen Login nutzen'
             messages.info(request, msg_text)
             return redirect('start')
-        form = WishForm(instance=Bewerber.objects.get(user=request.user))
+        form = WishForm(instance=Bewerber.objects.get(user=request.user, seminar_bewerber__isnull=False))
         deadline_hour_left = int((seminar.get_deadline_end() - timezone.now()).total_seconds() // 3600)
     return render(request, 'seminar_land.html', {'form': form, 'deadline_hour_left': deadline_hour_left})
