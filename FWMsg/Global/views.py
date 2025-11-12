@@ -424,14 +424,25 @@ def serve_dokument(request, dokument_id):
         if img_path:
             return get_bild(img_path, img_path.split('/')[-1])
 
+    # Handle videos - use FileResponse for proper range request support (streaming/seeking)
+    if mimetype and mimetype.startswith('video'):
+        response = FileResponse(open(doc_path, 'rb'), content_type=mimetype)
+        if download:
+            response['Content-Disposition'] = f'attachment; filename="{dokument.dokument.name}"'
+        else:
+            response['Content-Disposition'] = f'inline; filename="{dokument.dokument.name}"'
+        return response
+    
     # Serve document as download
     with open(doc_path, 'rb') as file:
+        # Handle PDFs - display inline
         if mimetype == 'application/pdf' and not download:
             response = HttpResponse(file.read(), content_type='application/pdf')
             response['Content-Disposition'] = f'inline; filename="{dokument.dokument.name}"'
             response['Content-Security-Policy'] = "frame-ancestors 'self'"
             return response
-        # For PDFs, display in browser instead of downloading
+        
+        # For all other files, serve as download
         response = HttpResponse(file.read(), content_type=mimetype or 'application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{dokument.dokument.name}"'
         return response
