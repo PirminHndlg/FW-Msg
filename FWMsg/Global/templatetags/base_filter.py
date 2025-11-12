@@ -2,6 +2,7 @@ from django import template
 from django.conf import settings
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
+from datetime import timedelta
 import re
 
 register = template.Library()
@@ -166,5 +167,8 @@ def split(value, separator):
 def get_current_seminar(org):
     from seminar.models import Seminar
     from django.utils import timezone
+    # display one week before and after the current date
     current_date = timezone.now().date()
-    return Seminar.objects.filter(org=org, seminar_start__lte=current_date, seminar_end__gte=current_date)
+    one_week_before = current_date - timedelta(days=7)
+    one_week_after = current_date + timedelta(days=7)
+    return Seminar.objects.filter(org=org, seminar_start__gte=one_week_before, seminar_end__lte=one_week_after)
