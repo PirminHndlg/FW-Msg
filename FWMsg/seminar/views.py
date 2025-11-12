@@ -872,8 +872,17 @@ def seminar_land(request):
             # Process the data in form.cleaned_data
             form.save()
 
+            # Get sanitized values from cleaned_data for safe message display
+            first = form.cleaned_data.get('first_wish', '')
+            second = form.cleaned_data.get('second_wish', '')
+            third = form.cleaned_data.get('third_wish', '')
+            no_wish = form.cleaned_data.get('no_wish', '')
+            
+            messages.success(request, 
+                f'Deine Auswahl wurde gespeichert: <br>1) {first or "-"} <br>2) {second or "-"}<br>3) {third or "-"}<br>nicht) {no_wish or "-"}')
+
             # Redirect to a new URL or render a success message
-            return redirect('start')
+            return redirect('seminar_home')
     else:
         freiwilliger_exists = Bewerber.objects.filter(user=request.user, seminar_bewerber__isnull=False).exists()
         if not freiwilliger_exists:

@@ -11,7 +11,7 @@
                 {% for message in messages %}
                     <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                         <i class="fas fa-info-circle me-2"></i>
-                        {{ message }}
+                        {{ message|safe|linebreaksbr }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 {% endfor %}
@@ -50,7 +50,7 @@
                     {% else %}
                     <div class="mb-4">
                         <a href="{% url 'seminar_land' %}" class="btn btn-success btn-lg px-5 py-3">
-                            <i class="bi bi-play-fill me-2"></i>Starten
+                            <i class="bi bi-play-fill me-2"></i>Länderauswahl
                         </a>
                     </div>
                     {% endif %}
