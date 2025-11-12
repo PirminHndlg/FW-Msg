@@ -1,7 +1,10 @@
 from django import forms
+from django.utils.html import strip_tags
 from BW.models import Bewerber
 from django.contrib.auth.models import User
 from .models import Seminar, Einheit, Frage, Fragekategorie
+import re
+
 
 class WishForm(forms.ModelForm):
     class Meta:
@@ -13,11 +16,42 @@ class WishForm(forms.ModelForm):
             'third_wish': forms.TextInput(attrs={'placeholder': 'Land 3'}),
             'no_wish': forms.TextInput(attrs={'placeholder': 'Nicht in dieses Land'}),
         }
-
+      
     def __init__(self, *args, **kwargs):
         initial = kwargs.get('initial', {})
         # You can set default initial values here if needed
         super().__init__(*args, **kwargs)
+    
+    def _sanitize_input(self, data):
+        """Helper method to sanitize input and prevent XSS attacks."""
+        if not data:
+            return data
+        # Use Django's strip_tags for reliable HTML tag removal
+        data = strip_tags(data)
+        # Remove javascript: protocol and event handlers as additional safety
+        data = re.sub(r'javascript:', '', data, flags=re.IGNORECASE)
+        data = re.sub(r'on\w+\s*=', '', data, flags=re.IGNORECASE)
+        return data.strip()
+    
+    def clean_first_wish(self):
+        """Sanitize first_wish input to prevent XSS attacks."""
+        data = self.cleaned_data.get('first_wish', '')
+        return self._sanitize_input(data)
+    
+    def clean_second_wish(self):
+        """Sanitize second_wish input to prevent XSS attacks."""
+        data = self.cleaned_data.get('second_wish', '')
+        return self._sanitize_input(data)
+    
+    def clean_third_wish(self):
+        """Sanitize third_wish input to prevent XSS attacks."""
+        data = self.cleaned_data.get('third_wish', '')
+        return self._sanitize_input(data)
+    
+    def clean_no_wish(self):
+        """Sanitize no_wish input to prevent XSS attacks."""
+        data = self.cleaned_data.get('no_wish', '')
+        return self._sanitize_input(data)
 
 
 class BewerterForm(forms.ModelForm):

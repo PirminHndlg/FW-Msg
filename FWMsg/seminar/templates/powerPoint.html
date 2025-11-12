@@ -103,9 +103,9 @@
                class="list-group-item list-group-item-action d-flex align-items-center border-0 rounded mb-1 p-2"
                data-participant-name="{{result.bewerber__user__first_name}} {{result.bewerber__user__last_name}}">
                 <span class="status-indicator me-2 d-inline-block
-                    {% if result.freiwilliger__endbewertung == 'G' %}status-geeignet-bg
-                    {% elif result.freiwilliger__endbewertung == 'B' %}status-bedingt-bg
-                    {% elif result.freiwilliger__endbewertung == 'N' %}status-nicht-bg
+                    {% if result.bewerber__endbewertung == 'G' %}status-geeignet-bg
+                    {% elif result.bewerber__endbewertung == 'B' %}status-bedingt-bg
+                    {% elif result.bewerber__endbewertung == 'N' %}status-nicht-bg
                     {% else %}status-none-bg{% endif %}">
                 </span>
                 <div class="flex-grow-1">
