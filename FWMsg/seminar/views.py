@@ -103,7 +103,7 @@ def refresh(request):
             cookie = request.COOKIES[cookie_name]
             data['text'] = cookie
 
-            insert_response = insert_comment(data)
+            insert_response = insert_comment(request, data)
 
             if insert_response == 1:
                 inserted.append(cookie)
@@ -260,10 +260,10 @@ def insert_bewertung(data):
     return 0
 
 
-def insert_comment(data):
+def insert_comment(request, data):
     try:
-        freiwilliger = Bewerber.objects.get(id=data['freiwilliger'], seminar_bewerber__isnull=False)
-        bewerter = Bewerter.objects.get(user_id=data['bewerter'])
+        bewerber = Bewerber.objects.get(id=data['freiwilliger'], seminar_bewerber__isnull=False)
+        bewerter = User.objects.get(id=data['bewerter'])
         einheit = Einheit.objects.get(id=data['einheit'])
         category = Fragekategorie.objects.get(id=data['category']) if 'category' in data else None
         text = data['text']
@@ -273,7 +273,7 @@ def insert_comment(data):
 
         comment_data = {
             'org': bewerter.org,
-            'freiwilliger': freiwilliger,
+            'bewerber': bewerber,
             'einheit': einheit,
             'bewerter': bewerter,
             'defaults': defaults
@@ -351,7 +351,7 @@ def evaluate_post(request):
 
             data['text'] = v
 
-            insert_response = insert_comment(data)
+            insert_response = insert_comment(request, data)
 
             if insert_response == 1:
                 inserted.append(k)
