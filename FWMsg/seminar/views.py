@@ -28,8 +28,8 @@ def required_verschwiegenheit(view_func):
 def home(request):
     return render(request, 'seminar_index.html')
 
-@required_verschwiegenheit
 @login_required
+@required_verschwiegenheit
 def start(request):
     if request.user.is_authenticated and request.user.role in ['O', 'T', 'E']:
         return redirect('einheit')
@@ -39,6 +39,7 @@ def start(request):
 
 
 @csrf_exempt
+@login_required
 @required_verschwiegenheit
 @required_role('OTE')
 def refresh(request):
@@ -119,6 +120,7 @@ def refresh(request):
 
 
 @required_role('OTE')
+@login_required
 def verschwiegenheit(request):
     bewerter = request.user
 
@@ -146,6 +148,7 @@ def verschwiegenheit(request):
     return render(request, 'verschwiegenheitspflicht.html', context=context)
 
 
+@login_required
 @required_verschwiegenheit
 @required_role('OTE')
 def einheit(request):
@@ -161,6 +164,7 @@ def einheit(request):
     return render(request, 'chooseEinheit.html', context)
 
 
+@login_required
 @required_verschwiegenheit
 @required_role('OTE')
 def choose(request):
@@ -179,6 +183,7 @@ def choose(request):
 
 
 @csrf_exempt
+@login_required
 @required_verschwiegenheit
 @required_role('OTE')
 def evaluate(request):
@@ -301,6 +306,7 @@ def insert_comment(request, data):
 
 
 @csrf_exempt
+@login_required
 @required_verschwiegenheit
 @required_role('OTE')
 def evaluate_post(request):
@@ -399,6 +405,7 @@ def evaluate_post(request):
     return response
 
 
+@login_required
 @required_role('O')
 def evaluate_all(request):
     from django.db.models import Q
@@ -530,6 +537,7 @@ def evaluate_all(request):
     return render(request, 'powerPoint.html', context)
 
 
+@login_required
 @required_role('O')
 def summerizeComments(request):
     all = request.GET.get('all')
@@ -579,6 +587,7 @@ def summerizeComments(request):
     return StreamingHttpResponse(generate(), content_type="text/plain; charset=utf-8")
 
 
+@login_required
 @required_role('O')
 def insert_geeingnet(request):
     data = request.GET.dict()
@@ -596,6 +605,7 @@ def insert_geeingnet(request):
     return HttpResponse('Success', status=200)
 
 
+@login_required
 @required_role('O')
 def assign(request, scroll_to=None):
     stelle = request.GET.get('land')
@@ -682,6 +692,7 @@ def assign(request, scroll_to=None):
     return render(request, 'assign.html', context=context)
 
 
+@login_required
 @required_role('O')
 def auto_assign(request):
     org = request.user.org
@@ -725,6 +736,7 @@ def auto_assign(request):
     return redirect('assign')
 
 
+@login_required
 @required_role('O')
 def seminar_settings(request):
     from .forms import SeminarForm, EinheitForm, FragekategorieForm, FrageForm
@@ -848,6 +860,7 @@ def seminar_settings(request):
 
 
 
+@login_required
 @required_role('B')
 def seminar_land(request):
     seminar = Seminar.objects.filter(org=request.user.org).first()
