@@ -262,11 +262,13 @@ def insert_bewertung(data):
 
 def insert_comment(request, data):
     try:
+        from django.utils.html import strip_tags
+        
         bewerber = Bewerber.objects.get(id=data['freiwilliger'], seminar_bewerber__isnull=False)
         bewerter = User.objects.get(id=data['bewerter'])
         einheit = Einheit.objects.get(id=data['einheit'])
         category = Fragekategorie.objects.get(id=data['category']) if 'category' in data else None
-        text = data['text']
+        text = strip_tags(data['text'])
         show_name = data['name']
 
         defaults = {'show_name_at_presentation': show_name, 'text': text, 'last_modified': datetime.now()}
