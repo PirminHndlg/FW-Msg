@@ -87,36 +87,39 @@
   </div>
 </div>
  -->
- 
+
 {% include 'components/seminar_display_info.html' %}
 
 <!-- Content Section -->
 {% if posts or gallery_images %}
 <div class="dashboard-section">
-  <div class="section-header">
+  {% comment %} <div class="section-header">
     <h2 class="section-title">
       <i class="bi bi-activity me-2 text-primary"></i>
       {% trans "Neueste Inhalte" %}
     </h2>
-  </div>
+  </div> {% endcomment %}
   
   <div class="row g-3">
     <!-- Recent Posts -->
     {% if user.customuser.person_cluster.posts %}
-    <div class="card card-compact h-100 col-12 col-md-6">
+    <div class="col-12 col-lg-4 col-xl-6">
+      <div class="card card-compact h-100">
       <div class="card-header bg-white border-bottom-0">
         <div class="d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">
-            <i class="bi bi-newspaper me-2"></i>
-            {% trans "Neueste Posts" %}
-          </h5>
+          <a href="{% url 'posts_overview' %}" class="text-decoration-none text-body">
+            <h5 class="mb-0">
+                <i class="bi bi-newspaper me-2"></i>
+                {% trans "Neueste Posts" %}
+            </h5>
+          </a>
         </div>
       </div>
       <div class="card-body">
-        <div class="list-group list-group-flush">
-          {% for post in posts|slice:":5" %}
-            <a href="{% url 'post_detail' post.id %}" class="text-decoration-none">
-              <div class="list-group-item px-0 border-0 py-2">
+        {% if posts %}
+            {% for post in posts|slice:":4" %}
+            <a href="{% url 'post_detail' post.id %}" class="text-decoration-none text-body">
+              <div class="px-0 border-0 py-2">
                 <h6 class="mb-1">{{ post.title }}</h6>
                 <p class="mb-1 text-muted small">{{ post.text|truncatewords:15 }}</p>
                 <small class="text-muted">
@@ -125,62 +128,59 @@
                 </small>
               </div>
             </a>
-          {% endfor %}
-        </div>
-        <div class="text-center mt-3">
-        <a href="{% url 'posts_overview' %}" class="btn btn-sm btn-outline-primary">
-            {% trans "Alle Posts anzeigen" %}
-        </a>
-        </div>
+            {% if not forloop.last %}
+            <hr class="my-2">
+            {% endif %}
+            {% endfor %}
+          <div class="text-center mt-3">
+            <a href="{% url 'posts_overview' %}" class="btn btn-sm btn-outline-primary">
+              {% trans "Alle Posts" %}
+            </a>
+          </div>
+        {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-newspaper text-muted mb-2" style="font-size: 2rem"></i>
+            <p class="text-muted mb-0">{% trans "Keine Posts vorhanden" %}</p>
+          </div>
+        {% endif %}
+      </div>
       </div>
     </div>
     {% endif %}
 
     <!-- Recent Images -->
     {% if user.customuser.person_cluster.bilder %}
-    <div class="card card-compact h-100 col-12 col-lg-6">
+    <div class="col-12 col-lg-8 col-xl-6">
+      <div class="card card-compact h-100">
       <div class="card-header bg-white border-bottom-0">
         <div class="d-flex justify-content-between align-items-center">
+          <a href="{% url 'bilder' %}" class="text-decoration-none text-body">
           <h5 class="mb-0">
             <i class="bi bi-images me-2"></i>
             {% trans "Neueste Bilder" %}
-          </h5>
+            </h5>
+          </a>
         </div>
       </div>
       <div class="card-body">
-        <!-- Image Carousel -->
-        <div id="recentImagesCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
-          <div class="carousel-inner">
-            {% if gallery_images %}
-              <div class="row g-1">
-                  {% include 'bilder_show.html' with gallery_images=gallery_images small=True %}
-              </div>
-            {% else %}
-                <div class="text-center py-4">
-            <i class="bi bi-images text-muted mb-2" style="font-size: 2rem"></i>
-                    <p class="text-muted mb-0">{% trans "Keine Bilder vorhanden" %}</p>
-                </div>
-            {% endif %}
+        {% if gallery_images %}
+          <!-- Image Carousel -->
+          <div class="row g-3">
+              {% include 'bilder_show.html' with gallery_images=gallery_images small=True %}
           </div>
-          
-          {% if gallery_images|length > 1 %}
-            <!-- Carousel Controls -->
-            <button class="carousel-control-prev" type="button" data-bs-target="#recentImagesCarousel" data-bs-slide="prev">
-              <span class="carousel-control-prev-icon bg-dark bg-opacity-50 rounded-circle" aria-hidden="true"></span>
-              <span class="visually-hidden">{% trans "Vorheriges" %}</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#recentImagesCarousel" data-bs-slide="next">
-              <span class="carousel-control-next-icon bg-dark bg-opacity-50 rounded-circle" aria-hidden="true"></span>
-              <span class="visually-hidden">{% trans "Nächstes" %}</span>
-            </button>
-          {% endif %}
-        </div>
 
-        <div class="text-center">
-          <a href="{% url 'bilder' %}" class="btn btn-sm btn-outline-primary">
-            {% trans "Alle Bilder anzeigen" %}
-          </a>
-        </div>
+          <div class="text-center mt-3">
+            <a href="{% url 'bilder' %}" class="btn btn-sm btn-outline-primary">
+              {% trans "Alle Bilder" %}
+            </a>
+          </div>
+        {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-images text-muted mb-2" style="font-size: 2rem"></i>
+            <p class="text-muted mb-0">{% trans "Keine Bilder vorhanden" %}</p>
+          </div>
+        {% endif %}
+      </div>
       </div>
     </div>
     {% endif %}
@@ -191,35 +191,45 @@
 <!-- Tasks Section -->
 {% if my_tasks %}
 <div class="dashboard-section">
-  <div class="section-header">
+  {% comment %} <div class="section-header">
     <h2 class="section-title">
       <i class="bi bi-list-task me-2 text-primary"></i>
       {% trans "Meine Aufgaben" %}
     </h2>
-  </div>
+  </div> {% endcomment %}
   
   <div class="card card-compact">
     <div class="card-header bg-white border-bottom-0">
       <div class="d-flex justify-content-between align-items-center">
+        <a href="{% url 'aufgaben' %}" class="text-decoration-none text-body">
         <h5 class="mb-0">
           <i class="bi bi-person-check me-2"></i>
-          {% trans "Offene Aufgaben" %}
-        </h5>
+            {% trans "Meine Aufgaben" %}
+          </h5>
+        </a>
         <span class="badge bg-primary rounded-pill">{{ my_tasks.count }}</span>
       </div>
     </div>
     <div class="card-body">
-      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
-        {% for task in my_tasks %}
-          {% include 'components/task_card.html' with task=task %}
-        {% endfor %}
-      </div>
-      {% if my_tasks.count > 0 %}
-        <div class="text-center mt-4 pt-3 border-top">
-          <a href="{% url 'aufgaben' %}" class="btn btn-outline-primary">
-            <i class="bi bi-list-task me-2"></i>
-            {% trans "Alle Aufgaben anzeigen" %}
-          </a>
+      {% if my_tasks %}
+        <div class="list-group list-group-flush">
+          <div class="row row-cols-1 row-cols-xxl-2 g-3">
+              {% for task in my_tasks|slice:":4" %}
+                  {% include 'components/task_card.html' with task=task %}
+              {% endfor %}
+          </div>
+        </div>
+        {% if my_tasks.count > 4 %}
+          <div class="text-center mt-3">
+            <a href="{% url 'aufgaben' %}" class="btn btn-sm btn-outline-primary">
+              {% trans "Alle" %} {{ my_tasks.count }} {% trans "anzeigen" %}
+            </a>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="text-center py-4">
+          <i class="bi bi-check2-circle text-success mb-2" style="font-size: 2rem"></i>
+          <p class="text-muted mb-0">{% trans "Keine offenen Aufgaben" %}</p>
         </div>
       {% endif %}
     </div>
