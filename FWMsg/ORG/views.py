@@ -1713,9 +1713,13 @@ def application_detail(request, id):
 
 
 @login_required
-@required_role('O')
+@required_role('OET')
 def application_answer_download(request, bewerber_id):
     bewerber = get_object_or_404(Bewerber, id=bewerber_id, org=request.user.org)
+    
+    if request.user.role in 'TE':
+        if not bewerber.interview_persons.filter(id=request.user.id).exists():
+            return render(request, '403.html', {'error_message': 'Sie sind nicht berechtigt, diese Datei herunterzuladen. Sie sind nicht als Interviewperson für diesen Bewerber:in zuständig.'}, status=403)
     
     # Create filename
     filename = f"bewerbung_{bewerber.user.first_name}_{bewerber.user.last_name}_{datetime.now().strftime('%Y%m%d')}.pdf"
