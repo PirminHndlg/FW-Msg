@@ -405,7 +405,7 @@ def evaluate_all(request):
 
     # Get all Bewerber with their average scores (if they have evaluations)
     # Include those without evaluations as well
-    all_bewerber = Bewerber.objects.annotate(
+    all_bewerber = Bewerber.objects.filter(seminar_bewerber__isnull=False).annotate(
         avg_total=Round(Avg('bewertung__bewertung'), 2)
     ).values(
         'id',
@@ -431,8 +431,8 @@ def evaluate_all(request):
         }
         for b in all_bewerber
     ]
-
-    if not average_total_per_freiwilliger:
+    
+    if not all_bewerber.exists() or not average_total_per_freiwilliger:
         msg_text = 'Keine Bewerber:innen vorhanden'
         messages.info(request, msg_text)
         return redirect('seminar_home')
@@ -441,7 +441,13 @@ def evaluate_all(request):
     if i < 0 or i >= len(average_total_per_freiwilliger):
         i = 0
     freiwilliger_id = average_total_per_freiwilliger[i]['bewerber']
-    freiwilliger = Bewerber.objects.prefetch_related('interview_persons').get(id=freiwilliger_id, seminar_bewerber__isnull=False)
+    
+    try:
+        freiwilliger = Bewerber.objects.prefetch_related('interview_persons').get(id=freiwilliger_id, seminar_bewerber__isnull=False)
+    except Bewerber.DoesNotExist:
+        msg_text = 'Freiwilliger nicht gefunden'
+        messages.info(request, msg_text)
+        return redirect('seminar_home')
 
     fid = int(request.GET.get('fid') or 0)
     if fid:
