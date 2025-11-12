@@ -56,9 +56,10 @@
         .category-chart { height: 60px !important; }
 
         /* Comment collapsible styling */
+        .comment-details { cursor: pointer; }
         .comment-details summary { cursor: pointer; transition: background-color 0.2s; }
-        .comment-details summary:hover { background-color: rgba(0,0,0,0.05); }
-        .comment-details[open] summary { background-color: rgba(0,0,0,0.075); margin-bottom: 10px; }
+        .comment-details[open] summary { margin-bottom: 10px; }
+        .comment-details[open] .comment-preview { display: none !important; }
 
         /* Vote button transitions */
         .vote-btn { transition: all 0.3s; border-width: 3px !important; }
@@ -280,14 +281,14 @@
                                 {{ kommentar.einheit__name }}
                             {% endif %}
                                 </span>
-                                <div class="text-muted small mt-1" style="font-weight: normal; 
+                                <div class="comment-preview text-muted small mt-1" style="font-weight: normal; 
                                      display: -webkit-box; -webkit-line-clamp: 2; 
                                      -webkit-box-orient: vertical; overflow: hidden;">
-                                    {{kommentar.text}}
+                                    {{ kommentar.text|safe|truncatechars_html:20 }}
                                 </div>
                     </summary>
                             <div class="mt-2 p-3 bg-light rounded">
-                                {{kommentar.text}}
+                                {{kommentar.text|safe|linebreaks}}
                             </div>
                 </details>
                 {% if not forloop.last %}
@@ -625,6 +626,24 @@ function handleKeyboardShortcuts(event) {
     }
 }
 
+// ========== Make comment details fully clickable ==========
+function initializeCommentDetailsClickable() {
+    document.querySelectorAll('.comment-details').forEach(function(details) {
+        const summary = details.querySelector('summary');
+        
+        details.addEventListener('click', function(event) {
+            // If click is on summary or inside summary, let default behavior handle it
+            if (summary && (event.target === summary || summary.contains(event.target))) {
+                return;
+            }
+            
+            // Otherwise, toggle the details element
+            event.preventDefault();
+            details.open = !details.open;
+        });
+    });
+}
+
 // ========== Initialization ==========
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize charts
@@ -632,6 +651,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize total score hover
     initializeTotalScoreHover();
+    
+    // Make comment details fully clickable
+    initializeCommentDetailsClickable();
     
     // Setup keyboard shortcuts
     document.addEventListener('keydown', handleKeyboardShortcuts);
