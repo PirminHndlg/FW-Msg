@@ -25,6 +25,7 @@ def required_verschwiegenheit(view_func):
     return wrapper
 
 # Create your views here.
+@login_required
 def home(request):
     return render(request, 'seminar_index.html')
 
