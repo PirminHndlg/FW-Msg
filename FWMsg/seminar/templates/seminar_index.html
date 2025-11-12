@@ -28,7 +28,7 @@
                     <div class="mb-4">
                         <i class="fas fa-hand-wave fa-2x text-primary mb-3"></i>
                         <p class="lead mb-0">
-                            <strong>{{ request.user.org|get_seminar|get_seminar_description }}</strong>
+                            {{ request.user.org|get_seminar|get_seminar_description|safe|linebreaks }}
                         </p>
                     </div>
                     
