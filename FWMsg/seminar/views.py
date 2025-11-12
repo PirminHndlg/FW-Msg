@@ -738,6 +738,14 @@ def auto_assign(request):
 
 @login_required
 @required_role('O')
+def clear_assignments(request):
+    Bewerber.objects.filter(org=request.user.org, seminar_bewerber__isnull=False, zuteilung__isnull=False).update(zuteilung=None)
+    messages.success(request, 'Alle Zuteilungen wurden gelöscht.')
+    return redirect('assign')
+
+
+@login_required
+@required_role('O')
 def seminar_settings(request):
     from .forms import SeminarForm, EinheitForm, FragekategorieForm, FrageForm
     from .models import Seminar, Einheit, Fragekategorie, Frage

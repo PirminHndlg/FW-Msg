@@ -19,6 +19,7 @@ urlpatterns = [
     path('zuteilung/<int:scroll_to>/', views.assign, name='assign_scroll'),
     path('assign/', views.assign, name='assign_alt'),  # Alternative URL for clarity
     path('auto-zuteilung/', views.auto_assign, name='auto_assign'),
+    path('alle-zuteilungen-loeschen/', views.clear_assignments, name='clear_assignments'),
     path('sum/', views.summerizeComments, name='summary'),
     path('einstellungen/', views.seminar_settings, name='seminar_settings'),
 ]
