@@ -28,6 +28,19 @@
                 alt="{{ dokument.get_document_suffix }} Vorschau">
     </a>
     <span class="badge bg-dark bg-opacity-25">{{ dokument.get_document_suffix }}</span>
+{% elif dokument.get_document_type|starts_with:'video' %}
+    <a href="{% url 'serve_dokument' dokument.id %}" target="_blank" class="text-decoration-none">
+        <div class="card-img-top position-relative bg-dark rounded-top-4" style="height: 200px; overflow: hidden;">
+            <video class="w-100 h-100" style="object-fit: cover;" preload="metadata">
+                <source src="{% url 'serve_dokument' dokument.id %}" type="{{ dokument.get_document_type }}">
+                {% trans 'Ihr Browser unterstützt das Video-Tag nicht.' %}
+            </video>
+            <div class="position-absolute top-50 start-50 translate-middle">
+                <i class="bi bi-play-circle-fill text-white" style="font-size: 3rem; opacity: 0.8;"></i>
+            </div>
+        </div>
+    </a>
+    <span class="badge bg-dark bg-opacity-25">{{ dokument.get_document_suffix }}</span>
 {% elif dokument.link %}
     <a href="{{ dokument.link }}" target="_blank" class="text-decoration-none">
         <div class="card-img-top d-flex flex-column align-items-center justify-content-center bg-light rounded-top-4" 
