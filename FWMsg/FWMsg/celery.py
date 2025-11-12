@@ -94,7 +94,7 @@ def get_faellige_aufgaben(before_date=False):
     # For each task, check if enough days have passed since the last reminder
     tasks_to_remind = []
     for task in overdue_tasks:
-        reminder_threshold = current_time.date() - timedelta(days=task.aufgabe.repeat_push_days)
+        reminder_threshold = current_time.date() - timedelta(days=(task.aufgabe.repeat_push_days + 1))
         if task.last_reminder is None or task.last_reminder < reminder_threshold:
             tasks_to_remind.append(task)
             
