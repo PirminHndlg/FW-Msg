@@ -282,13 +282,12 @@
                             {% endif %}
                                 </span>
                                 <div class="comment-preview text-muted small mt-1" style="font-weight: normal; 
-                                     display: -webkit-box; -webkit-line-clamp: 2; 
-                                     -webkit-box-orient: vertical; overflow: hidden;">
-                                    {{ kommentar.text|safe|truncatechars_html:20 }}
+                                     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    {{ kommentar.text|safe|striptags }}
                                 </div>
                     </summary>
                             <div class="mt-2 p-3 bg-light rounded">
-                                {{kommentar.text|safe|linebreaks}}
+                                {{kommentar.text|safe|striptags|linebreaks}}
                             </div>
                 </details>
                 {% if not forloop.last %}
