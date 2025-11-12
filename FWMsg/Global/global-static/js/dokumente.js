@@ -144,3 +144,49 @@ function removeOrdner(ordner_id, ordner_name) {
         form.submit();
     }
 }
+
+async function copyFolderLink(relativeUrl, buttonElement) {
+    try {
+        // Build the absolute URL from the relative URL
+        const absoluteUrl = window.location.origin + relativeUrl;
+        
+        // Modern browsers - use Clipboard API
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(absoluteUrl);
+        } else {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = absoluteUrl;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            textArea.remove();
+        }
+        
+        // Show feedback
+        const icon = buttonElement.querySelector('i');
+        const originalClass = icon.className;
+        const tooltip = bootstrap.Tooltip.getInstance(buttonElement);
+        
+        // Change icon to checkmark temporarily
+        icon.className = 'bi bi-check';
+        if (tooltip) {
+            tooltip.setContent({ '.tooltip-inner': 'Link kopiert!' });
+        }
+        
+        // Reset after 2 seconds
+        setTimeout(() => {
+            icon.className = originalClass;
+            if (tooltip) {
+                tooltip.setContent({ '.tooltip-inner': 'Link zum Ordner kopieren' });
+            }
+        }, 2000);
+    } catch (err) {
+        console.error('Failed to copy link: ', err);
+        alert('Fehler beim Kopieren des Links. Bitte versuchen Sie es erneut.');
+    }
+}

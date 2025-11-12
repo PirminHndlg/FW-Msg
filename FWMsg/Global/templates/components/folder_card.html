@@ -32,15 +32,26 @@
                             onclick="removeOrdner({{ structure.ordner.id }}, '{{ structure.ordner }}')"
                             {% if structure.dokumente|length > 0 %}
                             data-bs-toggle="tooltip"
-                            data-bs-title="{% trans 'Ordner nicht leer' %}"
+                            data-bs-title="{% trans 'Der muss vor dem Löschen leer sein' %}"
                             {% endif %}>
                         <i class="bi bi-trash"></i>
                     </button>
 
-                    <button class="btn btn-sm rounded-4" 
+                    <button class="btn btn-sm btn-outline-secondary rounded-4" 
+                            data-bs-toggle="tooltip"
+                            data-bs-title="{% trans 'Ordner bearbeiten' %}"
                             onclick="editOrdner({{ structure.ordner.id }}, '{{ structure.ordner }}', '{% for typ in structure.ordner.typ.all %}{{ typ.id }},{% endfor %}', '{% if structure.ordner.color %}{{ structure.ordner.color.id }}{% endif %}')">
                         <i class="bi bi-pencil"></i>
                     </button>
+
+                    <button class="btn btn-sm btn-outline-secondary rounded-4" 
+                            onclick="copyFolderLink('{% url 'dokumente' structure.ordner.id %}', this)"
+                            data-bs-toggle="tooltip"
+                            data-bs-title="{% trans 'Link zum Ordner kopieren' %}"
+                            id="copyLinkBtn{{ structure.ordner.id }}">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+
 
                     <div class="d-flex gap-2 align-items-center flex-wrap" data-bs-toggle="tooltip" data-bs-title="Ordner ist sichtbar für:">
                         {% for typ in structure.ordner.typ.all %}
