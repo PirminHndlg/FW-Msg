@@ -181,17 +181,29 @@ class Bewerber(OrgModel):
         from seminar.models import Seminar
         return Seminar.objects.filter(org=self.org, bewerber=self).exists()
     
-    def default_checkbox_action(self, org):
-        from seminar.models import Seminar
-        # add the user to the seminar
-        try:
+    CHECKBOX_ACTION_CHOICES = [
+        ('add_to_seminar', 'Zum Seminar hinzufügen'),
+        ('remove_from_seminar', 'Vom Seminar entfernen'),
+        ('send_registration_mail', 'Registrierungsmail senden'),
+    ]
+    
+    def default_checkbox_action(self, org, checkbox_submit_text):
+        if checkbox_submit_text == self.CHECKBOX_ACTION_CHOICES[0][1]:
+            from seminar.models import Seminar
             seminar = Seminar.objects.get(org=org)
             seminar.bewerber.add(self)
             seminar.save()
             return True
-        except Exception as e:
-            print(e)
-            return False
+        elif checkbox_submit_text == self.CHECKBOX_ACTION_CHOICES[1][1]:
+            from seminar.models import Seminar
+            seminar = Seminar.objects.get(org=org)
+            seminar.bewerber.remove(self)
+            seminar.save()
+            return True
+        elif checkbox_submit_text == self.CHECKBOX_ACTION_CHOICES[2][1]:
+            self.user.customuser.send_registration_email()
+            return True
+        return False
     
     class Meta:
         verbose_name = "Bewerber:in"
