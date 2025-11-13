@@ -20,6 +20,29 @@ class Freiwilliger(OrgModel):
     ende_real = models.DateField(blank=True, null=True, verbose_name='Ende real')
 
     history = HistoricalRecords()
+    
+    CHECKBOX_ACTION_CHOICES = [
+        ('add_to_ehemalige', '<i class="bi bi-person-plus-fill me-1"></i>Zu Ehemaligen hinzufügen'),
+    ]
+    
+    def checkbox_action(self, org, checkbox_submit_text):
+        if checkbox_submit_text == self.CHECKBOX_ACTION_CHOICES[0][1]:
+            from Ehemalige.models import Ehemalige
+            ehemalige, created = Ehemalige.objects.get_or_create(user=self.user, org=org)
+            if created:
+                ehemalige.land.add(self.einsatzland2)
+            ehemalige.save()
+            
+            from Global.models import PersonCluster
+            ehe_person_cluster = PersonCluster.objects.filter(org=org, view='E').order_by('-id')
+            if ehe_person_cluster.exists():
+                ehe_person_cluster = ehe_person_cluster.first()
+                self.user.customuser.person_cluster = ehe_person_cluster
+                self.user.customuser.save()
+                self.user.save()
+            
+            return True
+        return False        
 
     class Meta:
         verbose_name = 'Freiwillige:r'
