@@ -133,7 +133,7 @@
               {% trans "Alle" %}
             </a>
             {% for person_cluster in all_person_clusters %}
-            <a class="btn btn-sm rounded-4 btn-outline-primary {% if current_person_cluster == person_cluster %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?person_cluster_filter={{ person_cluster.id }}&f=None">
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if current_person_cluster == person_cluster %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?person_cluster_filter={{ person_cluster.id }}&f={{ filter.id|default:None }}">
               {{ person_cluster.name }}
             </a>
             {% endfor %}
