@@ -18,6 +18,31 @@
         </div>
     {% else %}
         {% include "components/gallery_grid.html" %}
+        {% if show_pagination and page_obj %}
+            <nav class="d-flex justify-content-center mt-4 flex-wrap" aria-label="{% trans "Bilderseiten" %}">
+                <ul class="pagination pagination-sm mb-0 flex-wrap">
+                    <li class="page-item{% if not page_obj.has_previous %} disabled{% endif %}">
+                        <a class="page-link rounded-4" href="{% if page_obj.has_previous %}{{ pagination_base_url }}page={{ page_obj.previous_page_number }}{% else %}#{% endif %}" aria-label="{% trans "Vorherige Seite" %}">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% for num in page_obj.paginator.page_range %}
+                        <li class="page-item{% if page_obj.number == num %} active{% endif %}">
+                            {% if page_obj.number == num %}
+                                <span class="page-link rounded-4">{{ num }}</span>
+                            {% else %}
+                                <a class="page-link rounded-4" href="{{ pagination_base_url }}page={{ num }}">{{ num }}</a>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                    <li class="page-item{% if not page_obj.has_next %} disabled{% endif %}">
+                        <a class="page-link rounded-4" href="{% if page_obj.has_next %}{{ pagination_base_url }}page={{ page_obj.next_page_number }}{% else %}#{% endif %}" aria-label="{% trans "Nächste Seite" %}">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        {% endif %}
     {% endif %}
 {% endblock %}
 

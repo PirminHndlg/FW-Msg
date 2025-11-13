@@ -68,6 +68,7 @@ from django.core.files.base import ContentFile
 from django.core import signing
 from icalendar import Calendar, Event
 from django.utils import timezone
+from django.core.paginator import Paginator
 
 # Local application imports
 from FW.forms import BilderForm, BilderGalleryForm, ProfilUserForm
@@ -468,7 +469,35 @@ def bilder(request):
     else:
         gallery_images = get_bilder(request.user.org)
 
-    context={'gallery_images': gallery_images, 'error': error}
+    paginator = None
+    page_obj = None
+    show_pagination = False
+    pagination_base_url = f"{request.path}?"
+
+    total_gallery_images = len(gallery_images) if gallery_images else 0
+
+    if total_gallery_images > 50:
+        paginator = Paginator(gallery_images, 24)   # 24 because devide by 3 columns
+        page_obj = paginator.get_page(request.GET.get('page'))
+        gallery_images = page_obj
+        show_pagination = True
+
+        query_params = request.GET.copy()
+        if 'page' in query_params:
+            query_params.pop('page')
+        base_query = query_params.urlencode()
+        if base_query:
+            pagination_base_url = f"{request.path}?{base_query}&"
+
+    context={
+        'gallery_images': gallery_images,
+        'error': error,
+        'paginator': paginator,
+        'page_obj': page_obj,
+        'show_pagination': show_pagination,
+        'pagination_base_url': pagination_base_url,
+        'total_gallery_images': total_gallery_images,
+    }
 
     context = check_organization_context(request, context)
 
