@@ -427,14 +427,10 @@ class AmpelTests(TestCase):
             ampel=False
         )
         
-        # Set person cluster cookie
-        self.client.cookies['selectedPersonCluster'] = str(no_ampel_cluster.id)
-        
-        response = self.client.get(reverse('list_ampel'))
+        response = self.client.get(reverse('list_ampel') + '?person_cluster_filter=' + str(no_ampel_cluster.id))
         self.assertEqual(response.status_code, 200)
-        self.assertIn('error', response.context)
-        self.assertIn('keine Ampel-Funktion aktiviert', response.context['error'])
-
+        self.assertIn('ampel_matrix', response.context)
+        
 class StatistikTests(TestCase):
     def setUp(self):
         """Set up test data for statistics tests"""

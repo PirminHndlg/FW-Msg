@@ -42,6 +42,8 @@ urlpatterns = [
     path('profil_picture/<int:user_id>', views.serve_profil_picture, name='serve_profil_picture'),
 
     path('ampel/', views.ampel, name='ampel'),
+    path('list-ampel/', views.list_ampel, name='list_ampel'),
+    
     path('aufgaben/', views.aufgaben, name='aufgaben'),
     path('aufgaben/<int:aufgabe_id>/', views.aufgabe, name='aufgaben_detail'),
     path('aufgaben/attachment/<int:aufgabe_id>/', views.download_aufgabe_attachment, name='download_aufgabe_attachment'),

@@ -125,21 +125,38 @@
     <!-- Main Content Container -->
     <div class="card rounded-4">
       <!-- Filter buttons (always visible) -->
-      <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-center align-items-center gap-1 flex-wrap">
+      <div class="card-header bg-transparent border-bottom-0">
+        <div class="d-flex gap-1 mb-2 justify-content-center align-items-center">
+          <strong>{% trans "Benutzergruppe" %}</strong>
+          <a href="{% url 'list_object' 'personcluster' %}" class="rounded-4"><i class="bi bi-pencil text-primary"></i></a>
+          <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center">
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if not current_person_cluster %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f=None&person_cluster_filter=None">
+              {% trans "Alle" %}
+            </a>
+            {% for person_cluster in all_person_clusters %}
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if current_person_cluster == person_cluster %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?person_cluster_filter={{ person_cluster.id }}&f=None">
+              {{ person_cluster.name }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% if aufgaben_cluster %}
         <div class="d-flex gap-1 mb-2 justify-content-center align-items-center">
           <strong>{% trans "Filter" %}</strong>
+          <a href="{% url 'list_object' 'aufg-filter' %}" class="rounded-4"><i class="bi bi-pencil text-primary"></i></a>
           <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center">
             <!-- Filter buttons that work immediately -->
-            <a class="btn btn-sm rounded-4 btn-outline-primary {% if not filter %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f=None">
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if not filter %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f=None&person_cluster_filter={{ current_person_cluster.id }}">
               {% trans "Alle" %}
             </a>
             {% for cluster in aufgaben_cluster %}
-            <a class="btn btn-sm rounded-4 btn-outline-primary {% if filter == cluster %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f={{ cluster.id }}">
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if filter == cluster %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f={{ cluster.id }}&person_cluster_filter={{ current_person_cluster.id }}">
               {{ cluster.name }}
             </a>
             {% endfor %}
           </div>
         </div>
+        {% endif %}
       </div>
       
       <!-- Loading State Overlay -->
@@ -294,7 +311,8 @@
           } else {
             filterParam = new URLSearchParams(window.location.search).get('f')
           }
-          fetch(`{% url 'ajax_load_aufgaben_table_data' %}?f=${filterParam}`, {
+          const personClusterParam = '{{current_person_cluster.id|default:None}}';
+          fetch(`{% url 'ajax_load_aufgaben_table_data' %}?f=${filterParam}&person_cluster_filter=${personClusterParam}`, {
             method: 'GET',
             headers: {
               'X-CSRFToken': getCookie('csrftoken')
@@ -654,7 +672,7 @@
     }
 
     // Assign task to all eligible users
-    function assignTaskToAll(aufgabeId) {
+    function assignTaskToAll(aufgabeId, personClusterId) {
         if (confirm('Are you sure you want to assign this task to all eligible users?')) {
             fetch("{% url 'ajax_assign_task_to_all' %}", {
                 method: 'POST',
@@ -663,7 +681,8 @@
                     'X-CSRFToken': csrftoken,
                 },
                 body: JSON.stringify({
-                    aufgabe_id: aufgabeId
+                    aufgabe_id: aufgabeId,
+                    person_cluster_id: personClusterId
                 })
             })
             .then(response => response.json())
