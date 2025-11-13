@@ -995,6 +995,11 @@ def get_ehemalige_table_class(org, request=None):
     
     # Define base columns
     base_columns = {
+        'checkbox': MaterializeCssCheckboxColumn(
+            verbose_name=_('Ausgewählt'),
+            accessor='ehemalige.id',
+            orderable=False
+        ),
         'user': tables.Column(
             verbose_name=_('Benutzer'),
             accessor='ehemalige.user',
@@ -1007,7 +1012,7 @@ def get_ehemalige_table_class(org, request=None):
         ),
     }
     
-    column_sequence = ['user', 'land']
+    column_sequence = ['checkbox', 'user', 'land']
     
     render_methods = {
         'render_user': render_user,
