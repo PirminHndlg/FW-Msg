@@ -675,6 +675,10 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
             # search in every field of the data
             data = [d for d in data if any(search_lower in str(value).lower() for value in d.values())]
         
+        # Sort data by default if no sort parameter is provided
+        if not request.GET.get('sort'):
+            data = sorted(data, key=lambda x: x.get('user_sort', ''))
+        
         # Generate dynamic table with attribute columns
         total_objects_count = len(data)
         

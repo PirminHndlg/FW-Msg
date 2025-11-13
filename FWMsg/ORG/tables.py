@@ -327,7 +327,8 @@ def _create_dynamic_table_class(
     base_columns, 
     column_sequence, 
     render_methods, 
-    actions_renderer
+    actions_renderer,
+    sortable_fields_extractor=None
 ):
     """
     Generic function to create a dynamic table with attribute columns.
@@ -341,6 +342,7 @@ def _create_dynamic_table_class(
         column_sequence: List of column names in order
         render_methods: Dict of custom render methods
         actions_renderer: Function to render actions column
+        sortable_fields_extractor: Optional function to extract sortable fields from object
     
     Returns:
         (table_class, data_list)
@@ -370,6 +372,11 @@ def _create_dynamic_table_class(
         # Ensure all attributes have keys (even if empty)
         for attribute in attributes:
             obj_data['attrs'].setdefault(attribute.name, '')
+        
+        # Extract sortable fields if extractor is provided
+        if sortable_fields_extractor:
+            sortable_fields = sortable_fields_extractor(obj)
+            obj_data.update(sortable_fields)
         
         data.append(obj_data)
     
@@ -433,6 +440,14 @@ def get_freiwilliger_table_class(person_cluster, org):
     Create a dynamic FreiwilligerTable with attribute columns.
     Returns: (table_class, data_list)
     """
+    # Define sortable fields extractor
+    def extract_sortable_fields(obj):
+        return {
+            'user_sort': f"{obj.user.first_name} {obj.user.last_name}".lower(),
+            'einsatzland2_sort': obj.einsatzland2.name.lower() if obj.einsatzland2 else '',
+            'einsatzstelle2_sort': obj.einsatzstelle2.name.lower() if obj.einsatzstelle2 else '',
+        }
+    
     # Define render methods
     def render_user(self, value, record):
         freiwilliger = record['freiwilliger']
@@ -460,38 +475,42 @@ def get_freiwilliger_table_class(person_cluster, org):
     base_columns = {
         'user': tables.Column(
             verbose_name=_('Benutzer'),
-            accessor='freiwilliger.user',
-            order_by='freiwilliger.user__first_name'
+            accessor='user_sort',
+            order_by='user_sort'
         ),
         'einsatzland2': tables.Column(
             verbose_name=_('Einsatzland'),
-            accessor='freiwilliger.einsatzland2',
-            order_by='freiwilliger.einsatzland2__name'
+            accessor='einsatzland2_sort',
+            order_by='einsatzland2_sort'
         ),
         'einsatzstelle2': tables.Column(
             verbose_name=_('Einsatzstelle'),
-            accessor='freiwilliger.einsatzstelle2',
-            order_by='freiwilliger.einsatzstelle2__name'
+            accessor='einsatzstelle2_sort',
+            order_by='einsatzstelle2_sort'
         ),
         'start_geplant': tables.DateColumn(
             verbose_name=_('Start geplant'),
             accessor='freiwilliger.start_geplant',
-            format='d.m.Y'
+            format='d.m.Y',
+            order_by='freiwilliger.start_geplant'
         ),
         'start_real': tables.DateColumn(
             verbose_name=_('Start real'),
             accessor='freiwilliger.start_real',
-            format='d.m.Y'
+            format='d.m.Y',
+            order_by='freiwilliger.start_real'
         ),
         'ende_geplant': tables.DateColumn(
             verbose_name=_('Ende geplant'),
             accessor='freiwilliger.ende_geplant',
-            format='d.m.Y'
+            format='d.m.Y',
+            order_by='freiwilliger.ende_geplant'
         ),
         'ende_real': tables.DateColumn(
             verbose_name=_('Ende real'),
             accessor='freiwilliger.ende_real',
-            format='d.m.Y'
+            format='d.m.Y',
+            order_by='freiwilliger.ende_real'
         ),
     }
     
@@ -504,7 +523,8 @@ def get_freiwilliger_table_class(person_cluster, org):
     
     return _create_dynamic_table_class(
         person_cluster, org, Freiwilliger, 'freiwilliger',
-        base_columns, column_sequence, render_methods, actions_renderer
+        base_columns, column_sequence, render_methods, actions_renderer,
+        sortable_fields_extractor=extract_sortable_fields
     )
 
 
@@ -514,6 +534,13 @@ def get_bewerber_table_class(person_cluster, org):
     Create a dynamic BewerberTable with attribute columns.
     Returns: (table_class, data_list)
     """
+    # Define sortable fields extractor
+    def extract_sortable_fields(obj):
+        return {
+            'user_sort': f"{obj.user.first_name} {obj.user.last_name}".lower(),
+            'has_seminar_sort': 1 if obj.has_seminar() else 0,
+        }
+    
     # Define render methods
     def render_user(self, value, record):
         bewerber = record['bewerber']
@@ -574,8 +601,8 @@ def get_bewerber_table_class(person_cluster, org):
         ),
         'user': tables.Column(
             verbose_name=_('Benutzer'),
-            accessor='bewerber.user',
-            order_by='bewerber.user__first_name'
+            accessor='user_sort',
+            order_by='user_sort'
         ),
         'application_pdf': tables.Column(
             verbose_name=_('PDF der Bewerbung'),
@@ -589,8 +616,8 @@ def get_bewerber_table_class(person_cluster, org):
         ),
         'has_seminar': tables.Column(
             verbose_name=_('Seminar'),
-            accessor='bewerber.has_seminar',
-            orderable=True
+            accessor='has_seminar_sort',
+            order_by='has_seminar_sort'
         ),
     }
     
@@ -605,7 +632,8 @@ def get_bewerber_table_class(person_cluster, org):
     
     return _create_dynamic_table_class(
         person_cluster, org, Bewerber, 'bewerber',
-        base_columns, column_sequence, render_methods, actions_renderer
+        base_columns, column_sequence, render_methods, actions_renderer,
+        sortable_fields_extractor=extract_sortable_fields
     )
 
 
@@ -615,6 +643,12 @@ def get_team_table_class(person_cluster, org):
     Returns: (table_class, data_list)
     """
     from TEAM.models import Team
+    
+    # Define sortable fields extractor
+    def extract_sortable_fields(obj):
+        return {
+            'user_sort': f"{obj.user.first_name} {obj.user.last_name}".lower(),
+        }
     
     # Define render methods
     def render_user(self, value, record):
@@ -650,8 +684,8 @@ def get_team_table_class(person_cluster, org):
     base_columns = {
         'user': tables.Column(
             verbose_name=_('Benutzer'),
-            accessor='team.user',
-            order_by='team.user__first_name'
+            accessor='user_sort',
+            order_by='user_sort'
         ),
         'land': tables.Column(
             verbose_name=_('Länderzuständigkeit'),
@@ -669,7 +703,8 @@ def get_team_table_class(person_cluster, org):
     
     return _create_dynamic_table_class(
         person_cluster, org, Team, 'team',
-        base_columns, column_sequence, render_methods, actions_renderer
+        base_columns, column_sequence, render_methods, actions_renderer,
+        sortable_fields_extractor=extract_sortable_fields
     )
     
 def get_ehemalige_table_class(person_cluster, org):
@@ -678,6 +713,12 @@ def get_ehemalige_table_class(person_cluster, org):
     Returns: (table_class, data_list)
     """
     from Ehemalige.models import Ehemalige
+    
+    # Define sortable fields extractor
+    def extract_sortable_fields(obj):
+        return {
+            'user_sort': f"{obj.user.first_name} {obj.user.last_name}".lower(),
+        }
     
     # Define render methods
     def render_user(self, value, record):
@@ -713,8 +754,8 @@ def get_ehemalige_table_class(person_cluster, org):
     base_columns = {
         'user': tables.Column(
             verbose_name=_('Benutzer'),
-            accessor='ehemalige.user',
-            order_by='ehemalige.user__first_name'
+            accessor='user_sort',
+            order_by='user_sort'
         ),
         'land': tables.Column(
             verbose_name=_('Länderzuständigkeit'),
@@ -732,7 +773,8 @@ def get_ehemalige_table_class(person_cluster, org):
     
     return _create_dynamic_table_class(
         person_cluster, org, Ehemalige, 'ehemalige',
-        base_columns, column_sequence, render_methods, actions_renderer
+        base_columns, column_sequence, render_methods, actions_renderer,
+        sortable_fields_extractor=extract_sortable_fields
     )
     
 # Mapping of model names to table classes
