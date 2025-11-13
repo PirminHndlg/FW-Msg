@@ -362,16 +362,26 @@ def build_person_cluster_filter(request, org, view=None, min_clusters=2):
     # Get selected filter from request
     selected_filter = request.GET.get('person_cluster_filter')
     
+    cookie_name = f'selectedPersonCluster_{view}' if view else 'selectedPersonCluster_all'
+    # if no filter in url look for cookie
+    if not selected_filter:
+        cookie = request.COOKIES.get(cookie_name)
+        selected_filter = cookie if cookie else 'alle'
+    
+    if selected_filter == 'alle':
+        selected_filter = None
+    
+    
     # Build filter options
     filter_dict = {
         'label': _('Benutzergruppe'),
         'param_name': 'person_cluster_filter',
         'options': [
             {
-                'value': '',
+                'value': 'alle',
                 'label': _('Alle'),
-                'is_active': not selected_filter,
-                'url': build_filter_url('person_cluster_filter', '')
+                'is_active': selected_filter is None,
+                'url': build_filter_url('person_cluster_filter', 'alle')
             }
         ] + [
             {
@@ -382,7 +392,8 @@ def build_person_cluster_filter(request, org, view=None, min_clusters=2):
             }
             for pc in all_person_clusters
         ],
-        'has_active_filter': bool(selected_filter)
+        'has_active_filter': bool(selected_filter),
+        'cookie_name': cookie_name
     }
     
     # Get the selected PersonCluster object if one is selected
@@ -432,7 +443,7 @@ class MaterializeCssCheckboxColumn(tables.CheckBoxColumn):
         
 
 def _create_dynamic_table_class(
-    person_cluster, 
+    person_clusters, 
     org, 
     model_class, 
     model_name, 
@@ -458,12 +469,15 @@ def _create_dynamic_table_class(
         (table_class, data_list)
     """
     # Fetch objects and attributes
-    if person_cluster:
+    if person_clusters:
         objects = model_class.objects.filter(
             org=org, 
-            user__customuser__person_cluster=person_cluster
+            user__customuser__person_cluster__in=person_clusters
         ).select_related('user', 'user__customuser')
-        attributes = Attribute.objects.filter(org=org, person_cluster=person_cluster)
+        attributes = []
+        for pc in person_clusters:
+            attributes.extend(Attribute.objects.filter(org=org, person_cluster=pc))
+        attributes = list(set(attributes))
     else:
         # Show all objects from org without person_cluster filter
         objects = model_class.objects.filter(org=org).select_related('user', 'user__customuser')
@@ -628,7 +642,7 @@ def get_freiwilliger_table_class(org, request=None):
     
     render_methods = {'render_user': render_user}
     
-    person_cluster = None
+    person_clusters = PersonCluster.objects.filter(org=org, view='F')
     # Determine which person_cluster to use:
     # - If filter_options exist and a filter is selected, use filter_field
     # - If filter_options exist but no filter is selected (Alle), use None to show all
@@ -637,10 +651,10 @@ def get_freiwilliger_table_class(org, request=None):
         # Filter is available
         if filter_field:
             # Specific cluster selected
-            person_cluster = filter_field
+            person_clusters = [filter_field]
     
     table_class, data = _create_dynamic_table_class(
-        person_cluster, org, Freiwilliger, 'freiwilliger',
+        person_clusters, org, Freiwilliger, 'freiwilliger',
         base_columns, column_sequence, render_methods, actions_renderer
     )
     
@@ -681,15 +695,23 @@ def get_bewerber_table_class(org, request=None):
         # Build Seminar filter
         selected_seminar_filter = request.GET.get('has_seminar_filter')
         
+        cookie_name = 'selectedSeminarFilter'
+        if not selected_seminar_filter:
+            cookie = request.COOKIES.get(cookie_name)
+            selected_seminar_filter = cookie if cookie else None
+            
+        if selected_seminar_filter == 'alle':
+            selected_seminar_filter = None
+            
         seminar_filter_options = {
             'label': _('Seminar'),
             'param_name': 'has_seminar_filter',
             'options': [
                 {
-                    'value': '',
+                    'value': 'alle',
                     'label': _('Alle'),
-                    'is_active': not selected_seminar_filter,
-                    'url': build_filter_url('has_seminar_filter', '')
+                    'is_active': selected_seminar_filter is None,
+                    'url': build_filter_url('has_seminar_filter', 'alle')
                 },
                 {
                     'value': 'yes',
@@ -704,7 +726,8 @@ def get_bewerber_table_class(org, request=None):
                     'url': build_filter_url('has_seminar_filter', 'no')
                 }
             ],
-            'has_active_filter': bool(selected_seminar_filter)
+            'has_active_filter': bool(selected_seminar_filter),
+            'cookie_name': cookie_name
         }
         filter_options.append(seminar_filter_options)
         
@@ -804,10 +827,10 @@ def get_bewerber_table_class(org, request=None):
     }   
     
     # Determine which person_cluster to use - apply PersonCluster filter if specified
-    person_cluster = filter_person_cluster if filter_person_cluster else None
+    person_clusters = [filter_person_cluster] if filter_person_cluster else PersonCluster.objects.filter(org=org, view='B')
     
     table_class, data = _create_dynamic_table_class(
-        person_cluster, org, Bewerber, 'bewerber',
+        person_clusters, org, Bewerber, 'bewerber',
         base_columns, column_sequence, render_methods, actions_renderer
     )
     
@@ -836,13 +859,28 @@ def get_bewerber_table_class(org, request=None):
     return table_class, data, filter_options
 
 
-def get_team_table_class(org):
+def get_team_table_class(org, request=None):
     """
     Create a dynamic TeamTable with attribute columns.
     Returns: (table_class, data_list)
     """
     from TEAM.models import Team
+    from Global.models import PersonCluster
     
+    filter_options = []
+    person_clusters = None
+    
+    # Build PersonCluster filter for Team (view='T')
+    pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='T', min_clusters=1)
+    
+    if pc_filter:
+        filter_options.append(pc_filter)
+        
+    if filter_person_cluster:
+        person_clusters = [filter_person_cluster]
+    else:
+        person_clusters = PersonCluster.objects.filter(org=org, view='T')
+        
     # Define render methods
     def render_user(self, value, record):
         team = record['team']
@@ -894,18 +932,37 @@ def get_team_table_class(org):
         'render_land': render_land
     }
     
-    return _create_dynamic_table_class(
-        None, org, Team, 'team',
+    
+    table_class, data = _create_dynamic_table_class(
+        person_clusters, org, Team, 'team',
         base_columns, column_sequence, render_methods, actions_renderer
     )
     
-def get_ehemalige_table_class(org):
+    return table_class, data, filter_options
+
+    
+def get_ehemalige_table_class(org, request=None):
     """
     Create a dynamic EhemaligeTable with attribute columns.
     Returns: (table_class, data_list)
     """
     from Ehemalige.models import Ehemalige
+    from Global.models import PersonCluster
     
+    filter_options = []
+    person_clusters = None
+    
+    # Build PersonCluster filter for Ehemalige (view='E')
+    pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='E', min_clusters=1)
+    
+    if pc_filter:
+        filter_options.append(pc_filter)
+        
+    if filter_person_cluster:
+        person_clusters = [filter_person_cluster]
+    else:
+        person_clusters = PersonCluster.objects.filter(org=org, view='E')
+        
     # Define render methods
     def render_user(self, value, record):
         ehemalige = record['ehemalige']
@@ -956,11 +1013,14 @@ def get_ehemalige_table_class(org):
         'render_user': render_user,
         'render_land': render_land
     }
+        
     
-    return _create_dynamic_table_class(
-        None, org, Ehemalige, 'ehemalige',
+    table_class, data = _create_dynamic_table_class(
+        person_clusters, org, Ehemalige, 'ehemalige',
         base_columns, column_sequence, render_methods, actions_renderer
     )
+    
+    return table_class, data, filter_options
     
 # Mapping of model names to table classes
 MODEL_TABLE_MAPPING = {
