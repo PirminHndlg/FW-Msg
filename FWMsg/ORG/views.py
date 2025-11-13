@@ -577,7 +577,7 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
             active_option = [option for option in all_options if option['is_active']][0]
             response.set_cookie(filter['cookie_name'], active_option['value'])
         else:
-            response.delete_cookie(filter['cookie_name']) if filter['cookie_name'] in response.cookies else None
+            response.delete_cookie(filter['cookie_name'])
         return response
     
     if model_name.lower() in ['bewerber', 'freiwilliger', 'team', 'ehemalige']:
