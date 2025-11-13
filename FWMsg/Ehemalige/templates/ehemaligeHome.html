@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block title %}
-  {% trans "Dashboard" %} - Ehemalige
+  {% trans "Dashboard" %}
 {% endblock %}
 
 {% block head %}
@@ -60,7 +60,7 @@
 <!-- Header Section -->
 <div class="mb-4">
   <div class="d-flex align-items-center justify-content-between">
-    <h1 class="h2 mb-1">{% trans "Ehemalige Dashboard" %}</h1>
+    <h1 class="h2 mb-1">{% trans "Dashboard" %}</h1>
     {% if user.ehemalige.land.exists %}
       {% for land in user.ehemalige.land.all %}
         <span class="fi fi-{{ land.code|lower }} me-2" style="font-size: 2rem;"></span>
