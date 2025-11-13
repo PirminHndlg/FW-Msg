@@ -8,10 +8,9 @@ from django.utils import timezone
 from FW.models import Freiwilliger
 from FWMsg.decorators import required_role
 from Global.models import (
-    Ampel2, Bilder2, Einsatzland2, Einsatzstelle2, 
+    Ampel2, Bilder2, Einsatzland2, Einsatzstelle2, PersonCluster,
     Post2, UserAufgaben, UserAttribute
 )
-from ORG.views import filter_person_cluster
 from TEAM.models import Team
 
 # Base template for team views
@@ -122,16 +121,30 @@ def _get_Freiwillige(request):
         return Freiwilliger.objects.filter(einsatzland2__in=countries)
     return Freiwilliger.objects.none()
 
-@filter_person_cluster
+def _get_person_cluster(request):
+    """Get the person cluster filter from the request."""
+    person_cluster_filter = request.GET.get('person_cluster_filter')
+    person_cluster = None
+    if person_cluster_filter and person_cluster_filter != 'None':
+        person_cluster = PersonCluster.objects.filter(id=int(person_cluster_filter), org=request.user.org, view='F')
+        if person_cluster.exists():
+            person_cluster = person_cluster.first()
+    return person_cluster
+
 @login_required
 @required_role('T')
 def contacts(request):
+    person_cluster = _get_person_cluster(request)
+    
     # Get freiwillige with prefetched user data to reduce queries
     freiwillige_queryset = _get_Freiwillige(request)
     if freiwillige_queryset:
         freiwillige = freiwillige_queryset.select_related('user')
     else:
         freiwillige = Freiwilliger.objects.none()
+        
+    if person_cluster:
+        freiwillige = freiwillige.filter(user__customuser__person_cluster=person_cluster)
     
     # Collect all user IDs for efficient attribute queries
     user_ids = [fw.user_id for fw in freiwillige]
@@ -182,11 +195,12 @@ def contacts(request):
     
     return render(request, 'teamContacts.html', {
         'freiwillige': freiwillige, 
-        'fw_cards': fw_cards
+        'fw_cards': fw_cards,
+        'current_person_cluster': person_cluster,
+        'all_person_clusters': PersonCluster.objects.filter(org=request.user.org, view='F')
     })
 
 
-@filter_person_cluster
 @login_required
 @required_role('T')
 def ampelmeldung(request):
@@ -194,6 +208,11 @@ def ampelmeldung(request):
     from ORG.views import _get_ampel_matrix
 
     freiwillige = _get_Freiwillige(request)
+    
+    person_cluster = _get_person_cluster(request)
+    if person_cluster:
+        freiwillige = freiwillige.filter(user__customuser__person_cluster=person_cluster)
+        
     users = [fw.user for fw in freiwillige]
     ampel_matrix, months = _get_ampel_matrix(request, users)
 
@@ -201,6 +220,8 @@ def ampelmeldung(request):
         'ampel_matrix': ampel_matrix,
         'months': months,
         'current_month': timezone.now().strftime("%b %y"),
+        'current_person_cluster': person_cluster,
+        'all_person_clusters': PersonCluster.objects.filter(org=request.user.org, view='F')
     }
 
     context = check_organization_context(request, context)
