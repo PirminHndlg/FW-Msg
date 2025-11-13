@@ -108,7 +108,7 @@
             <div class="d-flex justify-content-start m-3 gap-2 flex-wrap">
             {% for checkbox_submit_text in checkbox_submit_texts %}
                 <button type="submit" name="checkbox_submit_text" value="{{ checkbox_submit_text }}" class="btn btn-primary">{{ checkbox_submit_text|safe }}</button>
-                {% endfor %}
+            {% endfor %}
             </div>
         </form>
     </div>
@@ -124,6 +124,39 @@
 
 
 <script>
+
+    {% if checkbox_submit_texts %}
+    function checkboxAction(event, button) {
+        event.preventDefault();
+        
+        let checkboxSubmitText = button.value;
+        // remove the <i class="bi bi-..."></i> from the checkboxSubmitText
+        let cleanCheckboxSubmitText = checkboxSubmitText.replace(/<i class="bi bi-[^"]*"><\/i>/g, '');
+
+        let confirmText = `{% trans "Möchten Sie diese Aktion wirklich durchführen?" %}\n\n-${cleanCheckboxSubmitText}-\n\n{% trans "Diese Aktion kann nicht rückgängig gemacht werden!" %}`;
+        
+        let form = button.closest('form');
+        let conf = confirm(confirmText);
+        if (conf && form) {
+            // Add a hidden input with the button value since form.submit() doesn't include the clicked button
+            let hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'checkbox_submit_text';
+            hiddenInput.value = checkboxSubmitText;
+            form.appendChild(hiddenInput);
+            form.submit();
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('button[name="checkbox_submit_text"]').forEach(function(button) {
+            button.addEventListener('click', function(event) {
+                checkboxAction(event, button);
+            });
+        });
+    });
+    {% endif %}
+
+
     // Registration mail functionality for user tables
     {% if model_name == 'user' %}
     function sendRegistrationMail(userId, button) {
