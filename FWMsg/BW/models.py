@@ -181,6 +181,12 @@ class Bewerber(OrgModel):
         from seminar.models import Seminar
         return Seminar.objects.filter(org=self.org, bewerber=self).exists()
     
+    def get_endbewertung_display(self):
+        if self.endbewertung:
+            return dict(self.bewertungsmoeglicheiten).get(self.endbewertung.upper(), '' )
+        else:
+            return ''
+    
     CHECKBOX_ACTION_CHOICES = [
         ('add_to_seminar', '<i class="bi bi-plus-circle-fill me-1"></i>Seminar'),
         ('remove_from_seminar', '<i class="bi bi-dash-circle-fill me-1"></i>Seminar'),

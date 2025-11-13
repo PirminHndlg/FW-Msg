@@ -825,9 +825,19 @@ def get_bewerber_table_class(org, request=None):
             accessor='bewerber.has_seminar',
             orderable=True
         ),
+        'zuteilung': tables.Column(
+            verbose_name=_('Zuteilung'),
+            accessor='bewerber.zuteilung',
+            orderable=False
+        ),
+        'endbewertung': tables.Column(
+            verbose_name=_('Endbewertung'),
+            accessor='bewerber.get_endbewertung_display',
+            orderable=True,
+        ),
     }
     
-    column_sequence = ['user', 'application_pdf', 'has_seminar', 'interview_persons']
+    column_sequence = ['user', 'application_pdf', 'has_seminar', 'interview_persons', 'zuteilung', 'endbewertung']
     
     render_methods = {
         'render_user': render_user,
