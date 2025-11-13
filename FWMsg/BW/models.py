@@ -205,11 +205,23 @@ class Bewerber(OrgModel):
             self.user.customuser.send_registration_email()
             return True
         elif checkbox_submit_text == self.CHECKBOX_ACTION_CHOICES[3][1]:
+            # Create or update the freiwilliger
             from FW.models import Freiwilliger
             freiwilliger, created = Freiwilliger.objects.get_or_create(user=self.user, org=org)
-            freiwilliger.einsatzland2 = self.zuteilung.land if self.zuteilung else None
-            freiwilliger.einsatzstelle2 = self.zuteilung if self.zuteilung else None
+            if self.zuteilung:
+                freiwilliger.einsatzland2 = self.zuteilung.land
+                freiwilliger.einsatzstelle2 = self.zuteilung
             freiwilliger.save()
+            
+            # Add the user to the person cluster with view 'F' with the highest id (last created)
+            from Global.models import PersonCluster
+            # Get the first person cluster with view 'F' ordered by id reverse
+            fw_cluster = PersonCluster.objects.filter(org=org, view='F').order_by('-id')
+            if fw_cluster.exists():
+                fw_cluster = fw_cluster.first()
+                self.user.customuser.person_cluster = fw_cluster
+                self.user.customuser.save()
+                self.user.save()
             
             return True
         return False
