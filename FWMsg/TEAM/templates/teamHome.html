@@ -373,13 +373,12 @@
               </div>
               {% endif %}
               <div class="text-center mt-3">
-                <a href="{% url 'team_ampelmeldung' %}" class="btn btn-sm btn-outline-primary">
+                <a href="{% url 'list_ampel' %}" class="btn btn-sm btn-outline-primary">
                   {% trans "Alle anzeigen" %}
                 </a>
               </div>
             </div>
           </div>
-        </div>
 
         <!-- Recent Posts -->
         {% if request.user.customuser.person_cluster.posts %}

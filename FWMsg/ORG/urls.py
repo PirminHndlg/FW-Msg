@@ -15,7 +15,6 @@ urlpatterns = [
     path('delete/<str:model_name>/<int:id>', views.delete_object, name='delete_object'),
     
     path('delete-zwischenschritt/', views.delete_zwischenschritt, name='delete_zwischenschritt'),
-    path('list-ampel/', views.list_ampel, name='list_ampel'),
     path('ampel-mark-as-read/', views.ampel_mark_as_read, name='ampel_mark_as_read'),
     path('list-aufgaben-table/', views.list_aufgaben_table, name='list_aufgaben_table'),
     path('list-aufgaben-table/<int:scroll_to>', views.list_aufgaben_table, name='list_aufgaben_table_scroll'),

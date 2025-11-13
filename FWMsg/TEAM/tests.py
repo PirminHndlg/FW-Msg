@@ -139,7 +139,7 @@ class TeamViewsTest(TestCase):
 
     def test_ampelmeldung_view(self):
         """Test the ampelmeldung view"""
-        response = self.client.get(reverse('team_ampelmeldung'))
+        response = self.client.get(reverse('list_ampel'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'list_ampel.html')
         
@@ -162,7 +162,7 @@ class TeamViewsTest(TestCase):
         views = [
             'team_home',
             'team_contacts',
-            'team_ampelmeldung',
+            'list_ampel',
         ]
         
         for view_name in views:

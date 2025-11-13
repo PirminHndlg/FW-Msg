@@ -309,7 +309,7 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
     
     class Meta:
         model = Bewerber
-        fields = ['interview_persons']
+        fields = ['interview_persons', 'zuteilung', 'endbewertung']
         exclude = ['org', 'application_pdf']
 
     def __init__(self, *args, **kwargs):
@@ -324,7 +324,7 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
         self.fields['interview_persons'].label = 'Interviewpersonen'
         self.fields['interview_persons'].help_text = 'Wählen Sie die Personen aus, die das Interview durchgeführt haben.'
         
-        order_fields = ['first_name', 'last_name', 'email', 'person_cluster', 'interview_persons', 'pdf_files']
+        order_fields = ['first_name', 'last_name', 'email', 'person_cluster', 'interview_persons', 'zuteilung', 'endbewertung', 'pdf_files']
         self.order_fields(order_fields)
         
         # Separate, non-model field for profile picture upload
@@ -583,9 +583,6 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
         return super().is_valid() and self.zwischenschritte.is_valid()
 
     def save(self, commit=True):
-        from ORG.views import get_person_cluster
-
-        # self.instance.person_cluster = get_person_cluster(self.request)
         instance = super().save(commit=commit)
         if commit:
             self.zwischenschritte.instance = instance

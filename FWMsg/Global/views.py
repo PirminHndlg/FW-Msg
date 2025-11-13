@@ -37,7 +37,7 @@ from django.apps import apps
 # Django imports
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Max, F, Min
 from django.contrib.auth.models import User
 from django.contrib.auth import login
 from django.conf import settings
@@ -57,6 +57,8 @@ from django.utils.translation import gettext_lazy as _
 
 from uuid import UUID
 import uuid
+from dateutil.relativedelta import relativedelta
+
 
 from BW.models import ApplicationAnswer, ApplicationAnswerFile, Bewerber
 from Global.send_email import send_email_with_archive
@@ -451,21 +453,30 @@ def serve_dokument(request, dokument_id):
 @login_required
 @required_person_cluster('bilder')
 def bilder(request):
+    cookie_name = 'selectedPersonCluster-bilder'
     
-    error = None
-
+    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, bilder=True).order_by('name')
+    current_person_cluster = None
     if request.user.role == 'O':
-        from ORG.views import get_person_cluster
-        person_cluster = get_person_cluster(request)
-        if person_cluster:
-            if person_cluster.bilder:
-                gallery_images = get_bilder(request.user.org, filter_person_cluster=person_cluster)
+        try:
+            person_cluster_param = request.GET.get('person_cluster_filter')
+            if person_cluster_param == 'None':
+                current_person_cluster = None
+            elif person_cluster_param:
+                current_person_cluster = all_person_clusters.get(id=int(person_cluster_param), org=request.user.org)
             else:
-                error = f'{person_cluster.name} hat keine Bilder-Funktion aktiviert'
-                gallery_images = []
-        else:
-            gallery_images = get_bilder(request.user.org)
-
+                person_cluster_cookie = request.COOKIES.get(cookie_name)
+                if person_cluster_cookie is not None and person_cluster_cookie != 'None':
+                    current_person_cluster = all_person_clusters.get(id=int(person_cluster_cookie), org=request.user.org)
+        
+        except PersonCluster.DoesNotExist:
+            current_person_cluster = None
+        except Exception as e:
+            messages.error(request, f'Fehler beim Laden der Bilder: {str(e)}')
+            current_person_cluster = None
+    
+    if current_person_cluster:
+        gallery_images = get_bilder(request.user.org, filter_person_cluster=current_person_cluster)
     else:
         gallery_images = get_bilder(request.user.org)
 
@@ -491,17 +502,25 @@ def bilder(request):
 
     context={
         'gallery_images': gallery_images,
-        'error': error,
         'paginator': paginator,
         'page_obj': page_obj,
         'show_pagination': show_pagination,
         'pagination_base_url': pagination_base_url,
         'total_gallery_images': total_gallery_images,
+        'person_clusters': all_person_clusters,
+        'current_person_cluster': current_person_cluster,
     }
 
     context = check_organization_context(request, context)
 
-    return render(request, 'bilder.html', context=context)
+    response = render(request, 'bilder.html', context=context)
+    
+    if current_person_cluster:
+        response.set_cookie(cookie_name, current_person_cluster.id)
+    else:
+        response.delete_cookie(cookie_name) if cookie_name in request.COOKIES else None
+    
+    return response
 
 @login_required
 @required_person_cluster('bilder')
@@ -842,22 +861,33 @@ def download_bild_as_zip(request, id):
 @login_required
 @required_person_cluster('dokumente')
 def dokumente(request, ordner_id=None):
+    cookie_name = 'selectedPersonCluster-dokumente'
+    
+    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, dokumente=True).order_by('name')
+    current_person_cluster = None
+    if request.user.role == 'O':
+        try:
+            person_cluster_param = request.GET.get('person_cluster_filter')
+            if person_cluster_param == 'None':
+                current_person_cluster = None
+            elif person_cluster_param:
+                    current_person_cluster = all_person_clusters.get(id=int(person_cluster_param), org=request.user.org)
+            else:
+                person_cluster_cookie = request.COOKIES.get(cookie_name)
+                if person_cluster_cookie is not None and person_cluster_cookie != 'None':
+                    current_person_cluster = all_person_clusters.get(id=int(person_cluster_cookie), org=request.user.org)
+        
+        except PersonCluster.DoesNotExist:
+            current_person_cluster = None
+        except Exception as e:
+            messages.error(request, f'Fehler beim Laden der Dokumente: {str(e)}')
+            current_person_cluster = None
+    
+    
     folder_structure = []
 
-    if request.user.role == 'O':
-        from ORG.views import get_person_cluster
-        person_cluster_typ = get_person_cluster(request)
-    else:
-        person_cluster_typ = request.user.person_cluster
-
-    ordners = []
-    error = None
-
-    if person_cluster_typ:
-        if person_cluster_typ.dokumente:
-            ordners = Ordner2.objects.filter(org=request.user.org).filter(Q(typ=None) | Q(typ=person_cluster_typ)).order_by('color', 'ordner_name')
-        else:
-            error = f'{person_cluster_typ.name} hat keine Dokumenten-Funktion aktiviert'
+    if current_person_cluster:
+        ordners = Ordner2.objects.filter(org=request.user.org, typ=current_person_cluster).order_by('color', 'ordner_name')
     else:
         ordners = Ordner2.objects.filter(org=request.user.org).order_by('color', 'ordner_name')
     
@@ -873,14 +903,21 @@ def dokumente(request, ordner_id=None):
         'ordners': ordners,
         'folder_structure': folder_structure,
         'ordner_id': ordner_id,
-        'person_clusters': PersonCluster.objects.filter(org=request.user.org, dokumente=True).order_by('name'),
+        'person_clusters': all_person_clusters,
         'colors': colors,
-        'error': error
+        'current_person_cluster': current_person_cluster,
     }
 
     context = check_organization_context(request, context)
 
-    return render(request, 'dokumente.html', context=context)
+    response = render(request, 'dokumente.html', context=context)
+    
+    if current_person_cluster:
+        response.set_cookie(cookie_name, current_person_cluster.id)
+    else:
+        response.delete_cookie(cookie_name) if cookie_name in request.COOKIES else None
+    
+    return response
 
 @login_required
 @required_person_cluster('dokumente')
@@ -1390,6 +1427,274 @@ def ampel(request):
     context = check_organization_context(request, context)
     return render(request, 'ampel.html', context=context)
 
+def _get_ampel_matrix(request, users, ampel_this_month=None):
+        # Get date range for ampel entries
+    date_range = _get_ampel_date_range(request.user.org)
+    start_date, end_date = date_range['start_date'], date_range['end_date']
+    
+    current_month = timezone.now().month
+    user_ids_with_entry = set(
+        Ampel2.objects.filter(
+            user__in=users,
+            date__month=current_month
+        ).values_list('user', flat=True)
+    )
+    if ampel_this_month == 'True':
+        # Keep only users who have an Ampel2 entry in the current month
+        users = [user for user in users if user.id in user_ids_with_entry]
+    elif ampel_this_month == 'False':
+        # Exclude users who have an Ampel2 entry in the current month
+        users = [user for user in users if user.id not in user_ids_with_entry]
+        
+    # Get ampel entries within date range
+    ampel_entries = Ampel2.objects.filter(
+        user__in=users,
+        date__gte=start_date,
+        date__lte=end_date
+    ).order_by('user', 'date')
+    
+    # Generate month labels
+    months = _generate_month_labels(start_date, end_date)
+    
+    # Create and fill ampel matrix
+    ampel_matrix = _create_ampel_matrix(users, months, ampel_entries)
+    
+    # Group users by personen_cluster for template
+    grouped_matrix = {}
+    for user in users:
+        if user.person_cluster not in grouped_matrix:
+            grouped_matrix[user.person_cluster] = {}
+        grouped_matrix[user.person_cluster][user] = ampel_matrix[user]
+
+    return grouped_matrix, months
+
+
+def _get_ampel_date_range(org):
+    """
+    Helper function to determine the date range for ampel entries.
+    
+    Args:
+        org: Organization instance
+        
+    Returns:
+        dict: Contains 'start_date' and 'end_date' keys with date values
+    """
+    # Get organization's freiwillige users for efficient querying
+    freiwillige_users = Freiwilliger.objects.filter(org=org).values_list('user', flat=True)
+    
+    # Get date range from freiwillige start/end dates
+    freiwillige_dates = _get_freiwillige_date_range(org)
+    
+    # Get date range from ampel entries
+    ampel_dates = _get_ampel_entry_date_range(freiwillige_users)
+    
+    # Combine and determine final date range
+    start_date = _get_earliest_date([
+        freiwillige_dates['start_date'],
+        ampel_dates['start_date']
+    ])
+    
+    end_date = _get_latest_date([
+        freiwillige_dates['end_date'],
+        ampel_dates['end_date']
+    ])
+    
+    # Fallback to last 12 months if no valid dates found
+    if not start_date or not end_date:
+        end_date = timezone.now().date()
+        start_date = end_date - relativedelta(months=12)
+        
+    return {
+        'start_date': start_date,
+        'end_date': end_date
+    }
+
+
+def _get_freiwillige_date_range(org):
+    """Get the date range from freiwillige start and end dates."""
+    start_dates = Freiwilliger.objects.filter(org=org).aggregate(
+        real_start=Min('start_real'),
+        planned_start=Min('start_geplant')
+    )
+    
+    end_dates = Freiwilliger.objects.filter(org=org).aggregate(
+        real_end=Max('ende_real'),
+        planned_end=Max('ende_geplant')
+    )
+    
+    return {
+        'start_date': start_dates['real_start'] or start_dates['planned_start'],
+        'end_date': end_dates['real_end'] or end_dates['planned_end']
+    }
+
+
+def _get_ampel_entry_date_range(freiwillige_users):
+    """Get the date range from ampel entries for given users."""
+    ampel_entries = Ampel2.objects.filter(user__in=freiwillige_users).order_by('date')
+    
+    first_entry = ampel_entries.first()
+    last_entry = ampel_entries.last()
+    
+    return {
+        'start_date': first_entry.date.date() if first_entry else None,
+        'end_date': last_entry.date.date() if last_entry else None
+    }
+
+
+def _get_earliest_date(dates):
+    """Get the earliest non-None date from a list of dates."""
+    valid_dates = [date for date in dates if date is not None]
+    return min(valid_dates) if valid_dates else None
+
+
+def _get_latest_date(dates):
+    """Get the latest non-None date from a list of dates."""
+    valid_dates = [date for date in dates if date is not None]
+    return max(valid_dates) if valid_dates else None
+
+def _generate_month_labels(start_date, end_date):
+    """
+    Generate month labels between two dates.
+    
+    Args:
+        start_date: Start date for the range
+        end_date: End date for the range
+        
+    Returns:
+        list: List of month labels in "MMM YY" format
+    """
+    if not start_date or not end_date:
+        return []
+        
+    months = []
+    current = start_date
+    
+    while current <= end_date:
+        months.append(current.strftime("%b %y"))
+        current += relativedelta(months=1)
+    
+    return months
+
+
+def _create_ampel_matrix(freiwillige, months, ampel_entries):
+    """
+    Create and fill the ampel matrix with entries.
+    
+    Args:
+        freiwillige: List of freiwillige users
+        months: List of month labels
+        ampel_entries: QuerySet of ampel entries
+        
+    Returns:
+        dict: Matrix with freiwillige as keys and months as nested keys
+    """
+    # Initialize empty matrix
+    matrix = {fw: {month: [] for month in months} for fw in freiwillige}
+    
+    # Fill matrix with ampel entries
+    for entry in ampel_entries:
+        month_key = entry.date.strftime("%b %y")
+        if month_key in months and entry.user in freiwillige:
+            matrix[entry.user][month_key].append({
+                'id': entry.id,
+                'status': entry.status,
+                'comment': entry.comment,
+                'date': entry.date.strftime("%d.%m.%y %H:%M"),
+                'read': entry.read
+            })
+            
+    return matrix
+
+
+@login_required
+@required_role('OT')
+def list_ampel(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        status = request.POST.get('status')
+        comment = request.POST.get('comment')
+        date_str = request.POST.get('date')
+
+        try:
+            user = User.objects.get(id=user_id)
+            if user.customuser.org != request.user.org:
+                messages.error(request, _('Nicht erlaubt'))
+                return redirect('list_ampel')
+
+            entry_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            entry_datetime = timezone.make_aware(datetime.combine(entry_date, timezone.now().time()))
+
+            Ampel2.objects.create(
+                org=request.user.org,
+                user=user,
+                status=status,
+                comment=comment,
+                date=entry_datetime
+            )
+            messages.success(request, _('Ampel-Eintrag erfolgreich hinzugefügt.'))
+        except User.DoesNotExist:
+            messages.error(request, _('Benutzer nicht gefunden.'))
+        except Exception as e:
+            messages.error(request, _('Ein Fehler ist aufgetreten: {}').format(e))
+        
+        return redirect('list_ampel')
+
+    person_cluster_param = request.GET.get('person_cluster_filter')
+    if not person_cluster_param:
+        person_cluster_param = request.COOKIES.get('selectedPersonCluster-ampel')
+    if person_cluster_param is not None and person_cluster_param != 'None':
+        try:
+            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org, ampel=True)
+        except PersonCluster.DoesNotExist:
+            person_cluster = None
+    else:
+        person_cluster = None
+
+    # filter if this month has an ampel entry
+    filter_this_month = request.GET.get('f')
+    if not filter_this_month:
+        filter_this_month = request.COOKIES.get('filter_this_month_ampel') or 'None'
+    if filter_this_month == 'None':
+        filter_this_month = None
+
+    # Base queryset for freiwillige
+    if request.user.view == 'O':
+        user_qs = User.objects.filter(customuser__person_cluster__isnull=False, customuser__org=request.user.org, customuser__person_cluster__ampel=True).order_by('first_name', 'last_name')
+        all_person_cluster = PersonCluster.objects.filter(org=request.user.org, ampel=True)
+    elif request.user.view == 'T':
+        from TEAM.views import _get_Freiwillige
+        freiwillige = _get_Freiwillige(request)
+        user_qs = User.objects.filter(id__in=freiwillige.values_list('user_id', flat=True))
+        all_person_cluster = PersonCluster.objects.filter(org=request.user.org, view='F', ampel=True)
+    else:
+        user_qs = User.objects.none()
+        raise ValueError('Invalid view')
+    
+    if person_cluster:
+        user_qs = user_qs.filter(customuser__person_cluster=person_cluster)
+    ampel_matrix, months = _get_ampel_matrix(request, user_qs, filter_this_month)
+    
+    context = {
+        'months': months,
+        'ampel_matrix': ampel_matrix,
+        'current_month': timezone.now().strftime("%b %y"),
+        'today': timezone.now().date(),
+        'all_person_clusters': all_person_cluster,
+        'current_person_cluster': person_cluster,
+        'large_container': True,
+        'filter_this_month': filter_this_month,
+    }
+    
+    context = check_organization_context(request, context)
+    
+    response = render(request, 'list_ampel.html', context=context)
+    
+    if person_cluster:
+        response.set_cookie('selectedPersonCluster-ampel', person_cluster.id)
+    else:
+        response.delete_cookie('selectedPersonCluster-ampel')
+        
+    return response
 
 
 @login_required
@@ -1555,22 +1860,49 @@ def download_aufgabe_attachment(request, aufgabe_id):
 @login_required
 @required_person_cluster('posts')
 def posts_overview(request):
-    # Get the user's person_cluster
-    user_person_cluster = request.user.person_cluster
+    cookie_name = 'selectedPersonCluster-posts'
     
-    # For organization users, they can see all posts
-    if user_person_cluster.view == 'O':
-        posts = get_posts(request.user.org)
+    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, posts=True).order_by('name')
+    current_person_cluster = None
+    if request.user.role == 'O':
+        try:
+            person_cluster_param = request.GET.get('person_cluster_filter')
+            if person_cluster_param == 'None':
+                current_person_cluster = None
+            elif person_cluster_param:
+                current_person_cluster = all_person_clusters.get(id=int(person_cluster_param), org=request.user.org)
+            else:
+                person_cluster_cookie = request.COOKIES.get(cookie_name)
+                if person_cluster_cookie is not None and person_cluster_cookie != 'None':
+                    current_person_cluster = all_person_clusters.get(id=int(person_cluster_cookie), org=request.user.org)
+        
+            posts = get_posts(request.user.org, filter_person_cluster=current_person_cluster)
+        except PersonCluster.DoesNotExist:
+            current_person_cluster = None
+            posts = get_posts(request.user.org)
+        except Exception as e:
+            messages.error(request, f'Fehler beim Laden der Beiträge: {str(e)}')
+            current_person_cluster = None
+            posts = get_posts(request.user.org)
+    
     else:
-        # For regular users, only show posts assigned to their person_cluster
-        # or posts that don't have any specific person_cluster assigned
-        posts = get_posts(request.user.org, filter_person_cluster=user_person_cluster, filter_user=request.user)
+        posts = get_posts(request.user.org, filter_person_cluster=request.user.person_cluster, filter_user=request.user)
     
     context = {
-        'posts': posts
+        'posts': posts,
+        'person_clusters': all_person_clusters,
+        'current_person_cluster': current_person_cluster,
     }
     context = check_organization_context(request, context)
-    return render(request, 'posts_overview.html', context=context)
+    
+    response = render(request, 'posts_overview.html', context=context)
+    
+    if current_person_cluster:
+        response.set_cookie(cookie_name, current_person_cluster.id)
+    else:
+        response.delete_cookie(cookie_name) if cookie_name in request.COOKIES else None
+    
+    return response
 
 @login_required
 @required_person_cluster('posts')
