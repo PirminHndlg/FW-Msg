@@ -730,13 +730,13 @@ def get_bewerber_table_class(org, request=None):
                 },
                 {
                     'value': 'yes',
-                    'label': _('Mit Seminar'),
+                    'label': _('Seminar zugewiesen'),
                     'is_active': selected_seminar_filter == 'yes',
                     'url': build_filter_url('has_seminar_filter', 'yes')
                 },
                 {
                     'value': 'no',
-                    'label': _('Ohne Seminar'),
+                    'label': _('Seminar nicht zugewiesen'),
                     'is_active': selected_seminar_filter == 'no',
                     'url': build_filter_url('has_seminar_filter', 'no')
                 }
