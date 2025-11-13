@@ -8,10 +8,10 @@ class Ehemalige(OrgModel):
     land = models.ManyToManyField(Einsatzland2, verbose_name='Länder')
     
     CHECKBOX_ACTION_CHOICES = [
-        ('send_registration_mail', 'Registrierungsmail senden'),
+        ('send_registration_mail', '<i class="bi bi-envelope-fill me-1"></i>Registrierungsmail'),
     ]
 
-    def default_checkbox_action(self, org, checkbox_submit_text):
+    def checkbox_action(self, org, checkbox_submit_text):
         if checkbox_submit_text == self.CHECKBOX_ACTION_CHOICES[0][1]:
             self.user.customuser.send_registration_email()
             return True

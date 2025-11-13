@@ -107,7 +107,7 @@
             {% render_table table %}
             <div class="d-flex justify-content-start m-3 gap-2 flex-wrap">
             {% for checkbox_submit_text in checkbox_submit_texts %}
-                <button type="submit" name="checkbox_submit_text" value="{{ checkbox_submit_text }}" class="btn btn-primary">{{ checkbox_submit_text }}</button>
+                <button type="submit" name="checkbox_submit_text" value="{{ checkbox_submit_text }}" class="btn btn-primary">{{ checkbox_submit_text|safe }}</button>
                 {% endfor %}
             </div>
         </form>
