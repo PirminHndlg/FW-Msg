@@ -143,8 +143,8 @@
                 </div>
 
                 <div class="alert alert-light border rounded-3 mb-3" id="modalActionTooltipContainer">
-                    <strong>{% trans "Information:" %}</strong>
-                    <div id="modalActionHelpText" class="text-wrap ms-2"></div>
+                    <strong>{% trans "Erklärung:" %}</strong>
+                    <div id="modalActionHelpText" class="text-wrap p-1"></div>
                 </div>
                 
                 <p class="mb-2"><strong>{% trans "Ausgewählte Objekte:" %}</strong></p>
@@ -188,11 +188,6 @@
         // Get all checked checkboxes
         let checkedBoxes = form.querySelectorAll('input[name="checkbox"]:checked');
         
-        if (checkedBoxes.length === 0) {
-            alert('{% trans "Bitte wählen Sie mindestens ein Objekt aus." %}');
-            return;
-        }
-        
         let checkboxSubmitValue = button.getAttribute('value');
         let checkboxSubmitLabel = button.textContent;
         let checkboxSubmitHelpText = button.getAttribute('data-helptext');
@@ -209,6 +204,9 @@
             // Show tooltip container
             document.getElementById('modalActionTooltipContainer').classList.remove('d-none');
             document.getElementById('modalActionHelpText').innerHTML = checkboxSubmitHelpText;
+        } else {
+            document.getElementById('modalActionTooltipContainer').classList.add('d-none');
+            document.getElementById('modalActionHelpText').innerHTML = '';
         }
         
         // Collect selected objects (second td in each checked row)
