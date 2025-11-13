@@ -2046,7 +2046,6 @@ def ajax_load_aufgaben_table_data(request):
     """Load aufgaben table data via AJAX - returns JSON for client-side rendering."""
     try:
         person_cluster_param = request.GET.get('person_cluster_filter')
-        person_cluster = None
         
         if person_cluster_param is not None and person_cluster_param != 'None':
             person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
