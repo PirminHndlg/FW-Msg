@@ -105,11 +105,11 @@
     <div class="table-responsive" style="height: calc(100vh - 220px); min-height: 500px;">
         <form method="get" action="{% url 'list_object_checkbox' model_name %}">
             {% render_table table %}
-            {% if checkbox_submit_text %}
-            <div class="d-flex justify-content-start m-3">
-                <button type="submit" class="btn btn-primary">{{ checkbox_submit_text }}</button>
+            <div class="d-flex justify-content-start m-3 gap-2 flex-wrap">
+            {% for checkbox_submit_text in checkbox_submit_texts %}
+                <button type="submit" name="checkbox_submit_text" value="{{ checkbox_submit_text }}" class="btn btn-primary">{{ checkbox_submit_text }}</button>
+                {% endfor %}
             </div>
-            {% endif %}
         </form>
     </div>
 </div>

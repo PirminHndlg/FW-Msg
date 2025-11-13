@@ -615,7 +615,7 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
         return response
     
     if model_name.lower() in ['bewerber', 'freiwilliger', 'team', 'ehemalige']:
-        checkbox_submit_text = None
+        checkbox_submit_texts = []
         
         if model_name.lower() == 'freiwilliger':
             table_class, data, filter_options = get_freiwilliger_table_class(request.user.org, request)
@@ -624,7 +624,7 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
         elif model_name.lower() == 'ehemalige':
             table_class, data, filter_options = get_ehemalige_table_class(request.user.org, request)
         else:
-            checkbox_submit_text = 'Zum Seminar hinzufügen'
+            checkbox_submit_texts = [choice[1] for choice in Bewerber.CHECKBOX_ACTION_CHOICES]
             table_class, data, filter_options = get_bewerber_table_class(request.user.org, request)
             
         # Apply search filter
@@ -653,13 +653,12 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
             'total_count': total_objects_count,
             'search_query': search_query,
             'large_container': True,
-            'checkbox_submit_text': checkbox_submit_text,
+            'checkbox_submit_texts': checkbox_submit_texts,
             'filter_options': filter_options,
             'has_active_filters': has_active_filters
         })
         
         for filter in filter_options:
-            print(filter)
             response = set_cookie_for_filter(response, filter)
             
         return response
@@ -857,13 +856,25 @@ def list_object_checkbox(request, model_name):
     
     objects = request.GET.getlist('checkbox')
     if objects:
+        counter = 0
         for object_id in objects:
             instance, response = _get_object_with_org_check(model, int(object_id), request)
             if response:
                 return response
             # do something with the object
             if model_name == 'bewerber':
-                instance.default_checkbox_action(request.user.org)
+                checkbox_submit_text = request.GET.get('checkbox_submit_text')
+                if not instance.default_checkbox_action(request.user.org, checkbox_submit_text):
+                    messages.error(request, _('Aktion für {object_name} nicht erfolgreich durchgeführt.').format(object_name=instance._meta.verbose_name))
+                else:
+                    counter += 1
+        
+        object_name = model._meta.verbose_name_plural if (model._meta.verbose_name_plural and counter > 1) else model._meta.verbose_name
+        msg_success = _('Aktionen für {counter} {object_name} erfolgreich durchgeführt.').format(counter=counter, object_name=object_name)
+        messages.success(request, msg_success)
+                    
+    else:
+        messages.error(request, _('Keine Objekte ausgewählt.'))
         
     return redirect('list_object', model_name=model_name)
 
