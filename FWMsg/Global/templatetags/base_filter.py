@@ -167,8 +167,13 @@ def split(value, separator):
 def get_current_seminar(org):
     from seminar.models import Seminar
     from django.utils import timezone
-    # display one week before and after the current date
+    # display seminars that start one week before, during and 2 days after the end of the seminar, negative values mean that the seminar is in the past or will start in the future
     current_date = timezone.now().date()
-    one_week_before = current_date - timedelta(days=7)
-    one_week_after = current_date + timedelta(days=7)
-    return Seminar.objects.filter(org=org, seminar_start__gte=one_week_before, seminar_end__lte=one_week_after)
+    seminars = Seminar.objects.filter(org=org)
+    seminars_to_display = []
+    for seminar in seminars:
+        diff_start = current_date - seminar.seminar_start  # positive if seminar has started
+        diff_end = seminar.seminar_end - current_date      # positive if seminar hasn't ended
+        if diff_start.days >= -7 and diff_end.days >= -2:
+            seminars_to_display.append(seminar)
+    return seminars_to_display
