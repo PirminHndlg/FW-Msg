@@ -170,5 +170,5 @@ def get_current_seminar(org):
     # display one week before and after the current date
     current_date = timezone.now().date()
     one_week_before = current_date - timedelta(days=7)
-    one_day_after = current_date + timedelta(days=1)
-    return Seminar.objects.filter(org=org, seminar_start__gte=one_week_before, seminar_end__lte=one_day_after)
+    one_week_after = current_date + timedelta(days=7)
+    return Seminar.objects.filter(org=org, seminar_start__gte=one_week_before, seminar_end__lte=one_week_after)
