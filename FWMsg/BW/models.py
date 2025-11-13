@@ -188,8 +188,8 @@ class Bewerber(OrgModel):
             return ''
     
     CHECKBOX_ACTION_CHOICES = [
-        ('add_to_seminar', '<i class="bi bi-plus-circle-fill me-1"></i>Seminar', 'Der:Die Bewerber:in wird zum Seminar hinzugefügt.'),
-        ('remove_from_seminar', '<i class="bi bi-dash-circle-fill me-1"></i>Seminar', 'Der:Die Bewerber:in wird aus dem Seminar entfernt.'),
+        ('add_to_seminar', '<i class="bi bi-plus-circle-fill me-1"></i>Zum Seminar hinzufügen', 'Der:Die Bewerber:in wird zum Seminar hinzugefügt.'),
+        ('remove_from_seminar', '<i class="bi bi-dash-circle-fill me-1"></i>Vom Seminar entfernen', 'Der:Die Bewerber:in wird aus dem Seminar entfernt.'),
         ('send_registration_mail', '<i class="bi bi-envelope-fill me-1"></i>Registrierungsmail'),
         ('add_to_freiwillige', '<i class="bi bi-person-plus-fill me-1"></i>Zu Freiwilligen hinzufügen', 'Der:Die Bewerber:in wird zu der zuletzt erstellten Benutzergruppe Freiwillige hinzugefügt.'),
     ]
