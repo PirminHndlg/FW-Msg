@@ -1902,7 +1902,7 @@ def copy_links(request):
             },
             {
                 'name': 'Ampelmeldung einsehen',
-                'url': reverse('team_ampelmeldung')
+                'url': reverse('list_ampel')
             },
             {
                 'name': 'Einsatzstelleninformationen',
@@ -2051,6 +2051,7 @@ def ajax_load_aufgaben_table_data(request):
             person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
             users = User.objects.filter(customuser__person_cluster=person_cluster, customuser__org=request.user.org).order_by('first_name', 'last_name')
         else:
+            person_cluster = None
             users = User.objects.filter(customuser__org=request.user.org, customuser__person_cluster__isnull=False, customuser__person_cluster__aufgaben=True).order_by('-customuser__person_cluster', 'first_name', 'last_name')
         
         # Use the same logic as the original view but return JSON data
@@ -2134,7 +2135,7 @@ def ajax_load_aufgaben_table_data(request):
                         'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
                         'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
                     })
-                elif user.person_cluster in aufgabe.person_cluster.all():
+                elif hasattr(user, 'customuser') and user.customuser.person_cluster in aufgabe.person_cluster.all():
                     user_aufgaben_matrix[user.id].append(aufgabe.id)
                 else:
                     user_aufgaben_matrix[user.id].append(None)
@@ -2166,7 +2167,7 @@ def ajax_load_aufgaben_table_data(request):
                 'user_aufgaben_matrix': user_aufgaben_matrix,
                 'countries': list(countries.values('id', 'name')),
                 'today': date.today().isoformat(),
-                'person_cluster': person_cluster.id if person_cluster else None,
+                'current_person_cluster': person_cluster.id if person_cluster else None,
             }
         }
         return JsonResponse(response_data)
