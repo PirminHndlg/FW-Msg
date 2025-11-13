@@ -865,6 +865,8 @@ def dokumente(request, ordner_id=None):
     
     all_person_clusters = PersonCluster.objects.filter(org=request.user.org, dokumente=True).order_by('name')
     current_person_cluster = None
+    folder_structure = []
+    
     if request.user.role == 'O':
         try:
             person_cluster_param = request.GET.get('person_cluster_filter')
@@ -883,13 +885,13 @@ def dokumente(request, ordner_id=None):
             messages.error(request, f'Fehler beim Laden der Dokumente: {str(e)}')
             current_person_cluster = None
     
-    
-    folder_structure = []
-
-    if current_person_cluster:
-        ordners = Ordner2.objects.filter(org=request.user.org, typ=current_person_cluster).order_by('color', 'ordner_name')
+        if current_person_cluster:
+            ordners = Ordner2.objects.filter(org=request.user.org, typ=current_person_cluster).order_by('color', 'ordner_name')
+        else:
+            ordners = Ordner2.objects.filter(org=request.user.org).order_by('color', 'ordner_name')
+            
     else:
-        ordners = Ordner2.objects.filter(org=request.user.org).order_by('color', 'ordner_name')
+        ordners = Ordner2.objects.filter(org=request.user.org, typ=request.user.person_cluster).order_by('color', 'ordner_name')
     
     for ordner in ordners:
         folder_structure.append({
@@ -1663,6 +1665,7 @@ def list_ampel(request):
         all_person_cluster = PersonCluster.objects.filter(org=request.user.org, ampel=True)
     elif request.user.view == 'T':
         from TEAM.views import _get_Freiwillige
+        # TODO: this displays all freiwillige, not only the ones that have an ampel enabled
         freiwillige = _get_Freiwillige(request)
         user_qs = User.objects.filter(id__in=freiwillige.values_list('user_id', flat=True))
         all_person_cluster = PersonCluster.objects.filter(org=request.user.org, view='F', ampel=True)
