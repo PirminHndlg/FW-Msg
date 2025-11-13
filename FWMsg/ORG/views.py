@@ -1203,8 +1203,17 @@ def _create_ampel_matrix(freiwillige, months, ampel_entries):
 def list_aufgaben_table(request, scroll_to=None):
     """Render the aufgaben table page with minimal context - data loaded via AJAX."""
     
-    person_cluster_id = request.GET.get('person_cluster_filter')
-    person_cluster = PersonCluster.objects.get(id=int(person_cluster_id), org=request.user.org) if person_cluster_id else None
+    person_cluster_param = request.GET.get('person_cluster_filter')
+    
+    if not person_cluster_param:
+        person_cluster_param = request.COOKIES.get('selectedPersonCluster-aufgaben')
+    if person_cluster_param is not None and person_cluster_param != 'None':
+        try:
+            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+        except PersonCluster.DoesNotExist:
+            person_cluster = None
+    else:
+        person_cluster = None
     
     # Get filter type from request or cookie for initial state
     filter_type = request.GET.get('f')
@@ -1245,7 +1254,12 @@ def list_aufgaben_table(request, scroll_to=None):
         if request.GET.get('f') == 'None':
             response.delete_cookie('filter_aufgaben_table')
         else:
-            response.set_cookie('filter_aufgaben_table', request.GET.get('f'), max_age=7 * 24 * 60 * 60)  # 7 days in seconds
+            response.set_cookie('filter_aufgaben_table', request.GET.get('f'))
+            
+    if person_cluster:
+        response.set_cookie('selectedPersonCluster-aufgaben', person_cluster.id)
+    else:
+        response.delete_cookie('selectedPersonCluster-aufgaben')
 
     return response
 
@@ -2267,8 +2281,15 @@ def change_request_history(request):
 def ajax_load_aufgaben_table_data(request):
     """Load aufgaben table data via AJAX - returns JSON for client-side rendering."""
     try:
+        person_cluster_param = request.GET.get('person_cluster_filter')
+        
+        if person_cluster_param is not None and person_cluster_param != 'None':
+            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+            users = User.objects.filter(customuser__person_cluster=person_cluster, customuser__org=request.user.org).order_by('first_name', 'last_name')
+        else:
+            users = User.objects.filter(customuser__org=request.user.org, customuser__person_cluster__isnull=False, customuser__person_cluster__aufgaben=True).order_by('-customuser__person_cluster', 'first_name', 'last_name')
+        
         # Use the same logic as the original view but return JSON data
-        users = User.objects.filter(customuser__person_cluster__isnull=False, customuser__org=request.user.org, customuser__person_cluster__aufgaben=True).order_by('-customuser__person_cluster', 'first_name', 'last_name')
         # TODO: filter if a filter is applied in the aufgaben table (AufgabenCluster).
 
         aufgaben = Aufgabe2.objects.filter(org=request.user.org)

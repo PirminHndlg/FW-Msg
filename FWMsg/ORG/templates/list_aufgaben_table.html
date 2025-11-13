@@ -129,7 +129,7 @@
         <div class="d-flex gap-1 mb-2 justify-content-center align-items-center">
           <strong>{% trans "Benutzergruppe" %}</strong>
           <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center">
-            <a class="btn btn-sm rounded-4 btn-outline-primary {% if not current_person_cluster %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f=None">
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if not current_person_cluster %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f=None&person_cluster_filter=None">
               {% trans "Alle" %}
             </a>
             {% for person_cluster in all_person_clusters %}
@@ -309,7 +309,8 @@
           } else {
             filterParam = new URLSearchParams(window.location.search).get('f')
           }
-          fetch(`{% url 'ajax_load_aufgaben_table_data' %}?f=${filterParam}`, {
+          const personClusterParam = '{{current_person_cluster.id|default:None}}';
+          fetch(`{% url 'ajax_load_aufgaben_table_data' %}?f=${filterParam}&person_cluster_filter=${personClusterParam}`, {
             method: 'GET',
             headers: {
               'X-CSRFToken': getCookie('csrftoken')
