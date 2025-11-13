@@ -44,7 +44,7 @@
                 <i class="bi bi-folder2-open text-primary me-2 fs-4"></i>
                 <h5 class="mb-0 fw-bold">{% trans "Bewerbungen einsehen" %}</h5>
             </div>
-            <div class="row row-cols-1 row-cols-md-2 g-3">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-3">
                 {% for bewerber in request.user|get_bewerbers_of_interviewperson %}
                 <div class="col">
                     <div class="card shadow-sm border-0 h-100">
