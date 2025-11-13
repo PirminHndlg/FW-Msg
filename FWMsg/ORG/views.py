@@ -976,10 +976,18 @@ def get_cascade_info(request):
         'cascade_objects': related_objects
     })
 
-def _get_ampel_matrix(request, users):
+def _get_ampel_matrix(request, users, ampel_this_month=None):
         # Get date range for ampel entries
     date_range = _get_ampel_date_range(request.user.org)
     start_date, end_date = date_range['start_date'], date_range['end_date']
+    
+    
+    if ampel_this_month == 'True':
+        new_users = []
+        for user in users:
+            if Ampel2.objects.filter(user=user, date__month=timezone.now().month).exists():
+                new_users.append(user)
+        users = new_users
     
     # Get ampel entries within date range
     ampel_entries = Ampel2.objects.filter(
@@ -1036,17 +1044,51 @@ def list_ampel(request):
         
         return redirect('list_ampel')
 
+    person_cluster_param = request.GET.get('person_cluster_filter')
+    if not person_cluster_param:
+        person_cluster_param = request.COOKIES.get('selectedPersonCluster-ampel')
+    if person_cluster_param is not None and person_cluster_param != 'None':
+        try:
+            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+        except PersonCluster.DoesNotExist:
+            person_cluster = None
+    else:
+        person_cluster = None
+
+    # filter if this month has an ampel entry
+    filter_this_month = request.GET.get('f')
+    if not filter_this_month:
+        filter_this_month = request.COOKIES.get('filter_this_month_ampel') or 'None'
+    if filter_this_month == 'None':
+        filter_this_month = None
+
     # Base queryset for freiwillige
-    user_qs = User.objects.filter(customuser__person_cluster__isnull=False, customuser__org=request.user.org, customuser__person_cluster__ampel=True)
-    ampel_matrix, months = _get_ampel_matrix(request, user_qs)
+    user_qs = User.objects.filter(customuser__person_cluster__isnull=False, customuser__org=request.user.org, customuser__person_cluster__ampel=True).order_by('first_name', 'last_name')
+    if person_cluster:
+        user_qs = user_qs.filter(customuser__person_cluster=person_cluster)
+    ampel_matrix, months = _get_ampel_matrix(request, user_qs, filter_this_month)
+    
+    all_person_cluster = PersonCluster.objects.filter(org=request.user.org, ampel=True)
     
     context = {
         'months': months,
         'ampel_matrix': ampel_matrix,
         'current_month': timezone.now().strftime("%b %y"),
         'today': timezone.now().date(),
+        'all_person_clusters': all_person_cluster,
+        'current_person_cluster': person_cluster,
+        'large_container': True,
+        'filter_this_month': filter_this_month,
     }
-    return render(request, 'list_ampel.html', context=context)
+    
+    response = render(request, 'list_ampel.html', context=context)
+    
+    if person_cluster:
+        response.set_cookie('selectedPersonCluster-ampel', person_cluster.id)
+    else:
+        response.delete_cookie('selectedPersonCluster-ampel')
+        
+    return response
 
 def ampel_mark_as_read(request):
     try:

@@ -25,6 +25,42 @@
   {% else %}
     <div class="card rounded-4 p-2 pt-0">
       <div class="card-body p-0">
+
+        <div class="d-flex gap-1 m-2 justify-content-center align-items-center flex-wrap">
+
+          {% if all_person_clusters|length > 1 %}
+          <div class="d-flex gap-1 justify-content-center align-items-center me-2 border-end pe-2">
+          <strong>{% trans "Benutzergruppe" %}</strong>
+          <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center">
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if not current_person_cluster %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter=None&f={{ filter_this_month }}">
+              {% trans "Alle" %}
+            </a>
+            {% for person_cluster in all_person_clusters %}
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if current_person_cluster.id == person_cluster.id %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter={{ person_cluster.id }}&f={{ filter_this_month }}">
+              {{ person_cluster.name }}
+            </a>
+            {% endfor %}
+          </div>
+          </div>
+          {% endif %}
+
+          <div class="d-flex gap-1 justify-content-center align-items-center">
+          <strong>{% trans "Ampel diesen Monat" %}</strong>
+          <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center">
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if not filter_this_month %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter={{ current_person_cluster.id }}&f=None">
+              {% trans "Alle" %}
+            </a>
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if filter_this_month == 'True' %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter={{ current_person_cluster.id }}&f=True">
+              Ja
+            </a>
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if filter_this_month == 'False' %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter={{ current_person_cluster.id }}&f=False">
+              Nein
+            </a>
+          </div>
+          </div>
+        </div>
+
+
         {% include 'components/ampel_table.html' %}
       </div>
     </div>
