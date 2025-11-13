@@ -16,9 +16,9 @@
             {% for person_cluster, user_matrix in ampel_matrix.items %}
             {% for user, months_data in user_matrix.items %}
             <tr>
-                <th class="border-end sticky-col">
-                    <div class="d-flex align-items-center justify-content-between gap-2">
-                        <p class="text-decoration-none text-body text-nowrap">{{ user }}</p>
+                <th class="border-end sticky-col z-1" style="max-width: 50vw; left: 0; position: sticky;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <p class="text-decoration-none text-body mb-1">{{ user }}</p>
                         <button class="btn btn-sm btn-outline-primary"
                             onclick="showAmpelEntryModal('{{ user.id }}', '{{ user }}')">
                             <i class="bi bi-plus-circle-fill"></i>
