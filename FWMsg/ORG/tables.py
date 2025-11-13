@@ -450,7 +450,8 @@ def _create_dynamic_table_class(
     base_columns, 
     column_sequence, 
     render_methods, 
-    actions_renderer
+    actions_renderer,
+    view=None
 ):
     """
     Generic function to create a dynamic table with attribute columns.
@@ -469,6 +470,7 @@ def _create_dynamic_table_class(
         (table_class, data_list)
     """
     # Fetch objects and attributes
+    print('person_clusters', person_clusters)
     if person_clusters:
         objects = model_class.objects.filter(
             org=org, 
@@ -482,7 +484,10 @@ def _create_dynamic_table_class(
         # Show all objects from org without person_cluster filter
         objects = model_class.objects.filter(org=org).select_related('user', 'user__customuser')
         # Get attributes from all person clusters for this org
-        attributes = Attribute.objects.filter(org=org)
+        if view:
+            attributes = Attribute.objects.filter(org=org, person_cluster__view=view)
+        else:
+            attributes = Attribute.objects.filter(org=org)
     
     # Build data structure: list of dicts with object and attrs dict
     data = []
@@ -665,7 +670,7 @@ def get_freiwilliger_table_class(org, request=None):
     
     table_class, data = _create_dynamic_table_class(
         person_clusters, org, Freiwilliger, 'freiwilliger',
-        base_columns, column_sequence, render_methods, actions_renderer
+        base_columns, column_sequence, render_methods, actions_renderer, view='F'
     )
     
     return table_class, data, filter_options
@@ -832,11 +837,11 @@ def get_bewerber_table_class(org, request=None):
     }   
     
     # Determine which person_cluster to use - apply PersonCluster filter if specified
-    person_clusters = [filter_person_cluster] if filter_person_cluster else PersonCluster.objects.filter(org=org, view='B')
+    person_clusters = [filter_person_cluster] if filter_person_cluster else None
     
     table_class, data = _create_dynamic_table_class(
         person_clusters, org, Bewerber, 'bewerber',
-        base_columns, column_sequence, render_methods, actions_renderer
+        base_columns, column_sequence, render_methods, actions_renderer, view='B'
     )
     
     # Apply has_seminar filter if specified
@@ -940,7 +945,7 @@ def get_team_table_class(org, request=None):
     
     table_class, data = _create_dynamic_table_class(
         person_clusters, org, Team, 'team',
-        base_columns, column_sequence, render_methods, actions_renderer
+        base_columns, column_sequence, render_methods, actions_renderer, view='T'
     )
     
     return table_class, data, filter_options
@@ -1022,7 +1027,7 @@ def get_ehemalige_table_class(org, request=None):
     
     table_class, data = _create_dynamic_table_class(
         person_clusters, org, Ehemalige, 'ehemalige',
-        base_columns, column_sequence, render_methods, actions_renderer
+        base_columns, column_sequence, render_methods, actions_renderer, view='E'
     )
     
     return table_class, data, filter_options
