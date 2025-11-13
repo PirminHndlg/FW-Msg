@@ -185,6 +185,7 @@ class Bewerber(OrgModel):
         ('add_to_seminar', '<i class="bi bi-plus-circle-fill me-1"></i>Seminar'),
         ('remove_from_seminar', '<i class="bi bi-dash-circle-fill me-1"></i>Seminar'),
         ('send_registration_mail', '<i class="bi bi-envelope-fill me-1"></i>Registrierungsmail'),
+        ('add_to_freiwillige', '<i class="bi bi-person-plus-fill me-1"></i>Zu Freiwilligen hinzufügen'),
     ]
     
     def checkbox_action(self, org, checkbox_submit_text):
@@ -202,6 +203,14 @@ class Bewerber(OrgModel):
             return True
         elif checkbox_submit_text == self.CHECKBOX_ACTION_CHOICES[2][1]:
             self.user.customuser.send_registration_email()
+            return True
+        elif checkbox_submit_text == self.CHECKBOX_ACTION_CHOICES[3][1]:
+            from FW.models import Freiwilliger
+            freiwilliger, created = Freiwilliger.objects.get_or_create(user=self.user, org=org)
+            freiwilliger.einsatzland2 = self.zuteilung.land if self.zuteilung else None
+            freiwilliger.einsatzstelle2 = self.zuteilung if self.zuteilung else None
+            freiwilliger.save()
+            
             return True
         return False
     
