@@ -1607,7 +1607,7 @@ def list_ampel(request):
         person_cluster_param = request.COOKIES.get('selectedPersonCluster-ampel')
     if person_cluster_param is not None and person_cluster_param != 'None':
         try:
-            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org, ampel=True)
         except PersonCluster.DoesNotExist:
             person_cluster = None
     else:
