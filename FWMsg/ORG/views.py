@@ -574,8 +574,11 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
     def set_cookie_for_filter(response, filter):
         if filter['has_active_filter']:
             all_options = filter['options']
-            active_option = [option for option in all_options if option['is_active']][0]
-            response.set_cookie(filter['cookie_name'], active_option['value'])
+            active_option = [option for option in all_options if option['is_active']]
+            if active_option:
+                response.set_cookie(filter['cookie_name'], active_option[0]['value'])
+            else:
+                response.delete_cookie(filter['cookie_name'])
         else:
             response.delete_cookie(filter['cookie_name'])
         return response
