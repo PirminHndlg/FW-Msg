@@ -441,14 +441,49 @@ def serve_dokument(request, dokument_id):
 @login_required
 @required_person_cluster('bilder')
 def bilder(request):
+    cookie_name = 'selectedPersonCluster-bilder'
     
-    gallery_images = get_bilder(request.user.org)
+    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, bilder=True).order_by('name')
+    current_person_cluster = None
+    if request.user.role == 'O':
+        try:
+            person_cluster_param = request.GET.get('person_cluster_filter')
+            if person_cluster_param == 'None':
+                current_person_cluster = None
+            elif person_cluster_param:
+                current_person_cluster = all_person_clusters.get(id=int(person_cluster_param), org=request.user.org)
+            else:
+                person_cluster_cookie = request.COOKIES.get(cookie_name)
+                if person_cluster_cookie is not None and person_cluster_cookie != 'None':
+                    current_person_cluster = all_person_clusters.get(id=int(person_cluster_cookie), org=request.user.org)
+        
+        except PersonCluster.DoesNotExist:
+            current_person_cluster = None
+        except Exception as e:
+            messages.error(request, f'Fehler beim Laden der Bilder: {str(e)}')
+            current_person_cluster = None
+    
+    if current_person_cluster:
+        gallery_images = get_bilder(request.user.org, filter_person_cluster=current_person_cluster)
+    else:
+        gallery_images = get_bilder(request.user.org)
 
-    context={'gallery_images': gallery_images}
+    context = {
+        'gallery_images': gallery_images,
+        'person_clusters': all_person_clusters,
+        'current_person_cluster': current_person_cluster,
+    }
 
     context = check_organization_context(request, context)
 
-    return render(request, 'bilder.html', context=context)
+    response = render(request, 'bilder.html', context=context)
+    
+    if current_person_cluster:
+        response.set_cookie(cookie_name, current_person_cluster.id)
+    else:
+        response.delete_cookie(cookie_name) if cookie_name in request.COOKIES else None
+    
+    return response
 
 @login_required
 @required_person_cluster('bilder')
@@ -789,9 +824,35 @@ def download_bild_as_zip(request, id):
 @login_required
 @required_person_cluster('dokumente')
 def dokumente(request, ordner_id=None):
+    cookie_name = 'selectedPersonCluster-dokumente'
+    
+    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, dokumente=True).order_by('name')
+    current_person_cluster = None
+    if request.user.role == 'O':
+        try:
+            person_cluster_param = request.GET.get('person_cluster_filter')
+            if person_cluster_param == 'None':
+                current_person_cluster = None
+            elif person_cluster_param:
+                    current_person_cluster = all_person_clusters.get(id=int(person_cluster_param), org=request.user.org)
+            else:
+                person_cluster_cookie = request.COOKIES.get(cookie_name)
+                if person_cluster_cookie is not None and person_cluster_cookie != 'None':
+                    current_person_cluster = all_person_clusters.get(id=int(person_cluster_cookie), org=request.user.org)
+        
+        except PersonCluster.DoesNotExist:
+            current_person_cluster = None
+        except Exception as e:
+            messages.error(request, f'Fehler beim Laden der Dokumente: {str(e)}')
+            current_person_cluster = None
+    
+    
     folder_structure = []
 
-    ordners = Ordner2.objects.filter(org=request.user.org).order_by('color', 'ordner_name')
+    if current_person_cluster:
+        ordners = Ordner2.objects.filter(org=request.user.org, typ=current_person_cluster).order_by('color', 'ordner_name')
+    else:
+        ordners = Ordner2.objects.filter(org=request.user.org).order_by('color', 'ordner_name')
     
     for ordner in ordners:
         folder_structure.append({
@@ -805,13 +866,21 @@ def dokumente(request, ordner_id=None):
         'ordners': ordners,
         'folder_structure': folder_structure,
         'ordner_id': ordner_id,
-        'person_clusters': PersonCluster.objects.filter(org=request.user.org, dokumente=True).order_by('name'),
+        'person_clusters': all_person_clusters,
         'colors': colors,
+        'current_person_cluster': current_person_cluster,
     }
 
     context = check_organization_context(request, context)
 
-    return render(request, 'dokumente.html', context=context)
+    response = render(request, 'dokumente.html', context=context)
+    
+    if current_person_cluster:
+        response.set_cookie(cookie_name, current_person_cluster.id)
+    else:
+        response.delete_cookie(cookie_name) if cookie_name in request.COOKIES else None
+    
+    return response
 
 @login_required
 @required_person_cluster('dokumente')
