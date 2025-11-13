@@ -1823,22 +1823,49 @@ def download_aufgabe_attachment(request, aufgabe_id):
 @login_required
 @required_person_cluster('posts')
 def posts_overview(request):
-    # Get the user's person_cluster
-    user_person_cluster = request.user.person_cluster
+    cookie_name = 'selectedPersonCluster-posts'
     
-    # For organization users, they can see all posts
-    if user_person_cluster.view == 'O':
-        posts = get_posts(request.user.org)
+    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, posts=True).order_by('name')
+    current_person_cluster = None
+    if request.user.role == 'O':
+        try:
+            person_cluster_param = request.GET.get('person_cluster_filter')
+            if person_cluster_param == 'None':
+                current_person_cluster = None
+            elif person_cluster_param:
+                current_person_cluster = all_person_clusters.get(id=int(person_cluster_param), org=request.user.org)
+            else:
+                person_cluster_cookie = request.COOKIES.get(cookie_name)
+                if person_cluster_cookie is not None and person_cluster_cookie != 'None':
+                    current_person_cluster = all_person_clusters.get(id=int(person_cluster_cookie), org=request.user.org)
+        
+            posts = get_posts(request.user.org, filter_person_cluster=current_person_cluster)
+        except PersonCluster.DoesNotExist:
+            current_person_cluster = None
+            posts = get_posts(request.user.org)
+        except Exception as e:
+            messages.error(request, f'Fehler beim Laden der Beiträge: {str(e)}')
+            current_person_cluster = None
+            posts = get_posts(request.user.org)
+    
     else:
-        # For regular users, only show posts assigned to their person_cluster
-        # or posts that don't have any specific person_cluster assigned
-        posts = get_posts(request.user.org, filter_person_cluster=user_person_cluster, filter_user=request.user)
+        posts = get_posts(request.user.org, filter_person_cluster=request.user.person_cluster, filter_user=request.user)
     
     context = {
-        'posts': posts
+        'posts': posts,
+        'person_clusters': all_person_clusters,
+        'current_person_cluster': current_person_cluster,
     }
     context = check_organization_context(request, context)
-    return render(request, 'posts_overview.html', context=context)
+    
+    response = render(request, 'posts_overview.html', context=context)
+    
+    if current_person_cluster:
+        response.set_cookie(cookie_name, current_person_cluster.id)
+    else:
+        response.delete_cookie(cookie_name) if cookie_name in request.COOKIES else None
+    
+    return response
 
 @login_required
 @required_person_cluster('posts')
