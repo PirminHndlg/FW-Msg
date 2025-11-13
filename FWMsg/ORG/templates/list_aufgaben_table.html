@@ -670,7 +670,7 @@
     }
 
     // Assign task to all eligible users
-    function assignTaskToAll(aufgabeId) {
+    function assignTaskToAll(aufgabeId, personClusterId) {
         if (confirm('Are you sure you want to assign this task to all eligible users?')) {
             fetch("{% url 'ajax_assign_task_to_all' %}", {
                 method: 'POST',
@@ -679,7 +679,8 @@
                     'X-CSRFToken': csrftoken,
                 },
                 body: JSON.stringify({
-                    aufgabe_id: aufgabeId
+                    aufgabe_id: aufgabeId,
+                    person_cluster_id: personClusterId
                 })
             })
             .then(response => response.json())
