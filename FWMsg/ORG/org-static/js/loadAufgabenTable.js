@@ -91,13 +91,14 @@ function buildUrlWithNext(urlTemplate, id, nextUrl) {
  * Build the complete table HTML from JSON data
  */
 function buildTableFromJSON(data) {
-    const { users, aufgaben, user_aufgaben_matrix, today, current_person_cluster } = data;
+    const { users, aufgaben, user_aufgaben_matrix, today, person_cluster } = data;
+    console.log(data);
     
     const tableHtml = `
         <div class="table-responsive" style="height: 100vh; min-height: 400px">
             <table class="table mb-0 align-middle table-borderless">
                 <thead>
-                    ${buildTableHeader(aufgaben, current_person_cluster)}
+                    ${buildTableHeader(aufgaben, person_cluster)}
                 </thead>
                 <tbody>
                     ${buildTableRows(users, aufgaben, user_aufgaben_matrix, today)}
@@ -113,7 +114,7 @@ function buildTableFromJSON(data) {
 /**
  * Build table header
  */
-function buildTableHeader(aufgaben, current_person_cluster) {
+function buildTableHeader(aufgaben, person_cluster) {
     const aufgabenHeaders = aufgaben.map(aufgabe => `
         <th class="text-center bg-white p-0 sticky-top with-border">
             <div class="d-flex gap-1 align-items-center">
@@ -150,7 +151,7 @@ function buildTableHeader(aufgaben, current_person_cluster) {
                             </a>
                         </li>
                         <li>
-                            <button type="button" class="dropdown-item" onclick="assignTaskToAll('${aufgabe.id}')">
+                            <button type="button" class="dropdown-item" onclick="assignTaskToAll('${aufgabe.id}', '${person_cluster}')">
                                 <i class="bi bi-people-fill"></i> Allen Freiwilligen zuweisen
                             </button>
                         </li>

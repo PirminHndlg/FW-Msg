@@ -86,38 +86,6 @@ def ajax_einsatzstellen_by_land(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-def filter_person_cluster(view_func):
-    @wraps(view_func)
-    def _wrapped_view(request, *args, **kwargs):
-        person_cluster = get_person_cluster(request)
-
-        original_get_queryset_freiwilliger = Freiwilliger.objects.get_queryset
-        original_get_queryset_aufgabe = Aufgabe2.objects.get_queryset
-
-        def get_person_cluster_queryset(manager):
-            base_qs = original_get_queryset_freiwilliger()
-            if person_cluster:
-                return base_qs.filter(user__customuser__person_cluster=person_cluster)
-            return base_qs
-        
-        def get_person_cluster_queryset_aufgabe(manager):
-            base_qs = original_get_queryset_aufgabe()
-            if person_cluster:
-                return base_qs.filter(Q(person_cluster=person_cluster) | Q(person_cluster=None))
-            return base_qs
-    
-        Freiwilliger.objects.get_queryset = get_person_cluster_queryset.__get__(Freiwilliger.objects)
-        Aufgabe2.objects.get_queryset = get_person_cluster_queryset_aufgabe.__get__(Aufgabe2.objects)
-        #CustomUser.objects.get_queryset = get_person_cluster_queryset_user.__get__(CustomUser.objects)
-
-        try:
-            return view_func(request, *args, **kwargs)
-        finally:
-            Freiwilliger.objects.get_queryset = original_get_queryset_freiwilliger
-            Aufgabe2.objects.get_queryset = original_get_queryset_aufgabe
-            
-    return _wrapped_view
-
 def get_filtered_user_queryset(request, requested_view=None):
     view_filter_map = {
             'aufgaben': 'aufgaben',
@@ -2063,6 +2031,7 @@ def ajax_assign_task_to_all(request):
     
     try:
         aufgabe_id = data.get('aufgabe_id')
+        person_cluster_id = data.get('person_cluster_id')
         
         # Get aufgabe and check organization
         aufgabe, error_response = _get_aufgabe_with_org_check(aufgabe_id, request.user.org)
@@ -2071,6 +2040,11 @@ def ajax_assign_task_to_all(request):
         
         # TODO: filter if a filter is applied in the aufgaben table
         users = User.objects.filter(customuser__person_cluster__isnull=False, customuser__org=request.user.org, customuser__person_cluster__in=aufgabe.person_cluster.all())
+        if person_cluster_id and person_cluster_id != 'None':
+            person_cluster = PersonCluster.objects.filter(id=int(person_cluster_id), org=request.user.org)
+            if person_cluster.exists():
+                users = users.filter(customuser__person_cluster=person_cluster.first())
+            
         assigned_count = 0
         error_messages = []
         
@@ -2442,6 +2416,7 @@ def ajax_load_aufgaben_table_data(request):
                 'user_aufgaben_matrix': user_aufgaben_matrix,
                 'countries': list(countries.values('id', 'name')),
                 'today': date.today().isoformat(),
+                'person_cluster': person_cluster.id if person_cluster else None,
             }
         }
         return JsonResponse(response_data)
