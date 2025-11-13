@@ -188,29 +188,29 @@ class Bewerber(OrgModel):
             return ''
     
     CHECKBOX_ACTION_CHOICES = [
-        ('add_to_seminar', '<i class="bi bi-plus-circle-fill me-1"></i>Seminar'),
-        ('remove_from_seminar', '<i class="bi bi-dash-circle-fill me-1"></i>Seminar'),
+        ('add_to_seminar', '<i class="bi bi-plus-circle-fill me-1"></i>Seminar', 'Der:Die Bewerber:in wird zum Seminar hinzugefügt.'),
+        ('remove_from_seminar', '<i class="bi bi-dash-circle-fill me-1"></i>Seminar', 'Der:Die Bewerber:in wird aus dem Seminar entfernt.'),
         ('send_registration_mail', '<i class="bi bi-envelope-fill me-1"></i>Registrierungsmail'),
-        ('add_to_freiwillige', '<i class="bi bi-person-plus-fill me-1"></i>Zu Freiwilligen hinzufügen'),
+        ('add_to_freiwillige', '<i class="bi bi-person-plus-fill me-1"></i>Zu Freiwilligen hinzufügen', 'Der:Die Bewerber:in wird zu der zuletzt erstellten Benutzergruppe Freiwillige hinzugefügt.'),
     ]
     
-    def checkbox_action(self, org, checkbox_submit_text):
-        if checkbox_submit_text == self.CHECKBOX_ACTION_CHOICES[0][1]:
+    def checkbox_action(self, org, checkbox_submit_value):
+        if checkbox_submit_value == self.CHECKBOX_ACTION_CHOICES[0][0]:
             from seminar.models import Seminar
             seminar = Seminar.objects.get(org=org)
             seminar.bewerber.add(self)
             seminar.save()
             return True
-        elif checkbox_submit_text == self.CHECKBOX_ACTION_CHOICES[1][1]:
+        elif checkbox_submit_value == self.CHECKBOX_ACTION_CHOICES[1][0]:
             from seminar.models import Seminar
             seminar = Seminar.objects.get(org=org)
             seminar.bewerber.remove(self)
             seminar.save()
             return True
-        elif checkbox_submit_text == self.CHECKBOX_ACTION_CHOICES[2][1]:
+        elif checkbox_submit_value == self.CHECKBOX_ACTION_CHOICES[2][0]:
             self.user.customuser.send_registration_email()
             return True
-        elif checkbox_submit_text == self.CHECKBOX_ACTION_CHOICES[3][1]:
+        elif checkbox_submit_value == self.CHECKBOX_ACTION_CHOICES[3][0]:
             # Create or update the freiwilliger
             from FW.models import Freiwilliger
             freiwilliger, created = Freiwilliger.objects.get_or_create(user=self.user, org=org)

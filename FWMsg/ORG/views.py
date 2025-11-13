@@ -584,7 +584,7 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
         return response
     
     if model_name.lower() in ['bewerber', 'freiwilliger', 'team', 'ehemalige']:
-        checkbox_submit_texts = [choice[1] for choice in model.CHECKBOX_ACTION_CHOICES] if hasattr(model, 'CHECKBOX_ACTION_CHOICES') else []
+        checkbox_submit_texts = [choice for choice in model.CHECKBOX_ACTION_CHOICES] if hasattr(model, 'CHECKBOX_ACTION_CHOICES') else []
         
         if model_name.lower() == 'freiwilliger':
             table_class, data, filter_options = get_freiwilliger_table_class(request.user.org, request)
@@ -830,8 +830,8 @@ def list_object_checkbox(request, model_name):
             if response:
                 return response
             # do something with the object
-            checkbox_submit_text = request.GET.get('checkbox_submit_text')
-            if hasattr(instance, 'checkbox_action') and not instance.checkbox_action(request.user.org, checkbox_submit_text):
+            checkbox_submit_value = request.GET.get('checkbox_submit_value')
+            if hasattr(instance, 'checkbox_action') and not instance.checkbox_action(request.user.org, checkbox_submit_value):
                 messages.error(request, _('Aktion für {object_name} nicht erfolgreich durchgeführt.').format(object_name=instance._meta.verbose_name))
             else:
                 counter += 1
