@@ -11,8 +11,8 @@ class Ehemalige(OrgModel):
         ('send_registration_mail', '<i class="bi bi-envelope-fill me-1"></i>Registrierungsmail'),
     ]
 
-    def checkbox_action(self, org, checkbox_submit_text):
-        if checkbox_submit_text == self.CHECKBOX_ACTION_CHOICES[0][1]:
+    def checkbox_action(self, org, checkbox_submit_value):
+        if checkbox_submit_value == self.CHECKBOX_ACTION_CHOICES[0][0]:
             self.user.customuser.send_registration_email()
             return True
         return False

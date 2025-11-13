@@ -107,7 +107,7 @@
             {% render_table table %}
             <div class="d-flex justify-content-start m-3 gap-2 flex-wrap">
             {% for checkbox_submit_text in checkbox_submit_texts %}
-                <button type="submit" name="checkbox_submit_text" value="{{ checkbox_submit_text }}" class="btn btn-primary">{{ checkbox_submit_text|safe }}</button>
+                <button type="submit" name="checkbox_submit_text" value="{{ checkbox_submit_text.0 }}" data-helptext="{{ checkbox_submit_text.2 }}" class="btn btn-primary">{{ checkbox_submit_text.1|safe }}</button>
             {% endfor %}
             </div>
         </form>
@@ -122,36 +122,141 @@
 {% include "components/bewerber_kommentar_modal.html" %}
 {% endif %}
 
+<!-- Checkbox Action Confirmation Modal -->
+{% if checkbox_submit_texts %}
+<div class="modal fade" id="checkboxActionModal" tabindex="-1" aria-labelledby="checkboxActionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="checkboxActionModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                    {% trans "Aktion bestätigen" %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">{% trans "Möchten Sie diese Aktion wirklich durchführen?" %}</p>
+                
+                <div class="alert alert-light border rounded-3 mb-3 d-flex align-items-center gap-2">
+                    <strong>{% trans "Aktion:" %}</strong>
+                    <div id="modalActionName" class="text-wrap bg-primary text-white p-2 rounded-3"></div>
+                </div>
+
+                <div class="alert alert-light border rounded-3 mb-3" id="modalActionTooltipContainer">
+                    <strong>{% trans "Information:" %}</strong>
+                    <div id="modalActionHelpText" class="text-wrap ms-2"></div>
+                </div>
+                
+                <p class="mb-2"><strong>{% trans "Ausgewählte Objekte:" %}</strong></p>
+                <div class="border rounded-3 p-3 bg-light" style="max-height: 300px; overflow-y: auto;">
+                    <ul id="modalObjectList" class="list-unstyled mb-0">
+                        <!-- Objects will be inserted here by JavaScript -->
+                    </ul>
+                </div>
+                
+                <div class="alert alert-warning mt-3 mb-0 d-flex align-items-center">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    <small>{% trans "Diese Aktion kann nicht rückgängig gemacht werden!" %}</small>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>{% trans "Abbrechen" %}
+                </button>
+                <button type="button" class="btn btn-primary rounded-3" id="confirmCheckboxAction">
+                    <i class="bi bi-check-circle me-1"></i>{% trans "Bestätigen" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 
 <script>
 
     {% if checkbox_submit_texts %}
+    let currentForm = null;
+    let currentButtonValue = null;
+    
     function checkboxAction(event, button) {
         event.preventDefault();
         
-        let checkboxSubmitText = button.value;
-        // remove the <i class="bi bi-..."></i> from the checkboxSubmitText
-        let cleanCheckboxSubmitText = checkboxSubmitText.replace(/<i class="bi bi-[^"]*"><\/i>/g, '');
-
-        let confirmText = `{% trans "Möchten Sie diese Aktion wirklich durchführen?" %}\n\n-${cleanCheckboxSubmitText}-\n\n{% trans "Diese Aktion kann nicht rückgängig gemacht werden!" %}`;
-        
         let form = button.closest('form');
-        let conf = confirm(confirmText);
-        if (conf && form) {
-            // Add a hidden input with the button value since form.submit() doesn't include the clicked button
-            let hiddenInput = document.createElement('input');
-            hiddenInput.type = 'hidden';
-            hiddenInput.name = 'checkbox_submit_text';
-            hiddenInput.value = checkboxSubmitText;
-            form.appendChild(hiddenInput);
-            form.submit();
+        if (!form) return;
+        
+        // Get all checked checkboxes
+        let checkedBoxes = form.querySelectorAll('input[name="checkbox"]:checked');
+        
+        if (checkedBoxes.length === 0) {
+            alert('{% trans "Bitte wählen Sie mindestens ein Objekt aus." %}');
+            return;
         }
+        
+        let checkboxSubmitValue = button.getAttribute('value');
+        let checkboxSubmitLabel = button.textContent;
+        let checkboxSubmitHelpText = button.getAttribute('data-helptext');
+
+        // Store form and button value for later submission
+        currentForm = form;
+        currentButtonValue = checkboxSubmitValue;
+        
+        // Update modal with action name (keep HTML for icons)
+        document.getElementById('modalActionName').innerHTML = checkboxSubmitLabel;
+
+        // Show tooltip container
+        if (checkboxSubmitHelpText) {
+            // Show tooltip container
+            document.getElementById('modalActionTooltipContainer').classList.remove('d-none');
+            document.getElementById('modalActionHelpText').innerHTML = checkboxSubmitHelpText;
+        }
+        
+        // Collect selected objects (second td in each checked row)
+        let objectList = document.getElementById('modalObjectList');
+        objectList.innerHTML = '';
+        
+        checkedBoxes.forEach(function(checkbox) {
+            let row = checkbox.closest('tr');
+            if (row) {
+                // Get the second td (first one after the checkbox)
+                let tds = row.querySelectorAll('td');
+                if (tds.length > 1) {
+                    let objectName = tds[1].textContent.trim();
+                    let li = document.createElement('li');
+                    li.className = 'mb-2 d-flex align-items-center';
+                    li.innerHTML = '<i class="bi bi-circle-fill me-2" style="font-size: 6px;"></i><span>' + objectName + '</span>';
+                    objectList.appendChild(li);
+                }
+            }
+        });
+        
+        // Show the modal
+        let modal = new bootstrap.Modal(document.getElementById('checkboxActionModal'));
+        modal.show();
     }
+    
     document.addEventListener('DOMContentLoaded', function() {
+        // Attach click handlers to checkbox action buttons
         document.querySelectorAll('button[name="checkbox_submit_text"]').forEach(function(button) {
             button.addEventListener('click', function(event) {
                 checkboxAction(event, button);
             });
+        });
+        
+        // Handle modal confirm button
+        document.getElementById('confirmCheckboxAction').addEventListener('click', function() {
+            if (currentForm && currentButtonValue) {
+                // Add a hidden input with the button value since form.submit() doesn't include the clicked button
+                let hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'checkbox_submit_value';
+                hiddenInput.value = currentButtonValue;
+                currentForm.appendChild(hiddenInput);
+                
+                // Close modal and submit form
+                bootstrap.Modal.getInstance(document.getElementById('checkboxActionModal')).hide();
+                currentForm.submit();
+            }
         });
     });
     {% endif %}

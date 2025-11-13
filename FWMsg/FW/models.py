@@ -22,11 +22,11 @@ class Freiwilliger(OrgModel):
     history = HistoricalRecords()
     
     CHECKBOX_ACTION_CHOICES = [
-        ('add_to_ehemalige', '<i class="bi bi-person-plus-fill me-1"></i>Zu Ehemaligen hinzufügen'),
+        ('add_to_ehemalige', '<i class="bi bi-person-plus-fill me-1"></i>Zu Ehemaligen hinzufügen', 'Der:Die Freiwillige:r wird zu der zuletzt erstellten Benutzergruppe Ehemalige hinzugefügt.'),
     ]
     
-    def checkbox_action(self, org, checkbox_submit_text):
-        if checkbox_submit_text == self.CHECKBOX_ACTION_CHOICES[0][1]:
+    def checkbox_action(self, org, checkbox_submit_value):
+        if checkbox_submit_value == self.CHECKBOX_ACTION_CHOICES[0][0]:
             from Ehemalige.models import Ehemalige
             ehemalige, created = Ehemalige.objects.get_or_create(user=self.user, org=org)
             if created:
