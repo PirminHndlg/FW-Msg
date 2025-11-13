@@ -533,8 +533,18 @@ def _create_dynamic_table_class(
         'per_page': 100
     })
     
-    # Add attribute columns dynamically
     final_column_sequence = column_sequence.copy()
+    
+    model = model_class()
+    if hasattr(model, 'CHECKBOX_ACTION_CHOICES') and hasattr(model, 'checkbox_action'):
+        table_attrs['checkbox'] = MaterializeCssCheckboxColumn(
+            verbose_name=_('Ausgewählt'),
+            accessor=f'{model_name}.id',
+            orderable=False
+        )
+        final_column_sequence.insert(0, 'checkbox')
+    
+    # Add attribute columns dynamically
     for attribute in attributes:
         column_name = f'attr_{attribute.id}'
         AttributeColumnClass = make_attribute_column(attribute.name)
@@ -790,11 +800,6 @@ def get_bewerber_table_class(org, request=None):
     
     # Define base columns
     base_columns = {
-        'checkbox': MaterializeCssCheckboxColumn(
-            verbose_name=_('Ausgewählt'),
-            accessor='bewerber.id',
-            orderable=False
-        ),
         'user': tables.Column(
             verbose_name=_('Benutzer'),
             accessor='bewerber.user',
@@ -817,7 +822,7 @@ def get_bewerber_table_class(org, request=None):
         ),
     }
     
-    column_sequence = ['checkbox', 'user', 'application_pdf', 'has_seminar', 'interview_persons']
+    column_sequence = ['user', 'application_pdf', 'has_seminar', 'interview_persons']
     
     render_methods = {
         'render_user': render_user,
@@ -995,11 +1000,6 @@ def get_ehemalige_table_class(org, request=None):
     
     # Define base columns
     base_columns = {
-        'checkbox': MaterializeCssCheckboxColumn(
-            verbose_name=_('Ausgewählt'),
-            accessor='ehemalige.id',
-            orderable=False
-        ),
         'user': tables.Column(
             verbose_name=_('Benutzer'),
             accessor='ehemalige.user',
@@ -1012,7 +1012,7 @@ def get_ehemalige_table_class(org, request=None):
         ),
     }
     
-    column_sequence = ['checkbox', 'user', 'land']
+    column_sequence = ['user', 'land']
     
     render_methods = {
         'render_user': render_user,

@@ -182,12 +182,12 @@ class Bewerber(OrgModel):
         return Seminar.objects.filter(org=self.org, bewerber=self).exists()
     
     CHECKBOX_ACTION_CHOICES = [
-        ('add_to_seminar', 'Zum Seminar hinzufügen'),
-        ('remove_from_seminar', 'Vom Seminar entfernen'),
-        ('send_registration_mail', 'Registrierungsmail senden'),
+        ('add_to_seminar', '<i class="bi bi-plus-circle-fill me-1"></i>Seminar'),
+        ('remove_from_seminar', '<i class="bi bi-dash-circle-fill me-1"></i>Seminar'),
+        ('send_registration_mail', '<i class="bi bi-envelope-fill me-1"></i>Registrierungsmail'),
     ]
     
-    def default_checkbox_action(self, org, checkbox_submit_text):
+    def checkbox_action(self, org, checkbox_submit_text):
         if checkbox_submit_text == self.CHECKBOX_ACTION_CHOICES[0][1]:
             from seminar.models import Seminar
             seminar = Seminar.objects.get(org=org)

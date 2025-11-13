@@ -862,7 +862,7 @@ def list_object_checkbox(request, model_name):
                 return response
             # do something with the object
             checkbox_submit_text = request.GET.get('checkbox_submit_text')
-            if hasattr(instance, 'default_checkbox_action') and not instance.default_checkbox_action(request.user.org, checkbox_submit_text):
+            if hasattr(instance, 'checkbox_action') and not instance.checkbox_action(request.user.org, checkbox_submit_text):
                 messages.error(request, _('Aktion für {object_name} nicht erfolgreich durchgeführt.').format(object_name=instance._meta.verbose_name))
             else:
                 counter += 1
