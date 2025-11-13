@@ -605,17 +605,24 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
     from django_tables2 import RequestConfig
     from .tables import MODEL_TABLE_MAPPING, get_bewerber_table_class, get_freiwilliger_table_class, get_team_table_class, get_ehemalige_table_class
     
+    def set_cookie_for_filter(response, filter):
+        if filter['has_active_filter']:
+            all_options = filter['options']
+            active_option = [option for option in all_options if option['is_active']][0]
+            response.set_cookie(filter['cookie_name'], active_option['value'])
+        else:
+            response.delete_cookie(filter['cookie_name']) if filter['cookie_name'] in response.cookies else None
+        return response
+    
     if model_name.lower() in ['bewerber', 'freiwilliger', 'team', 'ehemalige']:
         checkbox_submit_text = None
         
         if model_name.lower() == 'freiwilliger':
             table_class, data, filter_options = get_freiwilliger_table_class(request.user.org, request)
         elif model_name.lower() == 'team':
-            table_class, data = get_team_table_class(request.user.org)
-            filter_options = None
+            table_class, data, filter_options = get_team_table_class(request.user.org, request)
         elif model_name.lower() == 'ehemalige':
-            table_class, data = get_ehemalige_table_class(request.user.org)
-            filter_options = None
+            table_class, data, filter_options = get_ehemalige_table_class(request.user.org, request)
         else:
             checkbox_submit_text = 'Zum Seminar hinzufügen'
             table_class, data, filter_options = get_bewerber_table_class(request.user.org, request)
@@ -637,7 +644,7 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
         # Check if any filter is active
         has_active_filters = any(f.get('has_active_filter', False) for f in filter_options) if filter_options else False
         
-        return render(request, 'list_objects_table.html', {
+        response = render(request, 'list_objects_table.html', {
             'table': table,
             'model_name': model_name,
             'verbose_name': model._meta.verbose_name_plural,
@@ -650,6 +657,12 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
             'filter_options': filter_options,
             'has_active_filters': has_active_filters
         })
+        
+        for filter in filter_options:
+            print(filter)
+            response = set_cookie_for_filter(response, filter)
+            
+        return response
     
     # Get base queryset with organization filter
     objects = model.objects.filter(org=request.user.org)
@@ -676,7 +689,7 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
             filter_options.append(pc_filter)
             if selected_cluster:
                 objects = objects.filter(person_cluster=selected_cluster).distinct()
-    
+
     # Count total objects before search filtering
     total_objects_count = objects.count()
     
@@ -704,7 +717,7 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
     # Check if any filter is active
     has_active_filters = any(f.get('has_active_filter', False) for f in filter_options) if filter_options else False
 
-    return render(request, 'list_objects_table.html', {
+    response = render(request, 'list_objects_table.html', {
         'table': table,
         'model_name': model_name,
         'verbose_name': model._meta.verbose_name_plural,
@@ -716,6 +729,11 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
         'has_active_filters': has_active_filters
     })
 
+    # Set cookies for filters
+    for filter in filter_options:
+        response = set_cookie_for_filter(response, filter)
+    
+    return response
 
 def _apply_search_filter(queryset, model, search_query):
     """Apply search filter to queryset based on searchable fields"""
