@@ -592,7 +592,7 @@ def get_freiwilliger_table_class(org, request=None):
     filter_options = []
     
     # Build PersonCluster filter for Freiwillige (view='F')
-    pc_filter, filter_field = build_person_cluster_filter(request, org, view='F', min_clusters=2)
+    pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='F', min_clusters=2)
     
     if pc_filter:
         filter_options.append(pc_filter)
@@ -679,16 +679,10 @@ def get_freiwilliger_table_class(org, request=None):
     
     render_methods = {'render_user': render_user}
     
-    person_clusters = PersonCluster.objects.filter(org=org, view='F')
-    # Determine which person_cluster to use:
-    # - If filter_options exist and a filter is selected, use filter_field
-    # - If filter_options exist but no filter is selected (Alle), use None to show all
-    # - If no filter_options, use the person_cluster from cookie
-    if filter_options:
-        # Filter is available
-        if filter_field:
-            # Specific cluster selected
-            person_clusters = [filter_field]
+    person_clusters = None
+    # If a filter is selected, use filter_person_cluster
+    if filter_person_cluster:
+        person_clusters = [filter_person_cluster]
     
     table_class, data = _create_dynamic_table_class(
         person_clusters, org, Freiwilliger, 'freiwilliger',
@@ -937,8 +931,6 @@ def get_team_table_class(org, request=None):
         
     if filter_person_cluster:
         person_clusters = [filter_person_cluster]
-    else:
-        person_clusters = PersonCluster.objects.filter(org=org, view='T')
     
     # Define sortable fields extractor
     def extract_sortable_fields(obj):
@@ -1027,8 +1019,6 @@ def get_ehemalige_table_class(org, request=None):
         
     if filter_person_cluster:
         person_clusters = [filter_person_cluster]
-    else:
-        person_clusters = PersonCluster.objects.filter(org=org, view='E')
     
     # Define sortable fields extractor
     def extract_sortable_fields(obj):
