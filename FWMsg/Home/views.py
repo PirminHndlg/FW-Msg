@@ -65,8 +65,8 @@ def index(request):
             # First check if input is an email
             if _is_email(username):
                 try:
-                    # Get the user by email
-                    email_user = get_user_model().objects.get(email=username)
+                    # Get the user by email (case-insensitive)
+                    email_user = get_user_model().objects.get(email__iexact=username)
                     # Then authenticate with the username and password
                     user = authenticate(username=email_user.username, password=password)
                     
@@ -211,7 +211,7 @@ def first_login(request, username=None, einmalpasswort=None):
             
             try:
                 if _is_email(user_name):
-                    user = User.objects.get(email=user_name)
+                    user = User.objects.get(email__iexact=user_name)
                 else:
                     user = User.objects.get(username=user_name)
             except User.DoesNotExist:
@@ -260,7 +260,7 @@ def password_reset(request):
         if form.is_valid():
             email = form.cleaned_data['email']
             try:
-                user = User.objects.get(email=email)
+                user = User.objects.get(email__iexact=email)
                 messages.success(request, 'Eine E-Mail mit einem Link zum Zurücksetzen des Passworts wurde an die angegebene E-Mail-Adresse gesendet.')
                 user.customuser.send_registration_email()
                 return redirect('first_login')
