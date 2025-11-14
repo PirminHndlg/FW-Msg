@@ -50,6 +50,45 @@ class CustomUserAdmin(SimpleHistoryAdmin):
     get_last_login.short_description = 'Last Login'
     get_last_login.admin_order_field = 'user__last_login'
 
+    def get_queryset(self, request):
+        """Override to handle custom ordering for online status."""
+        from django.db.models import Case, When, Value, F
+        from django.db.models.functions import Coalesce
+        
+        qs = super().get_queryset(request)
+        
+        # Check if we're sorting by online status (last_seen)
+        ordering = request.GET.get('o', '')
+        
+        if ordering:
+            # Parse the ordering parameter (e.g., '4' for ascending, '-4' for descending)
+            # where the number corresponds to the column index
+            try:
+                order_field_index = int(ordering.lstrip('-'))
+                is_descending = ordering.startswith('-')
+                
+                # Get the list of fields in list_display to match index
+                list_display_fields = self.get_list_display(request)
+                
+                # Check if the ordering is on get_online_status_display
+                if order_field_index < len(list_display_fields):
+                    field_name = list_display_fields[order_field_index]
+                    
+                    if field_name == 'get_online_status_display':
+                        # Custom ordering for online status:
+                        # For ascending: most recent first (online first), NULL last (nie online last)
+                        # For descending: NULL first (nie online first), oldest first
+                        if is_descending:
+                            # Descending: NULL first, then oldest to newest
+                            qs = qs.order_by(F('last_seen').asc(nulls_first=True))
+                        else:
+                            # Ascending: newest to oldest (online first), NULL last
+                            qs = qs.order_by(F('last_seen').desc(nulls_last=True))
+            except (ValueError, IndexError):
+                pass
+        
+        return qs
+
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
