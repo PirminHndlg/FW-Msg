@@ -64,7 +64,7 @@
     {% if user.ehemalige.land.exists %}
     <div class="d-flex align-items-center">
       {% for land in user.ehemalige.land.all %}
-        <span class="fi fi-{{ land.code|lower }} me-2" style="font-size: 2rem;"></span>
+        <span class="fi fi-{{ land.code|lower }} me-2 border" style="font-size: 2rem;"></span>
       {% endfor %}
       </div>
     {% endif %}
