@@ -600,7 +600,64 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
         if search_query:
             search_lower = search_query.lower()
             # search in every field of the data
-            data = [d for d in data if any(search_lower in str(value).lower() for value in d.values())]
+            for d in data:
+                print(d)
+            # print accessors of table_class
+            print(table_class.base_columns.keys())
+            
+            # Helper function to extract searchable text from any value
+            def get_searchable_text(value):
+                """Extract all searchable text from a value, handling special cases."""
+                texts = []
+                
+                if isinstance(value, dict):
+                    # Extract all values from dict (e.g., attributes)
+                    texts.extend(str(v) for v in value.values())
+                elif isinstance(value, (str, int, float)):
+                    # Simple values
+                    texts.append(str(value))
+                elif hasattr(value, '__class__') and hasattr(value.__class__, '__name__'):
+                    # It's an object - extract from table columns
+                    for column_name in table_class.base_columns.keys():
+                        try:
+                            attr = getattr(value, column_name, None)
+                            if attr is None:
+                                continue
+                            
+                            # Skip file fields (FileField, ImageField)
+                            if hasattr(attr, 'url') and hasattr(attr, 'path'):
+                                continue
+                            
+                            # ManyToMany or ForeignKey with .all()
+                            if hasattr(attr, 'all') and callable(attr.all):
+                                texts.extend(str(obj) for obj in attr.all())
+                            # Callable method
+                            elif callable(attr):
+                                try:
+                                    texts.append(str(attr()))
+                                except:
+                                    pass
+                            # Regular attribute
+                            else:
+                                texts.append(str(attr))
+                        except:
+                            pass
+                
+                return ' '.join(texts).lower()
+            
+            # Search and filter data
+            new_data = []
+            for row in data:
+                # Get all searchable text from all values in the row
+                searchable_text = ' '.join(get_searchable_text(v) for v in row.values())
+                
+                # Check if search query is in the searchable text
+                if search_lower in searchable_text:
+                    # print(f"Match found for '{search_query}' in:", row.get('user_sort', row))
+                    # print(f"Searchable text: {searchable_text[:200]}...")  # Print first 200 chars
+                    new_data.append(row)
+            
+            data = new_data
         
         # Sort data by default if no sort parameter is provided
         if not request.GET.get('sort'):
