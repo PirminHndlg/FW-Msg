@@ -96,9 +96,9 @@ class Bewertung(OrgModel):
             + " "
             + self.bewerter.last_name
             + " - "
-            + self.bewerber.first_name
+            + self.bewerber.user.first_name
             + " "
-            + self.bewerber.last_name
+            + self.bewerber.user.last_name
             + " - "
             + self.frage.text
         )
@@ -142,9 +142,9 @@ class Kommentar(OrgModel):
             + " "
             + self.bewerter.last_name
             + " - "
-            + self.bewerber.first_name
+            + self.bewerber.user.first_name
             + " "
-            + self.bewerber.last_name
+            + self.bewerber.user.last_name
             + " - "
             + self.text
         )
