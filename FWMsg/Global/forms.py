@@ -105,6 +105,7 @@ class AddPostForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['title'].widget.attrs.update({'placeholder': _('Titel des Beitrags')})
+        self.fields['text'].required = False
         self.fields['text'].widget.attrs.update({'placeholder': _('Inhalt des Beitrags')})
         self.fields['person_cluster'].widget.attrs.update({'class': 'form-check-input'})
 

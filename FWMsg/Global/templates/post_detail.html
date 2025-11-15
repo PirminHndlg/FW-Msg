@@ -57,12 +57,14 @@
               </div>
             </div>
 
+            {% if post.text %}
             <div class="mb-4">
               <h5 class="form-label fw-semibold text-primary">{% trans 'Inhalt' %}</h5>
               <div class="p-4 bg-light rounded-3 border-start border-primary border-3">
                 <div class="post-content">{{ post.text|format_text_with_link|safe }}</div>
               </div>
             </div>
+            {% endif %}
 
             {% if post.has_survey and post.survey_question %}
               <div class="mt-5 mb-4">

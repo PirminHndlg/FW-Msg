@@ -906,7 +906,7 @@ class UserAufgabenZwischenschritte(OrgModel):
 class Post2(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer', help_text='Benutzer, der den Post erstellt hat')
     title = models.CharField(max_length=50, verbose_name='Post-Titel', help_text='Titel des Posts')
-    text = models.TextField(verbose_name='Text', help_text='Text des Posts')
+    text = models.TextField(verbose_name='Text', help_text='Text des Posts', null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
     date_updated = models.DateTimeField(auto_now=True, verbose_name='Aktualisiert am')
     has_survey = models.BooleanField(default=False, verbose_name='Umfrage', help_text='Post enthält eine Umfrage')

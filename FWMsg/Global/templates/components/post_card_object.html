@@ -31,11 +31,13 @@
         </div>
       </div>
       <div class="card-body p-3">
+        {% if post.text %}
         <a href="{% url 'post_detail' post.id %}" class="text-decoration-none text-dark">
           <div class="bg-light rounded-3 p-3 border-start border-primary border-3 mb-3">
             <p class="card-text mb-0">{{ post.text|truncatewords:30 }}</p>
           </div>
         </a>
+        {% endif %}
 
         {% if post.has_survey %}
           <a href="{% url 'post_detail' post.id %}" class="text-decoration-none text-dark">
