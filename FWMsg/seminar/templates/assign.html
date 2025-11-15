@@ -221,7 +221,7 @@
 
                             <!-- Laender quick access-->
                             {% for land in laender %}
-                                <a href="#{{ land.land.id }}" class="border rounded p-1">
+                                <a href="#{{ land.land.id }}" class="border rounded p-1" data-einsatzland="{{ land.land.id }}">
                                     <span class="fi fi-{{ land.land.code|lower }} me-2"></span>{{ land.land.code }}
                                 </a>
                             {% endfor %}
@@ -288,13 +288,13 @@
                                                             <div class="small text-primary">Note: {{ freiwilliger.note|myround:1 }}</div>
                                                         {% endif %}
                                                         <div class="wish-list">
-                                                            <div class="small">
+                                                            <div class="small" data-einsatzland-first="{{ freiwilliger.first_wish_einsatzland.id }}">
                                                                 1) {% if freiwilliger.first_wish_einsatzstelle %}{{ freiwilliger.first_wish_einsatzstelle }}{% elif freiwilliger.first_wish_einsatzland %}{{ freiwilliger.first_wish_einsatzland }}{% else %}{{ freiwilliger.first_wish }}{% endif %}
                                                             </div>
-                                                            <div class="small">
+                                                            <div class="small" data-einsatzland-second="{{ freiwilliger.second_wish_einsatzland.id }}">
                                                                 2) {% if freiwilliger.second_wish_einsatzstelle %}{{ freiwilliger.second_wish_einsatzstelle }}{% elif freiwilliger.second_wish_einsatzland %}{{ freiwilliger.second_wish_einsatzland }}{% else %}{{ freiwilliger.second_wish }}{% endif %}
                                                             </div>
-                                                            <div class="small">
+                                                            <div class="small" data-einsatzland-third="{{ freiwilliger.third_wish_einsatzland.id }}">
                                                                 3) {% if freiwilliger.third_wish_einsatzstelle %}{{ freiwilliger.third_wish_einsatzstelle }}{% elif freiwilliger.third_wish_einsatzland %}{{ freiwilliger.third_wish_einsatzland }}{% else %}{{ freiwilliger.third_wish }}{% endif %}
                                                             </div>
                                                             {% if freiwilliger.no_wish %}
@@ -428,6 +428,10 @@
                 document.querySelectorAll('.position-slot').forEach(slot => {
                     slot.classList.remove('drop-target');
                 });
+                // Reset volunteer filtering
+                document.querySelectorAll('.volunteer-card').forEach(card => {
+                    card.style.display = '';
+                });
                 return;
             }
             // Remove previous selection
@@ -439,12 +443,52 @@
             if (positionSlot) {
                 positionSlot.classList.add('drop-target');
                 selectedPosition = positionId;
+                
+                // Find the country (land) ID for this position
+                const positionSection = document.querySelector(`[data-position-id="${positionId}"]`);
+                const countrySection = positionSection.closest('.country-section');
+                const landId = countrySection ? countrySection.id : null;
+                
+                // Filter volunteers who have this position or country in their wishes
+                filterVolunteersByPosition(positionId, landId);
             }
             
             // Auto-assign if volunteer is already selected
             if (selectedVolunteer) {
                 assignVolunteer();
             }
+        }
+
+        function filterVolunteersByPosition(positionId, landId) {
+            const volunteerCards = document.querySelectorAll('.volunteer-card');
+            
+            volunteerCards.forEach(card => {
+                const firstWishStelle = card.dataset.firstWishStelle;
+                const secondWishStelle = card.dataset.secondWishStelle;
+                const thirdWishStelle = card.dataset.thirdWishStelle;
+                const firstWishLand = card.dataset.firstWishLand;
+                const secondWishLand = card.dataset.secondWishLand;
+                const thirdWishLand = card.dataset.thirdWishLand;
+                
+                // Check if volunteer has this position or country in any wish
+                const hasPosition = 
+                    firstWishStelle == positionId || 
+                    secondWishStelle == positionId || 
+                    thirdWishStelle == positionId;
+                
+                const hasCountry = landId && (
+                    firstWishLand == landId || 
+                    secondWishLand == landId || 
+                    thirdWishLand == landId
+                );
+                
+                // Show only matching volunteers
+                if (hasPosition || hasCountry) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
         }
 
         function highlightMatchingPositions(volunteerCard) {
@@ -495,6 +539,7 @@
                 selectedPosition = null;
                 document.querySelectorAll('.volunteer-card').forEach(card => {
                     card.classList.remove('selected');
+                    card.style.display = ''; // Reset filtering
                 });
                 document.querySelectorAll('.position-slot').forEach(slot => {
                     slot.classList.remove('drop-target');
