@@ -48,7 +48,7 @@
                         </div>
                         
                         <div class="mb-4">
-                            <h5 class="form-label fw-semibold text-primary">{% trans "Inhalt" %} <span class="text-danger">*</span></h5>
+                            <h5 class="form-label fw-semibold text-primary">{% trans "Inhalt" %}</h5>
                             {{ form.text|add_class:"form-control rounded-3"|attr:"rows:15" }}
                             {% if form.text.errors %}
                                 <div class="invalid-feedback d-block">{{ form.text.errors }}</div>

@@ -1974,8 +1974,10 @@ def post_add(request, post=None):
 
             # Save person_cluster
             person_cluster = form.cleaned_data.get('person_cluster')
-            if person_cluster:
+            if request.user.role == 'O' and person_cluster:
                 post.person_cluster.set(person_cluster)
+            else: 
+                post.person_cluster.set([request.user.customuser.person_cluster])
 
             # Explicitly save the ManyToManyField after saving the post
             form.save_m2m()
