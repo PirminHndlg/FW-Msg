@@ -8,7 +8,7 @@
               <span class="post-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"><i class="bi bi-journal-text text-white"></i></span>
               <h5 class="card-title mb-0 fw-semibold">{{ post.title }}</h5>
               {% if post.has_survey %}
-                <span class="badge bg-info ms-2" title="{% trans 'Enthält eine Umfrage' %}"><i class="bi bi-bar-chart-fill"></i></span>
+                <span class="badge bg-primary ms-2" title="{% trans 'Enthält eine Umfrage' %}"><i class="bi bi-bar-chart-fill"></i></span>
               {% endif %}
             </div>
           </a>
@@ -41,9 +41,9 @@
 
         {% if post.has_survey %}
           <a href="{% url 'post_detail' post.id %}" class="text-decoration-none text-dark">
-            <div class="survey-preview mt-3 rounded-3 p-2 bg-info bg-opacity-10 border-start border-info border-3">
+            <div class="survey-preview mt-3 rounded-3 p-2 bg-primary-subtle bg-opacity-10 border-start border-primary border-3">
               <div class="d-flex align-items-center">
-                <i class="bi bi-bar-chart-fill text-info me-2"></i>
+                <i class="bi bi-bar-chart-fill text-primary me-2"></i>
                 <p class="mb-0">
                   {% trans 'Dieser Beitrag enthält eine Umfrage' %}
                 </p>

@@ -2061,22 +2061,33 @@ def post_vote(request, post_id):
         messages.error(request, 'Diese Umfrage existiert nicht oder wurde entfernt.')
         return redirect('post_detail', post_id=post_id)
     
-    # Process the vote
+    # Check if user wants to withdraw their vote
+    withdraw = request.POST.get('withdraw')
+    if withdraw:
+        # Remove user's vote from all answers in this survey
+        for existing_answer in post.survey_question.survey_answers.all():
+            if request.user in existing_answer.votes.all():
+                existing_answer.votes.remove(request.user)
+        return redirect('post_detail', post_id=post_id)
+    
+    # Process the vote (allow changing votes)
     answer_id = request.POST.get('answer_id')
     if answer_id:
         try:
             answer = PostSurveyAnswer.objects.get(id=answer_id, question=post.survey_question)
-            if request.user in answer.votes.all():
-                messages.info(request, 'Du hast bereits an dieser Umfrage teilgenommen.')
-                return redirect('post_detail', post_id=post_id)
             
-            # Add user to the votes ManyToManyField of this answer
+            # Remove user's previous vote from all answers in this survey
+            for existing_answer in post.survey_question.survey_answers.all():
+                if request.user in existing_answer.votes.all():
+                    existing_answer.votes.remove(request.user)
+            
+            # Add user to the votes ManyToManyField of the selected answer
             answer.votes.add(request.user)
             
         except PostSurveyAnswer.DoesNotExist:
             messages.error(request, 'Die gewählte Antwort existiert nicht.')
     else:
-        messages.error(request, 'Bitte wählen Sie eine Antwort aus.')
+        messages.error(request, 'Bitte wähle eine Antwort aus.')
     
     return redirect('post_detail', post_id=post_id)
 
