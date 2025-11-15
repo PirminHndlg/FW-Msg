@@ -330,39 +330,64 @@
                             <div class="tab-pane fade" id="assigned">
                                 <div class="p-3 volunteers-list">
                                     {% for freiwilliger in freiwillige_mit_zuteilung %}
-                                        <div class="card mb-2 rounded-4 border-success">
-                                            <div class="card-body p-2">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="position-relative me-3">
-                                                        <img src="{% url 'serve_profil_picture' freiwilliger.user.id %}" 
-                                                             class="volunteer-avatar" 
-                                                             alt="{{ freiwilliger.user.first_name }}"
-                                                             onerror="this.src='{% static 'img/default_img.png' %}'">
-                                                        {% if freiwilliger.endbewertung %}
-                                                            <div class="evaluation-badge evaluation-{{ freiwilliger.endbewertung }}"></div>
-                                                        {% endif %}
-                                                    </div>
-                                                    <div class="flex-grow-1">
-                                                        <div class="fw-bold">{{ freiwilliger.user.first_name }} {{ freiwilliger.user.last_name.0 }}.</div>
-                                                        <div class="small text-success">
-                                                            <a href="#{{ freiwilliger.zuteilung.land.id }}" class="text-success">
-                                                                <i class="bi bi-geo-alt me-1"></i>
-                                                                {{ freiwilliger.zuteilung.name }}
-                                                            </a>
-                                                        </div>
-                                                        {% if freiwilliger.note %}
-                                                            <div class="small text-primary">Note: {{ freiwilliger.note|myround:1 }}</div>
-                                                        {% endif %}
-                                                    </div>
-                                                    <div class="ms-2">
-                                                        <button class="btn btn-sm btn-outline-danger" 
-                                                                onclick="removeAssignment({{ freiwilliger.id }})">
-                                                            <i class="bi bi-x-circle"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div class="volunteer-card card mb-2 rounded-4" 
+                                    data-volunteer-id="{{ freiwilliger.id }}"
+                                    data-first-wish-land="{{ freiwilliger.first_wish_einsatzland.id|default:'' }}"
+                                    data-first-wish-stelle="{{ freiwilliger.first_wish_einsatzstelle.id|default:'' }}"
+                                    data-second-wish-land="{{ freiwilliger.second_wish_einsatzland.id|default:'' }}"
+                                    data-second-wish-stelle="{{ freiwilliger.second_wish_einsatzstelle.id|default:'' }}"
+                                    data-third-wish-land="{{ freiwilliger.third_wish_einsatzland.id|default:'' }}"
+                                    data-third-wish-stelle="{{ freiwilliger.third_wish_einsatzstelle.id|default:'' }}"
+                                    data-no-wish-land="{{ freiwilliger.no_wish_einsatzland.id|default:'' }}"
+                                    data-no-wish-stelle="{{ freiwilliger.no_wish_einsatzstelle.id|default:'' }}"
+                                    onclick="selectVolunteer({{ freiwilliger.id }})">
+                                   <div class="card-body p-2">
+                                       <div class="d-flex align-items-center">
+                                           <div class="position-relative me-3">
+                                               <img src="{% url 'serve_profil_picture' freiwilliger.user.id %}" 
+                                                    class="volunteer-avatar" 
+                                                    alt="{{ freiwilliger.user.first_name }}"
+                                                    onerror="this.src='{% static 'img/default_img.png' %}'">
+                                               {% if freiwilliger.endbewertung %}
+                                                   <div class="evaluation-badge evaluation-{{ freiwilliger.endbewertung }}"></div>
+                                               {% endif %}
+                                           </div>
+                                           <div class="flex-grow-1">
+                                               <div class="fw-bold">{{ freiwilliger.user.first_name }} {{ freiwilliger.user.last_name.0 }}.</div>
+                                               {% if freiwilliger.note %}
+                                                   <div class="small text-primary">Note: {{ freiwilliger.note|myround:1 }}</div>
+                                               {% endif %}
+                                               <div class="wish-list">
+                                                   <div class="small" data-einsatzland-first="{{ freiwilliger.first_wish_einsatzland.id }}">
+                                                       1) {% if freiwilliger.first_wish_einsatzstelle %}{{ freiwilliger.first_wish_einsatzstelle }}{% elif freiwilliger.first_wish_einsatzland %}{{ freiwilliger.first_wish_einsatzland }}{% else %}{{ freiwilliger.first_wish }}{% endif %}
+                                                   </div>
+                                                   <div class="small" data-einsatzland-second="{{ freiwilliger.second_wish_einsatzland.id }}">
+                                                       2) {% if freiwilliger.second_wish_einsatzstelle %}{{ freiwilliger.second_wish_einsatzstelle }}{% elif freiwilliger.second_wish_einsatzland %}{{ freiwilliger.second_wish_einsatzland }}{% else %}{{ freiwilliger.second_wish }}{% endif %}
+                                                   </div>
+                                                   <div class="small" data-einsatzland-third="{{ freiwilliger.third_wish_einsatzland.id }}">
+                                                       3) {% if freiwilliger.third_wish_einsatzstelle %}{{ freiwilliger.third_wish_einsatzstelle }}{% elif freiwilliger.third_wish_einsatzland %}{{ freiwilliger.third_wish_einsatzland }}{% else %}{{ freiwilliger.third_wish }}{% endif %}
+                                                   </div>
+                                                   {% if freiwilliger.no_wish %}
+                                                       <div class="small text-danger">
+                                                           Nicht: {{ freiwilliger.no_wish }}
+                                                       </div>
+                                                   {% endif %}
+                                               </div>
+                                           </div>
+                                           <div class="small text-muted">
+                                               {{ freiwilliger.zuteilung.name }}
+                                           </div>
+                                           <div class="ms-2">
+                                               <a href="{% url 'evaluate_all' %}?fid={{ freiwilliger.id }}" 
+                                                  target="_blank" 
+                                                  class="btn btn-sm btn-outline-info"
+                                                  onclick="event.stopPropagation()">
+                                                   <i class="bi bi-info-circle"></i>
+                                               </a>
+                                           </div>
+                                       </div>
+                                   </div>
+                               </div>
                                     {% endfor %}
                                     
                                     {% if not freiwillige_mit_zuteilung %}
