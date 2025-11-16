@@ -289,13 +289,13 @@
                                                         {% endif %}
                                                         <div class="wish-list">
                                                             <div class="small" data-einsatzland-first="{{ freiwilliger.first_wish_einsatzland.id }}">
-                                                                1) {% if freiwilliger.first_wish_einsatzstelle %}{{ freiwilliger.first_wish_einsatzstelle }}{% elif freiwilliger.first_wish_einsatzland %}{{ freiwilliger.first_wish_einsatzland }}{% else %}{{ freiwilliger.first_wish }}{% endif %}
+                                                                1) {% if freiwilliger.first_wish_einsatzstelle %}{{ freiwilliger.first_wish_einsatzstelle }}{% elif freiwilliger.first_wish_einsatzland %}{{ freiwilliger.first_wish_einsatzland }}{% else %}{{ freiwilliger.first_wish|default:'' }}{% endif %}
                                                             </div>
                                                             <div class="small" data-einsatzland-second="{{ freiwilliger.second_wish_einsatzland.id }}">
-                                                                2) {% if freiwilliger.second_wish_einsatzstelle %}{{ freiwilliger.second_wish_einsatzstelle }}{% elif freiwilliger.second_wish_einsatzland %}{{ freiwilliger.second_wish_einsatzland }}{% else %}{{ freiwilliger.second_wish }}{% endif %}
+                                                                2) {% if freiwilliger.second_wish_einsatzstelle %}{{ freiwilliger.second_wish_einsatzstelle }}{% elif freiwilliger.second_wish_einsatzland %}{{ freiwilliger.second_wish_einsatzland }}{% else %}{{ freiwilliger.second_wish|default:'' }}{% endif %}
                                                             </div>
                                                             <div class="small" data-einsatzland-third="{{ freiwilliger.third_wish_einsatzland.id }}">
-                                                                3) {% if freiwilliger.third_wish_einsatzstelle %}{{ freiwilliger.third_wish_einsatzstelle }}{% elif freiwilliger.third_wish_einsatzland %}{{ freiwilliger.third_wish_einsatzland }}{% else %}{{ freiwilliger.third_wish }}{% endif %}
+                                                                3) {% if freiwilliger.third_wish_einsatzstelle %}{{ freiwilliger.third_wish_einsatzstelle }}{% elif freiwilliger.third_wish_einsatzland %}{{ freiwilliger.third_wish_einsatzland }}{% else %}{{ freiwilliger.third_wish|default:'' }}{% endif %}
                                                             </div>
                                                             {% if freiwilliger.no_wish %}
                                                                 <div class="small text-danger">
@@ -359,13 +359,13 @@
                                                {% endif %}
                                                <div class="wish-list">
                                                    <div class="small" data-einsatzland-first="{{ freiwilliger.first_wish_einsatzland.id }}">
-                                                       1) {% if freiwilliger.first_wish_einsatzstelle %}{{ freiwilliger.first_wish_einsatzstelle }}{% elif freiwilliger.first_wish_einsatzland %}{{ freiwilliger.first_wish_einsatzland }}{% else %}{{ freiwilliger.first_wish }}{% endif %}
+                                                       1) {% if freiwilliger.first_wish_einsatzstelle %}{{ freiwilliger.first_wish_einsatzstelle }}{% elif freiwilliger.first_wish_einsatzland %}{{ freiwilliger.first_wish_einsatzland }}{% else %}{{ freiwilliger.first_wish|default:'' }}{% endif %}
                                                    </div>
                                                    <div class="small" data-einsatzland-second="{{ freiwilliger.second_wish_einsatzland.id }}">
-                                                       2) {% if freiwilliger.second_wish_einsatzstelle %}{{ freiwilliger.second_wish_einsatzstelle }}{% elif freiwilliger.second_wish_einsatzland %}{{ freiwilliger.second_wish_einsatzland }}{% else %}{{ freiwilliger.second_wish }}{% endif %}
+                                                       2) {% if freiwilliger.second_wish_einsatzstelle %}{{ freiwilliger.second_wish_einsatzstelle }}{% elif freiwilliger.second_wish_einsatzland %}{{ freiwilliger.second_wish_einsatzland }}{% else %}{{ freiwilliger.second_wish|default:'' }}{% endif %}
                                                    </div>
                                                    <div class="small" data-einsatzland-third="{{ freiwilliger.third_wish_einsatzland.id }}">
-                                                       3) {% if freiwilliger.third_wish_einsatzstelle %}{{ freiwilliger.third_wish_einsatzstelle }}{% elif freiwilliger.third_wish_einsatzland %}{{ freiwilliger.third_wish_einsatzland }}{% else %}{{ freiwilliger.third_wish }}{% endif %}
+                                                       3) {% if freiwilliger.third_wish_einsatzstelle %}{{ freiwilliger.third_wish_einsatzstelle }}{% elif freiwilliger.third_wish_einsatzland %}{{ freiwilliger.third_wish_einsatzland }}{% else %}{{ freiwilliger.third_wish|default:'' }}{% endif %}
                                                    </div>
                                                    {% if freiwilliger.no_wish %}
                                                        <div class="small text-danger">
