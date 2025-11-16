@@ -181,20 +181,13 @@
                             <!-- Text Responses -->
                             {% if question_data.answers %}
                                 <div class="row">
-                                    {% for answer in question_data.answers|slice:":10" %}
+                                    {% for answer in question_data.answers %}
                                         <div class="col-12 mb-2">
                                             <div class="border rounded p-2 bg-light">
                                                 {{ answer }}
                                             </div>
                                         </div>
                                     {% endfor %}
-                                    {% if question_data.answers|length > 10 %}
-                                        <div class="col-12">
-                                            <small class="text-muted">
-                                                {% trans "Showing first 10 of" %} {{ question_data.answers|length }} {% trans "responses" %}
-                                            </small>
-                                        </div>
-                                    {% endif %}
                                 </div>
                             {% else %}
                                 <p class="text-muted">{% trans "No responses yet." %}</p>
