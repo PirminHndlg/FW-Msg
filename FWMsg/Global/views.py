@@ -865,6 +865,12 @@ def dokumente(request, ordner_id=None):
     current_person_cluster = None
     folder_structure = []
     
+    # Validate ordner_id if provided
+    if ordner_id:
+        if not Ordner2.objects.filter(id=ordner_id, org=request.user.org).exists():
+            messages.warning(request, f'Ordner nicht gefunden')
+            return redirect('dokumente')
+    
     if request.user.role == 'O':
         try:
             person_cluster_param = request.GET.get('person_cluster_filter')
