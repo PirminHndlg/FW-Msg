@@ -2146,9 +2146,6 @@ def ajax_load_aufgaben_table_data(request):
             users = User.objects.filter(customuser__org=request.user.org, customuser__person_cluster__isnull=False, customuser__person_cluster__aufgaben=True).order_by('-customuser__person_cluster', 'first_name', 'last_name')
             aufgaben = Aufgabe2.objects.filter(org=request.user.org)
         
-        # Use the same logic as the original view but return JSON data
-        # TODO: filter if a filter is applied in the aufgaben table (AufgabenCluster).
-
         # Apply ordering
         aufgaben = aufgaben.order_by(
             'faellig_art',
