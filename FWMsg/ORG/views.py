@@ -2140,14 +2140,15 @@ def ajax_load_aufgaben_table_data(request):
         if person_cluster_param is not None and person_cluster_param != 'None':
             person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
             users = User.objects.filter(customuser__person_cluster=person_cluster, customuser__org=request.user.org).order_by('first_name', 'last_name')
+            aufgaben = Aufgabe2.objects.filter(org=request.user.org, person_cluster=person_cluster)
         else:
             person_cluster = None
             users = User.objects.filter(customuser__org=request.user.org, customuser__person_cluster__isnull=False, customuser__person_cluster__aufgaben=True).order_by('-customuser__person_cluster', 'first_name', 'last_name')
+            aufgaben = Aufgabe2.objects.filter(org=request.user.org)
         
         # Use the same logic as the original view but return JSON data
         # TODO: filter if a filter is applied in the aufgaben table (AufgabenCluster).
 
-        aufgaben = Aufgabe2.objects.filter(org=request.user.org)
         # Apply ordering
         aufgaben = aufgaben.order_by(
             'faellig_art',
