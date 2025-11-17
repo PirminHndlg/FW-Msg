@@ -398,18 +398,26 @@ def serve_dokument(request, dokument_id):
     
     try:
         dokument_id = int(dokument_id)
-        dokument = Dokument2.objects.get(id=dokument_id)
+        dokument = Dokument2.objects.get(id=dokument_id, org=request.user.org)
         
         if not dokument.org == request.user.org:
-            return HttpResponseNotAllowed('Nicht erlaubt')
+            messages.error(request, f'Nicht erlaubt')
+            return redirect('dokumente')
+        
+        if not dokument.ordner.typ == request.user.person_cluster:
+            messages.error(request, f'Nicht erlaubt')
+            return redirect('dokumente')
         
         doc_path = dokument.dokument.path
         if not os.path.exists(doc_path) or not dokument.dokument:
-            return HttpResponseNotFound('Dokument nicht gefunden' + doc_path)
+            messages.error(request, f'Dokument nicht gefunden' + doc_path)
+            return redirect('dokumente')
     except ValueError:
-        return HttpResponseNotFound('Ungültige Dokument-ID')
+        messages.warning(request, f'Ungültige Dokument-ID')
+        return redirect('dokumente')
     except Dokument2.DoesNotExist:
-        return HttpResponseNotFound('Dokument nicht gefunden')
+        messages.warning(request, f'Dokument nicht gefunden')
+        return redirect('dokumente')
 
     
 
