@@ -404,7 +404,8 @@ def serve_dokument(request, dokument_id):
             messages.error(request, f'Nicht erlaubt')
             return redirect('dokumente')
         
-        if not dokument.ordner.typ == request.user.person_cluster:
+        # Check if user's person_cluster has access to this folder
+        if request.user.person_cluster and not dokument.ordner.typ.filter(id=request.user.person_cluster.id).exists():
             messages.error(request, f'Nicht erlaubt')
             return redirect('dokumente')
         
@@ -2610,7 +2611,7 @@ def _get_member_and_countries(request):
 
 
 @login_required
-@required_role('TE')
+@required_role('T')
 def laender_info(request):
     """View for Team and Ehemalige members to view their assigned countries' information."""
     member, assigned_countries, base_template = _get_member_and_countries(request)
@@ -2651,7 +2652,7 @@ def laender_info(request):
 
 
 @login_required
-@required_role('TE')
+@required_role('T')
 def einsatzstellen_info(request):
     """View for Team and Ehemalige members to view their assigned placement locations."""
     member, assigned_countries, base_template = _get_member_and_countries(request)
