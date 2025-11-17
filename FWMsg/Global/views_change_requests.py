@@ -48,7 +48,7 @@ def _get_team_or_ehemalige_member(request):
 
 
 @login_required
-@required_role('TE')
+@required_role('T')
 def save_einsatzstelle_info(request, stelle_id):
     """Create change request for placement location information."""
     if request.method != 'POST':
@@ -109,7 +109,7 @@ def save_einsatzstelle_info(request, stelle_id):
 
 
 @login_required
-@required_role('TE')
+@required_role('T')
 def save_land_info(request, land_id):
     """Create change request for country information."""
     if request.method != 'POST':
