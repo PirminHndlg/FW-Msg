@@ -202,11 +202,9 @@ def get_posts(org, filter_user=None, filter_person_cluster=None, limit=None):
         list: List of dictionaries containing posts and their metadata
     """
     posts = Post2.objects.filter(org=org).order_by('-date_updated')
-    if filter_user and filter_person_cluster:
-        posts = posts.filter(Q(user=filter_user) | Q(person_cluster=filter_person_cluster))
-    elif filter_user:
+    if filter_user:
         posts = posts.filter(user=filter_user)
-    elif filter_person_cluster:
+    if filter_person_cluster:
         posts = posts.filter(person_cluster=filter_person_cluster)
     if limit:
         posts = posts[:limit]
@@ -1234,7 +1232,10 @@ def view_profil(request, user_id=None):
     except Freiwilliger.DoesNotExist:
         freiwilliger = None
 
-    posts = get_posts(request.user.org, filter_user=user)
+    if this_user or request.user.role == 'O':
+        posts = get_posts(request.user.org, filter_user=user)
+    else:
+        posts = get_posts(org=request.user.org, filter_user=user, filter_person_cluster=request.user.person_cluster)
 
     context = {
         'freiwilliger': freiwilliger,
