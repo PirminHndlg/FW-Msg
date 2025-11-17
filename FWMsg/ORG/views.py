@@ -1532,14 +1532,20 @@ def application_answer_download_fields(request, bewerber_id):
 
 
 def application_download_all_excel(request):
-    bewerber = Bewerber.objects.filter(org=request.user.org)
+    
+    seminar_filter = request.COOKIES.get('selectedSeminarFilter')
+    if seminar_filter == 'yes':
+        bewerber = Bewerber.objects.filter(org=request.user.org, seminar_bewerber__isnull=False)
+    elif seminar_filter == 'no':
+        bewerber = Bewerber.objects.filter(org=request.user.org, seminar_bewerber__isnull=True)
+    else:
+        bewerber = Bewerber.objects.filter(org=request.user.org)
+    
     user_ids = bewerber.values_list('user_id', flat=True)
     
     # Create base DataFrame with bewerber data (including user_id for merging)
     df = pd.DataFrame(bewerber.values(
-        'id', 'user_id', 'user__first_name', 'user__last_name', 'user__email'
-        # 'status', 'status_comment', 'abgeschlossen',
-        # 'gegenstand', 'endbewertung', 'note'
+        'id', 'user_id', 'user__first_name', 'user__last_name', 'user__email', 'zuteilung__name', 'zuteilung__land__name', 'endbewertung', 'note'
     ))
     
     # Get user attributes with their types and pivot them to create columns for each attribute
@@ -1582,6 +1588,8 @@ def application_download_all_excel(request):
     # Remove user_id from the final output (it was only needed for merging)
     if 'user_id' in df.columns:
         df = df.drop(columns=['user_id'])
+    if 'id' in df.columns:
+        df = df.drop(columns=['id'])
     
     # Rename columns to German headers
     column_rename_mapping = {
@@ -1594,8 +1602,9 @@ def application_download_all_excel(request):
         'abgeschlossen': 'Abgeschlossen',
         'gegenstand': 'Gegenstand',
         'endbewertung': 'Endbewertung',
-        'note': 'Notiz',
-        'kommentar_zusammenfassung': 'Kommentar Zusammenfassung'
+        'note': 'Note',
+        'zuteilung__name': 'Zuteilung Stelle',
+        'zuteilung__land__name': 'Zuteilung Land'
     }
     df = df.rename(columns=column_rename_mapping)
     
