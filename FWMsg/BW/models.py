@@ -204,7 +204,7 @@ class Bewerber(OrgModel):
         ('remove_from_seminar', '<i class="bi bi-dash-circle-fill me-1"></i>Vom Seminar entfernen', 'Der:Die Bewerber:in wird aus dem Seminar entfernt.'),
         ('send_registration_mail', '<i class="bi bi-envelope-fill me-1"></i>Registrierungsmail'),
         ('add_to_freiwillige', '<i class="bi bi-person-plus-fill me-1"></i>Zu Freiwilligen hinzufügen', 'Der:Die Bewerber:in wird zu der zuletzt erstellten Benutzergruppe Freiwillige hinzugefügt.'),
-        ('send_zuteilung_email', '<i class="bi bi-envelope-fill me-1"></i>Zuteilungsmail', 'Die Zuteilungsmail wird nur an Bewerber:innen versendet, die eine Einsatzstelle zugewiesen haben.'),
+        ('send_zuteilung_email', '<i class="bi bi-envelope-fill me-1"></i>Stellenvorschlag senden', 'Der Stellenvorschlag wird an den Bewerber:in versendet. Es wird nur versendet, wenn eine Einsatzstelle zugewiesen wurde.'),
     ]
     
     def checkbox_action(self, org, checkbox_submit_value):

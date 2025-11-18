@@ -209,7 +209,7 @@ def send_zuteilung_email(bewerber_id):
     try:
         bewerber = Bewerber.objects.get(id=bewerber_id)
         if bewerber.zuteilung:
-            subject = f'{bewerber.org.name}: Du wurdest einer Einsatzstelle zugewiesen'
+            subject = f'{bewerber.org.name}: Du hast einen Stellenvorschlag erhalten'
             email_content = format_einsatzstelle_zugewiesen_email(
                 org=bewerber.org,
                 bewerber=bewerber,

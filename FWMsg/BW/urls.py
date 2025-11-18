@@ -18,5 +18,5 @@ urlpatterns = [
     
     path('no_application/', views.no_application, name='bw_no_application'),
     
-    path('meine_zuteilung/', views.my_assignment, name='my_assignment'),
+    path('stellenvorschlag/', views.my_assignment, name='my_assignment'),
 ]
