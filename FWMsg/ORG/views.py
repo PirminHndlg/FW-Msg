@@ -893,7 +893,7 @@ def list_object_checkbox(request, model_name):
             # do something with the object
             checkbox_submit_value = request.GET.get('checkbox_submit_value')
             if hasattr(instance, 'checkbox_action') and not instance.checkbox_action(request.user.org, checkbox_submit_value):
-                messages.error(request, _('Aktion für {object_name} nicht erfolgreich durchgeführt.').format(object_name=instance._meta.verbose_name))
+                messages.error(request, _('Aktion für {instance} nicht erfolgreich durchgeführt.').format(instance=instance))
             else:
                 counter += 1
         
