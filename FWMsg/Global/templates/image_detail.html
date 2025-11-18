@@ -177,8 +177,8 @@
       }
       
       // Set threshold based on device and connection
-      // Mobile or slow connection: 2MB, Desktop with good connection: 5MB
-      const threshold = (isMobile || isSlowConnection) ? 2000000 : 5000000;
+      // Mobile or slow connection: 5MB, Desktop with good connection: 10MB
+      const threshold = (isMobile || isSlowConnection) ? 5000000 : 10000000;
       
       // Only load full images if total size is below threshold
       if (totalImageSize < threshold) {
