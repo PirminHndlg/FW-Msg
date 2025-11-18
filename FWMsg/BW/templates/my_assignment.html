@@ -1,0 +1,148 @@
+{% extends "baseBw.html" %}
+{% load static %}
+{% load bw_filters %}
+
+{% block title %}Meine Zuteilung{% endblock %}
+
+{% block content %}
+
+{% if not form.reaktion_auf_zuteilung.errors %}
+<!-- Include confetti -->
+{% include 'confetti.html' %}
+{% endif %}
+
+<div class="container mt-3">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <!-- Congratulations Card -->
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-body text-center py-5">
+                    
+                    <!-- Large Country Flag -->
+                    <div class="mb-4">
+                        {% if bewerber.zuteilung.land.code %}
+                            <div class="country-flag-large mb-3" style="font-size: 10rem; line-height: 1;">
+                                <i class="fi fi-{{ bewerber.zuteilung.land.code|lower }}"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Assignment Details -->
+                    <h2 class="text-primary mb-3">Deine Einsatzstelle:</h2>
+                    <h3 class="fw-bold mb-4">{{ bewerber.zuteilung.name }}</h3>
+                </div>
+            </div>
+
+            <!-- Reaction Form Card -->
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-chat-left-text me-2"></i>
+                        Deine Reaktion auf den Stellenvorschlag
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Bitte teile uns deine Gedanken und Reaktion zu diesem Stellenvorschlag mit. 
+                        Wir freuen uns auf dein Feedback!
+                    </p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.reaktion_auf_zuteilung.id_for_label }}" class="form-label fw-bold">
+                                Deine Reaktion
+                            </label>
+                            {{ form.reaktion_auf_zuteilung }}
+                            {% if form.reaktion_auf_zuteilung.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.reaktion_auf_zuteilung.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end align-items-center flex-wrap mb-3">
+                            <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#confirmModal">
+                                <i class="bi bi-check-circle me-2"></i>Stellenvorschlag annehmen
+                            </button>
+                        </div>
+                        
+                        <div class="d-flex align-items-center justify-content-center">
+                            <span class="me-2">Kontakt aufnehmen</span>
+                            <a href="mailto:{{ bewerber.org.email }}">
+                                <i class="bi bi-envelope"></i>
+                                {{ bewerber.org.email }}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="confirmModalLabel">
+                    <i class="bi bi-check-circle text-primary me-2"></i>
+                    Stellenvorschlag annehmen
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Bist du sicher, dass du den Stellenvorschlag annehmen möchtest?</p>
+                <div class="bg-light p-3 rounded">
+                    <strong>Einsatzstelle:</strong> {{ bewerber.zuteilung.name }}<br>
+                    {% if bewerber.zuteilung.land %}
+                        <strong>Land:</strong> 
+                        {% if bewerber.zuteilung.land.code %}
+                            <i class="fi fi-{{ bewerber.zuteilung.land.code|lower }} me-1"></i>
+                        {% endif %}
+                        {{ bewerber.zuteilung.land.name }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Abbrechen
+                </button>
+                <button type="button" class="btn btn-primary" id="confirmSubmit">
+                    <i class="bi bi-check-circle me-2"></i>Ja, annehmen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('confirmSubmit').addEventListener('click', function() {
+        // Close the modal
+        var modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+        modal.hide();
+        
+        // Submit the form
+        document.querySelector('form').submit();
+    });
+</script>
+
+<style>
+    .country-flag-large {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .card {
+        transition: transform 0.2s;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+    }
+</style>
+
+{% endblock %}
+

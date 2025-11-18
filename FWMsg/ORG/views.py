@@ -2029,6 +2029,15 @@ def copy_links(request):
                 'url': reverse('einsatzstellen_info')
             }
         ]
+    },
+        {
+        'name': 'Bewerber',
+        'pages': [
+            {
+                'name': 'Zuteilung ansehen',
+                'url': reverse('my_assignment')
+            }
+        ]
     }
     ]
     

@@ -9,10 +9,10 @@ from django.http import FileResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from BW.tasks import send_account_created_email, send_application_complete_email
+from BW.tasks import send_account_created_email, send_application_complete_email, send_reaktion_auf_zuteilung_email
 from seminar.models import Seminar
 from ORG.models import Organisation
-from .forms import CreateAccountForm, ApplicationAnswerForm, ApplicationFileAnswerForm
+from .forms import CreateAccountForm, ApplicationAnswerForm, ApplicationFileAnswerForm, MyAssignmentForm
 from FWMsg.decorators import required_role
 from .models import ApplicationQuestion, ApplicationAnswer, ApplicationText, Bewerber, ApplicationAnswerFile, ApplicationFileQuestion
 from django.contrib import messages
@@ -238,8 +238,9 @@ def bw_application_file_answer_delete(request, file_answer_id):
 
 @login_required
 @required_role('B')
-@application_or_seminar_is_open
 def delete_account(request):
+    messages.error(request, 'Aktuell nicht verfügbar. Bitte wende Dich an die Organisation.')
+    return redirect('bw_home')
     try:
         # Store user info before deletion
         user_id = request.user.id
@@ -264,3 +265,26 @@ def delete_account(request):
 @required_role('B')
 def no_application(request):
     return render(request, 'no_application.html')
+
+
+@login_required
+@required_role('B')
+def my_assignment(request):
+    try:
+        bewerber = Bewerber.objects.get(user=request.user)
+        if bewerber.zuteilung_freigegeben == False or bewerber.zuteilung is None:
+            messages.error(request, 'Deine Zuteilung ist noch nicht freigegeben oder noch nicht zugewiesen.')
+            return redirect('bw_home')
+        
+        form = MyAssignmentForm(request.POST or None, instance=bewerber)
+        if request.method == 'POST' and form.is_valid():
+            form.save()
+            if bewerber.reaktion_auf_zuteilung != '':
+                send_reaktion_auf_zuteilung_email.s(bewerber.id).apply_async(countdown=2)
+            messages.success(request, 'Deine Reaktion auf die Zuteilung wurde erfolgreich gespeichert.')
+            return redirect('my_assignment')
+        
+        return render(request, 'my_assignment.html', {'form': form, 'bewerber': bewerber})
+    except Exception as e:
+        messages.error(request, f'Fehler beim Laden der Zuteilung: {str(e)}')
+        return redirect('index_home')

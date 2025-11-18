@@ -1,8 +1,11 @@
+from re import S
 from django.conf import settings
+from django.template.loader import render_to_string
 from Global.send_email import send_email_with_archive
 from celery import shared_task
 from BW.models import Bewerber
 from django.urls import reverse
+from Global.send_email import get_logo_url, get_org_color
 
 application_complete_email_template = """
 <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #333333; line-height: 1.6; max-width: 500px; margin: 0 auto;">
@@ -83,6 +86,37 @@ account_created_email_template = """
     </div>
 </body>
 """
+
+
+def format_einsatzstelle_zugewiesen_email(org, bewerber):
+    org_name = org.name
+    org_color = get_org_color(org)
+    image_url = get_logo_url(org)
+    user_name = f"{bewerber.user.first_name} {bewerber.user.last_name}"
+    return render_to_string('mail/einsatzstelle_zugewiesen.html', {
+        'org_name': org_name,
+        'org_color': org_color,
+        'image_url': image_url,
+        'user_name': user_name,
+        'bewerber_name': f"{bewerber.user.first_name} {bewerber.user.last_name}",
+        'bewerber_einsatzstelle': bewerber.zuteilung,
+        'action_url': f"{settings.DOMAIN_HOST}{reverse('my_assignment')}",
+    })
+
+def format_reaktion_auf_zuteilung_email(org, bewerber):
+    org_name = org.name
+    org_color = get_org_color(org)
+    image_url = get_logo_url(org)
+    user_name = f"{bewerber.user.first_name} {bewerber.user.last_name}"
+    reaktion_auf_zuteilung = bewerber.reaktion_auf_zuteilung
+    return render_to_string('mail/reaction_on_land.html', {
+        'org_name': org_name,
+        'org_color': org_color,
+        'image_url': image_url,
+        'user_name': org_name,
+        'bewerber_name': f"{bewerber.user.first_name} {bewerber.user.last_name}",
+        'bewerber_reaktion_auf_zuteilung': reaktion_auf_zuteilung
+    })
 
 
 def format_application_complete_email(org_name, user_name, changed_at, action_url, unsubscribe_url=None, text_subject=None):
@@ -168,4 +202,53 @@ def send_application_complete_email(bewerber_id):
     except Exception as e:
         print(f"Error sending application complete email: {e}")
         return False
-    
+   
+
+@shared_task
+def send_zuteilung_email(bewerber_id):
+    try:
+        bewerber = Bewerber.objects.get(id=bewerber_id)
+        if bewerber.zuteilung:
+            subject = f'{bewerber.org.name}: Du wurdest einer Einsatzstelle zugewiesen'
+            email_content = format_einsatzstelle_zugewiesen_email(
+                org=bewerber.org,
+                bewerber=bewerber,
+            )
+            org_email = bewerber.org.email
+            send_email_with_archive(
+                subject=subject,
+                message=email_content,
+                from_email=settings.SERVER_EMAIL,
+                recipient_list=[bewerber.user.email],
+                html_message=email_content,
+                reply_to_list=[org_email]
+            )
+            return True
+        
+    except Exception as e:
+        print(f"Error sending zuteilung email: {e}")
+        return False
+
+@shared_task
+def send_reaktion_auf_zuteilung_email(bewerber_id):
+    try:
+        bewerber = Bewerber.objects.get(id=bewerber_id)
+        if bewerber.reaktion_auf_zuteilung != '':
+            subject = f'Neue Reaktion auf die Zuteilung: {bewerber.user.first_name} {bewerber.user.last_name}'
+            email_content = format_reaktion_auf_zuteilung_email(
+                org=bewerber.org,
+                bewerber=bewerber,
+            )
+            org_email = bewerber.org.email
+            send_email_with_archive(
+                subject=subject,
+                message=email_content,
+                from_email=settings.SERVER_EMAIL,
+                recipient_list=[org_email],
+                html_message=email_content,
+                reply_to_list=[bewerber.user.email]
+            )
+            return True
+    except Exception as e:
+        print(f"Error sending reaktion auf zuteilung email: {e}")
+        return False

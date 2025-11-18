@@ -819,6 +819,13 @@ def get_bewerber_table_class(org, request=None):
         else:
             return format_html('<i class="bi bi-x-circle-fill text-danger"></i>')
     
+    def render_zuteilung_freigegeben(self, value, record):
+        bewerber = record['bewerber']
+        if bewerber.zuteilung_freigegeben:
+            return format_html('<i class="bi bi-check-circle-fill text-success"></i>')
+        else:
+            return format_html('<i class="bi bi-x-circle-fill text-danger"></i>')
+    
     def actions_renderer(record, org):
         bewerber = record['bewerber']
         bewerber_kommentare_count = BewerberKommentar.objects.filter(bewerber=bewerber, org=org).count()
@@ -862,6 +869,16 @@ def get_bewerber_table_class(org, request=None):
             accessor='bewerber.zuteilung',
             orderable=False
         ),
+        'zuteilung_freigegeben': tables.Column(
+            verbose_name=_('Zuteilung freigegeben'),
+            accessor='bewerber.zuteilung_freigegeben',
+            orderable=True
+        ),
+        'reaktion_auf_zuteilung': tables.Column(
+            verbose_name=_('Reaktion auf Zuteilung'),
+            accessor='bewerber.reaktion_auf_zuteilung',
+            orderable=False
+        ),
         'endbewertung': tables.Column(
             verbose_name=_('Endbewertung'),
             accessor='bewerber.get_endbewertung_display',
@@ -869,13 +886,14 @@ def get_bewerber_table_class(org, request=None):
         ),
     }
     
-    column_sequence = ['user', 'application_pdf', 'has_seminar', 'interview_persons', 'zuteilung', 'endbewertung']
+    column_sequence = ['user', 'application_pdf', 'has_seminar', 'interview_persons', 'zuteilung', 'zuteilung_freigegeben', 'reaktion_auf_zuteilung', 'endbewertung']
     
     render_methods = {
         'render_user': render_user,
         'render_application_pdf': render_application_pdf,
         'render_interview_persons': render_interview_persons,
-        'render_has_seminar': render_has_seminar
+        'render_has_seminar': render_has_seminar,
+        'render_zuteilung_freigegeben': render_zuteilung_freigegeben
     }   
     
     # Determine which person_cluster to use - apply PersonCluster filter if specified
