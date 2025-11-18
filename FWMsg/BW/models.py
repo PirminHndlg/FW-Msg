@@ -247,6 +247,8 @@ class Bewerber(OrgModel):
         elif checkbox_submit_value == self.CHECKBOX_ACTION_CHOICES[4][0]:
             from BW.tasks import send_zuteilung_email
             if self.zuteilung:
+                self.zuteilung_freigegeben = True
+                self.save()
                 send_zuteilung_email.s(self.id).apply_async(countdown=10)
                 return True
             else:
