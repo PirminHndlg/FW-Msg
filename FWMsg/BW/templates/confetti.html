@@ -1,0 +1,33 @@
+{% load static %}
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+function triggerConfetti() {
+    var duration = 1000;
+    var end = Date.now() + duration;
+
+    function frame() {
+        confetti({
+            particleCount: 7,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: ['#0d6efd', '#ffc107', '#198754']  // primary, warning, success colors
+        });
+        confetti({
+            particleCount: 7,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: ['#0d6efd', '#ffc107', '#198754']
+        });
+
+        if (Date.now() < end) {
+            requestAnimationFrame(frame);
+        }
+    }
+    frame();
+}
+triggerConfetti();
+</script>
+

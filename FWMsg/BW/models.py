@@ -147,6 +147,18 @@ class Bewerber(OrgModel):
         null=True,
         verbose_name="Zuteilung",
     )
+    zuteilung_freigegeben = models.BooleanField(
+        verbose_name="Zuteilung freigegeben",
+        default=False,
+        help_text="Gibt an, ob die Zuteilung zur Einsatzstelle für den Bewerber:in sichtbar ist.",
+    )
+    reaktion_auf_zuteilung = models.TextField(
+        verbose_name="Reaktion auf Zuteilung",
+        null=True,
+        blank=True,
+        help_text="Die Reaktion durch den Bewerber:in auf die Zuteilung.",
+    )
+    
     endbewertung = models.CharField(
         max_length=1,
         choices=bewertungsmoeglicheiten,
@@ -192,6 +204,7 @@ class Bewerber(OrgModel):
         ('remove_from_seminar', '<i class="bi bi-dash-circle-fill me-1"></i>Vom Seminar entfernen', 'Der:Die Bewerber:in wird aus dem Seminar entfernt.'),
         ('send_registration_mail', '<i class="bi bi-envelope-fill me-1"></i>Registrierungsmail'),
         ('add_to_freiwillige', '<i class="bi bi-person-plus-fill me-1"></i>Zu Freiwilligen hinzufügen', 'Der:Die Bewerber:in wird zu der zuletzt erstellten Benutzergruppe Freiwillige hinzugefügt.'),
+        ('send_zuteilung_email', '<i class="bi bi-envelope-fill me-1"></i>Zuteilungsmail', 'Die Zuteilungsmail wird nur an Bewerber:innen versendet, die eine Einsatzstelle zugewiesen haben.'),
     ]
     
     def checkbox_action(self, org, checkbox_submit_value):
@@ -212,6 +225,7 @@ class Bewerber(OrgModel):
             return True
         elif checkbox_submit_value == self.CHECKBOX_ACTION_CHOICES[3][0]:
             # Create or update the freiwilliger
+            return False
             from FW.models import Freiwilliger
             freiwilliger, created = Freiwilliger.objects.get_or_create(user=self.user, org=org)
             if self.zuteilung:
@@ -230,6 +244,13 @@ class Bewerber(OrgModel):
                 self.user.save()
             
             return True
+        elif checkbox_submit_value == self.CHECKBOX_ACTION_CHOICES[4][0]:
+            from BW.tasks import send_zuteilung_email
+            if self.zuteilung:
+                send_zuteilung_email.s(self.id).apply_async(countdown=10)
+                return True
+            else:
+                return False
         return False
     
     class Meta:

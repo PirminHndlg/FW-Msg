@@ -1,0 +1,13 @@
+{% extends "mail/base_email.html" %}
+
+{% block german_content %}
+<p>Du hast einen Stellenvorschlag erhalten.</p>
+<div style="background-color: #f7f9fc; border-left: 4px solid {{ org_color }}; padding: 15px; margin: 15px 0; border-radius: 3px;">
+    <p style="font-weight: 600; margin: 0; font-size: 17px; color: {{ org_color }};">{{ bewerber_name }}</p>
+    <p>Deine Einsatzstelle ist: {{ bewerber_einsatzstelle }}</p>
+</div>
+{% endblock %}
+
+{% block german_button_text %}Stellenvorschlag ansehen{% endblock %}
+
+{% block show_english %}{% endblock %}

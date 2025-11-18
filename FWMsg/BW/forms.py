@@ -190,5 +190,13 @@ class ApplicationFileAnswerForm(forms.ModelForm):
             instance.save()
         return instance
         
+
+class MyAssignmentForm(forms.ModelForm):
+    class Meta:
+        model = Bewerber
+        fields = ['reaktion_auf_zuteilung']
         
-        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['reaktion_auf_zuteilung'].widget = forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'required': True})
+        self.fields['reaktion_auf_zuteilung'].required = True
