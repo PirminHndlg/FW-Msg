@@ -405,9 +405,10 @@ def serve_dokument(request, dokument_id):
             return redirect('dokumente')
         
         # Check if user's person_cluster has access to this folder
-        if request.user.person_cluster and not dokument.ordner.typ.filter(id=request.user.person_cluster.id).exists():
-            messages.error(request, f'Nicht erlaubt')
-            return redirect('dokumente')
+        if not request.user.role == 'O':
+            if request.user.person_cluster and not dokument.ordner.typ.filter(id=request.user.person_cluster.id).exists():
+                messages.error(request, f'Nicht erlaubt')
+                return redirect('dokumente')
         
         doc_path = dokument.dokument.path
         if not os.path.exists(doc_path) or not dokument.dokument:
