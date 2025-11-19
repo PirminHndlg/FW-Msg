@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (feature) {
             var coordinates = feature.getGeometry().getCoordinates();
             var popupContent = '<div>' +
-                '<h6 class="mb-1"><stron class="text-primary"><i class="bi bi-person me-1"></i>' + feature.get('user') + '</strong></h6>' +
+                '<h6 class="mb-1"><strong class="text-primary"><i class="bi bi-person me-1"></i>' + feature.get('user') + '</strong></h6>' +
                 '<div class="text-muted small">' +
                 '<div class="mb-1"><i class="bi bi-mailbox me-1"></i>' + feature.get('zip') + '</div>' +
                 '<div class="mb-1"><i class="bi bi-building me-1"></i>' + feature.get('city') + '</div>' +
