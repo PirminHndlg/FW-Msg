@@ -1912,7 +1912,7 @@ def posts_overview(request):
             posts = get_posts(request.user.org)
     
     else:
-        posts = get_posts(request.user.org, filter_person_cluster=request.user.person_cluster, filter_user=request.user)
+        posts = get_posts(request.user.org, filter_person_cluster=request.user.person_cluster)
     
     context = {
         'posts': posts,
