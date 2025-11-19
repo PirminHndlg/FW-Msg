@@ -87,6 +87,9 @@ urlpatterns = [
     # Change Request Actions
     path('einsatzstellen/save/<int:stelle_id>/', views_change_requests.save_einsatzstelle_info, name='save_einsatzstelle_info'),
     path('laender/save/<int:land_id>/', views_change_requests.save_land_info, name='save_land_info'),
+    
+    path('karte/', views.karte, name='karte'),
+    path('karte/delete/', views.delete_karte, name='delete_karte'),
 ]
 
 # Add these new URL patterns
