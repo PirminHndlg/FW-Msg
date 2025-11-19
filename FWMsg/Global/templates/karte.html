@@ -1,0 +1,480 @@
+{% extends extends_base|default:'baseFw.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ol3/4.6.5/ol.css" integrity="sha512-D2c/nmSVlwoZk29SLwJK8GkLyCyPuNbZ/vZQL/lNzw+o+yXzsbnJt7lK/iCfdBmgyLRDi0qx27gpE8Zb1C6I7g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}
+
+{% block title %}
+    {% trans "Standortkarte" %}
+{% endblock %}
+
+{% block content %}
+<div class="card rounded-4 mb-3" style="height: 90vh;">
+    <div class="card-header rounded-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">
+                <i class="bi bi-map me-2"></i>
+                {% trans "Standortkarte" %}
+            </h3>
+            <button type="button" class="btn btn-sm rounded-4 btn-primary" data-bs-toggle="modal" data-bs-target="#addLocationModal">
+                {% if is_editing %}
+                    <i class="bi bi-pencil me-2"></i>{% trans "Standort bearbeiten" %}
+                {% else %}
+                    <i class="bi bi-plus-circle me-2"></i>{% trans "Standort hinzufügen" %}
+                {% endif %}
+            </button>
+        </div>
+    </div>
+    <div class="card-body p-0 rounded-4">
+        <div id="basicMap"></div>
+    </div>
+</div>
+
+<!-- Add Location Modal -->
+<div class="modal fade" id="addLocationModal" tabindex="-1" aria-labelledby="addLocationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addLocationModalLabel">
+                    <i class="bi bi-geo-alt-fill me-2"></i>
+                    {% if is_editing %}
+                        {% trans "Standort bearbeiten" %}
+                    {% else %}
+                        {% trans "Neuen Standort hinzufügen" %}
+                    {% endif %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" id="locationForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.zip_code.id_for_label }}" class="form-label">
+                                <i class="bi bi-mailbox me-1"></i>
+                                {% trans "PLZ" %}
+                            </label>
+                            {{ form.zip_code }}
+                            {% if form.zip_code.errors %}
+                                <div class="text-danger small mt-1">{{ form.zip_code.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8 mb-3">
+                            <label for="{{ form.city.id_for_label }}" class="form-label">
+                                <i class="bi bi-building me-1"></i>
+                                {% trans "Stadt" %}
+                            </label>
+                            {{ form.city }}
+                            {% if form.city.errors %}
+                                <div class="text-danger small mt-1">{{ form.city.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.country.id_for_label }}" class="form-label">
+                            <i class="bi bi-flag me-1"></i>
+                            {% trans "Land" %}
+                        </label>
+                        {{ form.country }}
+                        {% if form.country.errors %}
+                            <div class="text-danger small mt-1">{{ form.country.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="alert alert-info small mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        {% if is_editing %}
+                            {% trans "Die Koordinaten werden automatisch aktualisiert, wenn Sie die Adresse ändern." %}
+                        {% else %}
+                            {% trans "Die Koordinaten werden automatisch aus der Adresse berechnet." %}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer" id="modalFooter">
+                    <div class="d-flex justify-content-between w-100" id="normalFooter">
+                        <div>
+                            {% if is_editing %}
+                                <button type="button" class="btn btn-danger rounded-4" onclick="showDeleteConfirm()">
+                                    <i class="bi bi-trash me-1"></i>
+                                    {% trans "Löschen" %}
+                                </button>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-secondary rounded-4 me-2" data-bs-dismiss="modal">
+                                {% trans "Abbrechen" %}
+                            </button>
+                            <button type="submit" class="btn btn-primary rounded-4">
+                                <i class="bi bi-check-circle me-1"></i>
+                                {% if is_editing %}
+                                    {% trans "Aktualisieren" %}
+                                {% else %}
+                                    {% trans "Speichern" %}
+                                {% endif %}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="d-none" id="deleteConfirmFooter">
+                        <div class="alert alert-danger mb-3 d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <div>
+                                <strong>{% trans "Standort wirklich löschen?" %}</strong>
+                                <div class="small">{% trans "Diese Aktion kann nicht rückgängig gemacht werden." %}</div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary rounded-4" onclick="hideDeleteConfirm()">
+                                {% trans "Abbrechen" %}
+                            </button>
+                            <button type="button" class="btn btn-danger rounded-4" onclick="deleteLocation()">
+                                <i class="bi bi-trash me-1"></i>
+                                {% trans "Jetzt löschen" %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    #basicMap {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .card-body {
+        overflow: hidden;
+    }
+    
+    /* Popup styling */
+    .ol-popup {
+        position: absolute;
+        background-color: white;
+        padding: 15px;
+        border-radius: 0.75rem;
+        border: none;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        min-width: 200px;
+    }
+    
+    .ol-popup a.ol-popup-closer {
+        text-decoration: none;
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        font-size: 1.2rem;
+        color: #6c757d;
+        transition: color 0.2s;
+    }
+    
+    .ol-popup a.ol-popup-closer:hover {
+        color: #000;
+    }
+    
+    /* Better controls styling */
+    .ol-control button {
+        background-color: white !important;
+        border-radius: 0.5rem !important;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+        border: 1px solid #dee2e6 !important;
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+        font-size: 1.2rem !important;
+        color: #495057 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+    }
+    
+    .ol-control button:hover {
+        background-color: #f8f9fa !important;
+    }
+    
+    .ol-control button:focus {
+        outline: none !important;
+    }
+    
+    /* Zoom controls */
+    .ol-zoom {
+        left: auto !important;
+        right: 0.5rem !important;
+        top: 0.5rem !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.25rem !important;
+        background: none !important;
+    }
+    
+    .ol-zoom button,
+    .ol-zoom-in,
+    .ol-zoom-out {
+        margin: 0 !important;
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+        background-color: white !important;
+        border-radius: 0.5rem !important;
+        border: 1px solid #dee2e6 !important;
+    }
+    
+    .ol-zoom button:first-child,
+    .ol-zoom .ol-zoom-in {
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .ol-attribution {
+        bottom: 0;
+        right: 0;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 0.5rem 0 0 0;
+    }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/4.6.5/ol.js" integrity="sha512-O7kHS9ooekX8EveiC94z9xSvD/4xt10Qigl6uEKvspYykdux3Ci5QNu5fwi4ca0ZkZI/oCgx5ja8RklWUEqzxQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+var map;
+var vectorSource;
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Create vector source for markers
+    vectorSource = new ol.source.Vector();
+    
+    // Initialize map with OpenLayers 4
+    map = new ol.Map({
+        layers: [
+            new ol.layer.Tile({
+                source: new ol.source.OSM()
+            }),
+            new ol.layer.Vector({
+                source: vectorSource
+            })
+        ],
+        target: 'basicMap',
+        view: new ol.View({
+            center: ol.proj.fromLonLat([10.4515, 51.1657]), // Germany center
+            zoom: 6
+        })
+    });
+    
+    // Create popup overlay
+    var container = document.createElement('div');
+    container.className = 'ol-popup';
+    container.id = 'popup';
+    
+    var closer = document.createElement('a');
+    closer.href = '#';
+    closer.className = 'ol-popup-closer';
+    closer.innerHTML = '✖';
+    container.appendChild(closer);
+    
+    var content = document.createElement('div');
+    content.id = 'popup-content';
+    container.appendChild(content);
+    
+    document.body.appendChild(container);
+    
+    var overlay = new ol.Overlay({
+        element: container,
+        autoPan: true,
+        autoPanAnimation: {
+            duration: 250
+        }
+    });
+    map.addOverlay(overlay);
+    
+    closer.onclick = function() {
+        overlay.setPosition(undefined);
+        closer.blur();
+        return false;
+    };
+    
+    // Add markers for all locations
+    var markerCoordinates = [];
+    
+    {% for location in locations %}
+    (function() {
+        {% if location.longitude and location.latitude %}
+        var lon = parseFloat("{{ location.longitude }}".replace(',', '.'));
+        var lat = parseFloat("{{ location.latitude }}".replace(',', '.'));
+        var coordinates = ol.proj.fromLonLat([lon, lat]);
+        
+        markerCoordinates.push(coordinates);
+        
+        // Create marker feature
+        var marker = new ol.Feature({
+            geometry: new ol.geom.Point(coordinates),
+            name: '{{ location.city|escapejs }}',
+            city: '{{ location.city|escapejs }}',
+            country: '{{ location.country|escapejs }}',
+            zip: '{{ location.zip_code|escapejs }}'
+            {% if location.user %}, user: '<a href="{% url 'profil' location.user.id %}" class="text-primary">{{ location.user.get_full_name|escapejs }}</a>'{% endif %}
+        });
+
+        // Create oval profile picture marker with adaptive width
+        var img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = "{% url 'serve_profil_picture' location.user.id %}";
+        
+        img.onload = function() {
+            // Fixed height, adaptive width based on aspect ratio
+            var height = 50;
+            var aspectRatio = img.width / img.height;
+            var width = Math.round(height * aspectRatio);
+            
+            // Limit maximum width to prevent overly wide markers
+            var maxWidth = 60;
+            if (width > maxWidth) {
+                width = maxWidth;
+                height = Math.round(width / aspectRatio);
+            }
+            
+            var canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            var ctx = canvas.getContext('2d');
+            
+            // Draw white oval background
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.ellipse(width/2, height/2, width/2, height/2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Clip to oval (leave space for border)
+            ctx.save();
+            ctx.beginPath();
+            ctx.ellipse(width/2, height/2, width/2 - 2.5, height/2 - 2.5, 0, 0, Math.PI * 2);
+            ctx.clip();
+            
+            // Draw image
+            ctx.drawImage(img, 0, 0, width, height);
+            ctx.restore();
+            
+            // Draw border on top
+            ctx.strokeStyle = '#0d6efd';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.ellipse(width/2, height/2, width/2 - 1.5, height/2 - 1.5, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Update marker style with canvas
+            marker.setStyle(new ol.style.Style({
+                image: new ol.style.Icon({
+                    img: canvas,
+                    imgSize: [width, height],
+                    anchor: [0.5, 0.5],
+                    anchorXUnits: 'fraction',
+                    anchorYUnits: 'fraction'
+                })
+            }));
+        };
+        
+        // Temporary style while image loads
+        marker.setStyle(new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 20,
+                fill: new ol.style.Fill({ color: '#0d6efd' }),
+                stroke: new ol.style.Stroke({ color: 'white', width: 2 })
+            })
+        }));
+        
+        vectorSource.addFeature(marker);
+        {% endif %}
+    })();
+    {% endfor %}
+    
+    // Zoom to show all markers
+    if (markerCoordinates.length > 0) {
+        var extent = ol.extent.boundingExtent(markerCoordinates);
+        map.getView().fit(extent, {
+            padding: [50, 50, 50, 50],
+            maxZoom: 15
+        });
+    }
+    
+    // Click on marker to show popup
+    map.on('click', function(evt) {
+        var feature = map.forEachFeatureAtPixel(evt.pixel, function(feature) {
+            return feature;
+        });
+        
+        if (feature) {
+            var coordinates = feature.getGeometry().getCoordinates();
+            var popupContent = '<div>' +
+                '<h6 class="mb-1"><stron class="text-primary"><i class="bi bi-person me-1"></i>' + feature.get('user') + '</strong></h6>' +
+                '<div class="text-muted small">' +
+                '<div class="mb-1"><i class="bi bi-mailbox me-1"></i>' + feature.get('zip') + '</div>' +
+                '<div class="mb-1"><i class="bi bi-building me-1"></i>' + feature.get('city') + '</div>' +
+                '<div class="mb-1"><i class="bi bi-flag me-1"></i>' + feature.get('country') + '</div>';
+            
+            popupContent += '</div></div>';
+            
+            content.innerHTML = popupContent;
+            overlay.setPosition(coordinates);
+        } else {
+            overlay.setPosition(undefined);
+        }
+    });
+    
+    // Change cursor when hovering over marker
+    map.on('pointermove', function(evt) {
+        if (evt.dragging) {
+            return;
+        }
+        var pixel = map.getEventPixel(evt.originalEvent);
+        var hit = map.hasFeatureAtPixel(pixel);
+        var target = map.getTarget();
+        if (target && typeof target === 'string') {
+            document.getElementById(target).style.cursor = hit ? 'pointer' : '';
+        } else if (target && target.style) {
+            target.style.cursor = hit ? 'pointer' : '';
+        }
+    });
+    
+    
+    // Add form field classes for Bootstrap styling
+    var formInputs = document.querySelectorAll('#locationForm input[type="text"], #locationForm input[type="number"]');
+    formInputs.forEach(function(input) {
+        input.classList.add('form-control');
+    });
+});
+
+// Show inline delete confirmation
+function showDeleteConfirm() {
+    document.getElementById('normalFooter').classList.add('d-none');
+    document.getElementById('deleteConfirmFooter').classList.remove('d-none');
+}
+
+// Hide inline delete confirmation
+function hideDeleteConfirm() {
+    document.getElementById('normalFooter').classList.remove('d-none');
+    document.getElementById('deleteConfirmFooter').classList.add('d-none');
+}
+
+// Delete location
+function deleteLocation() {
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "delete_karte" %}';
+    
+    var csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = '{{ csrf_token }}';
+    form.appendChild(csrfInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Reset to normal footer when modal is closed
+document.getElementById('addLocationModal').addEventListener('hidden.bs.modal', function() {
+    hideDeleteConfirm();
+});
+</script>
+{% endblock %}

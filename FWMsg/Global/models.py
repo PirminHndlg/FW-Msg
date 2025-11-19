@@ -70,7 +70,8 @@ class PersonCluster(OrgModel):
     notfallkontakt = models.BooleanField(default=False, verbose_name='Notfallkontakt anlegen', help_text='Aktivieren, um Notfallkontakte für diese Gruppe anlegen zu können')
     bilder = models.BooleanField(default=False, verbose_name='Bilder hochladen', help_text='Aktivieren, um Bilder für diese Gruppe hochladen zu können')
     posts = models.BooleanField(default=False, verbose_name='Posts verfassen', help_text='Aktivieren, um Posts für diese Gruppe verfassen zu können')
-
+    map = models.BooleanField(default=False, verbose_name='Karte sichtbar', help_text='Aktivieren, um die Standortkarte für diese Gruppe sichtbar zu machen')
+    
     view = models.CharField(max_length=1, choices=view_choices, default='F', verbose_name='Standardansicht', help_text='Bestimmt die Standardansicht für Mitglieder dieser Gruppe')
 
     history = HistoricalRecords()
@@ -1323,3 +1324,21 @@ class BewerberKommentar(OrgModel):
     
     def __str__(self):
         return f'{self.user.get_full_name() if self.user else "Unknown"}: {self.comment[:50]}...'
+    
+
+class MapLocation(OrgModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, verbose_name=_('Erstellt von'))
+    date_created = models.DateTimeField(auto_now_add=True, null=True, verbose_name=_('Erstellt am'))
+    zip_code = models.CharField(max_length=10, verbose_name=_('PLZ'))
+    city = models.CharField(max_length=100, verbose_name=_('Stadt'))
+    country = models.CharField(max_length=100, verbose_name=_('Land'), default='Deutschland')
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name=_('Breitengrad'), null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name=_('Längengrad'), null=True, blank=True)
+    
+    class Meta:
+        verbose_name = _('Karte')
+        verbose_name_plural = _('Karten')
+        ordering = ['-date_created']
+        
+    def __str__(self):
+        return f'{self.city}, {self.country}'

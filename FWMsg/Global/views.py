@@ -81,7 +81,8 @@ from .models import (
     Bilder2, 
     BilderGallery2,
     Einsatzstelle2,
-    EinsatzstelleNotiz, 
+    EinsatzstelleNotiz,
+    MapLocation, 
     ProfilUser2,
     UserAttribute, 
     UserAufgaben,
@@ -108,7 +109,7 @@ from BW.views import base_template as bw_base_template
 from Ehemalige.views import base_template as ehemalige_base_template
 from FWMsg.celery import send_email_aufgaben_daily
 from FWMsg.decorators import required_person_cluster, required_role
-from .forms import BewerberKommentarForm, EinsatzstelleNotizForm, FeedbackForm, AddPostForm, AddAmpelmeldungForm
+from .forms import BewerberKommentarForm, EinsatzstelleNotizForm, FeedbackForm, AddPostForm, AddAmpelmeldungForm, KarteForm
 from ORG.forms import AddNotfallkontaktForm
 from .export_utils import export_user_data_securely
 
@@ -2694,3 +2695,99 @@ def einsatzstellen_info(request):
     }
     
     return render(request, 'einsatzstellen_info.html', context)
+
+
+@login_required
+@required_person_cluster('map')
+def karte(request):
+    # Get or create the user's location entry (only one per user)
+    user_location = MapLocation.objects.filter(user=request.user, org=request.user.org).first()
+    
+    if request.method == 'POST':
+        form = KarteForm(request.POST, request=request, instance=user_location)
+        if form.is_valid():
+            location = form.save(commit=False)
+            location.user = request.user
+            location.org = request.user.org
+            
+            # Geocode the address using Nominatim (OpenStreetMap)
+            try:
+                from geopy.geocoders import Nominatim
+                from geopy.exc import GeocoderTimedOut, GeocoderServiceError
+                import random
+                from decimal import Decimal
+                
+                geolocator = Nominatim(user_agent="fwmsg_app")
+                address = f"{location.zip_code}, {location.city}, {location.country}"
+                
+                geo_location = geolocator.geocode(address, timeout=10)
+                if geo_location:
+                    base_lat = geo_location.latitude
+                    base_lon = geo_location.longitude
+                    
+                    # Check if another user in the same org has the same coordinates
+                    existing_locations = MapLocation.objects.filter(
+                        org=request.user.org,
+                        latitude=base_lat,
+                        longitude=base_lon
+                    ).exclude(user=request.user)
+                    
+                    if existing_locations.exists():
+                        # Add small random offset to prevent marker overlap
+                        # Offset range: 500 meters (0.0045 degrees)
+                        offset_lat = Decimal(str(random.uniform(-0.0045, 0.0045)))
+                        offset_lon = Decimal(str(random.uniform(-0.0045, 0.0045)))
+                        
+                        location.latitude = Decimal(str(base_lat)) + offset_lat
+                        location.longitude = Decimal(str(base_lon)) + offset_lon
+                    else:
+                        location.latitude = base_lat
+                        location.longitude = base_lon
+                else:
+                    messages.warning(request, 'Adresse konnte nicht geocodiert werden. Bitte überprüfen Sie die Eingabe.')
+            except (GeocoderTimedOut, GeocoderServiceError) as e:
+                messages.warning(request, f'Geocoding-Fehler: {str(e)}')
+            except ImportError:
+                messages.warning(request, 'Geocoding-Modul nicht verfügbar. Bitte installieren Sie geopy.')
+            
+            location.save()
+            if user_location:
+                messages.success(request, 'Standort erfolgreich aktualisiert')
+            else:
+                messages.success(request, 'Standort erfolgreich hinzugefügt')
+            return redirect('karte')
+        
+    form = KarteForm(request=request, instance=user_location)
+    
+    if request.user.role == 'O':
+        map_locations = MapLocation.objects.filter(org=request.user.org).order_by('-date_created')
+    else:
+        # Get users from the same person cluster view
+        users_same_person_cluster = User.objects.filter(
+            customuser__person_cluster__view=request.user.customuser.person_cluster.view,
+            customuser__org=request.user.org
+        ).values_list('id', flat=True)
+        map_locations = MapLocation.objects.filter(org=request.user.org, user__id__in=users_same_person_cluster).order_by('-date_created')
+    
+    context = {
+        'form': form,
+        'locations': map_locations,
+        'user_location': user_location,
+        'is_editing': user_location is not None,
+    }
+    context = check_organization_context(request, context)
+    return render(request, 'karte.html', context)
+
+
+@login_required
+@required_person_cluster('map')
+def delete_karte(request):
+    """Delete the user's map location entry"""
+    if request.method == 'POST':
+        user_location = MapLocation.objects.filter(user=request.user, org=request.user.org).first()
+        if user_location:
+            user_location.delete()
+            messages.success(request, 'Standort erfolgreich gelöscht')
+        else:
+            messages.warning(request, 'Kein Standort zum Löschen gefunden')
+    return redirect('karte')

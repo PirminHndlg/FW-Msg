@@ -249,7 +249,7 @@ class PersonClusterTable(BaseOrgTable):
     
     class Meta(BaseOrgTable.Meta):
         model = PersonCluster
-        fields = ('name', 'view', 'aufgaben', 'calendar', 'dokumente', 'ampel', 'notfallkontakt', 'bilder', 'posts', 'actions')
+        fields = ('name', 'view', 'aufgaben', 'calendar', 'dokumente', 'ampel', 'notfallkontakt', 'bilder', 'posts', 'map', 'actions')
 
 
 class AufgabenClusterTable(BaseOrgTable):

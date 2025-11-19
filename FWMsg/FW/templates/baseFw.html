@@ -189,6 +189,13 @@
                   </a>
                 </li>
               {% endif %}
+              {% if user.person_cluster.map %}
+                <li class="nav-item">
+                  <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'karte' %}">
+                    <i class="bi bi-map me-1"></i>{% trans 'Karte' %}
+                  </a>
+                </li>
+              {% endif %}
               
               <!-- Information & Contacts Section -->
               <li class="nav-item mt-3">
@@ -291,7 +298,13 @@
                   </a>
                 </li>
               {% endif %}
-              
+              {% if user.person_cluster.map %}
+                <li class="nav-item">
+                  <a class="nav-link px-0 py-2 d-flex justify-content-center" style="color: var(--text_color_on_org_color);" href="{% url 'karte' %}" title="{% trans 'Karte' %}">
+                    <i class="bi bi-map icon-md-lg"></i>
+                  </a>
+                </li>
+              {% endif %}
               <!-- Information & Contacts -->
               <li class="nav-item">
                 <a class="nav-link px-0 py-2 d-flex justify-content-center" style="color: var(--text_color_on_org_color);" href="{% url 'laenderinfo' %}" title="{% trans 'Mein Einsatzland' %}">

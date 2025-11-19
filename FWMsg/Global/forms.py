@@ -1,7 +1,7 @@
 from django import forms
 
 from FWMsg.middleware import get_current_request
-from .models import Ampel2, BewerberKommentar, Feedback, PersonCluster, Post2, Notfallkontakt2, PostSurveyQuestion, PostSurveyAnswer, EinsatzstelleNotiz
+from .models import Ampel2, BewerberKommentar, Feedback, PersonCluster, Post2, Notfallkontakt2, PostSurveyQuestion, PostSurveyAnswer, EinsatzstelleNotiz, MapLocation
 from django.utils.translation import gettext_lazy as _
 from Global.send_email import send_new_post_email
 from django.forms.widgets import HiddenInput
@@ -258,3 +258,20 @@ class BewerberKommentarForm(forms.ModelForm):
                 'placeholder': _('Geben Sie hier Ihren Kommentar ein...')
             }),
         }
+        
+class KarteForm(forms.ModelForm):
+    class Meta:
+        model = MapLocation
+        fields = ['zip_code', 'city', 'country']
+        
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        if self.request and hasattr(self.request, 'user') and hasattr(self.request.user, 'org'):
+            self.org = self.request.user.org
+        else:
+            self.org = None
+            
+        super().__init__(*args, **kwargs)
+        self.fields['zip_code'].widget.attrs.update({'placeholder': _('PLZ')})
+        self.fields['city'].widget.attrs.update({'placeholder': _('Stadt')})
+        self.fields['country'].widget.attrs.update({'placeholder': _('Land')})
