@@ -1329,7 +1329,7 @@ class BewerberKommentar(OrgModel):
 class MapLocation(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, verbose_name=_('Erstellt von'))
     date_created = models.DateTimeField(auto_now_add=True, null=True, verbose_name=_('Erstellt am'))
-    zip_code = models.CharField(max_length=10, verbose_name=_('PLZ'))
+    zip_code = models.CharField(max_length=10, verbose_name=_('PLZ'), null=True, blank=True)
     city = models.CharField(max_length=100, verbose_name=_('Stadt'))
     country = models.CharField(max_length=100, verbose_name=_('Land'), default='Deutschland')
     latitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name=_('Breitengrad'), null=True, blank=True)

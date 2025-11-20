@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function () {
             name: '{{ location.city|escapejs }}',
             city: '{{ location.city|escapejs }}',
             country: '{{ location.country|escapejs }}',
-            zip: '{{ location.zip_code|escapejs }}'
+            zip: '{{ location.zip_code|default:''|escapejs }}'
             {% if location.user %}, user: '<a href="{% url 'profil' location.user.id %}" class="text-primary">{{ location.user.get_full_name|escapejs }}</a>'{% endif %}
         });
 
@@ -408,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var popupContent = '<div>' +
                 '<h6 class="mb-1"><strong class="text-primary"><i class="bi bi-person me-1"></i>' + feature.get('user') + '</strong></h6>' +
                 '<div class="text-muted small">' +
-                '<div class="mb-1"><i class="bi bi-mailbox me-1"></i>' + feature.get('zip') + '</div>' +
+                '<div class="mb-1 ' + (feature.get('zip') ? '' : 'd-none') + '"><i class="bi bi-mailbox me-1"></i>' + (feature.get('zip') ? feature.get('zip') : '') + '</div>' +
                 '<div class="mb-1"><i class="bi bi-building me-1"></i>' + feature.get('city') + '</div>' +
                 '<div class="mb-1"><i class="bi bi-flag me-1"></i>' + feature.get('country') + '</div>';
             

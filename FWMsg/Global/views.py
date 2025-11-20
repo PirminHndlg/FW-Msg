@@ -2718,7 +2718,7 @@ def karte(request):
                 from decimal import Decimal
                 
                 geolocator = Nominatim(user_agent="fwmsg_app")
-                address = f"{location.zip_code}, {location.city}, {location.country}"
+                address = f"{location.zip_code or ''} {location.city}, {location.country}"
                 
                 geo_location = geolocator.geocode(address, timeout=10)
                 if geo_location:
