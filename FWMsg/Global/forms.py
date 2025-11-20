@@ -272,6 +272,7 @@ class KarteForm(forms.ModelForm):
             self.org = None
             
         super().__init__(*args, **kwargs)
-        self.fields['zip_code'].widget.attrs.update({'placeholder': _('PLZ')})
+        self.fields['zip_code'].widget.attrs.update({'placeholder': 'optional'})
         self.fields['city'].widget.attrs.update({'placeholder': _('Stadt')})
         self.fields['country'].widget.attrs.update({'placeholder': _('Land')})
+        self.fields['zip_code'].required = False
