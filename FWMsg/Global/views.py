@@ -1252,7 +1252,7 @@ def view_profil(request, user_id=None):
     if this_user or request.user.role == 'O':
         posts = get_posts(request.user.org, filter_user=user)
     else:
-        posts = get_posts(org=request.user.org, filter_person_cluster=request.user.person_cluster)
+        posts = get_posts(org=request.user.org, filter_person_cluster=request.user.person_cluster, filter_user=user)
 
     context = {
         'freiwilliger': freiwilliger,
