@@ -1073,6 +1073,18 @@ def remove_ordner(request):
     return redirect('dokumente')
 
 @login_required
+@required_role('O')
+@required_person_cluster('dokumente')
+def get_public_link_ordner(request, ordner_id):
+    try:
+        ordner = Ordner2.objects.get(id=ordner_id, org=request.user.org)
+        return JsonResponse({'link': reverse('dokumente_public', args=[ordner.register_token()])})
+    except Ordner2.DoesNotExist:
+        return JsonResponse({'error': 'Ordner nicht gefunden'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
 def update_profil_picture(request):
     if request.method == 'POST' and request.FILES.get('profil_picture'):
         try:

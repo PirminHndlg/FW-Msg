@@ -197,8 +197,17 @@ async function copyFolderLink(relativeUrl, linkElement) {
     }
 }
 
-async function copyPublicFolderLink(relativeUrl, linkElement) {
+async function copyPublicFolderLink(fetch_url, linkElement) {
     try {
+        const response = await fetch(fetch_url);
+        if (!response.ok) {
+            throw new Error('Failed to fetch public link');
+        }
+        const data = await response.json();
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        const relativeUrl = data.link;
         // Build the absolute URL from the relative URL
         const absoluteUrl = window.location.origin + relativeUrl;
         

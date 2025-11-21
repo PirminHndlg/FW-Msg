@@ -38,6 +38,8 @@ urlpatterns = [
     path('dokument/<int:dokument_id>/', views.serve_dokument, name='serve_dokument'),
     path('dokumente/remove_ordner/', views.remove_ordner, name='remove_ordner'),
     path('dokumente/add_ordner/', views.add_ordner, name='add_ordner'),
+    path('dokumente/get_public_link/<int:ordner_id>/', views.get_public_link_ordner, name='get_public_link_ordner'),
+    
     path('profil_picture/', views.update_profil_picture, name='update_profil_picture'),
     path('profil_picture/<int:user_id>', views.serve_profil_picture, name='serve_profil_picture'),
 
