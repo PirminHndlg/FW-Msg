@@ -32,6 +32,7 @@ from PIL import Image, ImageOps  # Make sure this is from PIL, not Django models
 from django.core.files.base import ContentFile
 import io
 from django.urls import reverse
+from django.core import signing
 
 
 class OrgManager(models.Manager):
@@ -304,6 +305,9 @@ class Ordner2(OrgModel):
 
     def __str__(self):
         return self.ordner_name
+    
+    def register_token(self):
+        return signing.dumps({'ordner_id': self.id})
 
 
 @receiver(post_save, sender=Ordner2)

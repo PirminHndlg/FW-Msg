@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from django.forms import ValidationError
+from django.http import FileResponse, HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
@@ -10,7 +11,8 @@ from .forms import EmailAuthenticationForm, FirstLoginForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth import get_user_model
 import re
-from Global.models import CustomUser, Maintenance
+import os
+from Global.models import CustomUser, Maintenance, Ordner2, Dokument2
 from django.utils import timezone
 from django.core import signing
 from django.contrib.auth.decorators import login_required
@@ -291,3 +293,108 @@ def password_change(request):
     form.fields['new_password1'].widget.attrs['class'] = 'form-control rounded-3'
     form.fields['new_password2'].widget.attrs['class'] = 'form-control rounded-3'
     return render(request, 'password_change.html', {'form': form})
+
+
+def dokumente_public(request, ordner_token):
+    try:
+        # Get the token with timestamp
+        max_age_seconds = 60 * 60 * 24 * 14  # 14 days
+        data = signing.loads(ordner_token, max_age=max_age_seconds)
+        ordner = Ordner2.objects.get(id=data['ordner_id'])
+        
+        # Calculate remaining validity time
+        # Extract timestamp from the signed token
+        from django.core.signing import b62_decode
+        parts = ordner_token.rsplit(':', 1)
+        if len(parts) == 2:
+            # Get the timestamp part and signature
+            value_with_timestamp = parts[0]
+            timestamp_parts = value_with_timestamp.rsplit(':', 1)
+            if len(timestamp_parts) == 2:
+                timestamp_b62 = timestamp_parts[1]
+                timestamp = b62_decode(timestamp_b62)
+                
+                created_time = datetime.fromtimestamp(timestamp, tz=timezone.get_current_timezone())
+                expiration_time = created_time + timedelta(seconds=max_age_seconds)
+                remaining_time = expiration_time - timezone.now()
+                
+                # Format remaining time
+                total_seconds = int(remaining_time.total_seconds())
+                days = total_seconds // (24 * 3600)
+                hours = (total_seconds % (24 * 3600)) // 3600
+                minutes = (total_seconds % 3600) // 60
+            else:
+                # Fallback if timestamp can't be extracted
+                days, hours, minutes = 14, 0, 0
+        else:
+            # Fallback if timestamp can't be extracted
+            days, hours, minutes = 14, 0, 0
+        
+        context = {
+            'ordner': ordner,
+            'remaining_days': days,
+            'remaining_hours': hours,
+            'remaining_minutes': minutes,
+        }
+        
+    except Exception as e:
+        messages.error(request, 'Ordner nicht gefunden oder Link abgelaufen')
+        return redirect('index_home')
+    return render(request, 'dokumente_public.html', context)
+
+
+def dokument_public(request, ordner_token, dokument_id):
+    img = request.GET.get('img', None)
+    download = request.GET.get('download', None)
+    
+    try:
+        data = signing.loads(ordner_token, max_age=60 * 60 * 24 * 14)  # 14 days
+        ordner = Ordner2.objects.get(id=data['ordner_id'])
+        dokument = Dokument2.objects.get(ordner=ordner, id=dokument_id)
+    except Exception as e:
+        messages.error(request, 'Dokument nicht gefunden oder Link abgelaufen')
+        return redirect('dokumente_public', ordner_token=ordner_token)
+    
+    mimetype = dokument.get_document_type()
+    doc_path = dokument.dokument.path
+    
+    # Handle actual image files
+    if mimetype and mimetype.startswith('image') and not download:
+        if not os.path.exists(doc_path):
+            raise Http404("Image does not exist")
+        with open(doc_path, 'rb') as img_file:
+            response = HttpResponse(img_file.read(), content_type=mimetype)
+            response['Content-Disposition'] = f'inline; filename="{dokument.dokument.name}"'
+            return response
+    
+    # Handle preview images for PDFs and Office documents
+    if img and not download:
+        img_path = dokument.get_preview_image()
+        if img_path and os.path.exists(img_path):
+            with open(img_path, 'rb') as img_file:
+                response = HttpResponse(img_file.read(), content_type='image/jpeg')
+                response['Content-Disposition'] = f'inline; filename="{img_path.split("/")[-1]}"'
+                return response
+
+    # Handle videos - use FileResponse for proper range request support (streaming/seeking)
+    if mimetype and mimetype.startswith('video'):
+        response = FileResponse(open(doc_path, 'rb'), content_type=mimetype)
+        if download:
+            response['Content-Disposition'] = f'attachment; filename="{dokument.dokument.name}"'
+        else:
+            response['Content-Disposition'] = f'inline; filename="{dokument.dokument.name}"'
+        return response
+    
+    # Serve document as download
+    with open(doc_path, 'rb') as file:
+        # Handle PDFs - display inline
+        if mimetype == 'application/pdf' and not download:
+            response = HttpResponse(file.read(), content_type='application/pdf')
+            response['Content-Disposition'] = f'inline; filename="{dokument.dokument.name}"'
+            response['Content-Security-Policy'] = "frame-ancestors 'self'"
+            return response
+        
+        # For all other files, serve as download
+        response = HttpResponse(file.read(), content_type=mimetype or 'application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{dokument.dokument.name}"'
+        return response

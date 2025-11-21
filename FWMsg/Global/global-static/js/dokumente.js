@@ -145,7 +145,7 @@ function removeOrdner(ordner_id, ordner_name) {
     }
 }
 
-async function copyFolderLink(relativeUrl, buttonElement) {
+async function copyFolderLink(relativeUrl, linkElement) {
     try {
         // Build the absolute URL from the relative URL
         const absoluteUrl = window.location.origin + relativeUrl;
@@ -167,26 +167,84 @@ async function copyFolderLink(relativeUrl, buttonElement) {
             textArea.remove();
         }
         
-        // Show feedback
-        const icon = buttonElement.querySelector('i');
-        const originalClass = icon.className;
-        const tooltip = bootstrap.Tooltip.getInstance(buttonElement);
-        
-        // Change icon to checkmark temporarily
-        icon.className = 'bi bi-check';
-        if (tooltip) {
-            tooltip.setContent({ '.tooltip-inner': 'Link kopiert!' });
+        // Find the dropdown button to show feedback
+        const dropdownButton = linkElement.closest('.dropdown').querySelector('[data-bs-toggle="dropdown"]');
+        if (dropdownButton) {
+            const icon = dropdownButton.querySelector('i');
+            const originalClass = icon.className;
+            
+            // Change icon to checkmark temporarily
+            icon.className = 'bi bi-check';
+            
+            // Close the dropdown
+            const dropdown = bootstrap.Dropdown.getInstance(dropdownButton);
+            if (dropdown) {
+                dropdown.hide();
+            }
+            
+            // Reset icon after 2 seconds
+            setTimeout(() => {
+                icon.className = originalClass;
+            }, 2000);
         }
         
-        // Reset after 2 seconds
-        setTimeout(() => {
-            icon.className = originalClass;
-            if (tooltip) {
-                tooltip.setContent({ '.tooltip-inner': 'Link zum Ordner kopieren' });
-            }
-        }, 2000);
+        // Optional: Show a toast or temporary message
+        console.log('Link kopiert:', absoluteUrl);
+        
     } catch (err) {
         console.error('Failed to copy link: ', err);
         alert('Fehler beim Kopieren des Links. Bitte versuchen Sie es erneut.');
+    }
+}
+
+async function copyPublicFolderLink(relativeUrl, linkElement) {
+    try {
+        // Build the absolute URL from the relative URL
+        const absoluteUrl = window.location.origin + relativeUrl;
+        
+        // Modern browsers - use Clipboard API
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(absoluteUrl);
+        } else {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = absoluteUrl;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            textArea.remove();
+        }
+        
+        // Find the dropdown button to show feedback
+        const dropdownButton = linkElement.closest('.dropdown').querySelector('[data-bs-toggle="dropdown"]');
+        if (dropdownButton) {
+            const icon = dropdownButton.querySelector('i');
+            const originalClass = icon.className;
+            
+            // Change icon to checkmark temporarily
+            icon.className = 'bi bi-check';
+            
+            // Close the dropdown
+            const dropdown = bootstrap.Dropdown.getInstance(dropdownButton);
+            if (dropdown) {
+                dropdown.hide();
+            }
+            
+            // Reset icon after 2 seconds
+            setTimeout(() => {
+                icon.className = originalClass;
+            }, 2000);
+        }
+        
+        // Optional: Show a toast or temporary message
+        console.log('Öffentlicher Link kopiert:', absoluteUrl);
+        
+    } catch (err) {
+        console.error('Failed to copy public link: ', err);
+        alert('Fehler beim Kopieren des öffentlichen Links. Bitte versuchen Sie es erneut.');
     }
 }

@@ -1,0 +1,270 @@
+{% load static %}
+{% load dokument_filter %}
+{% load i18n %}
+
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans 'Dokumente' %} - {{ ordner.ordner_name }}</title>
+
+    <link rel="icon" type="image/png" href="/favicons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicons/favicon.svg" />
+    <link rel="shortcut icon" href="/favicons/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Volunteer.Solutions" />
+    <link rel="manifest" href="/favicons/site.webmanifest" />
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem 0;
+        }
+        .main-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .hover-shadow {
+            transition: all 0.3s ease;
+        }
+        .hover-shadow:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .cursor-pointer {
+            cursor: pointer;
+        }
+        .card-img-top {
+            position: relative;
+        }
+        .badge {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+        }
+    </style>
+
+    <script>
+        function toggleDescription(element) {
+            const parent = element.closest('.card-body');
+            const preview = parent.querySelector('.description-preview');
+            const full = parent.querySelector('.description-full');
+            
+            if (full.style.display === 'none') {
+                preview.style.display = 'none';
+                full.style.display = 'inline';
+                element.textContent = '{% trans "weniger" %}';
+            } else {
+                preview.style.display = 'inline';
+                full.style.display = 'none';
+                element.textContent = '{% trans "mehr" %}';
+            }
+        }
+
+        function showImgLarge(img) {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+            modal.onclick = () => modal.remove();
+            
+            const largeImg = document.createElement('img');
+            largeImg.src = img.src;
+            largeImg.style.cssText = 'max-width:90%;max-height:90%;object-fit:contain;';
+            
+            modal.appendChild(largeImg);
+            document.body.appendChild(modal);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Load preview images
+            document.querySelectorAll('[data-preview-src]').forEach((img) => {
+                if (!img.src) {
+                    img.src = img.dataset.previewSrc;
+                }
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="main-container p-4">
+            <!-- Header -->
+            <div class="mb-4">
+                <div class="d-flex align-items-center mb-2">
+                    {% if ordner.color %}
+                        <div class="vr rounded-1 me-2 opacity-100" style="background-color: {{ ordner.color.color }}; width: 8px; height: 40px;"></div>
+                    {% endif %}
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="bi bi-folder me-2"></i>{{ ordner.ordner_name }}
+                        </h2>
+                        <p class="text-muted mb-0 small">{{ ordner.org.name }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-4" role="alert">
+                        <i class="bi bi-{% if message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %}-fill me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Documents Grid -->
+            <div class="row g-3">
+                {% for dokument in ordner.dokument2_set.all %}
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                        <div class="card rounded-4 h-100 hover-shadow">
+                            <!-- Document Preview -->
+                            <div class="position-relative">
+                                {% if dokument.get_document_type|starts_with:'image' %}
+                                    <img onclick="showImgLarge(this)" 
+                                        data-preview-src="{% url 'dokument_public' ordner_token=ordner.register_token dokument_id=dokument.id %}"
+                                        class="card-img-top img-fluid cursor-pointer rounded-top-4"
+                                        alt="{{ dokument.titel }}">
+                                    <span class="badge bg-dark bg-opacity-75">{{ dokument.get_document_suffix }}</span>
+                                {% elif dokument.get_document_type|starts_with:'application/pdf' %}
+                                    <a href="{% url 'dokument_public' ordner_token=ordner.register_token dokument_id=dokument.id %}" target="_blank" class="text-decoration-none">
+                                        <img data-preview-src="{% url 'dokument_public' ordner_token=ordner.register_token dokument_id=dokument.id %}?img=True" 
+                                            class="card-img-top img-fluid rounded-top-4"
+                                            alt="PDF Vorschau">
+                                    </a>
+                                    <span class="badge bg-dark bg-opacity-75">{{ dokument.get_document_suffix }}</span>
+                                {% elif dokument.dokument.name|ends_with:'docx' or dokument.dokument.name|ends_with:'doc' or dokument.dokument.name|ends_with:'odt' %}
+                                    <a href="{% url 'dokument_public' ordner_token=ordner.register_token dokument_id=dokument.id %}?download=True" class="text-decoration-none">
+                                        <img data-preview-src="{% url 'dokument_public' ordner_token=ordner.register_token dokument_id=dokument.id %}?img=True" 
+                                            class="card-img-top img-fluid rounded-top-4"
+                                            alt="{{ dokument.get_document_suffix }} Vorschau">
+                                    </a>
+                                    <span class="badge bg-dark bg-opacity-75">{{ dokument.get_document_suffix }}</span>
+                                {% elif dokument.dokument.name|ends_with:'xls' or dokument.dokument.name|ends_with:'xlsx' %}
+                                    <a href="{% url 'dokument_public' ordner_token=ordner.register_token dokument_id=dokument.id %}?download=True" class="text-decoration-none">
+                                        <img data-preview-src="{% url 'dokument_public' ordner_token=ordner.register_token dokument_id=dokument.id %}?img=True" 
+                                            class="card-img-top img-fluid rounded-top-4"
+                                            alt="{{ dokument.get_document_suffix }} Vorschau">
+                                    </a>
+                                    <span class="badge bg-dark bg-opacity-75">{{ dokument.get_document_suffix }}</span>
+                                {% elif dokument.get_document_type|starts_with:'video' %}
+                                    <a href="{% url 'dokument_public' ordner_token=ordner.register_token dokument_id=dokument.id %}" target="_blank" class="text-decoration-none">
+                                        <div class="card-img-top position-relative bg-dark rounded-top-4" style="height: 200px; overflow: hidden;">
+                                            <video class="w-100 h-100" style="object-fit: cover;" preload="metadata">
+                                                <source src="{% url 'dokument_public' ordner_token=ordner.register_token dokument_id=dokument.id %}" type="{{ dokument.get_document_type }}">
+                                                {% trans 'Ihr Browser unterstützt das Video-Tag nicht.' %}
+                                            </video>
+                                            <div class="position-absolute top-50 start-50 translate-middle">
+                                                <i class="bi bi-play-circle-fill text-white" style="font-size: 3rem; opacity: 0.8;"></i>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    <span class="badge bg-dark bg-opacity-75">{{ dokument.get_document_suffix }}</span>
+                                {% elif dokument.link %}
+                                    <a href="{{ dokument.link }}" target="_blank" class="text-decoration-none">
+                                        <div class="card-img-top d-flex flex-column align-items-center justify-content-center bg-light rounded-top-4" 
+                                             style="height: 120px;">
+                                            <i class="bi bi-link fa-3x text-secondary"></i>
+                                            <p class="text-muted small mb-0 px-2 text-center">{{ dokument.link|truncatechars:30 }}</p>
+                                        </div>
+                                    </a>
+                                    <hr class="m-0">
+                                {% elif dokument.dokument %}
+                                    <a href="{% url 'dokument_public' ordner_token=ordner.register_token dokument_id=dokument.id %}?download=true" class="text-decoration-none">
+                                        <div class="card-img-top d-flex align-items-center justify-content-center bg-light rounded-top-4" style="height: 80px;">
+                                            <i class="bi bi-file-earmark fa-3x text-secondary"></i>
+                                        </div>
+                                    </a>
+                                    <span class="badge bg-dark bg-opacity-75">{{ dokument.get_document_suffix }}</span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Document Info -->
+                            <div class="card-body pt-2">
+                                {% with dokument_name=dokument|get_document_name %}
+                                    <h6 class="card-title fw-bold mb-1">{{ dokument.titel|default:dokument_name }}</h6>
+
+                                    {% if dokument.beschreibung %}
+                                        <p class="card-text text-muted small mb-2">
+                                            <span class="description-preview">{{ dokument.beschreibung|truncatewords:10 }}</span>
+                                            <span class="description-full" style="display:none">{{ dokument.beschreibung }}</span>
+                                            {% if dokument.beschreibung|wordcount > 10 %}
+                                                <a href="#" class="show-more" onclick="event.preventDefault(); toggleDescription(this);">{% trans "mehr" %}</a>
+                                            {% endif %}
+                                        </p>
+                                    {% endif %}
+
+                                    {% if dokument.link %}
+                                        <p class="card-text text-muted small">
+                                            <i class="bi bi-link-45deg"></i>
+                                            <a href="{{ dokument.link }}" target="_blank" class="text-decoration-none">{{ dokument.link|truncatechars:40 }}</a>
+                                        </p>
+                                    {% endif %}
+
+                                    {% if dokument.dokument %}
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <a href="{% url 'dokument_public' ordner_token=ordner.register_token dokument_id=dokument.id %}?download=true" 
+                                           class="btn btn-outline-primary btn-sm rounded-4 text-decoration-none"
+                                           download>
+                                            <i class="bi bi-download"></i> {% trans "Download" %}
+                                        </a>
+                                        {% if dokument.date_created %}
+                                            <small class="text-muted">{{ dokument.date_created|date:"d.m.Y" }}</small>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="alert alert-info rounded-4 text-center" role="alert">
+                            <i class="bi bi-info-circle me-2"></i>
+                            {% trans 'Dieser Ordner enthält noch keine Dokumente.' %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Footer Info -->
+            <div class="text-center mt-4 pt-3 border-top">
+                <small class="text-muted">
+                    <i class="bi bi-shield-check me-1"></i>
+                    {% if remaining_days > 0 %}
+                        {% trans 'Dieser Link ist noch' %} 
+                        {% if remaining_days > 1 %}
+                            {{ remaining_days }} {% trans 'Tage' %}
+                        {% elif remaining_days == 1 %}
+                            {{ remaining_days }} {% trans 'Tag' %}
+                        {% endif %}
+                        {% if remaining_hours > 0 %}
+                            {{ remaining_hours }} {% trans 'Stunden' %}
+                        {% endif %}
+                        {% trans 'gültig' %}
+                    {% elif remaining_hours > 0 %}
+                        {% trans 'Dieser Link ist noch' %} {{ remaining_hours }} {% trans 'Stunden' %} 
+                        {% if remaining_minutes > 0 %}
+                            {{ remaining_minutes }} {% trans 'Minuten' %}
+                        {% endif %}
+                        {% trans 'gültig' %}
+                    {% elif remaining_minutes > 0 %}
+                        {% trans 'Dieser Link ist noch' %} {{ remaining_minutes }} {% trans 'Minuten gültig' %}
+                    {% else %}
+                        {% trans 'Dieser Link läuft bald ab' %}
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
