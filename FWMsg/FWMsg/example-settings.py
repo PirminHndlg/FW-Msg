@@ -215,10 +215,21 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "static"
 
 STATICFILES_DIRS = [
+    # npm/yarn managed frontend dependencies
+    BASE_DIR.parent / "node_modules/bootstrap/dist",
+    BASE_DIR.parent / "node_modules/bootstrap-icons/font",
+    BASE_DIR.parent / "node_modules/jquery/dist",
+    BASE_DIR.parent / "node_modules/flag-icons",
+    BASE_DIR.parent / "node_modules/@fortawesome/fontawesome-free",
+    BASE_DIR.parent / "node_modules/js-cookie/dist",
+    BASE_DIR.parent / "node_modules/masonry-layout/dist",
+    # Custom static directories
+    BASE_DIR / "Home/home-static",
     BASE_DIR / "FW/fw-static",
     BASE_DIR / "ORG/org-static",
     BASE_DIR / "Global/global-static",
     BASE_DIR / "TEAM/team-static",
+    BASE_DIR / "seminar/seminar-static",
     BASE_DIR / "logos",
 ]
 
