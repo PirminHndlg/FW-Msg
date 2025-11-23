@@ -8,6 +8,11 @@ FWMsg/ORG/__pycache__/
 FWMsg/ORG/**/__pycache__/
 *.pyc
 
+# Node.js dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
 # Django settings
 FWMsg/FWMsg/settings.py
 

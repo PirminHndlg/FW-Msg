@@ -15,6 +15,7 @@ Volunteer.solutions is a comprehensive tool for managing volunteer work. It enab
 ## Prerequisites
 - Python 3.8 or higher
 - Django 4.2 or higher
+- Node.js 16 or higher (for frontend dependencies)
 - Redis (for Celery tasks and caching)
 - SMTP server for email notifications
 - VAPID keys for web push notifications (optional)
@@ -33,10 +34,17 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Install Dependencies
+### 3. Install Python Dependencies
 ```bash
 pip install -r requirements.txt
 ```
+
+### 4. Install Frontend Dependencies
+```bash
+npm install
+```
+
+See [FRONTEND_SETUP.md](FRONTEND_SETUP.md) for more details about frontend dependency management.
 
 ## Configuration
 
@@ -88,7 +96,14 @@ Create a `.secrets.json` file in the `FWMsg/FWMsg/` directory with your configur
 - For production, set `debug` to `false` and use proper domain values
 - Make sure to add `.secrets.json` to your `.gitignore` file to keep secrets secure
 
-### 3. Database Setup
+### 3. Collect Static Files
+
+```bash
+cd FWMsg
+python manage.py collectstatic --noinput
+```
+
+### 4. Database Setup
 
 ```bash
 python manage.py migrate
@@ -141,7 +156,10 @@ FWMsg/
 ```
 
 ### Static Files
-Static files are organized in app-specific directories:
+
+Frontend libraries (Bootstrap, jQuery, Font Awesome, etc.) are managed via npm. See [FRONTEND_SETUP.md](FRONTEND_SETUP.md) for details.
+
+App-specific static files are organized in directories:
 - `FW/fw-static/`
 - `ORG/org-static/`
 - `Global/global-static/`
