@@ -227,7 +227,7 @@
                                 {% if field.name == 'user' and object.user %}
                                     <div class="d-flex align-items-center gap-1">
                                         <i class="bi bi-person"></i>
-                                        <a href="{% url 'profil' object.user.pk %}">{{ object.user }}</a>
+                                        <a href="{% url 'profil' object.user.customuser.get_identifier %}">{{ object.user }}</a>
                                     </div>
                                 {% else %}
                                 {% with field_type=object|get_field_type:field %}

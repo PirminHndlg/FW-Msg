@@ -87,7 +87,7 @@ class BaseOrgTable(tables.Table):
             user_id = record.user.id
         except Exception:
             return value
-        url = reverse('profil', args=[user_id])
+        url = reverse('profil', args=[record.user.customuser.get_identifier()])
         return format_html('<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', url, value)
 
 
@@ -611,7 +611,7 @@ def get_freiwilliger_table_class(org, request=None):
         freiwilliger = record['freiwilliger']
         return format_html(
             '<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', 
-            reverse('profil', args=[freiwilliger.user.id]), 
+            reverse('profil', args=[freiwilliger.user.customuser.get_identifier()]), 
             f"{freiwilliger.user.first_name} {freiwilliger.user.last_name}"
         )
     
@@ -791,7 +791,7 @@ def get_bewerber_table_class(org, request=None):
             '<a href="{}" title="Zum Profil"><i class="bi bi-person-fill me-1"></i>{}</a> '
             '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
             '<i class="bi bi-envelope-arrow-up"></i></a>',
-            reverse('profil', args=[bewerber.user.id]),
+            reverse('profil', args=[bewerber.user.customuser.get_identifier()]),
             f"{bewerber.user.first_name} {bewerber.user.last_name}",
             bewerber.user.email,
         )
@@ -962,7 +962,7 @@ def get_team_table_class(org, request=None):
         team = record['team']
         return format_html(
             '<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', 
-            reverse('profil', args=[team.user.id]), 
+            reverse('profil', args=[team.user.customuser.get_identifier()]), 
             f"{team.user.first_name} {team.user.last_name}"
         )
     
@@ -1050,7 +1050,7 @@ def get_ehemalige_table_class(org, request=None):
         ehemalige = record['ehemalige']
         return format_html(
             '<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', 
-            reverse('profil', args=[ehemalige.user.id]), 
+            reverse('profil', args=[ehemalige.user.customuser.get_identifier()]), 
             f"{ehemalige.user.first_name} {ehemalige.user.last_name}"
         )
     

@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function () {
             city: '{{ location.city|escapejs }}',
             country: '{{ location.country|escapejs }}',
             zip: '{{ location.zip_code|default:''|escapejs }}'
-            {% if location.user %}, user: '<a href="{% url 'profil' location.user.id %}" class="text-primary">{{ location.user.get_full_name|escapejs }}</a>'{% endif %}
+            {% if location.user %}, user: '<a href="{% url 'profil' location.user.customuser.get_identifier %}" class="text-primary">{{ location.user.get_full_name|escapejs }}</a>'{% endif %}
         });
 
         // Create oval profile picture marker with adaptive width
