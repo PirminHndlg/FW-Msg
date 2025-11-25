@@ -223,6 +223,11 @@ STATICFILES_DIRS = [
     BASE_DIR.parent / "node_modules/@fortawesome/fontawesome-free",
     BASE_DIR.parent / "node_modules/js-cookie/dist",
     BASE_DIR.parent / "node_modules/masonry-layout/dist",
+    BASE_DIR.parent / "node_modules/chart.js/dist",
+    BASE_DIR.parent / "node_modules/fullcalendar",
+    BASE_DIR.parent / "node_modules/@popperjs/core/dist/umd",
+    BASE_DIR.parent / "node_modules/canvas-confetti/dist",
+    BASE_DIR.parent / "node_modules/ol",
     # Custom static directories
     BASE_DIR / "Home/home-static",
     BASE_DIR / "FW/fw-static",
