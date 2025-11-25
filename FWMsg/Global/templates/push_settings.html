@@ -87,9 +87,6 @@
               <li>
                 {% trans 'Du kannst Push-Benachrichtigungen jederzeit in den Browser-Einstellungen deaktivieren.' %}
               </li>
-              <li>
-                {% trans 'Auf mobilen Geräten können Push-Benachrichtigungen nur in Chrome oder Firefox empfangen werden.' %}
-              </li>
             </ul>
           </div>
         </div>
@@ -104,12 +101,26 @@
           </h5>
         </div>
         <div class="card-body">
+          <div class="alert alert-info mb-3">
+            <h6 class="fw-bold mb-2">
+              <i class="bi bi-info-circle me-2"></i>
+              {% trans 'So aktivierst du Push-Benachrichtigungen für dein Smartphone oder Tablet:' %}
+            </h6>
+            <ol class="mb-0">
+              <li>{% trans 'Melde dich ab' %} <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-secondary ms-2"><i class="bi bi-box-arrow-in-right"></i> {% trans 'Logout' %}</a></li>
+              <li>{% trans 'Bleib auf der Startseite (/), um die Web-App zu installieren' %}</li>
+              <li>{% trans 'Installiere die Website als Web-App ("Zum Startbildschirm hinzufügen" oder "App installieren")' %}</li>
+              <li>{% trans 'Melde dich in der installierten Web-App an' %}</li>
+              <li>{% trans 'Aktiviere die Push-Benachrichtigungen in der Web-App' %}</li>
+            </ol>
+          </div>
           <p class="text-muted">
-            {% trans 'Um Push-Benachrichtigungen auf deinem Smartphone oder Tablet zu erhalten, musst du die Website zuerst als Web-App installieren.' %}
+            <strong>{% trans 'Wichtig:' %}</strong>
+            {% trans 'Die Installation muss von der Startseite (/) aus erfolgen, nicht von dieser Unterseite.' %}
           </p>
 
           <!-- Accordion for different platforms -->
-          <div class="accordion" id="mobileTutorialAccordion">
+          <div class="accordion mb-3" id="mobileTutorialAccordion">
             
             <!-- Android / Chrome Tutorial -->
             <div class="accordion-item">
@@ -136,14 +147,14 @@
                       {% trans 'Bestätige mit "Hinzufügen" oder "Installieren"' %}
                     </li>
                     <li>
-                      {% trans 'Die App erscheint nun auf deinem Startbildschirm' %}
+                      {% trans 'Die Web-App erscheint nun auf deinem Startbildschirm' %}
                     </li>
                   </ol>
 
                   <h6 class="fw-bold">{% trans 'Schritt 2: Push-Benachrichtigungen aktivieren' %}</h6>
                   <ol class="mb-3">
                     <li>
-                      {% trans 'Öffne die installierte App vom Startbildschirm' %}
+                      {% trans 'Öffne die installierte Web-App vom Startbildschirm' %}
                     </li>
                     <li>
                       {% trans 'Navigiere zu dieser Push-Einstellungen-Seite' %}
@@ -159,7 +170,7 @@
                   <div class="alert alert-info mb-0">
                     <i class="bi bi-info-circle me-2"></i>
                     <strong>{% trans 'Wichtig' %}:</strong> 
-                    {% trans 'Push-Benachrichtigungen funktionieren nur, wenn die App über den Startbildschirm installiert wurde. Der normale Browser unterstützt keine Push-Benachrichtigungen auf Android.' %}
+                    {% trans 'Push-Benachrichtigungen funktionieren nur, wenn die Web-App über den Startbildschirm installiert wurde. Der normale Browser unterstützt keine Push-Benachrichtigungen auf Android.' %}
                   </div>
                 </div>
               </div>
@@ -195,14 +206,14 @@
                       {% trans 'Gib einen Namen ein (optional) und tippe auf "Hinzufügen"' %}
                     </li>
                     <li>
-                      {% trans 'Die App erscheint nun auf deinem Home-Bildschirm' %}
+                      {% trans 'Die Web-App erscheint nun auf deinem Home-Bildschirm' %}
                     </li>
                   </ol>
 
                   <h6 class="fw-bold">{% trans 'Schritt 2: Push-Benachrichtigungen aktivieren' %}</h6>
                   <ol class="mb-3">
                     <li>
-                      {% trans 'Öffne die installierte App vom Home-Bildschirm' %}
+                      {% trans 'Öffne die installierte Web-App vom Home-Bildschirm' %}
                     </li>
                     <li>
                       {% trans 'Navigiere zu dieser Push-Einstellungen-Seite' %}
@@ -242,8 +253,9 @@
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- Troubleshooting Section -->
+          <div class="accordion" id="troubleshootingAccordion">
             <div class="accordion-item">
               <h2 class="accordion-header" id="headingTroubleshooting">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTroubleshooting" aria-expanded="false" aria-controls="collapseTroubleshooting">
@@ -251,7 +263,7 @@
                   {% trans 'Problembehandlung' %}
                 </button>
               </h2>
-              <div id="collapseTroubleshooting" class="accordion-collapse collapse" aria-labelledby="headingTroubleshooting" data-bs-parent="#mobileTutorialAccordion">
+              <div id="collapseTroubleshooting" class="accordion-collapse collapse" aria-labelledby="headingTroubleshooting" data-bs-parent="#troubleshootingAccordion">
                 <div class="accordion-body">
                   <h6 class="fw-bold">{% trans 'Push-Benachrichtigungen funktionieren nicht?' %}</h6>
                   
@@ -259,16 +271,13 @@
                     <strong>{% trans 'Prüfe Folgendes' %}:</strong>
                     <ul class="mt-2">
                       <li>
-                        {% trans 'Hast du die Website als App installiert? (Nicht nur als Lesezeichen!)' %}
+                        {% trans 'Hast du die Website als Web-App installiert? (Nicht nur als Lesezeichen!)' %}
                       </li>
                       <li>
-                        {% trans 'Öffnest du die Website über das App-Icon auf dem Startbildschirm?' %}
+                        {% trans 'Öffnest du die Website über die Web-App auf dem Startbildschirm?' %}
                       </li>
                       <li>
                         {% trans 'Sind Benachrichtigungen in den System-Einstellungen erlaubt?' %}
-                      </li>
-                      <li>
-                        {% trans 'Ist dein Gerät mit dem Internet verbunden?' %}
                       </li>
                       <li>
                         {% trans 'Hast du Push-Benachrichtigungen auf dieser Seite aktiviert?' %}
@@ -280,13 +289,13 @@
                     <strong>{% trans 'Falls es immer noch nicht funktioniert' %}:</strong>
                     <ol class="mt-2">
                       <li>
-                        {% trans 'Entferne die App vom Startbildschirm' %}
+                        {% trans 'Entferne die Web-App vom Startbildschirm' %}
                       </li>
                       <li>
                         {% trans 'Lösche den Browser-Cache und alle Website-Daten' %}
                       </li>
                       <li>
-                        {% trans 'Installiere die App erneut' %}
+                        {% trans 'Installiere die Web-App erneut (Startseite (/))' %}
                       </li>
                       <li>
                         {% trans 'Aktiviere Push-Benachrichtigungen erneut' %}
