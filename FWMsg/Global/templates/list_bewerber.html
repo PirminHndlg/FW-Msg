@@ -60,7 +60,7 @@
                         <div class="d-flex align-items-center">
                             <!-- Profilbild -->
                             <div class="me-3">
-                                <img src="{% url 'serve_profil_picture' bewerberin.user.id %}" alt="{% trans 'Profilbild' %}" class="rounded-circle" style="height: 40px; object-fit: cover;">
+                                <img src="{% url 'serve_profil_picture' bewerberin.user.customuser.get_identifier %}" alt="{% trans 'Profilbild' %}" class="rounded-circle" style="height: 40px; object-fit: cover;">
                             </div>
                           <div>
                             <div class="fw-semibold">{{ bewerberin.user.first_name }} {{ bewerberin.user.last_name }}</div>

@@ -3,7 +3,7 @@
 <div class="text-center">
     <div class="d-flex flex-column align-items-center">
         <div class="position-relative">
-            <img src="{% url 'serve_profil_picture' user.id %}" 
+            <img src="{% url 'serve_profil_picture' user.customuser.get_identifier %}" 
                  alt="{% trans 'Profilbild' %}" 
                  class="img-fluid rounded-circle mb-3" 
                  style="max-width: 250px; max-height: 250px;">

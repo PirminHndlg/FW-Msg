@@ -1815,7 +1815,7 @@ class ProfileViewsTests(TestCase):
         self.freiwillige_user.customuser.save()
         
         self.client.force_login(self.admin_user)
-        response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.id]))
+        response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.customuser.get_identifier()]))
         
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'image/jpeg')
@@ -1844,7 +1844,7 @@ class ProfileViewsTests(TestCase):
         
         try:
             self.client.force_login(self.admin_user)
-            response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.id]))
+            response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.customuser.get_identifier()]))
             
             # The response should be either 200 (success), 302 (redirect to static default), or 404 (if default image not found)
             self.assertIn(response.status_code, [200, 302, 404])
@@ -1859,13 +1859,13 @@ class ProfileViewsTests(TestCase):
     def test_serve_profil_picture_wrong_organization(self):
         """Test that users cannot access profile pictures from other organizations"""
         self.client.force_login(self.admin_user)
-        response = self.client.get(reverse('serve_profil_picture', args=[self.other_user.id]))
+        response = self.client.get(reverse('serve_profil_picture', args=[self.other_user.customuser.get_identifier()]))
         
         self.assertEqual(response.status_code, 403)  # Forbidden
 
     def test_serve_profil_picture_unauthenticated(self):
         """Test that unauthenticated users are redirected to login"""
-        response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.id]))
+        response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.customuser.get_identifier()]))
         self.assertEqual(response.status_code, 302)  # Redirect to login
 
     def test_remove_profil_attribut_success(self):
@@ -1925,7 +1925,7 @@ class ProfileViewsTests(TestCase):
             self.assertIn(response.status_code, [200, 302])  # Either success or redirect
             
             # Test serve_profil_picture access
-            response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.id]))
+            response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.customuser.get_identifier()]))
             self.assertIn(response.status_code, [200, 302, 404])  # Success, redirect to default, or not found
             
             # Test update_profil_picture access
@@ -2083,7 +2083,7 @@ class ProfileViewsTests(TestCase):
         response = self.client.get(reverse('profil'))
         self.assertIn(response.status_code, [200, 302])  # Either success or redirect
         
-        response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.id]))
+        response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.customuser.get_identifier()]))
         self.assertIn(response.status_code, [200, 302, 404])  # Success, redirect to default, or not found
         
         response = self.client.post(reverse('update_profil_picture'))

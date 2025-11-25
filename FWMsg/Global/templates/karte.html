@@ -319,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Create oval profile picture marker with adaptive width
         var img = new Image();
         img.crossOrigin = 'anonymous';
-        img.src = "{% url 'serve_profil_picture' location.user.id %}";
+        img.src = "{% url 'serve_profil_picture' location.user.customuser.get_identifier %}";
         
         img.onload = function() {
             // Fixed height, adaptive width based on aspect ratio
