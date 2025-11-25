@@ -47,7 +47,7 @@
     {% if freiwillige %}
         {% for freiwilliger in freiwillige %}
             {% with fid=freiwilliger.id %}
-                <img id="img{{ fid }}" class="profil_img" src="{% url 'serve_profil_picture' freiwilliger.user.id %}" sizes="100vw"
+                <img id="img{{ fid }}" class="profil_img" src="{% url 'serve_profil_picture' freiwilliger.user.customuser.get_identifier %}" sizes="100vw"
                      alt="Bild von {{ freiwilliger.user.first_name }}"
                      onclick="on_img_click(this)"
                      onerror="this.onerror=null; this.src='../static/img/default_img.png';"

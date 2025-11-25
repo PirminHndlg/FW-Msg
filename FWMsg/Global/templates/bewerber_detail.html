@@ -15,13 +15,13 @@
         <div class="d-flex align-items-center">
             <!-- Profilbild -->
           <div class="me-3">
-            <img src="{% url 'serve_profil_picture' bewerber.user.id %}" 
+            <img src="{% url 'serve_profil_picture' bewerber.user.customuser.get_identifier %}" 
                  alt="{% trans 'Profilbild' %}" 
                  class="rounded-circle cursor-pointer" 
                  style="height: 60px; object-fit: cover;"
                  data-bs-toggle="modal" 
                  data-bs-target="#profileImageModal"
-                 data-image-src="{% url 'serve_profil_picture' bewerber.user.id %}"
+                 data-image-src="{% url 'serve_profil_picture' bewerber.user.customuser.get_identifier %}"
                  data-image-name="{{ bewerber.user.first_name }} {{ bewerber.user.last_name }}">
           </div>
           <div>

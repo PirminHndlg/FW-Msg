@@ -42,7 +42,7 @@
 
             <div id="kachel{{fid}}" class="kachel_div">
                 <div class="img_container">
-                    <img src="{% url 'serve_profil_picture' f.user.id %}"
+                    <img src="{% url 'serve_profil_picture' f.user.customuser.get_identifier %}"
                          alt="Bild von {{f.user.first_name}} {{f.user.last_name}}"
                          onerror="this.onerror=null; this.src='../static/img/default_img.png';">
                 </div>

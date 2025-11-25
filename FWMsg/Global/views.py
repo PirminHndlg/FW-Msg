@@ -1094,6 +1094,7 @@ def update_profil_picture(request):
                 custom_user.profil_picture.delete()
             
             custom_user.profil_picture = request.FILES['profil_picture']
+            custom_user.update_identifier()
             custom_user.save()
             custom_user.create_small_image()
             messages.success(request, 'Profilbild wurde erfolgreich aktualisiert.')
@@ -1103,9 +1104,9 @@ def update_profil_picture(request):
     return redirect('profil')
 
 @login_required
-def serve_profil_picture(request, user_id):
+def serve_profil_picture(request, user_identifier):
     try:
-        requested_user = User.objects.get(id=user_id)
+        requested_user = User.objects.get(customuser__identifier=user_identifier, customuser__org=request.user.org)
     except User.DoesNotExist:
         return HttpResponseNotFound('Benutzer nicht gefunden')
 
@@ -1152,44 +1153,31 @@ def serve_profil_picture(request, user_id):
     if not requested_user.customuser.profil_picture:
         # TODO: Uncomment when default_img caching is needed again
         # # Use Django's static file finder to get the correct path with hash
-        # from django.contrib.staticfiles.finders import find
-        # from django.contrib.staticfiles.storage import staticfiles_storage
-        # 
-        # # Try to find the default image using the static file finder
-        # default_img_path = find('img/default_img.png')
-        # if default_img_path:
-        #     return _serve_cached_image(default_img_path, 'default_img.png')
-        # else:
-        #     # If the file is not found, try to serve it from the staticfiles storage
-        #     try:
-        #         # Get the hashed filename from staticfiles storage
-        #         hashed_path = staticfiles_storage.path('img/default_img.png')
-        #         if os.path.exists(hashed_path):
-        #             return _serve_cached_image(hashed_path, 'default_img.png')
-        #         else:
-        #             # Last resort: redirect to the static URL
-        #             default_img_url = staticfiles_storage.url('img/default_img.png')
-        #             return HttpResponseRedirect(default_img_url)
-        #     except Exception as e:
-        #         # Return a simple 404 or placeholder
-        #         return HttpResponseNotFound('Default profile picture not found')
-        
-        # Serve default image directly without caching
+        from django.contrib.staticfiles.finders import find
         from django.contrib.staticfiles.storage import staticfiles_storage
-        default_img_url = staticfiles_storage.url('img/default_img.png')
-        return HttpResponseRedirect(default_img_url)
+        
+        # Try to find the default image using the static file finder
+        default_img_path = find('img/default_img.png')
+        if default_img_path:
+            return _serve_cached_image(default_img_path, 'default_img.png')
+        else:
+            # If the file is not found, try to serve it from the staticfiles storage
+            try:
+                # Get the hashed filename from staticfiles storage
+                hashed_path = staticfiles_storage.path('img/default_img.png')
+                if os.path.exists(hashed_path):
+                    return _serve_cached_image(hashed_path, 'default_img.png')
+                else:
+                    # Last resort: redirect to the static URL
+                    default_img_url = staticfiles_storage.url('img/default_img.png')
+                    return HttpResponseRedirect(default_img_url)
+            except Exception as e:
+                # Return a simple 404 or placeholder
+                return HttpResponseNotFound('Default profile picture not found')
 
     # Serve profile picture directly without caching
     file_path = requested_user.customuser.profil_picture.path
-    mime_type = mimetypes.guess_type(file_path)[0] or 'application/octet-stream'
-    with open(file_path, 'rb') as img_file:
-        response = HttpResponse(img_file.read(), content_type=mime_type)
-        response['Content-Disposition'] = f'inline; filename="{os.path.basename(requested_user.customuser.profil_picture.name)}"'
-        # Disable all caching
-        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response['Pragma'] = 'no-cache'
-        response['Expires'] = '0'
-        return response
+    return _serve_cached_image(file_path, requested_user.customuser.profil_picture.name)
 
 
 def unsubscribe_mail_notifications(request, user_id, auth_key):
@@ -2501,7 +2489,7 @@ def api_bewerber_kommentare(request, bewerber_id, kommentar_id=None):
                 'user': {
                     'id': comment.user.id,
                     'full_name': comment.user.get_full_name() or comment.user.username,
-                    'profile_picture_url': reverse('serve_profil_picture', args=[comment.user.id])
+                    'profile_picture_url': reverse('serve_profil_picture', args=[comment.user.customuser.get_identifier()])
                 }
             })
         
@@ -2512,7 +2500,7 @@ def api_bewerber_kommentare(request, bewerber_id, kommentar_id=None):
                 'id': bewerber.id,
                 'first_name': bewerber.user.first_name,
                 'last_name': bewerber.user.last_name,
-                'profile_picture_url': reverse('serve_profil_picture', args=[bewerber.user.id])
+                'profile_picture_url': reverse('serve_profil_picture', args=[bewerber.user.customuser.get_identifier()])
             },
             'comments': comments_data
         })
@@ -2550,7 +2538,7 @@ def api_bewerber_kommentare(request, bewerber_id, kommentar_id=None):
                     'user': {
                         'id': kommentar.user.id,
                         'full_name': kommentar.user.get_full_name() or kommentar.user.username,
-                        'profile_picture_url': reverse('serve_profil_picture', args=[kommentar.user.id])
+                        'profile_picture_url': reverse('serve_profil_picture', args=[kommentar.user.customuser.get_identifier()])
                     }
                 }
             })

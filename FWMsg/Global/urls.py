@@ -41,7 +41,7 @@ urlpatterns = [
     path('dokumente/get_public_link/<int:ordner_id>/', views.get_public_link_ordner, name='get_public_link_ordner'),
     
     path('profil_picture/', views.update_profil_picture, name='update_profil_picture'),
-    path('profil_picture/<int:user_id>', views.serve_profil_picture, name='serve_profil_picture'),
+    path('profil_picture/<str:user_identifier>/', views.serve_profil_picture, name='serve_profil_picture'),
 
     path('ampel/', views.ampel, name='ampel'),
     path('list-ampel/', views.list_ampel, name='list_ampel'),

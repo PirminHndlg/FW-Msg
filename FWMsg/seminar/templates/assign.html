@@ -162,7 +162,7 @@
                                                                 <div class="evaluation-badge evaluation-{{ freiwilliger.endbewertung }}"></div>
                                                             {% endif %}
                                                             
-                                                            <img src="{% url 'serve_profil_picture' freiwilliger.user.id %}" 
+                                                            <img src="{% url 'serve_profil_picture' freiwilliger.user.customuser.get_identifier %}" 
                                                                  class="volunteer-avatar mb-2" 
                                                                  alt="{{ freiwilliger.user.first_name }}"
                                                                  onerror="this.src='{% static 'img/default_img.png' %}'">
@@ -274,7 +274,7 @@
                                             <div class="card-body p-2">
                                                 <div class="d-flex align-items-center">
                                                     <div class="position-relative me-3">
-                                                        <img src="{% url 'serve_profil_picture' freiwilliger.user.id %}" 
+                                                        <img src="{% url 'serve_profil_picture' freiwilliger.user.customuser.get_identifier %}" 
                                                              class="volunteer-avatar" 
                                                              alt="{{ freiwilliger.user.first_name }}"
                                                              onerror="this.src='{% static 'img/default_img.png' %}'">
@@ -344,7 +344,7 @@
                                    <div class="card-body p-2">
                                        <div class="d-flex align-items-center">
                                            <div class="position-relative me-3">
-                                               <img src="{% url 'serve_profil_picture' freiwilliger.user.id %}" 
+                                               <img src="{% url 'serve_profil_picture' freiwilliger.user.customuser.get_identifier %}" 
                                                     class="volunteer-avatar" 
                                                     alt="{{ freiwilliger.user.first_name }}"
                                                     onerror="this.src='{% static 'img/default_img.png' %}'">

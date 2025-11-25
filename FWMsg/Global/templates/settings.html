@@ -211,7 +211,7 @@
                 <div class="card-body text-center">
                     <div class="mb-3">
                         {% if request.user.customuser.profil_picture %}
-                            <img src="{% url 'serve_profil_picture' request.user.id %}" 
+                            <img src="{% url 'serve_profil_picture' request.user.customuser.get_identifier %}" 
                                  alt="Profilbild" 
                                  class="rounded-circle" 
                                  style="width: 80px; height: 80px; object-fit: cover;">

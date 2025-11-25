@@ -338,7 +338,7 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
         if self.instance.pk and self.instance.user.customuser.profil_picture:
             from django.urls import reverse
             from django.utils.safestring import mark_safe
-            picture_url = reverse('serve_profil_picture', kwargs={'user_id': self.instance.user.id})
+            picture_url = reverse('serve_profil_picture', kwargs={'user_identifier': self.instance.user.customuser.get_identifier()})
             self.fields['profil_picture'].help_text = mark_safe(
                 f'<div style="margin-top: 10px;">'
                 f'<p>Aktuelles Profilbild:</p>'
@@ -532,6 +532,8 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
         if self.cleaned_data['email'] != self.instance.user.email:
             self.instance.user.email = self.cleaned_data['email']
             self.instance.user.save()
+            
+        self.instance.user.customuser.update_identifier()
             
         instance.abgeschlossen = True
         instance.abgeschlossen_am = timezone.now()

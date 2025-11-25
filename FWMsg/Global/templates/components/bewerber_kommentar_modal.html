@@ -185,7 +185,7 @@ function open_bewerber_kommentar_modal(button, bewerber_id) {
 function renderModalContent(data) {
     const modalBodyContent = document.getElementById('modalBodyContent');
     const currentUserId = {{ request.user.id|default:'null' }};
-    const currentUserProfilePic = "{% url 'serve_profil_picture' request.user.id %}";
+    const currentUserProfilePic = "{% url 'serve_profil_picture' request.user.customuser.get_identifier %}";
     
     let commentsHtml = '';
     

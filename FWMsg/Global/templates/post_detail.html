@@ -32,7 +32,7 @@
                 <div class="author-card p-3 rounded-3 bg-light border-start border-primary border-3 h-100">
                   <a href="{% url 'profil' post.user.id %}" class="text-decoration-none text-dark">
                     <div class="d-flex align-items-center">
-                      <img src="{% url 'serve_profil_picture' post.user.id %}" alt="{{ post.user.first_name }} {{ post.user.last_name }}" class="rounded-circle me-3" style="height: 48px; width: 48px; object-fit: cover;" />
+                      <img src="{% url 'serve_profil_picture' post.user.customuser.get_identifier %}" alt="{{ post.user.first_name }} {{ post.user.last_name }}" class="rounded-circle me-3" style="height: 48px; width: 48px; object-fit: cover;" />
                       <div>
                         <small class="text-muted">{% trans 'Erstellt von' %}</small>
                         <div class="fw-medium">{{ post.user.first_name }} {{ post.user.last_name }}</div>
@@ -107,7 +107,7 @@
                                 <div class="ms-4 mt-2 border rounded p-2 bg-light" style="max-height: 120px; overflow-y: auto; overflow-x: hidden;">
                                   <div class="d-flex flex-wrap gap-2">
                                     {% for user in answer.votes.all %}
-                                      <img src="{% url 'serve_profil_picture' user.id %}" 
+                                      <img src="{% url 'serve_profil_picture' user.customuser.get_identifier %}" 
                                            alt="{{ user.get_full_name }}"
                                            class="rounded-circle border border-2 shadow-sm border-white"
                                            style="width: 36px; height: 36px; object-fit: cover; cursor: pointer;"

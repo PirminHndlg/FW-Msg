@@ -135,7 +135,7 @@
                 {% if freiwilliger.endbewertung == 'G' %}status-geeignet
                 {% elif freiwilliger.endbewertung == 'B' %}status-bedingt
                 {% elif freiwilliger.endbewertung == 'N' %}status-nicht{% endif %}" 
-                src="{% url 'serve_profil_picture' freiwilliger.user.id %}" 
+                src="{% url 'serve_profil_picture' freiwilliger.user.customuser.get_identifier %}" 
                 alt="Profilbild von {{freiwilliger.user.first_name}} {{freiwilliger.user.last_name}}"
                 id="profileImg">
         </div>

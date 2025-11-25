@@ -89,6 +89,7 @@ class PersonCluster(OrgModel):
     
 
 class CustomUser(OrgModel):
+    identifier = models.CharField(max_length=255, blank=True, null=True, verbose_name='Identifikator', help_text='Identifikator für den Benutzer', unique=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Benutzer:in')
     person_cluster = models.ForeignKey(PersonCluster, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Benutzergruppe')
     profil_picture = models.ImageField(upload_to='profil_picture/', blank=True, null=True, verbose_name='Profilbild')
@@ -225,6 +226,17 @@ class CustomUser(OrgModel):
                 return "Gerade eben"
         else:
             return "Nie online gewesen"
+        
+    def update_identifier(self):
+        self.identifier = self.get_random_hash(64)
+        while CustomUser.objects.filter(identifier=self.identifier, org=self.org).exists():
+            self.identifier = self.get_random_hash(64)
+        self.save()
+        
+    def get_identifier(self):
+        if not self.identifier:
+            self.update_identifier()
+        return self.identifier
 
     def __str__(self):
         return self.user.username
