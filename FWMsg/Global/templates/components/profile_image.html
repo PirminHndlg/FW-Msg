@@ -3,11 +3,11 @@
 <div class="text-center">
     <div class="d-flex flex-column align-items-center">
         <div class="position-relative">
-            <img src="{% url 'serve_profil_picture' user.customuser.get_identifier %}" 
+            <img src="{% url 'serve_profil_picture' displayed_user.customuser.get_identifier %}" 
                  alt="{% trans 'Profilbild' %}" 
                  class="img-fluid rounded-circle mb-3" 
                  style="max-width: 250px; max-height: 250px;">
-            {% if this_user %}
+            {% if this_user and displayed_user == request.user %}
             <div class="position-absolute bottom-0 end-0 mb-3 me-2">
                 <button type="button" class="btn btn-light btn-sm rounded-circle" data-bs-toggle="modal" data-bs-target="#profilPictureModal">
                     <i class="bi bi-pencil"></i>
@@ -26,16 +26,16 @@
                 <i class="bi bi-globe mb-2" style="font-size: 3rem; color: var(--bs-primary);"></i>
             {% endif %}
         {% endif %}
-        {% if user.ehemalige and user.ehemalige.land.exists %}
+        {% if displayed_user.ehemalige and displayed_user.ehemalige.land.exists %}
             <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
-            {% for land in user.ehemalige.land.all %}
+            {% for land in displayed_user.ehemalige.land.all %}
                 <span class="fi fi-{{ land.code|lower }} mb-2 border" style="font-size: 3rem;"></span>
             {% endfor %}
             </div>
         {% endif %}
-        {% if user.team and user.team.land.exists %}
+        {% if displayed_user.team and displayed_user.team.land.exists %}
             <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
-            {% for land in user.team.land.all %}
+            {% for land in displayed_user.team.land.all %}
                 <span class="fi fi-{{ land.code|lower }} mb-2 border" style="font-size: 3rem;"></span>
             {% endfor %}
             </div>

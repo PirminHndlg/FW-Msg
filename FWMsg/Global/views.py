@@ -1202,7 +1202,7 @@ def unsubscribe_mail_notifications(request, user_id, auth_key):
     return redirect('profil')
 
 @login_required
-def view_profil(request, user_id=None):
+def view_profil(request, user_identifier=None):
     if request.POST:
         attribut = request.POST.get('attribut')
         value = request.POST.get('value')
@@ -1215,15 +1215,15 @@ def view_profil(request, user_id=None):
         return redirect('profil')
 
     this_user = False
-    if not user_id or user_id == request.user.id:
-        user_id = request.user.id
+    if user_identifier and user_identifier != request.user.customuser.get_identifier():
+        try:
+            displayed_user = User.objects.get(customuser__identifier=user_identifier, customuser__org=request.user.org)
+        except User.DoesNotExist:
+            messages.error(request, 'Benutzer nicht gefunden')
+            return redirect('profil')
+    else:
+        displayed_user = request.user
         this_user = True
-    
-    try:
-        user = User.objects.get(id=user_id, customuser__org=request.user.org)
-    except User.DoesNotExist:
-        messages.error(request, 'Nicht gefunden')
-        return redirect('profil')
 
     if request.method == 'POST':
         profil_user_form = ProfilUserForm(request.POST)
@@ -1234,29 +1234,29 @@ def view_profil(request, user_id=None):
             profil_user.save()
             return redirect('profil')
 
-    profil_users = ProfilUser2.objects.filter(user=user).order_by('attribut')
-    user_attributes = UserAttribute.objects.filter(user=user, attribute__visible_in_profile=True).order_by('attribute__name') if this_user or request.user.role == 'O' else []
-    gallery_images = get_bilder(request.user.org, user)
+    profil_users = ProfilUser2.objects.filter(user=displayed_user).order_by('attribut')
+    user_attributes = UserAttribute.objects.filter(user=displayed_user, attribute__visible_in_profile=True).order_by('attribute__name') if this_user or request.user.role == 'O' else []
+    gallery_images = get_bilder(request.user.org, displayed_user)
 
     ampel_of_user = None
     if this_user or request.user.role in 'OT':
-        ampel_of_user = Ampel2.objects.filter(user=user).order_by('-date').first()
+        ampel_of_user = Ampel2.objects.filter(user=displayed_user).order_by('-date').first()
 
     profil_user_form = ProfilUserForm()
 
     try:
-        freiwilliger = Freiwilliger.objects.get(user=user)
+        freiwilliger = Freiwilliger.objects.get(user=displayed_user)
     except Freiwilliger.DoesNotExist:
         freiwilliger = None
 
     if this_user or request.user.role == 'O':
-        posts = get_posts(request.user.org, filter_user=user)
+        posts = get_posts(request.user.org, filter_user=displayed_user)
     else:
-        posts = get_posts(org=request.user.org, filter_person_cluster=request.user.person_cluster, filter_user=user)
+        posts = get_posts(org=request.user.org, filter_person_cluster=request.user.person_cluster, filter_user=displayed_user)
 
     context = {
         'freiwilliger': freiwilliger,
-        'user': user,
+        'displayed_user': displayed_user,
         'profil_users': profil_users,
         'profil_user_form': profil_user_form,
         'this_user': this_user,
@@ -1371,7 +1371,7 @@ def get_calendar_events(request):
             calendar_events.append({
                 'title': f'🎂 Geburtstag: {birthday_event.user.first_name} {birthday_event.user.last_name}',
                 'start': birthday.strftime('%Y-%m-%d') if birthday else '',
-                'url': reverse('profil', args=[birthday_event.user.id]),
+                'url': reverse('profil', args=[birthday_event.user.customuser.get_identifier()]),
                 'backgroundColor': '#ff69b4', # Hot pink - cheerful color for birthdays
                 'borderColor': '#ff69b4',
                 'textColor': '#fff'
@@ -2288,7 +2288,7 @@ def kalender_abbonement(request, token):
                     ical_event['dtstart'].params['VALUE'] = 'DATE'  # Mark as all-day event
                     user_id = getattr(custom_user.user, 'id', None)
                     if user_id is not None:
-                        url = f"{request.scheme}://{request.get_host()}{reverse('profil', args=[user_id])}"
+                        url = f"{request.scheme}://{request.get_host()}{reverse('profil', args=[custom_user.user.customuser.get_identifier()])}"
                         ical_event.add('url', url)
                     cal.add_component(ical_event)
 

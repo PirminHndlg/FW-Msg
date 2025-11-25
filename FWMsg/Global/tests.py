@@ -1700,7 +1700,7 @@ class ProfileViewsTests(TestCase):
     def test_view_profil_other_user_success(self):
         """Test viewing another user's profile"""
         self.client.force_login(self.admin_user)
-        response = self.client.get(reverse('profil', args=[self.freiwillige_user.id]))
+        response = self.client.get(reverse('profil', args=[self.freiwillige_user.customuser.get_identifier()]))
         
         self.assertEqual(response.status_code, 200)
         self.assertIn('user', response.context)
@@ -1718,7 +1718,7 @@ class ProfileViewsTests(TestCase):
     def test_view_profil_wrong_organization(self):
         """Test that users cannot view profiles from other organizations"""
         self.client.force_login(self.admin_user)
-        response = self.client.get(reverse('profil', args=[self.other_user.id]), follow=True)
+        response = self.client.get(reverse('profil', args=[self.other_user.customuser.get_identifier()]), follow=True)
         
         self.assertEqual(response.status_code, 200)  # After redirect
         # Check for error message
@@ -2056,7 +2056,7 @@ class ProfileViewsTests(TestCase):
         
         # View as admin user
         self.client.force_login(self.admin_user)
-        response = self.client.get(reverse('profil', args=[self.freiwillige_user.id]))
+        response = self.client.get(reverse('profil', args=[self.freiwillige_user.customuser.get_identifier()]))
         
         self.assertEqual(response.status_code, 200)
         self.assertIn('user_attributes', response.context)
