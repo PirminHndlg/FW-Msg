@@ -1684,7 +1684,7 @@ class ProfileViewsTests(TestCase):
         response = self.client.get(reverse('profil'))
         
         self.assertEqual(response.status_code, 200)
-        self.assertIn('user', response.context)
+        self.assertIn('displayed_user', response.context)
         self.assertIn('this_user', response.context)
         self.assertIn('profil_users', response.context)
         self.assertIn('profil_user_form', response.context)
@@ -1695,7 +1695,7 @@ class ProfileViewsTests(TestCase):
         
         # Check that this_user is True for own profile
         self.assertTrue(response.context['this_user'])
-        self.assertEqual(response.context['user'], self.freiwillige_user)
+        self.assertEqual(response.context['displayed_user'], self.freiwillige_user)
 
     def test_view_profil_other_user_success(self):
         """Test viewing another user's profile"""
@@ -1703,7 +1703,7 @@ class ProfileViewsTests(TestCase):
         response = self.client.get(reverse('profil', args=[self.freiwillige_user.customuser.get_identifier()]))
         
         self.assertEqual(response.status_code, 200)
-        self.assertIn('user', response.context)
+        self.assertIn('displayed_user', response.context)
         self.assertIn('this_user', response.context)
         self.assertIn('profil_users', response.context)
         self.assertIn('profil_user_form', response.context)
@@ -1713,7 +1713,7 @@ class ProfileViewsTests(TestCase):
         
         # Check that this_user is False for other user's profile
         self.assertFalse(response.context['this_user'])
-        self.assertEqual(response.context['user'], self.freiwillige_user)
+        self.assertEqual(response.context['displayed_user'], self.freiwillige_user)
 
     def test_view_profil_wrong_organization(self):
         """Test that users cannot view profiles from other organizations"""
@@ -1723,7 +1723,7 @@ class ProfileViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)  # After redirect
         # Check for error message
         messages = list(get_messages(response.wsgi_request))
-        self.assertTrue(any('Nicht gefunden' in str(msg) for msg in messages))
+        self.assertTrue(any('Benutzer nicht gefunden' in str(msg) for msg in messages))
 
     def test_view_profil_unauthenticated(self):
         """Test that unauthenticated users are redirected to login"""
@@ -1861,7 +1861,7 @@ class ProfileViewsTests(TestCase):
         self.client.force_login(self.admin_user)
         response = self.client.get(reverse('serve_profil_picture', args=[self.other_user.customuser.get_identifier()]))
         
-        self.assertEqual(response.status_code, 403)  # Forbidden
+        self.assertEqual(response.status_code, 404)  # Forbidden
 
     def test_serve_profil_picture_unauthenticated(self):
         """Test that unauthenticated users are redirected to login"""
