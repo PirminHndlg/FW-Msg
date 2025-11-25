@@ -160,7 +160,13 @@ class CustomUser(OrgModel):
 
     def create_small_image(self):
         if self.profil_picture:
-            self.profil_picture = calculate_small_image(self.profil_picture, size=(500, 500))
+            from Global.models import calculate_small_image
+            calculate_small_image = calculate_small_image(self.profil_picture, size=(500, 500))
+            if calculate_small_image:
+                self.profil_picture = calculate_small_image
+            else:
+                self.profil_picture.delete()
+                self.profil_picture = None
             self.save()
             
     def create_token(self):

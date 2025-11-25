@@ -8,7 +8,7 @@
     <title>{{request.user.org}} - Seminar Auswertung</title>
 
     {% include 'header.html' %}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'chart.umd.min.js' %}"></script>
     <script src="{% static 'js/global.js' %}"></script>
 
     <style>
