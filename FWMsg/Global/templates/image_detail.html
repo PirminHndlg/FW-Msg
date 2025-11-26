@@ -80,6 +80,11 @@
   </div>
 
   <script src="{% static 'js/image-interactions.js' %}"></script>
+  <script>
+    window.get_reactions_url = "{% url 'get_bild_reactions' 0 %}";
+    window.get_profil_picture_url = "{% url 'serve_profil_picture' 0 %}";
+    window.get_profil_url = "{% url 'profil' 0 %}";
+  </script>
 
   <!-- Reactions Modal -->
   <div class="modal fade" id="reactionsModal" tabindex="-1" aria-labelledby="reactionsModalLabel" aria-hidden="true">

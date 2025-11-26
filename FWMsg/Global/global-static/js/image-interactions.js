@@ -45,7 +45,7 @@ function showReactionsModal(bildId) {
     `;
 
     // Fetch reaction details
-    const url = `/bilder/${bildId}/reactions/`;
+    const url = window.get_reactions_url.replace('0', bildId);
     
     fetch(url)
     .then(response => response.json())
@@ -106,10 +106,10 @@ function displayReactions(reactions) {
                 html += `
                     <div class="user-item d-flex align-items-center py-2 ${userIndex > 0 ? 'border-top' : ''}">
                         <div class="user-avatar d-flex align-items-center justify-content-center me-3">
-                            <img src="/profil_picture/${user.user_id}" alt="${user.user_name}" class="rounded-circle" style="height: 35px; object-fit: cover;">
+                            <img src="${window.get_profil_picture_url.replace('0', user.user_identifier)}" alt="${user.user_name}" class="rounded-circle" style="height: 35px; object-fit: cover;">
                         </div>
                         <div class="flex-grow-1">
-                            <a href="/profil/${user.user_id}" class="text-decoration-none text-dark">
+                            <a href="${window.get_profil_url.replace('0', user.user_identifier)}" class="text-decoration-none text-dark">
                                 <span class="fw-medium">${user.user_name}</span>
                             </a>
                             <div class="small text-muted">
