@@ -1041,6 +1041,7 @@ class Bilder2(OrgModel):
             
             reactions_by_emoji[emoji].append({
                 'user_id': reaction.user.id,
+                'user_identifier': reaction.user.customuser.get_identifier(),
                 'user_name': reaction.user.get_full_name() or reaction.user.username,
                 'date_created': reaction.date_created
             })

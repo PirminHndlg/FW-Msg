@@ -45,6 +45,10 @@
 
 <script src="{% static 'js/image-interactions.js' %}"></script>
 <script>
+  window.get_reactions_url = "{% url 'get_bild_reactions' 0 %}";
+  window.get_profil_picture_url = "{% url 'serve_profil_picture' 0 %}";
+  window.get_profil_url = "{% url 'profil' 0 %}";
+
 // Initialize image interactions after the script loads
 document.addEventListener('DOMContentLoaded', function() {
     // Wait a bit for the script to fully load
