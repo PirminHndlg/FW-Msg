@@ -20,59 +20,135 @@
         max-height: 60vh;
       }
     }
+    
+    /* Custom CSS for the reactions modal */
+    .emoji-circle {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 50%;
+      border: 2px solid #dee2e6;
+    }
+    
+    .user-avatar {
+      width: 35px;
+      height: 35px;
+    }
+    
+    .user-item {
+      transition: background-color 0.2s ease;
+      border-radius: 8px;
+      margin: 0 -8px;
+      padding-left: 8px !important;
+      padding-right: 8px !important;
+    }
+    
+    .user-item a:hover .fw-medium {
+      color: #0d6efd !important;
+      text-decoration: underline !important;
+    }
+    
+    .reaction-group {
+      border-color: #e9ecef !important;
+    }
+    
+    .reactions-list {
+      padding: 0;
+    }
+    
+    #reactionsModal .modal-body::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    #reactionsModal .modal-body::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+    
+    #reactionsModal .modal-body::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+    
+    #reactionsModal .modal-body::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
   </style>
 {% endblock %}
 
 {% block content %}
   <!-- Back Button -->
   <button class="btn btn-outline-secondary rounded-3 mb-3" style="z-index: 1000;" onclick="history.back()"><i class="bi bi-arrow-left"></i>{% trans 'Zurück' %}</button>
-  
-      <div class="card shadow-sm">
-          <div class="card-body">
-        <div class="row">
-          <div class="col-lg-8 order-2 order-lg-1">
-            <div class="text-center">
-                {% for bild_gallery in bilder_gallery %}
-                    <img 
-                      src="{% url 'serve_small_bilder' bild_gallery.id %}"
-                      data-full-src="{% url 'serve_bilder' bild_gallery.id %}"
-                      alt="{{ bild_gallery.titel }}"
-                      class="w-100 rounded border main-image js-progressive-image mb-2"
-                      style="max-width: 100%; height: auto;"
-                    />
-                {% endfor %}
-            </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-lg-8 order-2 order-lg-1">
+          <div class="text-center">
+            {% for bild_gallery in bilder_gallery %}
+              <img src="{% url 'serve_small_bilder' bild_gallery.id %}" data-full-src="{% url 'serve_bilder' bild_gallery.id %}" alt="{{ bild_gallery.titel }}" class="w-100 rounded border main-image js-progressive-image mb-2" style="max-width: 100%; height: auto;" />
+            {% endfor %}
           </div>
 
-          <!-- User Info and Interactions Right -->
-          <div class="col-lg-4 order-1 order-lg-2">
-            <div class="card border-0">
-              <div class="card-body p-0">
-                {% include 'components/image_card_header.html' with hide_title=True show_date_with_time=True %}
+          <div id="load-images-in-full-size-button" class="d-flex flex-wrap align-items-center justify-content-center text-center d-none">
+            <!-- Button to load images in full size -->
+            <small class="text-muted small me-2"><i class="bi bi-info-circle me-1"></i>{% trans 'Die Bilder werden in niedriger Qualität angezeigt.' %}</small>
+            <button class="btn btn-sm btn-outline-secondary rounded-3" onclick="loadImagesInFullSize()"></i>{% trans 'Bilder in voller Größe anzeigen' %}</button>
+          </div>
 
-                <!-- Title and Description -->
-                <div class="mb-3 mt-3">
-                  <h4 class="mb-2">{{ bild.titel }}</h4>
-                  {% if bild.beschreibung %}
-                    <p class="text-muted">{{ bild.beschreibung }}</p>
-                  {% endif %}
-                </div>
+        </div>
 
-                <div class="d-none d-lg-block">
-                  {% include 'components/image_interactions.html' with without_reactions_modal=True %}
-                </div>
+        <!-- User Info and Interactions Right -->
+        <div class="col-lg-4 order-1 order-lg-2">
+          <div class="card border-0">
+            <div class="card-body p-0">
+              {% include 'components/image_card_header.html' with hide_title=True show_date_with_time=True %}
+
+              <!-- Title and Description -->
+              <div class="mb-3 mt-3">
+                <h4 class="mb-2">{{ bild.titel }}</h4>
+                {% if bild.beschreibung %}
+                  <p class="text-muted">{{ bild.beschreibung }}</p>
+                {% endif %}
+              </div>
+
+
+              <div class="d-none d-lg-block">
+                {% include 'components/image_interactions.html' with without_reactions_modal=True %}
               </div>
             </div>
           </div>
+        </div>
 
-            <div class="order-3 order-lg-2 d-lg-none">
-              <!-- Interactions -->
-              <div class="card border-0">
-                <div class="card-body p-0 pt-3">
-                  {% include 'components/image_interactions.html' with without_reactions_modal=True %}
-                </div>
-              </div>
+        <div class="order-3 order-lg-2 d-lg-none">
+          <!-- Interactions -->
+          <div class="card border-0">
+            <div class="card-body p-0 pt-3">
+              {% include 'components/image_interactions.html' with without_reactions_modal=True %}
             </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Reactions Modal -->
+  <div class="modal fade" id="reactionsModal" tabindex="-1" aria-labelledby="reactionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header bg-light border-0 pb-2">
+          <h5 class="modal-title fw-bold" id="reactionsModalLabel"><i class="bi bi-emoji-smile me-2 text-primary"></i>{% trans 'Reaktionen' %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body px-4 py-3" id="reactionsModalBody" style="max-height: 60vh; overflow-y: auto;">
+          <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">{% trans 'Lädt...' %}</span>
+            </div>
+            <p class="mt-2 mb-0 text-muted small">
+              {% trans 'Reaktionen werden geladen...' %}
+            </p>
           </div>
         </div>
       </div>
@@ -84,87 +160,8 @@
     window.get_reactions_url = "{% url 'get_bild_reactions' 0 %}";
     window.get_profil_picture_url = "{% url 'serve_profil_picture' 0 %}";
     window.get_profil_url = "{% url 'profil' 0 %}";
-  </script>
 
-  <!-- Reactions Modal -->
-  <div class="modal fade" id="reactionsModal" tabindex="-1" aria-labelledby="reactionsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content border-0 shadow-lg">
-        <div class="modal-header bg-light border-0 pb-2">
-          <h5 class="modal-title fw-bold" id="reactionsModalLabel">
-            <i class="bi bi-emoji-smile me-2 text-primary"></i>{% trans 'Reaktionen' %}
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body px-4 py-3" id="reactionsModalBody" style="max-height: 60vh; overflow-y: auto;">
-          <div class="text-center py-4">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">{% trans 'Lädt...' %}</span>
-            </div>
-            <p class="mt-2 mb-0 text-muted small">{% trans 'Reaktionen werden geladen...' %}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Custom CSS for the reactions modal -->
-  <style>
-  .emoji-circle {
-    width: 50px;
-    height: 50px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 50%;
-    border: 2px solid #dee2e6;
-  }
-
-  .user-avatar {
-    width: 35px;
-    height: 35px;
-  }
-
-  .user-item {
-    transition: background-color 0.2s ease;
-    border-radius: 8px;
-    margin: 0 -8px;
-    padding-left: 8px !important;
-    padding-right: 8px !important;
-  }
-
-  .user-item a:hover .fw-medium {
-    color: #0d6efd !important;
-    text-decoration: underline !important;
-  }
-
-  .reaction-group {
-    border-color: #e9ecef !important;
-  }
-
-  .reactions-list {
-    padding: 0;
-  }
-
-  #reactionsModal .modal-body::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  #reactionsModal .modal-body::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-  }
-
-  #reactionsModal .modal-body::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
-  }
-
-  #reactionsModal .modal-body::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-  }
-  </style>
-
-  <!-- Smart image loading based on device and connection -->
-  <script>
+    // Smart image loading based on device and connection
     document.addEventListener('DOMContentLoaded', function () {
       // Total size of all images (in bytes)
       const totalImageSize = {{ size_of_all_images }};
@@ -183,7 +180,7 @@
       
       // Set threshold based on device and connection
       // Mobile or slow connection: 5MB, Desktop with good connection: 10MB
-      const threshold = (isMobile || isSlowConnection) ? 5000000 : 10000000;
+      let threshold = (isMobile || isSlowConnection) ? 5000000 : 10000000;
       
       // Only load full images if total size is below threshold
       if (totalImageSize < threshold) {
@@ -199,11 +196,19 @@
           };
           loader.src = fullSrc;
         });
-        
-        console.log('Loading full images (Total: ' + (totalImageSize / 1000000).toFixed(2) + 'MB, Threshold: ' + (threshold / 1000000) + 'MB)');
       } else {
-        console.log('Skipping full image load (Total: ' + (totalImageSize / 1000000).toFixed(2) + 'MB exceeds threshold: ' + (threshold / 1000000) + 'MB)');
+        document.getElementById('load-images-in-full-size-button').classList.remove('d-none');
       }
     });
+
+    function loadImagesInFullSize() {
+      document.getElementById('load-images-in-full-size-button').classList.add('d-none');
+      var images = document.querySelectorAll('.js-progressive-image');
+      images.forEach(function (img) {
+        var fullSrc = img.getAttribute('data-full-src');
+        if (!fullSrc) return;
+        img.src = fullSrc;
+      });
+    }
   </script>
 {% endblock %}
