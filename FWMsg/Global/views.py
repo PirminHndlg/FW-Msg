@@ -1942,16 +1942,15 @@ def post_edit(request, post_id):
         return redirect('post_detail', post_id=post_id)
     
     if request.method == 'POST':
-        form = AddPostForm(request.POST, instance=post)
+        form = AddPostForm(request.POST, request.FILES, instance=post)
         if form.is_valid():
-            # Save with commit=False to handle the post object
+            # Save the post (commit=True handles saving, m2m fields, and answers)
             post = form.save(commit=True)
-            post.save()
-
-            # Explicitly save the ManyToManyField
-            form.save_m2m()
-            if not post.person_cluster:
+            
+            # Ensure person_cluster is set
+            if not post.person_cluster.exists():
                 post.person_cluster.set([request.user.person_cluster])
+            
             messages.success(request, 'Beitrag erfolgreich aktualisiert.')
             return redirect('post_detail', post_id=post.id)
     else:
@@ -1979,7 +1978,7 @@ def post_edit(request, post_id):
 @required_person_cluster('posts')
 def post_add(request, post=None):
     if request.method == 'POST':
-        form = AddPostForm(request.POST)
+        form = AddPostForm(request.POST, request.FILES)
         if form.is_valid():
             # Save with commit=False to set user and org
             post = form.save(commit=False)
@@ -2109,6 +2108,19 @@ def post_vote(request, post_id):
     
     return redirect('post_detail', post_id=post_id)
 
+
+
+@login_required
+@required_person_cluster('posts')
+def serve_post_image(request, post_id):
+    post = Post2.objects.get(id=post_id, org=request.user.org)
+    person_cluster = request.user.person_cluster
+    if person_cluster.view != 'O' and post.person_cluster.exists():
+        if person_cluster not in post.person_cluster.all():
+            return HttpResponseNotFound('Bild nicht gefunden')
+    if not post.image:
+        return HttpResponseNotFound('Bild nicht gefunden')
+    return get_bild(post.image.path, post.image.name)
 
 @login_required
 @required_role('OT')

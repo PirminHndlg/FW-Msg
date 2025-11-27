@@ -71,6 +71,7 @@ class AddAmpelmeldungForm(forms.ModelForm):
 class AddPostForm(forms.ModelForm):
     has_survey = forms.BooleanField(required=False, label=_('Umfrage hinzufügen'), 
                                   help_text=_('Aktivieren, um eine einfache Umfrage zum Beitrag hinzuzufügen'))
+    image = forms.ImageField(required=False, label=_('Bild'), help_text=_('Bild des Posts'))
     survey_question = forms.CharField(required=False, max_length=200, 
                                     label=_('Umfragefrage'), 
                                     help_text=_('Geben Sie die Frage für Ihre Umfrage ein'))
@@ -94,19 +95,20 @@ class AddPostForm(forms.ModelForm):
     
     class Meta:
         model = Post2
-        fields = ['title', 'text', 'has_survey', 'person_cluster']
+        fields = ['title', 'text', 'image', 'has_survey', 'person_cluster']
         widgets = {
             'text': forms.Textarea(attrs={'rows': 10}),
             'person_cluster': forms.CheckboxSelectMultiple(),
         }
-
-        
-        
+    
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['title'].widget.attrs.update({'placeholder': _('Titel des Beitrags')})
         self.fields['text'].required = False
         self.fields['text'].widget.attrs.update({'placeholder': _('Inhalt des Beitrags')})
+        self.fields['image'].required = False
+        self.fields['image'].widget.attrs.update({'class': 'form-control', 'accept': 'image/*', 'id': 'id_image'})
         self.fields['person_cluster'].widget.attrs.update({'class': 'form-check-input'})
 
         # Get all person clusters
@@ -131,10 +133,17 @@ class AddPostForm(forms.ModelForm):
             
                 self.fields['person_cluster'].widget.attrs.update({'disabled': 'true'})
             
+        if self.instance.pk:
+            self.fields['image'].initial = self.instance.image
+            
     def clean(self):
         cleaned_data = super().clean()
         has_survey = cleaned_data.get('has_survey')
+        image = cleaned_data.get('image')
         
+        if image and image.size > 10 * 1024 * 1024: # 10MB
+            self.add_error('image', _('Das Bild darf nicht größer als 10MB sein'))
+            
         if has_survey:
             # Survey question is required if has_survey is checked
             survey_question = cleaned_data.get('survey_question')
@@ -157,6 +166,11 @@ class AddPostForm(forms.ModelForm):
 
         post.has_survey = self.cleaned_data.get('has_survey', False)
         
+        # Only update image if a new one was uploaded
+        image = self.cleaned_data.get('image')
+        if image:
+            post.image = image
+            
         if commit:
             post.save()
             # Save the ManyToManyField

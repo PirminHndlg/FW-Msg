@@ -30,6 +30,7 @@ urlpatterns = [
     path('posts/edit/<int:post_id>/', views.post_edit, name='post_edit'),
     path('posts/vote/<int:post_id>/', views.post_vote, name='post_vote'),
     path('posts/delete/<int:post_id>/', views.post_delete, name='post_delete'),
+    path('posts/serve_image/<int:post_id>/', views.serve_post_image, name='serve_post_image'),
 
     path('dokumente/', views.dokumente, name='dokumente'),
     path('dokumente/<int:ordner_id>/', views.dokumente, name='dokumente'),

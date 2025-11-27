@@ -39,6 +39,19 @@
         </a>
         {% endif %}
 
+        {% if post.image %}
+          <a href="{% url 'post_detail' post.id %}" class="text-decoration-none text-dark">
+            <div class="image-preview mt-3 rounded-3 p-2 bg-primary-subtle bg-opacity-10 border-start border-primary border-3 mb-3">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-image text-primary me-2"></i>
+                <p class="mb-0">
+                  {% trans 'Dieser Beitrag enthält ein Bild' %}
+                </p>
+              </div>
+            </div>
+          </a>
+        {% endif %}
+
         {% if post.has_survey %}
           <a href="{% url 'post_detail' post.id %}" class="text-decoration-none text-dark">
             <div class="survey-preview mt-3 rounded-3 p-2 bg-primary-subtle bg-opacity-10 border-start border-primary border-3">
