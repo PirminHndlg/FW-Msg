@@ -1987,19 +1987,21 @@ def post_add(request, post=None):
             post.org = request.user.org
             post.save()
 
+            
             # Save the survey question and answers
             form.save_answers()
-
+            
+            # Explicitly save the ManyToManyField after saving the post
+            form.save_m2m()
+            messages.success(request, 'Beitrag erfolgreich erstellt.')
+            
             # Save person_cluster
             person_cluster = form.cleaned_data.get('person_cluster')
             if request.user.role == 'O' and person_cluster:
                 post.person_cluster.set(person_cluster)
             else: 
                 post.person_cluster.set([request.user.customuser.person_cluster])
-
-            # Explicitly save the ManyToManyField after saving the post
-            form.save_m2m()
-            messages.success(request, 'Beitrag erfolgreich erstellt.')
+                
             return redirect('posts_overview')
     elif post:
         form = AddPostForm(instance=post)
