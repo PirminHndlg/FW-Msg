@@ -4,7 +4,7 @@
 <p>Es gibt einen neuen Post von {{ author_name }}:</p>
 
 <div style="background-color: #f7f9fc; border-left: 4px solid {{ org_color }}; padding: 15px; margin: 15px 0; border-radius: 3px;">
-    <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{{ post_title }}</p>
+    <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: {{ org_color }};">{{ post_title }}</p>
     <p style="margin: 5px 0;"><span style="color: #666666;">Von:</span> <span style="font-weight: 500;">{{ author_name }}</span></p>
     <p style="margin: 5px 0;"><span style="color: #666666;">Erstellt am:</span> <span style="font-weight: 500;">{{ post_date }}</span></p>
     {% if has_image %}
@@ -25,7 +25,7 @@
 <p>There is a new post from {{ author_name }}:</p>
 
 <div style="background-color: #f7f9fc; border-left: 4px solid {{ org_color }}; padding: 15px; margin: 15px 0; border-radius: 3px;">
-    <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{{ post_title }}</p>
+    <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: {{ org_color }};">{{ post_title }}</p>
     <p style="margin: 5px 0;"><span style="color: #666666;">From:</span> <span style="font-weight: 500;">{{ author_name }}</span></p>
     <p style="margin: 5px 0;"><span style="color: #666666;">Created on:</span> <span style="font-weight: 500;">{{ post_date }}</span></p>
     {% if has_image %}

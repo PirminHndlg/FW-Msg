@@ -260,6 +260,21 @@ def format_new_post_email(post_title, post_text, author_name, post_date, has_ima
     }
     return render_to_string('mail/new_post.html', context)
 
+def format_post_response_email(post_title, response_text, has_image, author_name, action_url, unsubscribe_url, user_name, org_name, image_url, org_color):
+    context = {
+        'post_title': post_title,
+        'response_text': response_text,
+        'has_image': has_image,
+        'author_name': author_name,
+        'action_url': action_url,
+        'unsubscribe_url': unsubscribe_url,
+        'user_name': user_name,
+        'org_name': org_name,
+        'image_url': image_url,
+        'org_color': org_color
+    }
+    return render_to_string('mail/new_post_response.html', context)
+
 def format_register_email_org(einmalpasswort, action_url, org_name, user_name, username, image_url, org_color):
     context = {
         'image_url': image_url,
@@ -436,7 +451,12 @@ def send_new_aufgaben_email(aufgaben, org):
 def send_new_post_email(post_id):
     from Global.models import Post2
     
-    post = Post2.objects.get(id=post_id)
+    try:
+        post = Post2.objects.get(id=post_id)
+    except Post2.DoesNotExist:
+        logger.error(f"Post with id {post_id} not found")
+        return False
+    
     org = post.org
     
     # Generate action URL for the post
@@ -503,3 +523,55 @@ def send_new_post_email(post_id):
     
     post.save()
     return successful_sends
+
+
+def send_post_response_email(response_id):
+    from Global.models import PostResponse
+    
+    try:
+        response = PostResponse.objects.get(id=response_id)
+    except PostResponse.DoesNotExist:
+        logger.error(f"PostResponse with id {response_id} not found")
+        return False
+    
+    org = response.org
+    
+    action_url = f'{settings.DOMAIN_HOST}{reverse("post_detail", args=[response.original_post.id])}'
+    image_url = get_logo_url(org)
+    org_color = get_org_color(org)
+    author_name = f"{response.original_post.user.first_name} {response.original_post.user.last_name}" if response.original_post.user.first_name and response.original_post.user.last_name else response.original_post.user.username
+    has_image = True if response.image else False
+    subject = f'Neue Antwort auf den Post: {response.original_post.title}'
+        
+    for person_cluster in response.original_post.person_cluster.all():
+        for user in person_cluster.get_users():
+            # Skip if user doesn't want email notifications
+            if hasattr(user, 'customuser') and not user.customuser.mail_notifications:
+                continue
+                
+            unsubscribe_url = user.customuser.get_unsubscribe_url() if hasattr(user, 'customuser') else None
+            user_name = f"{user.first_name} {user.last_name}" if user.first_name and user.last_name else user.username
+            
+            email_content = format_post_response_email(
+                post_title=response.original_post.title,
+                response_text=response.text,
+                has_image=has_image,
+                author_name=author_name,
+                action_url=action_url,
+                unsubscribe_url=unsubscribe_url,
+                user_name=user_name,
+                org_name=org.name,
+                image_url=image_url,
+                org_color=org_color
+            )
+            
+            if user.customuser.mail_notifications:
+                send_email_with_archive(subject, '', settings.SERVER_EMAIL, [user.email], html_message=email_content)
+                
+            push_content = f'Neue Antwort auf den Post: {response.original_post.title}'
+            if response.original_post.has_survey:
+                push_content += ' (enthält Umfrage)'
+
+            send_push_notification_to_user(user, subject, push_content, url=action_url)
+    
+    return True

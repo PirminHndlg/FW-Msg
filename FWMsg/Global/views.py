@@ -1993,7 +1993,7 @@ def post_add(request, post=None):
             
             # Explicitly save the ManyToManyField after saving the post
             form.save_m2m()
-            messages.success(request, 'Beitrag erfolgreich erstellt.')
+            messages.success(request, 'Beitrag erfolgreich erstellt. In 15min wird eine Benachrichtigung an die Benutzer:innen gesendet.')
             
             # Save person_cluster
             person_cluster = form.cleaned_data.get('person_cluster')
@@ -2126,7 +2126,10 @@ def post_response(request, post_id):
         response_form = PostResponseForm(request.POST, request.FILES, user=request.user, original_post=post)
         if response_form.is_valid():
             response_form.save()
-            messages.success(request, 'Antwort erfolgreich erstellt.')
+            if response_form.cleaned_data.get('with_notification'):
+                messages.success(request, 'Antwort erfolgreich erstellt. In 15min wird eine Benachrichtigung an die Benutzer:innen gesendet.')
+            else:
+                messages.success(request, 'Antwort erfolgreich erstellt.')
             return redirect('post_detail', post_id=post_id)
         else:
             messages.error(request, 'Antwort konnte nicht erstellt werden. Bitte überprüfe die Eingabe.')

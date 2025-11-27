@@ -9,13 +9,18 @@ from Global.send_email import (
     get_org_color,
     send_email_with_archive,
     get_logo_url,
-    send_new_post_email
+    send_new_post_email,
+    send_post_response_email
 )
 from django.db import models
 
 @shared_task
 def send_new_post_email_task(post_id):
     return send_new_post_email(post_id)
+
+@shared_task
+def send_post_response_email_task(response_id):
+    return send_post_response_email(response_id)
 
 @shared_task
 def send_image_uploaded_email_task(bild_id):
