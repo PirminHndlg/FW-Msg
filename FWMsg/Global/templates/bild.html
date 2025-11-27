@@ -143,7 +143,6 @@ function updateInputFiles(input, files) {
             <div class="d-flex justify-content-end">
                 <button id="submitBtn" type="submit" class="btn btn-primary">
                     <span class="label d-flex align-items-center justify-content-center"><i class="bi bi-save me-2"></i>{% trans "Speichern" %}</span>
-                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                 </button>
             </div>
         </form>
@@ -153,7 +152,6 @@ function updateInputFiles(input, files) {
 <script>
 (function() {
     const form = document.getElementById('bilderForm');
-    const submitBtn = document.getElementById('submitBtn');
     let submitted = false;
 
     // Generate UUID if not provided
@@ -195,30 +193,6 @@ function updateInputFiles(input, files) {
 
         // Lock UI
         submitted = true;
-        submitBtn.disabled = true;
-        const label = submitBtn.querySelector('.label');
-        const spinner = submitBtn.querySelector('.spinner-border');
-        if (label) label.classList.add('d-none');
-        if (spinner) spinner.classList.remove('d-none');
-        
-        // Make inputs read-only but don't disable them (disabled fields don't get submitted)
-        form.querySelectorAll('input:not([type="hidden"]), textarea').forEach(el => {
-            el.readOnly = true;
-            el.style.pointerEvents = 'none';
-            el.style.opacity = '0.6';
-        });
-        
-        // Disable drop zone
-        const dropZone = document.getElementById('fullscreenDropZone');
-        if (dropZone) {
-            dropZone.style.display = 'none';
-            dropZone.style.pointerEvents = 'none';
-        }
-        
-        // Disable drag and drop on the document
-        document.body.style.pointerEvents = 'none';
-        // But allow the form to still be interactive for submission
-        form.style.pointerEvents = 'auto';
     });
 })();
 </script>
