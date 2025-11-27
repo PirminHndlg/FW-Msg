@@ -31,6 +31,9 @@ urlpatterns = [
     path('posts/vote/<int:post_id>/', views.post_vote, name='post_vote'),
     path('posts/delete/<int:post_id>/', views.post_delete, name='post_delete'),
     path('posts/serve_image/<int:post_id>/', views.serve_post_image, name='serve_post_image'),
+    path('posts/response/<int:post_id>/', views.post_response, name='post_response'),
+    path('posts/response/delete/<int:response_id>/', views.post_response_delete, name='post_response_delete'),
+    path('posts/response/serve_image/<int:response_id>/', views.serve_post_response_image, name='serve_post_response_image'),
 
     path('dokumente/', views.dokumente, name='dokumente'),
     path('dokumente/<int:ordner_id>/', views.dokumente, name='dokumente'),

@@ -82,7 +82,8 @@ from .models import (
     BilderGallery2,
     Einsatzstelle2,
     EinsatzstelleNotiz,
-    MapLocation, 
+    MapLocation,
+    PostResponse, 
     ProfilUser2,
     UserAttribute, 
     UserAufgaben,
@@ -109,7 +110,7 @@ from BW.views import base_template as bw_base_template
 from Ehemalige.views import base_template as ehemalige_base_template
 from FWMsg.celery import send_email_aufgaben_daily
 from FWMsg.decorators import required_person_cluster, required_role
-from .forms import BewerberKommentarForm, EinsatzstelleNotizForm, FeedbackForm, AddPostForm, AddAmpelmeldungForm, KarteForm
+from .forms import BewerberKommentarForm, EinsatzstelleNotizForm, FeedbackForm, AddPostForm, AddAmpelmeldungForm, KarteForm, PostResponseForm
 from ORG.forms import AddNotfallkontaktForm
 from .export_utils import export_user_data_securely
 
@@ -2038,11 +2039,17 @@ def post_detail(request, post_id):
                 total_votes += answer.votes.count()
                 if request.user in answer.votes.all():
                     has_voted = answer
+                
+                
+        responses = post.get_all_responses()
+        response_form = PostResponseForm(user=request.user, original_post=post)
 
         context = {
             'post': post,
             'has_voted': has_voted,
-            'total_votes': total_votes
+            'total_votes': total_votes,
+            'responses': responses,
+            'response_form': response_form
         }
 
         context = check_organization_context(request, context)
@@ -2109,6 +2116,38 @@ def post_vote(request, post_id):
     return redirect('post_detail', post_id=post_id)
 
 
+@login_required
+@required_person_cluster('posts')
+def post_response(request, post_id):
+    post = Post2.objects.get(id=post_id)
+    if request.method == 'POST':
+        response_form = PostResponseForm(request.POST, request.FILES, user=request.user, original_post=post)
+        if response_form.is_valid():
+            response_form.save()
+            messages.success(request, 'Antwort erfolgreich erstellt.')
+            return redirect('post_detail', post_id=post_id)
+        else:
+            messages.error(request, 'Antwort konnte nicht erstellt werden. Bitte überprüfe die Eingabe.')
+    else:
+        response_form = PostResponseForm(user=request.user, original_post=post)
+    return redirect('post_detail', post_id=post_id)
+
+
+@login_required
+@required_person_cluster('posts')
+def post_response_delete(request, response_id):
+    response = PostResponse.objects.get(id=response_id, org=request.user.org)
+    
+    # Check permissions
+    if request.user != response.user and request.user.role != 'A':
+        messages.error(request, 'Sie haben keine Berechtigung, diese Antwort zu löschen.')
+        return redirect('post_detail', post_id=response.original_post.id)
+    
+    post_id = response.original_post.id
+    response.delete()
+    messages.success(request, 'Antwort erfolgreich gelöscht.')
+    return redirect('post_detail', post_id=post_id)
+
 
 @login_required
 @required_person_cluster('posts')
@@ -2121,6 +2160,20 @@ def serve_post_image(request, post_id):
     if not post.image:
         return HttpResponseNotFound('Bild nicht gefunden')
     return get_bild(post.image.path, post.image.name)
+
+
+@login_required
+@required_person_cluster('posts')
+def serve_post_response_image(request, response_id):
+    response = PostResponse.objects.get(id=response_id, org=request.user.org)
+    post = response.original_post
+    person_cluster = request.user.person_cluster
+    if person_cluster.view != 'O' and post.person_cluster.exists():
+        if person_cluster not in post.person_cluster.all():
+            return HttpResponseNotFound('Bild nicht gefunden')
+    if not response.image:
+        return HttpResponseNotFound('Bild nicht gefunden')
+    return get_bild(response.image.path, response.image.name)
 
 @login_required
 @required_role('OT')
