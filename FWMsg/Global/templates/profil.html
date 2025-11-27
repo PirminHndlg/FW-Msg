@@ -87,19 +87,7 @@
                     <h5 class="modal-title" id="profilPictureModalLabel">{% trans "Profilbild ändern" %}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="post" enctype="multipart/form-data" action="{% url 'update_profil_picture' %}">
-                    <div class="modal-body">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="profil_picture" class="form-label">{% trans "Neues Profilbild auswählen" %}</label>
-                            <input type="file" class="form-control" id="profil_picture" name="profil_picture" accept="image/*" required>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
-                        <button type="submit" class="btn btn-primary">{% trans "Speichern" %}</button>
-                    </div>
-                </form>
+                
             </div>
         </div>
     </div>

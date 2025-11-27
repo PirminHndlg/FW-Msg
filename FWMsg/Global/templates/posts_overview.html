@@ -14,9 +14,9 @@
       </div>
 
       {% if user.role == 'O' and person_clusters %}
-      <div class="d-flex gap-1 justify-content-center align-items-center">
+      <div class="d-flex gap-1 justify-content-center align-items-center mt-2">
         <strong>{% trans "Benutzergruppe" %}</strong>
-        <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center">
+        <div class="gap-1 flex-wrap justify-content-center align-items-center d-none d-md-flex">
           <a class="btn btn-sm rounded-4 btn-outline-primary {% if not current_person_cluster %}active{% endif %}" href="{% url 'posts_overview' %}?person_cluster_filter=None">
             {% trans 'Alle' %}
           </a>
@@ -25,6 +25,16 @@
               {{ person_cluster.name }}
             </a>
           {% endfor %}
+        </div>
+        <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center d-md-none">
+          <select class="form-select form-select-sm rounded-4" onchange="window.location.href = this.value;">
+            <option value="{% url 'posts_overview' %}?person_cluster_filter=None">{% trans 'Alle' %}</option>
+            {% for person_cluster in person_clusters %}
+              <option value="{% url 'posts_overview' %}?person_cluster_filter={{ person_cluster.id }}" {% if current_person_cluster == person_cluster %}selected{% endif %}>
+                {{ person_cluster.name }}
+              </option>
+            {% endfor %}
+          </select>
         </div>
       </div>
       {% endif %}
