@@ -29,35 +29,55 @@
         <div class="d-flex gap-1 m-2 justify-content-center align-items-center flex-wrap">
 
           {% if all_person_clusters|length > 1 %}
-          <div class="d-flex gap-1 justify-content-center align-items-center me-2 border-end pe-2">
-          <strong>{% trans "Benutzergruppe" %}</strong>
-          <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center">
-            <a class="btn btn-sm rounded-4 btn-outline-primary {% if not current_person_cluster %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter=None&f={{ filter_this_month }}">
-              {% trans "Alle" %}
-            </a>
-            {% for person_cluster in all_person_clusters %}
-            <a class="btn btn-sm rounded-4 btn-outline-primary {% if current_person_cluster.id == person_cluster.id %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter={{ person_cluster.id }}&f={{ filter_this_month }}">
-              {{ person_cluster.name }}
-            </a>
-            {% endfor %}
-          </div>
+          <div class="d-flex gap-1 justify-content-center align-items-center me-2 border-end pe-2 mt-2">
+            <strong>{% trans "Benutzergruppe" %}</strong>
+            <div class="gap-1 flex-wrap justify-content-center align-items-center d-none d-md-flex">
+              <a class="btn btn-sm rounded-4 btn-outline-primary {% if not current_person_cluster %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter=None&f={{ filter_this_month }}">
+                {% trans "Alle" %}
+              </a>
+              {% for person_cluster in all_person_clusters %}
+              <a class="btn btn-sm rounded-4 btn-outline-primary {% if current_person_cluster.id == person_cluster.id %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter={{ person_cluster.id }}&f={{ filter_this_month }}">
+                {{ person_cluster.name }}
+              </a>
+              {% endfor %}
+            </div>
+            <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center d-md-none">
+              <select class="form-select form-select-sm rounded-4" onchange="window.location.href = this.value;">
+                <option value="{% url 'list_ampel' %}?person_cluster_filter=None&f={{ filter_this_month }}">{% trans 'Alle' %}</option>
+                {% for person_cluster in all_person_clusters %}
+                  <option value="{% url 'list_ampel' %}?person_cluster_filter={{ person_cluster.id }}&f={{ filter_this_month }}" {% if current_person_cluster.id == person_cluster.id %}selected{% endif %}>
+                    {{ person_cluster.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
           </div>
           {% endif %}
 
-          <div class="d-flex gap-1 justify-content-center align-items-center">
-          <strong>{% trans "Ampel diesen Monat" %}</strong>
-          <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center">
-            <a class="btn btn-sm rounded-4 btn-outline-primary {% if not filter_this_month %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter={{ current_person_cluster.id }}&f=None">
-              {% trans "Alle" %}
-            </a>
-            <a class="btn btn-sm rounded-4 btn-outline-primary {% if filter_this_month == 'True' %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter={{ current_person_cluster.id }}&f=True">
-              Ja
-            </a>
-            <a class="btn btn-sm rounded-4 btn-outline-primary {% if filter_this_month == 'False' %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter={{ current_person_cluster.id }}&f=False">
-              Nein
-            </a>
-          </div>
-          </div>
+          <div class="d-flex gap-1 justify-content-center align-items-center mt-2">
+            <strong>{% trans "Ampel diesen Monat" %}</strong>
+            <div class="gap-1 flex-wrap justify-content-center align-items-center d-none d-md-flex">
+              <a class="btn btn-sm rounded-4 btn-outline-primary {% if not filter_this_month %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter={{ current_person_cluster.id }}&f=None">
+                {% trans "Alle" %}
+              </a>
+              <a class="btn btn-sm rounded-4 btn-outline-primary {% if filter_this_month == 'True' %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter={{ current_person_cluster.id }}&f=True">
+                Ja
+              </a>
+              <a class="btn btn-sm rounded-4 btn-outline-primary {% if filter_this_month == 'False' %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter={{ current_person_cluster.id }}&f=False">
+                Nein
+              </a>
+            </div>
+            <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center d-md-none">
+              <select class="form-select form-select-sm rounded-4" onchange="window.location.href = this.value;">
+                <option value="{% url 'list_ampel' %}?person_cluster_filter={{ current_person_cluster.id }}&f=None">{% trans 'Alle' %}</option>
+                <option value="{% url 'list_ampel' %}?person_cluster_filter={{ current_person_cluster.id }}&f=True" {% if filter_this_month == 'True' %}selected{% endif %}>
+                  Ja
+                </option>
+                <option value="{% url 'list_ampel' %}?person_cluster_filter={{ current_person_cluster.id }}&f=False" {% if filter_this_month == 'False' %}selected{% endif %}>
+                  Nein
+                </option>
+              </select>
+            </div>
         </div>
 
 
