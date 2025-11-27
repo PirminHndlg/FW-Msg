@@ -32,7 +32,10 @@
                 <div class="author-card p-3 rounded-3 bg-light border-start border-primary border-3 h-100">
                   <a href="{% url 'profil' post.user.customuser.get_identifier %}" class="text-decoration-none text-dark">
                     <div class="d-flex align-items-center">
-                      <img src="{% url 'serve_profil_picture' post.user.customuser.get_identifier %}" alt="{{ post.user.first_name }} {{ post.user.last_name }}" class="rounded-circle me-3" style="height: 48px; width: 48px; object-fit: cover;" />
+                      <img src="{% url 'serve_profil_picture' post.user.customuser.get_identifier %}"
+                          alt="{{ post.user.first_name }} {{ post.user.last_name }}"
+                          class="rounded-circle me-3 shadow-sm"
+                          style="height: 48px; object-fit: cover;"/>
                       <div>
                         <small class="text-muted">{% trans 'Erstellt von' %}</small>
                         <div class="fw-medium">{{ post.user.first_name }} {{ post.user.last_name }}</div>
@@ -116,8 +119,8 @@
                                     {% for user in answer.votes.all %}
                                       <img src="{% url 'serve_profil_picture' user.customuser.get_identifier %}" 
                                            alt="{{ user.get_full_name }}"
-                                           class="rounded-circle border border-2 shadow-sm border-white"
-                                           style="width: 36px; height: 36px; object-fit: cover; cursor: pointer;"
+                                           class="rounded-circle shadow-sm"
+                                           style="height: 36px; object-fit: cover; cursor: pointer;"
                                            data-bs-toggle="tooltip"
                                            data-bs-placement="top"
                                            title="{% if user == request.user %}{% trans 'Du' %}{% else %}{{ user.get_full_name }}{% endif %}">
@@ -156,8 +159,127 @@
               </div>
             {% endif %}
 
+            {% if responses %}
+              <div class="mt-5">
+                <h5 class="form-label fw-semibold text-primary d-flex align-items-center mb-4">
+                  <span class="response-icon bg-primary-subtle rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                    <i class="bi bi-chat-left-text-fill text-primary"></i>
+                  </span>
+                  {% trans 'Antworten' %} ({{ post.get_response_count }})
+                </h5>
+                
+                {% for response in responses %}
+                  <div class="card rounded-4 shadow-sm mb-3 border-0">
+                    <div class="card-body p-4">
+                      <!-- Author Info -->
+                      <div class="d-flex align-items-start mb-3">
+                        <a href="{% url 'profil' response.user.customuser.get_identifier %}" class="text-decoration-none">
+                          <img src="{% url 'serve_profil_picture' response.user.customuser.get_identifier %}" 
+                               alt="{{ response.user.get_full_name }}" 
+                               class="rounded-circle me-3 shadow-sm" 
+                               style="height: 48px; object-fit: cover;"/>
+                        </a>
+                        <div class="flex-grow-1">
+                          <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                              <a href="{% url 'profil' response.user.customuser.get_identifier %}" class="text-decoration-none">
+                                <h6 class="mb-0 fw-semibold text-dark">{{ response.user.get_full_name }}</h6>
+                              </a>
+                              <small class="text-muted">
+                                <i class="bi bi-clock me-1"></i>
+                                {{ response.date_created|date:'d.m.Y H:i' }}
+                              </small>
+                            </div>
+                            {% if request.user == response.user or request.user.role == 'A' %}
+                              <button type="button" class="btn btn-sm btn-outline-danger rounded-3" data-bs-toggle="modal" data-bs-target="#deleteResponseModal{{ response.id }}">
+                                <i class="bi bi-trash"></i>
+                              </button>
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Response Text -->
+                      {% if response.text %}
+                      <div class="response-content p-3 bg-light rounded-3 mb-3">
+                        {{ response.text|format_text_with_link|safe }}
+                      </div>
+                      {% endif %}
+                      
+                      <!-- Response Image -->
+                      {% if response.image %}
+                        <div class="mt-3">
+                          <img src="{% url 'serve_post_response_image' response.id %}" 
+                               alt="{% trans 'Antwortbild' %}" 
+                               class="img-fluid rounded-3 border shadow-sm" 
+                               style="max-height: 400px; object-fit: cover;">
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <!-- Inline Response Form -->
+            <div class="mt-5">
+              <div class="card rounded-4 shadow-sm border-0">
+                <div class="card-body p-4">
+                  
+                  <form method="post"
+                        action="{% url 'post_response' post.id %}"
+                        enctype="multipart/form-data"
+                        id="post-response-form-{{ post.id }}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                      <label class="form-label" for="{{ response_form.text.id_for_label }}">
+                        {% trans 'Antwort' %}
+                      </label>
+                      {{ response_form.text|add_class:"form-control rounded-3 border-2"|attr:"rows:4"|attr:"placeholder:Schreibe deine Antwort..." }}
+                      {% if response_form.text.errors %}
+                        <div class="invalid-feedback d-block">{{ response_form.text.errors }}</div>
+                      {% endif %}
+
+                      <div class="mt-2">
+                        <label class="form-label" for="{{ response_form.with_notification.id_for_label }}">
+                          {{ response_form.with_notification.label|safe }}
+                        </label>
+                        {{ response_form.with_notification|add_class:"form-check-input" }}
+                      </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+                      <div>
+                        <button type="button" class="btn btn-outline-secondary rounded-3" onclick="document.getElementById('{{ response_form.image.id_for_label }}').click()">
+                          <i class="bi bi-image me-1"></i>{% trans 'Bild hinzufügen' %}
+                        </button>
+                        {{ response_form.image|add_class:"d-none" }}
+                        <div id="image-preview-{{ post.id }}" class="mt-2"></div>
+                        {% if response_form.image.errors %}
+                          <div class="invalid-feedback d-block">{{ response_form.image.errors }}</div>
+                        {% endif %}
+                      </div>
+                      <button type="submit"
+                              class="btn btn-primary rounded-3 d-flex align-items-center gap-2"
+                              id="post-response-submit-{{ post.id }}">
+                        <span class="spinner-border spinner-border-sm text-white d-none"
+                              role="status"
+                              aria-hidden="true"
+                              id="post-response-spinner-{{ post.id }}"></span>
+                        <i class="bi bi-send"></i>{% trans 'Antwort senden' %}
+                      </button>
+                    </div>
+
+                  </form>
+                </div>
+              </div>
+            </div>
+
             <div class="d-flex gap-2 mt-4">
-              <a href="{% url 'posts_overview' %}" class="btn btn-outline-secondary rounded-3 px-4"><i class="bi bi-arrow-left me-1"></i>{% trans 'Zurück zur Übersicht' %}</a>
+              <a href="{% url 'posts_overview' %}" class="btn btn-outline-secondary rounded-3 px-4">
+                <i class="bi bi-arrow-left me-1"></i>{% trans 'Zurück zur Übersicht' %}
+              </a>
             </div>
           </div>
         </div>
@@ -167,10 +289,78 @@
 
   {% include 'components/post_delete_modal.html' with post=post %}
 
+  <!-- Delete Response Modals -->
+  {% if responses %}
+    {% for response in responses %}
+      {% if request.user == response.user or request.user.role == 'A' %}
+        <div class="modal fade" id="deleteResponseModal{{ response.id }}" tabindex="-1" aria-labelledby="deleteResponseModalLabel{{ response.id }}" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 shadow">
+              <div class="modal-header bg-danger text-white rounded-top-4">
+                <h5 class="modal-title" id="deleteResponseModalLabel{{ response.id }}">
+                  <i class="bi bi-exclamation-triangle me-2"></i>{% trans 'Antwort löschen' %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body p-4">
+                <p class="mb-0">{% trans 'Möchtest du diese Antwort wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.' %}</p>
+              </div>
+              <div class="modal-footer bg-light rounded-bottom-4">
+                <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">
+                  <i class="bi bi-x-circle me-1"></i>{% trans 'Abbrechen' %}
+                </button>
+                <form method="post" action="{% url 'post_response_delete' response.id %}" style="display: inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger rounded-3 d-flex align-items-center gap-2">
+                    <span class="spinner-border spinner-border-sm text-white d-none" role="status" aria-hidden="true"></span>
+                    <i class="bi bi-trash me-1"></i>{% trans 'Löschen' %}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Handle image upload preview
+      const imageInput = document.getElementById('{{ response_form.image.id_for_label }}');
+      const imagePreview = document.getElementById('image-preview-{{ post.id }}');
+      
+      if (imageInput) {
+        imageInput.addEventListener('change', function() {
+          imagePreview.innerHTML = '';
+          
+          if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+              const imgWrapper = document.createElement('div');
+              imgWrapper.className = 'position-relative d-inline-block';
+              imgWrapper.innerHTML = `
+                <img src="${e.target.result}" class="img-fluid rounded-3 border shadow-sm" style="max-height: 200px; object-fit: cover;">
+                <button type="button" class="btn btn-sm btn-danger rounded-circle position-absolute top-0 end-0 m-2" onclick="document.getElementById('image-preview-{{ post.id }}').innerHTML = ''; document.getElementById('{{ response_form.image.id_for_label }}').value = '';">
+                  <i class="bi bi-x"></i>
+                </button>
+              `;
+              imagePreview.appendChild(imgWrapper);
+            };
+            
+            reader.readAsDataURL(this.files[0]);
+          }
+        });
+      }
+    });
+  </script>
+
   <style>
     .post-icon,
     .date-icon,
-    .survey-icon {
+    .survey-icon,
+    .response-icon {
       width: 36px;
       height: 36px;
       min-width: 36px;
@@ -188,6 +378,15 @@
     
     .progress {
       background-color: rgba(var(--bs-info-rgb), 0.1);
+    }
+    
+    .response-content {
+      line-height: 1.6;
+    }
+    
+    .form-control:focus {
+      border-color: var(--bs-primary);
+      box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
     }
   </style>
 {% endblock %}

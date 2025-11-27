@@ -938,6 +938,12 @@ class Post2(OrgModel):
     already_sent_to = models.ManyToManyField(User, verbose_name='Bereits gesendet an', help_text='Benutzer, die diesen Post bereits erhalten haben', blank=True, related_name='already_sent_to')
 
     history = HistoricalRecords()
+    
+    def get_response_count(self):
+        return PostResponse.objects.filter(original_post=self).count()
+    
+    def get_all_responses(self):
+        return PostResponse.objects.filter(original_post=self)
 
     class Meta:
         verbose_name = 'Post'
@@ -952,6 +958,23 @@ def send_new_post_email_task_receiver(sender, instance, created, **kwargs):
     if created:
         print(f"Sending new post email to {instance.person_cluster.all()}")
         send_new_post_email_task.apply_async(args=[instance.id], countdown=2)
+        
+        
+class PostResponse(OrgModel):
+    original_post = models.ForeignKey(Post2, on_delete=models.CASCADE, verbose_name='Originaler Post', help_text='Originaler Post, auf den dieser Post antwortet')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer', help_text='Benutzer, der die Antwort erstellt hat')
+    text = models.TextField(verbose_name='Text', help_text='Text der Antwort', null=True, blank=True)
+    image = models.ImageField(upload_to='posts/', blank=True, null=True, verbose_name='Bild', help_text='Bild der Antwort')
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
+    date_updated = models.DateTimeField(auto_now=True, verbose_name='Aktualisiert am')
+    
+    class Meta:
+        verbose_name = 'Post Antwort'
+        verbose_name_plural = 'Post Antworten'
+        
+    def __str__(self):
+        return self.user.get_full_name() + ' - ' + self.original_post.title + ' - ' + self.text[:50] + '...'
+
 
 class PostSurveyQuestion(OrgModel):
     post = models.OneToOneField(Post2, on_delete=models.CASCADE, related_name='survey_question', verbose_name='Post')

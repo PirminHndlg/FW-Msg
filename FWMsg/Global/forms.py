@@ -1,7 +1,7 @@
 from django import forms
 
 from FWMsg.middleware import get_current_request
-from .models import Ampel2, BewerberKommentar, Feedback, PersonCluster, Post2, Notfallkontakt2, PostSurveyQuestion, PostSurveyAnswer, EinsatzstelleNotiz, MapLocation
+from .models import Ampel2, BewerberKommentar, Feedback, PersonCluster, Post2, Notfallkontakt2, PostResponse, PostSurveyQuestion, PostSurveyAnswer, EinsatzstelleNotiz, MapLocation
 from django.utils.translation import gettext_lazy as _
 from Global.send_email import send_new_post_email
 from django.forms.widgets import HiddenInput
@@ -234,6 +234,48 @@ class AddPostForm(forms.ModelForm):
                                 org=self.instance.org,
                                 answer_text=answer_text
                             )
+                            
+
+class PostResponseForm(forms.ModelForm):
+    image = forms.ImageField(required=False, label=_('Bild'), help_text=_('Bild der Antwort'))
+    with_notification = forms.BooleanField(required=False, label=_('Andere Benutzer:innen benachrichtigen'), help_text=_('Sende eine Benachrichtigung an andere Benutzer:innen, die an diesem Post interessiert sind'))
+    
+    class Meta:
+        model = PostResponse
+        fields = ['text', 'image']
+        widgets = {
+            'text': forms.Textarea(attrs={'rows': 10}),
+        }
+        
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        self.original_post = kwargs.pop('original_post', None)
+        super().__init__(*args, **kwargs)
+        self.fields['text'].widget.attrs.update({'placeholder': _('Text der Antwort')})
+        self.fields['with_notification'].widget.attrs.update({'class': 'form-check-input'})
+        self.fields['with_notification'].required = False
+        self.fields['with_notification'].initial = True
+        self.fields['image'].widget.attrs.update({'class': 'form-control', 'accept': 'image/*', 'id': 'id_response_image'})
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        text = cleaned_data.get('text')
+        image = cleaned_data.get('image')
+        if not text and not image:
+            self.add_error('text', _('Mindestens ein Text oder Bild ist erforderlich'))
+            self.add_error('image', _('Mindestens ein Text oder Bild ist erforderlich'))
+            return None
+        return cleaned_data
+        
+    def save(self, commit=True):
+        response = super().save(commit=False)
+        response.user = self.user
+        response.org = self.user.org
+        response.original_post = self.original_post
+        if commit:
+            response.save()
+        return response
+
                 
 class EinsatzstelleNotizForm(forms.ModelForm):
     class Meta:
