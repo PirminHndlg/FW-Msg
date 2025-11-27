@@ -5,7 +5,6 @@ from django.dispatch import receiver
 from django.core import validators
 import random
 import string
-from Global.tasks import send_new_post_email_task
 from simple_history.models import HistoricalRecords
 import os.path
 from django.db.models.signals import post_save, post_delete, pre_delete
@@ -956,8 +955,8 @@ class Post2(OrgModel):
 @receiver(post_save, sender=Post2)
 def send_new_post_email_task_receiver(sender, instance, created, **kwargs):
     if created:
-        print(f"Sending new post email to {instance.person_cluster.all()}")
-        send_new_post_email_task.apply_async(args=[instance.id], countdown=2)
+        from Global.tasks import send_new_post_email_task
+        send_new_post_email_task.s(instance.id).apply_async(countdown=15*60)
         
         
 class PostResponse(OrgModel):

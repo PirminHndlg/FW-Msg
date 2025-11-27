@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib import messages
 
 from FWMsg.middleware import get_current_request
 from .models import Ampel2, BewerberKommentar, Feedback, PersonCluster, Post2, Notfallkontakt2, PostResponse, PostSurveyQuestion, PostSurveyAnswer, EinsatzstelleNotiz, MapLocation
@@ -173,7 +174,6 @@ class AddPostForm(forms.ModelForm):
             
         if commit:
             post.save()
-            # Save the ManyToManyField
             self.save_m2m()
             self.save_answers()
     
@@ -274,6 +274,12 @@ class PostResponseForm(forms.ModelForm):
         response.original_post = self.original_post
         if commit:
             response.save()
+            
+        # with_notification
+        if self.cleaned_data.get('with_notification'):
+            from Global.tasks import send_post_response_email_task
+            send_post_response_email_task.s(response.id).apply_async(countdown=15*60)
+            
         return response
 
                 
