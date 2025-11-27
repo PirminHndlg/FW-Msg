@@ -66,6 +66,13 @@
             </div>
             {% endif %}
 
+            {% if post.image %}
+              <div class="mb-4">
+                <h5 class="form-label fw-semibold text-primary">{% trans 'Bild' %}</h5>
+                <img src="{% url 'serve_post_image' post.id %}" alt="{{ post.title }}" class="img-fluid rounded-3" style="max-height: 500px; object-fit: cover;">
+              </div>
+            {% endif %}
+
             {% if post.has_survey and post.survey_question %}
               <div class="mt-5 mb-4">
                 <div class="mb-3">

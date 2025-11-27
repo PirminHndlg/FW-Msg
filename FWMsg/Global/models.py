@@ -930,6 +930,7 @@ class Post2(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer', help_text='Benutzer, der den Post erstellt hat')
     title = models.CharField(max_length=50, verbose_name='Post-Titel', help_text='Titel des Posts')
     text = models.TextField(verbose_name='Text', help_text='Text des Posts', null=True, blank=True)
+    image = models.ImageField(upload_to='posts/', blank=True, null=True, verbose_name='Bild', help_text='Bild des Posts')
     date = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
     date_updated = models.DateTimeField(auto_now=True, verbose_name='Aktualisiert am')
     has_survey = models.BooleanField(default=False, verbose_name='Umfrage', help_text='Post enthält eine Umfrage')

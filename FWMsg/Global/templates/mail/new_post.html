@@ -7,6 +7,9 @@
     <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{{ post_title }}</p>
     <p style="margin: 5px 0;"><span style="color: #666666;">Von:</span> <span style="font-weight: 500;">{{ author_name }}</span></p>
     <p style="margin: 5px 0;"><span style="color: #666666;">Erstellt am:</span> <span style="font-weight: 500;">{{ post_date }}</span></p>
+    {% if has_image %}
+    <p style="margin: 5px 0;"><span style="color: #666666; font-weight: 500;">📸 Dieser Post enthält ein Bild</span></p>
+    {% endif %}
     {% if has_survey %}
     <p style="margin: 5px 0;"><span style="color: #666666; font-weight: 500;">📊 Dieser Post enthält eine Umfrage</span></p>
     {% endif %}
@@ -25,6 +28,9 @@
     <p style="font-weight: 600; margin: 0 0 10px 0; font-size: 17px; color: #3273dc;">{{ post_title }}</p>
     <p style="margin: 5px 0;"><span style="color: #666666;">From:</span> <span style="font-weight: 500;">{{ author_name }}</span></p>
     <p style="margin: 5px 0;"><span style="color: #666666;">Created on:</span> <span style="font-weight: 500;">{{ post_date }}</span></p>
+    {% if has_image %}
+    <p style="margin: 5px 0;"><span style="color: #666666; font-weight: 500;">📸 This post contains an image</span></p>
+    {% endif %}
     {% if has_survey %}
     <p style="margin: 5px 0;"><span style="color: #666666; font-weight: 500;">📊 This post contains a survey</span></p>
     {% endif %}

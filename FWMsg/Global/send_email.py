@@ -235,7 +235,7 @@ def format_mail_calendar_reminder_email(title, start, end, location, description
     }
     return render_to_string('mail/calendar_reminder.html', context)
 
-def format_new_post_email(post_title, post_text, author_name, post_date, has_survey, action_url, unsubscribe_url, user_name, org_name, image_url, org_color):
+def format_new_post_email(post_title, post_text, author_name, post_date, has_image, has_survey, action_url, unsubscribe_url, user_name, org_name, image_url, org_color):
     """Format email for new post notifications"""
     # Format the post date
     formatted_date = post_date.astimezone(timezone.get_current_timezone()).strftime('%d.%m.%Y %H:%M') if post_date else ''
@@ -250,6 +250,7 @@ def format_new_post_email(post_title, post_text, author_name, post_date, has_sur
         'author_name': author_name,
         'post_date': formatted_date,
         'has_survey': has_survey,
+        'has_image': has_image,
         'action_url': action_url,
         'unsubscribe_url': unsubscribe_url,
         'user_name': user_name,
@@ -479,6 +480,7 @@ def send_new_post_email(post_id):
                 post_text=post.text,
                 author_name=author_name,
                 post_date=post.date,
+                has_image=post.image is not None,
                 has_survey=post.has_survey,
                 action_url=action_url,
                 unsubscribe_url=unsubscribe_url,
