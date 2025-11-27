@@ -298,7 +298,7 @@ function buildTableCell(user, aufgabe, userAufgabe, today) {
         return `
             <td class="text-center p-0 rounded-4">
                 <div class="p-0 m-0">
-                    <a data-bs-toggle="tooltip" data-bs-title="Aufgabe nicht für diesen Benutzergruppe" style="cursor: help;">
+                    <a data-bs-toggle="tooltip" data-bs-title="Aufgabe nicht für diese Benutzergruppe" style="cursor: help;">
                         <i class="bi bi-x-lg text-danger"></i>
                     </a>
                 </div>
