@@ -263,10 +263,6 @@
                       <button type="submit"
                               class="btn btn-primary rounded-3 d-flex align-items-center gap-2"
                               id="post-response-submit-{{ post.id }}">
-                        <span class="spinner-border spinner-border-sm text-white d-none"
-                              role="status"
-                              aria-hidden="true"
-                              id="post-response-spinner-{{ post.id }}"></span>
                         <i class="bi bi-send"></i>{% trans 'Antwort senden' %}
                       </button>
                     </div>
@@ -312,7 +308,6 @@
                 <form method="post" action="{% url 'post_response_delete' response.id %}" style="display: inline;">
                   {% csrf_token %}
                   <button type="submit" class="btn btn-danger rounded-3 d-flex align-items-center gap-2">
-                    <span class="spinner-border spinner-border-sm text-white d-none" role="status" aria-hidden="true"></span>
                     <i class="bi bi-trash me-1"></i>{% trans 'Löschen' %}
                   </button>
                 </form>

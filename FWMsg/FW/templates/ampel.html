@@ -52,7 +52,6 @@
                     </button>
                     <button id="ampelSubmit" type="submit" class="btn btn-primary w-100 w-md-auto">
                         <span class="label d-flex align-items-center justify-content-center"><i class="bi bi-send me-2"></i>{% trans "Abschicken" %}</span>
-                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                     </button>
                 </div>
             </div>
@@ -118,24 +117,6 @@
 
             // Lock UI
             window.submitted = true;
-            btn.disabled = true;
-            const label = btn.querySelector('.label');
-            const spinner = btn.querySelector('.spinner-border');
-            if (label) label.classList.add('d-none');
-            if (spinner) spinner.classList.remove('d-none');
-            
-            // Make inputs read-only but don't disable them (disabled fields don't get submitted)
-            form.querySelectorAll('input:not([type="hidden"]), textarea').forEach(el => {
-                el.readOnly = true;
-                el.style.pointerEvents = 'none';
-                el.style.opacity = '0.6';
-            });
-            
-            // Disable the ampel selector clicks
-            document.querySelectorAll('.ampel_element').forEach(el => {
-                el.style.pointerEvents = 'none';
-                el.style.opacity = '0.6';
-            });
         });
 
         // Prevent accidental Enter submissions except in textarea
