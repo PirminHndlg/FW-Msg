@@ -94,10 +94,10 @@
                       <!-- Survey Vote Form - Always editable -->
                       <form method="post" action="{% url 'post_vote' post.id %}" class="survey-vote-form">
                         {% csrf_token %}
-                        <div class="survey-options">
+                        <div class="survey-options d-flex flex-column gap-3">
                           {% for answer in post.survey_question.survey_answers.all %}
-                            <div class="mb-3 p-3 border rounded {% if answer == has_voted %}border-success border-2 bg-success bg-opacity-10{% endif %}" style="transition: all 0.2s;">
-                              <div class="form-check mb-2">
+                            <div class="p-3 border rounded-3 {% if answer == has_voted %}border-success border-2 bg-success bg-opacity-10{% endif %}" style="transition: all 0.2s;">
+                              <div class="form-check mb-2 d-flex align-items-start gap-2">
                                 <input class="form-check-input" 
                                        type="radio" 
                                        name="answer_id" 
@@ -105,7 +105,7 @@
                                        value="{{ answer.id }}" 
                                        {% if answer == has_voted %}checked{% endif %}
                                        {% if not has_voted %}required{% endif %} />
-                                <label class="form-check-label fw-semibold d-flex align-items-center gap-2" for="answer_{{ answer.id }}" style="cursor: pointer;">
+                                <label class="form-check-label fw-semibold d-flex align-items-center gap-2 flex-wrap" for="answer_{{ answer.id }}" style="cursor: pointer;">
                                   <span {% if answer == has_voted %}class="text-success"{% endif %}>
                                     {{ answer.answer_text }}
                                   </span>
@@ -114,7 +114,7 @@
                               </div>
 
                               {% if answer.votes.count > 0 %}
-                                <div class="ms-4 mt-2 border rounded p-2 bg-light" style="max-height: 120px; overflow-y: auto; overflow-x: hidden;">
+                                <div class="ms-0 ms-sm-4 mt-2 border rounded-3 p-2 bg-light" style="max-height: 120px; overflow-y: auto; overflow-x: hidden;">
                                   <div class="d-flex flex-wrap gap-2">
                                     {% for user in answer.votes.all %}
                                       <img src="{% url 'serve_profil_picture' user.customuser.get_identifier %}" 
@@ -132,24 +132,30 @@
                           {% endfor %}
                         </div>
                         
-                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                          <div class="text-muted">
-                            <i class="bi bi-people-fill me-1"></i>
-                            <strong>{% trans 'Insgesamt' %}:</strong> {{ total_votes }} {% trans 'Stimmen' %}
+                        <div class="row align-items-center mt-4 pt-3 border-top gy-3">
+                          <div class="col-12 col-sm text-muted d-flex align-items-center gap-2">
+                            <span class="d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-circle" style="width:36px;height:36px;">
+                              <i class="bi bi-people-fill"></i>
+                            </span>
+                            <div>
+                              <strong>{% trans 'Insgesamt' %}:</strong> {{ total_votes }} {% trans 'Stimmen' %}
+                            </div>
                           </div>
-                          <div class="d-flex gap-2">
-                            {% if has_voted %}
-                              <button type="submit" name="withdraw" value="true" class="btn btn-outline-danger">
-                                <i class="bi bi-x-circle me-1"></i>{% trans 'Zurückziehen' %}
-                              </button>
-                            {% endif %}
-                            <button type="submit" class="btn btn-primary">
+                          <div class="col-12 col-md-auto">
+                            <div class="d-flex flex-column flex-md-row gap-2">
                               {% if has_voted %}
-                                <i class="bi bi-arrow-repeat me-1"></i>{% trans 'Stimme ändern' %}
-                              {% else %}
-                                <i class="bi bi-check2-circle me-1"></i>{% trans 'Abstimmen' %}
+                                <button type="submit" name="withdraw" value="true" class="btn btn-outline-danger w-100">
+                                  <i class="bi bi-x-circle me-1"></i>{% trans 'Zurückziehen' %}
+                                </button>
                               {% endif %}
-                            </button>
+                              <button type="submit" class="btn btn-primary w-100">
+                                {% if has_voted %}
+                                  <i class="bi bi-arrow-repeat me-1"></i>{% trans 'Stimme ändern' %}
+                                {% else %}
+                                  <i class="bi bi-check2-circle me-1"></i>{% trans 'Abstimmen' %}
+                                {% endif %}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </form>
@@ -241,7 +247,7 @@
                         <div class="invalid-feedback d-block">{{ response_form.text.errors }}</div>
                       {% endif %}
 
-                      <div class="mt-2">
+                      <div class="mt-2 d-flex gap-2">
                         <label class="form-label" for="{{ response_form.with_notification.id_for_label }}">
                           {{ response_form.with_notification.label|safe }}
                         </label>
@@ -249,22 +255,28 @@
                       </div>
                     </div>
                     
-                    <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
-                      <div>
-                        <button type="button" class="btn btn-outline-secondary rounded-3" onclick="document.getElementById('{{ response_form.image.id_for_label }}').click()">
-                          <i class="bi bi-image me-1"></i>{% trans 'Bild hinzufügen' %}
-                        </button>
-                        {{ response_form.image|add_class:"d-none" }}
+                    <div class="row gy-2 align-items-start">
+                      <div class="col-12 col-md-8">
+                        <div class="d-flex flex-column flex-sm-row align-items-stretch gap-2">
+                          <button type="button"
+                                  class="btn btn-outline-secondary rounded-3 w-100 w-sm-auto"
+                                  onclick="document.getElementById('{{ response_form.image.id_for_label }}').click()">
+                            <i class="bi bi-image me-1"></i>{% trans 'Bild hinzufügen' %}
+                          </button>
+                          {{ response_form.image|add_class:"d-none" }}
+                        </div>
                         <div id="image-preview-{{ post.id }}" class="mt-2"></div>
                         {% if response_form.image.errors %}
                           <div class="invalid-feedback d-block">{{ response_form.image.errors }}</div>
                         {% endif %}
                       </div>
-                      <button type="submit"
-                              class="btn btn-primary rounded-3 d-flex align-items-center gap-2"
-                              id="post-response-submit-{{ post.id }}">
-                        <i class="bi bi-send"></i>{% trans 'Antwort senden' %}
-                      </button>
+                      <div class="col-12 col-md-4 d-grid">
+                        <button type="submit"
+                                class="btn btn-primary rounded-3 d-flex justify-content-center align-items-center gap-2 w-100"
+                                id="post-response-submit-{{ post.id }}">
+                          <i class="bi bi-send"></i>{% trans 'Antwort senden' %}
+                        </button>
+                      </div>
                     </div>
 
                   </form>
