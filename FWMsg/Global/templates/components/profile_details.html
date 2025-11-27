@@ -4,7 +4,7 @@
 <div class="mb-3">
     {% if this_user %}
         <div class="d-flex justify-content-between gap-2 mb-2 align-items-center">
-            <a href="mailto:{{ user.org.email|default:'' }}" class="btn btn-sm"><i class="bi bi-envelope-fill me-1"></i>{% trans "Änderungen melden" %}</a>
+            <a href="mailto:{{ displayed_user.org.email|default:'' }}" class="btn btn-sm"><i class="bi bi-envelope-fill me-1"></i>{% trans "Änderungen melden" %}</a>
         </div>
     {% endif %}
 
@@ -12,8 +12,8 @@
         {% for user_attribute in user_attributes %}
             <p class="mb-2"><strong>{{ user_attribute.attribute.name }}:</strong> {{ user_attribute.value|default:"" }}</p>
         {% endfor%}
-        <p class="mb-2"><strong>{% trans "Email" %}:</strong> <a href="mailto:{{ user.email|default:'' }}">{{ user.email|default:"" }}</a></p>
-        {% with freiwilliger=user.freiwilliger %}
+        <p class="mb-2"><strong>{% trans "Email" %}:</strong> <a href="mailto:{{ displayed_user.email|default:'' }}">{{ displayed_user.email|default:"" }}</a></p>
+        {% with freiwilliger=displayed_user.freiwilliger %}
         {% if freiwilliger %}
             {% if freiwilliger.start_real %}
                 <p class="mb-2"><strong>{% trans "Start real" %}:</strong> {{ freiwilliger.start_real|date:"d.m.Y" }}</p>
@@ -30,8 +30,8 @@
         {% endwith %}
     {% endif %}
 
-    {% if user.customuser.geburtsdatum %}
-        <p class="mb-2"><strong>{% trans "Geburtsdatum" %}:</strong> {{ user.customuser.geburtsdatum|date:"d.m.Y" }}</p>
+    {% if displayed_user.customuser.geburtsdatum %}
+        <p class="mb-2"><strong>{% trans "Geburtsdatum" %}:</strong> {{ displayed_user.customuser.geburtsdatum|date:"d.m.Y" }}</p>
     {% endif %}
 </div>
 
