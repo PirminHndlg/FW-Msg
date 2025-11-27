@@ -9,10 +9,21 @@
                  style="max-width: 250px; max-height: 250px;">
             {% if this_user and displayed_user == request.user %}
             <div class="position-absolute bottom-0 end-0 mb-3 me-2">
-                <button type="button" class="btn btn-light btn-sm rounded-circle" data-bs-toggle="modal" data-bs-target="#profilPictureModal">
-                    <i class="bi bi-pencil"></i>
-                </button>
+                <form method="post" enctype="multipart/form-data" action="{% url 'update_profil_picture' %}" id="profilePictureForm">
+                        {% csrf_token %}
+                        <input type="file" class="d-none" name="profil_picture" id="profil_picture" accept="image/*" required>
+                        <button type="button" class="btn btn-light btn-sm rounded-circle" onclick="document.getElementById('profil_picture').click()" title="{% trans 'Profilbild bearbeiten' %}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                </form>
             </div>
+            <script>
+                document.getElementById('profil_picture').addEventListener('change', function() {
+                    if (this.files && this.files.length > 0) {
+                        document.getElementById('profilePictureForm').submit();
+                    }
+                });
+            </script>
             {% endif %}
         </div>
         {% if freiwilliger %}
