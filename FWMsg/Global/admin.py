@@ -52,8 +52,7 @@ class CustomUserAdmin(SimpleHistoryAdmin):
 
     def get_queryset(self, request):
         """Override to handle custom ordering for online status."""
-        from django.db.models import Case, When, Value, F
-        from django.db.models.functions import Coalesce
+        from django.db.models import Case, When, Value, IntegerField
         
         qs = super().get_queryset(request)
         
@@ -75,15 +74,26 @@ class CustomUserAdmin(SimpleHistoryAdmin):
                     field_name = list_display_fields[order_field_index]
                     
                     if field_name == 'get_online_status_display':
-                        # Custom ordering for online status:
-                        # For ascending: most recent first (online first), NULL last (nie online last)
-                        # For descending: NULL first (nie online first), oldest first
+                        # Custom ordering for online status using Case/When for database compatibility
+                        # Works with MySQL, PostgreSQL, SQLite, etc.
                         if is_descending:
-                            # Descending: NULL first, then oldest to newest
-                            qs = qs.order_by(F('last_seen').asc(nulls_first=True))
+                            # Descending: NULL first (nie online first), then oldest to newest
+                            qs = qs.annotate(
+                                null_ordering=Case(
+                                    When(last_seen__isnull=True, then=Value(0)),
+                                    default=Value(1),
+                                    output_field=IntegerField(),
+                                )
+                            ).order_by('null_ordering', 'last_seen')
                         else:
-                            # Ascending: newest to oldest (online first), NULL last
-                            qs = qs.order_by(F('last_seen').desc(nulls_last=True))
+                            # Ascending: newest to oldest (online first), NULL last (nie online last)
+                            qs = qs.annotate(
+                                null_ordering=Case(
+                                    When(last_seen__isnull=True, then=Value(1)),
+                                    default=Value(0),
+                                    output_field=IntegerField(),
+                                )
+                            ).order_by('null_ordering', '-last_seen')
             except (ValueError, IndexError):
                 pass
         
