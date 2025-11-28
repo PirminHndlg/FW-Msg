@@ -36,19 +36,17 @@ class CustomUserAdmin(SimpleHistoryAdmin):
     list_filter = ('person_cluster', 'mail_notifications', ('einmalpasswort', admin.EmptyFieldListFilter))
     readonly_fields = ('mail_notifications_unsubscribe_auth_key',)
 
+    @admin.display(ordering='last_seen', description='Online Status')
     def get_online_status_display(self, obj):
         return obj.get_online_status_display()
-    get_online_status_display.admin_order_field = 'last_seen'
 
+    @admin.display(ordering='user__email', description='Email')
     def get_user_email(self, obj):
         return obj.user.email
-    get_user_email.short_description = 'Email'
-    get_user_email.admin_order_field = 'user__email'
     
+    @admin.display(ordering='user__last_login', description='Last Login')
     def get_last_login(self, obj):
         return obj.user.last_login
-    get_last_login.short_description = 'Last Login'
-    get_last_login.admin_order_field = 'user__last_login'
 
     def get_queryset(self, request):
         """Override to handle custom ordering for online status."""
@@ -56,12 +54,28 @@ class CustomUserAdmin(SimpleHistoryAdmin):
         
         qs = super().get_queryset(request)
         
-        # Check if we're sorting by online status (last_seen)
+        # Add the null_ordering annotation for all querysets
+        # This allows for proper sorting when clicking on the "Online Status" column
+        qs = qs.annotate(
+            _null_ordering_asc=Case(
+                When(last_seen__isnull=True, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            ),
+            _null_ordering_desc=Case(
+                When(last_seen__isnull=True, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            )
+        )
+        
+        return qs
+    
+    def get_ordering(self, request):
+        """Override to apply custom ordering for last_seen field."""
         ordering = request.GET.get('o', '')
         
         if ordering:
-            # Parse the ordering parameter (e.g., '4' for ascending, '-4' for descending)
-            # where the number corresponds to the column index
             try:
                 order_field_index = int(ordering.lstrip('-'))
                 is_descending = ordering.startswith('-')
@@ -74,30 +88,18 @@ class CustomUserAdmin(SimpleHistoryAdmin):
                     field_name = list_display_fields[order_field_index]
                     
                     if field_name == 'get_online_status_display':
-                        # Custom ordering for online status using Case/When for database compatibility
-                        # Works with MySQL, PostgreSQL, SQLite, etc.
+                        # Return custom ordering for online status
                         if is_descending:
                             # Descending: NULL first (nie online first), then oldest to newest
-                            qs = qs.annotate(
-                                null_ordering=Case(
-                                    When(last_seen__isnull=True, then=Value(0)),
-                                    default=Value(1),
-                                    output_field=IntegerField(),
-                                )
-                            ).order_by('null_ordering', 'last_seen')
+                            return ['_null_ordering_desc', 'last_seen']
                         else:
-                            # Ascending: newest to oldest (online first), NULL last (nie online last)
-                            qs = qs.annotate(
-                                null_ordering=Case(
-                                    When(last_seen__isnull=True, then=Value(1)),
-                                    default=Value(0),
-                                    output_field=IntegerField(),
-                                )
-                            ).order_by('null_ordering', '-last_seen')
+                            # Ascending: newest to oldest (online first), NULL last
+                            return ['_null_ordering_asc', '-last_seen']
             except (ValueError, IndexError):
                 pass
         
-        return qs
+        # Fall back to default ordering
+        return super().get_ordering(request)
 
     def get_urls(self):
         urls = super().get_urls()
