@@ -374,24 +374,37 @@ def add_object(request, model_name):
 
 @login_required
 @required_role('O')
-def add_aufgabe(request):
+def add_aufgabe(request, id=None):
+    # Get instance if ID is provided and check organization
+    instance = None
+    if id is not None:
+        instance, response = _get_object_with_org_check(Aufgabe2, id, request)
+        if response:
+            return response
+
     if request.method == 'POST':
-        form = ORGforms.AddAufgabeForm(request.POST, request.FILES, request=request)
+        form = ORGforms.AddAufgabeForm(request.POST, request.FILES, instance=instance, request=request)
         if form.is_valid():
             save_form(request, form)
             next_url = request.GET.get('next')
             if next_url:
                 return redirect(next_url)
-            return redirect('list_object', model_name='aufgabe')
+            # Use the helper function for redirection
+            return _redirect_after_action(request, 'aufgabe', form.instance.id)
         else:
-            messages.error(request, 'Fehler beim Erstellen der Aufgabe. Bitte überprüfen Sie die Eingaben.')
+            if instance:
+                messages.error(request, 'Fehler beim Bearbeiten der Aufgabe. Bitte überprüfen Sie die Eingaben.')
+            else:
+                messages.error(request, 'Fehler beim Erstellen der Aufgabe. Bitte überprüfen Sie die Eingaben.')
             print("Form errors:", form.errors)
             print("Non-field errors:", form.non_field_errors())
             if hasattr(form, 'zwischenschritte'):
                 print("Zwischenschritte errors:", form.zwischenschritte.errors)
             return render(request, 'add_aufgabe.html', {'form': form})
-    form = ORGforms.AddAufgabeForm(request=request)
-    return render(request, 'add_aufgabe.html', {'form': form})
+    
+    form = ORGforms.AddAufgabeForm(instance=instance, request=request)
+    back_url = reverse('list_aufgaben_table')
+    return render(request, 'add_aufgabe.html', {'form': form, 'back_url': back_url})
 
 @login_required
 @required_role('O')
@@ -503,6 +516,10 @@ def get_zwischenschritt_form(request):
 @login_required
 @required_role('O')
 def edit_object(request, model_name, id):
+    # Redirect aufgabe edits to the specialized add_aufgabe view
+    if model_name.lower() == 'aufgabe':
+        return add_aufgabe(request, id)
+    
     # Check if model exists and has a form mapping
     model, response = _check_model_exists(model_name.lower())
     if response:
