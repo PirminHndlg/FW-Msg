@@ -3,7 +3,11 @@
 {% load widget_tweaks %}
 
 {% block title %}
-{% trans "Neue Aufgabe erstellen" %} - {{ block.super }}
+{% if form.instance.id %}
+    {% trans "Aufgabe bearbeiten" %} - {{ block.super }}
+{% else %}
+    {% trans "Neue Aufgabe erstellen" %} - {{ block.super }}
+{% endif %}
 {% endblock %}
 
 {% block head %}
@@ -460,10 +464,12 @@
         </div>
     {% endif %}
 
-    <!-- Progress Indicator -->
+    <!-- Progress Indicator (only shown in create mode) -->
+    {% if not form.instance.id %}
     <div class="progress-indicator">
         <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
     </div>
+    {% endif %}
 
     <form method="post" class="needs-validation form-wizard" novalidate enctype="multipart/form-data" id="aufgabeForm">
         {% csrf_token %}
@@ -471,10 +477,21 @@
         <div class="card mb-4 rounded-4">
             <div class="card-header rounded-4">
                 <h4 class="mb-0">
-                    <i class="bi bi-plus-circle me-2"></i>
-                    {% trans "Neue Aufgabe erstellen" %}
+                    {% if form.instance.id %}
+                        <i class="bi bi-pencil me-2"></i>
+                        {% trans "Aufgabe bearbeiten" %}
+                    {% else %}
+                        <i class="bi bi-plus-circle me-2"></i>
+                        {% trans "Neue Aufgabe erstellen" %}
+                    {% endif %}
                 </h4>
-                <p class="mb-0 text-muted small">{% trans "Folgen Sie den Schritten, um eine neue Aufgabe zu definieren" %}</p>
+                <p class="mb-0 text-muted small">
+                    {% if form.instance.id %}
+                        {% trans "Bearbeiten Sie die Aufgabendetails" %}
+                    {% else %}
+                        {% trans "Folgen Sie den Schritten, um eine neue Aufgabe zu definieren" %}
+                    {% endif %}
+                </p>
             </div>
             <div class="card-body">
                 
@@ -1045,7 +1062,7 @@
         <!-- Form Actions -->
         <div class="form-actions d-flex justify-content-between sticky-bottom border ">
             <div>
-                <a href="{% url 'list_aufgaben_table' %}" class="btn btn-secondary">
+                <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'list_aufgaben_table' %}{% endif %}" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> {% trans "Zurück" %}
                 </a>
             </div>
@@ -1056,13 +1073,30 @@
                 <button type="button" class="btn btn-primary" id="nextStep">
                     {% trans "Weiter" %} <i class="bi bi-chevron-right"></i>
                 </button>
-                <button type="submit" class="btn btn-success" id="submitBtn" style="display: none;">
-                    <i class="bi bi-check2"></i> {% trans "Aufgabe erstellen" %}
-                </button>
+                {% if form.instance.id %}
+                    <button type="button" class="btn btn-danger me-2 delete-btn" id="deleteBtn" style="display: none;"
+                        data-bs-toggle="modal"
+                        data-bs-target="#deleteModal"
+                        data-model="aufgabe"
+                        data-id="{{ form.instance.pk }}"
+                        data-name="{{ form.instance }}">
+                        <i class="bi bi-trash"></i> {% trans "Löschen" %}
+                    </button>
+                    <button type="submit" class="btn btn-success" id="submitBtn" style="display: none;">
+                        <i class="bi bi-check2"></i> {% trans "Änderungen speichern" %}
+                    </button>
+                {% else %}
+                    <button type="submit" class="btn btn-success" id="submitBtn" style="display: none;">
+                        <i class="bi bi-check2"></i> {% trans "Aufgabe erstellen" %}
+                    </button>
+                {% endif %}
             </div>
         </div>
     </form>
 </div>
+
+{% include "components/delete_modal.html" %}
+{% include "components/cascade_modal.html" %}
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -1074,14 +1108,84 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = document.getElementById('submitBtn');
     const form = document.getElementById('aufgabeForm');
 
-    // Initialize form
-    updateUI();
+    // Check if we're in edit mode
+    const isEditMode = {{ form.instance.id|yesno:"true,false" }};
+    
+    // In edit mode, show all steps at once
+    if (isEditMode) {
+        // Show all steps as active and completed
+        for (let i = 1; i <= totalSteps; i++) {
+            const step = document.getElementById(`step-${i}`);
+            const stepNumber = document.querySelector(`#step-${i} .step-number`);
+            if (step) {
+                step.classList.add('active', 'completed');
+                step.style.opacity = '1';
+                step.style.pointerEvents = 'auto';
+                step.style.transform = 'translateY(0)';
+            }
+            if (stepNumber) {
+                stepNumber.classList.add('completed');
+            }
+        }
+        
+        // Set to last step and update UI
+        currentStep = totalSteps;
+        if (progressBar) {
+            progressBar.style.width = '100%';
+        }
+        nextBtn.style.display = 'none';
+        prevBtn.style.display = 'none';
+        submitBtn.style.display = 'inline-block';
+        const deleteBtn = document.getElementById('deleteBtn');
+        if (deleteBtn) {
+            deleteBtn.style.display = 'inline-block';
+        }
+    } else {
+        // Initialize form normally for create mode
+        updateUI();
+    }
+    
+    // In edit mode, activate the correct due date tab based on filled fields
+    const faelligTag = document.getElementById('id_faellig_tag');
+    const faelligMonat = document.getElementById('id_faellig_monat');
+    const faelligTageNachStart = document.getElementById('id_faellig_tage_nach_start');
+    const faelligTageVorEnde = document.getElementById('id_faellig_tage_vor_ende');
+    
+    if (faelligTageNachStart && faelligTageNachStart.value) {
+        // Activate "Relativ zum Einsatzstart" tab
+        const relativeStartTab = document.getElementById('relative-start-tab');
+        if (relativeStartTab) {
+            const tab = new bootstrap.Tab(relativeStartTab);
+            tab.show();
+        }
+    } else if (faelligTageVorEnde && faelligTageVorEnde.value) {
+        // Activate "Relativ zum Einsatzende" tab
+        const relativeEndTab = document.getElementById('relative-end-tab');
+        if (relativeEndTab) {
+            const tab = new bootstrap.Tab(relativeEndTab);
+            tab.show();
+        }
+    } else if ((!faelligTag || !faelligTag.value) && (!faelligMonat || !faelligMonat.value)) {
+        // No due date set - activate "Ohne Fälligkeit" tab
+        const noDueDateTab = document.getElementById('no-due-date-tab');
+        if (noDueDateTab && (!faelligTag || !faelligTag.value) && (!faelligMonat || !faelligMonat.value) && 
+            (!faelligTageNachStart || !faelligTageNachStart.value) && (!faelligTageVorEnde || !faelligTageVorEnde.value)) {
+            const tab = new bootstrap.Tab(noDueDateTab);
+            tab.show();
+        }
+    }
+    // If faelligTag and faelligMonat have values, the default "Festes Datum" tab is already active
 
     // Handle repetition checkbox
     const wiederholungCheckbox = document.getElementById('id_wiederholung');
     const wiederholungFields = document.getElementById('wiederholung-fields');
     
     if (wiederholungCheckbox) {
+        // Show fields if checkbox is already checked (edit mode)
+        if (wiederholungCheckbox.checked) {
+            wiederholungFields.style.display = 'flex';
+        }
+        
         wiederholungCheckbox.addEventListener('change', function() {
             if (this.checked) {
                 wiederholungFields.style.display = 'flex';
@@ -1098,6 +1202,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const zwischenschritteContainer = document.getElementById('zwischenschritte-container');
     
     if (zwischenschritteContainer) {
+        // In edit mode, expand if there are existing zwischenschritte
+        const hasZwischenschritte = document.querySelectorAll('.zwischenschritt-item').length > 0;
+        if (hasZwischenschritte) {
+            const bsCollapse = new bootstrap.Collapse(zwischenschritteContainer, { toggle: false });
+            bsCollapse.show();
+        }
+        
         zwischenschritteContainer.addEventListener('shown.bs.collapse', function() {
             zwischenschritteIcon.className = 'bi bi-chevron-up me-2';
             zwischenschritteToggleText.textContent = 'Zwischenschritte ausblenden';
@@ -1264,18 +1375,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // on enter advance step instead of submit
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            // if not focus on textarea, advance step
-            if (!e.target.closest('textarea')) {
-            advanceStep();
-                if (currentStep <= totalSteps) {
-                    e.preventDefault();
+    // on enter advance step instead of submit (only for create mode)
+    if (!isEditMode) {
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                // if not focus on textarea, advance step
+                if (!e.target.closest('textarea')) {
+                    advanceStep();
+                    if (currentStep <= totalSteps) {
+                        e.preventDefault();
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 
     function advanceStep() {
         let requiredFields = document.querySelectorAll(`#step-${currentStep} input[required], #step-${currentStep} select[required], #step-${currentStep} textarea[required]`);
@@ -1324,7 +1437,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateUI() {
         // Update progress bar
         const progress = (currentStep / totalSteps) * 100;
-        progressBar.style.width = progress + '%';
+        if (progressBar) {
+            progressBar.style.width = progress + '%';
+        }
 
         // Update buttons
         prevBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
@@ -1332,35 +1447,47 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentStep === totalSteps) {
             nextBtn.style.display = 'none';
             submitBtn.style.display = 'inline-block';
+            // Show delete button in edit mode on last step
+            const deleteBtn = document.getElementById('deleteBtn');
+            if (deleteBtn) {
+                deleteBtn.style.display = 'inline-block';
+            }
         } else {
             nextBtn.style.display = 'inline-block';
             submitBtn.style.display = 'none';
+            // Hide delete button on other steps
+            const deleteBtn = document.getElementById('deleteBtn');
+            if (deleteBtn) {
+                deleteBtn.style.display = 'none';
+            }
         }
     }
 
-    // Button event listeners
-    nextBtn.addEventListener('click', function() {
-        if (validateCurrentStep()) {
-            advanceStep();
-        }
-    });
+    // Button event listeners (only for create mode)
+    if (!isEditMode) {
+        nextBtn.addEventListener('click', function() {
+            if (validateCurrentStep()) {
+                advanceStep();
+            }
+        });
 
-    prevBtn.addEventListener('click', function() {
-        if (currentStep > 1) {
-            // Hide current step
-            document.getElementById(`step-${currentStep}`).classList.remove('active');
-            document.querySelector(`#step-${currentStep} .step-number`).classList.remove('active');
+        prevBtn.addEventListener('click', function() {
+            if (currentStep > 1) {
+                // Hide current step
+                document.getElementById(`step-${currentStep}`).classList.remove('active');
+                document.querySelector(`#step-${currentStep} .step-number`).classList.remove('active');
 
-            // Show previous step
-            currentStep--;
-            document.getElementById(`step-${currentStep}`).classList.remove('completed');
-            document.getElementById(`step-${currentStep}`).classList.add('active');
-            document.querySelector(`#step-${currentStep} .step-number`).classList.remove('completed');
-            document.querySelector(`#step-${currentStep} .step-number`).classList.add('active');
+                // Show previous step
+                currentStep--;
+                document.getElementById(`step-${currentStep}`).classList.remove('completed');
+                document.getElementById(`step-${currentStep}`).classList.add('active');
+                document.querySelector(`#step-${currentStep} .step-number`).classList.remove('completed');
+                document.querySelector(`#step-${currentStep} .step-number`).classList.add('active');
 
-            updateUI();
-        }
-    });
+                updateUI();
+            }
+        });
+    }
 
     function validateCurrentStep() {
         let isValid = true;
@@ -1402,20 +1529,25 @@ document.addEventListener('DOMContentLoaded', function() {
         return isValid;
     }
 
-    // Initialize auto-advance
-    setupAutoAdvance();
+    // Initialize auto-advance (only for create mode)
+    if (!isEditMode) {
+        setupAutoAdvance();
+    }
 
     // Form submission
     form.addEventListener('submit', function(e) {
-        // Show all steps as completed for final validation
-        for (let i = 1; i <= totalSteps; i++) {
-            const step = document.getElementById(`step-${i}`);
-            const stepNumber = document.querySelector(`#step-${i} .step-number`);
-            if (step && stepNumber) {
-                step.classList.remove('active');
-                step.classList.add('completed');
-                stepNumber.classList.remove('active');
-                stepNumber.classList.add('completed');
+        // Only mark steps as completed in create mode
+        if (!isEditMode) {
+            // Show all steps as completed for final validation
+            for (let i = 1; i <= totalSteps; i++) {
+                const step = document.getElementById(`step-${i}`);
+                const stepNumber = document.querySelector(`#step-${i} .step-number`);
+                if (step && stepNumber) {
+                    step.classList.remove('active');
+                    step.classList.add('completed');
+                    stepNumber.classList.remove('active');
+                    stepNumber.classList.add('completed');
+                }
             }
         }
         
