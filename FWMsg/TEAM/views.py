@@ -67,7 +67,7 @@ def home(request):
     
     # Get recent images from volunteers
     recent_bilder = Bilder2.objects.filter(
-        org=team_member.org
+        org=request.user.org
     ).select_related('user').order_by('-date_created')[:4]
     
     # Group images by gallery
@@ -80,7 +80,7 @@ def home(request):
 
     # Get recent posts from volunteers
     posts = Post2.objects.filter(
-        org=team_member.org,
+        org=request.user.org,
         person_cluster=team_member.user.person_cluster
     ).select_related('user').order_by('-date')[:3]
     
