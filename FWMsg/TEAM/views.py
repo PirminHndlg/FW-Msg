@@ -54,25 +54,6 @@ def home(request):
                 date__gte=timezone.now() - timedelta(days=7)
             ).select_related('user').order_by('-date')[:10]
             
-            # Get recent images from volunteers
-            recent_bilder = Bilder2.objects.filter(
-                org=team_member.org
-            ).select_related('user').order_by('-date_created')[:4]
-            
-            # Group images by gallery
-            for bild in recent_bilder:
-                bilder_gallery = bild.bildergallery2_set.all()
-                if bilder_gallery.exists():
-                    gallery_images.append({
-                        bild: list(bilder_gallery)
-                    })
-            
-            # Get recent posts from volunteers
-            posts = Post2.objects.filter(
-                org=team_member.org,
-                person_cluster=team_member.user.person_cluster
-            ).select_related('user').order_by('-date')[:3]
-            
             # Generate country statistics
             for country in assigned_countries:
                 country_freiwillige = Freiwilliger.objects.filter(einsatzland2=country)
@@ -83,6 +64,25 @@ def home(request):
                     'freiwillige_count': country_freiwillige.count(),
                     'einsatzstellen_count': country_einsatzstellen.count(),
                 })
+    
+    # Get recent images from volunteers
+    recent_bilder = Bilder2.objects.filter(
+        org=team_member.org
+    ).select_related('user').order_by('-date_created')[:4]
+    
+    # Group images by gallery
+    for bild in recent_bilder:
+        bilder_gallery = bild.bildergallery2_set.all()
+        if bilder_gallery.exists():
+            gallery_images.append({
+                bild: list(bilder_gallery)
+            })
+
+    # Get recent posts from volunteers
+    posts = Post2.objects.filter(
+        org=team_member.org,
+        person_cluster=team_member.user.person_cluster
+    ).select_related('user').order_by('-date')[:3]
     
     # Get team member's personal tasks
     my_open_tasks = UserAufgaben.objects.none()
