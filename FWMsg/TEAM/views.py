@@ -81,21 +81,19 @@ def home(request):
     # Get recent posts from volunteers
     posts = Post2.objects.filter(
         org=request.user.org,
-        person_cluster=team_member.user.person_cluster
+        person_cluster=request.user.person_cluster
     ).select_related('user').order_by('-date')[:3]
     
-    # Get team member's personal tasks
-    my_open_tasks = UserAufgaben.objects.none()
-    if team_member:
-        my_open_tasks = UserAufgaben.objects.filter(
-            org=team_member.org,
-            user=request.user,
-            erledigt=False,
-            pending=False,
-        ).select_related('aufgabe').order_by('faellig')
-    
+    # Get user's personal tasks
+    my_open_tasks = UserAufgaben.objects.filter(
+        org=request.user.org,
+        user=request.user,
+        erledigt=False,
+        pending=False,
+    ).select_related('aufgabe').order_by('faellig')
+
     context = {
-        'team_member': team_member,
+        'team_member': team_member if team_member else None,
         'assigned_countries': assigned_countries,
         'country_stats': country_stats,
         'freiwillige_count': freiwillige_count,
