@@ -161,6 +161,12 @@ class CustomUser(OrgModel):
     def create_small_image(self):
         if self.profil_picture:
             from Global.models import calculate_small_image
+            if not verify_image(self.profil_picture):
+                self.profil_picture.delete()
+                self.profil_picture = None
+                self.save()
+                return
+        
             calculate_small_image = calculate_small_image(self.profil_picture, size=(500, 500))
             if calculate_small_image:
                 self.profil_picture = calculate_small_image
@@ -582,6 +588,15 @@ class DokumentColor2(models.Model):
 
     def __str__(self):
         return self.name
+
+def verify_image(image):
+    from PIL import Image
+    try:
+        img = Image.open(image)
+        img.verify()
+        return True
+    except Exception:
+        return False
 
 
 def calculate_small_image(image, size=(750, 750), jpeg_quality=85, background_color=(255, 255, 255)):
@@ -1131,7 +1146,9 @@ class BilderGallery2(OrgModel):
         return self.image.name
     
     def save(self, *args, **kwargs):
-        if self.image and not self.small_image:
+        if not verify_image(self.image):
+            raise ValueError("Ungültiges Bild")
+        elif self.image and not self.small_image:
             self.small_image = calculate_small_image(self.image)
         super().save(*args, **kwargs)
 
