@@ -506,7 +506,17 @@
                       <small class="text-muted">{{ entry.comment|truncatewords:8 }}</small>
                     {% endif %}
                   </div>
-                  <small class="text-muted">{{ entry.date|date:'d.m H:i' }}</small>
+                  <div class="d-flex flex-column gap-1 me-2">
+                    <small class="text-muted">{{ entry.date|date:'d.m' }}</small>
+                    <small class="text-muted">{{ entry.date|date:'H:i' }}</small>
+                  </div>
+                  <div class="d-flex gap-1 align-items-center">
+                    {% if entry.read %}
+                      <i class="bi bi-eye" title="{% trans 'Gelesen' %}" data-bs-toggle="tooltip"></i>
+                    {% else %}
+                      <i class="bi bi-envelope" title="{% trans 'Ungelesen' %}" data-bs-toggle="tooltip"></i>
+                    {% endif %}
+                  </div>
                 </div>
               </div>
 
