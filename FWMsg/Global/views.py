@@ -544,14 +544,17 @@ def bild(request):
             bilder, created = bilder_form.save(images=images)
             
             # Enqueue email sending task only for new submissions
-            if created:
+            if created and bilder:
                 try:
                     # send with 15minutes delay
                     send_image_uploaded_email_task.apply_async(args=[bilder.id], countdown=15*60)
                 except Exception as e:
                     logging.error(f"Error scheduling image uploaded email task: {e}")
 
-            messages.success(request, _('Bilder erfolgreich hochgeladen'))
+            if not bilder:
+                messages.error(request, _('Bilder konnten nicht hochgeladen werden'))
+            else:
+                messages.success(request, _('Bilder erfolgreich hochgeladen'))
             return redirect('bilder')
         else:
             if not images:
@@ -1098,7 +1101,11 @@ def update_profil_picture(request):
             custom_user.update_identifier()
             custom_user.save()
             custom_user.create_small_image()
-            messages.success(request, 'Profilbild wurde erfolgreich aktualisiert.')
+            
+            if not custom_user.profil_picture:
+                messages.error(request, 'Profilbild konnte nicht aktualisiert werden.')
+            else:
+                messages.success(request, 'Profilbild wurde erfolgreich aktualisiert.')
         except Exception as e:
             messages.error(request, f'Fehler beim Aktualisieren des Profilbildes: {str(e)}')
     

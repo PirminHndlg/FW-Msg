@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.log import logging
 from Global.models import Bilder2, BilderGallery2, ProfilUser2
 from django.utils.translation import gettext_lazy as _
 from django.forms.widgets import HiddenInput
@@ -58,11 +59,19 @@ class BilderForm(forms.ModelForm):
             # Add new images if provided
             if images:
                 for image in images:
-                    BilderGallery2.objects.create(
-                        org=self.org,
-                        bilder=existing,
-                        image=image
-                    )
+                    try:
+                        BilderGallery2.objects.create(
+                            org=self.org,
+                            bilder=existing,
+                            image=image
+                        )
+                    except Exception as e:
+                        logging.error(f"Error creating BilderGallery2: {e}")
+                        
+            if BilderGallery2.objects.filter(bilder=existing).count() == 0:
+                existing.delete()
+                return None, False
+            
             return existing, False
         
         # Create new Bilder2 object
@@ -76,11 +85,19 @@ class BilderForm(forms.ModelForm):
         # Add images if provided
         if images:
             for image in images:
-                BilderGallery2.objects.create(
-                    org=self.org,
-                    bilder=obj,
-                    image=image
-                )
+                try:
+                    BilderGallery2.objects.create(
+                        org=self.org,
+                        bilder=obj,
+                        image=image
+                    )
+                except Exception as e:
+                    logging.error(f"Error creating BilderGallery2: {e}")
+                    
+        if BilderGallery2.objects.filter(bilder=obj).count() == 0:
+            obj.delete()
+            return None, False
+        
         return obj, True
 
 
