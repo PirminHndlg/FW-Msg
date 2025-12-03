@@ -158,7 +158,7 @@ def _collect_user_data_securely(user):
     
     try:
         # Get UserAttribute data
-        user_attributes = UserAttribute.objects.filter(user=user, org=user.org)
+        user_attributes = UserAttribute.objects.filter(user=user, org=user.org, attribute__visible_in_profile=True)
         user_data['user_attributes'] = [
             {
                 'id': attr.id,
