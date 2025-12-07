@@ -989,5 +989,23 @@
       }
     }, 5000);
   }
+
+  // Page age detection and reload suggestion
+  document.addEventListener('DOMContentLoaded', function() {
+    const PAGE_AGE_THRESHOLD = 15 * 60 * 1000; // 15 minutes in milliseconds
+    const pageLoadTime = Date.now();
+
+    // Only check on page visibility change (when user returns to tab)
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) {
+        const currentTime = Date.now();
+        const pageAge = currentTime - pageLoadTime;
+
+        if (pageAge >= PAGE_AGE_THRESHOLD) {
+          window.location.reload();
+        }
+      }
+    });
+  });
 </script>
 {% endblock %}
