@@ -32,7 +32,7 @@
     <a href="{% url 'serve_dokument' dokument.id %}" target="_blank" class="text-decoration-none">
         <div class="card-img-top position-relative bg-dark rounded-top-4" style="height: 200px; overflow: hidden;">
             <video class="w-100 h-100" style="object-fit: cover;" preload="metadata">
-                <source src="{% url 'serve_dokument' dokument.id %}" type="{{ dokument.get_document_type }}">
+                <source data-preview-src="{% url 'serve_dokument' dokument.id %}" src="" type="{{ dokument.get_document_type }}">
                 {% trans 'Ihr Browser unterstützt das Video-Tag nicht.' %}
             </video>
             <div class="position-absolute top-50 start-50 translate-middle">

@@ -13,9 +13,23 @@
       const accordionCollapses = document.querySelectorAll('.accordion-collapse')
     
       function handleCollapseShow(collapse) {
-        collapse.querySelectorAll('[data-preview-src]').forEach((img) => {
-          if (!img.src) {
-            img.src = img.dataset.previewSrc
+        collapse.querySelectorAll('[data-preview-src]').forEach((element) => {
+          if (element.tagName === 'SOURCE') {
+            // Handle source elements for video
+            const currentSrc = element.getAttribute('src')
+            if (!currentSrc || currentSrc === '') {
+              element.setAttribute('src', element.dataset.previewSrc)
+              // reload the video by calling load() on the parent video element
+              const videoElement = element.closest('video')
+              if (videoElement) {
+                videoElement.load()
+              }
+            }
+          } else {
+            // Handle other elements (img, etc.)
+            if (!element.src) {
+              element.src = element.dataset.previewSrc
+            }
           }
         })
       }
