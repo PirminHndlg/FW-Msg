@@ -13,11 +13,59 @@
       const accordionCollapses = document.querySelectorAll('.accordion-collapse')
     
       function handleCollapseShow(collapse) {
-        collapse.querySelectorAll('[data-preview-src]').forEach((element) => {
-          if (element.src) {
+        // Extract folder ID and get spinner/icon elements
+        const id = collapse.id.split('collapse')[1]
+        const folderIcon = document.getElementById('folderIcon' + id)
+        const folderSpinner = document.getElementById('folderSpinner' + id)
+        
+        // Show spinner and hide icon at start
+        if (folderIcon && folderSpinner) {
+          folderIcon.classList.add('d-none')
+          folderSpinner.classList.remove('d-none')
+        }
+        
+        // Get all elements that need to load
+        const elementsToLoad = collapse.querySelectorAll('[data-preview-src]')
+        let loadedCount = 0
+        const totalElements = elementsToLoad.length
+        
+        // If no elements to load, show icon immediately
+        if (totalElements === 0) {
+          if (folderIcon && folderSpinner) {
+            folderSpinner.classList.add('d-none')
+            folderIcon.classList.remove('d-none')
+          }
+          return
+        }
+        
+        // Function to check if all elements are loaded
+        function checkAllLoaded() {
+          loadedCount++
+          if (loadedCount >= totalElements) {
+            // All elements loaded, show icon and hide spinner
+            if (folderIcon && folderSpinner) {
+              folderSpinner.classList.add('d-none')
+              folderIcon.classList.remove('d-none')
+            }
+          }
+        }
+        
+        // Process each element
+        elementsToLoad.forEach((element) => {
+          // Skip if already loaded
+          if (element.tagName === 'SOURCE') {
+            const currentSrc = element.getAttribute('src')
+            if (currentSrc && currentSrc !== '') {
+              // Already loaded
+              checkAllLoaded()
+              return
+            }
+          } else if (element.src) {
+            // Already loaded
+            checkAllLoaded()
             return
           }
-          
+
           if (element.tagName === 'SOURCE') {
             // Handle source elements for video
             const currentSrc = element.getAttribute('src')
@@ -26,13 +74,24 @@
               // reload the video by calling load() on the parent video element
               const videoElement = element.closest('video')
               if (videoElement) {
+                // Wait for video to load metadata
+                videoElement.addEventListener('loadedmetadata', checkAllLoaded, { once: true })
+                videoElement.addEventListener('error', checkAllLoaded, { once: true })
                 videoElement.load()
+              } else {
+                // No video element found, count as loaded
+                checkAllLoaded()
               }
             }
           } else {
             // Handle other elements (img, etc.)
             if (!element.src) {
               element.src = element.dataset.previewSrc
+              // Wait for image to load
+              element.addEventListener('load', checkAllLoaded, { once: true })
+              element.addEventListener('error', checkAllLoaded, { once: true })
+            } else {
+              checkAllLoaded()
             }
           }
         })
