@@ -430,7 +430,7 @@ class FileServingViewsTests(TestCase):
     def test_serve_dokument_success(self):
         """Test successful document serving"""
         self.client.force_login(self.admin_user)
-        response = self.client.get(reverse('serve_dokument', args=[self.dokument.id]))
+        response = self.client.get(reverse('serve_dokument', args=[self.dokument.get_identifier()]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'text/plain')
         self.assertIn('attachment', response['Content-Disposition'])
@@ -438,20 +438,20 @@ class FileServingViewsTests(TestCase):
     def test_serve_dokument_permission_denied(self):
         """Test that users without dokumente permission are denied access"""
         self.client.force_login(self.no_dokumente_user)
-        response = self.client.get(reverse('serve_dokument', args=[self.dokument.id]))
+        response = self.client.get(reverse('serve_dokument', args=[self.dokument.get_identifier()]))
         self.assertEqual(response.status_code, 302)  # Redirect to index
 
     def test_serve_dokument_not_found(self):
         """Test redirect response for non-existent document"""
         self.client.force_login(self.admin_user)
-        response = self.client.get(reverse('serve_dokument', args=[99999]))
+        response = self.client.get(reverse('serve_dokument', args=['99999']))
         self.assertEqual(response.status_code, 302)  # Redirect to dokumente with error message
         self.assertRedirects(response, reverse('dokumente'))
 
     def test_serve_dokument_wrong_organization(self):
         """Test that users cannot access documents from other organizations"""
         self.client.force_login(self.other_user)
-        response = self.client.get(reverse('serve_dokument', args=[self.dokument.id]))
+        response = self.client.get(reverse('serve_dokument', args=[self.dokument.get_identifier()]))
         self.assertEqual(response.status_code, 302)  # Redirect to dokumente with error message
         self.assertRedirects(response, reverse('dokumente'))
 
@@ -462,7 +462,7 @@ class FileServingViewsTests(TestCase):
             os.remove(self.dokument.dokument.path)
         
         self.client.force_login(self.admin_user)
-        response = self.client.get(reverse('serve_dokument', args=[self.dokument.id]))
+        response = self.client.get(reverse('serve_dokument', args=[self.dokument.get_identifier()]))
         self.assertEqual(response.status_code, 302)  # Redirect to dokumente with error message
         self.assertRedirects(response, reverse('dokumente'))
 
@@ -470,7 +470,7 @@ class FileServingViewsTests(TestCase):
         """Test serving document preview image"""
         self.client.force_login(self.admin_user)
         response = self.client.get(
-            reverse('serve_dokument', args=[self.dokument.id]),
+            reverse('serve_dokument', args=[self.dokument.get_identifier()]),
             {'img': '1'}
         )
         # Should return the document itself since it's text/plain
@@ -480,7 +480,7 @@ class FileServingViewsTests(TestCase):
         """Test serving document as download"""
         self.client.force_login(self.admin_user)
         response = self.client.get(
-            reverse('serve_dokument', args=[self.dokument.id]),
+            reverse('serve_dokument', args=[self.dokument.get_identifier()]),
             {'download': '1'}
         )
         self.assertEqual(response.status_code, 200)
@@ -511,7 +511,7 @@ class FileServingViewsTests(TestCase):
             pdf_dokument.darf_bearbeiten.add(self.admin_cluster)
             
             self.client.force_login(self.admin_user)
-            response = self.client.get(reverse('serve_dokument', args=[pdf_dokument.id]))
+            response = self.client.get(reverse('serve_dokument', args=[pdf_dokument.get_identifier()]))
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response['Content-Type'], 'application/pdf')
             self.assertIn('inline', response['Content-Disposition'])
@@ -545,7 +545,7 @@ class FileServingViewsTests(TestCase):
             
             self.client.force_login(self.admin_user)
             response = self.client.get(
-                reverse('serve_dokument', args=[pdf_dokument.id]),
+                reverse('serve_dokument', args=[pdf_dokument.get_identifier()]),
                 {'download': '1'}
             )
             self.assertEqual(response.status_code, 200)
@@ -577,7 +577,7 @@ class FileServingViewsTests(TestCase):
         image_dokument.darf_bearbeiten.add(self.admin_cluster)
         
         self.client.force_login(self.admin_user)
-        response = self.client.get(reverse('serve_dokument', args=[image_dokument.id]))
+        response = self.client.get(reverse('serve_dokument', args=[image_dokument.get_identifier()]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'image/jpeg')
         self.assertIn('inline', response['Content-Disposition'])
@@ -605,7 +605,7 @@ class FileServingViewsTests(TestCase):
         
         self.client.force_login(self.admin_user)
         response = self.client.get(
-            reverse('serve_dokument', args=[image_dokument.id]),
+            reverse('serve_dokument', args=[image_dokument.get_identifier()]),
             {'download': '1'}
         )
         self.assertEqual(response.status_code, 200)
@@ -630,7 +630,7 @@ class FileServingViewsTests(TestCase):
         unknown_dokument.darf_bearbeiten.add(self.admin_cluster)
         
         self.client.force_login(self.admin_user)
-        response = self.client.get(reverse('serve_dokument', args=[unknown_dokument.id]))
+        response = self.client.get(reverse('serve_dokument', args=[unknown_dokument.get_identifier()]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/octet-stream')
         self.assertIn('attachment', response['Content-Disposition'])
@@ -647,13 +647,13 @@ class FileServingViewsTests(TestCase):
         link_dokument.darf_bearbeiten.add(self.admin_cluster)
         
         self.client.force_login(self.admin_user)
-        response = self.client.get(reverse('serve_dokument', args=[link_dokument.id]))
+        response = self.client.get(reverse('serve_dokument', args=[link_dokument.get_identifier()]))
         self.assertEqual(response.status_code, 302)  # Redirect to dokumente - no file to serve
         self.assertRedirects(response, reverse('dokumente'))
 
     def test_serve_dokument_unauthenticated(self):
         """Test that unauthenticated users are redirected to login"""
-        response = self.client.get(reverse('serve_dokument', args=[self.dokument.id]))
+        response = self.client.get(reverse('serve_dokument', args=[self.dokument.get_identifier()]))
         self.assertEqual(response.status_code, 302)  # Redirect to login
 
     def test_serve_bilder_unauthenticated(self):
@@ -702,7 +702,7 @@ class FileServingViewsTests(TestCase):
             self.assertEqual(response.status_code, 200)
             
             # Test dokument access
-            response = self.client.get(reverse('serve_dokument', args=[self.dokument.id]))
+            response = self.client.get(reverse('serve_dokument', args=[self.dokument.get_identifier()]))
             self.assertEqual(response.status_code, 200)
 
     def test_user_without_person_cluster(self):
@@ -725,7 +725,7 @@ class FileServingViewsTests(TestCase):
         response = self.client.get(reverse('serve_bilder', args=[self.bilder_gallery.id]))
         self.assertEqual(response.status_code, 302)  # Redirect to index
         
-        response = self.client.get(reverse('serve_dokument', args=[self.dokument.id]))
+        response = self.client.get(reverse('serve_dokument', args=[self.dokument.get_identifier()]))
         self.assertEqual(response.status_code, 302)  # Redirect to index
 
     def test_superuser_access(self):
@@ -748,7 +748,7 @@ class FileServingViewsTests(TestCase):
         response = self.client.get(reverse('serve_bilder', args=[self.bilder_gallery.id]))
         self.assertEqual(response.status_code, 200)
         
-        response = self.client.get(reverse('serve_dokument', args=[self.dokument.id]))
+        response = self.client.get(reverse('serve_dokument', args=[self.dokument.get_identifier()]))
         self.assertEqual(response.status_code, 200)
 
 
@@ -1471,7 +1471,7 @@ class DokumentViewsTests(TestCase):
         response = self.client.get(reverse('dokumente'))
         self.assertEqual(response.status_code, 302)  # Redirect to index
         
-        response = self.client.get(reverse('serve_dokument', args=[self.dokument.id]))
+        response = self.client.get(reverse('serve_dokument', args=[self.dokument.get_identifier()]))
         self.assertEqual(response.status_code, 302)  # Redirect to index
 
     def test_form_validation_errors(self):

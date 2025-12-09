@@ -30,7 +30,7 @@
 
                 {% if dokument.dokument %}
                 <div class="d-flex justify-content-between align-items-center">
-                    <a href="{% url 'serve_dokument' dokument.id %}?download=true" 
+                    <a href="{% url 'serve_dokument' dokument.get_identifier %}?download=true" 
                     class="btn btn-outline-primary btn-sm rounded-4 text-decoration-none"
                     download>
                         <i class="bi bi-download"></i> {% trans "Download" %}
