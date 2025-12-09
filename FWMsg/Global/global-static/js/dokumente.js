@@ -257,3 +257,21 @@ async function copyPublicFolderLink(fetch_url, linkElement) {
         alert('Fehler beim Kopieren des öffentlichen Links. Bitte versuchen Sie es erneut.');
     }
 }
+
+function showImgLarge(img) {
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;';
+    modal.onclick = () => modal.remove();
+    
+    const largeImg = document.createElement('img');
+    largeImg.src = img.src;
+    largeImg.style.cssText = 'max-width:90%;max-height:90%;object-fit:contain;';
+    modal.appendChild(largeImg);
+    document.body.appendChild(modal);
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            modal.click();
+        }
+    });
+}
