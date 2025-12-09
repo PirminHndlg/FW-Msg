@@ -14,6 +14,10 @@
     
       function handleCollapseShow(collapse) {
         collapse.querySelectorAll('[data-preview-src]').forEach((element) => {
+          if (element.src) {
+            return
+          }
+          
           if (element.tagName === 'SOURCE') {
             // Handle source elements for video
             const currentSrc = element.getAttribute('src')
