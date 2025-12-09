@@ -380,7 +380,7 @@ def serve_small_bilder(request, image_id):
 
     return get_bild(bild.small_image.path, bild.bilder.titel)
 
-def add_cache_headers_to_response(response, dokument, max_age=86400):
+def add_cache_headers_to_response(response, dokument, max_age=86400, immutable=True):
     """
     Add cache headers to a response object.
     
@@ -388,11 +388,16 @@ def add_cache_headers_to_response(response, dokument, max_age=86400):
         response: HttpResponse or FileResponse object
         dokument: Dokument2 instance to extract cache metadata from
         max_age: Cache max-age in seconds (default: 86400 = 24 hours)
+        immutable: Whether to mark content as immutable (default: True)
+                   Set to False for large files like videos that may be updated
         
     Returns:
         Response object with cache headers added
     """
-    response['Cache-Control'] = f'public, max-age={max_age}, immutable'
+    cache_control = f'public, max-age={max_age}'
+    if immutable:
+        cache_control += ', immutable'
+    response['Cache-Control'] = cache_control
     response['ETag'] = f'"{dokument.identifier}"'
     response['Last-Modified'] = dokument.date_modified.strftime('%a, %d %b %Y %H:%M:%S GMT')
     return response
@@ -454,13 +459,16 @@ def serve_dokument(request, dokument_identifier):
             return add_cache_headers_to_response(response, dokument)
 
     # Handle videos - use FileResponse for proper range request support (streaming/seeking)
+    # For videos: use longer cache time but without 'immutable' to allow updates,
+    # and rely on ETag/Last-Modified for conditional requests (important for range requests)
     if mimetype and mimetype.startswith('video'):
         response = FileResponse(open(doc_path, 'rb'), content_type=mimetype)
         if download:
             response['Content-Disposition'] = f'attachment; filename="{dokument.dokument.name}"'
         else:
             response['Content-Disposition'] = f'inline; filename="{dokument.dokument.name}"'
-        return add_cache_headers_to_response(response, dokument)
+        # Cache videos for 1 hour but allow revalidation (no immutable flag)
+        return add_cache_headers_to_response(response, dokument, max_age=3600, immutable=False)
     
     # Serve document as download
     with open(doc_path, 'rb') as file:
