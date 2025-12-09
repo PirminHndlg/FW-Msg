@@ -390,7 +390,7 @@ def upload_to_preview_image(instance, filename):
 
 class Dokument2(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    identifier = models.CharField(max_length=64, null=True, blank=True, verbose_name='Identifier', help_text='Eindeutige Kennung der Datei')
+    identifier = models.CharField(max_length=255, null=True, blank=True, verbose_name='Identifier', help_text='Eindeutige Kennung der Datei')
     ordner = models.ForeignKey(Ordner2, on_delete=models.CASCADE)
     dokument = models.FileField(upload_to=upload_to_folder, max_length=255, null=True, blank=True)
     link = models.URLField(null=True, blank=True, verbose_name='Link', help_text='Link zu einer externen Datei')
