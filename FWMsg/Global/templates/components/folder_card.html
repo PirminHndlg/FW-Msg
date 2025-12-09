@@ -13,7 +13,9 @@
                     {% if structure.ordner.color %}
                         <div class="vr rounded-1 me-1 opacity-100" style="background-color: {{ structure.ordner.color.color }}; width: 10px;"></div>
                     {% endif %}
-                    <i class="bi bi-folder me-2"></i>{{ structure.ordner }}
+                    <i id="folderIcon{{ structure.ordner.id }}" class="bi bi-folder me-2"></i>
+                    <span id="folderSpinner{{ structure.ordner.id }}" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                    {{ structure.ordner }}
                 </span>
                 <span class="badge bg-secondary">{{ structure.dokumente|length }}</span>
             </div>
