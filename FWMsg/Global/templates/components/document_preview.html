@@ -3,36 +3,36 @@
 
 {% if dokument.get_document_type|starts_with:'image' %}
     <img onclick="showImgLarge(this)" 
-            data-preview-src="{% url 'serve_dokument' dokument.id %}"
+            data-preview-src="{% url 'serve_dokument' dokument.get_identifier %}"
             class="card-img-top img-fluid cursor-pointer rounded-top-4"
             alt="{{ dokument.titel }}">
     <span class="badge bg-dark bg-opacity-25">{{ dokument.get_document_suffix }}</span>
 {% elif dokument.get_document_type|starts_with:'application/pdf' %}
-    <a href="{% url 'serve_dokument' dokument.id %}" target="_blank" class="text-decoration-none">
-        <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
+    <a href="{% url 'serve_dokument' dokument.get_identifier %}" target="_blank" class="text-decoration-none">
+        <img data-preview-src="{% url 'serve_dokument' dokument.get_identifier %}?img=True" 
                 class="card-img-top img-fluid rounded-top-4"
                 alt="PDF Vorschau">
     </a>
     <span class="badge bg-dark bg-opacity-25">{{ dokument.get_document_suffix }}</span>
 {% elif dokument.dokument.name|ends_with:'docx' or dokument.dokument.name|ends_with:'doc' or dokument.dokument.name|ends_with:'odt' %}
-    <a href="{% url 'serve_dokument' dokument.id %}?download=True" class="text-decoration-none">
-        <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
+    <a href="{% url 'serve_dokument' dokument.get_identifier %}?download=True" class="text-decoration-none">
+        <img data-preview-src="{% url 'serve_dokument' dokument.get_identifier %}?img=True" 
                 class="card-img-top img-fluid rounded-top-4"
                 alt="{{ dokument.get_document_suffix }} Vorschau">
     </a>
     <span class="badge bg-dark bg-opacity-25">{{ dokument.get_document_suffix }}</span>
 {% elif dokument.dokument.name|ends_with:'xls' or dokument.dokument.name|ends_with:'xlsx' %}
-    <a href="{% url 'serve_dokument' dokument.id %}?download=True" class="text-decoration-none">
-        <img data-preview-src="{% url 'serve_dokument' dokument.id %}?img=True" 
+    <a href="{% url 'serve_dokument' dokument.get_identifier %}?download=True" class="text-decoration-none">
+        <img data-preview-src="{% url 'serve_dokument' dokument.get_identifier %}?img=True" 
                 class="card-img-top img-fluid rounded-top-4"
                 alt="{{ dokument.get_document_suffix }} Vorschau">
     </a>
     <span class="badge bg-dark bg-opacity-25">{{ dokument.get_document_suffix }}</span>
 {% elif dokument.get_document_type|starts_with:'video' %}
-    <a href="{% url 'serve_dokument' dokument.id %}" target="_blank" class="text-decoration-none">
+    <a href="{% url 'serve_dokument' dokument.get_identifier %}" target="_blank" class="text-decoration-none">
         <div class="card-img-top position-relative bg-dark rounded-top-4" style="height: 200px; overflow: hidden;">
             <video class="w-100 h-100" style="object-fit: cover;" preload="metadata">
-                <source data-preview-src="{% url 'serve_dokument' dokument.id %}" type="{{ dokument.get_document_type }}">
+                <source data-preview-src="{% url 'serve_dokument' dokument.get_identifier %}" type="{{ dokument.get_document_type }}">
                 {% trans 'Ihr Browser unterstützt das Video-Tag nicht.' %}
             </video>
             <div class="position-absolute top-50 start-50 translate-middle">
@@ -51,7 +51,7 @@
     </a>
     <hr class="m-0">
 {% elif dokument.dokument %}
-    <a href="{% url 'serve_dokument' dokument.id %}?download=true" class="text-decoration-none">
+    <a href="{% url 'serve_dokument' dokument.get_identifier %}?download=true" class="text-decoration-none">
         <div class="card-img-top d-flex align-items-center justify-content-center bg-light rounded-top-4" style="height: 80px;">
             <i class="bi bi-file-earmark fa-3x text-secondary"></i>
         </div>

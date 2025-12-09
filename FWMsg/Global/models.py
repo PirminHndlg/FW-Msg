@@ -34,6 +34,18 @@ from django.urls import reverse
 from django.core import signing
 
 
+def get_random_hash(unique_value, length=16):
+        import secrets
+        import hashlib
+        import time
+        
+        unique_value = f"{unique_value}_{time.time()}_{secrets.token_hex(length)}"
+        
+        # Create a SHA-256 hash of this value
+        hash_obj = hashlib.sha512(unique_value.encode())
+        return hash_obj.hexdigest()
+    
+
 class OrgManager(models.Manager):
     def get_queryset(self):
         request = get_current_request()
@@ -125,23 +137,11 @@ class CustomUser(OrgModel):
         else:
             from ORG.tasks import send_register_email_task
             send_register_email_task.s(self.id).apply_async(countdown=2)
-        
-    def get_random_hash(self, length=16):
-        import secrets
-        import hashlib
-        import time
-        
-        # Combine user ID with current timestamp and a random token
-        unique_value = f"{self.user.id}_{time.time()}_{secrets.token_hex(length)}"
-        
-        # Create a SHA-256 hash of this value
-        hash_obj = hashlib.sha512(unique_value.encode())
-        return hash_obj.hexdigest()
 
     def get_unsubscribe_url(self):
         try:
             if not self.mail_notifications_unsubscribe_auth_key:
-                self.mail_notifications_unsubscribe_auth_key = self.get_random_hash()
+                self.mail_notifications_unsubscribe_auth_key = get_random_hash(str(self.id), 128)
                 self.save()
             
             # Use Django's reverse function instead of hardcoding the path
@@ -176,11 +176,11 @@ class CustomUser(OrgModel):
             self.save()
             
     def create_token(self):
-        self.token = self.get_random_hash(128)
+        self.token = get_random_hash(str(self.id), 128)
         self.save()
         
     def create_calendar_token(self):
-        self.calendar_token = self.get_random_hash(128)
+        self.calendar_token = get_random_hash(str(self.id), 128)
         self.save()
 
     def ensure_token(self):
@@ -233,9 +233,9 @@ class CustomUser(OrgModel):
             return "Nie online gewesen"
         
     def update_identifier(self):
-        self.identifier = self.get_random_hash(64)
+        self.identifier = get_random_hash(str(self.user.id), 64)
         while CustomUser.objects.filter(identifier=self.identifier, org=self.org).exists():
-            self.identifier = self.get_random_hash(64)
+            self.identifier = get_random_hash(str(self.user.id), 64)
         self.save()
         
     def get_identifier(self):
@@ -390,6 +390,7 @@ def upload_to_preview_image(instance, filename):
 
 class Dokument2(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    identifier = models.CharField(max_length=64, null=True, blank=True, verbose_name='Identifier', help_text='Eindeutige Kennung der Datei')
     ordner = models.ForeignKey(Ordner2, on_delete=models.CASCADE)
     dokument = models.FileField(upload_to=upload_to_folder, max_length=255, null=True, blank=True)
     link = models.URLField(null=True, blank=True, verbose_name='Link', help_text='Link zu einer externen Datei')
@@ -404,6 +405,17 @@ class Dokument2(models.Model):
 
     def __str__(self):
         return self.titel or self.dokument.name or self.link
+    
+    def update_identifier(self):
+        self.identifier = get_random_hash(str(self.id), 64)
+        while Dokument2.objects.filter(identifier=self.identifier, org=self.org).exists():
+            self.identifier = get_random_hash(str(self.id), 64)
+        self.save()
+        
+    def get_identifier(self):
+        if not self.identifier:
+            self.update_identifier()
+        return self.identifier
 
     def get_document_type(self):
         if self.dokument:

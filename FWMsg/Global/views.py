@@ -380,9 +380,26 @@ def serve_small_bilder(request, image_id):
 
     return get_bild(bild.small_image.path, bild.bilder.titel)
 
+def add_cache_headers_to_response(response, dokument, max_age=86400):
+    """
+    Add cache headers to a response object.
+    
+    Args:
+        response: HttpResponse or FileResponse object
+        dokument: Dokument2 instance to extract cache metadata from
+        max_age: Cache max-age in seconds (default: 86400 = 24 hours)
+        
+    Returns:
+        Response object with cache headers added
+    """
+    response['Cache-Control'] = f'public, max-age={max_age}, immutable'
+    response['ETag'] = f'"{dokument.identifier}"'
+    response['Last-Modified'] = dokument.date_modified.strftime('%a, %d %b %Y %H:%M:%S GMT')
+    return response
+
 @login_required
 @required_person_cluster('dokumente')
-def serve_dokument(request, dokument_id):
+def serve_dokument(request, dokument_identifier):
     """
     Serve document files with proper content type handling.
     
@@ -399,8 +416,7 @@ def serve_dokument(request, dokument_id):
     download = request.GET.get('download', None)
     
     try:
-        dokument_id = int(dokument_id)
-        dokument = Dokument2.objects.get(id=dokument_id, org=request.user.org)
+        dokument = Dokument2.objects.get(identifier=dokument_identifier, org=request.user.org)
         
         if not dokument.org == request.user.org:
             messages.error(request, f'Nicht erlaubt')
@@ -423,19 +439,19 @@ def serve_dokument(request, dokument_id):
         messages.warning(request, f'Dokument nicht gefunden')
         return redirect('dokumente')
 
-    
-
     mimetype = get_mimetype(doc_path)
     
     # Handle image documents
     if mimetype and mimetype.startswith('image') and not download:
-        return get_bild(doc_path, dokument.dokument.name)
+        response = get_bild(doc_path, dokument.dokument.name)
+        return add_cache_headers_to_response(response, dokument)
 
     # Handle preview images
     if img and not download:
         img_path = dokument.get_preview_image()
         if img_path:
-            return get_bild(img_path, img_path.split('/')[-1])
+            response = get_bild(img_path, img_path.split('/')[-1])
+            return add_cache_headers_to_response(response, dokument)
 
     # Handle videos - use FileResponse for proper range request support (streaming/seeking)
     if mimetype and mimetype.startswith('video'):
@@ -444,7 +460,7 @@ def serve_dokument(request, dokument_id):
             response['Content-Disposition'] = f'attachment; filename="{dokument.dokument.name}"'
         else:
             response['Content-Disposition'] = f'inline; filename="{dokument.dokument.name}"'
-        return response
+        return add_cache_headers_to_response(response, dokument)
     
     # Serve document as download
     with open(doc_path, 'rb') as file:
@@ -453,12 +469,12 @@ def serve_dokument(request, dokument_id):
             response = HttpResponse(file.read(), content_type='application/pdf')
             response['Content-Disposition'] = f'inline; filename="{dokument.dokument.name}"'
             response['Content-Security-Policy'] = "frame-ancestors 'self'"
-            return response
+            return add_cache_headers_to_response(response, dokument)
         
         # For all other files, serve as download
         response = HttpResponse(file.read(), content_type=mimetype or 'application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{dokument.dokument.name}"'
-        return response
+        return add_cache_headers_to_response(response, dokument)
 
 @login_required
 @required_person_cluster('bilder')
@@ -982,6 +998,7 @@ def add_dokument(request):
         dokument.dokument = file    
     if request.user.role == 'O':
         dokument.darf_bearbeiten.set(darf_bearbeiten)
+    dokument.update_identifier()
     dokument.save()
 
     return redirect('dokumente', ordner_id=dokument.ordner.id)
