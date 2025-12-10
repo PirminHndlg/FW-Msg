@@ -170,7 +170,7 @@ App-specific static files are organized in directories:
 Note: Some apps like `TEAM`, `ADMIN`, `BW`, `Ehemalige`, and `survey` don't have dedicated static directories and rely on global static files.
 
 ## License
-Volunteer.solutions is licensed under the MIT License. This means you can do whatever you want with the code as long as you keep the license.
+Volunteer.solutions is licensed under the GNU General Public License v3.0 (GPL v3). This is a copyleft license that ensures the software remains free and open source. You are free to use, modify, and distribute the code, but any derivative works must also be licensed under GPL v3. See the [LICENSE](LICENSE) file for the full license text.
 
 ## Contact
 For questions or suggestions, you can reach me at [admin@volunteer.solutions](mailto:admin@volunteer.solutions).
