@@ -43,12 +43,12 @@ def index(request):
             return redirect('team_home')
         elif user.role == 'F':
             return redirect('fw_home')
-        elif user.role == 'A' or user.is_superuser:
-            return redirect('admin_home')
         elif user.role == 'B':
             return redirect('bw_home')
         elif user.role == 'E':
             return redirect('ehemalige_home')
+        elif user.role == 'A' or user.is_superuser:
+            return redirect('admin_home')
         else:
             messages.error(request, _('Ungültige Personengruppe.'))
             return redirect('index')
@@ -118,6 +118,8 @@ def index(request):
     if request.path != '/index':
         if request.user.is_authenticated and hasattr(request.user, 'customuser'):
             return redirect_to_home(request.user)
+        elif request.user.is_authenticated and request.user.is_superuser:
+            return redirect('admin_home')
 
     return render(request, 'index.html', {'form': form})
 

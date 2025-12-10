@@ -129,13 +129,11 @@ celery -A FWMsg beat
 
 ### To add a new organization to the system:
 
-1. Go to `http://localhost:8000/admin/` (or your domain if in production)
+1. Go to `http://localhost:8000/` (or your domain if in production)
 2. Log in with your superuser credentials
-3. Navigate to "ORG" > "Organisations"
-4. Click on "Add Organisation" button
-5. Fill in the required information
-6. Click "Save" to create the new organization
-7. An email with login credentials will be automatically sent to the email address you inserted
+3. Go to `http://localhost:8000/administrator/` (or your domain if in production)
+4. Add a new organisation by filling in the required fields and saving
+5. An email with login credentials will be automatically sent to the email address you inserted
 
 ## Development
 
