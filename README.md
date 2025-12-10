@@ -40,11 +40,11 @@ pip install -r requirements.txt
 ```
 
 ### 4. Install Frontend Dependencies
+Some static files and frontend libraries are managed via npm, including Bootstrap, OpenLayers (ol), jQuery, Chart.js, Font Awesome, Bootstrap Icons, FullCalendar, and other dependencies. These are installed from the [package.json](package.json) file.
+
 ```bash
 npm install
 ```
-
-See [FRONTEND_SETUP.md](FRONTEND_SETUP.md) for more details about frontend dependency management.
 
 ## Configuration
 
