@@ -225,7 +225,6 @@ class Bewerber(OrgModel):
             return True
         elif checkbox_submit_value == self.CHECKBOX_ACTION_CHOICES[3][0]:
             # Create or update the freiwilliger
-            return False
             from FW.models import Freiwilliger
             freiwilliger, created = Freiwilliger.objects.get_or_create(user=self.user, org=org)
             if self.zuteilung:
