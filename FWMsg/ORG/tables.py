@@ -602,7 +602,9 @@ def get_freiwilliger_table_class(org, request=None):
         """Extract flat sortable fields from Freiwilliger object"""
         return {
             'user_sort': f"{obj.user.first_name} {obj.user.last_name}".lower(),
+            'einsatzland2_name': obj.einsatzland2.name if obj.einsatzland2 else '',
             'einsatzland2_sort': obj.einsatzland2.name.lower() if obj.einsatzland2 else '',
+            'einsatzstelle2_name': obj.einsatzstelle2.name if obj.einsatzstelle2 else '',
             'einsatzstelle2_sort': obj.einsatzstelle2.name.lower() if obj.einsatzstelle2 else '',
         }
     
@@ -638,12 +640,12 @@ def get_freiwilliger_table_class(org, request=None):
         ),
         'einsatzland2': tables.Column(
             verbose_name=_('Einsatzland'),
-            accessor='einsatzland2_sort',
+            accessor='einsatzland2_name',
             order_by='einsatzland2_sort'
         ),
         'einsatzstelle2': tables.Column(
             verbose_name=_('Einsatzstelle'),
-            accessor='einsatzstelle2_sort',
+            accessor='einsatzstelle2_name',
             order_by='einsatzstelle2_sort'
         ),
         'start_geplant': tables.DateColumn(
