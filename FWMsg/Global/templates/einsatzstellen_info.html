@@ -40,21 +40,31 @@
     <!-- Filter Section - Only show if multiple countries -->
     {% if laender_list|length > 1 %}
       <div class="mb-4">
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-          <span class="fw-medium text-muted">
-            <i class="bi bi-funnel me-1"></i>{% trans 'Filtern nach Land:' %}
-          </span>
-          <div class="btn-group" role="group" aria-label="{% trans 'Land Filter' %}">
-            <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">
+        <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
+          <strong>
+            {% trans 'Filter:' %}
+          </strong>
+          <div class="d-none d-lg-block">
+            <button type="button" class="btn btn-sm rounded-4 btn-outline-primary active" data-filter="all">
               {% trans 'Alle' %} <span class="badge bg-primary ms-1">{{ einsatzstellen|length }}</span>
             </button>
             {% for land_group in laender_list %}
               {% if land_group.grouper %}
-                <button type="button" class="btn btn-sm btn-outline-primary" data-filter="{{ land_group.grouper.id }}">
+                <button type="button" class="btn btn-sm rounded-4 btn-outline-primary" data-filter="{{ land_group.grouper.id }}">
                   {{ land_group.grouper.name }} <span class="badge bg-primary ms-1">{{ land_group.list|length }}</span>
                 </button>
               {% endif %}
             {% endfor %}
+          </div>
+          <div class="d-lg-none">
+            <select class="form-select form-select-sm rounded-4" onchange="window.location.href = this.value;">
+              <option value="{% url 'einsatzstellen_info' %}?land_filter=None">{% trans 'Alle' %}</option>
+              {% for land_group in laender_list %}
+                <option value="{% url 'einsatzstellen_info' %}?land_filter={{ land_group.grouper.id }}" {% if current_land.id == land_group.grouper.id %}selected{% endif %}>
+                  {{ land_group.grouper.name }}
+                </option>
+              {% endfor %}
+            </select>
           </div>
         </div>
       </div>
@@ -76,7 +86,7 @@
               <h5 class="card-title mb-0 fw-bold">{{ stelle.name }}</h5>
               {% if stelle.land %}
                 <div class="badge bg-light text-dark mt-2 fw-normal">
-                  <i class="bi bi-geo-alt-fill me-1"></i>{{ stelle.land.name }}
+                  <span class="fi fi-{{ stelle.land.code|lower }} me-1"></span>{{ stelle.land.name }}
                 </div>
               {% endif %}
             </div>
