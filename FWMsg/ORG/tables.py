@@ -612,9 +612,12 @@ def get_freiwilliger_table_class(org, request=None):
     def render_user(self, value, record):
         freiwilliger = record['freiwilliger']
         return format_html(
-            '<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', 
-            reverse('profil', args=[freiwilliger.user.customuser.get_identifier()]), 
-            f"{freiwilliger.user.first_name} {freiwilliger.user.last_name}"
+            '<a href="{}" title="Zum Profil"><i class="bi bi-person-fill me-1"></i>{}</a> '
+            '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
+            '<i class="bi bi-envelope-arrow-up"></i></a>',
+            reverse('profil', args=[freiwilliger.user.customuser.get_identifier()]),
+            f"{freiwilliger.user.first_name} {freiwilliger.user.last_name}",
+            freiwilliger.user.email,
         )
     
     def actions_renderer(record, org):
@@ -963,9 +966,12 @@ def get_team_table_class(org, request=None):
     def render_user(self, value, record):
         team = record['team']
         return format_html(
-            '<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', 
-            reverse('profil', args=[team.user.customuser.get_identifier()]), 
-            f"{team.user.first_name} {team.user.last_name}"
+            '<a href="{}" title="Zum Profil"><i class="bi bi-person-fill me-1"></i>{}</a> '
+            '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
+            '<i class="bi bi-envelope-arrow-up"></i></a>',
+            reverse('profil', args=[team.user.customuser.get_identifier()]),
+            f"{team.user.first_name} {team.user.last_name}",
+            team.user.email,
         )
     
     def render_land(self, value, record):
@@ -1051,9 +1057,12 @@ def get_ehemalige_table_class(org, request=None):
     def render_user(self, value, record):
         ehemalige = record['ehemalige']
         return format_html(
-            '<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', 
-            reverse('profil', args=[ehemalige.user.customuser.get_identifier()]), 
-            f"{ehemalige.user.first_name} {ehemalige.user.last_name}"
+            '<a href="{}" title="Zum Profil"><i class="bi bi-person-fill me-1"></i>{}</a> '
+            '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
+            '<i class="bi bi-envelope-arrow-up"></i></a>',
+            reverse('profil', args=[ehemalige.user.customuser.get_identifier()]),
+            f"{ehemalige.user.first_name} {ehemalige.user.last_name}",
+            ehemalige.user.email,
         )
     
     def render_land(self, value, record):
