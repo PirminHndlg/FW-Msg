@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Count
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 
 from FW.models import Freiwilliger
@@ -143,6 +144,8 @@ def contacts(request):
         
     if person_cluster:
         freiwillige = freiwillige.filter(user__customuser__person_cluster=person_cluster)
+        
+    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, view='F').order_by('-id')
     
     # Collect all user IDs for efficient attribute queries
     user_ids = [fw.user_id for fw in freiwillige]
@@ -163,39 +166,64 @@ def contacts(request):
             user_attributes[attr.user_id]['phone'].append(attr.value)
         elif attr.attribute.type == 'E':
             user_attributes[attr.user_id]['email'].append(attr.value)
-    
-    # Build contact cards
-    fw_cards = []
-    for fw in freiwillige:
-        # Start with basic user info
-        full_name = f"{fw.user.first_name} {fw.user.last_name}"
-        
-        # Initialize with primary email
-        items = [{'icon': 'envelope', 'value': fw.user.email, 'type': 'email'}]
-        
-        # Add additional contact information if available
-        if fw.user_id in user_attributes:
-            attrs = user_attributes[fw.user_id]
             
-            # Add phone numbers
-            for phone in attrs['phone']:
-                items.append({'icon': 'phone', 'value': phone, 'type': 'phone'})
-                
-            # Add additional emails
-            for email in attrs['email']:
-                items.append({'icon': 'envelope', 'value': email, 'type': 'email'})
-        
-        fw_cards.append({
-            'title': full_name,
-            'items': items,
-            'freiwilliger': fw  # Include the original object for additional data in template
-        })
+    
+    fw_cards = []
+    for pc in all_person_clusters:
+        fw_person_cluster = freiwillige.filter(user__customuser__person_cluster=pc)
+        contact_items = []
+        for fw in fw_person_cluster:
+            items = []
+            items.append({
+                'icon': 'envelope',
+                'value': fw.user.email if fw.user.email else '',
+                'type': 'email'
+            })
+            if fw.user_id in user_attributes:
+                attrs = user_attributes[fw.user_id]
+                for phone in attrs['phone']:
+                    items.append({
+                        'icon': 'phone',
+                        'value': phone,
+                        'type': 'phone'
+                    })
+                for email in attrs['email']:
+                    items.append({
+                        'icon': 'envelope',
+                        'value': email,
+                        'type': 'email'
+                    })
+            if fw.einsatzland2:
+                items.append({
+                    'flag': fw.einsatzland2.code.lower(),
+                    'value': fw.einsatzland2.name,
+                    'type': 'country'
+                })
+            if fw.einsatzstelle2:
+                items.append({
+                    'icon': 'building',
+                    'value': fw.einsatzstelle2.name,
+                    'type': 'einsatzstelle'
+                })
+            
+            contact_items.append({
+                'title': f"{fw.user.first_name} {fw.user.last_name}",
+                'items': items,
+                'img': reverse('serve_profil_picture', args=[fw.user.customuser.get_identifier()]),
+                'url': reverse('profil', args=[fw.user.customuser.get_identifier()])
+            })
+            
+        if contact_items:
+            fw_cards.append({
+                'title': pc.name,
+                'cards': contact_items
+            })
     
     return render(request, 'teamContacts.html', {
         'freiwillige': freiwillige, 
         'fw_cards': fw_cards,
         'current_person_cluster': person_cluster,
-        'all_person_clusters': PersonCluster.objects.filter(org=request.user.org, view='F')
+        'all_person_clusters': all_person_clusters
     })
 
 

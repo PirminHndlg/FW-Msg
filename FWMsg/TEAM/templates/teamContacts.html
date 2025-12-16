@@ -39,6 +39,8 @@
       </div>
     </div>
 
-    {% include 'components/info_section.html' with section_title=_('Freiwillige') cards=fw_cards %}
+    {% for card in fw_cards %}
+    {% include 'components/info_section.html' with section_title=card.title cards=card.cards %}
+    {% endfor %}
   </div>
 {% endblock %}

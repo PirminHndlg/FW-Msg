@@ -12,7 +12,7 @@
         <div class="row g-4">
             {% for card in cards %}
                 <div class="col-md-6 col-lg-{{ card.width|default:'4' }}">
-                    {% include "components/contact_card.html" with title=card.title contact_items=card.items %}
+                    {% include "components/contact_card.html" with title=card.title contact_items=card.items img=card.img url=card.url %}
                 </div>
             {% empty %}
                 <div class="col-12">
