@@ -10,10 +10,33 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.platypus.flowables import HRFlowable
 from reportlab.lib.utils import ImageReader
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from django.conf import settings
 import os
+import re
+import emoji
+import urllib.request
+import hashlib
 
 from .models import SurveyAnswer
+
+
+# Register Unicode fonts for emoji support
+try:
+    # Try to register DejaVu Sans fonts (bundled with ReportLab)
+    from reportlab.pdfbase.pdfmetrics import registerFont
+    from reportlab.pdfbase.ttfonts import TTFont
+    
+    # DejaVu Sans fonts are included with ReportLab
+    pdfmetrics.registerFont(TTFont('DejaVu-Sans', 'DejaVuSans.ttf'))
+    pdfmetrics.registerFont(TTFont('DejaVu-Sans-Bold', 'DejaVuSans-Bold.ttf'))
+    UNICODE_FONT = 'DejaVu-Sans'
+    UNICODE_FONT_BOLD = 'DejaVu-Sans-Bold'
+except Exception:
+    # Fallback to Helvetica if DejaVu Sans is not available
+    UNICODE_FONT = 'Helvetica'
+    UNICODE_FONT_BOLD = 'Helvetica-Bold'
 
 
 def hex_to_rgb(hex_color):
@@ -88,6 +111,134 @@ class LogoWithBackground(Flowable):
             pass
 
 
+def get_emoji_cache_dir():
+    """Get or create the emoji cache directory"""
+    cache_dir = os.path.join(settings.MEDIA_ROOT, 'emoji_cache')
+    os.makedirs(cache_dir, exist_ok=True)
+    return cache_dir
+
+
+def emoji_to_codepoint(emoji_char):
+    """Convert emoji character to Unicode codepoint string for Twemoji"""
+    # Get the codepoints of the emoji
+    codepoints = [f"{ord(c):x}" for c in emoji_char]
+    return '-'.join(codepoints)
+
+
+def get_emoji_image_path(emoji_char):
+    """Download and cache emoji image from Twemoji CDN"""
+    try:
+        codepoint = emoji_to_codepoint(emoji_char)
+        cache_dir = get_emoji_cache_dir()
+        cached_path = os.path.join(cache_dir, f"{codepoint}.png")
+        
+        # Return cached image if it exists
+        if os.path.exists(cached_path):
+            return cached_path
+        
+        # Download from Twemoji CDN (SVG to PNG)
+        # Using the 72x72 PNG version for better PDF compatibility
+        twemoji_url = f"https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/{codepoint}.png"
+        
+        try:
+            urllib.request.urlretrieve(twemoji_url, cached_path)
+            return cached_path
+        except Exception:
+            # If download fails, return None
+            return None
+    except Exception:
+        return None
+
+
+class InlineImage(Flowable):
+    """Custom flowable for inline emoji images"""
+    
+    def __init__(self, image_path, width, height):
+        Flowable.__init__(self)
+        self.image_path = image_path
+        self.width = width
+        self.height = height
+        
+    def wrap(self, availWidth, availHeight):
+        return self.width, self.height
+        
+    def draw(self):
+        try:
+            self.canv.drawImage(self.image_path, 0, 0, self.width, self.height, mask='auto')
+        except Exception:
+            # If image fails to load, skip it
+            pass
+
+
+def replace_emojis_with_markup(text, font_size=10):
+    """
+    Replace emoji characters in text with image markup tags.
+    This creates a simplified version where emojis are replaced with [EMOJI] markers
+    and returns the processed text along with emoji data.
+    """
+    if not text:
+        return text, []
+    
+    # Extract all emojis from the text
+    emoji_list = emoji.emoji_list(text)
+    
+    if not emoji_list:
+        return text, []
+    
+    # Build result with emoji replacements
+    result_text = text
+    emoji_data = []
+    offset = 0
+    
+    for emoji_info in emoji_list:
+        emoji_char = emoji_info['emoji']
+        start_pos = emoji_info['match_start'] + offset
+        end_pos = emoji_info['match_end'] + offset
+        
+        # Get emoji image path
+        img_path = get_emoji_image_path(emoji_char)
+        
+        if img_path:
+            # Calculate emoji size based on font size
+            emoji_size = font_size * 1.2
+            
+            # Create an image tag that ReportLab can understand
+            # Using a special marker that we'll handle in the paragraph
+            marker = f'<img src="{img_path}" width="{emoji_size}" height="{emoji_size}" valign="middle"/>'
+            
+            # Replace the emoji with the marker
+            result_text = result_text[:start_pos] + marker + result_text[end_pos:]
+            
+            # Adjust offset for next iteration
+            offset += len(marker) - (end_pos - start_pos)
+            
+            emoji_data.append({
+                'char': emoji_char,
+                'path': img_path,
+                'size': emoji_size
+            })
+    
+    return result_text, emoji_data
+
+
+def create_paragraph_with_emojis(text, style):
+    """
+    Create a Paragraph with emoji support.
+    Emojis are replaced with inline images.
+    """
+    if not text:
+        return Paragraph("", style)
+    
+    # Get font size from style
+    font_size = getattr(style, 'fontSize', 10)
+    
+    # Replace emojis with image markup
+    processed_text, emoji_data = replace_emojis_with_markup(text, font_size)
+    
+    # Create and return the paragraph
+    return Paragraph(processed_text, style)
+
+
 def generate_survey_response_pdf(survey_response):
     """Generate a PDF for a single survey response"""
     buffer = io.BytesIO()
@@ -119,7 +270,7 @@ def generate_survey_response_pdf(survey_response):
         spaceBefore=10,
         textColor=colors.Color(*org_color),
         alignment=TA_CENTER,
-        fontName='Helvetica-Bold'
+        fontName=UNICODE_FONT_BOLD
     )
     
     heading_style = ParagraphStyle(
@@ -129,7 +280,7 @@ def generate_survey_response_pdf(survey_response):
         spaceAfter=15,
         spaceBefore=25,
         textColor=colors.Color(*org_color),
-        fontName='Helvetica-Bold',
+        fontName=UNICODE_FONT_BOLD,
         alignment=TA_LEFT
     )
     
@@ -140,7 +291,7 @@ def generate_survey_response_pdf(survey_response):
         spaceAfter=8,
         spaceBefore=15,
         textColor=colors.Color(*org_color),
-        fontName='Helvetica-Bold',
+        fontName=UNICODE_FONT_BOLD,
         leftIndent=0
     )
     
@@ -151,7 +302,7 @@ def generate_survey_response_pdf(survey_response):
         spaceAfter=15,
         leftIndent=15,
         textColor=colors.black,
-        fontName='Helvetica'
+        fontName=UNICODE_FONT
     )
     
     info_style = ParagraphStyle(
@@ -160,7 +311,7 @@ def generate_survey_response_pdf(survey_response):
         fontSize=9,
         textColor=colors.grey,
         alignment=TA_RIGHT,
-        fontName='Helvetica'
+        fontName=UNICODE_FONT
     )
     
     # New elegant info label style
@@ -169,7 +320,7 @@ def generate_survey_response_pdf(survey_response):
         parent=styles['Normal'],
         fontSize=9,
         textColor=colors.Color(*org_color),
-        fontName='Helvetica-Bold'
+        fontName=UNICODE_FONT_BOLD
     )
     
     # Build the PDF content
@@ -199,10 +350,10 @@ def generate_survey_response_pdf(survey_response):
                         fontSize=12,
                         textColor=colors.Color(*org_color),
                         alignment=TA_CENTER,
-                        fontName='Helvetica-Bold',
+                        fontName=UNICODE_FONT_BOLD,
                         spaceAfter=15
                     )
-                    story.append(Paragraph(org.name, org_header_style))
+                    story.append(create_paragraph_with_emojis(org.name, org_header_style))
             except Exception:
                 # If there's any issue with logo, show organization name
                 org_header_style = ParagraphStyle(
@@ -211,10 +362,10 @@ def generate_survey_response_pdf(survey_response):
                     fontSize=12,
                     textColor=colors.Color(*org_color),
                     alignment=TA_CENTER,
-                    fontName='Helvetica-Bold',
+                    fontName=UNICODE_FONT_BOLD,
                     spaceAfter=15
                 )
-                story.append(Paragraph(org.name, org_header_style))
+                story.append(create_paragraph_with_emojis(org.name, org_header_style))
         else:
             # No logo configured, show organization name in styled header
             org_header_style = ParagraphStyle(
@@ -223,10 +374,10 @@ def generate_survey_response_pdf(survey_response):
                 fontSize=12,
                 textColor=colors.Color(*org_color),
                 alignment=TA_CENTER,
-                fontName='Helvetica-Bold',
+                fontName=UNICODE_FONT_BOLD,
                 spaceAfter=15
             )
-            story.append(Paragraph(org.name, org_header_style))
+            story.append(create_paragraph_with_emojis(org.name, org_header_style))
     
     # Title
     story.append(Paragraph(_("Umfragezusammenfassung"), title_style))
@@ -281,14 +432,14 @@ def generate_survey_response_pdf(survey_response):
             if answer.question.is_required:
                 question_text += " <font color='red'>*</font>"
             
-            story.append(Paragraph(question_text, question_style))
+            story.append(create_paragraph_with_emojis(question_text, question_style))
             
             # Answer content with better formatting
             answer_content = _get_answer_content(answer)
             if answer_content:
                 # Add subtle background for answers
                 answer_with_bg = f"<para>{answer_content}</para>"
-                story.append(Paragraph(answer_with_bg, answer_style))
+                story.append(create_paragraph_with_emojis(answer_with_bg, answer_style))
             else:
                 story.append(Paragraph("<i>Keine Antwort</i>", answer_style))
             
@@ -352,7 +503,7 @@ def generate_survey_all_responses_pdf(survey):
         spaceBefore=10,
         textColor=colors.Color(*org_color),
         alignment=TA_CENTER,
-        fontName='Helvetica-Bold'
+        fontName=UNICODE_FONT_BOLD
     )
     
     heading_style = ParagraphStyle(
@@ -362,7 +513,7 @@ def generate_survey_all_responses_pdf(survey):
         spaceAfter=15,
         spaceBefore=25,
         textColor=colors.Color(*org_color),
-        fontName='Helvetica-Bold',
+        fontName=UNICODE_FONT_BOLD,
         alignment=TA_LEFT
     )
     
@@ -373,7 +524,7 @@ def generate_survey_all_responses_pdf(survey):
         spaceAfter=8,
         spaceBefore=15,
         textColor=colors.Color(*org_color),
-        fontName='Helvetica-Bold',
+        fontName=UNICODE_FONT_BOLD,
         leftIndent=0
     )
     
@@ -384,7 +535,7 @@ def generate_survey_all_responses_pdf(survey):
         spaceAfter=15,
         leftIndent=15,
         textColor=colors.black,
-        fontName='Helvetica'
+        fontName=UNICODE_FONT
     )
     
     info_style = ParagraphStyle(
@@ -393,7 +544,7 @@ def generate_survey_all_responses_pdf(survey):
         fontSize=9,
         textColor=colors.grey,
         alignment=TA_RIGHT,
-        fontName='Helvetica'
+        fontName=UNICODE_FONT
     )
     
     # New elegant info label style
@@ -402,7 +553,7 @@ def generate_survey_all_responses_pdf(survey):
         parent=styles['Normal'],
         fontSize=9,
         textColor=colors.Color(*org_color),
-        fontName='Helvetica-Bold'
+        fontName=UNICODE_FONT_BOLD
     )
     
     # Build the PDF content
@@ -432,10 +583,10 @@ def generate_survey_all_responses_pdf(survey):
                         fontSize=12,
                         textColor=colors.Color(*org_color),
                         alignment=TA_CENTER,
-                        fontName='Helvetica-Bold',
+                        fontName=UNICODE_FONT_BOLD,
                         spaceAfter=15
                     )
-                    story.append(Paragraph(org.name, org_header_style))
+                    story.append(create_paragraph_with_emojis(org.name, org_header_style))
             except Exception:
                 # If there's any issue with logo, show organization name
                 org_header_style = ParagraphStyle(
@@ -444,10 +595,10 @@ def generate_survey_all_responses_pdf(survey):
                     fontSize=12,
                     textColor=colors.Color(*org_color),
                     alignment=TA_CENTER,
-                    fontName='Helvetica-Bold',
+                    fontName=UNICODE_FONT_BOLD,
                     spaceAfter=15
                 )
-                story.append(Paragraph(org.name, org_header_style))
+                story.append(create_paragraph_with_emojis(org.name, org_header_style))
         else:
             # No logo configured, show organization name in styled header
             org_header_style = ParagraphStyle(
@@ -456,10 +607,10 @@ def generate_survey_all_responses_pdf(survey):
                 fontSize=12,
                 textColor=colors.Color(*org_color),
                 alignment=TA_CENTER,
-                fontName='Helvetica-Bold',
+                fontName=UNICODE_FONT_BOLD,
                 spaceAfter=15
             )
-            story.append(Paragraph(org.name, org_header_style))
+            story.append(create_paragraph_with_emojis(org.name, org_header_style))
     
     # Title
     story.append(Paragraph(_("Umfragezusammenfassung"), title_style))
@@ -493,10 +644,6 @@ def generate_survey_all_responses_pdf(survey):
     story.append(info_table)
     story.append(Spacer(1, 25))
     
-    # Questions and answers section
-    story.append(Paragraph(_("Alle Antworten"), heading_style))
-    story.append(Spacer(1, 15))
-    
     # Get all answers for this response
     responses = survey.responses.all().select_related('respondent').prefetch_related('answers__question')
     
@@ -505,7 +652,7 @@ def generate_survey_all_responses_pdf(survey):
     else:
         # loop through all questions
         for i, question in enumerate(survey.questions.all(), 1):
-            story.append(Paragraph(f"<b>{i}.</b> {question.question_text}", heading_style))
+            story.append(create_paragraph_with_emojis(f"<b>{i}.</b> {question.question_text}", heading_style))
             answers = SurveyAnswer.objects.filter(question=question).select_related('response').prefetch_related('selected_options')
             if answers:
                 for i, answer in enumerate(answers, 1):
@@ -515,7 +662,7 @@ def generate_survey_all_responses_pdf(survey):
                     else:
                         answer_text = f"<b>{i}.</b> {answer.text_answer or '---'}"
                         
-                    story.append(Paragraph(answer_text, answer_style))
+                    story.append(create_paragraph_with_emojis(answer_text, answer_style))
     
     # Footer
     story.append(Spacer(1, 25))
