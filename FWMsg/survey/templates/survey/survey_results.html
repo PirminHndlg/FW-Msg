@@ -21,8 +21,13 @@
                                 </button>
                                 <ul class="dropdown-menu">
                                     <li>
+                                        <a class="dropdown-item" href="{% url 'survey:export_survey_all_responses_pdf' survey.id %}">
+                                            <i class="fas fa-file-pdf me-2"></i>{% trans "All Responses as PDF" %}
+                                        </a>
+                                    </li>
+                                    <li>
                                         <a class="dropdown-item" href="{% url 'survey:export_survey_responses_pdf' survey.id %}">
-                                            <i class="fas fa-download me-2"></i>{% trans "All Responses (ZIP)" %}
+                                            <i class="fas fa-download me-2"></i>{% trans "All Responses individually as ZIP" %}
                                         </a>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>

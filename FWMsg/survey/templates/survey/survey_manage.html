@@ -31,8 +31,13 @@
                                 </li>
                                 {% if response_count > 0 %}
                                 <li>
+                                    <a class="dropdown-item" href="{% url 'survey:export_survey_all_responses_pdf' survey.id %}">
+                                        <i class="fas fa-file-pdf me-2"></i>{% trans "Export All Responses as PDF" %}
+                                    </a>
+                                </li>
+                                <li>
                                     <a class="dropdown-item" href="{% url 'survey:export_survey_responses_pdf' survey.id %}">
-                                        <i class="fas fa-file-pdf me-2"></i>{% trans "Export All PDFs" %}
+                                        <i class="fas fa-file-pdf me-2"></i>{% trans "Export All PDFs individually" %}
                                     </a>
                                 </li>
                                 {% endif %}

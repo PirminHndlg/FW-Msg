@@ -13,6 +13,8 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from django.conf import settings
 import os
 
+from .models import SurveyAnswer
+
 
 def hex_to_rgb(hex_color):
     """Convert hex color to RGB tuple"""
@@ -295,6 +297,225 @@ def generate_survey_response_pdf(survey_response):
                 story.append(Spacer(1, 8))
                 story.append(HRFlowable(width="50%", thickness=0.5, color=colors.Color(*org_color, alpha=0.2), hAlign='LEFT'))
                 story.append(Spacer(1, 8))
+    
+    # Footer
+    story.append(Spacer(1, 25))
+    story.append(HRFlowable(width="100%", thickness=0.5, color=colors.Color(*org_color, alpha=0.3)))
+    story.append(Spacer(1, 8))
+    
+    footer_text = _("Erstellt am {date}").format(
+        date=datetime.now().strftime("%d.%m.%Y um %H:%M")
+    )
+    if org:
+        footer_text += f" • {org.name}"
+    
+    story.append(Paragraph(footer_text, info_style))
+    
+    # Build PDF
+    doc.build(story)
+    
+    # Get the value of the BytesIO buffer and return it
+    pdf = buffer.getvalue()
+    buffer.close()
+    
+    return pdf
+
+
+def generate_survey_all_responses_pdf(survey):
+    """Generate a PDF for a survey with all responses"""
+    buffer = io.BytesIO()
+    
+    # Create the PDF document
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=72,
+        leftMargin=72,
+        topMargin=72,
+        bottomMargin=18
+    )
+    
+    # Get organization details
+    org = survey.org
+    org_color = hex_to_rgb(org.farbe) if org and org.farbe else (0, 0.48, 1)  # Default blue
+    text_color = hex_to_rgb(org.text_color_on_org_color) if org and org.text_color_on_org_color else (0, 0, 0)
+    
+    # Define styles
+    styles = getSampleStyleSheet()
+    
+    # Custom styles with organization colors - more appealing design
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=18,
+        spaceAfter=20,
+        spaceBefore=10,
+        textColor=colors.Color(*org_color),
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold'
+    )
+    
+    heading_style = ParagraphStyle(
+        'CustomHeading',
+        parent=styles['Heading2'],
+        fontSize=14,
+        spaceAfter=15,
+        spaceBefore=25,
+        textColor=colors.Color(*org_color),
+        fontName='Helvetica-Bold',
+        alignment=TA_LEFT
+    )
+    
+    question_style = ParagraphStyle(
+        'QuestionStyle',
+        parent=styles['Normal'],
+        fontSize=11,
+        spaceAfter=8,
+        spaceBefore=15,
+        textColor=colors.Color(*org_color),
+        fontName='Helvetica-Bold',
+        leftIndent=0
+    )
+    
+    answer_style = ParagraphStyle(
+        'AnswerStyle',
+        parent=styles['Normal'],
+        fontSize=10,
+        spaceAfter=15,
+        leftIndent=15,
+        textColor=colors.black,
+        fontName='Helvetica'
+    )
+    
+    info_style = ParagraphStyle(
+        'InfoStyle',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.grey,
+        alignment=TA_RIGHT,
+        fontName='Helvetica'
+    )
+    
+    # New elegant info label style
+    info_label_style = ParagraphStyle(
+        'InfoLabelStyle',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.Color(*org_color),
+        fontName='Helvetica-Bold'
+    )
+    
+    # Build the PDF content
+    story = []
+    
+    # Add organization logo or header if available
+    if org:
+        if org.logo:
+            try:
+                logo_path = os.path.join(settings.MEDIA_ROOT, str(org.logo))
+                if os.path.exists(logo_path):
+                    # Create smaller, more elegant logo with colored background
+                    logo_with_bg = LogoWithBackground(
+                        logo_path=logo_path,
+                        width=1.8*inch,
+                        height=0.9*inch,
+                        bg_color=org_color,
+                        corner_radius=12
+                    )
+                    story.append(logo_with_bg)
+                    story.append(Spacer(1, 15))
+                else:
+                    # If logo file doesn't exist, show organization name in styled header
+                    org_header_style = ParagraphStyle(
+                        'OrgHeader',
+                        parent=styles['Normal'],
+                        fontSize=12,
+                        textColor=colors.Color(*org_color),
+                        alignment=TA_CENTER,
+                        fontName='Helvetica-Bold',
+                        spaceAfter=15
+                    )
+                    story.append(Paragraph(org.name, org_header_style))
+            except Exception:
+                # If there's any issue with logo, show organization name
+                org_header_style = ParagraphStyle(
+                    'OrgHeader',
+                    parent=styles['Normal'],
+                    fontSize=12,
+                    textColor=colors.Color(*org_color),
+                    alignment=TA_CENTER,
+                    fontName='Helvetica-Bold',
+                    spaceAfter=15
+                )
+                story.append(Paragraph(org.name, org_header_style))
+        else:
+            # No logo configured, show organization name in styled header
+            org_header_style = ParagraphStyle(
+                'OrgHeader',
+                parent=styles['Normal'],
+                fontSize=12,
+                textColor=colors.Color(*org_color),
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold',
+                spaceAfter=15
+            )
+            story.append(Paragraph(org.name, org_header_style))
+    
+    # Title
+    story.append(Paragraph(_("Umfragezusammenfassung"), title_style))
+    story.append(Spacer(1, 25))
+    
+    # Survey information in a more elegant format
+    survey_info = []
+    if org:
+        survey_info.append([Paragraph(_("Organisation:"), info_label_style), org.name])
+    
+    survey_info_data = [
+        [Paragraph(_("Umfrage:"), info_label_style), survey.title],
+    ]
+    
+    survey_info.extend(survey_info_data)
+    
+    info_table = Table(survey_info, colWidths=[1.2*inch, 4.3*inch])
+    info_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+        ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (0, -1), 12),
+        ('RIGHTPADDING', (1, 0), (1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('LINEBELOW', (0, -1), (-1, -1), 0.5, colors.Color(*org_color, alpha=0.3)),
+    ]))
+    
+    story.append(info_table)
+    story.append(Spacer(1, 25))
+    
+    # Questions and answers section
+    story.append(Paragraph(_("Alle Antworten"), heading_style))
+    story.append(Spacer(1, 15))
+    
+    # Get all answers for this response
+    responses = survey.responses.all().select_related('respondent').prefetch_related('answers__question')
+    
+    if not responses:
+        story.append(Paragraph(_("Keine Antworten aufgezeichnet."), heading_style))
+    else:
+        # loop through all questions
+        for i, question in enumerate(survey.questions.all(), 1):
+            story.append(Paragraph(f"<b>{i}.</b> {question.question_text}", heading_style))
+            answers = SurveyAnswer.objects.filter(question=question).select_related('response').prefetch_related('selected_options')
+            if answers:
+                for i, answer in enumerate(answers, 1):
+                    respondent_name = _get_respondent_name(answer.response)
+                    if respondent_name != _("Anonym"):
+                        answer_text = f"<b>{i}.</b> {respondent_name}: {answer.text_answer or '---'}"
+                    else:
+                        answer_text = f"<b>{i}.</b> {answer.text_answer or '---'}"
+                        
+                    story.append(Paragraph(answer_text, answer_style))
     
     # Footer
     story.append(Spacer(1, 25))

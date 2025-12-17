@@ -22,7 +22,7 @@ from .forms import (
     SurveyForm, SurveyQuestionForm, SurveyQuestionOptionForm, 
     SurveyParticipationForm, SurveyQuestionOptionFormSet
 )
-from .pdf_utils import generate_survey_response_pdf, create_pdf_response
+from .pdf_utils import generate_survey_response_pdf, create_pdf_response, generate_survey_all_responses_pdf
 
 
 def get_client_ip(request):
@@ -490,3 +490,21 @@ def export_survey_responses_pdf(request, survey_id):
             os.unlink(temp_zip.name)
         messages.error(request, _('Error generating PDF export: %(error)s') % {'error': str(e)})
         return redirect('survey:survey_results', pk=survey.id)
+
+
+@login_required
+@required_role('O')
+def export_survey_all_responses_pdf(request, survey_id):
+    """Export a survey with all responses as a PDF file"""
+    survey = get_object_or_404(Survey, id=survey_id)
+    check_survey_access(request, survey)
+    
+    # Generate PDF
+    pdf_content = generate_survey_all_responses_pdf(survey)
+    
+    # Create filename
+    filename = f"survey_all_responses_{survey.title}_{survey.id}.pdf"
+    filename = "".join(c for c in filename if c.isalnum() or c in (' ', '-', '_', '.')).rstrip()
+    filename = filename.replace(' ', '_')
+    
+    return create_pdf_response(pdf_content, filename)

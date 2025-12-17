@@ -27,6 +27,7 @@ urlpatterns = [
     # PDF Export
     path('response/<int:response_id>/pdf/', views.export_response_pdf, name='export_response_pdf'),
     path('<int:survey_id>/export-all-pdf/', views.export_survey_responses_pdf, name='export_survey_responses_pdf'),
+    path('<int:survey_id>/export-all-responses-pdf/', views.export_survey_all_responses_pdf, name='export_survey_all_responses_pdf'),
     
     # Admin views
     path('admin/surveys/', views.admin_survey_list, name='admin_survey_list'),
