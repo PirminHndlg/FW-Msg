@@ -5,7 +5,7 @@ from django.utils.translation import gettext as _
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
+from reportlab.lib.units import inch, mm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, Flowable
 from reportlab.platypus.flowables import HRFlowable
 from reportlab.lib.utils import ImageReader
@@ -326,58 +326,50 @@ def generate_survey_response_pdf(survey_response):
     # Build the PDF content
     story = []
     
-    # Add organization logo or header if available
+    # Add organization logo and name as header (logo on left, name next to it)
     if org:
+        # Style for organization name next to logo
+        org_name_style = ParagraphStyle(
+            'OrgName',
+            parent=styles['Normal'],
+            fontSize=14,
+            textColor=colors.Color(*org_color),
+            fontName=UNICODE_FONT_BOLD,
+            leftIndent=0
+        )
+        
+        header_data = []
         if org.logo:
             try:
                 logo_path = os.path.join(settings.MEDIA_ROOT, str(org.logo))
                 if os.path.exists(logo_path):
-                    # Create smaller, more elegant logo with colored background
-                    logo_with_bg = LogoWithBackground(
-                        logo_path=logo_path,
-                        width=1.8*inch,
-                        height=0.9*inch,
-                        bg_color=org_color,
-                        corner_radius=12
-                    )
-                    story.append(logo_with_bg)
-                    story.append(Spacer(1, 15))
+                    # Small logo without background for header
+                    logo_img = Image(logo_path, width=0.8*inch, height=0.8*inch, kind='proportional')
+                    header_data = [[logo_img, create_paragraph_with_emojis(org.name, org_name_style)]]
                 else:
-                    # If logo file doesn't exist, show organization name in styled header
-                    org_header_style = ParagraphStyle(
-                        'OrgHeader',
-                        parent=styles['Normal'],
-                        fontSize=12,
-                        textColor=colors.Color(*org_color),
-                        alignment=TA_CENTER,
-                        fontName=UNICODE_FONT_BOLD,
-                        spaceAfter=15
-                    )
-                    story.append(create_paragraph_with_emojis(org.name, org_header_style))
+                    # No logo file, just show org name
+                    header_data = [['', create_paragraph_with_emojis(org.name, org_name_style)]]
             except Exception:
-                # If there's any issue with logo, show organization name
-                org_header_style = ParagraphStyle(
-                    'OrgHeader',
-                    parent=styles['Normal'],
-                    fontSize=12,
-                    textColor=colors.Color(*org_color),
-                    alignment=TA_CENTER,
-                    fontName=UNICODE_FONT_BOLD,
-                    spaceAfter=15
-                )
-                story.append(create_paragraph_with_emojis(org.name, org_header_style))
+                # If there's any issue with logo, just show org name
+                header_data = [['', create_paragraph_with_emojis(org.name, org_name_style)]]
         else:
-            # No logo configured, show organization name in styled header
-            org_header_style = ParagraphStyle(
-                'OrgHeader',
-                parent=styles['Normal'],
-                fontSize=12,
-                textColor=colors.Color(*org_color),
-                alignment=TA_CENTER,
-                fontName=UNICODE_FONT_BOLD,
-                spaceAfter=15
-            )
-            story.append(create_paragraph_with_emojis(org.name, org_header_style))
+            # No logo configured, just show org name
+            header_data = [['', create_paragraph_with_emojis(org.name, org_name_style)]]
+        
+        # Create header table with logo and name
+        if header_data:
+            header_table = Table(header_data, colWidths=[1*inch, 4.5*inch])
+            header_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+                ('ALIGN', (1, 0), (1, 0), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                ('TOPPADDING', (0, 0), (-1, -1), 0),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+            ]))
+            story.append(header_table)
+            story.append(Spacer(1, 15))
     
     # Title
     story.append(Paragraph(_("Umfragezusammenfassung"), title_style))
@@ -480,10 +472,10 @@ def generate_survey_all_responses_pdf(survey):
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
-        rightMargin=72,
-        leftMargin=72,
-        topMargin=72,
-        bottomMargin=18
+        rightMargin=25,
+        leftMargin=25,
+        topMargin=25,
+        bottomMargin=25
     )
     
     # Get organization details
@@ -499,8 +491,8 @@ def generate_survey_all_responses_pdf(survey):
         'CustomTitle',
         parent=styles['Heading1'],
         fontSize=18,
-        spaceAfter=20,
-        spaceBefore=10,
+        spaceAfter=15,
+        spaceBefore=5,
         textColor=colors.Color(*org_color),
         alignment=TA_CENTER,
         fontName=UNICODE_FONT_BOLD
@@ -511,7 +503,7 @@ def generate_survey_all_responses_pdf(survey):
         parent=styles['Heading2'],
         fontSize=14,
         spaceAfter=15,
-        spaceBefore=25,
+        spaceBefore=5,
         textColor=colors.Color(*org_color),
         fontName=UNICODE_FONT_BOLD,
         alignment=TA_LEFT
@@ -559,90 +551,54 @@ def generate_survey_all_responses_pdf(survey):
     # Build the PDF content
     story = []
     
-    # Add organization logo or header if available
+    # Add organization logo and name as header (logo on left, name next to it)
     if org:
+        # Style for organization name next to logo
+        org_name_style = ParagraphStyle(
+            'OrgName',
+            parent=styles['Normal'],
+            fontSize=12,
+            textColor=colors.Color(*org_color),
+            fontName=UNICODE_FONT_BOLD,
+            leftIndent=0
+        )
+        
+        header_data = []
         if org.logo:
             try:
                 logo_path = os.path.join(settings.MEDIA_ROOT, str(org.logo))
                 if os.path.exists(logo_path):
-                    # Create smaller, more elegant logo with colored background
-                    logo_with_bg = LogoWithBackground(
-                        logo_path=logo_path,
-                        width=1.8*inch,
-                        height=0.9*inch,
-                        bg_color=org_color,
-                        corner_radius=12
-                    )
-                    story.append(logo_with_bg)
-                    story.append(Spacer(1, 15))
+                    # Small logo without background for header
+                    logo_img = Image(logo_path, width=0.6*inch, height=0.6*inch, kind='proportional')
+                    header_data = [[logo_img, create_paragraph_with_emojis(org.name, org_name_style)]]
                 else:
-                    # If logo file doesn't exist, show organization name in styled header
-                    org_header_style = ParagraphStyle(
-                        'OrgHeader',
-                        parent=styles['Normal'],
-                        fontSize=12,
-                        textColor=colors.Color(*org_color),
-                        alignment=TA_CENTER,
-                        fontName=UNICODE_FONT_BOLD,
-                        spaceAfter=15
-                    )
-                    story.append(create_paragraph_with_emojis(org.name, org_header_style))
+                    # No logo file, just show org name
+                    header_data = [['', create_paragraph_with_emojis(org.name, org_name_style)]]
             except Exception:
-                # If there's any issue with logo, show organization name
-                org_header_style = ParagraphStyle(
-                    'OrgHeader',
-                    parent=styles['Normal'],
-                    fontSize=12,
-                    textColor=colors.Color(*org_color),
-                    alignment=TA_CENTER,
-                    fontName=UNICODE_FONT_BOLD,
-                    spaceAfter=15
-                )
-                story.append(create_paragraph_with_emojis(org.name, org_header_style))
+                # If there's any issue with logo, just show org name
+                header_data = [['', create_paragraph_with_emojis(org.name, org_name_style)]]
         else:
-            # No logo configured, show organization name in styled header
-            org_header_style = ParagraphStyle(
-                'OrgHeader',
-                parent=styles['Normal'],
-                fontSize=12,
-                textColor=colors.Color(*org_color),
-                alignment=TA_CENTER,
-                fontName=UNICODE_FONT_BOLD,
-                spaceAfter=15
-            )
-            story.append(create_paragraph_with_emojis(org.name, org_header_style))
+            # No logo configured, just show org name
+            header_data = [['', create_paragraph_with_emojis(org.name, org_name_style)]]
+        
+        # Create header table with logo and name
+        if header_data:
+            header_table = Table(header_data, colWidths=[0.7*inch, 170*mm])
+            header_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+                ('ALIGN', (1, 0), (1, 0), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+                ('TOPPADDING', (0, 0), (-1, -1), 0),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+            ]))
+            story.append(header_table)
+            story.append(HRFlowable(width="100%", thickness=0.5, color=colors.Color(*org_color, alpha=0.3)))
+            story.append(Spacer(1, 10))
     
     # Title
-    story.append(Paragraph(_("Umfragezusammenfassung"), title_style))
-    story.append(Spacer(1, 25))
-    
-    # Survey information in a more elegant format
-    survey_info = []
-    if org:
-        survey_info.append([Paragraph(_("Organisation:"), info_label_style), org.name])
-    
-    survey_info_data = [
-        [Paragraph(_("Umfrage:"), info_label_style), survey.title],
-    ]
-    
-    survey_info.extend(survey_info_data)
-    
-    info_table = Table(survey_info, colWidths=[1.2*inch, 4.3*inch])
-    info_table.setStyle(TableStyle([
-        ('FONTSIZE', (0, 0), (-1, -1), 9),
-        ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
-        ('ALIGN', (1, 0), (1, -1), 'LEFT'),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0),
-        ('RIGHTPADDING', (0, 0), (0, -1), 12),
-        ('RIGHTPADDING', (1, 0), (1, -1), 0),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ('LINEBELOW', (0, -1), (-1, -1), 0.5, colors.Color(*org_color, alpha=0.3)),
-    ]))
-    
-    story.append(info_table)
-    story.append(Spacer(1, 25))
+    story.append(create_paragraph_with_emojis(survey.title, title_style))
     
     # Get all answers for this response
     responses = survey.responses.all().select_related('respondent').prefetch_related('answers__question')
@@ -655,12 +611,17 @@ def generate_survey_all_responses_pdf(survey):
             story.append(create_paragraph_with_emojis(f"<b>{i}.</b> {question.question_text}", heading_style))
             answers = SurveyAnswer.objects.filter(question=question).select_related('response').prefetch_related('selected_options')
             if answers:
-                for i, answer in enumerate(answers, 1):
+                i_count = 0
+                for answer in answers:
+                    if not answer.text_answer:
+                        continue
+                    
+                    i_count += 1
                     respondent_name = _get_respondent_name(answer.response)
                     if respondent_name != _("Anonym"):
-                        answer_text = f"<b>{i}.</b> {respondent_name}: {answer.text_answer or '---'}"
+                        answer_text = f"<b>{i_count}.</b> {respondent_name}: {answer.text_answer}"
                     else:
-                        answer_text = f"<b>{i}.</b> {answer.text_answer or '---'}"
+                        answer_text = f"<b>{i_count}.</b> {answer.text_answer}"
                         
                     story.append(create_paragraph_with_emojis(answer_text, answer_style))
     
