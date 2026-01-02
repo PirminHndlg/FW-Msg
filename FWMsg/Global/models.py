@@ -875,18 +875,20 @@ class UserAufgaben(OrgModel):
         from FW.models import Freiwilliger
 
         if self.aufgabe.wiederholung and self.erledigt:
-            # Check if there's no end date or if the current date is before the end date
-            if self.aufgabe.wiederholung_ende is None or datetime.now().date() < self.aufgabe.wiederholung_ende:
-                # Handle case where faellig might be None
-                current_date = datetime.now().date()
-                if self.faellig is None:
-                    new_date = current_date
-                else:
-                    new_date = max(current_date, self.faellig)
-                
-                self.faellig = new_date + timedelta(days=self.aufgabe.wiederholung_interval_wochen * 7)
-                self.erledigt = False
-                self.pending = False
+            # Check if interval is properly configured
+            if self.aufgabe.wiederholung_interval_wochen is not None:
+                # Check if there's no end date or if the current date is before the end date
+                if self.aufgabe.wiederholung_ende is None or datetime.now().date() < self.aufgabe.wiederholung_ende:
+                    # Handle case where faellig might be None
+                    current_date = datetime.now().date()
+                    if self.faellig is None:
+                        new_date = current_date
+                    else:
+                        new_date = max(current_date, self.faellig)
+                    
+                    self.faellig = new_date + timedelta(days=self.aufgabe.wiederholung_interval_wochen * 7)
+                    self.erledigt = False
+                    self.pending = False
 
         if not self.faellig:
 
