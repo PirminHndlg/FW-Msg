@@ -1070,7 +1070,7 @@ def list_aufgaben_table(request, scroll_to=None):
         person_cluster_param = request.COOKIES.get('selectedPersonCluster-aufgaben')
     if person_cluster_param is not None and person_cluster_param != 'None':
         try:
-            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org).order_by('view')
         except PersonCluster.DoesNotExist:
             person_cluster = None
     else:
@@ -1094,7 +1094,7 @@ def list_aufgaben_table(request, scroll_to=None):
     if not person_cluster or person_cluster.aufgaben:
         context = {
             'current_person_cluster': person_cluster,
-            'all_person_clusters': PersonCluster.objects.filter(org=request.user.org, aufgaben=True),
+            'all_person_clusters': PersonCluster.objects.filter(org=request.user.org, aufgaben=True).order_by('view'),
             'aufgaben_cluster': aufgaben_cluster,
             'filter': filter_object,  # Use the object, not the string
             'scroll_to': scroll_to,
