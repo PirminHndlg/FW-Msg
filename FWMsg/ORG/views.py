@@ -1070,7 +1070,7 @@ def list_aufgaben_table(request, scroll_to=None):
         person_cluster_param = request.COOKIES.get('selectedPersonCluster-aufgaben')
     if person_cluster_param is not None and person_cluster_param != 'None':
         try:
-            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org).order_by('view')
+            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
         except PersonCluster.DoesNotExist:
             person_cluster = None
     else:
