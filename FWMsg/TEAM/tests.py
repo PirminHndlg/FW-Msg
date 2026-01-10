@@ -29,11 +29,18 @@ class TeamViewsTest(TestCase):
             email='test@example.com',
             logo=logo_img
         )
-        # Create person cluster
+        # Create person cluster for team
         self.person_cluster_team = PersonCluster.objects.create(
             org=self.org,
             name='Test Team',
             view='T'
+        )
+        
+        # Create person cluster for volunteers
+        self.person_cluster_fw = PersonCluster.objects.create(
+            org=self.org,
+            name='Test Volunteers',
+            view='F'
         )
         
         # Create test user
@@ -77,12 +84,23 @@ class TeamViewsTest(TestCase):
         self.team = Team.objects.get_or_create(org=self.org, user=self.user)[0]
         self.team.land.add(self.land)
         
-        # Create test volunteer
-        self.freiwilliger = Freiwilliger.objects.get_or_create(
+        self.volunteer_user = User.objects.create_user(
+            username='Testvolunteer',
+            password='testpass123',
+            first_name='Volunteer',
+            last_name='User'
+        )
+        self.customuser_volunteer = CustomUser.objects.create(
+            user=self.volunteer_user,
             org=self.org,
-            user=self.user,
-            einsatzland2=self.land
+            person_cluster=self.person_cluster_fw
+        )
+        self.freiwilliger_volunteer = Freiwilliger.objects.get_or_create(
+            user=self.volunteer_user,
+            org=self.org
         )[0]
+        self.freiwilliger_volunteer.einsatzland2 = self.land
+        self.freiwilliger_volunteer.save()
         
         # Create test attributes
         self.phone_attr = Attribute.objects.create(
@@ -99,13 +117,13 @@ class TeamViewsTest(TestCase):
         # Add attributes to user
         UserAttribute.objects.create(
             org=self.org,
-            user=self.user,
+            user=self.freiwilliger_volunteer.user,
             attribute=self.phone_attr,
             value='+1234567890'
         )
         UserAttribute.objects.create(
             org=self.org,
-            user=self.user,
+            user=self.freiwilliger_volunteer.user,
             attribute=self.email_attr,
             value='test@example.com'
         )
@@ -122,6 +140,7 @@ class TeamViewsTest(TestCase):
 
     def test_contacts_view(self):
         """Test the contacts view"""
+        self.client.login(user=self.user)
         response = self.client.get(reverse('team_contacts'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'teamContacts.html')
@@ -130,12 +149,18 @@ class TeamViewsTest(TestCase):
         self.assertIn('freiwillige', response.context)
         self.assertIn('fw_cards', response.context)
         
-        # Verify contact information
+        # Verify contact information with new nested structure
         fw_cards = response.context['fw_cards']
-        self.assertEqual(len(fw_cards), 1)
-        self.assertEqual(fw_cards[0]['title'], 'Test User')
-        self.assertTrue(any(item['type'] == 'phone' for item in fw_cards[0]['items']))
-        self.assertTrue(any(item['type'] == 'email' for item in fw_cards[0]['items']))
+        self.assertEqual(len(fw_cards), 1)  # One PersonCluster group
+        self.assertEqual(fw_cards[0]['title'], 'Test Volunteers')  # PersonCluster name
+        self.assertIn('cards', fw_cards[0])
+        
+        # Check the nested contact cards
+        cards = fw_cards[0]['cards']
+        self.assertEqual(len(cards), 1)
+        self.assertEqual(cards[0]['title'], 'Volunteer User')
+        self.assertTrue(any(item['type'] == 'phone' for item in cards[0]['items']))
+        self.assertTrue(any(item['type'] == 'email' for item in cards[0]['items']))
 
     def test_ampelmeldung_view(self):
         """Test the ampelmeldung view"""
