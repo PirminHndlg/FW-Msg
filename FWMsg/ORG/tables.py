@@ -820,16 +820,16 @@ def get_bewerber_table_class(org, request=None):
     def render_has_seminar(self, value, record):
         bewerber = record['bewerber']
         if bewerber.has_seminar():
-            return format_html('<i class="bi bi-check-circle-fill text-success"></i>')
+            return mark_safe('<i class="bi bi-check-circle-fill text-success"></i>')
         else:
-            return format_html('<i class="bi bi-x-circle-fill text-danger"></i>')
+            return mark_safe('<i class="bi bi-x-circle-fill text-danger"></i>')
     
     def render_zuteilung_freigegeben(self, value, record):
         bewerber = record['bewerber']
         if bewerber.zuteilung_freigegeben:
-            return format_html('<i class="bi bi-check-circle-fill text-success"></i>')
+            return mark_safe('<i class="bi bi-check-circle-fill text-success"></i>')
         else:
-            return format_html('<i class="bi bi-x-circle-fill text-danger"></i>')
+            return mark_safe('<i class="bi bi-x-circle-fill text-danger"></i>')
     
     def actions_renderer(record, org):
         bewerber = record['bewerber']
