@@ -91,14 +91,13 @@ function buildUrlWithNext(urlTemplate, id, nextUrl) {
  * Build the complete table HTML from JSON data
  */
 function buildTableFromJSON(data) {
-    const { users, aufgaben, user_aufgaben_matrix, today, person_cluster } = data;
-    console.log(data);
+    const { users, aufgaben, user_aufgaben_matrix, today, current_person_cluster } = data;
     
     const tableHtml = `
         <div class="table-responsive" style="height: 100vh; min-height: 400px">
             <table class="table mb-0 align-middle table-borderless">
                 <thead>
-                    ${buildTableHeader(aufgaben, person_cluster)}
+                    ${buildTableHeader(aufgaben, current_person_cluster)}
                 </thead>
                 <tbody>
                     ${buildTableRows(users, aufgaben, user_aufgaben_matrix, today)}
@@ -142,17 +141,17 @@ function buildTableHeader(aufgaben, person_cluster) {
                     <ul class="dropdown-menu z-1000">
                         <li>
                             <a href="${buildUrlWithNext(window.DJANGO_URLS.editAufgabe, aufgabe.id, window.DJANGO_URLS.listAufgabenTable)}" class="dropdown-item">
-                                <i class="bi bi-pencil"></i> Bearbeiten
+                                <i class="bi bi-pencil me-2"></i> Bearbeiten
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#taskCountryModal" onclick="setTaskId(${aufgabe.id}, '${escapeHtml(aufgabe.name)}')">
-                                <i class="bi bi-globe-americas"></i> Einem Einsatzland zuweisen
+                                <i class="bi bi-globe-americas me-2"></i> Einem Einsatzland zuweisen
                             </a>
                         </li>
                         <li>
                             <button type="button" class="dropdown-item" onclick="assignTaskToAll('${aufgabe.id}', '${person_cluster}')">
-                                <i class="bi bi-people-fill"></i> Allen Freiwilligen zuweisen
+                                <i class="bi bi-people-fill me-2"></i> Allen zuweisen
                             </button>
                         </li>
                     </ul>
