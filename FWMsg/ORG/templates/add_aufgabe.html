@@ -406,6 +406,14 @@
     justify-content: center;
     z-index: 10;
 }
+
+div.is-invalid {
+    border-color: #dc3545;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.9rem;
+    background-color: #f8d7da;
+    border-radius: 0.25rem;
+}
 </style>
 {% endblock %}
 
@@ -462,7 +470,7 @@
                     </div>
                     
                     <!-- Person Clusters -->
-                    <div class="mb-3 row mx-3">
+                    <div class="mb-3 row mx-3" id="person_cluster_container">
                         <label for="{{ form.person_cluster.id_for_label }}" class="col-form-label col-md-3">
                             <i class="bi bi-people me-1"></i>
                             {{ form.person_cluster.label }}
@@ -981,6 +989,7 @@
 
         <!-- Form Actions -->
         <div class="form-actions sticky-bottom border">
+            <p class="d-none small text-danger text-center cursor-pointer" onclick="document.querySelector('.is-invalid').scrollIntoView({ behavior: 'smooth', block: 'center' }); document.getElementById('isInvalidCounter').textContent = document.querySelectorAll('.is-invalid').length;"><i class="bi bi-exclamation-triangle me-2"></i><a id="isInvalidCounter"></a> Fehler gefunden</p>
             <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 gap-sm-0">
                 <!-- Cancel button -->
                 <div class="order-2 order-sm-1">
@@ -1178,16 +1187,56 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // on change of any field of all steps, check if there are any errors
+    document.querySelectorAll('#step-1 input, #step-1 select, #step-1 textarea').forEach(field => {
+        field.addEventListener('change', function(e) {
+            checkStep1Complete();
+        });
+    });
+    document.querySelectorAll('#step-2 input, #step-2 select, #step-2 textarea').forEach(field => {
+        field.addEventListener('change', function(e) {
+            checkStep2Complete();
+        });
+    });
+    document.querySelectorAll('#step-3 input, #step-3 select, #step-3 textarea').forEach(field => {
+        field.addEventListener('change', function(e) {
+            checkStep3Complete();
+        });
+    });
+    document.querySelectorAll('#step-4 input, #step-4 select, #step-4 textarea').forEach(field => {
+        field.addEventListener('change', function(e) {
+            checkStep4Complete();
+        });
+    });
+    document.querySelectorAll('#step-5 input, #step-5 select, #step-5 textarea').forEach(field => {
+        field.addEventListener('change', function(e) {
+            checkStep5Complete();
+        });
+    });
+
     function checkStep1Complete() {
         // Check if at least one person cluster is selected
         const checkedClusters = document.querySelectorAll('input[name="person_cluster"]:checked');
-        return checkedClusters.length > 0;
+        const personClusterContainer = document.getElementById('person_cluster_container');
+        if (checkedClusters.length > 0) {
+            personClusterContainer.classList.remove('is-invalid');
+            return true;
+        } else {
+            personClusterContainer.classList.add('is-invalid');
+            return false;
+        }
     }
 
     function checkStep2Complete() {
         // Check if name field has content
         const nameField = document.getElementById('id_name');
-        return nameField && nameField.value.trim();
+        if (nameField && nameField.value.trim()) {
+            nameField.classList.remove('is-invalid');
+            return true;
+        } else {
+            nameField.classList.add('is-invalid');
+            return false;
+        }
     }
 
     function checkStep3Complete() {
@@ -1298,7 +1347,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (wiederholungIntervalWochen) {
                 wiederholungIntervalWochen.value = '';
             }
-            console.log(wiederholungIntervalWochen.value);
             return true;
         }
     }
@@ -1334,28 +1382,44 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         if (currentStep < totalSteps) {
-            goToStep(currentStep + 1);
+            makeStepCompleted(currentStep);
+            currentStep++;
+            makeStepActive(currentStep);
+            goToStep(currentStep);
+            updateUI();
         }
     }
 
+    function makeStepActive(step) {
+        const stepElement = document.getElementById(`step-${step}`);
+        stepElement.classList.add('active');
+        stepElement.querySelector('.step-number').classList.add('active');
+        stepElement.classList.remove('completed');
+        stepElement.querySelector('.step-number').classList.remove('completed');
+    }
+
+    function makeStepCompleted(step) {
+        const stepElement = document.getElementById(`step-${step}`);
+        stepElement.classList.add('completed');
+        stepElement.querySelector('.step-number').classList.add('completed');
+    }
+
+    function makeStepInactive(step) {
+        const stepElement = document.getElementById(`step-${step}`);
+        stepElement.classList.remove('active');
+        stepElement.querySelector('.step-number').classList.remove('active');
+        stepElement.classList.remove('completed');
+        stepElement.querySelector('.step-number').classList.remove('completed');
+    }
+
     function goToStep(step) {
-        // Hide current step
-        document.getElementById(`step-${currentStep}`).classList.remove('active');
-        document.getElementById(`step-${currentStep}`).classList.add('completed');
-        document.querySelector(`#step-${currentStep} .step-number`).classList.remove('active');
-        document.querySelector(`#step-${currentStep} .step-number`).classList.add('completed');
-
-        // Show new step
-        currentStep = step;
-        document.getElementById(`step-${currentStep}`).classList.add('active');
-        document.querySelector(`#step-${currentStep} .step-number`).classList.add('active');
-
-        updateUI();
-        
-        // Focus first input in new step
         const firstInput = document.querySelector(`#step-${currentStep} input, #step-${currentStep} select, #step-${currentStep} textarea`);
         if (firstInput && firstInput.type !== 'checkbox') {
             firstInput.focus();
+        }
+        const stepElement = document.getElementById(`step-${step}`);
+        if (stepElement) {
+            stepElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
 
@@ -1392,17 +1456,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         prevBtn.addEventListener('click', function() {
             if (currentStep > 1) {
-                // Hide current step
-                document.getElementById(`step-${currentStep}`).classList.remove('active');
-                document.querySelector(`#step-${currentStep} .step-number`).classList.remove('active');
-
-                // Show previous step
+                makeStepInactive(currentStep);
                 currentStep--;
-                document.getElementById(`step-${currentStep}`).classList.remove('completed');
-                document.getElementById(`step-${currentStep}`).classList.add('active');
-                document.querySelector(`#step-${currentStep} .step-number`).classList.remove('completed');
-                document.querySelector(`#step-${currentStep} .step-number`).classList.add('active');
-
+                makeStepActive(currentStep);
+                goToStep(currentStep);
                 updateUI();
             }
         });
@@ -1469,7 +1526,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        console.log("checking steps");
         // Check all steps manually
         let allStepsValid = true;
         allStepsValid = checkStep1Complete() && allStepsValid;
@@ -1478,6 +1534,17 @@ document.addEventListener('DOMContentLoaded', function() {
         allStepsValid = checkStep4Complete() && allStepsValid;
         allStepsValid = checkStep5Complete() && allStepsValid;
         if (!allStepsValid) {
+            e.preventDefault();
+            submitBtn.classList.remove('disabled');
+            const spinner = submitBtn.querySelector('span.spinner-border');
+            if (spinner) {
+                spinner.remove();
+            }
+
+            const isInvalidCounter = document.getElementById('isInvalidCounter');
+            const isInvalidCounterValue = document.querySelectorAll('.is-invalid').length;
+            isInvalidCounter.textContent = isInvalidCounterValue;
+            isInvalidCounter.parentElement.classList.remove('d-none');
             return false;
         }
         // Clear all due date fields
