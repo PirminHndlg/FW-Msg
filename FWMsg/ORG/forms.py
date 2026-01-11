@@ -579,7 +579,7 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
             required=False
         )
 
-        self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.request.user.org)
+        self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.request.user.org, aufgaben=True)
 
     def is_valid(self):
         return super().is_valid() and self.zwischenschritte.is_valid()

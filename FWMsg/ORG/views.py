@@ -1904,12 +1904,16 @@ def ajax_assign_task_to_all(request):
         if error_response:
             return error_response
         
-        # TODO: filter if a filter is applied in the aufgaben table
         users = User.objects.filter(customuser__person_cluster__isnull=False, customuser__org=request.user.org, customuser__person_cluster__in=aufgabe.person_cluster.all())
-        if person_cluster_id and person_cluster_id != 'None':
-            person_cluster = PersonCluster.objects.filter(id=int(person_cluster_id), org=request.user.org)
-            if person_cluster.exists():
-                users = users.filter(customuser__person_cluster=person_cluster.first())
+        if person_cluster_id and person_cluster_id not in ['None', 'undefined', '']:
+            try:
+                person_cluster_id_int = int(person_cluster_id)
+                person_cluster = PersonCluster.objects.filter(id=person_cluster_id_int, org=request.user.org)
+                if person_cluster.exists():
+                    users = users.filter(customuser__person_cluster=person_cluster.first())
+            except (ValueError, TypeError):
+                # Invalid person_cluster_id, skip filtering by person cluster
+                pass
             
         assigned_count = 0
         error_messages = []
