@@ -59,35 +59,6 @@
     background: linear-gradient(180deg, #28a745, #20c997);
 }
 
-/* Progress Indicator */
-.progress-indicator {
-    height: 6px;
-    background: linear-gradient(90deg, #e9ecef 0%, #f8f9fa 100%);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: 2.5rem;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
-}
-
-.progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #007bff 0%, #0056b3 50%, #28a745 100%);
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 3px;
-    position: relative;
-    overflow: hidden;
-}
-
-.progress-bar::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
-    animation: shimmer 2s infinite;
-}
 
 @keyframes shimmer {
     0% { transform: translateX(-100%); }
@@ -464,13 +435,6 @@
         </div>
     {% endif %}
 
-    <!-- Progress Indicator (only shown in create mode) -->
-    {% if not form.instance.id %}
-    <div class="progress-indicator">
-        <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
-    </div>
-    {% endif %}
-
     <form method="post" class="needs-validation form-wizard" novalidate enctype="multipart/form-data" id="aufgabeForm">
         {% csrf_token %}
         
@@ -478,20 +442,11 @@
             <div class="card-header rounded-4">
                 <h4 class="mb-0">
                     {% if form.instance.id %}
-                        <i class="bi bi-pencil me-2"></i>
                         {% trans "Aufgabe bearbeiten" %}
                     {% else %}
-                        <i class="bi bi-plus-circle me-2"></i>
                         {% trans "Neue Aufgabe erstellen" %}
                     {% endif %}
                 </h4>
-                <p class="mb-0 text-muted small">
-                    {% if form.instance.id %}
-                        {% trans "Bearbeiten Sie die Aufgabendetails" %}
-                    {% else %}
-                        {% trans "Folgen Sie den Schritten, um eine neue Aufgabe zu definieren" %}
-                    {% endif %}
-                </p>
             </div>
             <div class="card-body">
                 
@@ -503,7 +458,7 @@
                     </div>
                     <div class="field-explanation">
                         <i class="bi bi-people me-2"></i>
-                        {% trans "Wählen Sie die Benutzergruppen aus, für die diese Aufgabe relevant ist." %}
+                        {% trans "Wähle die Benutzergruppen aus, für die diese Aufgabe relevant ist." %}
                     </div>
                     
                     <!-- Person Clusters -->
@@ -553,7 +508,7 @@
                     </div>
                     <div class="field-explanation">
                         <i class="bi bi-info-circle me-2"></i>
-                        {% trans "Geben Sie der Aufgabe einen aussagekräftigen Namen und eine detaillierte Beschreibung." %}
+                        {% trans "Gib der Aufgabe einen aussagekräftigen Namen und eine detaillierte Beschreibung." %}
                     </div>
 
                     <!-- Name Field -->
@@ -635,7 +590,7 @@
                     </div>
                     <div class="field-explanation">
                         <i class="bi bi-gear me-2"></i>
-                        {% trans "Definieren Sie, wie die Aufgabe bearbeitet werden soll - mit Datei-Upload und/oder Bestätigung." %}
+                        {% trans "Definiere, wie die Aufgabe bearbeitet werden soll - mit Datei-Upload und/oder Bestätigung." %}
                     </div>
 
                     <!-- File Upload Required -->
@@ -736,7 +691,7 @@
                     </div>
                     <div class="field-explanation">
                         <i class="bi bi-calendar me-2"></i>
-                        {% trans "Bestimmen Sie, wann diese Aufgabe fällig wird." %}
+                        {% trans "Bestimme, wann diese Aufgabe fällig wird." %}
                     </div>
 
                     <!-- Due Date Tabs -->
@@ -750,7 +705,7 @@
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="relative-start-tab" data-bs-toggle="tab" data-bs-target="#relative-start-pane" type="button" role="tab" aria-controls="relative-start-pane" aria-selected="false">
-                                        <i class="bi bi-play-circle me-2"></i>{% trans "Relativ zum Einsatzstart" %}
+                                        <i class="bi bi-play-circle me-2"></i>{% trans "Relativ zum Einsatzbeginn" %}
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
@@ -760,7 +715,7 @@
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="no-due-date-tab" data-bs-toggle="tab" data-bs-target="#no-due-date-pane" type="button" role="tab" aria-controls="no-due-date-pane" aria-selected="false">
-                                        <i class="bi bi-stop-circle me-2"></i>{% trans "Ohne Fälligkeit" %}
+                                        <i class="bi bi-x-circle me-2"></i>{% trans "Ohne Fälligkeit" %}
                                     </button>
                                 </li>
                             </ul>
@@ -771,13 +726,6 @@
                                 <!-- Fixed Date Tab -->
                                 <!-- Fixed Date Tab -->
                                 <div class="tab-pane fade show active" id="fixed-date-pane" role="tabpanel" aria-labelledby="fixed-date-tab">
-                                    <div class="mb-3">
-                                        <div class="alert alert-info">
-                                            <i class="bi bi-info-circle me-2"></i>
-                                            {% trans "Setzen Sie einen festen Termin." %}
-                                        </div>
-                                    </div>
-
                                     <div class="row mx-3">
                                         <div class="col-md-6">
                                             <div class="mb-3">
@@ -802,18 +750,18 @@
                                                 </label>
                                                 <select name="{{ form.faellig_monat.name }}" class="form-select" id="{{ form.faellig_monat.id_for_label }}">
                                                     <option value="">{% trans "Monat wählen..." %}</option>
-                                                    <option value="1" {% if form.faellig_monat.value == "1" %}selected{% endif %}>{% trans "Januar" %}</option>
-                                                    <option value="2" {% if form.faellig_monat.value == "2" %}selected{% endif %}>{% trans "Februar" %}</option>
-                                                    <option value="3" {% if form.faellig_monat.value == "3" %}selected{% endif %}>{% trans "März" %}</option>
-                                                    <option value="4" {% if form.faellig_monat.value == "4" %}selected{% endif %}>{% trans "April" %}</option>
-                                                    <option value="5" {% if form.faellig_monat.value == "5" %}selected{% endif %}>{% trans "Mai" %}</option>
-                                                    <option value="6" {% if form.faellig_monat.value == "6" %}selected{% endif %}>{% trans "Juni" %}</option>
-                                                    <option value="7" {% if form.faellig_monat.value == "7" %}selected{% endif %}>{% trans "Juli" %}</option>
-                                                    <option value="8" {% if form.faellig_monat.value == "8" %}selected{% endif %}>{% trans "August" %}</option>
-                                                    <option value="9" {% if form.faellig_monat.value == "9" %}selected{% endif %}>{% trans "September" %}</option>
-                                                    <option value="10" {% if form.faellig_monat.value == "10" %}selected{% endif %}>{% trans "Oktober" %}</option>
-                                                    <option value="11" {% if form.faellig_monat.value == "11" %}selected{% endif %}>{% trans "November" %}</option>
-                                                    <option value="12" {% if form.faellig_monat.value == "12" %}selected{% endif %}>{% trans "Dezember" %}</option>
+                                                    <option value="1" {% if form.faellig_monat.value == 1 %}selected{% endif %}>{% trans "Januar" %}</option>
+                                                    <option value="2" {% if form.faellig_monat.value == 2 %}selected{% endif %}>{% trans "Februar" %}</option>
+                                                    <option value="3" {% if form.faellig_monat.value == 3 %}selected{% endif %}>{% trans "März" %}</option>
+                                                    <option value="4" {% if form.faellig_monat.value == 4 %}selected{% endif %}>{% trans "April" %}</option>
+                                                    <option value="5" {% if form.faellig_monat.value == 5 %}selected{% endif %}>{% trans "Mai" %}</option>
+                                                    <option value="6" {% if form.faellig_monat.value == 6 %}selected{% endif %}>{% trans "Juni" %}</option>
+                                                    <option value="7" {% if form.faellig_monat.value == 7 %}selected{% endif %}>{% trans "Juli" %}</option>
+                                                    <option value="8" {% if form.faellig_monat.value == 8 %}selected{% endif %}>{% trans "August" %}</option>
+                                                    <option value="9" {% if form.faellig_monat.value == 9 %}selected{% endif %}>{% trans "September" %}</option>
+                                                    <option value="10" {% if form.faellig_monat.value == 10 %}selected{% endif %}>{% trans "Oktober" %}</option>
+                                                    <option value="11" {% if form.faellig_monat.value == 11 %}selected{% endif %}>{% trans "November" %}</option>
+                                                    <option value="12" {% if form.faellig_monat.value == 12 %}selected{% endif %}>{% trans "Dezember" %}</option>
                                                 </select>
                                                 {% if form.faellig_monat.help_text %}
                                                     <div class="form-text">{{ form.faellig_monat.help_text }}</div>
@@ -824,21 +772,10 @@
                                             </div>
                                         </div>
                                     </div>
-
-                                    <div class="text-muted small">
-                                        <i class="bi bi-lightbulb me-1"></i>
-                                        {% trans "Beispiel: Tag 15, Monat März = Aufgabe ist jedes Jahr am 15. März fällig" %}
-                                    </div>
                                 </div>
 
                                 <!-- Relative Start Tab -->
                                 <div class="tab-pane fade" id="relative-start-pane" role="tabpanel" aria-labelledby="relative-start-tab">
-                                    <div class="mb-3">
-                                        <div class="alert alert-info">
-                                            <i class="bi bi-info-circle me-2"></i>
-                                            {% trans "Setzen Sie die Fälligkeit relativ zum Einsatzbeginn der Freiwilligen." %}
-                                        </div>
-                                    </div>
                                     <div class="mb-3 row mx-3">
                                         <label for="{{ form.faellig_tage_nach_start.id_for_label }}" class="col-md-4 col-form-label">
                                             <i class="bi bi-play-circle text-success me-1"></i>
@@ -854,22 +791,10 @@
                                             {% endif %}
                                         </div>
                                     </div>
-
-                                    <div class="text-muted small">
-                                        <i class="bi bi-lightbulb me-1"></i>
-                                        {% trans "Beispiel: 30 Tage = Aufgabe ist 30 Tage nach Einsatzbeginn fällig" %}
-                                    </div>
                                 </div>
 
                                 <!-- Relative End Tab -->
                                 <div class="tab-pane fade" id="relative-end-pane" role="tabpanel" aria-labelledby="relative-end-tab">
-                                    <div class="mb-3">
-                                        <div class="alert alert-info">
-                                            <i class="bi bi-info-circle me-2"></i>
-                                            {% trans "Setzen Sie die Fälligkeit relativ zum Einsatzende der Freiwilligen." %}
-                                        </div>
-                                    </div>
-
                                     <div class="mb-3 row mx-3">
                                         <label for="{{ form.faellig_tage_vor_ende.id_for_label }}" class="col-md-4 col-form-label">
                                             <i class="bi bi-stop-circle text-danger me-1"></i>
@@ -885,11 +810,6 @@
                                             {% endif %}
                                         </div>
                                     </div>
-
-                                    <div class="text-muted small">
-                                        <i class="bi bi-lightbulb me-1"></i>
-                                        {% trans "Beispiel: 30 Tage = Aufgabe ist 30 Tage vor Einsatzende fällig" %}
-                                    </div>
                                 </div>
 
                                 <!-- No Due Date Tab -->
@@ -897,7 +817,7 @@
                                     <div class="mb-3">
                                         <div class="alert alert-info">
                                             <i class="bi bi-info-circle me-2"></i>
-                                            {% trans "Setzen Sie keinen Fälligkeitstermin." %}
+                                            {% trans "Setze keinen Fälligkeitstermin." %}
                                         </div>
                                     </div>
                                 </div>
@@ -914,7 +834,7 @@
                     </div>
                     <div class="field-explanation">
                         <i class="bi bi-arrow-repeat me-2"></i>
-                        {% trans "Soll diese Aufgabe regelmäßig wiederholt werden? Definieren Sie das Intervall und das Enddatum." %}
+                        {% trans "Soll diese Aufgabe regelmäßig wiederholt werden? Definiere das Intervall und das Enddatum." %}
                     </div>
 
                     <div class="card m-2">
@@ -963,7 +883,7 @@
                     </div>
                     <div class="field-explanation">
                         <i class="bi bi-bell me-2"></i>
-                        {% trans "Bestimmen Sie, wie oft Erinnerungen für nicht erledigte Aufgaben gesendet werden sollen." %}
+                        {% trans "Bestimme, wie oft Erinnerungen für nicht erledigte Aufgaben gesendet werden sollen." %}
                     </div>
 
                     <!-- Repeat Push Days -->
@@ -999,7 +919,7 @@
 
                     <div class="zwischenschritte-section d-flex flex-column align-items-center">
                         <!-- Toggle Button -->
-                        <button type="button" class="btn btn-outline-primary mb-3 w-25" id="toggle-zwischenschritte" data-bs-toggle="collapse" data-bs-target="#zwischenschritte-container" aria-expanded="false" aria-controls="zwischenschritte-container">
+                        <button type="button" class="btn btn-outline-primary mb-3" id="toggle-zwischenschritte" data-bs-toggle="collapse" data-bs-target="#zwischenschritte-container" aria-expanded="false" aria-controls="zwischenschritte-container">
                             <i class="bi bi-chevron-down me-2" id="zwischenschritte-icon"></i>
                             <span id="zwischenschritte-toggle-text">{% trans "Zwischenschritte hinzufügen" %}</span>
                         </button>
@@ -1008,11 +928,11 @@
                         <div class="collapse w-100" id="zwischenschritte-container">
                             <div class="card w-100">
                                 <div class="card-body">
-                                    <div id="zwischenschritte-forms" class="row mx-3">
+                                    <div id="zwischenschritte-forms" class="row w-100">
                                         {% if form.zwischenschritte %}
                                             {{ form.zwischenschritte.management_form }}
                                             {% for zwischenschritt_form in form.zwischenschritte %}
-                                                <div class="zwischenschritt-item mb-3 p-3 border rounded bg-light col-md-6 col-12">
+                                                <div class="zwischenschritt-item mb-3 p-2 border rounded bg-light col-md-6 col-12">
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                                         <h6 class="mb-0">
                                                             <i class="bi bi-list-check me-1"></i>
@@ -1060,36 +980,48 @@
         </div>
 
         <!-- Form Actions -->
-        <div class="form-actions d-flex justify-content-between sticky-bottom border ">
-            <div>
-                <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'list_aufgaben_table' %}{% endif %}" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left"></i> {% trans "Zurück" %}
-                </a>
-            </div>
-            <div>
-                <button type="button" class="btn btn-outline-primary me-2" id="prevStep" style="display: none;">
-                    <i class="bi bi-chevron-left"></i> {% trans "Zurück" %}
-                </button>
-                <button type="button" class="btn btn-primary" id="nextStep">
-                    {% trans "Weiter" %} <i class="bi bi-chevron-right"></i>
-                </button>
-                {% if form.instance.id %}
-                    <button type="button" class="btn btn-danger me-2 delete-btn" id="deleteBtn" style="display: none;"
-                        data-bs-toggle="modal"
-                        data-bs-target="#deleteModal"
-                        data-model="aufgabe"
-                        data-id="{{ form.instance.pk }}"
-                        data-name="{{ form.instance }}">
-                        <i class="bi bi-trash"></i> {% trans "Löschen" %}
+        <div class="form-actions sticky-bottom border">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 gap-sm-0">
+                <!-- Cancel button -->
+                <div class="order-2 order-sm-1">
+                    <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'list_aufgaben_table' %}{% endif %}" 
+                       class="btn btn-secondary w-100 w-sm-auto">
+                        <i class="bi bi-arrow-left"></i> 
+                        <span class="d-none d-sm-inline">{% trans "Abbrechen" %}</span>
+                    </a>
+                </div>
+                
+                <!-- Navigation and action buttons -->
+                <div class="order-1 order-sm-2 d-flex flex-wrap gap-2 justify-content-end">
+                    <button type="button" class="btn btn-outline-primary flex-grow-1 flex-sm-grow-0" id="prevStep" style="display: none;">
+                        <i class="bi bi-chevron-left"></i> 
+                        <span class="d-none d-sm-inline">{% trans "Zurück" %}</span>
                     </button>
-                    <button type="submit" class="btn btn-success" id="submitBtn" style="display: none;">
-                        <i class="bi bi-check2"></i> {% trans "Änderungen speichern" %}
+                    <button type="button" class="btn btn-primary flex-grow-1 flex-sm-grow-0" id="nextStep">
+                        <span class="d-none d-sm-inline">{% trans "Weiter" %}</span>
+                        <i class="bi bi-chevron-right"></i>
                     </button>
-                {% else %}
-                    <button type="submit" class="btn btn-success" id="submitBtn" style="display: none;">
-                        <i class="bi bi-check2"></i> {% trans "Aufgabe erstellen" %}
-                    </button>
-                {% endif %}
+                    {% if form.instance.id %}
+                        <button type="button" class="btn btn-danger delete-btn flex-grow-1 flex-sm-grow-0" id="deleteBtn" style="display: none;"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteModal"
+                            data-model="aufgabe"
+                            data-id="{{ form.instance.pk }}"
+                            data-name="{{ form.instance }}">
+                            <i class="bi bi-trash"></i> 
+                            <span class="d-none d-sm-inline">{% trans "Löschen" %}</span>
+                        </button>
+                        <button type="submit" class="btn btn-success flex-grow-1 flex-sm-grow-0" id="submitBtn" style="display: none;">
+                            <i class="bi bi-check2"></i> 
+                            <span class="d-none d-sm-inline">{% trans "Änderungen speichern" %}</span>
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn btn-success flex-grow-1 flex-sm-grow-0" id="submitBtn" style="display: none;">
+                            <i class="bi bi-check2"></i> 
+                            <span class="d-none d-sm-inline">{% trans "Aufgabe erstellen" %}</span>
+                        </button>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </form>
@@ -1102,7 +1034,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const totalSteps = 7;
     let currentStep = 1;
-    const progressBar = document.getElementById('progressBar');
     const nextBtn = document.getElementById('nextStep');
     const prevBtn = document.getElementById('prevStep');
     const submitBtn = document.getElementById('submitBtn');
@@ -1130,9 +1061,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Set to last step and update UI
         currentStep = totalSteps;
-        if (progressBar) {
-            progressBar.style.width = '100%';
-        }
         nextBtn.style.display = 'none';
         prevBtn.style.display = 'none';
         submitBtn.style.display = 'inline-block';
@@ -1203,7 +1131,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (zwischenschritteContainer) {
         // In edit mode, expand if there are existing zwischenschritte
-        const hasZwischenschritte = document.querySelectorAll('.zwischenschritt-item').length > 0;
+        let hasZwischenschritte = false;
+        const zwischenschritte = document.querySelectorAll('.zwischenschritt-item')
+        for (const zwischenschritt of zwischenschritte) {
+            const nameField = zwischenschritt.querySelector('input[name*="name"]');
+            if (nameField && nameField.value.trim()) {
+                hasZwischenschritte = true;
+                break;
+            }
+        }
         if (hasZwischenschritte) {
             const bsCollapse = new bootstrap.Collapse(zwischenschritteContainer, { toggle: false });
             bsCollapse.show();
@@ -1242,108 +1178,66 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-
-    // Auto-advance logic for each step
-    function setupAutoAdvance() {
-        // Step 1: Person clusters - auto-advance when at least one is selected
-        const personClusterCheckboxes = document.querySelectorAll('input[name="person_cluster"]');
-        personClusterCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                if (currentStep === 1) {
-                    setTimeout(() => checkStep1Complete(), 300);
-                }
-            });
-        });
-
-        // Step 2: Name field - also check for completion
-        const nameField = document.getElementById('id_name');
-        if (nameField) {
-            nameField.addEventListener('blur', function() {
-                if (currentStep === 2) {
-                    setTimeout(() => checkStep2Complete(), 300);
-                }
-            });
-        }
-
-        // Step 3: Configuration checkboxes
-        const configFields = ['id_mitupload', 'id_requires_submission'];
-        configFields.forEach(fieldId => {
-            const field = document.getElementById(fieldId);
-            if (field) {
-                field.addEventListener('change', function() {
-                    if (currentStep === 3) {
-                        setTimeout(() => checkStep3Complete(), 300);
-                    }
-                });
-            }
-        });
-
-        // Step 4: Due date fields (tabs)
-        const dueDateFields = ['id_faellig_art', 'id_faellig_tag', 'id_faellig_monat', 'id_faellig_tage_nach_start', 'id_faellig_tage_vor_ende'];
-        dueDateFields.forEach(fieldId => {
-            const field = document.getElementById(fieldId);
-            if (field) {
-                field.addEventListener('change', function() {
-                    if (currentStep === 4) {
-                        setTimeout(() => checkStep4Complete(), 300);
-                    }
-                });
-            }
-        });
-
-        // Step 5: Repetition checkbox
-        if (wiederholungCheckbox) {
-            wiederholungCheckbox.addEventListener('change', function() {
-                if (currentStep === 5) {
-                    setTimeout(() => checkStep5Complete(), 300);
-                }
-            });
-        }
-    }
-
     function checkStep1Complete() {
-        if (currentStep !== 1) return;
-        
         // Check if at least one person cluster is selected
         const checkedClusters = document.querySelectorAll('input[name="person_cluster"]:checked');
-        if (checkedClusters.length > 0) {
-            advanceStep();
-        }
+        return checkedClusters.length > 0;
     }
 
     function checkStep2Complete() {
-        if (currentStep !== 2) return;
-        
         // Check if name field has content
         const nameField = document.getElementById('id_name');
-        if (nameField && nameField.value.trim()) {
-            // advanceStep();
-        }
+        return nameField && nameField.value.trim();
     }
 
     function checkStep3Complete() {
-        // Auto-advance after user interacts with config fields
-        if (currentStep === 3) {
-            // advanceStep();
-        }
+        return true;
+    }
+
+    function clearValueOfOtherDueDateFields(excludeFields) {
+        const dueDateFields = [
+            'id_faellig_tag',
+            'id_faellig_monat',
+            'id_faellig_tage_nach_start',
+            'id_faellig_tage_vor_ende'
+        ];
+        dueDateFields.forEach(field => {
+            if (!excludeFields.includes(field)) {
+                const fieldElement = document.getElementById(field);
+                if (fieldElement) {
+                    fieldElement.value = '';
+                }
+            }
+        });
     }
 
     function checkStep4Complete() {
-        if (currentStep !== 4) return;
-        
         // Check which tab is active and if it has required data
         const fixedDateTab = document.getElementById('fixed-date-pane');
         const relativeStartTab = document.getElementById('relative-start-pane');
         const relativeEndTab = document.getElementById('relative-end-pane');
-        
-        let shouldAdvance = false;
+        const noDueDateTab = document.getElementById('no-due-date-pane');
         
         // Fixed date tab - check if both day and month are set
         if (fixedDateTab && fixedDateTab.classList.contains('active')) {
             const faelligTag = document.getElementById('id_faellig_tag');
             const faelligMonat = document.getElementById('id_faellig_monat');
             if (faelligTag && faelligMonat && faelligTag.value && faelligMonat.value) {
-                shouldAdvance = true;
+                faelligTag.classList.remove('is-invalid');
+                faelligMonat.classList.remove('is-invalid');
+                clearValueOfOtherDueDateFields(['id_faellig_tag', 'id_faellig_monat']);
+                return true;
+            } else {
+                if (!faelligTag.value) {
+                    faelligTag.classList.add('is-invalid');
+                } else {
+                    faelligTag.classList.remove('is-invalid');
+                }
+                if (!faelligMonat.value) {
+                    faelligMonat.classList.add('is-invalid');
+                } else {
+                    faelligMonat.classList.remove('is-invalid');
+                }
             }
         }
         
@@ -1351,7 +1245,15 @@ document.addEventListener('DOMContentLoaded', function() {
         else if (relativeStartTab && relativeStartTab.classList.contains('active')) {
             const nachStart = document.getElementById('id_faellig_tage_nach_start');
             if (nachStart && nachStart.value) {
-                shouldAdvance = true;
+                nachStart.classList.remove('is-invalid');
+                clearValueOfOtherDueDateFields(['id_faellig_tage_nach_start']);
+                return true;
+            } else {
+                if (!nachStart.value) {
+                    nachStart.classList.add('is-invalid');
+                } else {
+                    nachStart.classList.remove('is-invalid');
+                }
             }
         }
         
@@ -1359,19 +1261,45 @@ document.addEventListener('DOMContentLoaded', function() {
         else if (relativeEndTab && relativeEndTab.classList.contains('active')) {
             const vorEnde = document.getElementById('id_faellig_tage_vor_ende');
             if (vorEnde && vorEnde.value) {
-                shouldAdvance = true;
+                vorEnde.classList.remove('is-invalid');
+                clearValueOfOtherDueDateFields(['id_faellig_tage_vor_ende']);
+                return true;
+            } else {
+                if (!vorEnde.value) {
+                    vorEnde.classList.add('is-invalid');
+                } else {
+                    vorEnde.classList.remove('is-invalid');
+                }
             }
+        } 
+
+        // No due date tab - check if no due date is set
+        else if (noDueDateTab && noDueDateTab.classList.contains('active')) {
+            clearValueOfOtherDueDateFields([]);
+            return true;
         }
-        
-        if (shouldAdvance) {
-            // advanceStep();
-        }
+        return false;
     }
 
     function checkStep5Complete() {
-        // Auto-advance after user interacts with repetition settings
-        if (currentStep === 5) {
-            // advanceStep();
+        // Check if repetition end date is set
+        const wiederholungCheckbox = document.getElementById('id_wiederholung');
+        const wiederholungIntervalWochen = document.getElementById('id_wiederholung_interval_wochen');
+        if (wiederholungCheckbox && wiederholungCheckbox.checked) {
+            // if wiederholung_interval_wochen is none invalid
+            if (wiederholungIntervalWochen && wiederholungIntervalWochen.value) {
+                wiederholungIntervalWochen.classList.remove('is-invalid');
+                return true;
+            } else {
+                wiederholungIntervalWochen.classList.add('is-invalid');
+                return false;
+            }
+        } else {
+            if (wiederholungIntervalWochen) {
+                wiederholungIntervalWochen.value = '';
+            }
+            console.log(wiederholungIntervalWochen.value);
+            return true;
         }
     }
 
@@ -1393,17 +1321,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function advanceStep() {
         let requiredFields = document.querySelectorAll(`#step-${currentStep} input[required], #step-${currentStep} select[required], #step-${currentStep} textarea[required]`);
         let valid = true
-        console.log(requiredFields);
         requiredFields.forEach(field => {
             if (!field.value.trim()) {
                 field.classList.add('is-invalid');
-                console.log(field);
                 valid = false;
             } else {
                 field.classList.remove('is-invalid');
             }
         });
-        console.log(valid);
 
         if (!valid) {
             return;
@@ -1435,12 +1360,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateUI() {
-        // Update progress bar
-        const progress = (currentStep / totalSteps) * 100;
-        if (progressBar) {
-            progressBar.style.width = progress + '%';
-        }
-
         // Update buttons
         prevBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
         
@@ -1501,7 +1420,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 field.classList.remove('is-invalid');
             }
-        });
+        }); 
 
         // Special validation for step 1 (person clusters)
         if (currentStep === 1) {
@@ -1514,7 +1433,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!errorDiv) {
                     errorDiv = document.createElement('div');
                     errorDiv.className = 'validation-error text-danger small mt-1';
-                    errorDiv.textContent = 'Bitte wählen Sie mindestens eine Benutzergruppe aus.';
+                    errorDiv.textContent = 'Bitte wähle mindestens eine Benutzergruppe aus.';
                     personClusterContainer.appendChild(errorDiv);
                 }
             } else {
@@ -1524,14 +1443,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     errorDiv.remove();
                 }
             }
+        } else if (currentStep === 4) {
+            isValid = checkStep4Complete() || false;
+        } else if (currentStep === 5) {
+            isValid = checkStep5Complete() || false;
         }
 
         return isValid;
-    }
-
-    // Initialize auto-advance (only for create mode)
-    if (!isEditMode) {
-        setupAutoAdvance();
     }
 
     // Form submission
@@ -1549,6 +1467,34 @@ document.addEventListener('DOMContentLoaded', function() {
                     stepNumber.classList.add('completed');
                 }
             }
+        }
+
+        console.log("checking steps");
+        // Check all steps manually
+        let allStepsValid = true;
+        allStepsValid = checkStep1Complete() && allStepsValid;
+        allStepsValid = checkStep2Complete() && allStepsValid;
+        allStepsValid = checkStep3Complete() && allStepsValid;
+        allStepsValid = checkStep4Complete() && allStepsValid;
+        allStepsValid = checkStep5Complete() && allStepsValid;
+        if (!allStepsValid) {
+            return false;
+        }
+        // Clear all due date fields
+        const dueDateFields = ['id_faellig_tag', 'id_faellig_monat', 'id_faellig_tage_nach_start', 'id_faellig_tage_vor_ende'];
+        // which pane is active, clear the other fields
+        const relativeStartPane = document.getElementById('relative-start-pane');
+        const relativeEndPane = document.getElementById('relative-end-pane');
+        const noDueDatePane = document.getElementById('no-due-date-pane');
+        const fixedDatePane = document.getElementById('fixed-date-pane');
+        if (relativeStartPane && relativeStartPane.classList.contains('active')) {
+            clearValueOfOtherDueDateFields(['id_faellig_tage_nach_start']);
+        } else if (relativeEndPane && relativeEndPane.classList.contains('active')) {
+            clearValueOfOtherDueDateFields(['id_faellig_tage_vor_ende']);
+        } else if (noDueDatePane && noDueDatePane.classList.contains('active')) {
+            clearValueOfOtherDueDateFields([]);
+        } else if (fixedDatePane && fixedDatePane.classList.contains('active')) {
+            clearValueOfOtherDueDateFields(['id_faellig_tag', 'id_faellig_monat']);
         }
         
         // Remove the novalidate attribute to allow browser validation
