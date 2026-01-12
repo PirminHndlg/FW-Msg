@@ -45,6 +45,7 @@ urlpatterns = [
     
     path('download-aufgabe/<int:id>', views.download_aufgabe, name='download_aufgabe'),
     path('statistik/', views.statistik, name='statistik'),
+    path('ajax/statistik/', views.ajax_statistik, name='ajax_statistik'),
 
     path('nginx-statistic/', views.nginx_statistic, name='nginx_statistic'),
 

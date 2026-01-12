@@ -1228,51 +1228,27 @@ def download_aufgabe(request, id):
 @required_role('O')
 def statistik(request):
     field_name = request.GET.get('field')
-
+    person_cluster_param = request.GET.get('person_cluster_filter')
+    
+    if not person_cluster_param:
+        person_cluster_param = request.COOKIES.get('selectedPersonCluster-statistik')
+    if person_cluster_param is not None and person_cluster_param != 'None':
+        try:
+            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+        except PersonCluster.DoesNotExist:
+            person_cluster = None
+    else:
+        person_cluster = None
+    
+    if person_cluster:
+        freiwillige = Freiwilliger.objects.filter(org=request.user.org, user__customuser__person_cluster=person_cluster)
+    else:
+        freiwillige = Freiwilliger.objects.filter(org=request.user.org)
+        
     fields_types_for_stats = ['T', 'C', 'D', 'B']
     if not 'selectedPersonCluster' in request.COOKIES:
         fields_types_for_stats.append('E')
 
-    if field_name:
-        # Check if it's a UserAttribute field
-        if Attribute.objects.filter(name=field_name, org=request.user.org).exists():
-            attribute = Attribute.objects.get(name=field_name, org=request.user.org)
-            
-            if attribute.type not in fields_types_for_stats:
-                return JsonResponse({'error': 'Invalid field'}, status=400)
-            
-            stats = UserAttribute.objects.filter(
-                org=request.user.org,
-                attribute=attribute,
-                user__in=Freiwilliger.objects.filter(org=request.user.org).values('user')
-            ).values('value').annotate(count=Count('id')).order_by('value')
-            
-            data = {str(item['value']) if item['value'] is not None else 'Nicht angegeben': item['count'] for item in stats}
-            return JsonResponse(data)
-        
-        # Original code for Freiwilliger fields
-        if field_name not in [f.name for f in Freiwilliger._meta.fields]:
-            return JsonResponse({'error': 'Invalid field'}, status=400)
-        
-        stats = Freiwilliger.objects.filter(org=request.user.org)\
-            .values(field_name)\
-            .annotate(count=Count('id'))\
-            .order_by(field_name)
-        
-        # Convert QuerySet to dictionary
-        data = {}
-        for item in stats:
-            value = item[field_name]
-            if isinstance(value, int) and any(f.name == field_name and isinstance(f, ForeignKey) for f in Freiwilliger._meta.fields):
-                related_obj = Freiwilliger._meta.get_field(field_name).related_model.objects.get(id=value)
-                key = str(related_obj)
-            else:
-                key = str(value) if value is not None else 'Nicht angegeben'
-            data[key] = item['count']
-        
-        return JsonResponse(data)
-
-    freiwillige = Freiwilliger.objects.filter(org=request.user.org)
     filter_for_fields = ['einsatzland2', 'einsatzstelle2']
     if not 'selectedPersonCluster' in request.COOKIES:
         filter_for_fields.append('personen_cluster')
@@ -1282,6 +1258,8 @@ def statistik(request):
     fields = [field for field in all_fields if field.name in filter_for_fields]
     
     attributes = Attribute.objects.filter(org=request.user.org, type__in=fields_types_for_stats)
+    if person_cluster:
+        attributes = attributes.filter(person_cluster=person_cluster)
     
     # Convert attributes to field-like objects
     attribute_fields = [type('AttributeField', (), {
@@ -1292,7 +1270,86 @@ def statistik(request):
     # Combine regular fields and attribute fields
     fields.extend(attribute_fields)
     
-    return render(request, 'statistik.html', context={'freiwillige': freiwillige, 'fields': fields})
+    context = {
+        'freiwillige': freiwillige,
+        'fields': fields,
+        'attributes': attributes,
+        'person_clusters': PersonCluster.objects.filter(org=request.user.org, view='F'),
+        'current_person_cluster': person_cluster
+    }
+    
+    return render(request, 'statistik.html', context)
+
+@login_required
+@required_role('O')
+@require_http_methods(["GET"])
+def ajax_statistik(request):
+    field_name = request.GET.get('field')
+    person_cluster_param = request.GET.get('person_cluster_filter')
+    
+    print(field_name, person_cluster_param)
+    
+    if person_cluster_param and person_cluster_param != 'None':
+        try:
+            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+            freiwillige = Freiwilliger.objects.filter(org=request.user.org, user__customuser__person_cluster=person_cluster)
+        except PersonCluster.DoesNotExist:
+            return JsonResponse({'error': 'Person cluster not found'}, status=404)
+    else:
+        freiwillige = Freiwilliger.objects.filter(org=request.user.org)
+        
+        
+    # Check if it's a UserAttribute field
+    if Attribute.objects.filter(name=field_name, org=request.user.org).exists():
+        attribute = Attribute.objects.get(name=field_name, org=request.user.org)
+        
+        fields_types_for_stats = ['T', 'C', 'D', 'B']
+        
+        if attribute.type not in fields_types_for_stats:
+            return JsonResponse({'error': 'Invalid field'}, status=400)
+        
+        stats = UserAttribute.objects.filter(
+            org=request.user.org,
+            attribute=attribute,
+            user__in=freiwillige.values('user')
+        ).values('value').annotate(count=Count('id')).order_by('value')
+        
+        data = {}
+        for item in stats:
+            value = item['value']
+            if isinstance(value, int) and any(f.name == field_name and isinstance(f, ForeignKey) for f in Freiwilliger._meta.fields):
+                related_obj = Freiwilliger._meta.get_field(field_name).related_model.objects.get(id=value)
+                key = str(related_obj)
+            else:
+                key = str(value) if value is not None else '-'
+                if key == '':
+                    key = 'andere Benutzergruppe'
+            data[key] = item['count']
+        
+        return JsonResponse(data)
+    
+    # Original code for Freiwilliger fields
+    if field_name not in [f.name for f in Freiwilliger._meta.fields]:
+        return JsonResponse({'error': 'Invalid field'}, status=400)
+    
+    stats = freiwillige.values(field_name)\
+        .values(field_name)\
+        .annotate(count=Count('id'))\
+        .order_by(field_name)
+    
+    # Convert QuerySet to dictionary
+    data = {}
+    for item in stats:
+        value = item[field_name]
+        if isinstance(value, int) and any(f.name == field_name and isinstance(f, ForeignKey) for f in Freiwilliger._meta.fields):
+            related_obj = Freiwilliger._meta.get_field(field_name).related_model.objects.get(id=value)
+            key = str(related_obj)
+        else:
+            key = str(value) if value is not None else '-'
+        data[key] = item['count']
+    
+    return JsonResponse(data)
+        
 
 @login_required
 @required_role('O')
