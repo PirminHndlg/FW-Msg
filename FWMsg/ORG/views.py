@@ -2278,6 +2278,12 @@ def ajax_load_aufgaben_table_data(request):
             'file_downloaded_of'
         )
 
+        # Prefetch person_cluster relationships for aufgaben to avoid N+1 queries
+        aufgaben = aufgaben.prefetch_related('person_cluster')
+        
+        # Prefetch customuser and person_cluster for users to avoid N+1 queries
+        users = users.select_related('customuser', 'customuser__person_cluster')
+
         # Create a lookup dictionary for faster access
         user_aufgaben_dict = {}
         for ua in user_aufgaben:
@@ -2285,23 +2291,52 @@ def ajax_load_aufgaben_table_data(request):
                 user_aufgaben_dict[ua.user_id] = {}
             user_aufgaben_dict[ua.user_id][ua.aufgabe_id] = ua
 
-        # Build matrix using the same logic as original - but serialize to JSON
-        user_aufgaben_matrix = {}
+        # Build eligibility map: which aufgaben is each user eligible for?
+        # eligible_map[user_id] = set(aufgabe_ids)
+        eligible_map = {}
         for user in users:
-            user_aufgaben_matrix[user.id] = []
+            if hasattr(user, 'customuser') and user.customuser.person_cluster:
+                user_person_cluster = user.customuser.person_cluster
+                eligible_aufgaben = set()
+                for aufgabe in aufgaben:
+                    # Check if user's person_cluster is in aufgabe's person_cluster
+                    if user_person_cluster in aufgabe.person_cluster.all():
+                        eligible_aufgaben.add(aufgabe.id)
+                eligible_map[user.id] = eligible_aufgaben
+            else:
+                eligible_map[user.id] = set()
+
+        # Build sparse dictionaries instead of dense matrix
+        # user_aufgaben_assigned[user_id][aufgabe_id] = {...} for assigned tasks
+        # user_aufgaben_eligible[user_id] = [aufgabe_id, ...] for eligible but unassigned
+        user_aufgaben_assigned = {}
+        user_aufgaben_eligible = {}
+        
+        for user in users:
+            user_id = user.id
+            user_aufgaben_assigned[user_id] = {}
+            user_aufgaben_eligible[user_id] = []
+            
+            eligible_aufgaben = eligible_map.get(user_id, set())
+            
             for aufgabe in aufgaben:
-                ua = user_aufgaben_dict.get(user.id, {}).get(aufgabe.id, None)
+                aufgabe_id = aufgabe.id
+                ua = user_aufgaben_dict.get(user_id, {}).get(aufgabe_id, None)
+                
                 if ua:
+                    # User has this aufgabe assigned
                     zwischenschritte = ua.prefetched_zwischenschritte
                     zwischenschritte_count = len(zwischenschritte)
                     zwischenschritte_done_count = sum(1 for z in zwischenschritte if z.erledigt)
                     
-                    # Get file downloaded by names
-                    file_downloaded_of_names = ', '.join([
-                        f"{u.first_name} {u.last_name}" for u in ua.file_downloaded_of.all()
-                    ]) if ua.file else None
+                    # Only get file downloaded by names if file exists (lazy load optimization)
+                    file_downloaded_of_names = None
+                    if ua.file:
+                        file_downloaded_of_names = ', '.join([
+                            f"{u.first_name} {u.last_name}" for u in ua.file_downloaded_of.all()
+                        ])
                     
-                    user_aufgaben_matrix[user.id].append({
+                    user_aufgaben_assigned[user_id][aufgabe_id] = {
                         'user_aufgabe': {
                             'id': ua.id,
                             'aufgabe_name': ua.aufgabe.name,
@@ -2318,11 +2353,11 @@ def ajax_load_aufgaben_table_data(request):
                         },
                         'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
                         'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
-                    })
-                elif hasattr(user, 'customuser') and user.customuser.person_cluster in aufgabe.person_cluster.all():
-                    user_aufgaben_matrix[user.id].append(aufgabe.id)
-                else:
-                    user_aufgaben_matrix[user.id].append(None)
+                    }
+                elif aufgabe_id in eligible_aufgaben:
+                    # User is eligible but aufgabe not assigned
+                    user_aufgaben_eligible[user_id].append(aufgabe_id)
+                # If neither assigned nor eligible, we don't include it (sparse format)
 
         # Get countries for users
         countries = Einsatzland2.objects.filter(org=request.user.org)
@@ -2348,7 +2383,8 @@ def ajax_load_aufgaben_table_data(request):
             'data': {
                 'users': users_data,
                 'aufgaben': aufgaben_data,
-                'user_aufgaben_matrix': user_aufgaben_matrix,
+                'user_aufgaben_assigned': user_aufgaben_assigned,
+                'user_aufgaben_eligible': user_aufgaben_eligible,
                 'countries': list(countries.values('id', 'name')),
                 'today': date.today().isoformat(),
                 'current_person_cluster': person_cluster.id if person_cluster else None,

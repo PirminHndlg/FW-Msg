@@ -91,7 +91,7 @@ function buildUrlWithNext(urlTemplate, id, nextUrl) {
  * Build the complete table HTML from JSON data
  */
 function buildTableFromJSON(data) {
-    const { users, aufgaben, user_aufgaben_matrix, today, current_person_cluster } = data;
+    const { users, aufgaben, user_aufgaben_assigned, user_aufgaben_eligible, today, current_person_cluster } = data;
     
     const tableHtml = `
         <div class="table-responsive" style="height: 100vh; min-height: 400px">
@@ -100,7 +100,7 @@ function buildTableFromJSON(data) {
                     ${buildTableHeader(aufgaben, current_person_cluster)}
                 </thead>
                 <tbody>
-                    ${buildTableRows(users, aufgaben, user_aufgaben_matrix, today)}
+                    ${buildTableRows(users, aufgaben, user_aufgaben_assigned, user_aufgaben_eligible, today)}
                     <tr class="h-100"></tr>
                 </tbody>
             </table>
@@ -271,20 +271,33 @@ function buildTableHeader(aufgaben, person_cluster) {
 /**
  * Build table rows for all users
  */
-function buildTableRows(users, aufgaben, user_aufgaben_matrix, today) {
+function buildTableRows(users, aufgaben, user_aufgaben_assigned, user_aufgaben_eligible, today) {
     return users.map(user => {
-        const userAufgaben = user_aufgaben_matrix[user.id] || [];
-        return buildTableRow(user, aufgaben, userAufgaben, today);
+        return buildTableRow(user, aufgaben, user_aufgaben_assigned, user_aufgaben_eligible, today);
     }).join('');
 }
 
 /**
  * Build a single table row for a user
  */
-function buildTableRow(user, aufgaben, userAufgaben, today) {
-    const cells = aufgaben.map((aufgabe, index) => {
-        const userAufgabe = userAufgaben[index];
-        return buildTableCell(user, aufgabe, userAufgabe, today);
+function buildTableRow(user, aufgaben, user_aufgaben_assigned, user_aufgaben_eligible, today) {
+    const userAssigned = user_aufgaben_assigned[user.id] || {};
+    const userEligible = user_aufgaben_eligible[user.id] || [];
+    const eligibleSet = new Set(userEligible);
+    
+    const cells = aufgaben.map((aufgabe) => {
+        // Check if user has this aufgabe assigned
+        const userAufgabe = userAssigned[aufgabe.id];
+        if (userAufgabe) {
+            // User has this aufgabe assigned - pass the full object
+            return buildTableCell(user, aufgabe, userAufgabe, today);
+        } else if (eligibleSet.has(aufgabe.id)) {
+            // User is eligible but aufgabe not assigned - pass aufgabe.id as number
+            return buildTableCell(user, aufgabe, aufgabe.id, today);
+        } else {
+            // User is not eligible - pass null
+            return buildTableCell(user, aufgabe, null, today);
+        }
     }).join('');
     
     return `
