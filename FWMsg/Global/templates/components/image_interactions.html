@@ -5,92 +5,88 @@
 <div class="image-interactions mt-2" data-bild-id="{{ bild.id|default:'' }}">
   <!-- Reaction Bar -->
   <div class="reaction-bar mb-3">
-    <div class="d-flex align-items-center gap-1 flex-wrap">
+    <div class="d-flex align-items-center gap-0">
       <!-- Emoji Reaction Buttons -->
-      <div class="emoji-buttons d-flex w-100 justify-content-between gap-1" data-bild-id="{{ bild.id|default:'' }}">
-        <div class="d-flex justify-content-between gap-1">
+      <div class="emoji-buttons d-flex flex-grow-1 gap-1 flex-wrap" data-bild-id="{{ bild.id|default:'' }}">
         {% with my_reaction=bild|get_my_reaction:request.user %}
           {% for reaction in bild.get_reaction_summary %}
-            <button type="button" onclick="interactionButtonPressed(this)" class="btn btn-sm btn-outline-secondary emoji-btn {% if my_reaction and my_reaction.emoji == reaction.emoji %}active{% endif %}" data-interaction-url="{% url 'toggle_reaction_to_bild' bild.id reaction.emoji %}">
-              {{ reaction.emoji }}
+            <button type="button" onclick="interactionButtonPressed(this)" class="emoji-reaction-btn p-2 {% if my_reaction and my_reaction.emoji == reaction.emoji %}active{% endif %}" data-interaction-url="{% url 'toggle_reaction_to_bild' bild.id reaction.emoji %}">
+              <span class="emoji-icon">{{ reaction.emoji }}</span>
               <span class="reaction-count">{{ reaction.count }}</span>
             </button>
           {% endfor %}
-          {% endwith %}
-          </div>
-
-          <!-- View All Reactions Button -->
-          <div class="d-flex justify-content-end gap-1">
-          {% if bild.reactions.count > 0 %}
-            <button type="button" class="btn btn-sm" onclick="showReactionsModal({{ bild.id|default:'null' }})">
-              <i class="bi bi-info-circle"></i>
-            </button>
-          {% endif %}
-          </div>
-        </div>
+        {% endwith %}
       </div>
 
-  </div>
-
-  <!-- Write Comment Section (Always Visible) -->
-  <div class="{% if mobile_only %}
-      border-top pt-3 mt-3
-    {% else %}
-      bg-light border rounded-3 p-3 mt-3
-    {% endif %} mb-3">
-    <form id="comment-form" method="post" action="{% url 'add_comment_to_bild' bild.id %}">
-      {% csrf_token %}
-      <div class="mb-2">
-        <textarea name="comment"
-          class="form-control"
-          placeholder="{% trans 'Kommentar hinzufügen...' %}"
-          rows="2"
-          maxlength="500"
-          required
-          style="resize: vertical; min-height: 60px;"></textarea>
-      </div>
-      <div class="d-flex justify-content-end align-items-center">
-        <button type="submit" class="btn btn-primary btn-sm">
-          <i class="bi bi-send me-1"></i>{% trans 'Kommentar senden' %}
-        </button>
-      </div>
-    </form>
+      <!-- View All Reactions Button -->
+      {% if bild.reactions.count > 0 %}
+          <i class="bi bi-info-circle cursor-pointer p-2 m-0" onclick="showReactionsModal({{ bild.id|default:'null' }})" title="{% trans 'Alle Reaktionen anzeigen' %}"></i>
+      {% endif %}
+    </div>
   </div>
 
   <!-- Comments Section -->
   <div class="comments-section">
     <!-- Comments Header -->
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <span class="fw-semibold">
-          <i class="bi bi-chat me-1"></i>
-          {% trans 'Kommentare' %}
-          <span class="text-muted">({{ bild.get_comment_count }})</span>
-        </span>
-      {% if bild.get_comment_count > 0 %}
-        <button type="button" class="btn btn-sm btn-outline-secondary comments-toggle" data-bs-toggle="collapse" data-bs-target="#comments-{{ bild.id|default:'fullscreen' }}" aria-expanded="false"><i class="bi bi-chevron-down"></i></button>
+    <div class="d-flex align-items-center justify-content-between mb-2 {% if not open_comments %}cursor-pointer{% endif %}" {% if not open_comments %}data-bs-toggle="collapse" data-bs-target="#comments-{{ bild.id|default:'fullscreen' }}"{% endif %}>
+      <span class="fw-semibold">
+        <i class="bi bi-chat me-1"></i>
+        {% trans 'Kommentare' %}
+        <span class="text-muted">({{ bild.get_comment_count }})</span>
+      </span>
+      {% if not open_comments %}
+        <button type="button" class="btn btn-sm btn-link p-0 comments-toggle" data-bs-toggle="collapse" data-bs-target="#comments-{{ bild.id|default:'fullscreen' }}" aria-expanded="false">
+          {% if bild.get_comment_count > 0 %}
+            <i class="bi bi-chevron-down"></i>
+          {% else %}
+            <i class="bi bi-plus"></i>
+          {% endif %}
+        </button>
       {% endif %}
     </div>
 
     <!-- Comments Container -->
-    <div class="{% if bild.get_comment_count > 0 and not mobile_only %}collapse{% endif %}" id="comments-{{ bild.id|default:'fullscreen' }}">
+    <div class="{% if not open_comments %}collapse{% endif %}" id="comments-{{ bild.id|default:'fullscreen' }}">
+      <!-- Write Comment Section -->
+      <div class="comment-form-container mb-3">
+        <form id="comment-form" method="post" action="{% url 'add_comment_to_bild' bild.id %}">
+          {% csrf_token %}
+          <div class="d-flex gap-2 align-items-end">
+            <div class="flex-grow-1">
+              <textarea name="comment"
+                class="form-control form-control-sm comment-input"
+                placeholder="{% trans 'Kommentar hinzufügen...' %}"
+                rows="1"
+                maxlength="500"
+                required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm comment-submit-btn" title="{% trans 'Kommentar senden' %}">
+              <i class="bi bi-send"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+
       <!-- Comments List -->
-      <div class="comments-list mb-3" id="comments-list-{{ bild.id|default:'fullscreen' }}">
+      <div class="comments-list" id="comments-list-{{ bild.id|default:'fullscreen' }}">
         {% for comment in bild.comments.all %}
-          <div class="py-3 {% if not forloop.last %}border-bottom{% endif %}" data-comment-id="{{ comment.id }}">
-            <div class="d-flex justify-content-between align-items-start">
+          <div class="comment-item" data-comment-id="{{ comment.id }}">
+            <div class="d-flex justify-content-between align-items-start gap-2">
               <div class="flex-grow-1">
                 <div class="d-flex align-items-center mb-1">
                   <a href="{% url 'profil' comment.user.customuser.get_identifier %}" class="text-dark text-decoration-none">
-                    <strong class="me-2">{{ comment.user.get_full_name|default:comment.user.username }}</strong>
+                    <strong class="comment-author">{{ comment.user.get_full_name|default:comment.user.username }}</strong>
                   </a>
-                  <small class="text-muted">{{ comment.date_created|date:'d.m.Y H:i' }}</small>
+                  <small class="text-muted ms-2">{{ comment.date_created|date:'d.m.Y H:i' }}</small>
                 </div>
-                <p class="mb-0">{{ comment.comment }}</p>
+                <p class="mb-0 comment-text">{{ comment.comment }}</p>
               </div>
               {% if comment.user == request.user or request.user.role == 'O' %}
                 <form method="post" action="{% url 'remove_comment_from_bild' comment.id %}" class="d-inline" onsubmit="return confirm('{% trans 'Kommentar wirklich löschen?' %}')">
                   {% csrf_token %}
-                  <button type="submit" class="btn btn-sm btn-outline-danger" title="{% trans 'Löschen' %}"><i class="bi bi-trash"></i></button>
+                  <button type="submit" class="btn btn-sm btn-link text-danger p-0 comment-delete-btn" title="{% trans 'Löschen' %}">
+                    <i class="bi bi-trash"></i>
+                  </button>
                 </form>
               {% endif %}
             </div>
@@ -137,6 +133,99 @@
 
 <!-- Custom CSS for the reactions modal -->
 <style>
+/* Emoji Reaction Buttons - Unified Design */
+.emoji-reaction-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #495057;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 36px;
+}
+
+.emoji-reaction-btn:hover {
+  background: #f8f9fa;
+  border-color: #c0c0c0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.emoji-reaction-btn.active {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-color: #2196f3;
+  color: #1976d2;
+  box-shadow: 0 2px 6px rgba(33, 150, 243, 0.2);
+}
+
+.emoji-icon {
+  font-size: 18px;
+  line-height: 1;
+  display: inline-block;
+}
+
+.reaction-count {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.85;
+}
+
+.emoji-reaction-btn.active .reaction-count {
+  opacity: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 576px) {
+  .emoji-reaction-btn {
+    padding: 5px 10px;
+    font-size: 14px;
+    min-height: 32px;
+    gap: 3px;
+  }
+  
+  .emoji-icon {
+    font-size: 16px;
+  }
+  
+  .reaction-count {
+    font-size: 11px;
+  }
+  
+  .reaction-bar {
+    margin-bottom: 1rem !important;
+  }
+  
+  .emoji-buttons {
+    gap: 0.5rem !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .emoji-reaction-btn {
+    padding: 4px 8px;
+    min-height: 30px;
+  }
+  
+  .emoji-icon {
+    font-size: 15px;
+  }
+  
+  .reaction-count {
+    font-size: 10px;
+  }
+}
+
+/* Modal Styles */
 .emoji-circle {
   width: 50px;
   height: 50px;
@@ -188,5 +277,172 @@
 #reactionsModal .modal-body::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* Comment Section Styles */
+.comments-section {
+  margin-top: 1rem;
+}
+
+.comment-form-container {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.comment-input {
+  border: 1px solid #dee2e6;
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-size: 14px;
+  resize: none;
+  transition: all 0.2s ease;
+  background: #ffffff;
+  min-height: 38px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.comment-input:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+  outline: none;
+}
+
+.comment-submit-btn {
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.comment-submit-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comment-item {
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.comment-item:hover {
+  border-color: #dee2e6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.comment-author {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.comment-author:hover {
+  color: #0d6efd;
+}
+
+.comment-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #495057;
+  word-wrap: break-word;
+}
+
+.comment-delete-btn {
+  opacity: 0.6;
+  transition: all 0.2s ease;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.comment-item:hover .comment-delete-btn {
+  opacity: 1;
+}
+
+.comment-delete-btn:hover {
+  transform: scale(1.1);
+  color: #dc3545 !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.comments-toggle {
+  transition: transform 0.3s ease;
+}
+
+.comments-toggle[aria-expanded="true"] i {
+  transform: rotate(180deg);
+}
+
+.comments-toggle i {
+  transition: transform 0.3s ease;
+}
+
+/* Responsive Design for Comments */
+@media (max-width: 576px) {
+  .comment-form-container {
+    padding: 10px;
+  }
+  
+  .comment-input {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+  
+  .comment-submit-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .comment-item {
+    padding: 10px;
+  }
+  
+  .comment-author {
+    font-size: 13px;
+  }
+  
+  .comment-text {
+    font-size: 13px;
+  }
+}
 </style>
+
+<script>
+// Auto-resize comment textarea
+document.addEventListener('DOMContentLoaded', function() {
+  const commentInputs = document.querySelectorAll('.comment-input');
+  commentInputs.forEach(input => {
+    // Set initial height
+    input.style.height = 'auto';
+    input.style.height = input.scrollHeight + 'px';
+    
+    // Auto-resize on input
+    input.addEventListener('input', function() {
+      this.style.height = 'auto';
+      const newHeight = Math.min(this.scrollHeight, 120);
+      this.style.height = newHeight + 'px';
+    });
+  });
+});
+</script>
 
