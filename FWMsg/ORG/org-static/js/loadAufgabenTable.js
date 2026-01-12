@@ -162,9 +162,9 @@ function buildTableHeader(aufgaben, person_cluster) {
     
     return `
         <tr class="">
-             <th class="sticky-right px-1 align-middle z-1000" style="min-width:200px; position: sticky; left: 0; top: 0; box-shadow: 2px 2px 0 0 #dee2e6;">
-                <div class="input-group rounded-pill shadow-sm bg-white py-1 px-1 align-items-center" style="min-width: 150px;">
-                    <span class="input-group-text bg-white border-0 px-1" style="font-size:1.1em;">
+             <th class="sticky-right p-1 align-middle z-1000" style="min-width:200px; position: sticky; left: 0; top: 0; box-shadow: 2px 2px 0 0 #dee2e6;">
+                <div class="input-group rounded-pill border shadow-sm bg-white align-items-center" style="min-width: 150px;">
+                    <span class="input-group-text bg-transparent border-0" style="font-size:1.1em;">
                         <i class="bi bi-search text-secondary"></i>
                     </span>
                     <input id="userSearch"
@@ -175,7 +175,7 @@ function buildTableHeader(aufgaben, person_cluster) {
                         autocomplete="off"
                         oninput="searchHandler(this.value)"
                     >
-                    <button class="btn btn-link text-decoration-none px-2"
+                    <button class="btn btn-link text-decoration-none"
                         type="button"
                         tabindex="-1"
                         aria-label="Suche zurücksetzen"
