@@ -115,7 +115,7 @@ function buildTableFromJSON(data) {
  */
 function buildTableHeader(aufgaben, person_cluster) {
     const aufgabenHeaders = aufgaben.map(aufgabe => `
-        <th class="text-center bg-white p-0 sticky-top border-end" style="box-shadow: 2px 2px 0 0 #dee2e6;">
+        <th class="text-center bg-white p-1 sticky-top border-end" style="box-shadow: 2px 2px 0 0 #dee2e6;">
             <div class="d-flex gap-1 align-items-center">
                 <div class="d-flex gap-0 align-items-center flex-column">
                     ${aufgabe.beschreibung ? `
@@ -162,9 +162,9 @@ function buildTableHeader(aufgaben, person_cluster) {
     
     return `
         <tr class="">
-             <th class="sticky-right p-1 align-middle z-1000" style="min-width:200px; position: sticky; left: 0; top: 0; box-shadow: 2px 2px 0 0 #dee2e6;">
-                <div class="input-group rounded-pill border shadow-sm bg-white align-items-center" style="min-width: 150px;">
-                    <span class="input-group-text bg-transparent border-0" style="font-size:1.1em;">
+             <th class="sticky-right p-1 align-bottom z-1000" style="min-width:200px; position: sticky; left: 0; top: 0; box-shadow: 2px 2px 0 0 #dee2e6;">
+                <div class="input-group gap-0 rounded-pill border shadow-sm bg-white align-items-center" style="min-width: 150px;">
+                    <span class="input-group-text bg-transparent border-0 pe-0" style="font-size:1.1em;">
                         <i class="bi bi-search text-secondary"></i>
                     </span>
                     <input id="userSearch"
@@ -175,7 +175,7 @@ function buildTableHeader(aufgaben, person_cluster) {
                         autocomplete="off"
                         oninput="searchHandler(this.value)"
                     >
-                    <button class="btn btn-link text-decoration-none"
+                    <button class="btn btn-link text-decoration-none ps-0"
                         type="button"
                         tabindex="-1"
                         aria-label="Suche zurücksetzen"
