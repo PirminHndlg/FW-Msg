@@ -548,14 +548,14 @@ class StatistikTests(TestCase):
     def test_statistik_field_data(self):
         """Test statistics data for specific fields"""
         # Test gender statistics
-        response = self.client.get(reverse('statistik') + '?field=Geschlecht')
+        response = self.client.get(reverse('ajax_statistik') + '?field=Geschlecht')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertIn('M', data)
         self.assertEqual(data['M'], 1)
 
         # Test city statistics
-        response = self.client.get(reverse('statistik') + '?field=Ort')
+        response = self.client.get(reverse('ajax_statistik') + '?field=Ort')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertIn('Test City', data)
@@ -1443,14 +1443,16 @@ class TaskTemplateStateTests(TestCase):
         # Check that the response includes the new JSON structure
         self.assertIn('users', data['data'])
         self.assertIn('aufgaben', data['data'])
-        self.assertIn('user_aufgaben_matrix', data['data'])
+        self.assertIn('user_aufgaben_assigned', data['data'])
+        self.assertIn('user_aufgaben_eligible', data['data'])
         self.assertIn('today', data['data'])
         self.assertIn('current_person_cluster', data['data'])
         
-        # Verify user_aufgaben_matrix contains the task data
+        # Verify user_aufgaben_assigned contains the task data
         user_id = str(user_aufgabe.user.id)
-        self.assertIn(user_id, data['data']['user_aufgaben_matrix'])
-        self.assertGreater(len(data['data']['user_aufgaben_matrix'][user_id]), 0)
+        aufgabe_id = str(user_aufgabe.aufgabe.id)
+        self.assertIn(user_id, data['data']['user_aufgaben_assigned'])
+        self.assertIn(aufgabe_id, data['data']['user_aufgaben_assigned'][user_id])
 
     def test_task_state_visibility_upcoming(self):
         """Test that upcoming tasks have correct JSON data structure"""
@@ -1465,18 +1467,14 @@ class TaskTemplateStateTests(TestCase):
         data = json.loads(response.content)
         self.assertTrue(data['success'])
         
-        # Find the user_aufgabe in the response data
+        # Find the user_aufgabe in the response data using sparse format
         user_id = str(user_aufgabe.user.id)
-        user_aufgaben_list = data['data']['user_aufgaben_matrix'][user_id]
+        aufgabe_id = str(user_aufgabe.aufgabe.id)
         
-        # Find the task in the list (it should be a dict with user_aufgabe key)
-        task_data = None
-        for item in user_aufgaben_list:
-            if isinstance(item, dict) and 'user_aufgabe' in item:
-                if item['user_aufgabe']['id'] == user_aufgabe.id:
-                    task_data = item
-                    break
+        self.assertIn(user_id, data['data']['user_aufgaben_assigned'])
+        self.assertIn(aufgabe_id, data['data']['user_aufgaben_assigned'][user_id])
         
+        task_data = data['data']['user_aufgaben_assigned'][user_id][aufgabe_id]
         self.assertIsNotNone(task_data, "Task not found in response")
         self.assertFalse(task_data['user_aufgabe']['erledigt'])
         self.assertFalse(task_data['user_aufgabe']['pending'])
@@ -1494,18 +1492,14 @@ class TaskTemplateStateTests(TestCase):
         data = json.loads(response.content)
         self.assertTrue(data['success'])
         
-        # Find the user_aufgabe in the response data
+        # Find the user_aufgabe in the response data using sparse format
         user_id = str(user_aufgabe.user.id)
-        user_aufgaben_list = data['data']['user_aufgaben_matrix'][user_id]
+        aufgabe_id = str(user_aufgabe.aufgabe.id)
         
-        # Find the task in the list
-        task_data = None
-        for item in user_aufgaben_list:
-            if isinstance(item, dict) and 'user_aufgabe' in item:
-                if item['user_aufgabe']['id'] == user_aufgabe.id:
-                    task_data = item
-                    break
+        self.assertIn(user_id, data['data']['user_aufgaben_assigned'])
+        self.assertIn(aufgabe_id, data['data']['user_aufgaben_assigned'][user_id])
         
+        task_data = data['data']['user_aufgaben_assigned'][user_id][aufgabe_id]
         self.assertIsNotNone(task_data, "Task not found in response")
         self.assertFalse(task_data['user_aufgabe']['erledigt'])
         self.assertTrue(task_data['user_aufgabe']['pending'])
@@ -1524,18 +1518,14 @@ class TaskTemplateStateTests(TestCase):
         data = json.loads(response.content)
         self.assertTrue(data['success'])
         
-        # Find the user_aufgabe in the response data
+        # Find the user_aufgabe in the response data using sparse format
         user_id = str(user_aufgabe.user.id)
-        user_aufgaben_list = data['data']['user_aufgaben_matrix'][user_id]
+        aufgabe_id = str(user_aufgabe.aufgabe.id)
         
-        # Find the task in the list
-        task_data = None
-        for item in user_aufgaben_list:
-            if isinstance(item, dict) and 'user_aufgabe' in item:
-                if item['user_aufgabe']['id'] == user_aufgabe.id:
-                    task_data = item
-                    break
+        self.assertIn(user_id, data['data']['user_aufgaben_assigned'])
+        self.assertIn(aufgabe_id, data['data']['user_aufgaben_assigned'][user_id])
         
+        task_data = data['data']['user_aufgaben_assigned'][user_id][aufgabe_id]
         self.assertIsNotNone(task_data, "Task not found in response")
         self.assertTrue(task_data['user_aufgabe']['erledigt'])
         self.assertIsNotNone(task_data['user_aufgabe']['erledigt_am'])
@@ -1555,18 +1545,14 @@ class TaskTemplateStateTests(TestCase):
         data = json.loads(response.content)
         self.assertTrue(data['success'])
         
-        # Find the completed task in the response data
+        # Find the completed task in the response data using sparse format
         user_id = str(completed_task.user.id)
-        user_aufgaben_list = data['data']['user_aufgaben_matrix'][user_id]
+        aufgabe_id = str(completed_task.aufgabe.id)
         
-        # Find the task in the list
-        task_data = None
-        for item in user_aufgaben_list:
-            if isinstance(item, dict) and 'user_aufgabe' in item:
-                if item['user_aufgabe']['id'] == completed_task.id:
-                    task_data = item
-                    break
+        self.assertIn(user_id, data['data']['user_aufgaben_assigned'])
+        self.assertIn(aufgabe_id, data['data']['user_aufgaben_assigned'][user_id])
         
+        task_data = data['data']['user_aufgaben_assigned'][user_id][aufgabe_id]
         self.assertIsNotNone(task_data, "Task not found in response")
         self.assertTrue(task_data['user_aufgabe']['erledigt'])
         # The background class will be determined by JavaScript based on this data
@@ -1585,18 +1571,14 @@ class TaskTemplateStateTests(TestCase):
         data = json.loads(response.content)
         self.assertTrue(data['success'])
         
-        # Find the overdue task in the response data
+        # Find the overdue task in the response data using sparse format
         user_id = str(overdue_task.user.id)
-        user_aufgaben_list = data['data']['user_aufgaben_matrix'][user_id]
+        aufgabe_id = str(overdue_task.aufgabe.id)
         
-        # Find the task in the list
-        task_data = None
-        for item in user_aufgaben_list:
-            if isinstance(item, dict) and 'user_aufgabe' in item:
-                if item['user_aufgabe']['id'] == overdue_task.id:
-                    task_data = item
-                    break
+        self.assertIn(user_id, data['data']['user_aufgaben_assigned'])
+        self.assertIn(aufgabe_id, data['data']['user_aufgaben_assigned'][user_id])
         
+        task_data = data['data']['user_aufgaben_assigned'][user_id][aufgabe_id]
         self.assertIsNotNone(task_data, "Task not found in response")
         # Verify the task is overdue (faellig date is in the past)
         # The danger styling will be applied by JavaScript based on this date
@@ -1612,7 +1594,8 @@ class TaskTemplateStateTests(TestCase):
         # Check that the response includes the new JSON structure
         self.assertIn('users', data['data'])
         self.assertIn('aufgaben', data['data'])
-        self.assertIn('user_aufgaben_matrix', data['data'])
+        self.assertIn('user_aufgaben_assigned', data['data'])
+        self.assertIn('user_aufgaben_eligible', data['data'])
         self.assertIn('today', data['data'])
         self.assertIn('current_person_cluster', data['data'])
 

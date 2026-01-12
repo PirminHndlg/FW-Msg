@@ -1287,7 +1287,8 @@ def ajax_statistik(request):
     field_name = request.GET.get('field')
     person_cluster_param = request.GET.get('person_cluster_filter')
     
-    print(field_name, person_cluster_param)
+    if not field_name:
+        return JsonResponse({'error': 'Field parameter is required'}, status=400)
     
     if person_cluster_param and person_cluster_param != 'None':
         try:
@@ -1333,7 +1334,6 @@ def ajax_statistik(request):
         return JsonResponse({'error': 'Invalid field'}, status=400)
     
     stats = freiwillige.values(field_name)\
-        .values(field_name)\
         .annotate(count=Count('id'))\
         .order_by(field_name)
     
