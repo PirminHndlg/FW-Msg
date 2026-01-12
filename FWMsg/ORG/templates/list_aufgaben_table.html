@@ -410,11 +410,6 @@
         if (scrollToElement) {
           scrollToElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
         }
-
-        // Initialize search functionality after content loads
-        setTimeout(() => {
-          initializeSearchFunctionality()
-        }, 1000)
       })
       
       function setTaskId(taskId, taskName) {
@@ -825,27 +820,15 @@
       // Re-initialize tooltips and other interactive elements
       const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
       const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-      
-      // Re-initialize search functionality
-      initializeSearchFunctionality()
     }
     
-    function initializeSearchFunctionality() {
-      const searchInput = document.getElementById('userSearch')
-      if (searchInput) {
-        // Remove existing event listeners to avoid duplicates
-        searchInput.removeEventListener('input', searchHandler)
-        searchInput.addEventListener('input', searchHandler)
-      }
-    }
-    
-    function searchHandler(event) {
-      const searchTerm = event.target.value.toLowerCase()
+    function searchHandler(value) {
+      const searchTerm = value.toLowerCase()
       const tableRows = document.querySelectorAll('tbody tr')
       
       tableRows.forEach(row => {
-        const userName = row.querySelector('th').textContent.toLowerCase()
-        if (userName.includes(searchTerm)) {
+        const userName = row.dataset.searchTerm
+        if (userName && userName.toLowerCase().includes(searchTerm)) {
           row.style.display = ''
         } else {
           row.style.display = 'none'

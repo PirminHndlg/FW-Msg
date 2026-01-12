@@ -115,7 +115,7 @@ function buildTableFromJSON(data) {
  */
 function buildTableHeader(aufgaben, person_cluster) {
     const aufgabenHeaders = aufgaben.map(aufgabe => `
-        <th class="text-center bg-white p-0 sticky-top with-border">
+        <th class="text-center bg-white p-0 sticky-top border-end" style="box-shadow: 2px 2px 0 0 #dee2e6;">
             <div class="d-flex gap-1 align-items-center">
                 <div class="d-flex gap-0 align-items-center flex-column">
                     ${aufgabe.beschreibung ? `
@@ -138,7 +138,7 @@ function buildTableHeader(aufgaben, person_cluster) {
                     <button class="btn btn-sm dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <p class="text-wrap m-0">${escapeHtml(aufgabe.name)}</p>
                     </button>
-                    <ul class="dropdown-menu z-1000">
+                    <ul class="dropdown-menu z-1020">
                         <li>
                             <a href="${buildUrlWithNext(window.DJANGO_URLS.editAufgabe, aufgabe.id, window.DJANGO_URLS.listAufgabenTable)}" class="dropdown-item">
                                 <i class="bi bi-pencil me-2"></i> Bearbeiten
@@ -157,32 +157,40 @@ function buildTableHeader(aufgaben, person_cluster) {
                     </ul>
                 </div>
             </div>
-            <hr class="border-dark m-0 mt-1" />
         </th>
     `).join('');
     
     return `
         <tr class="">
-            <th class="p-0 sticky-top with-border">
-                <div class="d-flex gap-1 align-items-center justify-content-between pe-0">
-                    Person
+             <th class="sticky-right px-1 align-middle z-1000" style="min-width:200px; position: sticky; left: 0; top: 0; box-shadow: 2px 2px 0 0 #dee2e6;">
+                <div class="input-group rounded-pill shadow-sm bg-white py-1 px-1 align-items-center" style="min-width: 150px;">
+                    <span class="input-group-text bg-white border-0 px-1" style="font-size:1.1em;">
+                        <i class="bi bi-search text-secondary"></i>
+                    </span>
+                    <input id="userSearch"
+                        type="text"
+                        class="form-control border-0 bg-white px-1"
+                        style="min-width:80px; font-size: 1em; box-shadow: none;"
+                        placeholder="Suchen..."
+                        autocomplete="off"
+                        oninput="searchHandler(this.value)"
+                    >
+                    <button class="btn btn-link text-decoration-none px-2"
+                        type="button"
+                        tabindex="-1"
+                        aria-label="Suche zurücksetzen"
+                        onclick="document.getElementById('userSearch').value = ''; searchHandler('');">
+                        <i class="bi bi-x-circle text-danger" style="font-size:1.2em;"></i>
+                    </button>
                 </div>
-                <div class="search-container mt-2">
-                    <div class="input-group">
-                        <input type="text" id="userSearch" class="form-control" placeholder="Suchen..." aria-label="Benutzer suchen">
-                    </div>
-                </div>
-                <hr class="border-dark m-0 mt-1" />
             </th>
             ${aufgabenHeaders}
-            <th class="p-0 sticky-right with-border-before">
+            <th class="p-0 sticky-right with-border-before" style="box-shadow: 2px 2px 0 0 #dee2e6;">
                 <div class="d-flex gap-1 align-items-center">
                     <a href="${window.DJANGO_URLS.addAufgabe}?next=${window.DJANGO_URLS.listAufgabenTable}" class="btn px-4" data-bs-toggle="tooltip" data-bs-title="Neue Aufgabe erstellen">
                         <i class="bi bi-plus-circle"></i>
                     </a>
-                    <div class="vr border-dark m-0 ms-1 me-1" style="height: 70px; width: 0;"></div>
                 </div>
-                <hr class="border-dark m-0 mt-1" />
             </th>
         </tr>
         
@@ -199,7 +207,7 @@ function buildTableHeader(aufgaben, person_cluster) {
             .sticky-top {
                 position: sticky;
                 top: 0;
-                z-index: 1020;
+                z-index: 1010;
             }
             
             .border-bottom {
@@ -236,6 +244,10 @@ function buildTableHeader(aufgaben, person_cluster) {
             
             .z-1000 {
                 z-index: 1000;
+            }
+
+            .z-1020 {
+                z-index: 1020;
             }
             
             .search-container {
@@ -276,8 +288,8 @@ function buildTableRow(user, aufgaben, userAufgaben, today) {
     }).join('');
     
     return `
-        <tr class="border-bottom">
-            <th class="p-0 with-border" style="max-width: 30vw; height: 50px;">
+        <tr class="border-bottom" data-search-term="${escapeHtml(user.first_name || '')} ${escapeHtml(user.last_name || user.username || '')}">
+            <th class="p-0 ps-2" style="max-width: 30vw; height: 50px; box-shadow: 2px 2px 0 0 #dee2e6;">
                 <div class="d-flex gap-1 align-items-center justify-content-between">
                     ${escapeHtml(user.first_name || '')} ${escapeHtml(user.last_name || user.username || '')}
                 </div>
