@@ -116,7 +116,8 @@ function buildTableFromJSON(data) {
 function buildTableHeader(aufgaben, person_cluster) {
     const aufgabenHeaders = aufgaben.map(aufgabe => `
         <th class="text-center bg-white p-1 sticky-top border-end" style="box-shadow: 2px 2px 0 0 #dee2e6;">
-            <div class="d-flex gap-1 align-items-center">
+            <div class="d-flex gap-1 align-items-center justify-content-center">
+            ${aufgabe.beschreibung || aufgabe.mitupload || aufgabe.wiederholung ? `
                 <div class="d-flex gap-0 align-items-center flex-column">
                     ${aufgabe.beschreibung ? `
                         <a class="btn p-0" data-bs-toggle="tooltip" data-bs-title="Beschreibung: ${escapeHtml(aufgabe.beschreibung)}">
@@ -134,8 +135,9 @@ function buildTableHeader(aufgaben, person_cluster) {
                         </a>
                     ` : ''}
                 </div>
+                ` : ''}
                 <div class="dropdown d-inline">
-                    <button class="btn btn-sm dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-sm dropdown-toggle p-0 d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <p class="text-wrap m-0">${escapeHtml(aufgabe.name)}</p>
                     </button>
                     <ul class="dropdown-menu z-1020">
