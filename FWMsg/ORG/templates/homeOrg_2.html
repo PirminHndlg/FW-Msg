@@ -331,9 +331,9 @@
                  id="pending-pane" 
                  role="tabpanel" 
                  aria-labelledby="pending-tab">
-              <div class="list-group list-group-flush">
+              <div class="">
                 {% for task in pending_tasks %}
-                  <div class="list-group-item px-0 border-0 py-2">
+                  <div class="px-0 border-0 py-2 border-bottom">
                     <div class="d-flex justify-content-between align-items-center">
                       <div class="me-auto">
                         <h6 class="mb-1">{{ task.aufgabe.name }}</h6>
@@ -345,15 +345,15 @@
                       </div>
                       <div class="d-flex flex-column gap-1 mx-2 align-items-end">
                         {% if task.faellig %}
-                          <small class="text-muted">
+                          <small class="text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Fällig' %}">
                             <i class="bi bi-calendar-event me-1 text-primary"></i>
-                            <span class="fw-medium">{% trans "Fällig" %}:</span> {{ task.faellig|date:'d.m.' }}
+                            {{ task.faellig|date:'d.m.' }}
                           </small>
                         {% endif %}
                         {% if task.erledigt_am %}
-                          <small class="text-muted">
+                          <small class="text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Eingereicht' %}">
                             <i class="bi bi-send me-1 text-primary"></i>
-                            <span class="fw-medium">{% trans "Eingereicht" %}:</span> {{ task.erledigt_am|date:'d.m.' }}
+                            {{ task.erledigt_am|date:'d.m.' }}
                           </small>
                         {% endif %}
                       </div>
@@ -400,9 +400,9 @@
                  id="overdue-pane" 
                  role="tabpanel" 
                  aria-labelledby="overdue-tab">
-              <div class="list-group list-group-flush">
+              <div class="">
                 {% for task in open_tasks %}
-                  <div class="list-group-item px-0 border-0 py-2">
+                  <div class="px-0 border-0 py-2 border-bottom">
                     <div class="d-flex justify-content-between align-items-center">
                       <div class="me-auto">
                         <h6 class="mb-1">{{ task.aufgabe.name }}</h6>
@@ -414,11 +414,11 @@
                       </div>
                       <div class="d-flex flex-column gap-1 mx-2 align-items-end">
                         {% if task.faellig %}
-                              <small class="text-danger">
-                                <i class="bi bi-calendar-event me-1 text-primary"></i>
-                                <span class="fw-medium">{% trans "Fällig" %}:</span> {{ task.faellig|date:'d.m.' }}
-                              </small>
-                            {% endif %}
+                          <small class="text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Fällig' %}">
+                            <i class="bi bi-calendar-event me-1 text-primary"></i>
+                            {{ task.faellig|date:'d.m.' }}
+                          </small>
+                        {% endif %}
                       </div>
                       <div class="d-flex gap-1">
                         <button class="btn btn-sm btn-outline-primary" 
@@ -426,7 +426,7 @@
                                 tooltip="true"
                                 data-bs-toggle="tooltip"
                                 data-bs-placement="top"
-                                title="{% trans 'Erinnerung senden' %}">
+                                title="{% trans 'Erinnerung senden' %} {% if task.last_reminder %} ({% trans 'Zuletzt' %} {{ task.last_reminder|date:'d.m.' }}){% endif %}">
                           <i class="bi bi-envelope"></i>
                         </button>
                         <button class="btn btn-sm btn-success" 
@@ -457,7 +457,7 @@
           </div>
         {% endif %}
 
-        <div class="text-center mt-3 pt-3 border-top">
+        <div class="text-center mt-3">
           <a href="{% url 'list_aufgaben_table' %}" class="btn btn-sm btn-outline-primary">
             {% trans "Aufgaben verwalten" %}
           </a>
