@@ -333,7 +333,7 @@
                  aria-labelledby="pending-tab">
               <div class="">
                 {% for task in pending_tasks %}
-                  <div class="px-0 border-0 py-2 border-bottom">
+                  <div class="px-0 border-0 py-2 border-bottom task-item">
                     <div class="d-flex justify-content-between align-items-center">
                       <div class="me-auto">
                         <h6 class="mb-1">{{ task.aufgabe.name }}</h6>
@@ -839,60 +839,69 @@
         'X-Requested-With': 'XMLHttpRequest',
       }
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(data => {
+          throw new Error(data.error || 'HTTP error ' + response.status);
+        });
+      }
+      return response.json();
+    })
     .then(data => {
       if (data.success) {
         // Remove the task from the list with animation
-        const taskItem = button.closest('.list-group-item');
-        taskItem.style.transition = 'opacity 0.3s ease';
-        taskItem.style.opacity = '0';
-        
-        setTimeout(() => {
-          taskItem.remove();
-          let headerBadge, tabBadge, tabTitle;
+        const taskItem = button.closest('.task-item');
+        if (taskItem) {
+          taskItem.style.transition = 'opacity 0.3s ease';
+          taskItem.style.opacity = '0';
+          
+          setTimeout(() => {
+            taskItem.remove();
+            let headerBadge, tabBadge, tabTitle;
 
-          if (!overdue) {
-          // Update badge counts
-            headerBadge = document.querySelector('.badge.bg-warning');
-            tabBadge = document.querySelector('#pending-tab .badge.bg-warning');
-            tabTitle = document.querySelector('#pending-tab .h4');
-          } else {
-            headerBadge = document.querySelector('.badge.bg-danger');
-            tabBadge = document.querySelector('#overdue-tab .badge.bg-danger');
-            tabTitle = document.querySelector('#overdue-tab .h4');
-          }
-          
-          if (headerBadge) {
-            const currentCount = parseInt(headerBadge.textContent);
-            if (currentCount > 1) {
-              headerBadge.textContent = currentCount - 1;
+            if (!overdue) {
+            // Update badge counts
+              headerBadge = document.querySelector('.badge.bg-warning');
+              tabBadge = document.querySelector('#pending-tab .badge.bg-warning');
+              tabTitle = document.querySelector('#pending-tab .h4');
             } else {
-              headerBadge.textContent = '0';
+              headerBadge = document.querySelector('.badge.bg-danger');
+              tabBadge = document.querySelector('#overdue-tab .badge.bg-danger');
+              tabTitle = document.querySelector('#overdue-tab .h4');
             }
-          }
-          
-          if (tabBadge) {
-            const currentCount = parseInt(tabBadge.textContent);
-            if (currentCount > 1) {
-              tabBadge.textContent = currentCount - 1;
-            } else {
-              tabBadge.textContent = '0';
+            
+            if (headerBadge) {
+              const currentCount = parseInt(headerBadge.textContent) || 0;
+              if (currentCount > 1) {
+                headerBadge.textContent = currentCount - 1;
+              } else {
+                headerBadge.textContent = '0';
+              }
             }
-          }
-          
-          if (tabTitle) {
-            const currentCount = parseInt(tabTitle.textContent);
-            if (currentCount > 1) {
-              tabTitle.textContent = currentCount - 1;
-            } else {
-              tabTitle.textContent = '0';
+            
+            if (tabBadge) {
+              const currentCount = parseInt(tabBadge.textContent) || 0;
+              if (currentCount > 1) {
+                tabBadge.textContent = currentCount - 1;
+              } else {
+                tabBadge.textContent = '0';
+              }
             }
-          }
-          
-          // Check if no more pending tasks
-          const pendingPane = document.getElementById('pending-pane');
-          const remainingTasks = pendingPane ? pendingPane.querySelectorAll('.list-group-item') : [];
-        }, 300);
+            
+            if (tabTitle) {
+              const currentCount = parseInt(tabTitle.textContent) || 0;
+              if (currentCount > 1) {
+                tabTitle.textContent = currentCount - 1;
+              } else {
+                tabTitle.textContent = '0';
+              }
+            }
+            
+            // Check if no more pending tasks
+            const pendingPane = document.getElementById('pending-pane');
+            const remainingTasks = pendingPane ? pendingPane.querySelectorAll('.task-item') : [];
+          }, 300);
+        }
         
         // Show success message
         showToast('{% trans "Aufgabe als erledigt markiert" %}', 'success');
@@ -904,10 +913,11 @@
       }
     })
     .catch(error => {
+      console.error('Error marking task as done:', error);
       // Restore button state
       button.innerHTML = originalContent;
       button.disabled = false;
-      showToast('{% trans "Netzwerkfehler" %}', 'error');
+      showToast(error.message || '{% trans "Netzwerkfehler" %}', 'error');
     });
   }
 
