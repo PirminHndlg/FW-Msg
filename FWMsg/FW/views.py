@@ -61,11 +61,9 @@ def home(request):
             })
     # Bilder
     if request.user.person_cluster and request.user.person_cluster.bilder:
-        UserModel = get_user_model()
-        user_filter_qs = UserModel.objects.filter(customuser__person_cluster=request.user.person_cluster)
         bilder_qs = (
             Bilder2.objects
-            .filter(org=request.user.org, user__in=user_filter_qs)
+            .filter(org=request.user.org)
             .select_related('user')
             .order_by('-date_created')
         )
