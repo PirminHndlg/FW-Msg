@@ -94,7 +94,7 @@ function buildTableFromJSON(data) {
     const { users, aufgaben, user_aufgaben_assigned, user_aufgaben_eligible, today, current_person_cluster } = data;
     
     const tableHtml = `
-        <div class="table-responsive" style="height: 100vh; min-height: 400px">
+        <div class="table-responsive">
             <table class="table mb-0 align-middle table-borderless">
                 <thead>
                     ${buildTableHeader(aufgaben, current_person_cluster)}

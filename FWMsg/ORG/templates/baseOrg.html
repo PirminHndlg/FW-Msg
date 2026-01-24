@@ -28,7 +28,7 @@
       {# Main Navigation Bar #}
       <div class="content w-100">
         <nav class="navbar bg-primary navbar-expand-lg">
-          <div class="container-fluid">
+          <div class="container-fluid flex-row">
             {# Organization Logo and Name #}
             <a class="navbar-brand" href="{% url 'org_home' %}">
               {% with org=user|get_org %}
@@ -193,7 +193,7 @@
         </nav>
 
         {# Main Content Area #}
-        <div class="{% if large_container %}container-fluid{% else %}container{% endif %} mt-3 mb-5">
+        <div class="{% if large_container %}container-fluid{% else %}container{% endif %} mt-3 mb-4">
           {% include 'error_message.html' %}
           {% block content %}
 
