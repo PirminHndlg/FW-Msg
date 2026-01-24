@@ -6,7 +6,7 @@
     {% for bild, bilder_gallery in bild_gallery.items %}
       <div class="{% if small %}col-lg-6 col-md-12{% else %}col-lg-4 col-md-6{% endif %}">
         <div class="card rounded-4 h-100">
-          <div class="card-header">
+          <div class="card-header rounded-4">
             {% include 'components/image_card_header.html' %}
           </div>
 

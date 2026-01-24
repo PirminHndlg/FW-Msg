@@ -52,10 +52,12 @@
                 </div>
                 {% endif %}
             </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    {% include 'bilder_show.html' with gallery_images=gallery_images %}
+                </div>
+            </div>
         </div> 
-        <div class="row g-4">
-            {% include 'bilder_show.html' with gallery_images=gallery_images %}
-        </div>
         
         {% if show_pagination and page_obj %}
             <nav class="d-flex justify-content-center mt-4 flex-wrap" aria-label="{% trans "Bilderseiten" %}">
