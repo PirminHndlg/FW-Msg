@@ -170,18 +170,246 @@ def send_email_aufgaben_daily(self):
         
         response_json['count'] = len(faellige_aufgaben)
 
-        msg = f"""Uhrzeit: {datetime.now()}<br>
-        Gebrauchte Zeit: {datetime.now() - start_time}<br><br>
-        <br><br>Erfolgreich gesendet: {len(response_json['aufgaben_sent'])}<br>
-        Fehlgeschlagen: {len(response_json['aufgaben_failed'])}<br><br>
-        Gesamt: {len(response_json['aufgaben_sent']) + len(response_json['aufgaben_failed'])}<br><br>
-        Fehlgeschlagene Aufgaben: {response_json['aufgaben_failed']}<br><br>
-        Erfolgreich gesendete neue Aufgaben: {response_json['new_aufgaben_sent']}<br><br>
-        Fehlgeschlagene neue Aufgaben: {response_json['new_aufgaben_failed']}<br><br>
-        Gesamt: {len(response_json['new_aufgaben_sent']) + len(response_json['new_aufgaben_failed'])}
+        # Format execution time
+        execution_time = datetime.now().strftime('%d.%m.%Y %H:%M:%S')
+        duration = datetime.now() - start_time
+        duration_str = f"{duration.total_seconds():.2f} Sekunden"
+        
+        # Calculate totals
+        total_reminders = len(response_json['aufgaben_sent']) + len(response_json['aufgaben_failed'])
+        total_new_tasks = len(response_json['new_aufgaben_sent']) + len(response_json['new_aufgaben_failed'])
+        
+        # Format failed tasks for display
+        failed_tasks_list = ""
+        if response_json['aufgaben_failed']:
+            failed_tasks_list = "<ul style='margin: 8px 0; padding-left: 20px;'>"
+            for failed in response_json['aufgaben_failed']:
+                failed_tasks_list += f"<li style='margin: 4px 0;'>{failed.get('name', 'Unbekannt')} (User: {failed.get('user', 'Unbekannt')}, ID: {failed.get('id', 'N/A')})</li>"
+            failed_tasks_list += "</ul>"
+        else:
+            failed_tasks_list = "<p style='margin: 8px 0; color: #6c757d;'>Keine Fehler</p>"
+        
+        # Format new tasks sent
+        new_tasks_sent_list = ""
+        if response_json['new_aufgaben_sent']:
+            new_tasks_sent_list = "<ul style='margin: 8px 0; padding-left: 20px;'>"
+            for sent in response_json['new_aufgaben_sent']:
+                aufgaben_names = ', '.join(sent.get('aufgaben', []))
+                new_tasks_sent_list += f"<li style='margin: 4px 0;'>{sent.get('user', 'Unbekannt')}: {aufgaben_names}</li>"
+            new_tasks_sent_list += "</ul>"
+        else:
+            new_tasks_sent_list = "<p style='margin: 8px 0; color: #6c757d;'>Keine neuen Aufgaben</p>"
+        
+        # Format new tasks failed
+        new_tasks_failed_list = ""
+        if response_json['new_aufgaben_failed']:
+            new_tasks_failed_list = "<ul style='margin: 8px 0; padding-left: 20px;'>"
+            for failed in response_json['new_aufgaben_failed']:
+                aufgaben_names = ', '.join(failed.get('aufgaben', []))
+                new_tasks_failed_list += f"<li style='margin: 4px 0;'>{failed.get('user', 'Unbekannt')}: {aufgaben_names}</li>"
+            new_tasks_failed_list += "</ul>"
+        else:
+            new_tasks_failed_list = "<p style='margin: 8px 0; color: #6c757d;'>Keine Fehler</p>"
+        
+        # Create beautiful HTML email
+        html_message = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body {{
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                    max-width: 600px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }}
+                .header {{
+                    border-bottom: 2px solid #0d6efd;
+                    padding-bottom: 12px;
+                    margin-bottom: 24px;
+                }}
+                .header h1 {{
+                    margin: 0;
+                    font-size: 20px;
+                    font-weight: 600;
+                    color: #0d6efd;
+                }}
+                .section {{
+                    margin-bottom: 24px;
+                }}
+                .section-title {{
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #495057;
+                    margin-bottom: 8px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }}
+                .stat-box {{
+                    background: #f8f9fa;
+                    border-left: 3px solid #0d6efd;
+                    padding: 12px 16px;
+                    margin: 8px 0;
+                    border-radius: 4px;
+                }}
+                .stat-success {{
+                    border-left-color: #198754;
+                }}
+                .stat-error {{
+                    border-left-color: #dc3545;
+                }}
+                .stat-label {{
+                    font-size: 12px;
+                    color: #6c757d;
+                    margin-bottom: 4px;
+                }}
+                .stat-value {{
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: #212529;
+                }}
+                .info-row {{
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 8px 0;
+                    border-bottom: 1px solid #e9ecef;
+                }}
+                .info-row:last-child {{
+                    border-bottom: none;
+                }}
+                .info-label {{
+                    color: #6c757d;
+                    font-size: 13px;
+                }}
+                .info-value {{
+                    color: #212529;
+                    font-weight: 500;
+                    font-size: 13px;
+                }}
+                ul {{
+                    margin: 8px 0;
+                    padding-left: 20px;
+                }}
+                li {{
+                    margin: 4px 0;
+                    font-size: 13px;
+                }}
+                .footer {{
+                    margin-top: 32px;
+                    padding-top: 16px;
+                    border-top: 1px solid #e9ecef;
+                    font-size: 12px;
+                    color: #6c757d;
+                    text-align: center;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>✓ Aufgabenerinnerungen gesendet</h1>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Ausführung</div>
+                <div class="info-row">
+                    <span class="info-label">Uhrzeit:</span>
+                    <span class="info-value">{execution_time}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Dauer:</span>
+                    <span class="info-value">{duration_str}</span>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Erinnerungen</div>
+                <div class="stat-box stat-success">
+                    <div class="stat-label">Erfolgreich gesendet</div>
+                    <div class="stat-value">{len(response_json['aufgaben_sent'])}</div>
+                </div>
+                <div class="stat-box stat-error">
+                    <div class="stat-label">Fehlgeschlagen</div>
+                    <div class="stat-value">{len(response_json['aufgaben_failed'])}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Gesamt</div>
+                    <div class="stat-value">{total_reminders}</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Fehlgeschlagene Erinnerungen</div>
+                {failed_tasks_list}
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Neue Aufgaben</div>
+                <div class="stat-box stat-success">
+                    <div class="stat-label">Erfolgreich gesendet</div>
+                    <div class="stat-value">{len(response_json['new_aufgaben_sent'])}</div>
+                </div>
+                <div class="stat-box stat-error">
+                    <div class="stat-label">Fehlgeschlagen</div>
+                    <div class="stat-value">{len(response_json['new_aufgaben_failed'])}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Gesamt</div>
+                    <div class="stat-value">{total_new_tasks}</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Erfolgreich gesendete neue Aufgaben</div>
+                {new_tasks_sent_list}
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Fehlgeschlagene neue Aufgaben</div>
+                {new_tasks_failed_list}
+            </div>
+            
+            <div class="footer">
+                Automatische Benachrichtigung vom Aufgabenerinnerungs-System
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Plain text version for email clients that don't support HTML
+        plain_message = f"""Aufgabenerinnerungen erfolgreich gesendet
+
+Ausführung:
+Uhrzeit: {execution_time}
+Dauer: {duration_str}
+
+Erinnerungen:
+Erfolgreich gesendet: {len(response_json['aufgaben_sent'])}
+Fehlgeschlagen: {len(response_json['aufgaben_failed'])}
+Gesamt: {total_reminders}
+
+Fehlgeschlagene Erinnerungen:
+{chr(10).join([f"- {f.get('name', 'Unbekannt')} (User: {f.get('user', 'Unbekannt')}, ID: {f.get('id', 'N/A')})" for f in response_json['aufgaben_failed']]) if response_json['aufgaben_failed'] else "Keine Fehler"}
+
+Neue Aufgaben:
+Erfolgreich gesendet: {len(response_json['new_aufgaben_sent'])}
+Fehlgeschlagen: {len(response_json['new_aufgaben_failed'])}
+Gesamt: {total_new_tasks}
+
+Erfolgreich gesendete neue Aufgaben:
+{chr(10).join([f"- {s.get('user', 'Unbekannt')}: {', '.join(s.get('aufgaben', []))}" for s in response_json['new_aufgaben_sent']]) if response_json['new_aufgaben_sent'] else "Keine neuen Aufgaben"}
+
+Fehlgeschlagene neue Aufgaben:
+{chr(10).join([f"- {f.get('user', 'Unbekannt')}: {', '.join(f.get('aufgaben', []))}" for f in response_json['new_aufgaben_failed']]) if response_json['new_aufgaben_failed'] else "Keine Fehler"}
         """
 
-        mail_admins(subject='Aufgabenerinnerungen erfolgreich gesendet', message=msg, html_message=msg)
+        mail_admins(
+            subject='Aufgabenerinnerungen erfolgreich gesendet',
+            message=plain_message,
+            html_message=html_message
+        )
 
         return response_json
         
