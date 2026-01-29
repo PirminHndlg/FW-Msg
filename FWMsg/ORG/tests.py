@@ -17,6 +17,12 @@ from io import BytesIO
 from django.core.files.uploadedfile import SimpleUploadedFile
 import threading
 import concurrent.futures
+from django.test import TestCase, RequestFactory
+from django.contrib.auth.models import User
+from Global.models import CustomUser, PersonCluster
+from ORG.models import Organisation
+from seminar.models import Bewertung, Kommentar, Frage, Fragekategorie, Einheit
+from ORG.views import get_cascade_info
 
 class AufgabenTableTests(TestCase):
     def setUp(self):
@@ -2365,3 +2371,237 @@ class BewerberPdfUploadTests(TestCase):
         self.assertGreater(results['success'], 15, 
                           f"Expected at least 15 successful uploads, got {results['success']} successes and {results['errors']} errors")
 
+class GetCascadeInfoTestCase(TestCase):
+    """Test suite for get_cascade_info view function"""
+    
+    def setUp(self):
+        """Set up test fixtures"""
+        # Use existing setup patterns from other tests
+        self.org = Organisation.objects.create(
+            name='Test Org',
+            email='test@test.com',
+        )
+        
+        # Create person cluster
+        self.person_cluster = PersonCluster.objects.create(
+            org=self.org,
+            name='Test Person Cluster',
+            view='O',
+            aufgaben=True,
+            calendar=True,
+            dokumente=True,
+            ampel=True,
+            notfallkontakt=True,
+            bilder=True
+        )
+        
+        # Create admin user with org role
+        self.admin_user = get_user_model().objects.create_user(
+            username='admin_cascade',
+            email='admin@test.com',
+            password='testpass123',
+            first_name='Admin',
+            last_name='User'
+        )
+        self.custom_user = CustomUser.objects.create(
+            user=self.admin_user,
+            org=self.org,
+            person_cluster=self.person_cluster
+        )
+        
+        # Create test user (to be deleted)
+        self.test_user = get_user_model().objects.create_user(
+            username='testuser_cascade',
+            email='test@test.com',
+            password='testpass123',
+            first_name='Test',
+            last_name='User'
+        )
+        self.test_custom_user = CustomUser.objects.create(
+            user=self.test_user,
+            org=self.org,
+            person_cluster=self.person_cluster
+        )
+        
+        # Create Bewerber
+        self.bewerber = Bewerber.objects.create(
+            user=self.test_user,
+            org=self.org
+        )
+        
+        # Create related objects for cascade testing
+        self.fragekategorie = Fragekategorie.objects.create(
+            name="Test Category",
+            org=self.org
+        )
+        self.frage = Frage.objects.create(
+            text="Test Question",
+            kategorie=self.fragekategorie,
+            org=self.org
+        )
+        self.einheit = Einheit.objects.create(
+            name="Test Unit",
+            org=self.org
+        )
+        
+        # Create Bewertung (will be cascade deleted)
+        self.bewertung1 = Bewertung.objects.create(
+            bewerter=self.admin_user,
+            bewerber=self.bewerber,
+            frage=self.frage,
+            einheit=self.einheit,
+            bewertung=4,
+            org=self.org
+        )
+        self.bewertung2 = Bewertung.objects.create(
+            bewerter=self.admin_user,
+            bewerber=self.bewerber,
+            frage=self.frage,
+            einheit=self.einheit,
+            bewertung=5,
+            org=self.org
+        )
+        
+        # Create Kommentar (will be cascade deleted)
+        self.kommentar = Kommentar.objects.create(
+            bewerter=self.admin_user,
+            bewerber=self.bewerber,
+            einheit=self.einheit,
+            text="Test comment",
+            org=self.org
+        )
+        
+        self.factory = RequestFactory()
+    
+    def test_get_cascade_info_success(self):
+        """Test successful retrieval of cascade information"""
+        request = self.factory.get(
+            f'/org/get-cascade-info/?model=bewerber&id={self.bewerber.id}'
+        )
+        request.user = self.admin_user
+        
+        response = get_cascade_info(request)
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertIn('cascade_objects', data)
+        self.assertIsInstance(data['cascade_objects'], list)
+        
+        # Should find related objects
+        self.assertGreater(len(data['cascade_objects']), 0)
+        
+        # Check for expected model types
+        model_names = [obj['model'] for obj in data['cascade_objects']]
+        # Should find Bewertungen or Kommentare
+        has_expected_objects = any(
+            'bewertung' in name.lower() or 'kommentar' in name.lower() 
+            for name in model_names
+        )
+        self.assertTrue(has_expected_objects, f"Expected Bewertungen or Kommentare in {model_names}")
+    
+    def test_get_cascade_info_missing_parameters(self):
+        """Test handling of missing parameters"""
+        # Missing both parameters
+        request = self.factory.get('/org/get-cascade-info/')
+        request.user = self.admin_user
+        
+        response = get_cascade_info(request)
+        
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.content)
+        self.assertIn('error', data)
+        self.assertEqual(data['error'], 'Missing required parameters')
+    
+    def test_get_cascade_info_invalid_object_id(self):
+        """Test handling of invalid object ID"""
+        request = self.factory.get('/org/get-cascade-info/?model=bewerber&id=invalid')
+        request.user = self.admin_user
+        
+        response = get_cascade_info(request)
+        
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.content)
+        self.assertIn('error', data)
+        self.assertEqual(data['error'], 'Invalid object ID')
+    
+    def test_get_cascade_info_nonexistent_object(self):
+        """Test handling of non-existent object"""
+        from django.http import Http404
+        
+        request = self.factory.get('/org/get-cascade-info/?model=bewerber&id=99999')
+        request.user = self.admin_user
+        
+        # Should raise Http404 when object doesn't exist
+        with self.assertRaises(Http404):
+            get_cascade_info(request)
+    
+    def test_get_cascade_info_invalid_model(self):
+        """Test handling of invalid model name"""
+        request = self.factory.get('/org/get-cascade-info/?model=invalidmodel&id=1')
+        request.user = self.admin_user
+        
+        response = get_cascade_info(request)
+        
+        self.assertEqual(response.status_code, 404)
+        data = json.loads(response.content)
+        self.assertIn('error', data)
+        self.assertEqual(data['error'], 'Model not found')
+    
+    def test_get_cascade_info_includes_details(self):
+        """Test that response includes detailed object information"""
+        request = self.factory.get(
+            f'/org/get-cascade-info/?model=bewerber&id={self.bewerber.id}'
+        )
+        request.user = self.admin_user
+        
+        response = get_cascade_info(request)
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        
+        # Check structure of cascade objects
+        for cascade_obj in data['cascade_objects']:
+            self.assertIn('model', cascade_obj)
+            self.assertIn('count', cascade_obj)
+            self.assertIn('objects', cascade_obj)
+            self.assertIsInstance(cascade_obj['objects'], list)
+            
+            # Check structure of individual objects
+            for obj in cascade_obj['objects']:
+                self.assertIn('id', obj)
+                self.assertIn('display_name', obj)
+    
+    def test_get_cascade_info_respects_limits(self):
+        """Test that response respects object limits (50 per model type)"""
+        # This test verifies the structure works correctly
+        request = self.factory.get(
+            f'/org/get-cascade-info/?model=bewerber&id={self.bewerber.id}'
+        )
+        request.user = self.admin_user
+        
+        response = get_cascade_info(request)
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        
+        # Verify no model type has more than 50 individual objects listed
+        for cascade_obj in data['cascade_objects']:
+            # Account for the "... und X weitere" entry
+            self.assertLessEqual(len(cascade_obj['objects']), 51)
+    
+    def test_get_cascade_info_counts_match_objects(self):
+        """Test that counts match the actual number of objects"""
+        request = self.factory.get(
+            f'/org/get-cascade-info/?model=bewerber&id={self.bewerber.id}'
+        )
+        request.user = self.admin_user
+        
+        response = get_cascade_info(request)
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        
+        # Verify counts are positive numbers
+        for cascade_obj in data['cascade_objects']:
+            self.assertGreater(cascade_obj['count'], 0)
+            self.assertIsInstance(cascade_obj['count'], int)

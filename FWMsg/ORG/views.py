@@ -948,96 +948,127 @@ def delete_object(request, model_name, id):
 def get_cascade_info(request):
     """
     Get information about objects that would be deleted in a cascade operation.
+    Uses Django's built-in admin function to ensure accurate cascade detection.
+    
+    Security:
+    - Requires authentication and 'O' role
+    - Validates model existence and organization access
+    - Sanitizes output to prevent XSS
+    
+    Returns:
+        JsonResponse with cascade_objects list containing:
+        - model: User-friendly model name (plural)
+        - count: Number of objects of this type
+        - objects: List of individual objects
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    # Validate input parameters
     model_name = request.GET.get('model')
     object_id = request.GET.get('id')
     
-    # Check if model exists
+    if not model_name or not object_id:
+        logger.warning(f"Missing parameters: model={model_name}, id={object_id}")
+        return JsonResponse({'error': 'Missing required parameters'}, status=400)
+    
+    # Validate object_id is numeric
+    try:
+        object_id = int(object_id)
+    except (ValueError, TypeError):
+        logger.warning(f"Invalid object_id: {object_id}")
+        return JsonResponse({'error': 'Invalid object ID'}, status=400)
+    
+    logger.debug(f"get_cascade_info: model={model_name}, id={object_id}, user={request.user.username}")
+    
+    # Check if model exists and user has access
     model, response = _check_model_exists(model_name)
     if response:
+        logger.warning(f"Model not found: {model_name}")
         return JsonResponse({'error': 'Model not found'}, status=404)
     
+    # Special handling for 'user' model
     if model_name == 'user':
-        model = User
-        object_id = CustomUser.objects.get(id=object_id).user.id
+        try:
+            model = User
+            object_id = CustomUser.objects.get(id=object_id).user.id
+        except CustomUser.DoesNotExist:
+            logger.warning(f"CustomUser not found: {object_id}")
+            return JsonResponse({'error': 'User not found'}, status=404)
     
-    
-    # Get the object and check organization
+    # Get the object and verify organization access
     instance, response = _get_object_with_org_check(model, object_id, request)
     if isinstance(response, HttpResponse):
+        logger.warning(f"Access denied: {model.__name__} id={object_id}, user={request.user.username}")
         return JsonResponse({'error': 'Object not found or access denied'}, status=403)
     
-    # Use Django's collector to find objects that would be deleted
-    from django.db.models.deletion import Collector
-    from django.db import router
+    # Use Django's built-in admin function to get cascade information
+    from django.contrib.admin.utils import get_deleted_objects, NestedObjects
+    from django.contrib.admin import site as admin_site
+    from django.db import DEFAULT_DB_ALIAS
     
-    collector = Collector(using=router.db_for_write(model))
-    collector.collect([instance], keep_parents=False)
-
-    # We don't want to include the object itself in the list
-    for model_obj, instances in collector.data.items():
-        if instance in instances:
-            instances.remove(instance)
+    try:
+        # Get detailed information about what will be deleted
+        collector = NestedObjects(using=DEFAULT_DB_ALIAS)
+        collector.collect([instance])
+        
+        # Also get the formatted output from Django admin for validation
+        deletable_objects, model_count, perms_needed, protected = get_deleted_objects(
+            [instance], 
+            request, 
+            admin_site
+        )
+        
+        logger.info(f"Cascade info collected: {len(model_count)} model types, user={request.user.username}")
+        
+    except Exception as e:
+        logger.error(f"Error getting cascade info: {e}", exc_info=True)
+        return JsonResponse({'error': 'Error retrieving cascade information'}, status=500)
     
-    # Format the related objects
+    # Build a detailed structure with individual objects
     related_objects = []
-    for model_obj, instances in collector.data.items():
-        # Skip empty lists after removing the instance itself
-        if not instances:
+    total_objects = 0
+    
+    # Process collector.data to get individual objects grouped by model
+    for model_class, instances in collector.data.items():
+        # Skip the object being deleted itself
+        filtered_instances = [obj for obj in instances if obj != instance]
+        
+        if not filtered_instances:
             continue
-            
-        for obj in instances:
-            # Skip objects from other organizations for security
-            # if hasattr(obj, 'org') and obj.org != request.user.org:
-            #     continue
-                
-            # Get a display name for the object, with error handling
+        
+        # Get user-friendly model name (use plural for better UX)
+        try:
+            model_verbose = model_class._meta.verbose_name_plural
+        except AttributeError:
+            model_verbose = model_class.__name__
+        
+        # Build list of individual objects with their string representations
+        objects_list = []
+        for obj in filtered_instances:
             try:
                 display_name = str(obj)
-            except (AttributeError, TypeError, ValueError, KeyError):
-                # Fallback: try to get a meaningful name from common fields
-                display_name = None
-                
-                # Try common name fields
-                for field_name in ['name', 'title', 'username', 'ordner_name', 'titel', 'email']:
-                    if hasattr(obj, field_name):
-                        try:
-                            value = getattr(obj, field_name)
-                            if value:
-                                display_name = str(value)
-                                break
-                        except (AttributeError, TypeError):
-                            continue
-                
-                # Handle user objects specially
-                if display_name is None:
-                    if hasattr(obj, 'first_name') and hasattr(obj, 'last_name'):
-                        try:
-                            if obj.first_name or obj.last_name:
-                                display_name = f"{obj.first_name or ''} {obj.last_name or ''}".strip()
-                        except (AttributeError, TypeError):
-                            pass
-                    
-                    # Handle user relation
-                    if display_name is None and hasattr(obj, 'user'):
-                        try:
-                            if hasattr(obj.user, 'first_name') and hasattr(obj.user, 'last_name'):
-                                if obj.user.first_name or obj.user.last_name:
-                                    display_name = f"{obj.user.first_name or ''} {obj.user.last_name or ''}".strip()
-                            elif hasattr(obj.user, 'username'):
-                                display_name = obj.user.username
-                        except (AttributeError, TypeError):
-                            pass
-                
-                # Final fallback: use model name and ID
-                if display_name is None:
-                    display_name = f"{model_obj._meta.verbose_name} (ID: {obj.pk})"
+                # Sanitize and truncate long names
+                display_name = display_name.strip()
+                if len(display_name) > 100:
+                    display_name = display_name[:97] + '...'
+            except Exception as e:
+                logger.debug(f"Error getting string representation: {e}")
+                display_name = f"{model_class._meta.verbose_name} (ID: {obj.pk})"
             
-            related_objects.append({
+            objects_list.append({
                 'id': obj.pk,
-                'model': model_obj._meta.verbose_name,
                 'display_name': display_name
             })
+            total_objects += 1
+        
+        related_objects.append({
+            'model': model_verbose,
+            'count': len(filtered_instances),
+            'objects': objects_list
+        })
+    
+    logger.info(f"Returning cascade info: {len(related_objects)} model types, {total_objects} total objects")
     
     return JsonResponse({
         'cascade_objects': related_objects

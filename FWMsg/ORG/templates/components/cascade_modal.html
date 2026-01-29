@@ -93,65 +93,62 @@
                         cascadeSpinner.style.display = 'none';
                         
                         if (data.cascade_objects && data.cascade_objects.length > 0) {
-                            // Group cascade objects by model type
-                            const groupedObjects = {};
-                            data.cascade_objects.forEach(obj => {
-                                if (!groupedObjects[obj.model]) {
-                                    groupedObjects[obj.model] = [];
-                                }
-                                groupedObjects[obj.model].push(obj);
-                            });
-                            
-                            // Create list items for each model type
-                            Object.keys(groupedObjects).forEach(model => {
-                                const modelItems = groupedObjects[model];
-                                const modelGroup = document.createElement('div');
-                                modelGroup.classList.add('list-group-item', 'p-0');
+                            // Display cascade objects with expandable details
+                            data.cascade_objects.forEach((item, index) => {
+                                const groupElement = document.createElement('div');
+                                groupElement.classList.add('list-group-item', 'p-0');
                                 
-                                const modelHeader = document.createElement('div');
-                                modelHeader.classList.add('d-flex', 'justify-content-between', 'align-items-center', 'p-3', 'bg-light', 'bg-opacity-50');
+                                // Header with model name and count
+                                const headerElement = document.createElement('div');
+                                headerElement.classList.add('d-flex', 'justify-content-between', 'align-items-center', 'p-3', 'cursor-pointer');
+                                headerElement.style.cursor = 'pointer';
                                 
-                                const modelTitle = document.createElement('h6');
-                                modelTitle.classList.add('mb-0');
-                                modelTitle.innerHTML = `${model} <span class="badge bg-danger rounded-pill ms-2">${modelItems.length}</span>`;
+                                const collapseId = `collapse-${index}`;
                                 
-                                const toggleButton = document.createElement('button');
-                                toggleButton.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'rounded-3');
-                                toggleButton.innerHTML = '<i class="bi bi-chevron-down"></i>';
-                                toggleButton.type = 'button';
-                                toggleButton.setAttribute('data-bs-toggle', 'collapse');
-                                toggleButton.setAttribute('data-bs-target', `#collapse-${model.replace(/\s+/g, '-')}`);
-                                
-                                modelHeader.appendChild(modelTitle);
-                                modelHeader.appendChild(toggleButton);
-                                modelGroup.appendChild(modelHeader);
-                                
-                                const itemsList = document.createElement('div');
-                                itemsList.classList.add('collapse', 'show');
-                                itemsList.id = `collapse-${model.replace(/\s+/g, '-')}`;
-                                
-                                // Add individual items
-                                const itemsContainer = document.createElement('div');
-                                itemsContainer.classList.add('list-group', 'list-group-flush', 'border-top');
-                                
-                                modelItems.forEach(item => {
-                                    const itemElement = document.createElement('div');
-                                    itemElement.classList.add('list-group-item', 'py-2', 'px-3');
-                                    itemElement.innerHTML = `
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div class="d-flex align-items-center">
-                                                <i class="bi bi-dot text-danger fs-4"></i>
-                                                <span>${item.display_name || 'ID: ' + item.id}</span>
-                                            </div>
-                                            <small class="text-muted">ID: ${item.id}</small>
+                                headerElement.innerHTML = `
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-dot text-danger fs-4"></i>
+                                        <div>
+                                            <span class="fw-semibold">${item.count} ${item.model}</span>
                                         </div>
-                                    `;
-                                    itemsContainer.appendChild(itemElement);
-                                });
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-secondary rounded-pill" type="button" 
+                                            data-bs-toggle="collapse" data-bs-target="#${collapseId}">
+                                        <i class="bi bi-chevron-down"></i> Details
+                                    </button>
+                                `;
                                 
-                                itemsList.appendChild(itemsContainer);
-                                modelGroup.appendChild(itemsList);
-                                cascadeContent.appendChild(modelGroup);
+                                // Collapsible content with individual objects
+                                const collapseElement = document.createElement('div');
+                                collapseElement.classList.add('collapse');
+                                collapseElement.id = collapseId;
+                                
+                                const objectsList = document.createElement('div');
+                                objectsList.classList.add('list-group', 'list-group-flush', 'border-top');
+                                
+                                // Add individual objects
+                                if (item.objects && item.objects.length > 0) {
+                                    item.objects.forEach(obj => {
+                                        const objElement = document.createElement('div');
+                                        objElement.classList.add('list-group-item', 'py-2', 'px-4', 'small');
+                                        objElement.innerHTML = `
+                                            <i class="bi bi-arrow-return-right me-2 text-muted"></i>
+                                            ${obj.display_name}
+                                        `;
+                                        objectsList.appendChild(objElement);
+                                    });
+                                } else {
+                                    const noDetails = document.createElement('div');
+                                    noDetails.classList.add('list-group-item', 'py-2', 'px-4', 'small', 'text-muted');
+                                    noDetails.textContent = 'Keine Details verfügbar';
+                                    objectsList.appendChild(noDetails);
+                                }
+                                
+                                collapseElement.appendChild(objectsList);
+                                
+                                groupElement.appendChild(headerElement);
+                                groupElement.appendChild(collapseElement);
+                                cascadeContent.appendChild(groupElement);
                             });
                         } else {
                             // No cascade objects
