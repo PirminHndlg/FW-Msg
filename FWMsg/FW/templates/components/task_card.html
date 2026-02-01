@@ -23,16 +23,6 @@
         </div>
         {% endif %}
         
-        {% if task.file and task.aufgabe.mitupload and task.erledigt or task.pending %}
-        <div class="p-2 bg-light rounded-3 border-start border-info border-3 mb-3 d-flex align-items-center">
-          <i class="bi bi-file-earmark-check fs-3 text-info me-3"></i>
-          <div class="overflow-x-hidden">
-            <p class="mb-0 fw-medium text-truncate">{{ task.file.name|cut:"uploads/" }}</p>
-            <small class="text-muted">{% trans "Datei hochgeladen" %}</small>
-          </div>
-        </div>
-        {% endif %}
-
         {% if task.aufgabe.attachment %}
         <div class="p-2 bg-light rounded-3 border-start border-warning border-3 mb-3 d-flex align-items-center justify-content-between">
           <div class="overflow-x-hidden flex-grow-1 d-flex align-items-center">
@@ -48,6 +38,18 @@
           <i class="bi bi-download"></i>
         </a>
         </div>
+        {% endif %}
+        
+        {% if task.file and task.aufgabe.mitupload %}
+          {% if task.erledigt or task.pending %}
+          <div class="p-2 bg-light rounded-3 border-start border-info border-3 mb-3 d-flex align-items-center">
+            <i class="bi bi-file-earmark-check fs-3 text-info me-3"></i>
+            <div class="overflow-x-hidden">
+              <p class="mb-0 fw-medium text-truncate">{{ task.file.name|cut:"uploads/" }}</p>
+              <small class="text-muted">{% trans "Datei hochgeladen" %}</small>
+            </div>
+          </div>
+          {% endif %}
         {% endif %}
 
         <div class="row g-3">
@@ -114,7 +116,7 @@
 
     <div class="card-footer bg-transparent border-top border-light-subtle d-flex justify-content-end p-4 pt-3">
       <a href="{% url 'aufgaben_detail' task.id %}" 
-         class="btn {% if task.erledigt %}btn-outline-success text-black{% elif task.pending %}btn-outline-warning text-black{% else %}btn-primary text-on-org-color{% endif %}">
+         class="btn {% if task.erledigt %}btn-success{% elif task.pending %}btn-warning{% else %}btn-primary text-on-org-color{% endif %}">
         {% if task.erledigt or task.pending %}
           <i class="bi bi-eye me-1"></i>{% trans 'Anzeigen' %}
         {% else %}
