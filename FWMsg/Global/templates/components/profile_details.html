@@ -41,27 +41,27 @@
 
 {# Profile Attributes #}
 <div class="mb-3">
-    <div class="profile-details">
+    <div class="profile-details d-flex justify-content-between gap-2 mb-2 align-items-center">
         {# Profile Attributes List #}
         <div class="profile-attributes mb-4">
             {% for profil in profil_users %}
                 <div class="profile-attribute d-flex gap-2 align-items-center mb-2">
-                    <a href="{% url 'remove_profil_attribut' profil.id %}" 
-                       class="btn btn-sm btn-outline-danger attribute-remove-btn d-none"
-                       title="{% trans 'Attribut löschen' %}">
-                        <i class="bi bi-trash"></i>
-                    </a>
                     <div>
                         <strong>{{ profil.attribut }}:</strong>
                         <span>{{ profil.value }}</span>
                     </div>
+                    <a href="{% url 'remove_profil_attribut' profil.id %}" 
+                       class="btn btn-sm text-danger attribute-remove-btn d-none px-1 py-0"
+                       title="{% trans 'Attribut löschen' %}">
+                        <i class="bi bi-trash"></i>
+                    </a>
                 </div>
             {% endfor %}
         </div>
+        {% if this_user %}
+            <div class="d-flex justify-content-end gap-2 mb-2 align-items-center">
+                {% include "components/profile_edit_controls.html" with profil_users=profil_users %}
+            </div>
+        {% endif %} 
     </div>
 </div>
-
-{# Profile Edit Controls #}
-{% if this_user %}
-    {% include "components/profile_edit_controls.html" %}
-{% endif %} 

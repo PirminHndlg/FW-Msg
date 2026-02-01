@@ -1,63 +1,77 @@
 {% load i18n %}
 {% load widget_tweaks %}
 
-{# Form for adding/editing profile attributes #}
-<div id="profileAttributeForm" class="mb-3 d-none">
-    <form method="post" class="needs-validation" novalidate>
-        {% csrf_token %}
-        <div class="row g-3 mb-3">
-            <div class="col-6">
-                <div>
-                    <label for="{{ profil_user_form.attribut.id_for_label }}" class="form-label">{% trans "Bezeichnung" %}</label>
-                    {{ profil_user_form.attribut }}
-                </div>
+{# Bootstrap Modal for adding/editing profile attributes #}
+<div class="modal fade" id="profileAttributeModal" tabindex="-1" aria-labelledby="profileAttributeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profileAttributeModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    {% trans "Attribut hinzufügen" %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="col-6">
-                <div>
-                    <label for="{{ profil_user_form.value.id_for_label }}" class="form-label">{% trans "Wert" %}</label>
-                    {{ profil_user_form.value }}
+            <form method="post" class="needs-validation" novalidate>
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="{{ profil_user_form.attribut.id_for_label }}" class="form-label">{% trans "Bezeichnung" %}</label>
+                            {{ profil_user_form.attribut }}
+                        </div>
+                        <div class="col-12">
+                            <label for="{{ profil_user_form.value.id_for_label }}" class="form-label">{% trans "Wert" %}</label>
+                            {{ profil_user_form.value }}
+                        </div>
+                    </div>
                 </div>
-            </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i>
+                        {% trans "Abbrechen" %}
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i>
+                        {% trans "Speichern" %}
+                    </button>
+                </div>
+            </form>
         </div>
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-circle"></i>
-                {% trans "Speichern" %}
-            </button>
-            <button type="button" class="btn btn-secondary" onclick="ProfileControls.cancelEdit()">
-                <i class="bi bi-x-circle"></i>
-                {% trans "Abbrechen" %}
-            </button>
-        </div>
-    </form>
+    </div>
 </div>
 
 {# Control buttons #}
-<div class="d-flex gap-2">
-    <button id="addAttributeBtn" class="btn btn-primary d-flex align-items-center gap-2">
-        <i class="bi bi-plus-circle"></i>
-    </button>
-    <button id="editAttributesBtn" class="btn btn-secondary d-flex align-items-center gap-2">
+<div class="d-flex align-items-center">
+    <button id="editAttributesBtn" class="btn p-1">
+        <a id="fertigText" class="d-none text-decoration-none text-white">{% trans "Fertig" %}</a>
         <i class="bi bi-pencil"></i>
+    </button>
+    <button id="addAttributeBtn" class="btn p-1" data-bs-toggle="modal" data-bs-target="#profileAttributeModal">
+        <i class="bi bi-plus-circle"></i>
     </button>
 </div>
 
 <script>
 const ProfileControls = {
     elements: {
-        form: document.getElementById('profileAttributeForm'),
+        modal: null,
+        modalElement: document.getElementById('profileAttributeModal'),
         addBtn: document.getElementById('addAttributeBtn'),
+        fertigText: document.getElementById('fertigText'),
         editBtn: document.getElementById('editAttributesBtn'),
         removeButtons: document.getElementsByClassName('attribute-remove-btn')
     },
 
     init() {
-        // Add event listeners
-        this.elements.addBtn.addEventListener('click', () => this.showForm());
+        // Initialize Bootstrap modal
+        this.elements.modal = new bootstrap.Modal(this.elements.modalElement);
+
+        // Add event listeners for edit mode
         this.elements.editBtn.addEventListener('click', () => this.toggleEditMode());
 
         // Form validation
-        const form = this.elements.form.querySelector('form');
+        const form = this.elements.modalElement.querySelector('form');
         form.addEventListener('submit', (event) => {
             if (!form.checkValidity()) {
                 event.preventDefault();
@@ -65,20 +79,21 @@ const ProfileControls = {
             }
             form.classList.add('was-validated');
         });
+
+        // Reset form when modal is hidden
+        this.elements.modalElement.addEventListener('hidden.bs.modal', () => {
+            const form = this.elements.modalElement.querySelector('form');
+            form.reset();
+            form.classList.remove('was-validated');
+        });
     },
 
     showForm() {
-        this.elements.form.classList.remove('d-none');
-        this.elements.addBtn.classList.add('d-none');
-        this.elements.editBtn.classList.add('d-none');
+        this.elements.modal.show();
     },
 
     hideForm() {
-        this.elements.form.classList.add('d-none');
-        this.elements.addBtn.classList.remove('d-none');
-        this.elements.editBtn.classList.remove('d-none');
-        this.elements.form.querySelector('form').reset();
-        this.elements.form.querySelector('form').classList.remove('was-validated');
+        this.elements.modal.hide();
     },
 
     toggleEditMode() {
@@ -98,12 +113,12 @@ const ProfileControls = {
         const icon = this.elements.editBtn.querySelector('i');
         const text = this.elements.editBtn.lastChild;
         if (isEditing) {
-            icon.classList.replace('bi-x', 'bi-pencil');
-            text.textContent = '';
+            icon.classList.replace('bi-check-circle', 'bi-pencil');
+            this.elements.fertigText.classList.add('d-none');
             this.elements.addBtn.classList.remove('d-none');
         } else {
-            icon.classList.replace('bi-pencil', 'bi-x');
-            text.textContent = ' {% trans "Fertig" %}';
+            icon.classList.replace('bi-pencil', 'bi-check-circle');
+            this.elements.fertigText.classList.remove('d-none');
             this.elements.addBtn.classList.add('d-none');
         }
     },
