@@ -44,7 +44,7 @@ def home(request):
             'erledigt_prozent': safe_percentage(len_erledigt, gesamt),
             'pending': pending_aufgaben,
             'pending_prozent': safe_percentage(len_pending, gesamt),
-            'offen': offene_aufgaben[:3],
+            'offen': offene_aufgaben[:4],
             'offen_prozent': safe_percentage(len_offen, gesamt),
         }
 
