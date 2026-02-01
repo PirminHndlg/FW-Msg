@@ -23,6 +23,7 @@ class Freiwilliger(OrgModel):
     
     CHECKBOX_ACTION_CHOICES = [
         ('add_to_ehemalige', '<i class="bi bi-person-plus-fill me-1"></i>Zu Ehemaligen hinzufügen', 'Der:Die Freiwillige:r wird zu der zuletzt erstellten Benutzergruppe Ehemalige hinzugefügt.'),
+        ('send_registration_mail', '<i class="bi bi-envelope-fill me-1"></i>Registrierungsmail')
     ]
     
     def checkbox_action(self, org, checkbox_submit_value):
@@ -42,7 +43,10 @@ class Freiwilliger(OrgModel):
                 self.user.save()
             
             return True
-        return False        
+        elif checkbox_submit_value == self.CHECKBOX_ACTION_CHOICES[1][0]:
+            self.user.customuser.send_registration_email()
+            return True
+        return False
 
     class Meta:
         verbose_name = 'Freiwillige:r'
