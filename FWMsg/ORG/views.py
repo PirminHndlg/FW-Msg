@@ -526,7 +526,7 @@ def edit_object(request, model_name, id):
         return response
     
     if not model in ORGforms.model_to_form_mapping:
-        return HttpResponse(b'Kein Formular für ' + model_name.encode('utf-8'))
+        return HttpResponse(f'Kein Formular für {model_name}')
 
     # Get instance if ID is provided and check organization
     instance = None
