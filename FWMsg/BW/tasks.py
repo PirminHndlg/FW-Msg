@@ -59,23 +59,23 @@ account_created_email_template = """
             
             <p style="margin: 20px 0;">Hallo {user_name},</p>
             
-            <p style="margin: 20px 0;">vielen Dank für Ihre Registrierung. Um Ihren Account zu aktivieren, klicken Sie bitte auf den folgenden Button:</p>
+            <p style="margin: 20px 0;">vielen Dank für Deine Registrierung. Um Deinen Account zu aktivieren, klicke bitte auf den folgenden Button:</p>
             
             <!-- Verification Button -->
             <div style="text-align: center; margin: 25px 0;">
                 <a href="{verification_url}" style="background-color: #3273dc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; display: inline-block;">Account verifizieren</a>
             </div>
             
-            <p style="margin: 20px 0;">Falls der Button nicht funktioniert, können Sie auch diesen Link kopieren und in Ihren Browser einfügen:</p>
+            <p style="margin: 20px 0;">Falls der Button nicht funktioniert, kannst Du auch diesen Link kopieren und in Deinen Browser einfügen:</p>
             <p style="margin: 10px 0; word-break: break-all; color: #666666; font-size: 14px;">{verification_url}</p>
             
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0;">
-                <p style="margin: 0 0 10px 0; font-weight: 500;">Ihre Zugangsdaten:</p>
+                <p style="margin: 0 0 10px 0; font-weight: 500;">Deine Zugangsdaten:</p>
                 <p style="margin: 0;">Benutzername: <strong>{email}</strong></p>
-                <p style="margin: 10px 0 0 0;">Nach der Verifizierung können Sie sich mit Ihrer E-Mail-Adresse als Benutzername einloggen.</p>
+                <p style="margin: 10px 0 0 0;">Nach der Verifizierung kannst Du mit Deiner E-Mail-Adresse als Benutzername einloggen.</p>
             </div>
             
-            <p style="margin: 20px 0;">Nach der Verifizierung können Sie sich mit Ihren Zugangsdaten einloggen und Ihre Bewerbung fortsetzen.</p>
+            <p style="margin: 20px 0;">Nach der Verifizierung kannst Du mit Deinen Zugangsdaten einloggen und Deine Bewerbung fortsetzen.</p>
         </div>
         
         <!-- Footer -->

@@ -393,9 +393,9 @@ def add_aufgabe(request, id=None):
             return _redirect_after_action(request, 'aufgabe', form.instance.id)
         else:
             if instance:
-                messages.error(request, 'Fehler beim Bearbeiten der Aufgabe. Bitte überprüfen Sie die Eingaben.')
+                messages.error(request, 'Fehler beim Bearbeiten der Aufgabe. Bitte überprüfe die Eingaben.')
             else:
-                messages.error(request, 'Fehler beim Erstellen der Aufgabe. Bitte überprüfen Sie die Eingaben.')
+                messages.error(request, 'Fehler beim Erstellen der Aufgabe. Bitte überprüfe die Eingaben.')
             print("Form errors:", form.errors)
             print("Non-field errors:", form.non_field_errors())
             if hasattr(form, 'zwischenschritte'):
@@ -420,7 +420,7 @@ def add_objects_from_excel(request, model_name):
         if PersonCluster.objects.filter(id=personen_cluster_id).exists():
             personen_cluster = PersonCluster.objects.get(id=personen_cluster_id)
             if personen_cluster.org != request.user.org:
-                return HttpResponse('Nicht erlaubt')
+                return HttpResponse(b'Nicht erlaubt')
         else:
             personen_cluster = None
 
@@ -526,7 +526,7 @@ def edit_object(request, model_name, id):
         return response
     
     if not model in ORGforms.model_to_form_mapping:
-        return HttpResponse(f'Kein Formular für {model_name} gefunden')
+        return HttpResponse(b'Kein Formular für ' + model_name.encode('utf-8'))
 
     # Get instance if ID is provided and check organization
     instance = None
@@ -1228,15 +1228,15 @@ def download_aufgabe(request, id):
         if request.user.role == 'T':
             team_members = Team.objects.filter(org=request.user.org, user=request.user)
             if not aufgabe.aufgabe.visible_by_team:
-                return render(request, '403.html', {'error_message': 'Sie sind nicht berechtigt, diese Datei herunterzuladen. Die Aufgabe ist nicht für Team-Mitglieder sichtbar.'}, status=403)
+                return render(request, '403.html', {'error_message': 'Du bist nicht berechtigt, diese Datei herunterzuladen. Die Aufgabe ist nicht für Team-Mitglieder sichtbar.'}, status=403)
             
             try:
                 land = aufgabe.user.freiwilliger.einsatzland2
             except Exception as e:
-                return render(request, '403.html', {'error_message': 'Sie sind nicht berechtigt, diese Datei herunterzuladen. Freiwilliger nicht gefunden.'}, status=403)
+                return render(request, '403.html', {'error_message': 'Du bist nicht berechtigt, diese Datei herunterzuladen. Freiwilliger nicht gefunden.'}, status=403)
             
             if land.id not in team_members.values_list('land__id', flat=True):
-                    return render(request, '403.html', {'error_message': 'Sie sind nicht berechtigt, diese Datei herunterzuladen. Sie sind nicht als Teammitglied für diesen Freiwilligen zuständig.'}, status=403)
+                    return render(request, '403.html', {'error_message': 'Du bist nicht berechtigt, diese Datei herunterzuladen. Du bist nicht als Teammitglied für diesen Freiwilligen zuständig.'}, status=403)
         
         if not aufgabe.file_downloaded_of.filter(id=request.user.id).exists():
             aufgabe.file_downloaded_of.add(request.user)
@@ -1253,7 +1253,7 @@ def download_aufgabe(request, id):
             return response
         
     except UserAufgaben.DoesNotExist:
-        return render(request, '403.html', {'error_message': 'Sie sind nicht berechtigt, auf diese Aufgabe zuzugreifen.'}, status=403)
+        return render(request, '403.html', {'error_message': 'Du bist nicht berechtigt, auf diese Aufgabe zuzugreifen.'}, status=403)
 
 @login_required
 @required_role('O')
@@ -1600,7 +1600,7 @@ def application_answer_download(request, bewerber_id):
     
     if request.user.role in 'TE':
         if not bewerber.interview_persons.filter(id=request.user.id).exists():
-            return render(request, '403.html', {'error_message': 'Sie sind nicht berechtigt, diese Datei herunterzuladen. Sie sind nicht als Interviewperson für diesen Bewerber:in zuständig.'}, status=403)
+            return render(request, '403.html', {'error_message': 'Du bist nicht berechtigt, diese Datei herunterzuladen. Du bist nicht als Interviewperson für diesen Bewerber:in zuständig.'}, status=403)
     
     # Create filename
     filename = f"bewerbung_{bewerber.user.first_name}_{bewerber.user.last_name}_{datetime.now().strftime('%Y%m%d')}.pdf"
@@ -1622,7 +1622,7 @@ def application_answer_download_fields(request, bewerber_id):
     # Get selected question IDs from request
     selected_question_ids = request.GET.getlist('questions')
     if not selected_question_ids:
-        messages.error(request, 'Bitte wählen Sie mindestens eine Frage aus.')
+        messages.error(request, 'Bitte wähle mindestens eine Frage aus.')
         return redirect('application_detail', id=bewerber_id)
     
     # Generate PDF using the new utils
@@ -1732,7 +1732,7 @@ def create_sticky_note(request):
     notiz = request.POST.get('notiz')
     priority = request.POST.get('priority', 0)
     if not notiz:
-        messages.error(request, 'Bitte geben Sie eine Notiz ein.')
+        messages.error(request, 'Bitte gib eine Notiz ein.')
         return redirect('org_home')
     
     StickyNote.objects.create(
@@ -1753,7 +1753,7 @@ def delete_sticky_note(request):
     """Delete a sticky note."""
     notiz_id = request.POST.get('notiz_id')
     if not notiz_id:
-        messages.error(request, 'Keine Notiz ID angegeben.')
+        messages.error(request, 'Keine Notiz-ID angegeben.')
         return redirect('org_home')
     
     try:
@@ -1764,7 +1764,7 @@ def delete_sticky_note(request):
         )
         notiz.delete()
     except StickyNote.DoesNotExist:
-        messages.error(request, 'Notiz konnte nicht gefunden werden.')
+        messages.error(request, 'Notiz konnte nicht gefunden werden')
     
     return redirect('org_home')
 
@@ -1782,24 +1782,24 @@ def _get_user_aufgabe_with_org_check(aufgabe_id, org):
     try:
         return UserAufgaben.objects.get(pk=aufgabe_id, org=org), None
     except UserAufgaben.DoesNotExist:
-        return None, JsonResponse({'success': False, 'error': 'Task not found'}, status=404)
+        return None, JsonResponse({'success': False, 'error': 'Aufgabe nicht gefunden'}, status=404)
 
 def _get_aufgabe_with_org_check(aufgabe_id, org):
     """Get Aufgabe2 with organization check."""
     try:
         return Aufgabe2.objects.get(id=aufgabe_id, org=org), None
     except Aufgabe2.DoesNotExist:
-        return None, JsonResponse({'success': False, 'error': 'Task not found'}, status=404)
+        return None, JsonResponse({'success': False, 'error': 'Aufgabe nicht gefunden'}, status=404)
 
 def _get_user_with_org_check(user_id, org):
     """Get User with organization check."""
     try:
         user = User.objects.get(id=user_id)
         if user.customuser.org != org:
-            return None, JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+            return None, JsonResponse({'success': False, 'error': 'Benutzer nicht gefunden'}, status=404)
         return user, None
     except User.DoesNotExist:
-        return None, JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+        return None, JsonResponse({'success': False, 'error': 'Benutzer nicht gefunden'}, status=404)
 
 def _check_user_task_permission(user, aufgabe):
     """Check if user has permission for the task based on person cluster."""

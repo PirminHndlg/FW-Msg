@@ -58,14 +58,14 @@ def save_einsatzstelle_info(request, stelle_id):
     member, assigned_countries = _get_team_or_ehemalige_member(request)
     
     if not assigned_countries.exists():
-        messages.error(request, 'Sie haben keine Berechtigung, diese Änderungen vorzunehmen.')
+        messages.error(request, 'Du hast keine Berechtigung, diese Änderungen vorzunehmen.')
         return redirect('einsatzstellen_info')
     
     try:
         # Get the placement location and verify access via country
         stelle = Einsatzstelle2.objects.get(id=stelle_id, org=request.user.org)
         if stelle.land not in assigned_countries:
-            messages.error(request, f'Sie haben keine Berechtigung, Informationen für {stelle.name} zu bearbeiten.')
+            messages.error(request, f'Du hast keine Berechtigung, Informationen für {stelle.name} zu bearbeiten.')
             return redirect('einsatzstellen_info')
         
         # Collect changes
@@ -119,14 +119,14 @@ def save_land_info(request, land_id):
     member, assigned_countries = _get_team_or_ehemalige_member(request)
     
     if not assigned_countries.exists():
-        messages.error(request, 'Sie haben keine Berechtigung, diese Änderungen vorzunehmen.')
+        messages.error(request, 'Du hast keine Berechtigung, diese Änderungen vorzunehmen.')
         return redirect('laender_info')
     
     try:
         # Get the country and verify access
         land = Einsatzland2.objects.get(id=land_id, org=request.user.org)
         if land not in assigned_countries:
-            messages.error(request, f'Sie haben keine Berechtigung, Informationen für {land.name} zu bearbeiten.')
+            messages.error(request, f'Du hast keine Berechtigung, Informationen für {land.name} zu bearbeiten.')
             return redirect('laender_info')
         
         # Collect changes

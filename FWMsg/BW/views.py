@@ -125,7 +125,7 @@ def bw_application_answer(request, question_id=None):
         bewerber = Bewerber.objects.get(user=request.user)
         
         if bewerber.abgeschlossen == True:
-            messages.error(request, 'Sie haben bereits Ihre Bewerbung abgeschlossen und können keine Antworten mehr ändern.')
+            messages.error(request, 'Du hast bereits Deine Bewerbung abgeschlossen und kannst keine Antworten mehr ändern.')
             return redirect('bw_home')
         
         answer = form.save()
@@ -172,7 +172,7 @@ def bw_application_complete(request):
     try:
         application_text = ApplicationText.objects.filter(org=request.user.org).first()
         if application_text.deadline and application_text.deadline < datetime.now().date():
-            messages.error(request, 'Die Abgabefrist ist abgelaufen und Sie können keine Bewerbung mehr absenden.')
+            messages.error(request, 'Die Abgabefrist ist abgelaufen und Du kannst keine Bewerbung mehr absenden.')
             return redirect('bw_home')
     except ApplicationText.DoesNotExist:
         pass
@@ -215,7 +215,7 @@ def bw_application_file_answer(request, file_question_id):
     if request.method == 'POST':
         bewerber = Bewerber.objects.get(user=request.user)
         if bewerber.abgeschlossen == True:
-            messages.error(request, 'Sie haben bereits Ihre Bewerbung abgeschlossen und können keine Dateien mehr hochladen.')
+            messages.error(request, 'Du hast bereits Deine Bewerbung abgeschlossen und kannst keine Dateien mehr hochladen.')
             return redirect('bw_home')
         
         if form.is_valid() and len(request.FILES) == 1:

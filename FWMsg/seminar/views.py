@@ -623,7 +623,7 @@ def assign(request, scroll_to=None):
             
             freiwilliger_obj.save()
         except (Bewerber.DoesNotExist, Einsatzstelle.DoesNotExist):
-            messages.error(request, 'Fehler bei der Zuteilung. Bitte versuchen Sie es erneut.')
+            messages.error(request, 'Fehler bei der Zuteilung. Bitte versuche es erneut.')
         
         if stelle and stelle != 'None':
             return redirect('assign_scroll', scroll_to=stelle)

@@ -98,7 +98,7 @@ function editDokument(dokument_id) {
 }
 
 function removeDokument(dokument_id, dokument_name, url) {
-    if (confirm(`Möchten Sie das Dokument "${dokument_name}" wirklich löschen?`)) {
+    if (confirm(`Möchtest Du das Dokument "${dokument_name}" wirklich löschen?`)) {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = url;
@@ -122,7 +122,7 @@ function removeDokument(dokument_id, dokument_name, url) {
 }
 
 function removeOrdner(ordner_id, ordner_name) {
-    if (confirm(`Möchten Sie den Ordner "${ordner_name}" wirklich löschen?`)) {
+    if (confirm(`Möchtest Du den Ordner "${ordner_name}" wirklich löschen?`)) {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '/dokumente/remove_ordner/';
@@ -193,7 +193,7 @@ async function copyFolderLink(relativeUrl, linkElement) {
         
     } catch (err) {
         console.error('Failed to copy link: ', err);
-        alert('Fehler beim Kopieren des Links. Bitte versuchen Sie es erneut.');
+        alert('Fehler beim Kopieren des Links. Bitte versuche es erneut.');
     }
 }
 
@@ -254,7 +254,7 @@ async function copyPublicFolderLink(fetch_url, linkElement) {
         
     } catch (err) {
         console.error('Failed to copy public link: ', err);
-        alert('Fehler beim Kopieren des öffentlichen Links. Bitte versuchen Sie es erneut.');
+        alert('Fehler beim Kopieren des öffentlichen Links. Bitte versuche es erneut.');
     }
 }
 

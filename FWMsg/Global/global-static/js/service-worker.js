@@ -23,7 +23,7 @@ self.addEventListener('push', function(event) {
     // Default notification options
     const title = data.title || 'Neue Benachrichtigung';
     const options = {
-        body: data.body || 'Sie haben eine neue Benachrichtigung erhalten.',
+        body: data.body || 'Du hast eine neue Benachrichtigung erhalten.',
         icon: data.icon || '/static/img/logo.png',
         badge: '/static/img/badge.png',
         data: {

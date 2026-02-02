@@ -34,7 +34,7 @@ def push_settings(request):
             else:
                 messages.success(request, f'Testbenachrichtigung wurde an {success_count} Gerät(e) gesendet.')
         else:
-            messages.error(request, 'Testbenachrichtigung konnte nicht gesendet werden. Bitte prüfen Sie Ihre Browser-Einstellungen.')
+            messages.error(request, 'Testbenachrichtigung konnte nicht gesendet werden. Bitte prüfe Deine Browser-Einstellungen.')
 
         return redirect('push_settings')
     
