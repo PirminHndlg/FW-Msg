@@ -349,7 +349,7 @@ def survey_results(request, pk):
         
         else:
             # Text answers
-            question_results['answers'] = [answer.text_answer for answer in answers if answer.text_answer]
+            question_results['answers'] = [(answer.text_answer, answer.response.respondent) for answer in answers if answer.text_answer]
         
         results_data[question.id] = question_results
     
