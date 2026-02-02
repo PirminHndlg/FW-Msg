@@ -1473,7 +1473,7 @@ def ampel(request):
             return redirect('fw_home')
         else:
             # Form has validation errors, show them to user
-            messages.error(request, 'Bitte korrigieren Sie die Fehler im Formular.' + str(form.errors))
+            messages.error(request, 'Bitte korrigiere die Fehler im Formular.' + str(form.errors))
     else:
         form = AddAmpelmeldungForm(initial={'submission_key': uuid.uuid4()}, user=request.user, org=request.user.org)
 
@@ -1971,7 +1971,7 @@ def post_edit(request, post_id):
     
     # Check permissions
     if request.user != post.user and request.user.role != 'A':
-        messages.error(request, 'Sie haben keine Berechtigung, diesen Beitrag zu bearbeiten.')
+        messages.error(request, 'Du hast keine Berechtigung, diesen Beitrag zu bearbeiten.')
         return redirect('post_detail', post_id=post_id)
     
     if request.method == 'POST':
@@ -2058,7 +2058,7 @@ def post_detail(request, post_id):
         if user_person_cluster.view != 'O' and post.person_cluster.exists():
             # Check if the user's cluster is in the post's allowed clusters
             if user_person_cluster not in post.person_cluster.all():
-                messages.error(request, 'Sie haben keine Berechtigung, diesen Beitrag anzusehen.')
+                messages.error(request, 'Du hast keine Berechtigung, diesen Beitrag anzusehen.')
                 return redirect('posts_overview')
         
         # Track if user has voted in this survey
@@ -2177,7 +2177,7 @@ def post_response_delete(request, response_id):
     
     # Check permissions
     if request.user != response.user and request.user.role != 'A':
-        messages.error(request, 'Sie haben keine Berechtigung, diese Antwort zu löschen.')
+        messages.error(request, 'Du hast keine Berechtigung, diese Antwort zu löschen.')
         return redirect('post_detail', post_id=response.original_post.id)
     
     post_id = response.original_post.id
@@ -2436,7 +2436,7 @@ def delete_account(request):
                 html_message=f'Ein Benutzer hat die Löschung seines Kontos beantragt. {request.user.first_name} {request.user.last_name} ({request.user.email})',
                 reply_to_list=[request.user.email]
             )
-        messages.success(request, 'Konto-Löschung beantragt. Sie erhalten eine E-Mail, sobald Ihr Antrag bearbeitet wurde.')
+        messages.success(request, 'Konto-Löschung beantragt. Du erhältst eine E-Mail, sobald Dein Antrag bearbeitet wurde.')
         return redirect('settings')
     return redirect('settings')
 
@@ -2459,7 +2459,7 @@ def export_data(request):
         logger = logging.getLogger('security')
         logger.error(f'Data export failed for user {request.user.id} ({request.user.username}): {str(e)}')
         
-        messages.error(request, 'Beim Export der Daten ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.')
+        messages.error(request, 'Beim Export der Daten ist ein Fehler aufgetreten. Bitte versuche es später erneut.')
         return redirect('settings')
 
 
@@ -2558,7 +2558,7 @@ def api_bewerber_kommentare(request, bewerber_id, kommentar_id=None):
             
             # Check if the user owns this comment
             if kommentar.user != request.user:
-                return JsonResponse({'error': 'Sie haben keine Berechtigung, diesen Kommentar zu löschen'}, status=403)
+                return JsonResponse({'error': 'Du hast keine Berechtigung, diesen Kommentar zu löschen'}, status=403)
             
             # Delete the comment
             kommentar.delete()
@@ -2667,7 +2667,7 @@ def bw_application_file_answer_download(request, file_answer_id):
                     file_answer_user = file_answer.user
                     file_answer_bewerber = Bewerber.objects.get(user=file_answer_user, org=request.user.org)
                     if not file_answer_bewerber.accessible_by_team_member.filter(id=request.user.id).exists():
-                        messages.error(request, 'Sie haben keine Berechtigung, diese Datei herunterzuladen')
+                        messages.error(request, 'Du hast keine Berechtigung, diese Datei herunterzuladen')
                         return redirect('index_home')
                 except Exception as e:
                     messages.error(request, 'Datei nicht gefunden')
@@ -2721,7 +2721,7 @@ def laender_info(request):
     member, assigned_countries, base_template = _get_member_and_countries(request)
     
     if not member:
-        messages.warning(request, 'Ihrem Konto sind keine Einsatzländer zugeordnet. Bitte kontaktieren Sie den Administrator.')
+        messages.warning(request, 'Deinem Konto sind keine Einsatzländer zugeordnet. Bitte kontaktiere den Administrator.')
         return redirect('index_home')
     
     # Get assigned countries
@@ -2729,7 +2729,7 @@ def laender_info(request):
     
     # Check if there are any countries assigned
     if not laender.exists():
-        messages.info(request, 'Ihrem Konto sind derzeit keine Einsatzländer zugeordnet.')
+        messages.info(request, 'Deinem Konto sind derzeit keine Einsatzländer zugeordnet.')
     
     # Get pending change requests for this user's countries
     pending_requests_by_land = {}
@@ -2762,7 +2762,7 @@ def einsatzstellen_info(request):
     member, assigned_countries, base_template = _get_member_and_countries(request)
     
     if not member:
-        messages.warning(request, 'Ihrem Konto sind keine Einsatzstellen zugeordnet. Bitte kontaktieren Sie den Administrator.')
+        messages.warning(request, 'Deinem Konto sind keine Einsatzstellen zugeordnet. Bitte kontaktiere den Administrator.')
         return redirect('index_home')
     
     # Get placement locations for assigned countries
@@ -2773,7 +2773,7 @@ def einsatzstellen_info(request):
     
     # Check if there are any placement locations
     if not einsatzstellen.exists():
-        messages.info(request, 'Es wurden keine Einsatzstellen in Ihren zugewiesenen Ländern gefunden.')
+        messages.info(request, 'Es wurden keine Einsatzstellen in Deinen zugewiesenen Ländern gefunden.')
     
     # Get pending change requests for this user's einsatzstellen
     pending_requests_by_stelle = {}
@@ -2846,11 +2846,11 @@ def karte(request):
                         location.latitude = base_lat
                         location.longitude = base_lon
                 else:
-                    messages.warning(request, 'Adresse konnte nicht geocodiert werden. Bitte überprüfen Sie die Eingabe.')
+                    messages.warning(request, 'Adresse konnte nicht geocodiert werden. Bitte überprüfe die Eingabe.')
             except (GeocoderTimedOut, GeocoderServiceError) as e:
                 messages.warning(request, f'Geocoding-Fehler: {str(e)}')
             except ImportError:
-                messages.warning(request, 'Geocoding-Modul nicht verfügbar. Bitte installieren Sie geopy.')
+                messages.warning(request, 'Geocoding-Modul nicht verfügbar. Bitte installiere geopy.')
             
             location.save()
             if user_location:
