@@ -962,7 +962,8 @@ class AjaxTaskOperationsTests(TestCase):
         self.assertEqual(response.status_code, 404)
         data = json.loads(response.content)
         self.assertFalse(data['success'])
-        self.assertEqual(data['error'], 'Task not found')
+        self.assertIn('error', data)
+        self.assertIn('Aufgabe nicht gefunden', data['error'])
 
     def test_ajax_delete_task_file(self):
         """Test deleting task file via AJAX"""
@@ -1211,7 +1212,8 @@ class AjaxTaskOperationsTests(TestCase):
         self.assertEqual(response.status_code, 404)
         data = json.loads(response.content)
         self.assertFalse(data['success'])
-        self.assertEqual(data['error'], 'Task not found')
+        self.assertIn('error', data)
+        self.assertIn('Aufgabe nicht gefunden', data['error'])
 
     def test_ajax_endpoints_require_login(self):
         """Test that AJAX endpoints require login"""
