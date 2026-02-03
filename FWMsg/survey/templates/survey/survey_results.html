@@ -14,48 +14,6 @@
                         <p class="lead mb-0">{{ survey.title }}</p>
                     </div>
                     <div class="text-end">
-                        {% if total_responses > 0 %}
-                            <div class="btn-group me-2" role="group">
-                                <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
-                                    <i class="fas fa-file-pdf me-2"></i>{% trans "Export PDF" %}
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'survey:export_survey_all_responses_pdf' survey.id %}">
-                                            <i class="fas fa-file-pdf me-2"></i>{% trans "All Responses as PDF" %}
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'survey:export_survey_responses_pdf' survey.id %}">
-                                            <i class="fas fa-download me-2"></i>{% trans "All Responses individually as ZIP" %}
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li class="dropdown-header">{% trans "Individual Responses:" %}</li>
-                                    {% for response in responses|slice:":5" %}
-                                        <li>
-                                            <a class="dropdown-item" href="{% url 'survey:export_response_pdf' response.id %}">
-                                                <i class="fas fa-file-pdf me-2"></i>
-                                                {% if survey.responses_are_anonymous %}
-                                                    {% trans "Response" %} #{{ forloop.counter }}
-                                                {% else %}
-                                                    {% if response.respondent %}
-                                                        {{ response.respondent.username }}
-                                                    {% else %}
-                                                        {% trans "Anonymous" %}
-                                                    {% endif %}
-                                                {% endif %}
-                                                ({{ response.submitted_at|date:"M d" }})
-                                            </a>
-                                        </li>
-                                    {% endfor %}
-                                    {% if responses|length > 5 %}
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li class="dropdown-header">{% trans "...and" %} {{ responses|length|add:"-5" }} {% trans "more" %}</li>
-                                    {% endif %}
-                                </ul>
-                            </div>
-                        {% endif %}
                         <a href="{% url 'survey:survey_manage' survey.pk %}" class="btn btn-light">
                             <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Survey" %}
                         </a>
@@ -86,7 +44,7 @@
         <div class="stats-card">
             <div class="stats-number">
                 {% if total_responses > 0 %}
-                    {{ responses.first.submitted_at|date:"M d" }}
+                    {{ responses.first.submitted_at|date:"d.m.Y" }}
                 {% else %}
                     -
                 {% endif %}
@@ -98,7 +56,7 @@
         <div class="stats-card">
             <div class="stats-number">
                 {% if total_responses > 0 %}
-                    {{ responses.last.submitted_at|date:"M d" }}
+                    {{ responses.last.submitted_at|date:"d.m.Y" }}
                 {% else %}
                     -
                 {% endif %}
@@ -188,13 +146,22 @@
                                 <div class="d-flex flex-column gap-1">
                                     {% for answer in question_data.answers %}
                                         <div class="d-flex align-items-center gap-2 py-1">
-                                            {% if answer.1 %}
-                                                <i class="bi bi-person-circle text-secondary" style="font-size: 0.875rem;"></i>
-                                                <span class="text-secondary small fw-medium">{{ answer.1 }}</span>
-                                                <span class="text-muted" style="font-size: 0.75rem;">•</span>
+                                            {% if not survey.responses_are_anonymous %}
+                                                {% if answer.1 %}
+                                                    <i class="fas fa-user"></i>
+                                                    <span class="text-secondary small fw-medium me-1">{{ answer.1 }}</span>
+                                                {% else %}
+                                                    <i class="fas fa-user-secret"></i>
+                                                    <span class="text-secondary small fw-medium me-1">{% trans "Anonymous" %}</span>
+                                                {% endif %}
+                                                <i class="bi bi-dash-lg" style="font-size: 0.75rem;"></i>
                                             {% endif %}
                                             <span class="small">{{ answer.0 }}</span>
                                         </div>
+
+                                        {% if not loop.last %}
+                                            <hr class="my-1 border-secondary border-1">
+                                        {% endif %}
                                     {% endfor %}
                                 </div>
                             {% else %}
@@ -211,11 +178,34 @@
     <div class="row">
         <div class="col-12">
             <div class="survey-card card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5 class="mb-0">
                         <i class="fas fa-users me-2"></i>
                         {% trans "Response Details" %}
                     </h5>
+                    {% if total_responses > 0 %}
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
+                                    <i class="fas fa-file-pdf me-2"></i>{% trans "Export PDF" %}
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'survey:export_survey_all_responses_pdf' survey.id %}">
+                                            <i class="fas fa-file-pdf me-2"></i>{% trans "All Responses as PDF" %}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'survey:export_survey_responses_pdf' survey.id %}">
+                                            <i class="fas fa-download me-2"></i>{% trans "All Responses individually as ZIP" %}
+                                        </a>
+                                    </li>
+                                    {% if responses|length > 5 %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li class="dropdown-header">{% trans "...and" %} {{ responses|length|add:"-5" }} {% trans "more" %}</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        {% endif %}
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -227,9 +217,6 @@
                                     {% endif %}
                                     <th>{% trans "Submitted" %}</th>
                                     <th>{% trans "Answers" %}</th>
-                                    {% if not survey.responses_are_anonymous %}
-                                    <th>{% trans "IP Address" %}</th>
-                                    {% endif %}
                                     <th>{% trans "Actions" %}</th>
                                 </tr>
                             </thead>
@@ -239,21 +226,22 @@
                                         {% if not survey.responses_are_anonymous %}
                                         <td>
                                             {% if response.respondent %}
-                                                <i class="fas fa-user me-1"></i>{{ response.respondent.username }}
+                                                <i class="fas fa-user me-1"></i>{{ response.respondent }}
                                             {% else %}
                                                 <i class="fas fa-user-secret me-1"></i>{% trans "Anonymous" %}
                                             {% endif %}
                                         </td>
                                         {% endif %}
-                                        <td>{{ response.submitted_at|date:"M d, Y H:i" }}</td>
+                                        <td>
+                                            {% if not survey.responses_are_anonymous %}
+                                                {{ response.submitted_at|date:"d.m.Y, H:i" }}
+                                            {% else %}
+                                                {{ response.submitted_at|date:"d.m.Y" }}
+                                            {% endif %}
+                                        </td>
                                         <td>
                                             <span class="badge bg-info">{{ response.answers.count }}</span>
                                         </td>
-                                        {% if not survey.responses_are_anonymous %}
-                                        <td>
-                                            <small class="text-muted">{{ response.ip_address|default:"-" }}</small>
-                                        </td>
-                                        {% endif %}
                                         <td>
                                             <a href="{% url 'survey:export_response_pdf' response.id %}" 
                                                class="btn btn-sm btn-outline-success" 

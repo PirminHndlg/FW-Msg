@@ -30,38 +30,12 @@
             <div class="survey-card card h-100">
                 <div class="card-header d-flex justify-content-between align-items-start">
                     <div>
-                    <h5 class="card-title mb-0">{{ survey.title }}</h5>
-                    {% if not survey.created_by == user %}
-                        <p class="card-text text-muted"><i class="fas fa-user me-1"></i>{% trans "Created by" %} {{ survey.created_by }}</p>
-                    {% endif %}
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="dropdown-item" href="{% url 'survey:survey_manage' survey.pk %}">
-                                    <i class="fas fa-cog me-2"></i>{% trans "Manage" %}
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{% url 'survey:survey_update' survey.pk %}">
-                                    <i class="fas fa-edit me-2"></i>{% trans "Edit" %}
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{% url 'survey:survey_results' survey.pk %}">
-                                    <i class="fas fa-chart-bar me-2"></i>{% trans "Results" %}
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item text-danger" href="{% url 'survey:survey_delete' survey.pk %}">
-                                    <i class="fas fa-trash me-2"></i>{% trans "Delete" %}
-                                </a>
-                            </li>
-                        </ul>
+                        <a href="{% url 'survey:survey_manage' survey.pk %}" class="text-decoration-none text-body">
+                        <h5 class="card-title mb-0">{{ survey.title }}</h5>
+                            {% if not survey.created_by == user %}
+                                <p class="card-text text-muted"><i class="fas fa-user me-1"></i>{% trans "Created by" %} {{ survey.created_by }}</p>
+                            {% endif %}
+                        </a>
                     </div>
                 </div>
                 <div class="card-body">
@@ -71,12 +45,16 @@
                     
                     <div class="row text-center mb-3">
                         <div class="col-4">
-                            <div class="stats-number">{{ survey.questions.count }}</div>
-                            <div class="stats-label">{% trans "Questions" %}</div>
+                            <a href="{% url 'survey:survey_manage' survey.pk %}" class="text-decoration-none text-body">
+                                <div class="stats-number">{{ survey.questions.count }}</div>
+                                <div class="stats-label">{% trans "Questions" %}</div>
+                            </a>
                         </div>
                         <div class="col-4">
-                            <div class="stats-number">{{ survey.response_count }}</div>
-                            <div class="stats-label">{% trans "Responses" %}</div>
+                            <a href="{% url 'survey:survey_results' survey.pk %}" class="text-decoration-none text-body">
+                            <div class="stats-number">{{ survey.response_count }}</div></a>
+                                <div class="stats-label">{% trans "Responses" %}</div>
+                            </a>
                         </div>
                         <div class="col-4">
                             <div class="stats-number">
@@ -93,7 +71,15 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <small class="text-muted">
                             <i class="fas fa-calendar me-1"></i>
-                            {{ survey.created_at|date:"M d, Y" }}
+                            {% if survey.start_date and survey.end_date %}
+                                {{ survey.start_date|date:"d.m.Y" }} - {{ survey.end_date|date:"d.m.Y" }}
+                            {% elif survey.start_date %}
+                                {% trans "Starts:" %} {{ survey.start_date|date:"d.m.Y" }}
+                            {% elif survey.end_date %}
+                                {% trans "Ends:" %} {{ survey.end_date|date:"d.m.Y" }}
+                            {% else %}
+                                {% trans "No date set" %}
+                            {% endif %}
                         </small>
                         {% if survey.allow_anonymous %}
                             <span class="badge bg-info">
@@ -123,11 +109,19 @@
                     </div>
                 </div>
                 <div class="card-footer bg-transparent">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'survey:survey_manage' survey.pk %}" class="btn btn-primary">
-                            <i class="fas fa-cog me-2"></i>
-                            {% trans "Manage Survey" %}
-                        </a>
+                    <div class="row">
+                        <div class="col-12 col-md-6 d-grid mb-2 mb-md-0">
+                            <a href="{% url 'survey:survey_manage' survey.pk %}" class="btn btn-primary w-100">
+                                <i class="fas fa-cog me-2"></i>
+                                {% trans "Manage Survey" %}
+                            </a>
+                        </div>
+                        <div class="col-12 col-md-6 d-grid">
+                            <a href="{% url 'survey:survey_results' survey.pk %}" class="btn btn-primary w-100">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                {% trans "View Results" %}
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -11,43 +11,18 @@
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <h1 class="display-6 mb-2">{{ survey.title }}</h1>
-                        <p class="lead mb-0">{% trans "Manage questions and view responses" %}</p>
+                        {% if survey.description %}
+                            <p class="lead mb-0">{{ survey.description }}</p>
+                        {% endif %}
                     </div>
                     <div class="text-end">
-                        <div class="dropdown">
-                            <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-cog me-2"></i>{% trans "Actions" %}
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'survey:survey_update' survey.pk %}">
-                                        <i class="fas fa-edit me-2"></i>{% trans "Edit Survey" %}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'survey:survey_results' survey.pk %}">
-                                        <i class="fas fa-chart-bar me-2"></i>{% trans "View Results" %}
-                                    </a>
-                                </li>
-                                {% if response_count > 0 %}
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'survey:export_survey_all_responses_pdf' survey.id %}">
-                                        <i class="fas fa-file-pdf me-2"></i>{% trans "Export All Responses as PDF" %}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'survey:export_survey_responses_pdf' survey.id %}">
-                                        <i class="fas fa-file-pdf me-2"></i>{% trans "Export All PDFs individually" %}
-                                    </a>
-                                </li>
-                                {% endif %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item text-danger" href="{% url 'survey:survey_delete' survey.pk %}">
-                                        <i class="fas fa-trash me-2"></i>{% trans "Delete Survey" %}
-                                    </a>
-                                </li>
-                            </ul>
+                        <div class="btn-group">
+                            <a class="btn btn-secondary" href="{% url 'survey:survey_update' survey.pk %}">
+                                <i class="fas fa-edit me-2"></i>
+                            </a>
+                            <a class="btn btn-danger" href="{% url 'survey:survey_delete' survey.pk %}">
+                                <i class="fas fa-trash me-2"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -68,8 +43,10 @@
     </div>
     <div class="col-6 col-md-4 col-lg-2 mb-3 mb-lg-0">
         <div class="stats-card h-100 d-flex flex-column align-items-center justify-content-center">
+            <a href="{% url 'survey:survey_results' survey.pk %}" class="text-decoration-none">
             <div class="stats-number">{{ response_count }}</div>
             <div class="stats-label">{% trans "Responses" %}</div>
+            </a>
         </div>
     </div>
     <div class="col-6 col-md-4 col-lg-2 mb-3 mb-lg-0">
@@ -266,14 +243,18 @@
                                     {% if not survey.responses_are_anonymous %}
                                     <td>
                                         {% if response.respondent %}
-                                            <i class="fas fa-user me-1"></i>{{ response.respondent.username }}
+                                            <i class="fas fa-user me-1"></i>{{ response.respondent }}
                                         {% else %}
                                             <i class="fas fa-user-secret me-1"></i>{% trans "Anonymous" %}
                                         {% endif %}
                                     </td>
                                     {% endif %}
                                     <td>
-                                        <small class="text-muted">{{ response.submitted_at|date:"M d, Y H:i" }}</small>
+                                        {% if not survey.responses_are_anonymous %}
+                                            <small class="text-muted">{{ response.submitted_at|date:"d.m.Y, H:i" }}</small>
+                                        {% else %}
+                                            <small class="text-muted">{{ response.submitted_at|date:"d.m.Y" }}</small>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <small class="text-muted">{{ response.answers.count }} answer{{ response.answers.count|pluralize }}</small>

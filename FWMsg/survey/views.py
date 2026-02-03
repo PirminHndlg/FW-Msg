@@ -310,7 +310,7 @@ def survey_results(request, pk):
     survey = get_object_or_404(Survey, pk=pk)
     check_survey_access(request, survey)
     
-    responses = survey.responses.filter(is_complete=True).prefetch_related(
+    responses = survey.responses.filter(is_complete=True).order_by('submitted_at').prefetch_related(
         'answers__question',
         'answers__selected_options'
     )
