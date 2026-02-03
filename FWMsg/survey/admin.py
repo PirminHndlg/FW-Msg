@@ -163,7 +163,7 @@ class SurveyResponseAdmin(admin.ModelAdmin):
         if obj.respondent:
             return f"{obj.respondent.username} ({obj.respondent.email})"
         else:
-            return f"Anonymous ({obj.session_key[:8]}...)"
+            return f"Anonymous"
     respondent_info.short_description = _('Respondent')
     
     def has_add_permission(self, request):
