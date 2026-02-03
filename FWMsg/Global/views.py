@@ -489,25 +489,24 @@ def serve_dokument(request, dokument_identifier):
 def bilder(request):
     cookie_name = 'selectedPersonCluster-bilder'
     
-    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, bilder=True).order_by('name')
     current_person_cluster = None
-    if request.user.role == 'O':
-        try:
-            person_cluster_param = request.GET.get('person_cluster_filter')
-            if person_cluster_param == 'None':
-                current_person_cluster = None
-            elif person_cluster_param:
-                current_person_cluster = all_person_clusters.get(id=int(person_cluster_param), org=request.user.org)
-            else:
-                person_cluster_cookie = request.COOKIES.get(cookie_name)
-                if person_cluster_cookie is not None and person_cluster_cookie != 'None':
-                    current_person_cluster = all_person_clusters.get(id=int(person_cluster_cookie), org=request.user.org)
-        
-        except PersonCluster.DoesNotExist:
+    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, bilder=True).order_by('name')
+    try:
+        person_cluster_param = request.GET.get('person_cluster_filter')
+        if person_cluster_param == 'None':
             current_person_cluster = None
-        except Exception as e:
-            messages.error(request, f'Fehler beim Laden der Bilder: {str(e)}')
-            current_person_cluster = None
+        elif person_cluster_param:
+            current_person_cluster = all_person_clusters.get(id=int(person_cluster_param), org=request.user.org)
+        else:
+            person_cluster_cookie = request.COOKIES.get(cookie_name)
+            if person_cluster_cookie is not None and person_cluster_cookie != 'None':
+                current_person_cluster = all_person_clusters.get(id=int(person_cluster_cookie), org=request.user.org)
+    
+    except PersonCluster.DoesNotExist:
+        current_person_cluster = None
+    except Exception as e:
+        messages.error(request, f'Fehler beim Laden der Bilder: {str(e)}')
+        current_person_cluster = None
     
     if current_person_cluster:
         gallery_images = get_bilder(request.user.org, filter_person_cluster=current_person_cluster)
