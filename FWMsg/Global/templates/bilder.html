@@ -30,11 +30,11 @@
                 <div class="d-flex gap-1 justify-content-center align-items-center mt-2">
                     <strong>{% trans "Benutzergruppe" %}</strong>
                     <div class="gap-1 flex-wrap justify-content-center align-items-center d-none d-md-flex">
-                        <a class="btn btn-sm rounded-4 btn-outline-primary {% if not current_person_cluster %}active{% endif %}" href="{% url 'bilder' %}?person_cluster_filter=None">
+                        <a class="btn btn-sm rounded-4 {% if not current_person_cluster %}btn-primary{% else %}btn-outline-primary{% endif %} {% if not current_person_cluster %}active{% endif %}" href="{% url 'bilder' %}?person_cluster_filter=None">
                             {% trans 'Alle' %}
                         </a>
                         {% for person_cluster in person_clusters %}
-                            <a class="btn btn-sm rounded-4 btn-outline-primary {% if current_person_cluster == person_cluster %}active{% endif %}" href="{% url 'bilder' %}?person_cluster_filter={{ person_cluster.id }}">
+                            <a class="btn btn-sm rounded-4 {% if current_person_cluster == person_cluster %}btn-primary{% else %}btn-outline-primary{% endif %} {% if current_person_cluster == person_cluster %}active{% endif %}" href="{% url 'bilder' %}?person_cluster_filter={{ person_cluster.id }}">
                                 {{ person_cluster.name }}
                             </a>
                         {% endfor %}
@@ -48,6 +48,21 @@
                                 </option>
                             {% endfor %}
                         </select>
+                    </div>
+                </div>
+                {% endif %}
+                {% if not user.role == 'O' %}
+                <div class="d-flex gap-1 justify-content-center align-items-center mt-2 flex-wrap">
+                    <strong>{% trans "Filter" %}</strong>
+                    <div class="gap-1 d-flex justify-content-center align-items-center flex-wrap">
+                        <a class="btn btn-sm rounded-4 {% if not current_person_cluster %}btn-primary{% else %}btn-outline-primary{% endif %} {% if not current_person_cluster %}active{% endif %}" href="{% url 'bilder' %}?person_cluster_filter=None">
+                            {% trans 'Alle' %}
+                        </a>
+                        {% with request.user.person_cluster as my_person_cluster %}
+                            <a class="btn btn-sm rounded-4 {% if current_person_cluster.id == my_person_cluster.id %}btn-primary{% else %}btn-outline-primary{% endif %} {% if current_person_cluster.id == my_person_cluster.id %}active{% endif %}" href="{% url 'bilder' %}?person_cluster_filter={{ my_person_cluster.id }}">
+                                {% trans "Nur" %} {{ my_person_cluster.name }}
+                            </a>
+                        {% endwith %}
                     </div>
                 </div>
                 {% endif %}
