@@ -199,10 +199,6 @@
                                             <i class="fas fa-download me-2"></i>{% trans "All Responses individually as ZIP" %}
                                         </a>
                                     </li>
-                                    {% if responses|length > 5 %}
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li class="dropdown-header">{% trans "...and" %} {{ responses|length|add:"-5" }} {% trans "more" %}</li>
-                                    {% endif %}
                                 </ul>
                             </div>
                         {% endif %}
