@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.utils.translation import gettext as _
 from Global.models import (
-    Ampel2, UserAufgaben, Post2, Bilder2,
+    Ampel2, PersonCluster, UserAufgaben, Post2, Bilder2,
 )
 from django.contrib.auth import get_user_model
 from FW.models import Freiwilliger
@@ -47,6 +47,21 @@ def home(request):
             'offen': offene_aufgaben[:4],
             'offen_prozent': safe_percentage(len_offen, gesamt),
         }
+        
+    current_person_cluster = None
+    person_cluster_param = request.GET.get('person_cluster_filter')
+    try:
+        if not person_cluster_param or person_cluster_param == 'None':
+            current_person_cluster = None
+        elif person_cluster_param:
+            current_person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+        else:
+            current_person_cluster = request.user.person_cluster
+    except PersonCluster.DoesNotExist:
+        current_person_cluster = None
+    except Exception as e:
+        messages.error(request, f'Fehler beim Laden der Neuigkeiten: {str(e)}')
+        current_person_cluster = None
 
     # Build unified feed (posts + images) sorted by date
     feed = []
@@ -67,6 +82,10 @@ def home(request):
             .select_related('user')
             .order_by('-date_created')
         )
+        
+        if current_person_cluster:
+            bilder_qs = bilder_qs.filter(user__customuser__person_cluster=current_person_cluster)
+            
         for bild in bilder_qs:
             feed.append({
                 'type': 'image',
@@ -99,6 +118,7 @@ def home(request):
         'freiwilliger': freiwilliger,
         'days_until_start': days_until_start,
         'last_ampel': last_ampel,
+        'current_person_cluster': current_person_cluster,
     }
 
     return render(request, 'homeFw.html', context=context)

@@ -45,11 +45,27 @@
     {# Unified Feed: Posts and Images #}
     {% if feed %}
     <div class="card rounded-4 mb-2">
-        <div class="card-header rounded-4 d-flex justify-content-between align-items-center">
-            <h3 class="mb-0">{% trans "Neuigkeiten" %}</h3>
-            <div class="d-flex gap-2">
-                <a href="{% url 'posts_overview' %}" class="btn btn-outline-secondary btn-sm">{% trans "Alle Posts" %}</a>
-                <a href="{% url 'bilder' %}" class="btn btn-outline-secondary btn-sm">{% trans "Alle Bilder" %}</a>
+        <div class="card-header rounded-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">{% trans "Neuigkeiten" %}</h3>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'posts_overview' %}" class="btn btn-outline-secondary btn-sm">{% trans "Alle Posts" %}</a>
+                    <a href="{% url 'bilder' %}" class="btn btn-outline-secondary btn-sm">{% trans "Alle Bilder" %}</a>
+                </div>
+            </div>
+
+            <div class="d-flex gap-1 justify-content-center align-items-center mt-2 flex-wrap">
+                <strong>{% trans "Filter" %}</strong>
+                <div class="gap-1 d-flex justify-content-center align-items-center flex-wrap">
+                        <a class="btn btn-sm rounded-4 {% if not current_person_cluster %}btn-primary{% else %}btn-outline-primary{% endif %} {% if not current_person_cluster %}active{% endif %}" href="{% url 'fw_home' %}?person_cluster_filter=None">
+                        {% trans 'Alle' %}
+                    </a>
+                    {% with request.user.person_cluster as my_person_cluster %}
+                        <a class="btn btn-sm rounded-4 {% if current_person_cluster.id == my_person_cluster.id %}btn-primary{% else %}btn-outline-primary{% endif %} {% if current_person_cluster.id == my_person_cluster.id %}active{% endif %}" href="{% url 'fw_home' %}?person_cluster_filter={{ my_person_cluster.id }}">
+                            {% trans "Nur" %} {{ my_person_cluster.name }}
+                        </a>
+                    {% endwith %}
+                </div>
             </div>
         </div>
         <div class="card-body">
