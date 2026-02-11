@@ -1473,6 +1473,10 @@ def _redirect_after_action(request, model_name, object_id=None):
     if model_name.lower() == 'useraufgaben':
         return redirect('list_aufgaben_table')
     
+    # TODO: Remove this because it is possible to edit aufgaben from the aufgaben list view instead of the table view
+    if model_name.lower() == 'aufgabe':
+        return redirect('list_aufgaben_table')
+    
     # Standard case: redirect to list view with optional highlighting
     if object_id:
         return redirect('list_object_highlight', model_name=model_name, highlight_id=object_id)
