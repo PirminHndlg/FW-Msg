@@ -1069,18 +1069,26 @@ def add_ordner(request):
 @login_required
 @required_person_cluster('dokumente')
 def remove_dokument(request):
+    folder_id = None
     if request.method == 'POST':
         dokument_id = request.POST.get('dokument_id')
         try:
             dokument = Dokument2.objects.get(id=dokument_id, org=request.user.org)
+            folder_id = dokument.ordner.id
             if request.user.role == 'O' or request.user.person_cluster in dokument.darf_bearbeiten.all():
                 dokument.delete()
             else:
                 messages.error(request, 'Dokument kann nicht gelöscht werden, da du nicht der Ersteller bist.')
         except Dokument2.DoesNotExist:
             pass
-
-    return redirect('dokumente')
+        except Exception as e:
+            messages.error(request, f'Fehler beim Löschen des Dokuments: {str(e)}')
+            return redirect('dokumente')
+        
+    if folder_id:
+        return redirect('dokumente', ordner_id=folder_id)
+    else:
+        return redirect('dokumente')
 
 @login_required
 @required_person_cluster('dokumente')
