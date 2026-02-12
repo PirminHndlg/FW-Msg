@@ -606,19 +606,29 @@ def get_freiwilliger_table_class(org, request=None):
             'einsatzland2_sort': obj.einsatzland2.name.lower() if obj.einsatzland2 else '',
             'einsatzstelle2_name': obj.einsatzstelle2.name if obj.einsatzstelle2 else '',
             'einsatzstelle2_sort': obj.einsatzstelle2.name.lower() if obj.einsatzstelle2 else '',
+            'geburtsdatum': obj.user.customuser.geburtsdatum.strftime('%Y%m%d') if hasattr(obj.user, 'customuser') and obj.user.customuser.geburtsdatum else '',
         }
     
     # Define render methods
     def render_user(self, value, record):
         freiwilliger = record['freiwilliger']
-        return format_html(
-            '<a href="{}" title="Zum Profil"><i class="bi bi-person-fill me-1"></i>{}</a> '
-            '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
-            '<i class="bi bi-envelope-arrow-up"></i></a>',
-            reverse('profil', args=[freiwilliger.user.customuser.get_identifier()]),
-            f"{freiwilliger.user.first_name} {freiwilliger.user.last_name}",
-            freiwilliger.user.email,
-        )
+        if hasattr(freiwilliger.user, 'customuser'):
+            return format_html(
+                '<a href="{}" title="Zum Profil"><i class="bi bi-person-fill me-1"></i>{}</a> '
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
+                '<i class="bi bi-envelope-arrow-up"></i></a>',
+                reverse('profil', args=[freiwilliger.user.customuser.get_identifier()]),
+                f"{freiwilliger.user.first_name} {freiwilliger.user.last_name}",
+                freiwilliger.user.email,
+            )
+        else:
+            return format_html(
+                '<i class="bi bi-person-fill me-1"></i>{} '
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
+                '<i class="bi bi-envelope-arrow-up"></i></a>',
+                f"{freiwilliger.user.first_name} {freiwilliger.user.last_name}",
+                freiwilliger.user.email,
+            )
     
     def actions_renderer(record, org):
         freiwilliger = record['freiwilliger']
@@ -651,6 +661,11 @@ def get_freiwilliger_table_class(org, request=None):
             accessor='einsatzstelle2_name',
             order_by='einsatzstelle2_sort'
         ),
+        'geburtsdatum': tables.DateColumn(
+            verbose_name=_('Geburtsdatum'),
+            accessor='geburtsdatum',
+            format='d.m.Y',
+        ),
         'start_geplant': tables.DateColumn(
             verbose_name=_('Start geplant'),
             accessor='freiwilliger.start_geplant',
@@ -678,7 +693,7 @@ def get_freiwilliger_table_class(org, request=None):
     }
     
     column_sequence = [
-        'user', 'einsatzland2', 'einsatzstelle2', 
+        'user', 'einsatzland2', 'einsatzstelle2', 'geburtsdatum',
         'start_geplant', 'start_real', 'ende_geplant', 'ende_real'
     ]
     
