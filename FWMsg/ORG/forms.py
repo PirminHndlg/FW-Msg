@@ -106,6 +106,14 @@ def add_customuser_fields(self, view):
         
     if person_clusters.count() == 1:
         self.fields['person_cluster'].initial = person_clusters.first()
+        
+    self.fields['geburtsdatum_customuser'] = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        required=False,
+        label='Geburtsdatum'
+    )
+    if self.instance and self.instance.pk:
+        self.fields['geburtsdatum_customuser'].initial = self.instance.user.customuser.geburtsdatum
 
 
 def add_person_cluster_field(self):
@@ -203,6 +211,23 @@ def save_and_create_customuser(self):
         org=self.request.user.org,
         person_cluster=self.cleaned_data['person_cluster']
     )
+    if self.cleaned_data['geburtsdatum_customuser']:
+        self.instance.user.customuser.geburtsdatum = self.cleaned_data['geburtsdatum_customuser']
+    self.instance.user.customuser.save()
+    self.instance.user.save()
+    
+
+def save_customuser_field(self):
+    if self.cleaned_data['first_name'] != self.instance.user.first_name:
+        self.instance.user.first_name = self.cleaned_data['first_name']
+    if self.cleaned_data['last_name'] != self.instance.user.last_name:
+        self.instance.user.last_name = self.cleaned_data['last_name']
+    if self.cleaned_data['email'] != self.instance.user.email:
+        self.instance.user.email = self.cleaned_data['email']
+    if self.cleaned_data['geburtsdatum_customuser'] != self.instance.user.customuser.geburtsdatum:
+        self.instance.user.customuser.geburtsdatum = self.cleaned_data['geburtsdatum_customuser']
+    if self.cleaned_data['person_cluster'] != self.instance.user.customuser.person_cluster:
+        self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
     self.instance.user.customuser.save()
     self.instance.user.save()
 
@@ -234,14 +259,7 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
 
         add_customuser_fields(self, 'F')
 
-        self.fields['geburtsdatum'] = forms.DateField(
-            widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            required=False
-        )
-        if self.instance and self.instance.pk:
-            self.fields['geburtsdatum'].initial = self.instance.user.customuser.geburtsdatum
-        
-        order_fields = ['first_name', 'last_name', 'email', 'person_cluster', 'geburtsdatum']
+        order_fields = ['first_name', 'last_name', 'email', 'person_cluster', 'geburtsdatum_customuser']
         self.order_fields(order_fields)
 
         add_person_cluster_field(self)
@@ -275,23 +293,10 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
             save_and_create_customuser(self)
             self.instance.save()
         else:
-            self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
-            self.instance.user.customuser.save()
+            save_customuser_field(self)
+            self.instance.save()
 
         instance = super().save(commit=commit)
-        
-        if self.cleaned_data['first_name'] != self.instance.user.first_name:
-            self.instance.user.first_name = self.cleaned_data['first_name']
-            self.instance.user.save()
-        
-        if self.cleaned_data['last_name'] != self.instance.user.last_name:
-            self.instance.user.last_name = self.cleaned_data['last_name']
-            self.instance.user.save()
-        
-        if self.cleaned_data['email'] != self.instance.user.email:
-            self.instance.user.email = self.cleaned_data['email']
-            self.instance.user.save()
-        
         save_person_cluster_field(self)
         
         return instance
@@ -322,9 +327,9 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
             customuser__person_cluster__view__in=['T', 'E', 'O']
         ).order_by('last_name', 'first_name')
         self.fields['interview_persons'].label = 'Interviewpersonen'
-        self.fields['interview_persons'].help_text = 'Wählen Sie die Personen aus, die das Interview durchgeführt haben.'
+        self.fields['interview_persons'].help_text = 'Wähle die Personen aus, die das Interview durchgeführt haben.'
         
-        order_fields = ['first_name', 'last_name', 'email', 'person_cluster',  'pdf_files', 'interview_persons', 'endbewertung', 'zuteilung', 'zuteilung_freigegeben', 'reaktion_auf_zuteilung']
+        order_fields = ['first_name', 'last_name', 'email', 'person_cluster', 'geburtsdatum_customuser', 'pdf_files', 'interview_persons', 'endbewertung', 'zuteilung', 'zuteilung_freigegeben', 'reaktion_auf_zuteilung']
         self.order_fields(order_fields)
         
         # Separate, non-model field for profile picture upload
@@ -428,7 +433,7 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
                     import logging
                     logger = logging.getLogger(__name__)
                     logger.error(f"Error reading PDF file {getattr(pdf_file, 'name', 'unknown')}: {str(read_error)}")
-                    raise forms.ValidationError(f"Fehler beim Lesen der Datei '{getattr(pdf_file, 'name', 'unknown')}'. Bitte versuchen Sie es erneut.")
+                    raise forms.ValidationError(f"Fehler beim Lesen der Datei '{getattr(pdf_file, 'name', 'unknown')}'. Bitte versuche es erneut.")
             
             # Now merge from the in-memory buffers
             for buffer in file_buffers:
@@ -496,8 +501,7 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
             save_and_create_customuser(self)
             self.instance.save()
         else:
-            self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
-            self.instance.user.customuser.save()
+            save_customuser_field(self)
             
         if self.cleaned_data.get('profil_picture'):
             self.instance.user.customuser.profil_picture = self.cleaned_data['profil_picture']
@@ -517,22 +521,10 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
                 logger = logging.getLogger(__name__)
                 logger.error(f"Error merging PDFs for Bewerber: {str(e)}", exc_info=True)
                 # Re-raise as a validation error so user gets feedback
-                raise forms.ValidationError(f"Fehler beim Verarbeiten der PDF-Dateien. Bitte versuchen Sie es erneut.")
+                raise forms.ValidationError(f"Fehler beim Verarbeiten der PDF-Dateien. Bitte versuche es erneut.")
 
         instance = super().save(commit=commit)
         
-        if self.cleaned_data['first_name'] != self.instance.user.first_name:
-            self.instance.user.first_name = self.cleaned_data['first_name']
-            self.instance.user.save()
-        
-        if self.cleaned_data['last_name'] != self.instance.user.last_name:
-            self.instance.user.last_name = self.cleaned_data['last_name']
-            self.instance.user.save()
-        
-        if self.cleaned_data['email'] != self.instance.user.email:
-            self.instance.user.email = self.cleaned_data['email']
-            self.instance.user.save()
-            
         self.instance.user.customuser.update_identifier()
             
         instance.abgeschlossen = True
@@ -747,8 +739,7 @@ class AddReferentenForm(OrgFormMixin, forms.ModelForm):
             save_and_create_customuser(self)
             self.instance.save()
         else:
-            self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
-            self.instance.user.customuser.save()
+            save_customuser_field(self)
 
         instance = super().save(commit=commit)
 
@@ -769,7 +760,7 @@ class AddKalenderEventForm(OrgFormMixin, forms.ModelForm):
         queryset=PersonCluster.objects.none(),
         required=False,
         label='Benutzergruppen',
-        help_text='Wählen Sie Benutzergruppen aus, deren Mitglieder automatisch zum Termin hinzugefügt werden sollen'
+        help_text='Wähle Benutzergruppen aus, deren Mitglieder automatisch zum Termin hinzugefügt werden sollen'
     )
     
     # Add separate date and time fields
@@ -968,8 +959,7 @@ class AddEhemaligeForm(OrgFormMixin, forms.ModelForm):
             save_and_create_customuser(self)
             self.instance.save()
         else:
-            self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
-            self.instance.user.customuser.save()
+            save_customuser_field(self)
         instance = super().save(commit=commit)
         save_person_cluster_field(self)
         return instance

@@ -605,8 +605,7 @@ def get_freiwilliger_table_class(org, request=None):
             'einsatzland2_name': obj.einsatzland2.name if obj.einsatzland2 else '',
             'einsatzland2_sort': obj.einsatzland2.name.lower() if obj.einsatzland2 else '',
             'einsatzstelle2_name': obj.einsatzstelle2.name if obj.einsatzstelle2 else '',
-            'einsatzstelle2_sort': obj.einsatzstelle2.name.lower() if obj.einsatzstelle2 else '',
-            'geburtsdatum': obj.user.customuser.geburtsdatum.strftime('%Y%m%d') if hasattr(obj.user, 'customuser') and obj.user.customuser.geburtsdatum else '',
+            'einsatzstelle2_sort': obj.einsatzstelle2.name.lower() if obj.einsatzstelle2 else ''
         }
     
     # Define render methods
@@ -663,7 +662,7 @@ def get_freiwilliger_table_class(org, request=None):
         ),
         'geburtsdatum': tables.DateColumn(
             verbose_name=_('Geburtsdatum'),
-            accessor='geburtsdatum',
+            accessor='freiwilliger.user.customuser.geburtsdatum',
             format='d.m.Y',
         ),
         'start_geplant': tables.DateColumn(
@@ -869,6 +868,11 @@ def get_bewerber_table_class(org, request=None):
             accessor='user_sort',
             order_by='user_sort'
         ),
+        'geburtsdatum_customuser': tables.DateColumn(
+            verbose_name=_('Geburtsdatum'),
+            accessor='bewerber.user.customuser.geburtsdatum',
+            format='d.m.Y',
+        ),
         'application_pdf': tables.Column(
             verbose_name=_('PDF der Bewerbung'),
             accessor='bewerber.application_pdf',
@@ -906,7 +910,7 @@ def get_bewerber_table_class(org, request=None):
         ),
     }
     
-    column_sequence = ['user', 'application_pdf', 'has_seminar', 'interview_persons', 'zuteilung', 'zuteilung_freigegeben', 'reaktion_auf_zuteilung', 'endbewertung']
+    column_sequence = ['user', 'geburtsdatum_customuser', 'application_pdf', 'has_seminar', 'interview_persons', 'zuteilung', 'zuteilung_freigegeben', 'reaktion_auf_zuteilung', 'endbewertung']
     
     render_methods = {
         'render_user': render_user,
@@ -1113,9 +1117,14 @@ def get_ehemalige_table_class(org, request=None):
             accessor='ehemalige.land',
             orderable=False
         ),
+        'geburtsdatum_customuser': tables.DateColumn(
+            verbose_name=_('Geburtsdatum'),
+            accessor='ehemalige.user.customuser.geburtsdatum',
+            format='d.m.Y',
+        ),
     }
     
-    column_sequence = ['user', 'land']
+    column_sequence = ['user', 'land', 'geburtsdatum_customuser']
     
     render_methods = {
         'render_user': render_user,
