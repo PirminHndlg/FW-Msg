@@ -1,6 +1,7 @@
 from django.db import models
 from Global.models import OrgModel
 from django.contrib.auth.models import User
+from datetime import datetime
 from Global.models import Einsatzland2, Einsatzstelle2
 
 
@@ -230,7 +231,19 @@ class Bewerber(OrgModel):
             if self.zuteilung:
                 freiwilliger.einsatzland2 = self.zuteilung.land
                 freiwilliger.einsatzstelle2 = self.zuteilung
-            freiwilliger.save()
+                current_year = datetime.now().year
+                if self.zuteilung.start_geplant and self.zuteilung.start_geplant != '':
+                    start_date = datetime.strptime(self.zuteilung.start_geplant, '%d.%m.').date()
+                    while start_date < datetime.now().date():
+                        start_date = start_date.replace(year=start_date.year+1)
+                    freiwilliger.start_geplant = start_date
+                    
+                    if self.zuteilung.ende_geplant and self.zuteilung.ende_geplant != '':
+                        end_date = datetime.strptime(self.zuteilung.ende_geplant, '%d.%m.').date()
+                        while end_date < start_date:
+                            end_date = end_date.replace(year=end_date.year+1)
+                        freiwilliger.ende_geplant = end_date
+                freiwilliger.save()
             
             # Add the user to the person cluster with view 'F' with the highest id (last created)
             from Global.models import PersonCluster

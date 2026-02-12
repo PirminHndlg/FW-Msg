@@ -43,6 +43,52 @@ class MultipleFileField(forms.FileField):
         return result
 
 
+class DayMonthField(forms.CharField):
+    """Custom field for DD.MM format (day and month only)"""
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('max_length', 6)
+        kwargs.setdefault('help_text', 'Format: DD.MM. (z.B. 15.03.)')
+        super().__init__(*args, **kwargs)
+    
+    def clean(self, value):
+        value = super().clean(value)
+        if not value:
+            return value  # Allow empty values if field is not required
+
+        # Validate format DD.MM
+        import re
+        pattern = r'^\d{2}\.\d{2}\.$'
+        if not re.match(pattern, value):
+            raise forms.ValidationError('Bitte gib das Datum im Format DD.MM. ein (z.B. 15.03.)')
+
+        # Validate day and month values
+        try:
+            # Accept only exactly two values (day, month); value is expected to be, e.g., '31.10.'
+            # Remove the trailing dot and split
+            parts = value.rstrip('.').split('.')
+            if len(parts) != 2:
+                raise forms.ValidationError('Ungültiges Datumsformat. Bitte verwende DD.MM.')
+            day, month = parts
+            day_int = int(day)
+            month_int = int(month)
+
+            if month_int < 1 or month_int > 12:
+                raise forms.ValidationError('Der Monat muss zwischen 01 und 12 liegen')
+
+            if day_int < 1 or day_int > 31:
+                raise forms.ValidationError('Der Tag muss zwischen 01 und 31 liegen')
+
+            # Basic validation for days per month
+            days_in_month = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+            if day_int > days_in_month[month_int - 1]:
+                raise forms.ValidationError(f'Der Monat {month_int:02d} hat maximal {days_in_month[month_int - 1]} Tage')
+
+        except ValueError:
+            raise forms.ValidationError('Ungültiges Datumsformat. Bitte verwende DD.MM.')
+
+        return value
+
+
 class OrgFormMixin:
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
@@ -652,6 +698,39 @@ class AddEinsatzstelleForm(OrgFormMixin, forms.ModelForm):
         model = Einsatzstelle2
         fields = '__all__'
         exclude = ['org']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Use custom DayMonthField for start_geplant and ende_geplant
+        self.fields['start_geplant'] = DayMonthField(
+            widget=forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'DD.MM.',
+                'pattern': r'\d{2}\.\d{2}\.$',
+                'title': 'Format: DD.MM. (z.B. 15.03.)'
+            }),
+            help_text='Das Datum wann der Einsatzstart geplant ist (Format: DD.MM. (z.B. 15.03.))',
+            required=False
+        )
+        self.fields['ende_geplant'] = DayMonthField(
+            widget=forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'DD.MM.',
+                'pattern': r'\d{2}\.\d{2}\.$',
+                'title': 'Format: DD.MM. (z.B. 15.03.)'
+            }),
+            help_text='Das Datum wann der Einsatzende geplant ist (Format: DD.MM. (z.B. 15.03.))',
+            required=False
+        )
+        
+    def save(self, commit=True):
+        instance = super().save(commit=commit)
+        if commit:
+            instance.start_geplant = self.cleaned_data.get('start_geplant') or ''
+            instance.ende_geplant = self.cleaned_data.get('ende_geplant') or ''
+            instance.save()
+        
+        return instance
 
 
 class AddNotfallkontaktForm(OrgFormMixin, forms.ModelForm):

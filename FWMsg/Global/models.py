@@ -92,6 +92,8 @@ class PersonCluster(OrgModel):
         verbose_name = 'Benutzergruppe'
         verbose_name_plural = 'Benutzergruppen'
         
+        ordering = ['view']
+        
     def __str__(self):
         return self.name
     
@@ -677,6 +679,9 @@ class Einsatzstelle2(OrgModel):
     botschaft = models.TextField(verbose_name='Botschaft', null=True, blank=True)
     konsulat = models.TextField(verbose_name='Konsulat', null=True, blank=True)
     informationen = models.TextField(verbose_name='Weitere Informationen', null=True, blank=True)
+    
+    start_geplant = models.CharField(max_length=6, blank=True, null=True, verbose_name='Start geplant', help_text='Das Datum wann der Einsatzstart geplant ist (Format: DD.MM. (z.B. 15.03.))')
+    ende_geplant = models.CharField(max_length=6, blank=True, null=True, verbose_name='Ende geplant', help_text='Das Datum wann das Einsatzende geplant ist (Format: DD.MM. (z.B. 15.03.))')
     
     max_freiwillige = models.IntegerField(blank=True, null=True, default=1, verbose_name='Maximale Anzahl Freiwillige')
 

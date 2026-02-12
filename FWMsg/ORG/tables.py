@@ -106,6 +106,8 @@ class EinsatzlandTable(BaseOrgTable):
 class EinsatzstelleTable(BaseOrgTable):
     name = tables.Column(verbose_name=_('Name'))
     land = tables.Column(verbose_name=_('Einsatzland'))
+    start_geplant = tables.Column(verbose_name=_('Start geplant'))
+    ende_geplant = tables.Column(verbose_name=_('Ende geplant'))
     partnerorganisation = tables.Column(verbose_name=_('Partnerorganisation'), orderable=False)
     arbeitsvorgesetzter = tables.Column(verbose_name=_('Arbeitsvorgesetzte:r'), orderable=False)
     mentor = tables.Column(verbose_name=_('Mentor:in'), orderable=False)
@@ -128,7 +130,7 @@ class EinsatzstelleTable(BaseOrgTable):
 
     class Meta(BaseOrgTable.Meta):
         model = Einsatzstelle2
-        fields = ('name', 'land', 'partnerorganisation', 'arbeitsvorgesetzter', 'mentor', 'botschaft', 'konsulat', 'informationen', 'max_freiwillige', 'actions')
+        fields = ('name', 'land', 'start_geplant', 'ende_geplant', 'partnerorganisation', 'arbeitsvorgesetzter', 'mentor', 'botschaft', 'konsulat', 'informationen', 'max_freiwillige', 'actions')
 
 
 class AttributeTable(BaseOrgTable):
