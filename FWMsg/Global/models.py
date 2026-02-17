@@ -85,6 +85,7 @@ class PersonCluster(OrgModel):
     map = models.BooleanField(default=False, verbose_name='Karte sichtbar', help_text='Aktivieren, um die Standortkarte für diese Gruppe sichtbar zu machen')
     
     view = models.CharField(max_length=1, choices=view_choices, default='F', verbose_name='Standardansicht', help_text='Bestimmt die Standardansicht für Mitglieder dieser Gruppe')
+    active = models.BooleanField(default=True, verbose_name='Aktiv', help_text='Wenn deaktiviert, können sich Benutzer in dieser Gruppe nicht mehr anmelden und die Benutzergruppe wird nicht mehr angezeigt')
 
     history = HistoricalRecords()
 

@@ -52,6 +52,19 @@ def index(request):
         else:
             messages.error(request, _('Ungültige Personengruppe.'))
             return redirect('index')
+        
+    def check_person_cluster_active(user):
+        if user and not user.customuser.person_cluster.active:
+            org_mail = user.customuser.org.email if user.customuser.org else None
+            error_message = _('Dein Account ist nicht aktiv.')
+            if org_mail:
+                error_message += f'\n\nMelde dich bei {org_mail} um deinen Account zu aktivieren.'
+            else:
+                error_message += f'\n\nMelde dich beim Administrator um deinen Account zu aktivieren.'
+            messages.error(request, error_message)
+            return False
+        return True
+        
          
     # Handle login form
     form = EmailAuthenticationForm()
@@ -94,10 +107,13 @@ def index(request):
                         pass
 
             if user is not None:
+                # Check if person cluster is active
+                if not check_person_cluster_active(user):
+                    return redirect('index')
+                
                 login(request, user)
                 
                 next_url = request.GET.get('next')
-                print(next_url)
                 if next_url:
                     return redirect(next_url)
                 
