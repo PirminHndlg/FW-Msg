@@ -750,6 +750,12 @@ class AddUserForm(OrgFormMixin, forms.ModelForm):
             self.fields['email'].initial = self.instance.user.email
             self.fields['person_cluster'].initial = self.instance.user.customuser.person_cluster
 
+    # custom validation to check if the email is already in use
+    def clean_email(self):
+        if CustomUser.objects.filter(user__email=self.cleaned_data['email'], org=self.request.user.org).exists():
+            raise forms.ValidationError('Es gibt bereits einen Benutzer mit dieser E-Mail-Adresse. Bearbeite den bestehenden Benutzer, statt einen neuen zu erstellen.')
+        return self.cleaned_data['email']
+    
     def save(self, commit=True):
         custom_user = super().save(commit=False)
         
