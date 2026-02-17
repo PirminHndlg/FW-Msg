@@ -320,6 +320,9 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
         einsatzland = cleaned_data.get('einsatzland2')
         if einsatzstelle and einsatzland and einsatzstelle.land_id != einsatzland.id:
             self.add_error('einsatzstelle2', 'Einsatzstelle gehört nicht zum ausgewählten Einsatzland')
+            
+        if Freiwilliger.objects.filter(user__email=self.cleaned_data['email'], org=self.request.user.org).exists():
+            self.add_error('email', 'Es gibt bereits einen Freiwilligen mit dieser E-Mail-Adresse. Bearbeite den bestehenden Freiwilligen, statt einen neuen zu erstellen.')
         return cleaned_data
 
     def save(self, commit=True):
@@ -528,6 +531,11 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
             self.validate_pdf_files(files)
         
         return files
+
+    def clean_email(self):
+        if Bewerber.objects.filter(user__email=self.cleaned_data['email'], org=self.request.user.org).exists():
+            raise forms.ValidationError('Es gibt bereits einen Bewerber mit dieser E-Mail-Adresse. Bearbeite den bestehenden Bewerber, statt einen neuen zu erstellen.')
+        return self.cleaned_data['email']
 
     def save(self, commit=True):
         if not self.instance.pk:
@@ -797,6 +805,11 @@ class AddReferentenForm(OrgFormMixin, forms.ModelForm):
 
         add_person_cluster_field(self)          
         
+    def clean_email(self):
+        if Team.objects.filter(user__email=self.cleaned_data['email'], org=self.request.user.org).exists():
+            raise forms.ValidationError('Es gibt bereits einen Teammitglied mit dieser E-Mail-Adresse. Bearbeite den bestehenden Teammitglied, statt einen neuen zu erstellen.')
+        return self.cleaned_data['email']
+        
     def save(self, commit=True):
         if not self.instance.pk:
             save_and_create_customuser(self)
@@ -1015,6 +1028,11 @@ class AddEhemaligeForm(OrgFormMixin, forms.ModelForm):
         order_fields = ['first_name', 'last_name', 'email', 'person_cluster']
         self.order_fields(order_fields)
         add_person_cluster_field(self)
+        
+    def clean_email(self):
+        if Ehemalige.objects.filter(user__email=self.cleaned_data['email'], org=self.request.user.org).exists():
+            raise forms.ValidationError('Es gibt bereits einen Ehemaligen mit dieser E-Mail-Adresse. Bearbeite den bestehenden Ehemaligen, statt einen neuen zu erstellen.')
+        return self.cleaned_data['email']
         
     def save(self, commit=True):
         if not self.instance.pk:
