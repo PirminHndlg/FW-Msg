@@ -19,22 +19,6 @@ class Team(OrgModel):
         verbose_name_plural = 'Team'
 
     def __str__(self):
-        return f'{self.user.last_name}, {self.user.first_name}'
-
-@receiver(post_save, sender=Team)
-def create_user(sender, instance, **kwargs):
-    return
-    if not instance.user:
-        from Global.models import CustomUser
-
-        default_username = instance.last_name.lower().replace(' ', '_')
-        user = User.objects.create(username=default_username, email=instance.email)
-        random_password = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
-        user.set_password(random_password)
-        user.save()
-    
-        einmalpasswort = random.randint(10000000, 99999999)
-        customuser = CustomUser.objects.create(user=user, org=instance.org, role='T', einmalpasswort=einmalpasswort)
-        
-        instance.user = user
-        instance.save()
+        if self.user:
+            return f"{self.user.first_name} {self.user.last_name}".strip() or self.user.username
+        return "Teammitglied (No User)"
