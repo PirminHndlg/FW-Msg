@@ -252,10 +252,43 @@ class CustomUser(OrgModel):
     class Meta:
         verbose_name = 'Benutzer:in'
         verbose_name_plural = 'Benutzer:innen'
+        
+def get_or_create_new_user(email, firstname, lastname, org, person_cluster, create_einmalpasswort=False, create_customuser=True):
+    username = firstname.lower().replace(' ', '_')
+    
+    while User.objects.filter(username=username).exists():
+        username = username + str(random.randint(1, 9))
+    
+    user, created = User.objects.get_or_create(
+        email=email,
+        defaults={
+        'username': username,
+        'first_name': firstname,
+        'last_name': lastname
+        }
+    )
+    
+    if create_customuser:
+        post_save.disconnect(post_save_handler_customuser, sender=CustomUser)
+        customuser, created = CustomUser.objects.get_or_create(
+            user=user,
+            org=org,
+            defaults={
+                'person_cluster': person_cluster
+            }
+        )
+    
+        if create_einmalpasswort:
+            einmalpasswort = random.randint(10000000, 99999999)
+            customuser.einmalpasswort = einmalpasswort
+            customuser.save()
+            
+        post_save.connect(post_save_handler_customuser, sender=CustomUser)
+    return user
 
     
 @receiver(post_save, sender=CustomUser)
-def post_save_handler(sender, instance, created, **kwargs):
+def post_save_handler_customuser(sender, instance, created, **kwargs):
 
     if instance.profil_picture and not hasattr(instance, '_processing_profil_picture'):
         instance._processing_profil_picture = True
@@ -264,12 +297,18 @@ def post_save_handler(sender, instance, created, **kwargs):
     
     from FW.models import Freiwilliger
     from TEAM.models import Team
+    from BW.models import Bewerber
+    from Ehemalige.models import Ehemalige
     
     if instance.person_cluster:
         if instance.person_cluster.view == 'F' and not hasattr(instance.user, 'freiwilliger'):
             Freiwilliger.objects.get_or_create(user=instance.user, org=instance.org)
         elif instance.person_cluster.view == 'T' and not hasattr(instance.user, 'team'):
             Team.objects.get_or_create(user=instance.user, org=instance.org)
+        elif instance.person_cluster.view == 'B' and not hasattr(instance.user, 'bewerber'):
+            Bewerber.objects.get_or_create(user=instance.user, org=instance.org)
+        elif instance.person_cluster.view == 'E' and not hasattr(instance.user, 'ehemaliger'):
+            Ehemalige.objects.get_or_create(user=instance.user, org=instance.org)
         
 
 # Add property to User model to access org

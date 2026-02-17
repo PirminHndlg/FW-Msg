@@ -22,6 +22,8 @@ from Global.models import (
 from FW.models import Freiwilliger
 from TEAM.models import Team
 from BW.models import ApplicationText, ApplicationQuestion, ApplicationFileQuestion, Bewerber
+from Global.models import get_or_create_new_user
+
 
 
 # Custom widget for multiple file uploads
@@ -236,32 +238,18 @@ def add_person_cluster_field(self):
 
 
 def save_and_create_customuser(self):
-    base_username = self.cleaned_data['first_name'].split(' ')[0].lower()
-    username = base_username
-    counter = 1
-    
-    while User.objects.filter(username=username).exists():
-        username = f"{base_username}{counter}"
-        counter += 1
-
-    self.instance.user = User.objects.create_user(
-        username=username,
-        email=self.cleaned_data['email'],
-        first_name=self.cleaned_data['first_name'],
-        last_name=self.cleaned_data['last_name']
+    user = get_or_create_new_user(
+        email=self.cleaned_data['email'], 
+        firstname=self.cleaned_data['first_name'], 
+        lastname=self.cleaned_data['last_name'], 
+        org=self.request.user.org, 
+        person_cluster=self.cleaned_data['person_cluster'], 
+        create_einmalpasswort=False
     )
+    self.instance.user = user
+    
     self.instance.org = self.request.user.org
 
-    self.instance.user.customuser = CustomUser.objects.create(
-        user=self.instance.user,
-        org=self.request.user.org,
-        person_cluster=self.cleaned_data['person_cluster']
-    )
-    if self.cleaned_data['geburtsdatum_customuser']:
-        self.instance.user.customuser.geburtsdatum = self.cleaned_data['geburtsdatum_customuser']
-    self.instance.user.customuser.save()
-    self.instance.user.save()
-    
 
 def save_customuser_field(self):
     if self.cleaned_data['first_name'] != self.instance.user.first_name:
@@ -337,7 +325,6 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
     def save(self, commit=True):
         if not self.instance.pk:
             save_and_create_customuser(self)
-            self.instance.save()
         else:
             save_customuser_field(self)
             self.instance.save()
@@ -545,7 +532,6 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
     def save(self, commit=True):
         if not self.instance.pk:
             save_and_create_customuser(self)
-            self.instance.save()
         else:
             save_customuser_field(self)
             
@@ -742,10 +728,11 @@ class AddNotfallkontaktForm(OrgFormMixin, forms.ModelForm):
 
 class AddUserForm(OrgFormMixin, forms.ModelForm):
     username = forms.CharField(max_length=150, required=False, label='Username', help_text='Wird automatisch mit Vornamen erzeugt, wenn leer')
-    first_name = forms.CharField(max_length=150, required=False, label='First Name')
-    last_name = forms.CharField(max_length=150, required=False, label='Last Name')
+    first_name = forms.CharField(max_length=150, required=True, label='First Name')
+    last_name = forms.CharField(max_length=150, required=True, label='Last Name')
     geburtsdatum = forms.DateField(required=False, label='Geburtsdatum', widget=forms.DateInput(attrs={'type': 'date'}))
-    email = forms.EmailField(required=False, label='Email')
+    email = forms.EmailField(required=True, label='Email')
+    person_cluster = forms.ModelChoiceField(queryset=PersonCluster.objects.none(), required=True, label='Benutzergruppe')
 
     class Meta:
         model = CustomUser
@@ -754,39 +741,30 @@ class AddUserForm(OrgFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.request.user.org)
         # If we're editing an existing instance, populate the user fields
         if self.instance and self.instance.pk and hasattr(self.instance, 'user'):
             self.fields['username'].initial = self.instance.user.username
             self.fields['first_name'].initial = self.instance.user.first_name
             self.fields['last_name'].initial = self.instance.user.last_name
             self.fields['email'].initial = self.instance.user.email
+            self.fields['person_cluster'].initial = self.instance.user.customuser.person_cluster
 
     def save(self, commit=True):
         custom_user = super().save(commit=False)
         
-        if custom_user.pk:  # If editing existing user
-            user = custom_user.user
-            user.email = self.cleaned_data['email']
-            user.first_name = self.cleaned_data['first_name']
-            user.last_name = self.cleaned_data['last_name']
-            user.username = self.cleaned_data['username'] or user.username
-            user.save()
-        else:  # If creating new user
-            username = self.cleaned_data['username'] or self.cleaned_data['first_name'].split(' ')[0]
-            
-            # Ensure unique username
-            while User.objects.filter(username=username).exists():
-                username = username + str(random.randint(1, 9))
-            
-            # Create User instance
-            user = User.objects.create_user(
-                username=username,
-                email=self.cleaned_data['email'],
-                password=''.join(random.choices(string.ascii_letters + string.digits, k=10)),
-                first_name=self.cleaned_data['first_name'],
-                last_name=self.cleaned_data['last_name']
-            )
-            custom_user.user = user
+        user = get_or_create_new_user(
+            email=self.cleaned_data['email'],
+            firstname=self.cleaned_data['first_name'],
+            lastname=self.cleaned_data['last_name'],
+            org=self.request.user.org,
+            person_cluster=self.cleaned_data['person_cluster'],
+            create_einmalpasswort=True,
+            create_customuser=False
+        )
+        custom_user.user = user
+        custom_user.org = self.request.user.org
+        custom_user.save()
         
         if commit:
             custom_user.save()
@@ -816,7 +794,6 @@ class AddReferentenForm(OrgFormMixin, forms.ModelForm):
     def save(self, commit=True):
         if not self.instance.pk:
             save_and_create_customuser(self)
-            self.instance.save()
         else:
             save_customuser_field(self)
 
@@ -1036,7 +1013,6 @@ class AddEhemaligeForm(OrgFormMixin, forms.ModelForm):
     def save(self, commit=True):
         if not self.instance.pk:
             save_and_create_customuser(self)
-            self.instance.save()
         else:
             save_customuser_field(self)
         instance = super().save(commit=commit)

@@ -324,9 +324,10 @@ def save_form(request, form):
     Returns:
         The saved form instance
     """
-    # First save without committing to add organization
+    # First save without committing to add organization, if a freiwilliger/team/bewerber/ehemalige is created, a user is created if not exists
     obj = form.save(commit=False)
     obj.org = request.user.org
+    # During the second save, the birthday is saved to prevent a unique id error when creating/saving a customuser
     obj.save()
     
     # Save many-to-many relationships

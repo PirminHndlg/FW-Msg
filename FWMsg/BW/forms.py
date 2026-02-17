@@ -69,19 +69,38 @@ class CreateAccountForm(forms.Form):
         return cleaned_data
     
     def save(self):
-        user = User.objects.create_user(
-            username=self.cleaned_data['email'],
-            first_name=self.cleaned_data['first_name'],
-            last_name=self.cleaned_data['last_name'],
-            email=self.cleaned_data['email'],
-            password=self.cleaned_data['password']
-        )
+        from Global.models import get_or_create_new_user
+        # TODO: Remove this code after testing
+        
+        # Ensure unique username
+        # username = self.cleaned_data['first_name'].split(' ')[0].lower()
+        # while User.objects.filter(username=username).exists():
+        #     username = username + str(random.randint(1, 9))
+            
+        # user, created = User.objects.get_or_create(
+        #     email=self.cleaned_data['email'],
+        #     defaults={
+        #         'username': username,
+        #         'first_name': self.cleaned_data['first_name'],
+        #         'last_name': self.cleaned_data['last_name'],
+        #         'password': self.cleaned_data['password']
+        #     }
+        # )
         
         person_cluster = PersonCluster.objects.filter(view='B').first()
-        custom_user, created = CustomUser.objects.get_or_create(
+        # custom_user, created = CustomUser.objects.get_or_create(
+        #     org=self.org,
+        #     user=user,
+        #     person_cluster=person_cluster
+        # )
+        
+        user = get_or_create_new_user(
+            email=self.cleaned_data['email'],
+            firstname=self.cleaned_data['first_name'],
+            lastname=self.cleaned_data['last_name'],
             org=self.org,
-            user=user,
-            person_cluster=person_cluster
+            person_cluster=person_cluster,
+            create_einmalpasswort=True
         )
         
         bewerber, created = Bewerber.objects.get_or_create(
@@ -89,7 +108,6 @@ class CreateAccountForm(forms.Form):
             org=self.org
         )
         return user, bewerber
-       
         
         
 class ApplicationAnswerForm(forms.ModelForm):
