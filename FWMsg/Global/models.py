@@ -256,9 +256,9 @@ class CustomUser(OrgModel):
 def get_or_create_new_user(email, firstname, lastname, org, person_cluster, create_einmalpasswort=False, create_customuser=True):
     username = firstname.lower().replace(' ', '_')
     
-    while User.objects.filter(username=username).exists():
+    while User.objects.filter(username=username).exclude(email=email).exists():
         username = username + str(random.randint(1, 9))
-    
+        
     user, created = User.objects.get_or_create(
         email=email,
         defaults={
