@@ -321,10 +321,21 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
         if einsatzstelle and einsatzland and einsatzstelle.land_id != einsatzland.id:
             self.add_error('einsatzstelle2', 'Einsatzstelle gehört nicht zum ausgewählten Einsatzland')
             
-        user_with_email = User.objects.filter(email=self.cleaned_data['email'], customuser__org=self.request.user.org)
-        if user_with_email.exists() and not user_with_email.first().id == self.instance.user.id:
-            self.add_error('email', 'Es gibt bereits einen Freiwilligen mit dieser E-Mail-Adresse. Bearbeite den bestehenden Freiwilligen, statt einen neuen zu erstellen.')
         return cleaned_data
+    
+    def clean_email(self):
+        email = self.cleaned_data['email']
+            
+        user_with_email = User.objects.filter(email=email, customuser__org=self.request.user.org)
+        
+        # If editing an existing Freiwilliger, exclude the current user from the check
+        if self.instance and self.instance.pk and hasattr(self.instance, 'user'):
+            user_with_email = user_with_email.exclude(id=self.instance.user.id)
+        
+        if user_with_email.exists():
+            raise forms.ValidationError('Es gibt bereits einen Freiwilligen mit dieser E-Mail-Adresse. Bearbeite den bestehenden Freiwilligen, statt einen neuen zu erstellen.')
+        
+        return email
 
     def save(self, commit=True):
         if not self.instance.pk:
@@ -534,10 +545,17 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
         return files
 
     def clean_email(self):
-        user_with_email = User.objects.filter(email=self.cleaned_data['email'], customuser__org=self.request.user.org)
-        if user_with_email.exists() and not user_with_email.first().id == self.instance.user.id:
+        email = self.cleaned_data['email']
+        user_with_email = User.objects.filter(email=email, customuser__org=self.request.user.org)
+        
+        # If editing an existing Bewerber, exclude the current user from the check
+        if self.instance and self.instance.pk and hasattr(self.instance, 'user'):
+            user_with_email = user_with_email.exclude(id=self.instance.user.id)
+        
+        if user_with_email.exists():
             raise forms.ValidationError('Es gibt bereits einen Bewerber mit dieser E-Mail-Adresse. Bearbeite den bestehenden Bewerber, statt einen neuen zu erstellen.')
-        return self.cleaned_data['email']
+        
+        return email
 
     def save(self, commit=True):
         if not self.instance.pk:
@@ -762,10 +780,18 @@ class AddUserForm(OrgFormMixin, forms.ModelForm):
 
     # custom validation to check if the email is already in use
     def clean_email(self):
-        user_with_email = User.objects.filter(email=self.cleaned_data['email'], customuser__org=self.request.user.org)
-        if user_with_email.exists() and not user_with_email.first().id == self.instance.user.id:
-            raise forms.ValidationError('Es gibt bereits einen Benutzer mit dieser E-Mail-Adresse. Bearbeite den bestehenden Benutzer, statt einen neuen zu erstellen.')
-        return self.cleaned_data['email']
+        email = self.cleaned_data['email']
+            
+        user_with_email = User.objects.filter(email=email, customuser__org=self.request.user.org)
+        
+        # If editing an existing User, exclude the current user from the check
+        if self.instance and self.instance.pk and hasattr(self.instance, 'user'):
+            user_with_email = user_with_email.exclude(id=self.instance.user.id)
+        
+        if user_with_email.exists():
+            raise forms.ValidationError('Es gibt bereits einen Bewerber mit dieser E-Mail-Adresse. Bearbeite den bestehenden Bewerber, statt einen neuen zu erstellen.')
+        
+        return email
     
     def save(self, commit=True):
         custom_user = super().save(commit=False)
@@ -809,10 +835,18 @@ class AddReferentenForm(OrgFormMixin, forms.ModelForm):
         add_person_cluster_field(self)          
         
     def clean_email(self):
-        user_with_email = User.objects.filter(email=self.cleaned_data['email'], customuser__org=self.request.user.org)
-        if user_with_email.exists() and not user_with_email.first().id == self.instance.user.id:
-            raise forms.ValidationError('Es gibt bereits einen Teammitglied mit dieser E-Mail-Adresse. Bearbeite den bestehenden Teammitglied, statt einen neuen zu erstellen.')
-        return self.cleaned_data['email']
+        email = self.cleaned_data['email']
+            
+        user_with_email = User.objects.filter(email=email, customuser__org=self.request.user.org)
+        
+        # If editing an existing User, exclude the current user from the check
+        if self.instance and self.instance.pk and hasattr(self.instance, 'user'):
+            user_with_email = user_with_email.exclude(id=self.instance.user.id)
+        
+        if user_with_email.exists():
+            raise forms.ValidationError('Es gibt bereits ein Teammitglied mit dieser E-Mail-Adresse. Bearbeite das bestehende Teammitglied, statt einen neuen zu erstellen.')
+        
+        return email
         
     def save(self, commit=True):
         if not self.instance.pk:
@@ -1034,10 +1068,18 @@ class AddEhemaligeForm(OrgFormMixin, forms.ModelForm):
         add_person_cluster_field(self)
         
     def clean_email(self):
-        user_with_email = User.objects.filter(email=self.cleaned_data['email'], customuser__org=self.request.user.org)
-        if user_with_email.exists() and not user_with_email.first().id == self.instance.user.id:
+        email = self.cleaned_data['email']
+            
+        user_with_email = User.objects.filter(email=email, customuser__org=self.request.user.org)
+        
+        # If editing an existing User, exclude the current user from the check
+        if self.instance and self.instance.pk and hasattr(self.instance, 'user'):
+            user_with_email = user_with_email.exclude(id=self.instance.user.id)
+        
+        if user_with_email.exists():
             raise forms.ValidationError('Es gibt bereits einen Ehemaligen mit dieser E-Mail-Adresse. Bearbeite den bestehenden Ehemaligen, statt einen neuen zu erstellen.')
-        return self.cleaned_data['email']
+        
+        return email
         
     def save(self, commit=True):
         if not self.instance.pk:
