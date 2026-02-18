@@ -232,6 +232,26 @@
           })
         })
       })
+
+      // Fixed-height table viewport + Shift+scroll for horizontal scrolling
+      document.addEventListener('DOMContentLoaded', function() {
+        const tableContainers = document.querySelectorAll('.table-scroll-viewport');
+        tableContainers.forEach(container => {
+            handleTableScroll(container);
+        });
+    });
+
+    function handleTableScroll(container) {
+      if (!container) console.error('Container not found:', container); return;
+      container.addEventListener('wheel', function(e) {
+        if (!e.shiftKey) return;
+        const hasHorizontalScroll = container.scrollWidth > container.clientWidth;
+        if (!hasHorizontalScroll) return;
+
+        e.preventDefault();
+        container.scrollLeft += e.deltaY;
+        }, { passive: false });
+      }
     </script>
   </body>
 </html>

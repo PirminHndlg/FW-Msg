@@ -75,6 +75,14 @@ body {
     }
 }
 
+/* Table scroll viewport: fixed height so horizontal scrollbar stays visible */
+.table-scroll-viewport {
+    max-height: calc(100vh - 280px);
+    min-height: 400px;
+    overflow: auto;
+}
+
+
 /* Legacy navigation styles - commented out to prevent conflicts with Bootstrap navbar */
 /*
 header {
