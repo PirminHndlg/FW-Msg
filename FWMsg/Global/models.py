@@ -272,11 +272,12 @@ def get_or_create_new_user(email, firstname, lastname, org, person_cluster, crea
         post_save.disconnect(post_save_handler_customuser, sender=CustomUser)
         customuser, created = CustomUser.objects.get_or_create(
             user=user,
-            org=org,
-            defaults={
-                'person_cluster': person_cluster
-            }
+            org=org
         )
+        
+        if created:
+            customuser.person_cluster = person_cluster
+            customuser.save()
     
         if create_einmalpasswort:
             einmalpasswort = random.randint(10000000, 99999999)

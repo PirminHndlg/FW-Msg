@@ -141,7 +141,7 @@ def add_customuser_fields(self, view):
     )
     if self.instance and self.instance.pk:
         self.fields['email'].initial = self.instance.user.email
-
+        
     person_clusters = PersonCluster.objects.filter(org=self.request.user.org, view=view)
     self.fields['person_cluster'] = forms.ModelChoiceField(
         queryset=person_clusters,
@@ -151,8 +151,14 @@ def add_customuser_fields(self, view):
     )
     if self.instance and self.instance.pk:
         self.fields['person_cluster'].initial = self.instance.user.person_cluster
-        
-    if person_clusters.count() == 1:
+        if self.instance.user.person_cluster.view != view:
+            # disable field, show information text
+            self.fields['person_cluster'].queryset = PersonCluster.objects.filter(id=self.instance.user.person_cluster.id)
+            self.fields['person_cluster'].required = False
+            self.fields['person_cluster'].disabled = True
+            self.fields['person_cluster'].help_text = 'Die Benutzergruppe kann beim Benutzer selbst geändert werden. (Einstellungen -> Benutzer:innen)'
+    
+    elif person_clusters.count() == 1:
         self.fields['person_cluster'].initial = person_clusters.first()
         
     self.fields['geburtsdatum_customuser'] = forms.DateField(
@@ -261,7 +267,10 @@ def save_customuser_field(self):
     if self.cleaned_data['geburtsdatum_customuser'] != self.instance.user.customuser.geburtsdatum:
         self.instance.user.customuser.geburtsdatum = self.cleaned_data['geburtsdatum_customuser']
     if self.cleaned_data['person_cluster'] != self.instance.user.customuser.person_cluster:
-        self.instance.user.customuser.person_cluster = self.cleaned_data['person_cluster']
+        new_person_cluster = self.cleaned_data['person_cluster']
+        old_person_cluster = self.instance.user.customuser.person_cluster
+        if new_person_cluster.view == old_person_cluster.view:
+            self.instance.user.customuser.person_cluster = new_person_cluster
     self.instance.user.customuser.save()
     self.instance.user.save()
 
@@ -326,13 +335,13 @@ class AddFreiwilligerForm(OrgFormMixin, forms.ModelForm):
     def clean_email(self):
         email = self.cleaned_data['email']
             
-        user_with_email = User.objects.filter(email=email, customuser__org=self.request.user.org)
+        fw_with_email = Freiwilliger.objects.filter(user__email=email, org=self.request.user.org)
         
         # If editing an existing Freiwilliger, exclude the current user from the check
         if self.instance and self.instance.pk and hasattr(self.instance, 'user'):
-            user_with_email = user_with_email.exclude(id=self.instance.user.id)
+            fw_with_email = fw_with_email.exclude(id=self.instance.id)
         
-        if user_with_email.exists():
+        if fw_with_email.exists():
             raise forms.ValidationError('Es gibt bereits einen Freiwilligen mit dieser E-Mail-Adresse. Bearbeite den bestehenden Freiwilligen, statt einen neuen zu erstellen.')
         
         return email
@@ -546,13 +555,13 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
 
     def clean_email(self):
         email = self.cleaned_data['email']
-        user_with_email = User.objects.filter(email=email, customuser__org=self.request.user.org)
+        bw_with_email = Bewerber.objects.filter(user__email=email, org=self.request.user.org)
         
         # If editing an existing Bewerber, exclude the current user from the check
         if self.instance and self.instance.pk and hasattr(self.instance, 'user'):
-            user_with_email = user_with_email.exclude(id=self.instance.user.id)
+            bw_with_email = bw_with_email.exclude(id=self.instance.id)
         
-        if user_with_email.exists():
+        if bw_with_email.exists():
             raise forms.ValidationError('Es gibt bereits einen Bewerber mit dieser E-Mail-Adresse. Bearbeite den bestehenden Bewerber, statt einen neuen zu erstellen.')
         
         return email
@@ -789,7 +798,7 @@ class AddUserForm(OrgFormMixin, forms.ModelForm):
             user_with_email = user_with_email.exclude(id=self.instance.user.id)
         
         if user_with_email.exists():
-            raise forms.ValidationError('Es gibt bereits einen Bewerber mit dieser E-Mail-Adresse. Bearbeite den bestehenden Bewerber, statt einen neuen zu erstellen.')
+            raise forms.ValidationError('Es gibt bereits einen Benutzer mit dieser E-Mail-Adresse. Bearbeite den bestehenden Benutzer, statt einen neuen zu erstellen.')
         
         return email
     
@@ -837,13 +846,13 @@ class AddReferentenForm(OrgFormMixin, forms.ModelForm):
     def clean_email(self):
         email = self.cleaned_data['email']
             
-        user_with_email = User.objects.filter(email=email, customuser__org=self.request.user.org)
+        team_with_email = User.objects.filter(user__email=email, org=self.request.user.org)
         
         # If editing an existing User, exclude the current user from the check
         if self.instance and self.instance.pk and hasattr(self.instance, 'user'):
-            user_with_email = user_with_email.exclude(id=self.instance.user.id)
+            team_with_email = team_with_email.exclude(id=self.instance.id)
         
-        if user_with_email.exists():
+        if team_with_email.exists():
             raise forms.ValidationError('Es gibt bereits ein Teammitglied mit dieser E-Mail-Adresse. Bearbeite das bestehende Teammitglied, statt einen neuen zu erstellen.')
         
         return email
@@ -1070,13 +1079,13 @@ class AddEhemaligeForm(OrgFormMixin, forms.ModelForm):
     def clean_email(self):
         email = self.cleaned_data['email']
             
-        user_with_email = User.objects.filter(email=email, customuser__org=self.request.user.org)
+        ehemalige_with_email = Ehemalige.objects.filter(user__email=email, org=self.request.user.org)
         
         # If editing an existing User, exclude the current user from the check
         if self.instance and self.instance.pk and hasattr(self.instance, 'user'):
-            user_with_email = user_with_email.exclude(id=self.instance.user.id)
+            ehemalige_with_email = ehemalige_with_email.exclude(id=self.instance.id)
         
-        if user_with_email.exists():
+        if ehemalige_with_email.exists():
             raise forms.ValidationError('Es gibt bereits einen Ehemaligen mit dieser E-Mail-Adresse. Bearbeite den bestehenden Ehemaligen, statt einen neuen zu erstellen.')
         
         return email
