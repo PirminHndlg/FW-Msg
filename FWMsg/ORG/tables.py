@@ -483,16 +483,16 @@ def _create_dynamic_table_class(
         ).select_related('user', 'user__customuser')
         attributes = []
         for pc in person_clusters:
-            attributes.extend(Attribute.objects.filter(org=org, person_cluster=pc))
+            attributes.extend(Attribute.objects.filter(org=org, person_cluster=pc).distinct())
         attributes = list(set(attributes))
     else:
         # Show all objects from org without person_cluster filter
         objects = model_class.objects.filter(org=org).select_related('user', 'user__customuser')
         # Get attributes from all person clusters for this org
         if view:
-            attributes = Attribute.objects.filter(org=org, person_cluster__view=view)
+            attributes = Attribute.objects.filter(org=org, person_cluster__view=view).distinct()
         else:
-            attributes = Attribute.objects.filter(org=org)
+            attributes = Attribute.objects.filter(org=org).distinct()
     
     # Build data structure: list of dicts with object and attrs dict
     data = []
