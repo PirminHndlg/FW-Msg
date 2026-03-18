@@ -246,6 +246,10 @@ def first_login(request, username=None, einmalpasswort=None):
                 messages.error(request, _('Einmalpasswort bereits verwendet.'))
                 return redirect_to_first_login(user_name, einmalpasswort)
             
+            if not user.customuser.einmalpasswort_expires or user.customuser.einmalpasswort_expires < timezone.now():
+                messages.error(request, _('Einmalpasswort abgelaufen. Bitte erneut anfordern.'))
+                return redirect('password_reset')
+            
             if user.customuser.einmalpasswort != einmalpasswort:
                 messages.error(request, _('Ungültiges Einmalpasswort.'))
                 return redirect_to_first_login(user_name, einmalpasswort)

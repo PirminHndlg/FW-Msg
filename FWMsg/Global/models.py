@@ -113,6 +113,7 @@ class CustomUser(OrgModel):
     mail_notifications_unsubscribe_auth_key = models.CharField(max_length=255, blank=True, null=True, verbose_name='Mail-Benachrichtigung Abmelde-Key')
 
     einmalpasswort = models.CharField(max_length=20, blank=True, null=True, verbose_name='Einmalpasswort', help_text='Wird automatisch erzeugt, wenn leer')
+    einmalpasswort_expires = models.DateTimeField(blank=True, null=True, verbose_name='Einmalpasswort abläuft am')
     token = models.CharField(max_length=512, blank=True, null=True, verbose_name='Token', help_text='Wird automatisch erzeugt, wenn leer')
     calendar_token = models.CharField(max_length=512, blank=True, null=True, verbose_name='Kalender-Token', help_text='Wird automatisch erzeugt, wenn leer')
     
@@ -130,8 +131,10 @@ class CustomUser(OrgModel):
         super().delete(*args, **kwargs)
 
     def send_registration_email(self):
-        if not self.einmalpasswort:
+        now = timezone.now()
+        if not self.einmalpasswort or not self.einmalpasswort_expires or self.einmalpasswort_expires < now:
             self.einmalpasswort = random.randint(100000, 999999)
+            self.einmalpasswort_expires = now + timedelta(days=1)
             self.save()
 
         if self.person_cluster.view == 'F':
@@ -282,6 +285,7 @@ def get_or_create_new_user(email, firstname, lastname, org, person_cluster, crea
         if create_einmalpasswort:
             einmalpasswort = random.randint(10000000, 99999999)
             customuser.einmalpasswort = einmalpasswort
+            customuser.einmalpasswort_expires = timezone.now() + timedelta(days=1)
             customuser.save()
             
         post_save.connect(post_save_handler_customuser, sender=CustomUser)

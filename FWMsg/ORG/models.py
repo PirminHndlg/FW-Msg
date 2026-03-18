@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 import random
 import string
 from simple_history.models import HistoricalRecords
-import shlex
+from datetime import timezone, timedelta
 
 # Create your models here.
 class Organisation(models.Model):
@@ -61,7 +61,7 @@ def create_folder(sender, instance, created, **kwargs):
         user.set_password(random_password)
         user.save()
 
-        customuser = CustomUser.objects.create(user=user, org=instance, einmalpasswort=einmalpasswort, person_cluster=person_cluster)
+        customuser = CustomUser.objects.create(user=user, org=instance, einmalpasswort=einmalpasswort, einmalpasswort_expires=timezone.now() + timedelta(days=1), person_cluster=person_cluster)
 
         send_register_email_task.s(customuser.id).apply_async(countdown=10)
 
