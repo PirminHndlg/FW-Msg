@@ -182,7 +182,8 @@ class CustomUser(OrgModel):
             self.save()
             
     def create_token(self):
-        self.token = get_random_hash(str(self.id), 128)
+        now = timezone.now()
+        self.token = get_random_hash(str(self.id), 128) + ':' + str(now.timestamp())
         self.save()
         
     def create_calendar_token(self):

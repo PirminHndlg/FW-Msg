@@ -205,6 +205,15 @@ def maintenance(request):
     
 def token_login(request, token):
     try:
+        now_timestamp = timezone.now().timestamp()
+        parts = token.split(':')
+        if len(parts) != 2:
+            messages.error(request, 'Ungültiger Token.')
+            return redirect('index_home')
+        custom_user_timestamp = float(parts[1])
+        if now_timestamp - custom_user_timestamp > 60 * 30:
+            messages.error(request, 'Token abgelaufen.')
+            return redirect('index_home')
         custom_user = CustomUser.objects.get(token=token)
         user = custom_user.user
         login(request, user)
