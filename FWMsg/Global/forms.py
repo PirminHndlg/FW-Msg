@@ -324,7 +324,7 @@ class BewerberKommentarForm(forms.ModelForm):
 class KarteForm(forms.ModelForm):
     class Meta:
         model = MapLocation
-        fields = ['zip_code', 'city', 'country']
+        fields = ['zip_code', 'city', 'country', 'visibility']
         
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
@@ -338,3 +338,6 @@ class KarteForm(forms.ModelForm):
         self.fields['city'].widget.attrs.update({'placeholder': _('Stadt')})
         self.fields['country'].widget.attrs.update({'placeholder': _('Land')})
         self.fields['zip_code'].required = False
+        self.fields['visibility'].widget.attrs.update({'class': 'form-select'})
+        self.fields['visibility'].required = True
+        self.fields['visibility'].initial = 'F'

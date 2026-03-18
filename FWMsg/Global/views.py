@@ -2876,7 +2876,9 @@ def karte(request):
             customuser__person_cluster__view=request.user.customuser.person_cluster.view,
             customuser__org=request.user.org
         ).values_list('id', flat=True)
-        map_locations = MapLocation.objects.filter(org=request.user.org, user__id__in=users_same_person_cluster).order_by('-date_created')
+        map_locations = MapLocation.objects.filter(org=request.user.org).filter(
+            Q(user__id__in=users_same_person_cluster, visibility='F') | Q(visibility='P')
+        ).order_by('-date_created')
     
     context = {
         'form': form,
