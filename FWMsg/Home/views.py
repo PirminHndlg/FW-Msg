@@ -210,7 +210,9 @@ def token_login(request, token):
         if len(parts) != 2:
             messages.error(request, 'Ungültiger Token.')
             return redirect('index_home')
+        # the token contains the timestamp of the token creation
         custom_user_timestamp = float(parts[1])
+        # Check if token is expired, max age is 30 minutes
         if now_timestamp - custom_user_timestamp > 60 * 30:
             messages.error(request, 'Token abgelaufen.')
             return redirect('index_home')
