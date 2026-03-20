@@ -846,11 +846,11 @@ class AddReferentenForm(OrgFormMixin, forms.ModelForm):
     def clean_email(self):
         email = self.cleaned_data['email']
             
-        team_with_email = User.objects.filter(user__email=email, org=self.request.user.org)
+        team_with_email = User.objects.filter(email=email, customuser__org=self.request.user.org)
         
         # If editing an existing User, exclude the current user from the check
         if self.instance and self.instance.pk and hasattr(self.instance, 'user'):
-            team_with_email = team_with_email.exclude(id=self.instance.id)
+            team_with_email = team_with_email.exclude(id=self.instance.user.id)
         
         if team_with_email.exists():
             raise forms.ValidationError('Es gibt bereits ein Teammitglied mit dieser E-Mail-Adresse. Bearbeite das bestehende Teammitglied, statt einen neuen zu erstellen.')
