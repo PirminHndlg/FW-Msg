@@ -65,6 +65,16 @@
 
 <script src="{% static 'js/chat.js' %}"></script>
 <script>
-  initChat({{ chat.id }}, 'direct', {{ request.user.id }}, '{% url "send_message_direct" chat.get_identifier %}', '{% url "ajax_chat_updates" "direct" chat.get_identifier %}');
+  const wsUrl = (location.protocol === 'https:' ? 'wss' : 'ws')
+              + '://' + location.host
+              + '/ws/chat/direct/{{ chat.get_identifier }}/';
+  initChat(
+    {{ chat.id }},
+    'direct',
+    {{ request.user.id }},
+    wsUrl,
+    '{% url "send_message_direct" chat.get_identifier %}',
+    '{% url "ajax_chat_updates" "direct" chat.get_identifier %}'
+  );
 </script>
 {% endblock %}

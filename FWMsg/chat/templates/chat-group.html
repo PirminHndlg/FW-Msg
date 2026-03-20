@@ -317,6 +317,16 @@
 
 <script src="{% static 'js/chat.js' %}"></script>
 <script>
-  initChat({{ chat.id }}, 'group', {{ request.user.id }}, '{% url "send_message_group" chat.get_identifier %}', '{% url "ajax_chat_updates" "group" chat.get_identifier %}');
+  const wsUrl = (location.protocol === 'https:' ? 'wss' : 'ws')
+              + '://' + location.host
+              + '/ws/chat/group/{{ chat.get_identifier }}/';
+  initChat(
+    {{ chat.id }},
+    'group',
+    {{ request.user.id }},
+    wsUrl,
+    '{% url "send_message_group" chat.get_identifier %}',
+    '{% url "ajax_chat_updates" "group" chat.get_identifier %}'
+  );
 </script>
 {% endblock %}
