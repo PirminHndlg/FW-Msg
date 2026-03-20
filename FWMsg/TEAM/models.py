@@ -9,9 +9,16 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 class Team(OrgModel):
+    AUFGABENUEBERSICHT_CHOICES = [
+        ('N', 'Keine Aufgabenübersicht'),
+        ('L', 'Aufgabenübersicht für Freiwillige mit gleichem Einsatzland'),
+        ('A', 'Aufgabenübersicht für alle Freiwillige'),
+    ]
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Benutzer:in')
     land = models.ManyToManyField(Einsatzland2, verbose_name='Länderzuständigkeit', blank=True)
-
+    aufgabenuebersicht = models.CharField(max_length=1, choices=AUFGABENUEBERSICHT_CHOICES, default='N', verbose_name='Aufgabenübersicht', help_text='Aufgabenübersicht, die für dieses Teammitglied angezeigt werden')
+    
     history = HistoricalRecords()
 
     class Meta:

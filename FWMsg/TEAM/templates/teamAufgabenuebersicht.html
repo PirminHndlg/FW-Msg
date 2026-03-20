@@ -1,0 +1,487 @@
+{% extends 'baseTeam.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans 'Aufgabenübersicht' %}{% endblock %}
+
+{% block head %}
+<style>
+  /* ── sticky first column + header ─────────────────────────────── */
+  #aufgaben-table th:first-child,
+  #aufgaben-table td:first-child {
+    position: sticky; left: 0;
+    background-color: var(--bs-body-bg); z-index: 2;
+  }
+  #aufgaben-table thead th {
+    position: sticky; top: 0;
+    background-color: var(--bs-body-bg); z-index: 1;
+  }
+  #aufgaben-table thead th:first-child { z-index: 3; }
+
+  .table-scroll-viewport {
+    overflow-x: auto;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+  }
+
+  /* ── loading screen ────────────────────────────────────────────── */
+  #loadingState { padding: 2rem; }
+  #actualContent { transition: opacity .3s ease-in-out; }
+  #actualContent.show { opacity: 1; }
+
+  /* ── task-cell colours ─────────────────────────────────────────── */
+  .task-done     { background-color: rgba(var(--bs-success-rgb), .18); }
+  .task-pending  { background-color: rgba(var(--bs-warning-rgb), .18); }
+  .task-overdue  { background-color: rgba(var(--bs-danger-rgb),  .18); }
+  .task-assigned { background-color: rgba(var(--bs-dark-rgb),    .08); }
+
+  /* ── badges / badges in cells ─────────────────────────────────── */
+  td .badge { font-size: .7rem; }
+  td .btn-sm { padding: .15rem .35rem; font-size: .75rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-3">
+  <h2 class="mb-0">{% trans 'Aufgabenübersicht' %}</h2>
+</div>
+
+<div class="card rounded-4">
+  <div class="card-header bg-transparent border-bottom-0">
+    <div class="d-flex gap-1 mb-2 justify-content-center align-items-center mt-2">
+      <strong>{% trans "Benutzergruppe" %}</strong>
+      <div class="gap-1 flex-wrap justify-content-center align-items-center d-none d-md-flex">
+        <a class="btn btn-sm rounded-4 btn-outline-primary {% if not current_person_cluster.id %}active{% endif %}" href="{% url 'team_aufgabenuebersicht' %}?person_cluster_filter=None">
+          {% trans "Alle" %}
+        </a>
+        {% for person_cluster in all_person_clusters %}
+        <a class="btn btn-sm rounded-4 btn-outline-primary {% if current_person_cluster.id == person_cluster.id %}active{% endif %}" href="{% url 'team_aufgabenuebersicht' %}?person_cluster_filter={{ person_cluster.id }}">
+          {{ person_cluster.name }}
+        </a>
+        {% endfor %}
+      </div>
+      <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center d-md-none">
+        <select class="form-select form-select-sm rounded-4" onchange="window.location.href = this.value;">
+          <option value="{% url 'team_aufgabenuebersicht' %}?person_cluster_filter=None">{% trans "Alle" %}</option>
+          {% for person_cluster in all_person_clusters %}
+          <option value="{% url 'team_aufgabenuebersicht' %}?person_cluster_filter={{ person_cluster.id }}" {% if current_person_cluster.id == person_cluster.id %}selected{% endif %}>
+            {{ person_cluster.name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+
+
+  {# ── Loading State ──────────────────────────────────────────────── #}
+  <div id="loadingState" role="dialog" aria-modal="true" aria-labelledby="loadingTitle">
+    <div class="d-flex flex-column align-items-center justify-content-center bg-white rounded-4 p-4 shadow">
+      <div class="spinner-border text-primary mb-3"
+           role="status" style="width:3rem;height:3rem;" aria-hidden="true">
+        <span class="visually-hidden">{% trans "Laden..." %}</span>
+      </div>
+      <h3 id="loadingTitle" class="text-muted mb-2 h5">
+        {% trans "Aufgaben werden geladen..." %}
+      </h3>
+      <div class="progress mb-3" style="width:200px;height:6px;"
+           role="progressbar" aria-valuemin="0" aria-valuemax="100">
+        <div id="loadingProgress"
+             class="progress-bar progress-bar-striped progress-bar-animated"
+             style="width:0%" aria-valuenow="0"></div>
+      </div>
+      <small class="text-muted mb-3" id="loadingText">{% trans "Vorbereitung..." %}</small>
+      <a href="{% url 'team_home' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-x-circle me-1" aria-hidden="true"></i>
+        {% trans "Abbrechen" %}
+      </a>
+    </div>
+  </div>
+
+  {# ── Main Content ───────────────────────────────────────────────── #}
+  <div id="actualContent" class="d-none">
+    <div id="dynamicContent" role="main" aria-live="polite"></div>
+  </div>
+
+</div>
+
+{# ── Zwischenschritte Modal (read-only) ─────────────────────────── #}
+<div class="modal fade" id="zwischenschritteModal" tabindex="-1"
+     aria-labelledby="zsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="zsModalLabel">{% trans "Zwischenschritte" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="zsModalContent">
+        <div class="d-flex justify-content-center p-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">{% trans "Laden..." %}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // ── Django URLs ───────────────────────────────────────────────────
+  const URLS = {
+    data:             '{% url "ajax_load_aufgaben_table_data" %}',
+    download:         '{% url "download_aufgabe" 999999 %}'.replace('/999999', '/{id}'),
+    zwischenschritte: '{% url "get_aufgaben_zwischenschritte" %}',
+  };
+
+  // ── Loading screen ────────────────────────────────────────────────
+  const loadingState  = document.getElementById('loadingState');
+  const actualContent = document.getElementById('actualContent');
+  const progressBar   = document.getElementById('loadingProgress');
+  const loadingText   = document.getElementById('loadingText');
+
+  const steps = [
+    { pct: 20, text: "{% trans 'Aufgaben werden abgerufen...' %}" },
+    { pct: 55, text: "{% trans 'Tabellendaten werden verarbeitet...' %}" },
+    { pct: 80, text: "{% trans 'Benutzerdaten werden geladen...' %}" },
+    { pct: 95, text: "{% trans 'Abschließende Vorbereitung...' %}" },
+  ];
+  let stepIdx = 0;
+  const progressInterval = setInterval(() => {
+    if (stepIdx < steps.length) {
+      progressBar.style.width = steps[stepIdx].pct + '%';
+      progressBar.setAttribute('aria-valuenow', steps[stepIdx].pct);
+      loadingText.textContent = steps[stepIdx].text;
+      stepIdx++;
+    }
+  }, 500);
+
+  function finishLoading() {
+    clearInterval(progressInterval);
+    progressBar.style.width = '100%';
+    progressBar.setAttribute('aria-valuenow', 100);
+    loadingText.textContent = "{% trans 'Fertig!' %}";
+    setTimeout(() => {
+      loadingState.style.display = 'none';
+      actualContent.classList.remove('d-none');
+      actualContent.classList.add('show');
+      initTooltips();
+    }, 300);
+  }
+
+  function showError(msg) {
+    clearInterval(progressInterval);
+    // escHtml prevents injecting HTML from a crafted server error message
+    loadingState.innerHTML =
+      `<div class="alert alert-danger m-3"><i class="bi bi-exclamation-triangle-fill me-2"></i>${escHtml(msg)}</div>`;
+  }
+
+  // ── Utilities ─────────────────────────────────────────────────────
+  function getCookie(name) {
+    const m = document.cookie.match('(?:^|; )' + name + '=([^;]*)');
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+
+  // Safe for innerHTML (text nodes) — escapes &, <, >
+  function escHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(String(str || '')));
+    return d.innerHTML;
+  }
+
+  // Safe for HTML attribute values inside "…" — additionally escapes "
+  function escAttr(str) {
+    return escHtml(str).replace(/"/g, '&quot;');
+  }
+
+  // Validate that a value is a safe integer (guards onclick / href / id sinks)
+  function safeId(val) {
+    const n = parseInt(val, 10);
+    if (!Number.isFinite(n) || String(n) !== String(val)) {
+      console.error('Unexpected non-integer id from server:', val);
+      return 0;
+    }
+    return n;
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return String(d.getDate()).padStart(2,'0') + '.' +
+           String(d.getMonth()+1).padStart(2,'0') + '.' +
+           String(d.getFullYear()).slice(-2);
+  }
+
+  function fmtDateFull(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return String(d.getDate()).padStart(2,'0') + '.' +
+           String(d.getMonth()+1).padStart(2,'0') + '.' +
+           d.getFullYear();
+  }
+
+  function isBeforeOrEqual(iso1, iso2) {
+    if (!iso1 || !iso2) return false;
+    return new Date(iso1) <= new Date(iso2);
+  }
+
+  function buildUrl(tpl, id) { return tpl.replace('{id}', id); }
+
+  function initTooltips() {
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+      new bootstrap.Tooltip(el, { trigger: 'hover' });
+    });
+  }
+
+  // ── Fetch ─────────────────────────────────────────────────────────
+  fetch(URLS.data + '?person_cluster_filter={{ current_person_cluster.id | default:None }}', { headers: { 'X-CSRFToken': getCookie('csrftoken') } })
+    .then(r => r.json())
+    .then(json => {
+      if (!json.success) { showError(json.error || 'Fehler'); return; }
+      renderTable(json.data);
+      finishLoading();
+    })
+    .catch(err => {
+      console.error(err);
+      showError('{% trans "Fehler beim Laden der Daten." %}');
+    });
+
+  // ── Table rendering ───────────────────────────────────────────────
+  function renderTable(data) {
+    const { users, aufgaben, user_aufgaben_assigned, user_aufgaben_eligible, today } = data;
+    const container = document.getElementById('dynamicContent');
+
+    if (!users.length || !aufgaben.length) {
+      container.innerHTML =
+        '<p class="text-muted text-center py-5">' +
+        '<i class="bi bi-inbox me-2"></i>{% trans "Keine Daten vorhanden." %}</p>';
+      return;
+    }
+
+    const thead = buildHeader(aufgaben);
+    const tbody = users.map(u => buildRow(u, aufgaben, user_aufgaben_assigned, user_aufgaben_eligible, today)).join('');
+
+    container.innerHTML = `
+      <div class="table-scroll-viewport">
+        <table id="aufgaben-table"
+               class="table table-sm align-middle table-borderless mb-0">
+          <thead>${thead}</thead>
+          <tbody>${tbody}<tr class="h-100"></tr></tbody>
+        </table>
+      </div>`;
+  }
+
+  function buildHeader(aufgaben) {
+    const thCols = aufgaben.map(a => {
+      const desc = a.beschreibung
+        ? `<span data-bs-toggle="tooltip" data-bs-placement="top"
+                  data-bs-title="${escAttr(a.beschreibung)}"
+                  class="text-muted ms-1" style="cursor:help;">
+             <i class="bi bi-info-circle"></i>
+           </span>`
+        : '';
+      const upload = a.mitupload
+        ? `<i class="bi bi-file-earmark-arrow-up text-success ms-1"
+               data-bs-toggle="tooltip" data-bs-placement="top"
+               data-bs-title="Erfordert Dateiupload"></i>`
+        : '';
+      const repeat = a.wiederholung
+        ? `<i class="bi bi-repeat text-primary ms-1"
+               data-bs-toggle="tooltip" data-bs-placement="top"
+               data-bs-title="Mit Wiederholung"></i>`
+        : '';
+      return `
+        <th class="text-center fw-normal small p-2 border-end border-bottom"
+            style="min-width:90px;max-width:130px;white-space:normal;word-break:break-word;
+                   box-shadow:2px 2px 0 0 #dee2e6;">
+          ${escHtml(a.name)}${desc}${upload}${repeat}
+        </th>`;
+    }).join('');
+
+    return `
+      <tr>
+        <th class="p-2 border-end border-bottom fw-semibold"
+            style="min-width:170px;box-shadow:2px 2px 0 0 #dee2e6;">
+          <div class="input-group input-group-sm rounded-pill border shadow-sm bg-white align-items-center"
+               style="min-width:150px;">
+            <span class="input-group-text bg-transparent border-0 pe-0">
+              <i class="bi bi-search text-secondary"></i>
+            </span>
+            <input id="userSearch" type="text"
+                   class="form-control border-0 bg-white px-1"
+                   style="box-shadow:none;font-size:.9em;"
+                   placeholder="{% trans 'Suchen...' %}"
+                   autocomplete="off"
+                   oninput="searchRows(this.value)">
+            <button class="btn btn-link text-decoration-none ps-0" type="button"
+                    onclick="document.getElementById('userSearch').value='';searchRows('');"
+                    aria-label="{% trans 'Suche zurücksetzen' %}">
+              <i class="bi bi-x-circle text-danger"></i>
+            </button>
+          </div>
+        </th>
+        ${thCols}
+      </tr>`;
+  }
+
+  function buildRow(user, aufgaben, assigned, eligible, today) {
+    const userAssigned = assigned[user.id] || {};
+    const eligibleSet  = new Set(eligible[user.id] || []);
+    const name = escHtml(`${user.first_name} ${user.last_name}`.trim() || user.username);
+
+    const cells = aufgaben.map(a => {
+      const ua = userAssigned[a.id];
+      if (ua)                        return buildCell(ua, today);
+      if (eligibleSet.has(a.id))     return `<td class="text-center p-1 text-muted" style="font-size:.8rem;">—</td>`;
+      return `<td class="text-center p-1">
+                <i class="bi bi-x-lg text-danger opacity-25"
+                   data-bs-toggle="tooltip"
+                   data-bs-title="Aufgabe nicht für diese Benutzergruppe"></i>
+              </td>`;
+    }).join('');
+
+    return `
+      <tr class="border-bottom"
+          data-search-term="${escAttr(user.first_name)} ${escAttr(user.last_name)}">
+        <td class="fw-semibold small p-2 border-end"
+            style="min-width:170px;box-shadow:2px 2px 0 0 #dee2e6;">
+          ${name}
+        </td>
+        ${cells}
+      </tr>`;
+  }
+
+  function buildCell(uaObj, today) {
+    const ua = uaObj.user_aufgabe;
+    const zsInfo = uaObj.zwischenschritte_done_open;
+    const zsDone = uaObj.zwischenschritte_done;
+    const cellId = safeId(ua.id);   // integer-validated — used in onclick, href, element id
+
+    // Background colour
+    let cls = 'task-assigned';
+    if (ua.erledigt)                                cls = 'task-done';
+    else if (ua.pending)                            cls = 'task-pending';
+    else if (isBeforeOrEqual(ua.faellig, today))    cls = 'task-overdue';
+
+    // Download button (shown if file present)
+    const dlTooltip = ua.file_downloaded_of_names
+      ? escAttr('Heruntergeladen von ' + ua.file_downloaded_of_names)
+      : 'Noch nicht heruntergeladen';
+    const dlBtn = ua.file ? `
+      <a href="${buildUrl(URLS.download, cellId)}"
+         class="btn btn-sm btn-outline-primary me-1"
+         target="_blank"
+         data-bs-toggle="tooltip" data-bs-placement="top"
+         data-bs-title="${dlTooltip}">
+        <i class="bi bi-download"></i>
+      </a>` : '';
+
+    let inner = '';
+
+    if (ua.erledigt) {
+      // ── Done ──────────────────────────────────────────────────────
+      inner = `
+        ${dlBtn}
+        <span class="badge bg-success">
+          <i class="bi bi-check-lg me-1"></i>Erledigt
+        </span>`;
+
+    } else if (ua.pending) {
+      // ── Pending ───────────────────────────────────────────────────
+      const zsBadgeExtra = zsDone
+        ? 'border border-2 border-success'
+        : '';
+      const zsBtn = zsInfo ? `
+        <button type="button"
+                class="btn btn-sm btn-outline-secondary ms-1"
+                data-bs-toggle="modal" data-bs-target="#zwischenschritteModal"
+                onclick="loadZS(${cellId})"
+                title="Zwischenschritte">
+          <i class="bi bi-list-check"></i> ${escHtml(zsInfo)}
+        </button>` : '';
+      inner = `
+        ${dlBtn}
+        <span class="badge bg-warning text-dark ${zsBadgeExtra}">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>Pending
+        </span>${zsBtn}`;
+
+    } else {
+      // ── Upcoming / Overdue ────────────────────────────────────────
+      const overdue = isBeforeOrEqual(ua.faellig, today);
+      inner = `
+        <span class="badge ${overdue ? 'bg-danger' : 'bg-secondary'}"
+              data-bs-toggle="tooltip" data-bs-placement="top"
+              data-bs-title="${escAttr('Fällig am ' + fmtDateFull(ua.faellig))}">
+          ${fmtDate(ua.faellig)}
+        </span>`;
+    }
+
+    return `
+      <td class="text-center p-1 ${cls}" id="task-cell-${cellId}">
+        <div class="d-flex align-items-center justify-content-center gap-1 flex-wrap py-1 px-1">
+          ${inner}
+        </div>
+      </td>`;
+  }
+
+  // ── Row search ────────────────────────────────────────────────────
+  window.searchRows = function (value) {
+    const q = value.toLowerCase();
+    document.querySelectorAll('#aufgaben-table tbody tr[data-search-term]').forEach(tr => {
+      const match = !q || tr.dataset.searchTerm.toLowerCase().includes(q);
+      tr.style.display = match ? '' : 'none';
+    });
+  };
+
+  // ── Zwischenschritte (read-only) ──────────────────────────────────
+  const zsLoaded = {};
+
+  window.loadZS = function (taskId) {
+    const safeTaskId = safeId(taskId);  // re-validate the integer passed from onclick
+    const body = document.getElementById('zsModalContent');
+    if (zsLoaded[safeTaskId]) {
+      body.innerHTML = zsLoaded[safeTaskId];
+      return;
+    }
+    body.innerHTML = `
+      <div class="d-flex justify-content-center p-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">{% trans "Laden..." %}</span>
+        </div>
+      </div>`;
+    fetch(`${URLS.zwischenschritte}?taskId=${encodeURIComponent(safeTaskId)}`)
+      .then(r => r.json())
+      .then(data => {
+        let html = `<p class="fw-semibold">${escHtml(data.task_name)} — ${escHtml(data.user_name)}</p>`;
+        if (!data.zwischenschritte.length) {
+          html += '<p class="text-muted">{% trans "Keine Zwischenschritte definiert." %}</p>';
+        } else {
+          html += '<ul class="list-group list-group-flush">';
+          data.zwischenschritte.forEach(zs => {
+            // zs.erledigt is a boolean — used only to pick between two hardcoded class strings
+            const iconCls = zs.erledigt
+              ? 'bi-check-circle-fill text-success'
+              : 'bi-circle text-muted';
+            html += `
+              <li class="list-group-item d-flex align-items-start gap-2">
+                <i class="bi ${iconCls} mt-1 flex-shrink-0"></i>
+                <div>
+                  <div class="fw-semibold small">${escHtml(zs.name)}</div>
+                  ${zs.beschreibung
+                    ? `<div class="text-muted small">${escHtml(zs.beschreibung)}</div>`
+                    : ''}
+                </div>
+              </li>`;
+          });
+          html += '</ul>';
+        }
+        zsLoaded[safeTaskId] = html;
+        body.innerHTML = html;
+      })
+      .catch(() => {
+        body.innerHTML = '<div class="alert alert-danger">{% trans "Fehler beim Laden." %}</div>';
+      });
+  };
+})();
+</script>
+{% endblock %}

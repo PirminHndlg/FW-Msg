@@ -255,3 +255,28 @@ def ampelmeldung(request):
     return render(request, 'list_ampel.html', context)
 
     
+def aufgabenuebersicht(request):
+    team_member = _get_team_member(request)
+    if not team_member:
+        return redirect('index_home')
+    
+    person_cluster = _get_person_cluster(request)
+    
+    freiwillige = None
+    if team_member.aufgabenuebersicht == 'L':
+        freiwillige = _get_Freiwillige(request)
+    elif team_member.aufgabenuebersicht == 'A':
+        freiwillige = Freiwilliger.objects.filter(org=team_member.org)
+    else:
+        return redirect('index_home')
+    
+    if person_cluster and person_cluster.id:
+        freiwillige = freiwillige.filter(user__customuser__person_cluster=person_cluster)
+    
+    return render(request, 'teamAufgabenuebersicht.html', {
+        'freiwillige': freiwillige,
+        'team_member': team_member,
+        'all_person_clusters': PersonCluster.objects.filter(org=team_member.org, view='F'),
+        'current_person_cluster': person_cluster
+    })
+    

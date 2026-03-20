@@ -2262,21 +2262,41 @@ def change_request_history(request):
 
 
 @login_required
-@required_role('O')
+@required_role('OT') # O = Org, T = Team
 @require_http_methods(["GET"])
 def ajax_load_aufgaben_table_data(request):
     """Load aufgaben table data via AJAX - returns JSON for client-side rendering."""
     try:
         person_cluster_param = request.GET.get('person_cluster_filter')
         
-        if person_cluster_param is not None and person_cluster_param != 'None':
-            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
-            users = User.objects.filter(customuser__person_cluster=person_cluster, customuser__org=request.user.org).order_by('first_name', 'last_name')
-            aufgaben = Aufgabe2.objects.filter(org=request.user.org, person_cluster=person_cluster)
+        person_cluster = None
+        if request.user.role == 'T':
+            from TEAM.views import _get_Freiwillige, _get_team_member
+            
+            team_member = _get_team_member(request)
+            
+            if team_member.aufgabenuebersicht == 'L':
+                freiwillige = _get_Freiwillige(request)
+            elif team_member.aufgabenuebersicht == 'A':
+                freiwillige = Freiwilliger.objects.filter(org=team_member.org)
+                
+            if person_cluster_param is not None and person_cluster_param != 'None':
+                person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+                users = User.objects.filter(id__in=freiwillige.values_list('user_id', flat=True), customuser__person_cluster=person_cluster, customuser__org=request.user.org).order_by('first_name', 'last_name')
+                aufgaben = Aufgabe2.objects.filter(org=request.user.org, person_cluster=person_cluster)
+            else: 
+                users = User.objects.filter(id__in=freiwillige.values_list('user_id', flat=True), customuser__org=request.user.org).order_by('first_name', 'last_name')
+                person_cluster_fw = PersonCluster.objects.filter(view='F')
+                aufgaben = Aufgabe2.objects.filter(org=request.user.org, person_cluster__in=person_cluster_fw)
         else:
-            person_cluster = None
-            users = User.objects.filter(customuser__org=request.user.org, customuser__person_cluster__isnull=False, customuser__person_cluster__aufgaben=True).order_by('-customuser__person_cluster', 'first_name', 'last_name')
-            aufgaben = Aufgabe2.objects.filter(org=request.user.org)
+            if person_cluster_param is not None and person_cluster_param != 'None':
+                person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+                users = User.objects.filter(customuser__person_cluster=person_cluster, customuser__org=request.user.org).order_by('first_name', 'last_name')
+                aufgaben = Aufgabe2.objects.filter(org=request.user.org, person_cluster=person_cluster)
+            else:
+                person_cluster = None
+                users = User.objects.filter(customuser__org=request.user.org, customuser__person_cluster__isnull=False, customuser__person_cluster__aufgaben=True).order_by('-customuser__person_cluster', 'first_name', 'last_name')
+                aufgaben = Aufgabe2.objects.filter(org=request.user.org)
         
         # Apply ordering
         aufgaben = aufgaben.order_by(

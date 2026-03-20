@@ -1002,6 +1002,10 @@ def get_team_table_class(org, request=None):
             return ', '.join([land.name for land in lands])
         return '—'
     
+    def render_aufgabenuebersicht(self, value, record):
+        team = record['team']
+        return team.get_aufgabenuebersicht_display() if team.aufgabenuebersicht else '—'
+    
     def actions_renderer(record, org):
         team = record['team']
         context = {
@@ -1028,13 +1032,19 @@ def get_team_table_class(org, request=None):
             accessor='team.land',
             orderable=False
         ),
+        'aufgabenuebersicht': tables.Column(
+            verbose_name=_('Aufgabenübersicht'),
+            accessor='team.aufgabenuebersicht',
+            orderable=False
+        ),
     }
     
-    column_sequence = ['user', 'land']
+    column_sequence = ['user', 'land', 'aufgabenuebersicht']
     
     render_methods = {
         'render_user': render_user,
-        'render_land': render_land
+        'render_land': render_land,
+        'render_aufgabenuebersicht': render_aufgabenuebersicht
     }
     
     
