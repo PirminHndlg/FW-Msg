@@ -80,12 +80,14 @@ else:
 # =============================================================================
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "channels",
     "FW.apps.FwConfig",
     "ORG.apps.OrgConfig",
     "Home.apps.HomeConfig",
@@ -101,12 +103,15 @@ INSTALLED_APPS = [
     "django_celery_results",
     "simple_history",
     "django_tables2",
+    "rest_framework",
+    "chat.apps.ChatConfig",
 ]
 
 # =============================================================================
 # CHANNELS / WEBSOCKET
 # =============================================================================
 
+WSGI_APPLICATION = "FWMsg.wsgi.application"
 ASGI_APPLICATION = "FWMsg.asgi.application"
 
 CHANNEL_LAYERS = {
@@ -252,6 +257,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "Global/global-static",
     BASE_DIR / "TEAM/team-static",
     BASE_DIR / "seminar/seminar-static",
+    BASE_DIR / "chat/chat-static",
     BASE_DIR / "logos",
 ]
 
