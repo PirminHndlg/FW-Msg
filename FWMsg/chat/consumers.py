@@ -4,6 +4,7 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from .models import ChatDirect, ChatGroup, ChatMessageDirect, ChatMessageGroup
+from .tasks import notify_users_about_new_direct_chat_message, notify_users_about_new_group_chat_message
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -64,15 +65,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Persist to DB and get back a serialisable dict.
         msg = await self.save_message(message_text)
 
-        # Broadcast to every client currently connected to this chat room,
-        # including the sender (the JS side ignores own-messages from WS
-        # because they are rendered optimistically on send).
+        # Broadcast to every client currently connected to this chat room.
+        # Each receiver's chat_message() handler will mark the message as read.
         await self.channel_layer.group_send(self.room_group, {"type": "chat_message", **msg})
 
     # ── receive from channel layer (i.e. broadcast from another consumer) ────
 
     async def chat_message(self, event):
-        """Forward a group-sent message to this WebSocket client."""
+        """Forward a group-sent message to this WebSocket client.
+
+        If this client is a receiver (not the original sender), mark the
+        message as read for them so unread counts stay accurate.
+        """
+        is_receiver = event["user_id"] != self.user.id
+        if is_receiver:
+            await self.mark_message_read(event["id"])
+
         await self.send(
             text_data=json.dumps(
                 {
@@ -86,6 +94,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
     # ── database helpers (sync → async) ─────────────────────────────────────
+
+    @database_sync_to_async
+    def mark_message_read(self, message_id):
+        """Mark a single message as read for the current user (receiver)."""
+        if self.chat_type == "direct":
+            ChatMessageDirect.objects.filter(id=message_id).update(read=True)
+        else:
+            try:
+                msg = ChatMessageGroup.objects.get(id=message_id)
+                msg.read_by.add(self.user)
+            except ChatMessageGroup.DoesNotExist:
+                pass
 
     @database_sync_to_async
     def get_identifier_if_member(self):
@@ -110,13 +130,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             msg  = ChatMessageDirect.objects.create(
                 org=org, chat=chat, user=self.user, message=text
             )
+            notify_users_about_new_direct_chat_message.s(msg.id, self.user.id).apply_async(countdown=10)
         else:
             chat = ChatGroup.objects.get(identifier=self.identifier)
             msg  = ChatMessageGroup.objects.create(
                 org=org, chat=chat, user=self.user, message=text
             )
             # Mark the message as read by the sender immediately.
-            msg.read_by.add(self.user)
+            msg.mark_as_read_by(self.user)
+            notify_users_about_new_group_chat_message.s(msg.id, self.user.id).apply_async(countdown=10)
 
         return {
             "id":         msg.id,
