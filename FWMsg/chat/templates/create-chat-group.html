@@ -1,11 +1,33 @@
 {% extends extends_base|default:'baseOrg.html' %}
 {% load i18n %}
-{% load widget_tweaks %}
 {% load static %}
+
 {% block title %}{% trans "Neue Gruppe erstellen" %}{% endblock %}
 
 {% block head %}
   <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+  <style>
+    .cluster-btn {
+      border: 2px solid #e9ecef;
+      border-radius: 2rem;
+      padding: .35rem .85rem;
+      cursor: pointer;
+      font-size: .85rem;
+      transition: border-color .15s, background-color .15s;
+      background: #fff;
+    }
+    .cluster-btn:hover  { border-color: #0d6efd; }
+    .cluster-btn.active { border-color: #0d6efd; background-color: #f0f5ff; color: #0d6efd; font-weight: 600; }
+    #selected-chips { min-height: 2rem; }
+    .chip {
+      display: inline-flex; align-items: center; gap: .3rem;
+      background: #0d6efd; color: #fff;
+      border-radius: 2rem; padding: .2rem .65rem;
+      font-size: .8rem; cursor: pointer;
+    }
+    .chip:hover { background: #0b5ed7; }
+    #user-grid { max-height: 340px; overflow-y: auto; }
+  </style>
 {% endblock %}
 
 {% block content %}
@@ -17,46 +39,243 @@
 </div>
 
 <div class="row justify-content-center">
-  <div class="col-12 col-md-8 col-lg-6">
-    <div class="card rounded-4" style="border: 1px solid #e9ecef; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);">
-      <div class="card-header bg-white border-bottom rounded-top-4">
-        <h2 class="h5 mb-0 fw-semibold text-secondary">
-          <i class="bi bi-people me-2"></i>{% trans "Gruppendetails" %}
-        </h2>
-      </div>
-      <div class="card-body p-4">
-        {% if messages %}
-          {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} rounded-3 mb-3">{{ message }}</div>
-          {% endfor %}
-        {% endif %}
+  <div class="col-12 col-md-10 col-lg-8">
 
-        <form method="post">
-          {% csrf_token %}
-          <div class="mb-3">
-            <label for="{{ form.name.id_for_label }}" class="form-label fw-semibold">{{ form.name.label }}</label>
-            {{ form.name }}
-            {% if form.name.errors %}
-              <div class="text-danger small mt-1">{{ form.name.errors }}</div>
-            {% endif %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} rounded-3 mb-3">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" id="group-form">
+      {% csrf_token %}
+      {# Hidden native select synced by JS #}
+      <div style="display:none;">{{ form.users }}</div>
+
+      <div class="card rounded-4" style="border: 1px solid #e9ecef; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);">
+
+        {# ── Group name ─────────────────────────────────────────────────── #}
+        <div class="card-header bg-white border-bottom rounded-top-4">
+          <h2 class="h5 fw-semibold text-secondary mb-3">
+            <i class="bi bi-people me-2"></i>{% trans "Gruppendetails" %}
+          </h2>
+          <input
+            type="text"
+            name="name"
+            id="id_name"
+            class="form-control form-control-lg rounded-3"
+            placeholder="{% trans 'Gruppenname…' %}"
+            value="{{ form.name.value|default:'' }}"
+            required
+          >
+          {% if form.name.errors %}
+            <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="card-body p-0">
+
+          {# ── PersonCluster quick-select (O users only) ────────────────── #}
+          {% if person_clusters %}
+          <div class="px-4 pt-3 pb-2 border-bottom">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span class="text-muted small fw-semibold text-uppercase me-1">
+                <i class="bi bi-collection me-1"></i>{% trans "Gruppe hinzufügen" %}
+              </span>
+              {% for cluster in person_clusters %}
+                <button
+                  type="button"
+                  class="cluster-btn"
+                  data-cluster-id="{{ cluster.pk }}"
+                  title="{{ cluster.name }}"
+                >
+                  {{ cluster.name }}
+                </button>
+              {% endfor %}
+            </div>
           </div>
-          <div class="mb-3">
-            <label for="{{ form.users.id_for_label }}" class="form-label fw-semibold">{{ form.users.label }}</label>
-            {{ form.users }}
-            {% if form.users.errors %}
-              <div class="text-danger small mt-1">{{ form.users.errors }}</div>
-            {% endif %}
-            <div class="form-text">{% trans "Halte Strg/Cmd gedrückt, um mehrere Personen auszuwählen." %}</div>
+          {% endif %}
+
+          {# ── Selected chips row ───────────────────────────────────────── #}
+          <div class="px-4 pt-3 pb-1">
+            <div id="selected-chips" class="d-flex flex-wrap gap-1">
+              <span id="chips-placeholder" class="text-muted small">
+                {% trans "Noch niemand ausgewählt." %}
+              </span>
+            </div>
           </div>
-          <div class="d-flex justify-content-end gap-2">
-            <a href="{% url 'chat_list' %}" class="btn btn-outline-secondary rounded-pill">{% trans "Abbrechen" %}</a>
-            <button type="submit" class="btn btn-primary rounded-pill">
+
+          {# ── Search bar ───────────────────────────────────────────────── #}
+          <div class="px-4 py-2">
+            <div class="input-group">
+              <span class="input-group-text bg-white border-end-0">
+                <i class="bi bi-search text-muted"></i>
+              </span>
+              <input
+                type="text"
+                id="user-search"
+                class="form-control border-start-0 ps-0"
+                placeholder="{% trans 'Name suchen…' %}"
+                autocomplete="off"
+              >
+            </div>
+          </div>
+
+          {# ── User grid ────────────────────────────────────────────────── #}
+          <div id="user-grid" class="d-flex flex-column gap-2 px-4 pb-3">
+            {% for user in available_users %}
+              <div
+                class="user-card d-flex align-items-center gap-3"
+                data-user-id="{{ user.pk }}"
+                data-name="{{ user.get_full_name|default:user.username|lower }}"
+                data-display="{{ user.get_full_name|default:user.username }}"
+              >
+                <img
+                src="{% url 'serve_profil_picture' user.customuser.get_identifier %}"
+                alt="{% trans 'Profilbild' %}"
+                class="avatar-img"
+                >
+                <div class="flex-grow-1">
+                  <div class="fw-semibold">{{ user }}</div>
+                  <small class="text-muted">{{ user.customuser.person_cluster.name if user.customuser.person_cluster else '' }}</small>
+                </div>
+                <i class="bi bi-check-circle-fill check-icon fs-5"></i>
+              </div>
+            {% empty %}
+              <div class="text-center text-muted py-4">
+                <i class="bi bi-people display-6 d-block mb-2 opacity-50"></i>
+                {% trans "Keine weiteren Personen verfügbar." %}
+              </div>
+            {% endfor %}
+            <p id="no-results" class="text-center text-muted py-3 mb-0" style="display:none;">
+              <i class="bi bi-search me-1"></i>{% trans "Keine Treffer." %}
+            </p>
+          </div>
+
+        </div>{# /card-body #}
+
+        {# ── Footer ───────────────────────────────────────────────────── #}
+        <div class="card-footer bg-white border-top rounded-bottom-4 d-flex justify-content-between align-items-center px-4 py-3">
+          <span id="selection-count" class="text-muted small">
+            {% trans "0 Personen ausgewählt" %}
+          </span>
+          <div class="d-flex gap-2">
+            <a href="{% url 'chat_list' %}" class="btn btn-outline-secondary rounded-pill">
+              {% trans "Abbrechen" %}
+            </a>
+            <button type="submit" id="submit-btn" class="btn btn-primary rounded-pill" disabled>
               <i class="bi bi-people me-1"></i>{% trans "Gruppe erstellen" %}
             </button>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+
+      </div>{# /card #}
+    </form>
   </div>
 </div>
+
+<script>
+(function () {
+  const clusterMembers = {{ cluster_members_json|safe }};
+  const cards      = document.querySelectorAll('.user-card[data-user-id]');
+  const select     = document.getElementById('{{ form.users.id_for_label }}');
+  const searchEl   = document.getElementById('user-search');
+  const chipsEl    = document.getElementById('selected-chips');
+  const placeholder = document.getElementById('chips-placeholder');
+  const countEl    = document.getElementById('selection-count');
+  const submitBtn  = document.getElementById('submit-btn');
+  const noResults  = document.getElementById('no-results');
+
+  const selected = new Set();
+
+  // ── Card click (toggle) ────────────────────────────────────────────────
+  cards.forEach(card => {
+    card.addEventListener('click', () => toggle(card.dataset.userId));
+  });
+
+  function toggle(id) {
+    if (selected.has(id)) {
+      selected.delete(id);
+    } else {
+      selected.add(id);
+    }
+    render();
+  }
+
+  // ── Cluster buttons ───────────────────────────────────────────────────
+  document.querySelectorAll('.cluster-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pks = (clusterMembers[btn.dataset.clusterId] || []).map(String);
+      const allSelected = pks.every(pk => selected.has(pk));
+      pks.forEach(pk => allSelected ? selected.delete(pk) : selected.add(pk));
+      render();
+    });
+  });
+
+  // ── Chip click (deselect) ─────────────────────────────────────────────
+  chipsEl.addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (chip) { selected.delete(chip.dataset.userId); render(); }
+  });
+
+  // ── Search ────────────────────────────────────────────────────────────
+  searchEl.addEventListener('input', () => {
+    const q = searchEl.value.toLowerCase().trim();
+    let visible = 0;
+    cards.forEach(card => {
+      const match = !q || card.dataset.name.includes(q);
+      card.classList.toggle('hidden', !match);
+      if (match) visible++;
+    });
+    noResults.style.display = visible === 0 ? '' : 'none';
+  });
+
+  // ── Render ────────────────────────────────────────────────────────────
+  function render() {
+    // Sync cards
+    cards.forEach(card => {
+      card.classList.toggle('selected', selected.has(card.dataset.userId));
+    });
+
+    // Sync cluster button active state
+    document.querySelectorAll('.cluster-btn').forEach(btn => {
+      const pks = (clusterMembers[btn.dataset.clusterId] || []).map(String);
+      btn.classList.toggle('active', pks.length > 0 && pks.every(pk => selected.has(pk)));
+    });
+
+    // Sync hidden select
+    Array.from(select.options).forEach(opt => {
+      opt.selected = selected.has(opt.value);
+    });
+
+    // Chips
+    placeholder.style.display = selected.size ? 'none' : '';
+    const existingChips = chipsEl.querySelectorAll('.chip');
+    existingChips.forEach(c => c.remove());
+
+    selected.forEach(id => {
+      const card = document.querySelector(`.user-card[data-user-id="${id}"]`);
+      if (!card) return;
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.dataset.userId = id;
+      chip.innerHTML = `${escapeHtml(card.dataset.display)}<i class="bi bi-x-lg" style="font-size:.65rem;"></i>`;
+      chipsEl.appendChild(chip);
+    });
+
+    // Counter + submit
+    const n = selected.size;
+    countEl.textContent = n === 0
+      ? '{% trans "0 Personen ausgewählt" %}'
+      : `${n} {% trans "Person(en) ausgewählt" %}`;
+    submitBtn.disabled = n === 0;
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+  }
+})();
+</script>
 {% endblock %}

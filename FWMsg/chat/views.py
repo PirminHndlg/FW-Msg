@@ -7,6 +7,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
+from django.contrib.auth.models import User
 from Global.views import check_organization_context
 
 from .forms import ChatDirectForm, ChatGroupForm, SendDirectMessageForm, SendGroupMessageForm
@@ -22,9 +23,13 @@ def chat_list(request):
     conversations = []
 
     for chat in chats:
-        unread = ChatMessageDirect.objects.filter(
-            chat=chat, read=False
-        ).exclude(user=request.user).count()
+        all_chat_messages = ChatMessageDirect.objects.filter(chat=chat).order_by('-created_at')
+        
+        if not all_chat_messages.exists():
+            continue
+        
+        unread = all_chat_messages.filter(read=False).exclude(user=request.user).count()
+        
         conversations.append({
             'type': 'direct',
             'users': chat.users.exclude(pk=request.user.pk),
@@ -130,10 +135,19 @@ def chat_group(request, identifier):
     for msg in chat_messages.exclude(user=request.user):
         msg.mark_as_read_by(request.user)
 
+    is_creator = chat.created_by == request.user
+    non_members = (
+        User.objects.filter(customuser__org=request.user.org)
+        .exclude(pk__in=chat.users.values_list('pk', flat=True))
+        .select_related('customuser')
+    )
+
     context = {
         'chat': chat,
         'chat_messages': chat_messages,
         'form': form,
+        'is_creator': is_creator,
+        'non_members': non_members,
     }
     context = check_organization_context(request, context)
     return render(request, 'chat-group.html', context)
@@ -172,26 +186,130 @@ def create_chat_direct(request):
 
 @login_required
 def create_chat_group(request):
+    from Global.models import PersonCluster
     org = request.user.org
     if request.method == 'POST':
         form = ChatGroupForm(request.POST, org=org, current_user=request.user)
         if form.is_valid():
             chat = form.save(commit=False)
             chat.org = org
+            chat.created_by = request.user
             chat.save()
             form.save_m2m()
             chat.users.add(request.user)
-            
+
             notify_users_about_new_group_chat.s(chat.id, request.user.id).apply_async(countdown=10)
-            
+
             return redirect(reverse('chat_group', args=[chat.get_identifier()]))
         django_messages.error(request, 'Fehler beim Erstellen des Chats')
     else:
         form = ChatGroupForm(org=org, current_user=request.user)
 
-    context = {'form': form}
+    available_users = form.fields['users'].queryset.select_related(
+        'customuser', 'customuser__person_cluster'
+    )
+
+    # Build cluster → user-pk mapping for JS quick-select
+    person_clusters = None
+    cluster_members = {}
+    if getattr(request.user, 'role', None) == 'O':
+        person_clusters = PersonCluster.objects.filter(org=org, active=True)
+        for cluster in person_clusters:
+            pks = list(
+                available_users.filter(customuser__person_cluster=cluster)
+                .values_list('pk', flat=True)
+            )
+            if pks:
+                cluster_members[cluster.pk] = pks
+
+    context = {
+        'form': form,
+        'available_users': available_users,
+        'person_clusters': person_clusters,
+        'cluster_members_json': json.dumps(cluster_members),
+    }
     context = check_organization_context(request, context)
     return render(request, 'create-chat-group.html', context)
+
+
+@login_required
+@require_POST
+def manage_chat_group(request, identifier):
+    """AJAX endpoint for rename / add-member / remove-member."""
+    try:
+        chat = ChatGroup.objects.get(identifier=identifier, org=request.user.org, users=request.user)
+    except ChatGroup.DoesNotExist:
+        return JsonResponse({'error': 'Chat nicht gefunden'}, status=404)
+
+    if chat.created_by != request.user:
+        return JsonResponse({'error': 'Keine Berechtigung'}, status=403)
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, AttributeError):
+        return JsonResponse({'error': 'Ungültige Anfrage'}, status=400)
+
+    action = data.get('action')
+
+    if action == 'rename':
+        name = data.get('name', '').strip()
+        if not name:
+            return JsonResponse({'error': 'Name darf nicht leer sein'}, status=400)
+        chat.name = name
+        chat.save(update_fields=['name', 'updated_at'])
+        return JsonResponse({'ok': True, 'name': chat.name})
+
+    elif action == 'add_member':
+        user_id = data.get('user_id')
+        try:
+            user = User.objects.get(pk=user_id, customuser__org=request.user.org)
+            user_identifier = user.customuser.get_identifier()
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'Benutzer nicht gefunden'}, status=404)
+        chat.users.add(user)
+        return JsonResponse({
+            'ok': True,
+            'user_id': user.pk,
+            'user_identifier': user_identifier,
+            'name': str(user),
+        })
+
+    elif action == 'remove_member':
+        user_id = data.get('user_id')
+        if int(user_id) == request.user.pk:
+            return JsonResponse({'error': 'Du kannst dich nicht selbst entfernen'}, status=400)
+        try:
+            user = User.objects.get(pk=user_id, customuser__org=request.user.org)
+            user_identifier = user.customuser.get_identifier()
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'Benutzer nicht gefunden'}, status=404)
+        chat.users.remove(user)
+        return JsonResponse({
+            'ok': True,
+            'user_id': user.pk,
+            'user_identifier': user_identifier,
+            'name': str(user),
+        })
+
+    return JsonResponse({'error': 'Unbekannte Aktion'}, status=400)
+
+
+@login_required
+@require_POST
+def delete_chat_group(request, identifier):
+    try:
+        chat = ChatGroup.objects.get(identifier=identifier, org=request.user.org, users=request.user)
+    except ChatGroup.DoesNotExist:
+        django_messages.error(request, 'Chat nicht gefunden')
+        return redirect('chat_list')
+
+    if chat.created_by != request.user:
+        django_messages.error(request, 'Keine Berechtigung')
+        return redirect(reverse('chat_group', args=[identifier]))
+
+    chat.delete()
+    django_messages.success(request, f'Gruppe wurde gelöscht.')
+    return redirect('chat_list')
 
 
 @login_required

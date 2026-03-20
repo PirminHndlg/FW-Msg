@@ -68,22 +68,14 @@
               data-name="{{ user.get_full_name|default:user.username|lower }}"
               role="button"
             >
-              {% if user.customuser.profil_picture %}
-                <img
-                  src="{% url 'serve_profil_picture' user.customuser.get_identifier %}"
-                  alt="{% trans 'Profilbild' %}"
-                  class="avatar-img"
-                >
-              {% else %}
-                <div class="avatar-placeholder bg-primary bg-opacity-10 text-primary">
-                  {{ user.get_full_name|default:user.username|slice:":1"|upper }}
-                </div>
-              {% endif %}
+            <img
+                src="{% url 'serve_profil_picture' user.customuser.get_identifier %}"
+                alt="{% trans 'Profilbild' %}"
+                class="avatar-img"
+            >
               <div class="flex-grow-1">
-                <div class="fw-semibold">{{ user.get_full_name|default:user.username }}</div>
-                {% if user.get_full_name %}
-                  <small class="text-muted">{{ user.username }}</small>
-                {% endif %}
+                <div class="fw-semibold">{{ user }}</div>
+                <small class="text-muted">{{ user.customuser.person_cluster.name }}</small>
               </div>
               <i class="bi bi-arrow-right text-primary action-icon fs-5"></i>
             </div>

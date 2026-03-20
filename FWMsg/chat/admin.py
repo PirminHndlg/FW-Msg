@@ -52,8 +52,8 @@ class ChatDirectAdmin(admin.ModelAdmin):
 
 @admin.register(ChatGroup)
 class ChatGroupAdmin(admin.ModelAdmin):
-    list_display = ('name', 'org', 'created_at', 'updated_at', 'member_count')
-    list_filter = ('org',)
+    list_display = ('name', 'org', 'created_by__username', 'created_at', 'updated_at', 'member_count')
+    list_filter = ('org', 'created_by__username')
     search_fields = ('name', 'users__username', 'users__first_name', 'users__last_name')
     filter_horizontal = ('users',)
     readonly_fields = ('created_at', 'updated_at', 'identifier')

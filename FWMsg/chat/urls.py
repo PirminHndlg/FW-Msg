@@ -7,6 +7,8 @@ urlpatterns = [
     path('chat/<str:identifier>/send/', views.send_message_direct, name='send_message_direct'),
     path('group/<str:identifier>/', views.chat_group, name='chat_group'),
     path('group/<str:identifier>/send/', views.send_message_group, name='send_message_group'),
+    path('group/<str:identifier>/manage/', views.manage_chat_group, name='manage_chat_group'),
+    path('group/<str:identifier>/delete/', views.delete_chat_group, name='delete_chat_group'),
     path('create-group/', views.create_chat_group, name='create_chat_group'),
     path('create-direct/', views.create_chat_direct, name='create_chat_direct'),
     # AJAX endpoints
