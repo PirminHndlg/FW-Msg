@@ -68,11 +68,13 @@
               data-name="{{ user.get_full_name|default:user.username|lower }}"
               role="button"
             >
+            {% if user.customuser %}
             <img
                 src="{% url 'serve_profil_picture' user.customuser.get_identifier %}"
                 alt="{% trans 'Profilbild' %}"
                 class="avatar-img"
             >
+            {% endif %}
               <div class="flex-grow-1">
                 <div class="fw-semibold">{{ user }}</div>
                 <small class="text-muted">{{ user.customuser.person_cluster.name }}</small>
