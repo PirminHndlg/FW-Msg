@@ -256,12 +256,14 @@ class ChatListViewTest(ChatBaseTest):
 
     def test_shows_own_direct_chat(self):
         chat = make_direct_chat(self.org, self.alice, self.bob)
-        chat.get_identifier()
+        ident = chat.get_identifier()
+        # The view only lists direct chats that have at least one message
+        ChatMessageDirect.objects.create(chat=chat, user=self.alice, message="Hi", org=self.org)
         self.login(self.alice)
         response = self.client.get(reverse("chat_list"))
         conversations = response.context["conversations"]
         ids = [c["id"] for c in conversations]
-        self.assertIn(chat.identifier, ids)
+        self.assertIn(ident, ids)
 
     def test_does_not_show_other_users_chat(self):
         chat = make_direct_chat(self.org, self.bob, self.carol)

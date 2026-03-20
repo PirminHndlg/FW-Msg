@@ -137,7 +137,7 @@
                 >
                 <div class="flex-grow-1">
                   <div class="fw-semibold">{{ user }}</div>
-                  <small class="text-muted">{{ user.customuser.person_cluster.name if user.customuser.person_cluster else '' }}</small>
+                  <small class="text-muted">{% if user.customuser.person_cluster %}{{ user.customuser.person_cluster.name }}{% endif %}</small>
                 </div>
                 <i class="bi bi-check-circle-fill check-icon fs-5"></i>
               </div>
