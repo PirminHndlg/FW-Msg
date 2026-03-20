@@ -257,10 +257,18 @@ document.addEventListener('DOMContentLoaded', function () {
     vectorSource = new ol.source.Vector();
     
     // Initialize map with OpenLayers 4
+    // CartoDB Voyager tiles are used instead of OSM directly because OSM's
+    // volunteer tile servers block requests without a Referer header (403r).
+    // CARTO serves the same OSM data without that restriction.
     map = new ol.Map({
         layers: [
             new ol.layer.Tile({
-                source: new ol.source.OSM()
+                source: new ol.source.XYZ({
+                    url: 'https://{a-d}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
+                    attributions: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank">CARTO</a>',
+                    maxZoom: 19,
+                    tilePixelRatio: 2
+                })
             }),
             new ol.layer.Vector({
                 source: vectorSource
