@@ -1,0 +1,133 @@
+{% extends extends_base|default:'baseOrg.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Neue Direktnachricht" %}{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+  <style>
+    .user-card .action-icon { transition: opacity .15s, transform .15s; opacity: 0; }
+    .user-card:hover .action-icon { opacity: 1; transform: translateX(3px); }
+    .user-card.loading { pointer-events: none; opacity: .6; }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'chat_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+    <i class="bi bi-arrow-left me-1"></i>{% trans "Zurück" %}
+  </a>
+  <h1 class="h3 mb-0">{% trans "Neue Direktnachricht" %}</h1>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-12 col-md-9 col-lg-7">
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} rounded-3 mb-3">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="card rounded-4" style="border: 1px solid #e9ecef; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);">
+      <div class="card-header bg-white border-bottom rounded-top-4 pb-3">
+        <h2 class="h5 fw-semibold text-secondary mb-3">
+          <i class="bi bi-person-plus me-2"></i>{% trans "Person auswählen" %}
+        </h2>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search text-muted"></i>
+          </span>
+          <input
+            type="text"
+            id="user-search"
+            class="form-control border-start-0 ps-0"
+            placeholder="{% trans 'Name suchen…' %}"
+            autocomplete="off"
+          >
+        </div>
+      </div>
+
+      {# One hidden form per user — submitted instantly on card click #}
+      {% for user in available_users %}
+        <form method="post" id="form-{{ user.pk }}" style="display:none;">
+          {% csrf_token %}
+          <select name="users" style="display:none;">
+            <option value="{{ user.pk }}" selected></option>
+          </select>
+        </form>
+      {% endfor %}
+
+      <div class="card-body p-3">
+        <div id="user-grid" class="d-flex flex-column gap-2">
+          {% for user in available_users %}
+            <div
+              class="user-card d-flex align-items-center gap-3"
+              data-user-id="{{ user.pk }}"
+              data-name="{{ user.get_full_name|default:user.username|lower }}"
+              role="button"
+            >
+              {% if user.customuser.profil_picture %}
+                <img
+                  src="{% url 'serve_profil_picture' user.customuser.get_identifier %}"
+                  alt="{% trans 'Profilbild' %}"
+                  class="avatar-img"
+                >
+              {% else %}
+                <div class="avatar-placeholder bg-primary bg-opacity-10 text-primary">
+                  {{ user.get_full_name|default:user.username|slice:":1"|upper }}
+                </div>
+              {% endif %}
+              <div class="flex-grow-1">
+                <div class="fw-semibold">{{ user.get_full_name|default:user.username }}</div>
+                {% if user.get_full_name %}
+                  <small class="text-muted">{{ user.username }}</small>
+                {% endif %}
+              </div>
+              <i class="bi bi-arrow-right text-primary action-icon fs-5"></i>
+            </div>
+          {% empty %}
+            <div class="text-center text-muted py-4">
+              <i class="bi bi-people display-6 d-block mb-2 opacity-50"></i>
+              {% trans "Keine weiteren Personen verfügbar." %}
+            </div>
+          {% endfor %}
+        </div>
+
+        <p id="no-results" class="text-center text-muted py-3 mb-0" style="display:none;">
+          <i class="bi bi-search me-1"></i>{% trans "Keine Treffer." %}
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  const cards     = document.querySelectorAll('.user-card[data-user-id]');
+  const searchEl  = document.getElementById('user-search');
+  const noResults = document.getElementById('no-results');
+
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      card.classList.add('loading');
+      card.querySelector('.action-icon').classList.replace('bi-arrow-right', 'bi-hourglass-split');
+      document.getElementById('form-' + card.dataset.userId).submit();
+    });
+  });
+
+  searchEl.addEventListener('input', () => {
+    const q = searchEl.value.toLowerCase().trim();
+    let visible = 0;
+    cards.forEach(card => {
+      const match = !q || card.dataset.name.includes(q);
+      card.classList.toggle('hidden', !match);
+      if (match) visible++;
+    });
+    noResults.style.display = visible === 0 ? '' : 'none';
+  });
+})();
+</script>
+{% endblock %}

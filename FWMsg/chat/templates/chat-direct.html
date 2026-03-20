@@ -1,0 +1,70 @@
+{% extends extends_base|default:'baseOrg.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}
+  {% for u in other_users %}{{ u.get_full_name|default:u.username }}{% endfor %}
+{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-3">
+  <a href="{% url 'chat_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+    <i class="bi bi-arrow-left me-1"></i>{% trans "Zurück" %}
+  </a>
+  <div class="d-flex align-items-center gap-2">
+    <div>
+      <div class="fw-semibold">
+        {% for u in other_users %}
+          <a href="{% url 'profil' u.customuser.get_identifier %}" class="text-decoration-none text-body">
+            <img
+                src="{% url 'serve_profil_picture' u.customuser.get_identifier %}"
+                alt="{% trans 'Profilbild' %}"
+                class="avatar-img"
+                >
+            {{ u.get_full_name|default:u.username }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card rounded-4" style="border: 1px solid #e9ecef; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);">
+  <div id="chat-window" class="chat-window">
+    {% for msg in chat_messages %}
+      <div class="d-flex flex-column {% if msg.user == request.user %}align-items-end{% else %}align-items-start{% endif %}" data-msg-id="{{ msg.id }}">
+        <div class="bubble {% if msg.user == request.user %}bubble-own{% else %}bubble-other{% endif %}">
+          {{ msg.message }}
+        </div>
+        <div class="bubble-meta {% if msg.user == request.user %}text-end me-1{% else %}ms-1{% endif %}">
+          {{ msg.created_at|date:"d.m.Y H:i" }}
+        </div>
+      </div>
+    {% empty %}
+      <div class="text-center text-muted my-auto">
+        <i class="bi bi-chat-dots display-6 d-block mb-2 opacity-50"></i>
+        {% trans "Noch keine Nachrichten. Schreib die erste!" %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="chat-input-bar">
+    <form id="chat-form" class="d-flex gap-2" without_spinner="true">
+      {% csrf_token %}
+      {{ form.message }}
+      <button type="submit" class="btn btn-primary rounded-pill px-3">
+        <i class="bi bi-send"></i>
+      </button>
+    </form>
+  </div>
+</div>
+
+<script src="{% static 'js/chat.js' %}"></script>
+<script>
+  initChat({{ chat.id }}, 'direct', {{ request.user.id }}, '{% url "send_message_direct" chat.get_identifier %}', '{% url "ajax_chat_updates" "direct" chat.get_identifier %}');
+</script>
+{% endblock %}

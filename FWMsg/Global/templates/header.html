@@ -74,10 +74,36 @@
 
 <script src="{% static 'js/main.js' %}"></script>
 <script>
+    // Update chat badge every 3 seconds
+    function fetchChatBadge(badge) {
+        fetch('{% url "ajax_chat_poll" %}')
+            .then(response => response.json())
+            .then(data => {
+                badge.textContent = data.number_of_unread_messages;
+                if (data.number_of_unread_messages > 0) {
+                    badge.classList.remove('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                }
+            });
+    }
+
+    function updateChatBadge() {
+        const badges = document.querySelectorAll('.badge-unread');
+        badges.forEach(badge => {
+            fetchChatBadge(badge);
+            setInterval(function() {
+                fetchChatBadge(badge);
+                }, 30000);
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         })
+
+        updateChatBadge();
     })
 </script>

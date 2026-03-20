@@ -1,0 +1,117 @@
+{% extends extends_base|default:'baseOrg.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Nachrichten" %}{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">{% trans "Nachrichten (Beta)" %}</h1>
+  <div class="d-flex gap-2">
+    <a href="{% url 'create_chat_direct' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+      <i class="bi bi-person-plus me-1"></i>{% trans "Neue Direktnachricht" %}
+    </a>
+    <a href="{% url 'create_chat_group' %}" class="btn btn-primary btn-sm rounded-pill">
+      <i class="bi bi-people me-1"></i>{% trans "Neue Gruppe" %}
+    </a>
+  </div>
+</div>
+
+<div class="card rounded-4" style="border: 1px solid #e9ecef; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);">
+  <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between rounded-top-4">
+    <h2 class="h5 mb-0 fw-semibold text-secondary">
+      <i class="bi bi-chat-dots me-2"></i>{% trans "Alle Chats" %}
+    </h2>
+    <span class="badge bg-secondary rounded-pill">{{ conversations|length }}</span>
+  </div>
+  <div class="card-body p-0">
+    {% if conversations %}
+      <ul class="list-group list-group-flush rounded-bottom-4">
+        {% for conv in conversations %}
+          <li class="list-group-item list-group-item-action"
+            data-conv-type="{{ conv.type }}" data-conv-id="{{ conv.id }}">
+            <a href="{{ conv.url }}" class="text-decoration-none text-body d-flex justify-content-between align-items-center px-2 py-2">
+              <div class="d-flex align-items-center gap-3">
+                {% if conv.type == 'group' %}
+                <div class="rounded-circle text-white d-flex align-items-center justify-content-center {% if conv.type == 'group' %}bg-success{% else %}bg-primary{% endif %}" style="width:38px;height:38px;font-size:.85rem;flex-shrink:0;">
+                  <i class="bi bi-people"></i>
+                </div>
+                {% else %}
+                {% for identifier in conv.user_identifiers %}
+                <img
+                    src="{% url 'serve_profil_picture' identifier %}"
+                    alt="{% trans 'Profilbild' %}"
+                    class="avatar-img"
+                    >
+                {% endfor %}
+                {% endif %}
+                <div>
+                  <div class="fw-semibold">{{ conv.name }}</div>
+                  <small class="text-muted">{{ conv.subtitle }}</small>
+                </div>
+              </div>
+              {% if conv.unread_count %}
+                <span class="badge bg-primary rounded-pill">{{ conv.unread_count }}</span>
+              {% else %}
+                <i class="bi bi-chevron-right text-muted"></i>
+              {% endif %}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="p-5 text-center text-muted">
+        <i class="bi bi-chat-dots display-5 d-block mb-3 opacity-50"></i>
+        <p class="mb-3">{% trans "Noch keine Chats vorhanden." %}</p>
+        <a href="{% url 'create_chat_direct' %}" class="btn btn-outline-primary btn-sm rounded-pill me-2">
+          <i class="bi bi-person-plus me-1"></i>{% trans "Direktnachricht starten" %}
+        </a>
+        <a href="{% url 'create_chat_group' %}" class="btn btn-outline-success btn-sm rounded-pill">
+          <i class="bi bi-people me-1"></i>{% trans "Gruppe erstellen" %}
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+(function () {
+  const POLL_URL = '{% url "ajax_chat_list_updates" %}';
+  const badge = document.querySelector('.card-header .badge');
+
+  function poll() {
+    fetch(POLL_URL)
+      .then(r => r.json())
+      .then(({ conversations }) => {
+        let totalUnread = 0;
+
+        conversations.forEach(({ type, id, unread_count }) => {
+          const row = document.querySelector(
+            `[data-conv-type="${type}"][data-conv-id="${id}"]`
+          );
+          if (!row) return;
+
+          totalUnread += unread_count;
+          const right = row.querySelector('a > :last-child');
+          if (!right) return;
+
+          if (unread_count > 0) {
+            right.outerHTML = `<span class="badge bg-primary rounded-pill">${unread_count}</span>`;
+          } else {
+            right.outerHTML = `<i class="bi bi-chevron-right text-muted"></i>`;
+          }
+        });
+
+        if (badge) badge.textContent = conversations.length;
+      })
+      .catch(() => { /* ignore network errors */ });
+  }
+
+  setInterval(poll, 5000);
+})();
+</script>
+{% endblock %}

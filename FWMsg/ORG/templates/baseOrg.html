@@ -177,7 +177,10 @@
               </ul>
 
               <div class="d-flex flex-wrap gap-2 justify-content-center align-items-center">
-                
+
+                <!-- Chat Button -->
+                <a href="{% url 'chat_list' %}" class="btn btn-light"><i class="bi bi-chat-dots"></i> <span class="badge bg-primary rounded-pill d-none badge-unread">0</span></a>
+
                 <!-- Settings Button -->
                 <a href="{% url 'settings' %}" class="btn btn-light"><i class="bi bi-gear"></i></a>
 

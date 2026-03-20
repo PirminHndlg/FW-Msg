@@ -88,6 +88,12 @@
               </ul>
 
               <div class="d-flex gap-2">
+                <!-- Chat Button -->
+                <div class="d-flex">
+                  <a href="{% url 'chat_list' %}" class="btn btn-light"><i class="bi bi-chat-dots me-1"></i> <span class="badge bg-primary rounded-pill d-none badge-unread">0</span></a>
+                </div>
+
+                <!-- Settings Button -->
                 <div class="d-flex">
                   <a href="{% url 'settings' %}" class="btn btn-light"><i class="bi bi-gear me-1"></i></a>
                 </div>

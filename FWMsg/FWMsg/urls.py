@@ -33,6 +33,7 @@ urlpatterns = [
     path('bw/', include('BW.urls')),
     path('survey/', include('survey.urls')),
     path('seminar/', include('seminar.urls')),
+    path('chat/', include('chat.urls')),
 
     
     #path('login/', LoginView.as_view(), name='login'),

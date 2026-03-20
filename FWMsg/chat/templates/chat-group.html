@@ -1,0 +1,74 @@
+{% extends extends_base|default:'baseOrg.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{{ chat.name }}{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-3">
+  <a href="{% url 'chat_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+    <i class="bi bi-arrow-left me-1"></i>{% trans "Zurück" %}
+  </a>
+  <div class="d-flex align-items-center gap-2 flex-grow-1">
+    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width:38px;height:38px;">
+      <i class="bi bi-people"></i>
+    </div>
+    <div class="flex-grow-1">
+      <div class="fw-semibold">{{ chat.name }}</div>
+    </div>
+    <div class="d-flex gap-1 align-items-center" title="{% trans 'Mitglieder' %}">
+      {% for u in chat.users.all|slice:":5" %}
+        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center member-avatar" title="{{ u.get_full_name|default:u.username }}">
+          {{ u.username|slice:":1"|upper }}
+        </div>
+      {% endfor %}
+      {% if chat.users.count > 5 %}
+        <small class="text-muted">+{{ chat.users.count|add:"-5" }}</small>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="card rounded-4" style="border: 1px solid #e9ecef; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);">
+  <div id="chat-window" class="chat-window">
+    {% for msg in chat_messages %}
+      <div class="d-flex flex-column {% if msg.user == request.user %}align-items-end{% else %}align-items-start{% endif %}" data-msg-id="{{ msg.id }}">
+          <div class="bubble {% if msg.user == request.user %}bubble-own{% else %}bubble-other{% endif %}">
+            {% if msg.user != request.user %}
+              <small class="text-muted">{{ msg.user.get_full_name|default:msg.user.username }}</small>
+              <br>
+            {% endif %}
+          {{ msg.message }}
+        </div>
+        <div class="bubble-meta {% if msg.user == request.user %}text-end me-1{% else %}ms-1{% endif %}">
+          {{ msg.created_at|date:"d.m.Y H:i" }}
+        </div>
+      </div>
+    {% empty %}
+      <div class="text-center text-muted my-auto">
+        <i class="bi bi-chat-dots display-6 d-block mb-2 opacity-50"></i>
+        {% trans "Noch keine Nachrichten. Schreib die erste!" %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="chat-input-bar">
+    <form id="chat-form" class="d-flex gap-2" without_spinner="true">
+      {% csrf_token %}
+      {{ form.message }}
+      <button type="submit" class="btn btn-primary rounded-pill px-3">
+        <i class="bi bi-send"></i>
+      </button>
+    </form>
+  </div>
+</div>
+
+<script src="{% static 'js/chat.js' %}"></script>
+<script>
+  initChat({{ chat.id }}, 'group', {{ request.user.id }}, '{% url "send_message_group" chat.get_identifier %}', '{% url "ajax_chat_updates" "group" chat.get_identifier %}');
+</script>
+{% endblock %}
