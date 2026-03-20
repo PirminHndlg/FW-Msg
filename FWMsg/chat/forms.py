@@ -10,9 +10,11 @@ class ChatDirectForm(forms.ModelForm):
 
     def __init__(self, *args, org=None, current_user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        qs = User.objects.filter(customuser__org=org) if org else User.objects.all()
-        if current_user:
-            qs = qs.exclude(pk=current_user.pk)
+        qs = User.objects.filter(customuser__org=org).order_by('customuser__person_cluster', 'first_name', 'last_name')
+        if current_user and current_user.id:
+            qs = qs.exclude(pk=current_user.id)
+        qs = qs.exclude(customuser__person_cluster__view='B')
+        qs = qs.select_related('customuser')
         self.fields['users'].queryset = qs
         self.fields['users'].label = 'Benutzer:in'
         self.fields['users'].widget.attrs.update({'class': 'form-select'})
@@ -28,9 +30,11 @@ class ChatGroupForm(forms.ModelForm):
 
     def __init__(self, *args, org=None, current_user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        qs = User.objects.filter(customuser__org=org) if org else User.objects.all()
-        if current_user:
-            qs = qs.exclude(pk=current_user.pk)
+        qs = User.objects.filter(customuser__org=org).order_by('customuser__person_cluster', 'first_name', 'last_name')
+        if current_user and current_user.id:
+            qs = qs.exclude(pk=current_user.id)
+        qs = qs.exclude(customuser__person_cluster__view='B')
+        qs = qs.select_related('customuser')
         self.fields['users'].queryset = qs
         self.fields['users'].label = 'Mitglieder'
         self.fields['users'].widget.attrs.update({'class': 'form-select'})
