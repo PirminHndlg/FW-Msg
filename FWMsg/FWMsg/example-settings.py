@@ -103,6 +103,23 @@ INSTALLED_APPS = [
     "django_tables2",
 ]
 
+# =============================================================================
+# CHANNELS / WEBSOCKET
+# =============================================================================
+
+ASGI_APPLICATION = "FWMsg.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            # Uses the same Redis instance as Celery.
+            # Override via secrets.json key "redis_url" in production.
+            "hosts": [secrets.get("redis_url", "redis://127.0.0.1:6379")],
+        },
+    }
+}
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
