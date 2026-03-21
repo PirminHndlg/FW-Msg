@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{{ chat.name }}{% endblock %}
+{% block title %}{% trans "Nachrichten" %} - {{ chat.name }}{% endblock %}
 
 {% block head %}
   <link rel="stylesheet" href="{% static 'css/chat.css' %}">

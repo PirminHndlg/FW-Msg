@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block title %}
-  {% for u in other_users %}{{ u.get_full_name|default:u.username }}{% endfor %}
+  {% trans "Nachrichten" %} - {% for u in other_users %}{{ u.get_full_name|default:u.username }}{% endfor %}
 {% endblock %}
 
 {% block head %}
