@@ -3,9 +3,9 @@ from . import views
 
 urlpatterns = [
     path('', views.chat_list, name='chat_list'),
-    path('chat/<str:identifier>/', views.chat_direct, name='chat_direct'),
+    path('c/<str:identifier>/', views.chat_direct, name='chat_direct'),
     path('chat/<str:identifier>/send/', views.send_message_direct, name='send_message_direct'),
-    path('group/<str:identifier>/', views.chat_group, name='chat_group'),
+    path('g/<str:identifier>/', views.chat_group, name='chat_group'),
     path('group/<str:identifier>/send/', views.send_message_group, name='send_message_group'),
     path('group/<str:identifier>/manage/', views.manage_chat_group, name='manage_chat_group'),
     path('group/<str:identifier>/delete/', views.delete_chat_group, name='delete_chat_group'),
