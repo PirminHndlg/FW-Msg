@@ -21,7 +21,7 @@
   </div>
 </div>
 
-<div class="card rounded-4" style="border: 1px solid #e9ecef; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);">
+<div class="card rounded-4 mb-3" style="border: 1px solid #e9ecef; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);">
   <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between rounded-top-4">
     <h2 class="h5 mb-0 fw-semibold text-secondary">
       <i class="bi bi-chat-dots me-2"></i>{% trans "Alle Chats" %}
@@ -77,6 +77,22 @@
     {% endif %}
   </div>
 </div>
+
+<!-- Push Notification Link -->
+<div class="card rounded-4">
+  <div class="card-body">
+    <p class="card-text text-muted">
+      {% trans 'Durch Push-Benachrichtigungen erhältst du sofortige Nachrichtenbenachrichtigungen, auch wenn du die Website nicht geöffnet hast.' %}
+    </p>
+    
+    <div class="d-flex justify-content-center">
+      <a href="{% url 'push_settings' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+        <i class="bi bi-bell-fill me-1"></i>{% trans "Push-Benachrichtigungen aktivieren" %}
+      </a>
+    </div>
+  </div>
+</div>
+
 
 <script>
 (function () {
