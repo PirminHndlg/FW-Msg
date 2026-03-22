@@ -6,6 +6,47 @@ from django.urls import reverse
 from Global.push_notification import send_push_notification_to_user
 from Global.send_email import send_email_with_archive
 
+email_template_new_group_chat = """<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:48px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0"
+               style="max-width:480px;">
+
+          <!-- Sender name -->
+          <tr>
+            <td style="padding:0 0 8px 16px;">
+              <span style="font-size:13px;font-weight:600;color:#555;">Du wurdest von {sender} zu einem neuen Gruppenchat eingeladen: {group_chat_name}</span>
+            </td>
+          </tr>
+
+          <!-- CTA button -->
+          <tr>
+            <td align="center" style="padding:32px 0 0;">
+              <a href="{url}"
+                 style="display:inline-block;background:#1a1a1a;color:#ffffff;
+                        text-decoration:none;font-size:14px;font-weight:600;
+                        padding:11px 28px;border-radius:8px;letter-spacing:.2px;">
+                Gruppenchat ansehen
+              </a>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""
+
+
 email_template_chat_message = """<!DOCTYPE html>
 <html lang="de">
 <head>
@@ -61,10 +102,16 @@ email_template_chat_message = """<!DOCTYPE html>
 def notify_users_about_new_group_chat(group_chat_id, sender_user_id):
     group_chat = ChatGroup.objects.get(id=group_chat_id)
     sender_user = User.objects.get(id=sender_user_id)
+    url = f'{settings.DOMAIN_HOST}{reverse("chat_group", args=[group_chat.get_identifier()])}'
     
     for recipient_user in group_chat.users.exclude(pk=sender_user.pk):
-        subject = f'Neuer Chat: {group_chat.name}'
+        subject = f'Neuer Gruppenchat: {group_chat.name}'
         email_content = f'Du wurdest zu einem neuen Gruppenchat eingeladen: {group_chat.name} von {str(sender_user)}'
+        email_html = email_template_new_group_chat.format(
+            sender=str(sender_user),
+            group_chat_name=group_chat.name,
+            url=url,
+        )
         push_content = f'Du wurdest zu einem neuen Gruppenchat eingeladen: {group_chat.name} von {str(sender_user)}'
         
         if recipient_user.customuser.mail_notifications:
@@ -73,7 +120,7 @@ def notify_users_about_new_group_chat(group_chat_id, sender_user_id):
                     message=email_content,
                     from_email=settings.SERVER_EMAIL,
                     recipient_list=[recipient_user.email],
-                    html_message=email_content,
+                    html_message=email_html,
                     reply_to_list=[sender_user.email],
                 )
         
@@ -81,7 +128,7 @@ def notify_users_about_new_group_chat(group_chat_id, sender_user_id):
             user=recipient_user,
             title=subject,
             body=push_content,
-            url=reverse('chat_group', args=[group_chat.get_identifier()])
+            url=url,
         )
     
     return True
