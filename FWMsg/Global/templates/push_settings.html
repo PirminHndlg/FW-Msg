@@ -274,6 +274,9 @@
                         {% trans 'Hast du die Website als Web-App installiert? (Nicht nur als Lesezeichen!)' %}
                       </li>
                       <li>
+                        {% trans 'Hast du die Web-App von der Startseite/Anmeldeseite aus installiert?' %}
+                      </li>
+                      <li>
                         {% trans 'Öffnest du die Website über die Web-App auf dem Startbildschirm?' %}
                       </li>
                       <li>
@@ -292,9 +295,6 @@
                         {% trans 'Entferne die Web-App vom Startbildschirm' %}
                       </li>
                       <li>
-                        {% trans 'Lösche den Browser-Cache und alle Website-Daten' %}
-                      </li>
-                      <li>
                         {% trans 'Installiere die Web-App erneut (Startseite (/))' %}
                       </li>
                       <li>
@@ -306,6 +306,7 @@
                   <div class="alert alert-secondary mb-0">
                     <i class="bi bi-question-circle me-2"></i>
                     {% trans 'Benötigst du weitere Hilfe? Kontaktiere den Support oder die Administratoren.' %}
+                    <a href="{% url 'feedback' %}" class="btn btn-sm btn-outline-secondary ms-2"><i class="bi bi-envelope"></i> {% trans 'Kontakt' %}</a>
                   </div>
                 </div>
               </div>
