@@ -173,7 +173,13 @@
             </button>
           </form>
         {% else %}
-          <span></span>
+          <form method="post" action="{% url 'leave_chat_group' chat.get_identifier %}"
+                onsubmit="return confirm('{% trans "Gruppe wirklich verlassen?" %}');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-warning btn-sm rounded-pill">
+              <i class="bi bi-box-arrow-left me-1"></i>{% trans "Gruppe verlassen" %}
+            </button>
+          </form>
         {% endif %}
         <button type="button" class="btn btn-secondary btn-sm rounded-pill" data-bs-dismiss="modal">
           {% trans "Schließen" %}

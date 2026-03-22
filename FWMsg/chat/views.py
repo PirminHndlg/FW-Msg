@@ -315,6 +315,24 @@ def delete_chat_group(request, identifier):
 
 @login_required
 @require_POST
+def leave_chat_group(request, identifier):
+    try:
+        chat = ChatGroup.objects.get(identifier=identifier, org=request.user.org, users=request.user)
+    except ChatGroup.DoesNotExist:
+        django_messages.error(request, 'Chat nicht gefunden')
+        return redirect('chat_list')
+
+    if chat.created_by == request.user:
+        django_messages.error(request, 'Als Ersteller:in kannst du die Gruppe nicht verlassen. Lösche sie stattdessen.')
+        return redirect(reverse('chat_group', args=[identifier]))
+
+    chat.users.remove(request.user)
+    django_messages.success(request, f'Du hast die Gruppe „{chat.name}" verlassen.')
+    return redirect('chat_list')
+
+
+@login_required
+@require_POST
 def send_message_direct(request, identifier):
     try:
         chat = ChatDirect.objects.get(identifier=identifier, org=request.user.org, users=request.user)
