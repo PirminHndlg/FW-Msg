@@ -138,7 +138,8 @@ def chat_group(request, identifier):
     is_creator = chat.created_by == request.user
     non_members = (
         User.objects.filter(customuser__org=request.user.org)
-        .exclude(pk__in=chat.users.values_list('pk', flat=True), customuser__person_cluster__view='B')
+        .exclude(pk__in=chat.users.values_list('pk', flat=True))
+        .exclude(customuser__person_cluster__view='B')
         .select_related('customuser').order_by('customuser__person_cluster', 'first_name', 'last_name')
     )
 
