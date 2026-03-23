@@ -214,7 +214,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--color-primary);">
         <div class="container">
-            <a class="navbar-brand" href="{% if user.role == 'O' or user.role == 'A' or user.is_superuser %}{% url 'survey:survey_list' %}{% else %}{% url 'index_home' %}{% endif %}" style="color: var(--text_color_on_org_color);">
+            <a class="navbar-brand" href="{% url 'survey:survey_list' %}" style="color: var(--text_color_on_org_color);">
                 <i class="fas fa-poll-h me-2"></i>
                 {% if org %}
                     {{ org.name }} - {% trans "Survey" %}

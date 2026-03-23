@@ -117,7 +117,7 @@ def survey_thank_you(request, survey_key):
 # Management Views (require login and permissions)
 
 @method_decorator(login_required, name='dispatch')
-@method_decorator(required_role('O'), name='dispatch')
+@method_decorator(required_role('OTE'), name='dispatch')
 class SurveyListView(ListView):
     """List all surveys for the logged-in user"""
     model = Survey
@@ -126,9 +126,11 @@ class SurveyListView(ListView):
     paginate_by = 10
     
     def get_queryset(self):
-        qs = Survey.objects.all()
-        if self.request.user.is_authenticated:
-            qs = qs.filter(org=self.request.user.org)
+        qs = None
+        if self.request.user.role == 'O':
+            qs = Survey.objects.filter(org=self.request.user.org)
+        else:
+            qs = Survey.objects.filter(created_by=self.request.user)
         return qs
         # return qs.filter(created_by=self.request.user).annotate(
         #     response_count=Count('responses')
@@ -136,7 +138,7 @@ class SurveyListView(ListView):
 
 
 @method_decorator(login_required, name='dispatch')
-@method_decorator(required_role('O'), name='dispatch')
+@method_decorator(required_role('OTE'), name='dispatch')
 class SurveyCreateView(CreateView):
     """Create a new survey"""
     model = Survey
@@ -156,7 +158,7 @@ class SurveyCreateView(CreateView):
 
 
 @method_decorator(login_required, name='dispatch')
-@method_decorator(required_role('O'), name='dispatch')
+@method_decorator(required_role('OTE'), name='dispatch')
 class SurveyUpdateView(UpdateView):
     """Update an existing survey"""
     model = Survey
@@ -165,7 +167,10 @@ class SurveyUpdateView(UpdateView):
     context_object_name = 'survey'
     
     def get_queryset(self):
-        return Survey.objects.filter(org=self.request.user.org)
+        if self.request.user.role == 'O':
+            return Survey.objects.filter(org=self.request.user.org)
+        else:
+            return Survey.objects.filter(created_by=self.request.user)
     
     def get_success_url(self):
         return reverse('survey:survey_manage', kwargs={'pk': self.object.pk})
@@ -176,7 +181,7 @@ class SurveyUpdateView(UpdateView):
 
 
 @method_decorator(login_required, name='dispatch')
-@method_decorator(required_role('O'), name='dispatch')
+@method_decorator(required_role('OTE'), name='dispatch')
 class SurveyDeleteView(DeleteView):
     """Delete a survey"""
     model = Survey
@@ -185,7 +190,10 @@ class SurveyDeleteView(DeleteView):
     success_url = reverse_lazy('survey:survey_list')
     
     def get_queryset(self):
-        return Survey.objects.filter(org=self.request.user.org)
+        if self.request.user.role == 'O':
+            return Survey.objects.filter(org=self.request.user.org)
+        else:
+            return Survey.objects.filter(created_by=self.request.user)
     
     def delete(self, request, *args, **kwargs):
         messages.success(request, _('Survey deleted successfully!'))
@@ -195,10 +203,14 @@ class SurveyDeleteView(DeleteView):
 
 
 @login_required
-@required_role('O')
+@required_role('OTE')
 def survey_manage(request, pk):
     """Manage survey questions and view responses"""
-    survey = get_object_or_404(Survey, pk=pk)
+    survey = None
+    if request.user.role == 'O':
+        survey = get_object_or_404(Survey, pk=pk)
+    else:
+        survey = get_object_or_404(Survey, pk=pk, created_by=request.user)
     check_survey_access(request, survey)
     
     questions = survey.questions.all().prefetch_related('options')
@@ -213,10 +225,13 @@ def survey_manage(request, pk):
 
 
 @login_required
-@required_role('O')
+@required_role('OTE')
 def add_question(request, survey_pk):
     """Add a question to a survey"""
-    survey = get_object_or_404(Survey, pk=survey_pk)
+    if request.user.role == 'O':
+        survey = get_object_or_404(Survey, pk=survey_pk)
+    else:
+        survey = get_object_or_404(Survey, pk=survey_pk, created_by=request.user)
     check_survey_access(request, survey)
     
     if request.method == 'POST':
@@ -241,10 +256,13 @@ def add_question(request, survey_pk):
 
 
 @login_required
-@required_role('O')
+@required_role('OTE')
 def edit_question(request, survey_pk, question_pk):
     """Edit a survey question and its options"""
-    survey = get_object_or_404(Survey, pk=survey_pk)
+    if request.user.role == 'O':
+        survey = get_object_or_404(Survey, pk=survey_pk)
+    else:
+        survey = get_object_or_404(Survey, pk=survey_pk, created_by=request.user)
     check_survey_access(request, survey)
     question = get_object_or_404(SurveyQuestion, pk=question_pk, survey=survey)
     
@@ -286,10 +304,13 @@ def edit_question(request, survey_pk, question_pk):
 
 
 @login_required
-@required_role('O')
+@required_role('OTE')
 def delete_question(request, survey_pk, question_pk):
     """Delete a survey question"""
-    survey = get_object_or_404(Survey, pk=survey_pk)
+    if request.user.role == 'O':
+        survey = get_object_or_404(Survey, pk=survey_pk)
+    else:
+        survey = get_object_or_404(Survey, pk=survey_pk, created_by=request.user)
     question = get_object_or_404(SurveyQuestion, pk=question_pk, survey=survey)
     
     if request.method == 'POST':
@@ -304,10 +325,13 @@ def delete_question(request, survey_pk, question_pk):
 
 
 @login_required
-@required_role('O')
+@required_role('OTE')
 def survey_results(request, pk):
     """View detailed survey results"""
-    survey = get_object_or_404(Survey, pk=pk)
+    if request.user.role == 'O':
+        survey = get_object_or_404(Survey, pk=pk)
+    else:
+        survey = get_object_or_404(Survey, pk=pk, created_by=request.user)
     check_survey_access(request, survey)
     
     responses = survey.responses.filter(is_complete=True).order_by('submitted_at').prefetch_related(
@@ -409,7 +433,7 @@ def admin_survey_list(request):
 # PDF Export Views
 
 @login_required
-@required_role('O')
+@required_role('OTE')
 def export_response_pdf(request, response_id):
     """Export a single survey response as PDF"""
     response = get_object_or_404(SurveyResponse, id=response_id, is_complete=True)
@@ -432,13 +456,16 @@ def export_response_pdf(request, response_id):
 
 
 @login_required
-@required_role('O')
+@required_role('OTE')
 def export_survey_responses_pdf(request, survey_id):
     """Export all responses for a survey as individual PDFs in a ZIP file"""
     import zipfile
     import tempfile
     
-    survey = get_object_or_404(Survey, id=survey_id)
+    if request.user.role == 'O':
+        survey = get_object_or_404(Survey, id=survey_id)
+    else:
+        survey = get_object_or_404(Survey, id=survey_id, created_by=request.user)
     check_survey_access(request, survey)
     
     responses = survey.responses.filter(is_complete=True).select_related('respondent')
@@ -493,10 +520,13 @@ def export_survey_responses_pdf(request, survey_id):
 
 
 @login_required
-@required_role('O')
+@required_role('OTE')
 def export_survey_all_responses_pdf(request, survey_id):
     """Export a survey with all responses as a PDF file"""
-    survey = get_object_or_404(Survey, id=survey_id)
+    if request.user.role == 'O':
+        survey = get_object_or_404(Survey, id=survey_id)
+    else:
+        survey = get_object_or_404(Survey, id=survey_id, created_by=request.user)
     check_survey_access(request, survey)
     
     # Generate PDF
