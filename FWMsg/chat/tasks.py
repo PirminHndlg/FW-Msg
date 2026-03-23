@@ -28,7 +28,7 @@ email_template_new_group_chat = """<!DOCTYPE html>
 
           <!-- CTA button -->
           <tr>
-            <td align="center" style="padding:32px 0 0;">
+            <td align="center" style="padding:16px 0 0;">
               <a href="{url}"
                  style="display:inline-block;background:#1a1a1a;color:#ffffff;
                         text-decoration:none;font-size:14px;font-weight:600;
@@ -179,8 +179,8 @@ def notify_users_about_new_group_chat_message(group_message_id, sender_user_id):
         if recipient_user in group_message.read_by.all():
             continue
         
-        subject = f'Neue Nachricht von {str(sender_user)}'
-        email_content = f'Du hast eine neue Nachricht von {str(sender_user)} erhalten: {group_message.message}'
+        subject = f'Neue Nachricht in Gruppe {group_chat.name}'
+        email_content = f'Du hast eine neue Nachricht in der Gruppe {group_chat.name} von {str(sender_user)} erhalten: {group_message.message}'
         email_html = email_template_chat_message.format(
             subject=subject,
             message=group_message.message,
