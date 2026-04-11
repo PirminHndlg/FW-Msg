@@ -1,5 +1,5 @@
 aiohappyeyeballs==2.6.1
-aiohttp==3.13.3
+aiohttp==3.13.4
 aiosignal==1.4.0
 amqp==5.3.1
 appscript==1.4.0
@@ -9,7 +9,7 @@ autobahn==25.12.2
 Automat==25.4.16
 billiard==4.2.4
 brotli==1.2.0
-cbor2==5.8.0
+cbor2==5.9.0
 celery==5.6.2
 certifi==2026.1.4
 cffi==2.0.0
@@ -23,11 +23,11 @@ click-plugins==1.1.1.2
 click-repl==0.3.0
 comtypes==1.4.14
 constantly==23.10.4
-cryptography==46.0.5
+cryptography==46.0.7
 cssselect2==0.8.0
 daphne==4.2.1
 deptry==0.24.0
-Django==6.0.3
+Django==6.0.4
 django-celery==3.1.17
 django-gdpr-assist==1.4.2
 django-password-validators==1.7.3
@@ -85,7 +85,7 @@ pytz==2025.2
 pywebpush==2.2.0
 redis==7.1.0
 reportlab==4.4.7
-requests==2.32.5
+requests==2.33.0
 requirements-parser==0.13.0
 service-identity==24.2.0
 setuptools==80.9.0
