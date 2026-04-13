@@ -5,7 +5,7 @@
 # and provision everything automatically.
 #
 # Usage (on Proxmox host):
-#   bash <(curl -fsSL https://raw.githubusercontent.com/youruser/yourrepo/main/install.sh)
+#   bash <(curl -fsSL https://raw.githubusercontent.com/PirminHndlg/FW-Msg/main/install.sh)
 #   # — or —
 #   ./install.sh
 #
@@ -114,21 +114,45 @@ host_setup() {
     # ── Detect storage ────────────────────────────────────────────────────────
     msg_step "Detecting Proxmox storage"
 
-    # Storage for LXC rootfs (needs to support rootdir content)
-    ROOTFS_STORAGE="${ROOTFS_STORAGE:-$(pvesm status --content rootdir 2>/dev/null \
-        | awk 'NR>1 && $2=="active" {print $1; exit}')}"
-    if [[ -z "${ROOTFS_STORAGE}" ]]; then
-        msg_error "No active storage with 'rootdir' content found."
-        exit 1
+    # Show all available storages so the user can see what exists
+    msg_info "Available storages on this node:"
+    pvesm status 2>/dev/null | column -t || true
+    echo ""
+
+    # Auto-detect via pvesh API (more reliable than pvesm --content filter)
+    _detect_storage() {
+        local content_type="$1"
+        pvesh get /storage --output-format json 2>/dev/null \
+            | python3 -c "
+import json, sys
+try:
+    for s in json.load(sys.stdin):
+        if '${content_type}' in s.get('content', '').split(','):
+            print(s['storage'])
+            break
+except Exception:
+    pass
+" 2>/dev/null || true
+    }
+
+    # CT rootfs disk storage — default: local-lvm
+    if [[ -z "${ROOTFS_STORAGE:-}" ]]; then
+        ROOTFS_STORAGE="$(_detect_storage rootdir)"
+        ROOTFS_STORAGE="${ROOTFS_STORAGE:-local-lvm}"
     fi
 
-    # Storage for templates (needs to support vztmpl content)
-    TEMPLATE_STORAGE="${TEMPLATE_STORAGE:-$(pvesm status --content vztmpl 2>/dev/null \
-        | awk 'NR>1 && $2=="active" {print $1; exit}')}"
-    if [[ -z "${TEMPLATE_STORAGE}" ]]; then
-        msg_error "No active storage with 'vztmpl' content found."
-        exit 1
+    # Template storage — default: local
+    if [[ -z "${TEMPLATE_STORAGE:-}" ]]; then
+        TEMPLATE_STORAGE="$(_detect_storage vztmpl)"
+        TEMPLATE_STORAGE="${TEMPLATE_STORAGE:-local}"
     fi
+
+    # Let user confirm or override
+    read -rp "  Storage for CT disk    [${ROOTFS_STORAGE}]: " _input
+    ROOTFS_STORAGE="${_input:-${ROOTFS_STORAGE}}"
+
+    read -rp "  Storage for templates  [${TEMPLATE_STORAGE}]: " _input
+    TEMPLATE_STORAGE="${_input:-${TEMPLATE_STORAGE}}"
 
     msg_ok "Rootfs storage : ${ROOTFS_STORAGE}"
     msg_ok "Template storage: ${TEMPLATE_STORAGE}"
