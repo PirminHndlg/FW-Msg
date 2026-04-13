@@ -76,7 +76,7 @@ host_setup() {
 
     # ORG_NAME — required
     if [[ -z "${ORG_NAME:-}" ]]; then
-        read -rp "  ORG_NAME (domain/hostname, e.g. fwmsg.local): " ORG_NAME
+        read -rp "  ORG_NAME (subdomain, e.g. fwmsg): " ORG_NAME
     fi
     if [[ -z "${ORG_NAME:-}" ]]; then
         msg_error "ORG_NAME is required. Aborting."
@@ -91,7 +91,7 @@ host_setup() {
 
     # CT resources — optional with sensible defaults
     CT_ID="${CT_ID:-$(pvesh get /cluster/nextid 2>/dev/null || echo 200)}"
-    CT_HOSTNAME="${CT_HOSTNAME:-fwmsg}"
+    CT_HOSTNAME="${CT_HOSTNAME:-${ORG_NAME}}"
     CT_RAM="${CT_RAM:-2048}"
     CT_CORES="${CT_CORES:-2}"
     CT_DISK="${CT_DISK:-8}"
@@ -135,10 +135,10 @@ except Exception:
 " 2>/dev/null || true
     }
 
-    # CT rootfs disk storage — default: local-lvm
+    # CT rootfs disk storage — default: local-zfs
     if [[ -z "${ROOTFS_STORAGE:-}" ]]; then
         ROOTFS_STORAGE="$(_detect_storage rootdir)"
-        ROOTFS_STORAGE="${ROOTFS_STORAGE:-local-lvm}"
+        ROOTFS_STORAGE="${ROOTFS_STORAGE:-local-zfs}"
     fi
 
     # Template storage — default: local
@@ -271,7 +271,7 @@ print(''.join(secrets.choice(chars) for _ in range(20)))
     echo ""
     echo "  CT ID      : ${CT_ID}"
     echo "  CT IP      : ${CT_IP}"
-    echo "  URL        : http://${ORG_NAME}  (or http://${CT_IP})"
+    echo "  URL        : ${PUBLIC_URL}"
     echo ""
     echo "  Root password: ${CT_ROOT_PW}"
     echo "  (save this — shown only once)"
@@ -292,6 +292,22 @@ inside_ct_install() {
     echo "  FWMsg — CT App Installer"
     echo "================================================================"
     echo ""
+
+    # ── Step 0: Locale ────────────────────────────────────────────────────────
+    # Minimal Debian containers ship without a generated locale, which causes
+    # Perl / Python / dpkg to spam "Falling back to the standard locale (C)".
+    msg_step "Configuring locale"
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get install -y -qq locales
+    # Regional format: Germany (date/time/number/currency); display language: English
+    sed -i 's/^# *de_DE.UTF-8 UTF-8/de_DE.UTF-8 UTF-8/' /etc/locale.gen
+    sed -i 's/^# *en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+    locale-gen
+    update-locale LANG=de_DE.UTF-8 LANGUAGE=en_US:en
+    export LANG=de_DE.UTF-8
+    export LANGUAGE=en_US:en
+    unset LC_ALL   # let individual LC_* inherit from LANG
+    msg_ok "Locale set: region=de_DE.UTF-8, language=en_US."
 
     # ── Step 1: ORG_NAME ─────────────────────────────────────────────────────
 
@@ -314,7 +330,6 @@ inside_ct_install() {
     # ── Step 2: System packages ───────────────────────────────────────────────
 
     msg_step "Installing system packages"
-    export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq
     apt-get install -y -qq \
         python3 \
@@ -322,14 +337,15 @@ inside_ct_install() {
         python3-pip \
         postgresql \
         postgresql-contrib \
-        libpq-dev \
         nginx \
         redis-server \
         git \
-        wkhtmltopdf \
-        poppler-utils \
         curl \
-        build-essential
+        vim
+        # libpq-dev \
+        # wkhtmltopdf \
+        # poppler-utils \
+        # build-essential
     msg_ok "System packages installed."
 
     # ── Step 3: Python venv + dependencies ───────────────────────────────────
@@ -341,9 +357,12 @@ inside_ct_install() {
     PIP="${VENV_DIR}/bin/pip"
 
     msg_info "Installing Python packages (this may take a few minutes)..."
-    "${PIP}" install --quiet --upgrade pip
-    "${PIP}" install --quiet -r "${INSTALL_DIR}/requirements.txt"
-    "${PIP}" install --quiet psycopg2-binary
+    "${PIP}" install --quiet --upgrade pip \
+        || msg_warn "pip self-upgrade failed, continuing with current version."
+    "${PIP}" install --quiet -r "${INSTALL_DIR}/requirements.txt" \
+        || msg_warn "One or more packages in requirements.txt failed to install — check output above."
+    "${PIP}" install --quiet psycopg2-binary \
+        || msg_warn "psycopg2-binary install failed — PostgreSQL connectivity will not work."
     msg_ok "Python environment ready."
 
     # ── Step 4: PostgreSQL setup ──────────────────────────────────────────────
@@ -395,7 +414,9 @@ SQL
     echo ""
 
     # Apply defaults
-    DOMAIN_HOST="${DOMAIN_HOST:-${ORG_NAME}}"
+    DOMAIN_HOST="${DOMAIN_HOST:-volunteer.solutions}"
+    FULL_DOMAIN="${ORG_NAME}.${DOMAIN_HOST}"
+    PUBLIC_URL="https://${FULL_DOMAIN}"
     SMTP_PORT="${SMTP_PORT:-587}"
     SMTP_USE_SSL="${SMTP_USE_SSL:-true}"
 
@@ -415,8 +436,8 @@ smtp_use_ssl  = "${SMTP_USE_SSL}".strip().lower() in ("true", "yes", "1")
 smtp_port     = int(smtp_port_raw) if smtp_port_raw.isdigit() else 587
 
 # Build the full public URL (https:// since NPM terminates SSL)
-full_domain   = f"{org_name}.{domain_host}" if domain_host and domain_host != org_name else org_name
-public_url    = f"https://{full_domain}"
+full_domain   = "${FULL_DOMAIN}"
+public_url    = "${PUBLIC_URL}"
 
 with open(example_path) as f:
     raw = f.read()
@@ -480,6 +501,7 @@ PYEOF
     # ── Step 6: Patch settings.py DATABASES → PostgreSQL ─────────────────────
 
     msg_step "Patching settings.py (SQLite → PostgreSQL)"
+    cp "${INSTALL_DIR}/FWMsg/FWMsg/example-settings.py" "${INSTALL_DIR}/FWMsg/FWMsg/settings.py"
 
     "${PYTHON}" - <<'PYEOF'
 import re
@@ -625,7 +647,7 @@ upstream daphne {
 
 server {
     listen 80;
-    server_name ${ORG_NAME} localhost;
+    server_name ${FULL_DOMAIN} localhost;
 
     client_max_body_size 50M;
 
@@ -823,7 +845,7 @@ EOF
     echo -e "${GREEN}${BOLD}  FWMsg app install complete inside CT!${NC}"
     echo "================================================================"
     echo ""
-    echo "  URL        : http://${ORG_NAME}"
+    echo "  URL        : ${PUBLIC_URL}"
     echo "  App dir    : ${APP_DIR}"
     echo "  Secrets    : ${SECRETS_FILE}"
     echo ""
