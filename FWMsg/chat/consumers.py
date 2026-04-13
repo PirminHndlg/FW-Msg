@@ -3,6 +3,7 @@ import json
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
+from .badge_utils import broadcast_unread_badge_for_user, get_unread_chat_message_count
 from .models import ChatDirect, ChatGroup, ChatMessageDirect, ChatMessageGroup
 from .tasks import notify_users_about_new_direct_chat_message, notify_users_about_new_group_chat_message
 
@@ -80,6 +81,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         is_receiver = event["user_id"] != self.user.id
         if is_receiver:
             await self.mark_message_read(event["id"])
+            await database_sync_to_async(broadcast_unread_badge_for_user)(self.user)
 
         await self.send(
             text_data=json.dumps(
@@ -140,6 +142,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             msg.mark_as_read_by(self.user)
             notify_users_about_new_group_chat_message.s(msg.id, self.user.id).apply_async(countdown=10)
 
+        for recipient in chat.users.exclude(pk=self.user.pk):
+            broadcast_unread_badge_for_user(recipient)
+
         return {
             "id":         msg.id,
             "message":    msg.message,
@@ -149,3 +154,32 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "user_id":    self.user.id,
             "created_at": msg.created_at.strftime("%d.%m.%Y %H:%M"),
         }
+
+
+class ChatBadgeConsumer(AsyncWebsocketConsumer):
+    """One connection per logged-in user; pushes global unread chat count."""
+
+    async def connect(self):
+        self.user = self.scope["user"]
+        if not self.user.is_authenticated:
+            await self.close(code=4001)
+            return
+
+        self.group_name = f"chat_user_{self.user.pk}"
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.accept()
+        n = await database_sync_to_async(get_unread_chat_message_count)(self.user)
+        await self.send(
+            text_data=json.dumps({"number_of_unread_messages": n})
+        )
+
+    async def disconnect(self, close_code):
+        if getattr(self, "group_name", None):
+            await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    async def unread_badge(self, event):
+        await self.send(
+            text_data=json.dumps(
+                {"number_of_unread_messages": event["number_of_unread_messages"]}
+            )
+        )

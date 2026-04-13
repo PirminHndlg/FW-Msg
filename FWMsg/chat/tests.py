@@ -8,15 +8,22 @@ Coverage:
             create_chat_direct (incl. duplicate detection), create_chat_group,
             send_message_direct, send_message_group,
             ajax_chat_poll, ajax_chat_list_updates, ajax_chat_updates
+  - WebSocket: ChatBadgeConsumer (unread badge push)
 """
 
+import asyncio
 import json
 from unittest.mock import patch, MagicMock
 
+from channels.layers import get_channel_layer
+from channels.testing import WebsocketCommunicator
+from django.conf import settings
 from django.contrib.auth.models import User
-from django.test import Client, TestCase
+from django.test import Client, TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+
+from FWMsg.asgi import application
 
 from Global.models import CustomUser, PersonCluster
 from ORG.models import Organisation
@@ -816,3 +823,82 @@ class AjaxChatUpdatesViewTest(ChatBaseTest):
         msg = data["messages"][0]
         for field in ("id", "user", "user_id", "message", "created_at"):
             self.assertIn(field, msg)
+
+
+# ===========================================================================
+# WebSocket: ChatBadgeConsumer
+# ===========================================================================
+
+
+@override_settings(
+    CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+)
+class ChatBadgeWebSocketTest(TransactionTestCase):
+    def setUp(self):
+        self.org = make_org()
+        self.cluster = make_cluster(self.org)
+        self.alice = make_user(self.org, "alice_badge_ws", self.cluster)
+        self.bob = make_user(self.org, "bob_badge_ws", self.cluster)
+        self.client = Client()
+
+    def _badge_ws_headers(self):
+        self.client.force_login(self.alice)
+        c = self.client.cookies.get(settings.SESSION_COOKIE_NAME)
+        self.assertIsNotNone(c)
+        cookie = f"{settings.SESSION_COOKIE_NAME}={c.value}".encode()
+        return [(b"cookie", cookie)]
+
+    def test_anonymous_connection_not_accepted(self):
+        async def run():
+            communicator = WebsocketCommunicator(application, "/ws/chat/badge/")
+            connected, _ = await communicator.connect()
+            self.assertFalse(connected)
+            await communicator.disconnect()
+
+        asyncio.run(run())
+
+    def test_authenticated_receives_initial_unread_count(self):
+        chat = make_direct_chat(self.org, self.alice, self.bob)
+        ChatMessageDirect.objects.create(
+            chat=chat, user=self.bob, org=self.org, message="hi"
+        )
+        headers = self._badge_ws_headers()
+
+        async def run():
+            communicator = WebsocketCommunicator(
+                application,
+                "/ws/chat/badge/",
+                headers=headers,
+            )
+            connected, _ = await communicator.connect()
+            self.assertTrue(connected)
+            msg = await communicator.receive_json_from()
+            self.assertEqual(msg["number_of_unread_messages"], 1)
+            await communicator.disconnect()
+
+        asyncio.run(run())
+
+    def test_group_send_delivers_badge_update(self):
+        headers = self._badge_ws_headers()
+
+        async def run():
+            communicator = WebsocketCommunicator(
+                application,
+                "/ws/chat/badge/",
+                headers=headers,
+            )
+            connected, _ = await communicator.connect()
+            self.assertTrue(connected)
+            initial = await communicator.receive_json_from()
+            self.assertEqual(initial["number_of_unread_messages"], 0)
+
+            layer = get_channel_layer()
+            await layer.group_send(
+                f"chat_user_{self.alice.pk}",
+                {"type": "unread.badge", "number_of_unread_messages": 7},
+            )
+            pushed = await communicator.receive_json_from()
+            self.assertEqual(pushed["number_of_unread_messages"], 7)
+            await communicator.disconnect()
+
+        asyncio.run(run())

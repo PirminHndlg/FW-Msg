@@ -73,29 +73,64 @@
 <script src="{% static 'masonry.pkgd.js' %}"></script>
 
 <script src="{% static 'js/main.js' %}"></script>
+{% if user.is_authenticated %}
 <script>
-    // Update chat badge every 3 seconds
-    function fetchChatBadge(badge) {
-        fetch('{% url "ajax_chat_poll" %}')
-            .then(response => response.json())
-            .then(data => {
-                badge.textContent = data.number_of_unread_messages;
-                if (data.number_of_unread_messages > 0) {
-                    badge.classList.remove('d-none');
-                } else {
-                    badge.classList.add('d-none');
-                }
-            });
+    function applyChatUnreadCount(n) {
+        document.querySelectorAll('.badge-unread').forEach(function (badge) {
+            badge.textContent = n;
+            if (n > 0) {
+                badge.classList.remove('d-none');
+            } else {
+                badge.classList.add('d-none');
+            }
+        });
     }
 
-    function updateChatBadge() {
-        const badges = document.querySelectorAll('.badge-unread');
-        badges.forEach(badge => {
-            fetchChatBadge(badge);
-            setInterval(function() {
-                fetchChatBadge(badge);
-                }, 30000);
-        });
+    function fetchChatBadgeHttp() {
+        fetch('{% url "ajax_chat_poll" %}')
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                applyChatUnreadCount(data.number_of_unread_messages);
+            })
+            .catch(function () {});
+    }
+
+    function connectChatBadgeWebSocket() {
+        var scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        var url = scheme + '://' + window.location.host + '/ws/chat/badge/';
+        var reconnectDelayMs = 1000;
+        var maxReconnectDelayMs = 30000;
+        var ws;
+
+        function scheduleReconnect() {
+            var delay = Math.min(reconnectDelayMs, maxReconnectDelayMs);
+            reconnectDelayMs = Math.min(reconnectDelayMs * 2, maxReconnectDelayMs);
+            setTimeout(open, delay);
+        }
+
+        function open() {
+            ws = new WebSocket(url);
+            ws.onopen = function () {
+                reconnectDelayMs = 1000;
+            };
+            ws.onmessage = function (ev) {
+                try {
+                    var data = JSON.parse(ev.data);
+                    if (typeof data.number_of_unread_messages === 'number') {
+                        applyChatUnreadCount(data.number_of_unread_messages);
+                    }
+                } catch (e) {}
+            };
+            ws.onerror = function () {
+                try { ws.close(); } catch (e) {}
+            };
+            ws.onclose = function () {
+                fetchChatBadgeHttp();
+                scheduleReconnect();
+            };
+        }
+
+        open();
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -104,6 +139,7 @@
             return new bootstrap.Tooltip(tooltipTriggerEl)
         })
 
-        updateChatBadge();
+        connectChatBadgeWebSocket();
     })
 </script>
+{% endif %}

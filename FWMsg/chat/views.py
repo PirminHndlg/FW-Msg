@@ -10,6 +10,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.models import User
 from Global.views import check_organization_context
 
+from .badge_utils import broadcast_unread_badge_for_user, get_unread_chat_message_count
 from .forms import ChatDirectForm, ChatGroupForm, SendDirectMessageForm, SendGroupMessageForm
 from .models import ChatDirect, ChatGroup, ChatMessageDirect, ChatMessageGroup
 from .tasks import notify_users_about_new_direct_chat_message, notify_users_about_new_group_chat_message, notify_users_about_new_group_chat
@@ -86,7 +87,9 @@ def chat_direct(request, identifier):
             )
             
             notify_users_about_new_direct_chat_message.s(msg.id, request.user.id).apply_async(countdown=10)
-                
+            for recipient in chat.users.exclude(pk=request.user.pk):
+                broadcast_unread_badge_for_user(recipient)
+
             return redirect(reverse('chat_direct', args=[chat.get_identifier()]))
     else:
         form = SendDirectMessageForm()
@@ -94,6 +97,7 @@ def chat_direct(request, identifier):
     chat_messages = ChatMessageDirect.objects.filter(chat=chat).order_by('created_at')
     for msg in chat_messages.filter(read=False).exclude(user=request.user):
         msg.mark_as_read()
+    broadcast_unread_badge_for_user(request.user)
         
     other_users = chat.users.exclude(pk=request.user.pk)
     context = {
@@ -126,7 +130,9 @@ def chat_group(request, identifier):
             msg.mark_as_read_by(request.user)
             
             notify_users_about_new_group_chat_message.s(msg.id, request.user.id).apply_async(countdown=10)
-                
+            for recipient in chat.users.exclude(pk=request.user.pk):
+                broadcast_unread_badge_for_user(recipient)
+
             return redirect(reverse('chat_group', args=[chat.get_identifier()]))
     else:
         form = SendGroupMessageForm()
@@ -134,6 +140,7 @@ def chat_group(request, identifier):
     chat_messages = ChatMessageGroup.objects.filter(chat=chat).order_by('created_at')
     for msg in chat_messages.exclude(user=request.user):
         msg.mark_as_read_by(request.user)
+    broadcast_unread_badge_for_user(request.user)
 
     is_creator = chat.created_by == request.user
     non_members = (
@@ -356,7 +363,9 @@ def send_message_direct(request, identifier):
     )
     
     notify_users_about_new_direct_chat_message.s(msg.id, request.user.id).apply_async(countdown=10)
-    
+    for recipient in chat.users.exclude(pk=request.user.pk):
+        broadcast_unread_badge_for_user(recipient)
+
     return JsonResponse({
         'id': msg.id,
         'user': str(request.user),
@@ -392,7 +401,9 @@ def send_message_group(request, identifier):
     msg.mark_as_read_by(request.user)
     
     notify_users_about_new_group_chat_message.s(msg.id, request.user.id).apply_async(countdown=10)
-        
+    for recipient in chat.users.exclude(pk=request.user.pk):
+        broadcast_unread_badge_for_user(recipient)
+
     return JsonResponse({
         'id': msg.id,
         'user': str(request.user),
@@ -404,8 +415,8 @@ def send_message_group(request, identifier):
 
 @login_required
 def ajax_chat_poll(request):
-    number_of_unread_messages = ChatMessageDirect.objects.filter(chat__users=request.user, read=False).exclude(user=request.user).count() + ChatMessageGroup.objects.filter(chat__users=request.user).exclude(read_by=request.user).exclude(user=request.user).count()
-    return JsonResponse({'number_of_unread_messages': number_of_unread_messages})
+    n = get_unread_chat_message_count(request.user)
+    return JsonResponse({'number_of_unread_messages': n})
 
 
 @login_required
@@ -477,5 +488,8 @@ def ajax_chat_updates(request, chat_type, chat_id):
             return JsonResponse({'error': 'Ungültiger Chat-Typ'}, status=400)
     except (ChatDirect.DoesNotExist, ChatGroup.DoesNotExist):
         return JsonResponse({'error': 'Chat nicht gefunden'}, status=404)
+
+    if data:
+        broadcast_unread_badge_for_user(request.user)
 
     return JsonResponse({'messages': data})
