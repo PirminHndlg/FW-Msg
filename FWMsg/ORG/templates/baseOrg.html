@@ -62,20 +62,20 @@
                   </a>
                   <div class="dropdown-menu dropdown-menu-wide" aria-labelledby="peopleDropdown">
                     <a href="{% url 'list_object' 'freiwilliger' %}" class="dropdown-item">
-                      <i class="bi bi-person me-2"></i>{% trans "Freiwillige" %}
+                      <i class="bi bi-heart me-2"></i>{% trans "Freiwillige" %}
                     </a>
                     <a href="{% url 'list_object' 'team' %}" class="dropdown-item">
-                      <i class="bi bi-people me-2"></i>{% trans "Team" %}
+                      <i class="bi bi-briefcase me-2"></i>{% trans "Team" %}
                     </a>
                     <a href="{% url 'list_object' 'ehemalige' %}" class="dropdown-item">
-                      <i class="bi bi-person-check me-2"></i>{% trans "Ehemalige" %}
+                      <i class="bi bi-mortarboard me-2"></i>{% trans "Ehemalige" %}
                     </a>
                     <a href="{% url 'list_object' 'bewerber' %}" class="dropdown-item">
-                      <i class="bi bi-person-vcard me-2"></i>{% trans "Bewerber:innen" %}
+                      <i class="bi bi-inbox me-2"></i>{% trans "Bewerber:innen" %}
                     </a>
                     <div class="dropdown-divider"></div>
                     <a href="{% url 'list_object' 'notfallkontakt' %}" class="dropdown-item">
-                      <i class="bi bi-telephone me-2"></i>{% trans "Notfallkontakte" %}
+                      <i class="bi bi-exclamation-triangle me-2"></i>{% trans "Notfallkontakte" %}
                     </a>
                   </div>
                 </li>
@@ -163,7 +163,7 @@
                       <i class="bi bi-file-earmark-person me-2"></i>{% trans "Bewerbungen" %}
                     </a>
                     <a href="{% url 'seminar_home' %}" class="dropdown-item">
-                      <i class="bi bi-mortarboard me-2"></i>{% trans "Seminar" %}
+                      <i class="bi bi-easel2 me-2"></i>{% trans "Seminar" %}
                     </a>
                     <a href="{% url 'survey:survey_list' %}" class="dropdown-item">
                       <i class="bi bi-bar-chart me-2"></i>{% trans "Umfragen" %}
