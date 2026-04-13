@@ -157,21 +157,21 @@ except Exception:
     msg_ok "Rootfs storage : ${ROOTFS_STORAGE}"
     msg_ok "Template storage: ${TEMPLATE_STORAGE}"
 
-    # ── Find or download Debian 12 template ──────────────────────────────────
-    msg_step "Preparing Debian 12 template"
+    # ── Find or download Debian template (any version, latest wins) ──────────
+    msg_step "Preparing Debian template"
 
     TEMPLATE=$(pveam list "${TEMPLATE_STORAGE}" 2>/dev/null \
-        | awk '/debian-12-standard/ {print $1}' | sort -V | tail -1)
+        | awk '/debian-[0-9]+-standard/ {print $1}' | sort -V | tail -1)
 
     if [[ -z "${TEMPLATE}" ]]; then
-        msg_info "Template not found locally. Fetching available list..."
+        msg_info "No local Debian template found. Fetching available list..."
         pveam update &>/dev/null || true
 
         AVAIL=$(pveam available --section system 2>/dev/null \
-            | awk '/debian-12-standard/ {print $2}' | sort -V | tail -1)
+            | awk '/debian-[0-9]+-standard/ {print $2}' | sort -V | tail -1)
 
         if [[ -z "${AVAIL}" ]]; then
-            msg_error "No Debian 12 standard template found. Check internet access on the Proxmox node."
+            msg_error "No Debian standard template found. Check internet access on the Proxmox node."
             exit 1
         fi
 
