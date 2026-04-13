@@ -193,7 +193,13 @@ except Exception:
     msg_step "Creating LXC container (CT ${CT_ID})"
 
     # Generate a random root password for the CT
-    CT_ROOT_PW="$(tr -dc 'A-Za-z0-9!@#%^&*' </dev/urandom | head -c 20)"
+    # (avoid tr | head pattern — head closes the pipe early, tr exits 141,
+    #  pipefail treats that as an error and kills the script silently)
+    CT_ROOT_PW="$(python3 -c "
+import secrets, string
+chars = string.ascii_letters + string.digits + '!@#%^&*'
+print(''.join(secrets.choice(chars) for _ in range(20)))
+")"
 
     pct create "${CT_ID}" "${TEMPLATE}" \
         --hostname   "${CT_HOSTNAME}" \
