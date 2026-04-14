@@ -764,8 +764,8 @@ class Attribute(OrgModel):
     visible_in_profile = models.BooleanField(default=True, verbose_name='Im Profil anzeigen', help_text='Aktivieren, um das Feld im Profil auch für die Freiwillige sichtbar zu machen')
 
     class Meta:
-        verbose_name = 'Benutzerdatenfeld'
-        verbose_name_plural = 'Benutzerdatenfelder'
+        verbose_name = 'Eigenes Feld'
+        verbose_name_plural = 'Eigene Felder'
 
     def __str__(self):
         return self.name
@@ -773,12 +773,12 @@ class Attribute(OrgModel):
 
 class UserAttribute(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer:in')
-    attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE, verbose_name='Benutzerdatenfeld')
+    attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE, verbose_name='Eigenes Feld')
     value = models.TextField(verbose_name='Wert', null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Freiwilliger Attribut'
-        verbose_name_plural = 'Freiwilliger Attribute'
+        verbose_name = 'Eigenes Feld Benutzer:in'
+        verbose_name_plural = 'Eigene Felder Benutzer:innen'
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.attribute.name
