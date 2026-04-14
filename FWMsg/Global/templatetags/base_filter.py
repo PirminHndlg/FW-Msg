@@ -172,8 +172,11 @@ def get_current_seminar(org):
     seminars = Seminar.objects.filter(org=org)
     seminars_to_display = []
     for seminar in seminars:
-        diff_start = current_date - seminar.seminar_start  # positive if seminar has started
-        diff_end = seminar.seminar_end - current_date      # positive if seminar hasn't ended
-        if diff_start.days >= -7 and diff_end.days >= -2:
-            seminars_to_display.append(seminar)
+        try:
+            diff_start = current_date - seminar.seminar_start  # positive if seminar has started
+            diff_end = seminar.seminar_end - current_date      # positive if seminar hasn't ended
+            if diff_start.days >= -7 and diff_end.days >= -2:
+                seminars_to_display.append(seminar)
+        except:
+            continue
     return seminars_to_display
