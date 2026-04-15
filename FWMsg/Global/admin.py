@@ -13,7 +13,7 @@ from .models import (
     Ordner2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, PushSubscription, 
     UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, 
     AufgabenCluster, Bilder2, BilderGallery2, BilderComment, BilderReaction, ProfilUser2, Maintenance,
-    PostSurveyAnswer, PostSurveyQuestion, EinsatzstelleNotiz, StickyNote, ChangeRequest
+    PostSurveyAnswer, PostSurveyQuestion, EinsatzstelleNotiz, StickyNote, ChangeRequest, MapLocation
 )
 from TEAM.models import Team
 from FW.models import Freiwilliger
@@ -713,3 +713,11 @@ class ChangeRequestAdmin(SimpleHistoryAdmin):
         if updated:
             messages.success(request, f'{updated} Änderungsanträge wurden abgelehnt.')
     reject_requests.short_description = 'Ausgewählte Anträge ablehnen'
+
+
+@admin.register(MapLocation)
+class MapLocationAdmin(admin.ModelAdmin):
+    list_display = ['city', 'country', 'zip_code', 'user', 'visibility', 'date_created', 'latitude', 'longitude']
+    search_fields = ['city', 'country', 'zip_code', 'user__username', 'user__first_name', 'user__last_name']
+    list_filter = ['visibility', 'country', 'date_created']
+    readonly_fields = ['date_created']
