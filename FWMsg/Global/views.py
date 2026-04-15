@@ -2811,6 +2811,7 @@ def einsatzstellen_info(request):
 def karte(request):
     # Get or create the user's location entry (only one per user)
     user_location = MapLocation.objects.filter(user=request.user, org=request.user.org).first()
+    filter_person_cluster = None
     
     if request.method == 'POST':
         form = KarteForm(request.POST, request=request, instance=user_location)
@@ -2869,7 +2870,16 @@ def karte(request):
     form = KarteForm(request=request, instance=user_location)
     
     if request.user.role == 'O':
-        map_locations = MapLocation.objects.filter(org=request.user.org).order_by('-date_created')
+        filter_person_clusters = request.GET.get('person_cluster_filter')
+        if filter_person_clusters and filter_person_clusters != 'None':
+            try:
+                filter_person_cluster = PersonCluster.objects.get(id=int(filter_person_clusters), org=request.user.org)
+                map_locations = MapLocation.objects.filter(org=request.user.org, user__customuser__person_cluster=filter_person_cluster)
+            except Exception as e:
+                messages.warning(request, f'Fehler beim Filtern der Benutzergruppen: {str(e)}')
+                map_locations = MapLocation.objects.filter(org=request.user.org)
+        else:
+            map_locations = MapLocation.objects.filter(org=request.user.org)
     else:
         # Get users from the same person cluster view
         users_same_person_cluster = User.objects.filter(
@@ -2878,13 +2888,15 @@ def karte(request):
         ).values_list('id', flat=True)
         map_locations = MapLocation.objects.filter(org=request.user.org).filter(
             Q(user__id__in=users_same_person_cluster, visibility='F') | Q(visibility='P')
-        ).order_by('-date_created')
+        )
     
     context = {
         'form': form,
         'locations': map_locations,
         'user_location': user_location,
         'is_editing': user_location is not None,
+        'person_clusters': PersonCluster.objects.filter(org=request.user.org, map=True).order_by('name'),
+        'current_person_cluster': filter_person_cluster,
     }
     context = check_organization_context(request, context)
     return render(request, 'karte.html', context)
