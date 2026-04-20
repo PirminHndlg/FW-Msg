@@ -69,11 +69,13 @@ class Survey(OrgModel):
     )
     start_date = models.DateField(
         null=True, blank=True, 
-        verbose_name=_('Start date')
+        verbose_name=_('Start date'),
+        help_text=_('Before this date the survey is not available')
     )
     end_date = models.DateField(
         null=True, blank=True, 
-        verbose_name=_('End date')
+        verbose_name=_('End date'),
+        help_text=_('After this date the survey is not available')
     )
     max_responses = models.PositiveIntegerField(
         null=True, blank=True,
