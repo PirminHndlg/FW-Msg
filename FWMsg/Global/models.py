@@ -658,6 +658,24 @@ def verify_image(image):
     except Exception:
         return False
 
+def remove_meta_data(image):
+    from PIL import Image
+    from PIL.ExifTags import TAGS
+    
+    img = Image.open(image)
+    data = list(img.getdata())
+    image_without_exif = Image.new(img.mode, img.size)
+    image_without_exif.putdata(data)
+    
+    # Encode as optimized/progressive JPEG
+    img_io = io.BytesIO()
+    image_without_exif.save(img_io, format="JPEG", optimize=True)
+
+    # Ensure the returned filename has .jpg extension
+    base = img.name.split('/')[-1] if hasattr(img, 'name') else 'image'
+    base = os.path.splitext(base)[0] + '.jpg'
+    return ContentFile(img_io.getvalue(), name=base)
+
 
 def calculate_small_image(image, size=(750, 750), jpeg_quality=85, background_color=(255, 255, 255)):
     # Open the image
@@ -1215,6 +1233,12 @@ class BilderGallery2(OrgModel):
             raise ValueError("Ungültiges Bild")
         elif self.image and not self.small_image:
             self.small_image = calculate_small_image(self.image)
+            
+        if self.image:
+            self.image = remove_meta_data(self.image)
+            if self.small_image and False:
+                self.small_image = remove_meta_data(self.small_image)
+            
         super().save(*args, **kwargs)
 
 
