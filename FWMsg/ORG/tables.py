@@ -1,11 +1,11 @@
 import django_tables2 as tables
 from django_tables2 import TemplateColumn
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, escape
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-
+from datetime import datetime
 from FW.models import Freiwilliger
 from Global.models import (
     BewerberKommentar, Einsatzland2, Einsatzstelle2, Attribute, Aufgabe2,
@@ -475,7 +475,6 @@ def _create_dynamic_table_class(
         (table_class, data_list)
     """
     # Fetch objects and attributes
-    print('person_clusters', person_clusters)
     if person_clusters:
         objects = model_class.objects.filter(
             org=org, 
@@ -499,14 +498,76 @@ def _create_dynamic_table_class(
     for obj in objects:
         obj_data = {model_name: obj, 'attrs': {}}
         
-        # Fetch all user attributes
-        user_attributes = UserAttribute.objects.filter(
-            org=org, user=obj.user, attribute__in=attributes
-        ).select_related('attribute')
+        user_person_cluster = obj.user.person_cluster if obj.user.person_cluster else None
         
-        # Populate attrs dict
-        for user_attr in user_attributes:
-            obj_data['attrs'][user_attr.attribute.name] = user_attr.value or ''
+        for attribute in attributes:
+            if not user_person_cluster in attribute.person_cluster.all():
+                continue
+            
+            user_attr, created = UserAttribute.objects.get_or_create(
+                user=obj.user,
+                attribute=attribute,
+                org=org
+            )
+        
+            value = user_attr.value if user_attr.value else ''
+            value_formatted = escape(value.strip()) if value != '' else '—'
+            html_content = None
+            contains_quick_edit = False
+            
+            # ignore type 'L' (Long Text), 'C' (Choice) and 'B' (Boolean)
+            if attribute.type == 'T':
+                html_content = format_html(
+                    '<input type="text" value="{}" class="form-control quick-edit-input lg d-none" data-userattr-id="{}">', value, user_attr.id)
+            elif attribute.type == 'N':
+                html_content = format_html(
+                    '<input type="number" value="{}" class="form-control quick-edit-input sm d-none" data-userattr-id="{}">', value, user_attr.id)
+            elif attribute.type == 'D':
+                html_content = format_html(
+                    '<input type="date" value="{}" class="form-control quick-edit-input md d-none" data-userattr-id="{}">', value, user_attr.id)
+                try:
+                    # format  yyyy-mm-dd to dd.mm.yyyy
+                    value_formatted = datetime.strptime(value, '%Y-%m-%d').strftime('%d.%m.%Y')
+                except ValueError:
+                    pass
+            elif attribute.type == 'E':
+                html_content = format_html(
+                    '<input type="email" value="{}" class="form-control quick-edit-input lg d-none" data-userattr-id="{}">' +
+                    '<div class="quick-edit-alternative"><a href="mailto:{}">{}</a></div>'
+                    , value, user_attr.id, value, value_formatted)
+                contains_quick_edit = True
+            elif attribute.type == 'P':
+                html_content = format_html(
+                    '<input type="tel" value="{}" class="form-control quick-edit-input lg d-none" data-userattr-id="{}">', value, user_attr.id)
+            elif attribute.type == 'B':
+                value = True if value == 'True' else False
+                html_content = format_html(
+                    '<input type="checkbox" {} class="form-check-input quick-edit-input sm d-none" data-userattr-id="{}">' +
+                    '<div class="quick-edit-alternative">' +
+                        f'<span class="true {("" if value else "d-none")}">✔</span>' +
+                        f'<span class="false {("d-none" if value else "")}">✘</span>' +
+                    '</div>'
+                    , 'checked' if value else '', user_attr.id, value_formatted)
+                contains_quick_edit = True
+            elif attribute.type == 'C':
+                choices__html_content = format_html('<option value="">{}</option>', '---')
+                for choice in attribute.value_for_choices.split(','):
+                    choices__html_content = format_html(
+                        '{}<option value="{}" {}>{}</option>',
+                        choices__html_content, choice, choice == value_formatted and 'selected' or '', choice)
+                    
+                html_content = format_html(
+                    '<select class="form-select quick-edit-input lg d-none" data-userattr-id="{}">{}</select>' +
+                    '<div class="quick-edit-alternative">{}</div>'
+                    , user_attr.id, choices__html_content, value_formatted)
+                contains_quick_edit = True
+            
+            if html_content:
+                if not contains_quick_edit:
+                    html_content = format_html('{}{}', html_content, format_html('<div class="quick-edit-alternative">{}</div>', value_formatted))
+            else:
+                html_content = value_formatted
+            obj_data['attrs'][attribute.name] = html_content
         
         # Ensure all attributes have keys (even if empty)
         for attribute in attributes:
@@ -520,7 +581,26 @@ def _create_dynamic_table_class(
         data.append(obj_data)
     
     # Helper to create attribute column with proper closure
-    def make_attribute_column(attr_name):
+    def make_attribute_column(attr_name, attr_type=None):
+        # For boolean attributes, create a BooleanColumn
+        # if attr_type == 'B':
+        #     class AttributeBooleanColumn(tables.BooleanColumn):
+        #         def __init__(self, *args, **kwargs):
+        #             kwargs['accessor'] = f'attrs__{attr_name}'
+        #             kwargs['orderable'] = True
+        #             super().__init__(*args, **kwargs)
+                
+        #         def render(self, value, record, bound_column):
+        #             print('AttributeBooleanColumn render', value)
+        #             # value is html content, so we need to extract the value
+        #             value_html = value.split('>')[1].split('<')[0].strip()
+        #             print('value_html', value_html)
+        #             value = True if value_html == 'on' else False
+        #             return super().render(value, record, bound_column)
+                    
+        #     return AttributeBooleanColumn
+        
+        # For other types, create a regular Column
         class AttributeColumn(tables.Column):
             def __init__(self, *args, **kwargs):
                 kwargs['accessor'] = f'attrs__{attr_name}'
@@ -563,7 +643,7 @@ def _create_dynamic_table_class(
     # Add attribute columns dynamically
     for attribute in attributes:
         column_name = f'attr_{attribute.id}'
-        AttributeColumnClass = make_attribute_column(attribute.name)
+        AttributeColumnClass = make_attribute_column(attribute.name, attribute.type)
         table_attrs[column_name] = AttributeColumnClass(verbose_name=attribute.name)
         final_column_sequence.append(column_name)
         

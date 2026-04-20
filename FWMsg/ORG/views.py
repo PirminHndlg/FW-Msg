@@ -601,7 +601,9 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
             response.delete_cookie(filter['cookie_name'])
         return response
     
+    with_quick_edit = False
     if model_name.lower() in ['bewerber', 'freiwilliger', 'team', 'ehemalige']:
+        with_quick_edit = True
         checkbox_submit_texts = [choice for choice in model.CHECKBOX_ACTION_CHOICES] if hasattr(model, 'CHECKBOX_ACTION_CHOICES') else []
         
         if model_name.lower() == 'freiwilliger':
@@ -617,11 +619,6 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
         search_query = request.GET.get('search', '').strip()
         if search_query:
             search_lower = search_query.lower()
-            # search in every field of the data
-            for d in data:
-                print(d)
-            # print accessors of table_class
-            print(table_class.base_columns.keys())
             
             # Helper function to extract searchable text from any value
             def get_searchable_text(value):
@@ -696,6 +693,7 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
             'model_name': model_name,
             'verbose_name': model._meta.verbose_name_plural,
             'highlight_id': highlight_id,
+            'with_quick_edit': with_quick_edit,
             'error': None,
             'total_count': total_objects_count,
             'search_query': search_query,
@@ -924,6 +922,37 @@ def list_object_checkbox(request, model_name):
         
     return redirect('list_object', model_name=model_name)
 
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def ajax_quick_edit_attribute(request):
+    try:
+        # Parse JSON body
+        data = json.loads(request.body)
+        user_attribute_id = data.get('user_attribute_id')
+        value = data.get('value')
+        
+        if not user_attribute_id or value is None:  # Use 'is None' to allow empty strings
+            return JsonResponse({'error': 'Missing required parameters'}, status=400)
+        
+        # Get the user attribute and verify org access
+        user_attribute = UserAttribute.objects.get(id=user_attribute_id, org=request.user.org)
+        if user_attribute.attribute.type == 'B':
+            value = bool(value)
+        user_attribute.value = value
+        user_attribute.save()
+        
+        return JsonResponse({'success': True})
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except UserAttribute.DoesNotExist:
+        return JsonResponse({'error': 'UserAttribute not found'}, status=404)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in ajax_quick_edit_attribute: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
 
 @login_required
 @required_role('O')

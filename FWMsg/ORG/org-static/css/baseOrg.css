@@ -183,3 +183,35 @@ nav ul a li:hover {
     }
 }
 */
+
+/* Quick edit input styles for non checkbox attributes */
+.quick-edit-input:not([type="checkbox"]) {
+    /* min-width: 100px; */
+    /* max-width: 220px; */
+    padding: 0.4rem 0.75rem;
+    font-size: 0.97rem;
+    line-height: 1.5;
+    color: #23272f;
+    background: #f8fafc;
+    border: 1px solid #b6bfd5;
+    border-radius: 0.4rem;
+    box-shadow: 0 1px 2px rgba(30,40,90,0.03);
+    transition: border-color 0.18s, box-shadow 0.18s;
+    outline: none;
+}
+
+.quick-edit-input:not([type="checkbox"]):focus {
+    border-color: #5776d6;
+    background: #fff;
+    box-shadow: 0 2px 6px 0 rgba(87,118,214,0.10);
+}
+
+.quick-edit-input:not([type="checkbox"]).lg {
+    min-width: 200px;
+}
+.quick-edit-input:not([type="checkbox"]).md {
+    min-width: 120px;
+}
+.quick-edit-input:not([type="checkbox"]).sm {
+    min-width: 80px;
+}
