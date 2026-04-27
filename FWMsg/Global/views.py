@@ -2823,7 +2823,9 @@ def karte(request):
             # Geocode the address using Nominatim (OpenStreetMap)
             try:
                 from geopy.geocoders import Nominatim
+                from geopy.distance import geodesic
                 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
+                import math
                 import random
                 from decimal import Decimal
                 
@@ -2835,14 +2837,29 @@ def karte(request):
                     base_lat = geo_location.latitude
                     base_lon = geo_location.longitude
                     
-                    # Check if another user in the same org has the same coordinates
+                    # Apply an offset if another marker already exists within 100 meters.
+                    lat_delta = Decimal('0.0009')
+                    cos_lat = max(abs(math.cos(math.radians(base_lat))), 0.01)
+                    lon_delta = Decimal(str(0.0009 / cos_lat))
                     existing_locations = MapLocation.objects.filter(
                         org=request.user.org,
-                        latitude=base_lat,
-                        longitude=base_lon
+                        latitude__isnull=False,
+                        longitude__isnull=False,
+                        latitude__gte=Decimal(str(base_lat)) - lat_delta,
+                        latitude__lte=Decimal(str(base_lat)) + lat_delta,
+                        longitude__gte=Decimal(str(base_lon)) - lon_delta,
+                        longitude__lte=Decimal(str(base_lon)) + lon_delta,
                     ).exclude(user=request.user)
                     
-                    if existing_locations.exists():
+                    has_nearby_location = any(
+                        geodesic(
+                            (base_lat, base_lon),
+                            (float(existing.latitude), float(existing.longitude)),
+                        ).meters <= 100
+                        for existing in existing_locations
+                    )
+
+                    if has_nearby_location:
                         # Add small random offset to prevent marker overlap
                         # Offset range: 500 meters (0.0045 degrees)
                         offset_lat = Decimal(str(random.uniform(-0.0045, 0.0045)))
