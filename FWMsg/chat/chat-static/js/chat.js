@@ -15,7 +15,7 @@
 function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallbackPollUrl) {
     const window_ = document.getElementById('chat-window');
     const form    = document.getElementById('chat-form');
-    const input   = form ? form.querySelector('input[name="message"]') : null;
+    const messageField = form ? form.querySelector('[name="message"]') : null;
     const csrf    = form ? form.querySelector('[name=csrfmiddlewaretoken]').value : '';
 
     // Track the highest message id already on the page so the HTTP fallback
@@ -27,6 +27,26 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
     });
 
     scrollToBottom();
+
+    const CHAT_MESSAGE_MAX_ROWS = 10;
+
+    function autosizeChatMessageField(textarea) {
+        if (!textarea) return;
+        const style = window.getComputedStyle(textarea);
+        const fontSize = parseFloat(style.fontSize) || 16;
+        let lineHeight = parseFloat(style.lineHeight);
+        if (Number.isNaN(lineHeight) || style.lineHeight === 'normal') {
+            lineHeight = fontSize * 1.2;
+        }
+        const padY = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
+        const maxH = lineHeight * CHAT_MESSAGE_MAX_ROWS + padY;
+
+        textarea.style.height = 'auto';
+        const scrollH = textarea.scrollHeight;
+        const nextH = Math.min(scrollH, maxH);
+        textarea.style.height = `${nextH}px`;
+        textarea.style.overflowY = scrollH > maxH ? 'auto' : 'hidden';
+    }
 
     // ── WebSocket ────────────────────────────────────────────────────────────
     let ws              = null;
@@ -100,13 +120,26 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
     }
 
     // ── Send message ─────────────────────────────────────────────────────────
-    if (form) {
+    if (form && messageField) {
+        messageField.addEventListener('input', function () {
+            autosizeChatMessageField(messageField);
+        });
+        autosizeChatMessageField(messageField);
+
+        messageField.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter' || e.shiftKey) return;
+            if (e.isComposing) return;
+            e.preventDefault();
+            form.requestSubmit();
+        });
+
         form.addEventListener('submit', function (e) {
             e.preventDefault();
-            const text = input.value.trim();
+            const text = messageField.value.trim();
             if (!text) return;
-            input.value = '';
-            input.focus();
+            messageField.value = '';
+            autosizeChatMessageField(messageField);
+            messageField.focus();
 
             if (wsReady) {
                 // Send via WebSocket; the server broadcasts it back to all
@@ -128,7 +161,8 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
                     })
                     .catch(() => {
                         // Re-fill input so the user doesn't lose the message.
-                        input.value = text;
+                        messageField.value = text;
+                        autosizeChatMessageField(messageField);
                     });
             }
         });
@@ -147,7 +181,7 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         if (!isOwn && chatType === 'group') {
             html += `<small class="text-muted">${escapeHtml(msg.user)}</small><br>`;
         }
-        html += `${escapeHtml(msg.message)}</div>`;
+        html += `<p>${formatMessageBody(msg.message)}</p></div>`;
         html += `<div class="bubble-meta ${isOwn ? 'text-end me-1' : 'ms-1'}">${escapeHtml(msg.created_at)}</div>`;
 
         wrapper.innerHTML = html;
@@ -163,6 +197,11 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         const div = document.createElement('div');
         div.appendChild(document.createTextNode(String(str)));
         return div.innerHTML;
+    }
+
+    /** Escape HTML, then convert newlines to <br> (matches Django linebreaksbr). */
+    function formatMessageBody(str) {
+        return escapeHtml(str).replace(/\r\n|\r|\n/g, '<br>');
     }
 
     // Start the WebSocket connection.

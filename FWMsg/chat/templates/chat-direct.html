@@ -38,7 +38,7 @@
     {% for msg in chat_messages %}
       <div class="d-flex flex-column {% if msg.user == request.user %}align-items-end{% else %}align-items-start{% endif %}" data-msg-id="{{ msg.id }}">
         <div class="bubble {% if msg.user == request.user %}bubble-own{% else %}bubble-other{% endif %}">
-          {{ msg.message }}
+          <p>{{ msg.message|linebreaksbr }}</p>
         </div>
         <div class="bubble-meta {% if msg.user == request.user %}text-end me-1{% else %}ms-1{% endif %}">
           {{ msg.created_at|date:"d.m.Y H:i" }}
@@ -53,7 +53,7 @@
   </div>
 
   <div class="chat-input-bar">
-    <form id="chat-form" class="d-flex gap-2" without_spinner="true">
+    <form id="chat-form" class="d-flex gap-2 align-items-end" without_spinner="true">
       {% csrf_token %}
       {{ form.message }}
       <button type="submit" class="btn btn-primary rounded-pill px-3">

@@ -41,15 +41,23 @@ class ChatGroupForm(forms.ModelForm):
         self.fields['name'].label = 'Gruppenname'
 
 
+_CHAT_MESSAGE_WIDGET_ATTRS = {
+    'class': 'form-control chat-message-input',
+    'placeholder': 'Nachricht schreiben…',
+    'autocomplete': 'off',
+    'rows': 1,
+}
+
+
 class SendDirectMessageForm(forms.Form):
     message = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nachricht schreiben…', 'autocomplete': 'off'}),
+        widget=forms.Textarea(attrs=_CHAT_MESSAGE_WIDGET_ATTRS),
         label='',
     )
 
 
 class SendGroupMessageForm(forms.Form):
     message = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nachricht schreiben…', 'autocomplete': 'off'}),
+        widget=forms.Textarea(attrs=_CHAT_MESSAGE_WIDGET_ATTRS),
         label='',
     )

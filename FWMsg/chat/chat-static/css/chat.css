@@ -96,6 +96,14 @@
     border-radius: 0 0 1rem 1rem;
 }
 
+.chat-input-bar .chat-message-input {
+    flex: 1;
+    resize: none;
+    overflow-y: hidden;
+    box-sizing: border-box;
+    /* Height capped at 10 text rows by chat.js (internal scroll beyond that). */
+}
+
 .member-avatar {
     width: 26px;
     height: 26px;
