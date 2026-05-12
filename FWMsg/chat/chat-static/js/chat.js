@@ -17,6 +17,31 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
     const form    = document.getElementById('chat-form');
     const messageField = form ? form.querySelector('[name="message"]') : null;
     const csrf    = form ? form.querySelector('[name=csrfmiddlewaretoken]').value : '';
+    const imageInput = document.getElementById('image-input');
+    const imagePreview = document.getElementById('image-preview');
+    const imageAttachBtn = document.getElementById('image-attach-btn');
+
+    let previewObjectUrl = null;
+
+    function revokePreviewUrl() {
+        if (previewObjectUrl) {
+            URL.revokeObjectURL(previewObjectUrl);
+            previewObjectUrl = null;
+        }
+    }
+
+    function clearImageSelection() {
+        revokePreviewUrl();
+        if (imageInput) imageInput.value = '';
+        if (imagePreview) {
+            imagePreview.innerHTML = '';
+            imagePreview.style.display = 'none';
+        }
+    }
+
+    function hasImageSelected() {
+        return !!(imageInput && imageInput.files && imageInput.files.length > 0);
+    }
 
     // Track the highest message id already on the page so the HTTP fallback
     // can request only messages we haven't seen yet.
@@ -29,6 +54,40 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
     scrollToBottom();
 
     const CHAT_MESSAGE_MAX_ROWS = 10;
+
+    if (imageAttachBtn && imageInput) {
+        imageAttachBtn.addEventListener('click', function () {
+            imageInput.click();
+        });
+    }
+
+    if (imageInput && imagePreview) {
+        imageInput.addEventListener('change', function () {
+            revokePreviewUrl();
+            imagePreview.innerHTML = '';
+            const f = imageInput.files && imageInput.files[0];
+            if (!f) {
+                imagePreview.style.display = 'none';
+                return;
+            }
+            previewObjectUrl = URL.createObjectURL(f);
+            const img = document.createElement('img');
+            img.src = previewObjectUrl;
+            img.alt = '';
+            img.className = 'chat-image-preview-thumb';
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-sm btn-outline-secondary ms-2 align-top';
+            removeBtn.setAttribute('aria-label', 'Entfernen');
+            removeBtn.textContent = '×';
+            removeBtn.addEventListener('click', function () {
+                clearImageSelection();
+            });
+            imagePreview.appendChild(img);
+            imagePreview.appendChild(removeBtn);
+            imagePreview.style.display = '';
+        });
+    }
 
     function autosizeChatMessageField(textarea) {
         if (!textarea) return;
@@ -136,7 +195,46 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         form.addEventListener('submit', function (e) {
             e.preventDefault();
             const text = messageField.value.trim();
-            if (!text) return;
+            const withImage = hasImageSelected();
+
+            if (!text && !withImage) return;
+
+            if (withImage) {
+                const fd = new FormData();
+                fd.append('csrfmiddlewaretoken', csrf);
+                fd.append('message', text);
+                fd.append('image', imageInput.files[0]);
+
+                const savedText = text;
+                messageField.value = '';
+                autosizeChatMessageField(messageField);
+                messageField.focus();
+
+                fetch(fallbackSendUrl, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrf },
+                    body: fd,
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (data.error) {
+                            messageField.value = savedText;
+                            autosizeChatMessageField(messageField);
+                            return;
+                        }
+                        clearImageSelection();
+                        if (!wsReady && data.id) {
+                            appendMessage(data, true);
+                            lastId = data.id;
+                        }
+                    })
+                    .catch(function () {
+                        messageField.value = savedText;
+                        autosizeChatMessageField(messageField);
+                    });
+                return;
+            }
+
             messageField.value = '';
             autosizeChatMessageField(messageField);
             messageField.focus();
@@ -152,14 +250,14 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
                     body: JSON.stringify({ message: text }),
                 })
-                    .then(r => r.json())
-                    .then(data => {
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
                         if (data.id) {
                             appendMessage(data, true);
                             lastId = data.id;
                         }
                     })
-                    .catch(() => {
+                    .catch(function () {
                         // Re-fill input so the user doesn't lose the message.
                         messageField.value = text;
                         autosizeChatMessageField(messageField);
@@ -181,7 +279,13 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         if (!isOwn && chatType === 'group') {
             html += `<small class="text-muted">${escapeHtml(msg.user)}</small><br>`;
         }
-        html += `<p>${formatMessageBody(msg.message)}</p></div>`;
+        if (msg.image_url) {
+            html += `<img src="${escapeHtml(msg.image_url)}" alt="" class="chat-bubble-image">`;
+        }
+        if (msg.message) {
+            html += `<p>${formatMessageBody(msg.message)}</p>`;
+        }
+        html += '</div>';
         html += `<div class="bubble-meta ${isOwn ? 'text-end me-1' : 'ms-1'}">${escapeHtml(msg.created_at)}</div>`;
 
         wrapper.innerHTML = html;

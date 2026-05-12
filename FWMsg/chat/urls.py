@@ -1,6 +1,9 @@
 from django.urls import path
 from . import views
 
+# NOTE: Chat image URLs are ``/chat_images/<uuid>/`` at the **site root**.
+# Registered in FWMsg/urls.py — not here (this conf is under ``/chat/``).
+
 urlpatterns = [
     path('', views.chat_list, name='chat_list'),
     path('c/<str:identifier>/', views.chat_direct, name='chat_direct'),

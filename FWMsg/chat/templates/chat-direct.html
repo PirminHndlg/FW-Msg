@@ -38,7 +38,12 @@
     {% for msg in chat_messages %}
       <div class="d-flex flex-column {% if msg.user == request.user %}align-items-end{% else %}align-items-start{% endif %}" data-msg-id="{{ msg.id }}">
         <div class="bubble {% if msg.user == request.user %}bubble-own{% else %}bubble-other{% endif %}">
-          <p>{{ msg.message|linebreaksbr }}</p>
+          {% if msg.image and msg.image_identifier %}
+            <img src="{{ msg.get_image_public_url }}" class="chat-bubble-image" alt="">
+          {% endif %}
+          {% if msg.message %}
+            <p>{{ msg.message|linebreaksbr }}</p>
+          {% endif %}
         </div>
         <div class="bubble-meta {% if msg.user == request.user %}text-end me-1{% else %}ms-1{% endif %}">
           {{ msg.created_at|date:"d.m.Y H:i" }}
@@ -52,9 +57,15 @@
     {% endfor %}
   </div>
 
+  <div id="image-preview" class="border-top px-3 pt-2 bg-white" style="display:none;"></div>
+
   <div class="chat-input-bar">
-    <form id="chat-form" class="d-flex gap-2 align-items-end" without_spinner="true">
+    <form id="chat-form" class="d-flex gap-2 align-items-end" enctype="multipart/form-data" without_spinner="true">
       {% csrf_token %}
+      <button type="button" id="image-attach-btn" class="btn btn-outline-secondary rounded-pill px-3" title="{% trans 'Bild anhängen' %}">
+        <i class="bi bi-paperclip"></i>
+      </button>
+      <input type="file" id="image-input" name="image" accept="image/*" class="visually-hidden" tabindex="-1">
       {{ form.message }}
       <button type="submit" class="btn btn-primary rounded-pill px-3">
         <i class="bi bi-send"></i>

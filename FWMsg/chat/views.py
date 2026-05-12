@@ -1,8 +1,10 @@
 import json
+import mimetypes
+from pathlib import Path
 
 from django.contrib import messages as django_messages
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import FileResponse, HttpResponseNotFound, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -10,10 +12,67 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.models import User
 from Global.views import check_organization_context
 
-from .badge_utils import broadcast_unread_badge_for_user, get_unread_chat_message_count
+from .badge_utils import (
+    broadcast_chat_message_to_room,
+    broadcast_unread_badge_for_user,
+    get_unread_chat_message_count,
+)
 from .forms import ChatDirectForm, ChatGroupForm, SendDirectMessageForm, SendGroupMessageForm
 from .models import ChatDirect, ChatGroup, ChatMessageDirect, ChatMessageGroup
 from .tasks import notify_users_about_new_direct_chat_message, notify_users_about_new_group_chat_message, notify_users_about_new_group_chat
+
+
+def _chat_message_payload(msg, user):
+    """JSON-serializable dict aligned with ChatConsumer.chat_message event shape."""
+    image_url = msg.get_image_public_url()
+    return {
+        "id": msg.id,
+        "user": str(user),
+        "user_id": user.id,
+        "message": msg.message,
+        "created_at": msg.created_at.strftime("%d.%m.%Y %H:%M"),
+        "image_url": image_url,
+    }
+
+
+@login_required
+def serve_chat_image(request, image_identifier):
+    """Serve a chat image by opaque UUID (members of that chat only).
+
+    Uses DB lookup + stored ``ImageField.path`` — no user-controlled path segments,
+    so path traversal is not possible via the URL.
+    """
+    org = request.user.org
+    msg = (
+        ChatMessageDirect.objects.filter(
+            image_identifier=image_identifier,
+            org=org,
+            chat__users=request.user,
+        ).first()
+    )
+    if msg is None or not msg.image:
+        msg = (
+            ChatMessageGroup.objects.filter(
+                image_identifier=image_identifier,
+                org=org,
+                chat__users=request.user,
+            ).first()
+        )
+    if msg is None or not msg.image:
+        return HttpResponseNotFound()
+
+    try:
+        full_path = Path(msg.image.path)
+    except (ValueError, AttributeError):
+        return HttpResponseNotFound()
+
+    if not full_path.is_file():
+        return HttpResponseNotFound()
+
+    content_type = (
+        mimetypes.guess_type(str(full_path))[0] or "application/octet-stream"
+    )
+    return FileResponse(full_path.open("rb"), content_type=content_type)
 
 
 @login_required
@@ -77,15 +136,16 @@ def chat_direct(request, identifier):
         return redirect('chat_list')
 
     if request.method == 'POST':
-        form = SendDirectMessageForm(request.POST)
+        form = SendDirectMessageForm(request.POST, request.FILES)
         if form.is_valid():
             msg = ChatMessageDirect.objects.create(
                 chat=chat,
                 user=request.user,
                 org=request.user.org,
-                message=form.cleaned_data['message'],
+                message=form.cleaned_data["message"],
+                image=form.cleaned_data.get("image") or None,
             )
-            
+
             notify_users_about_new_direct_chat_message.s(msg.id, request.user.id).apply_async(countdown=10)
             for recipient in chat.users.exclude(pk=request.user.pk):
                 broadcast_unread_badge_for_user(recipient)
@@ -119,16 +179,17 @@ def chat_group(request, identifier):
         return redirect('chat_list')
 
     if request.method == 'POST':
-        form = SendGroupMessageForm(request.POST)
+        form = SendGroupMessageForm(request.POST, request.FILES)
         if form.is_valid():
             msg = ChatMessageGroup.objects.create(
                 chat=chat,
                 user=request.user,
                 org=request.user.org,
-                message=form.cleaned_data['message'],
+                message=form.cleaned_data["message"],
+                image=form.cleaned_data.get("image") or None,
             )
             msg.mark_as_read_by(request.user)
-            
+
             notify_users_about_new_group_chat_message.s(msg.id, request.user.id).apply_async(countdown=10)
             for recipient in chat.users.exclude(pk=request.user.pk):
                 broadcast_unread_badge_for_user(recipient)
@@ -346,33 +407,39 @@ def send_message_direct(request, identifier):
     except ChatDirect.DoesNotExist:
         return JsonResponse({'error': 'Chat nicht gefunden'}, status=404)
 
-    try:
-        data = json.loads(request.body)
-        text = data.get('message', '').strip()
-    except (json.JSONDecodeError, AttributeError):
-        text = request.POST.get('message', '').strip()
+    image_file = None
+    text = ""
+    content_type = request.content_type or ""
+    if request.FILES.get("image") or "multipart/form-data" in content_type:
+        text = request.POST.get("message", "").strip()
+        image_file = request.FILES.get("image")
+    else:
+        try:
+            data = json.loads(request.body)
+            text = data.get("message", "").strip()
+        except (json.JSONDecodeError, AttributeError, TypeError):
+            text = request.POST.get("message", "").strip()
 
-    if not text:
-        return JsonResponse({'error': 'Leere Nachricht'}, status=400)
+    if not text and not image_file:
+        return JsonResponse({"error": "Leere Nachricht"}, status=400)
 
-    msg = ChatMessageDirect.objects.create(
-        chat=chat,
-        user=request.user,
-        org=request.user.org,
-        message=text,
-    )
-    
+    create_kw = {
+        "chat": chat,
+        "user": request.user,
+        "org": request.user.org,
+        "message": text,
+    }
+    if image_file:
+        create_kw["image"] = image_file
+    msg = ChatMessageDirect.objects.create(**create_kw)
+
     notify_users_about_new_direct_chat_message.s(msg.id, request.user.id).apply_async(countdown=10)
     for recipient in chat.users.exclude(pk=request.user.pk):
         broadcast_unread_badge_for_user(recipient)
 
-    return JsonResponse({
-        'id': msg.id,
-        'user': str(request.user),
-        'user_id': request.user.id,
-        'message': msg.message,
-        'created_at': msg.created_at.strftime('%d.%m.%Y %H:%M'),
-    })
+    payload = _chat_message_payload(msg, request.user)
+    broadcast_chat_message_to_room("direct", chat.get_identifier(), payload)
+    return JsonResponse(payload)
 
 
 @login_required
@@ -383,34 +450,40 @@ def send_message_group(request, identifier):
     except ChatGroup.DoesNotExist:
         return JsonResponse({'error': 'Chat nicht gefunden'}, status=404)
 
-    try:
-        data = json.loads(request.body)
-        text = data.get('message', '').strip()
-    except (json.JSONDecodeError, AttributeError):
-        text = request.POST.get('message', '').strip()
+    image_file = None
+    text = ""
+    content_type = request.content_type or ""
+    if request.FILES.get("image") or "multipart/form-data" in content_type:
+        text = request.POST.get("message", "").strip()
+        image_file = request.FILES.get("image")
+    else:
+        try:
+            data = json.loads(request.body)
+            text = data.get("message", "").strip()
+        except (json.JSONDecodeError, AttributeError, TypeError):
+            text = request.POST.get("message", "").strip()
 
-    if not text:
-        return JsonResponse({'error': 'Leere Nachricht'}, status=400)
+    if not text and not image_file:
+        return JsonResponse({"error": "Leere Nachricht"}, status=400)
 
-    msg = ChatMessageGroup.objects.create(
-        chat=chat,
-        user=request.user,
-        org=request.user.org,
-        message=text,
-    )
+    create_kw = {
+        "chat": chat,
+        "user": request.user,
+        "org": request.user.org,
+        "message": text,
+    }
+    if image_file:
+        create_kw["image"] = image_file
+    msg = ChatMessageGroup.objects.create(**create_kw)
     msg.mark_as_read_by(request.user)
-    
+
     notify_users_about_new_group_chat_message.s(msg.id, request.user.id).apply_async(countdown=10)
     for recipient in chat.users.exclude(pk=request.user.pk):
         broadcast_unread_badge_for_user(recipient)
 
-    return JsonResponse({
-        'id': msg.id,
-        'user': str(request.user),
-        'user_id': request.user.id,
-        'message': msg.message,
-        'created_at': msg.created_at.strftime('%d.%m.%Y %H:%M'),
-    })
+    payload = _chat_message_payload(msg, request.user)
+    broadcast_chat_message_to_room("group", chat.get_identifier(), payload)
+    return JsonResponse(payload)
 
 
 @login_required
@@ -454,17 +527,8 @@ def ajax_chat_updates(request, chat_type, chat_id):
             new_messages = ChatMessageDirect.objects.filter(
                 chat=chat, id__gt=last_id
             ).order_by('id').select_related('user')
-            data = [
-                {
-                    'id': m.id,
-                    'user': str(m.user),
-                    'user_id': m.user.id,
-                    'message': m.message,
-                    'created_at': m.created_at.strftime('%d.%m.%Y %H:%M'),
-                }
-                for m in new_messages
-            ]
-            
+            data = [_chat_message_payload(m, m.user) for m in new_messages]
+
             for m in new_messages:
                 m.mark_as_read()
         elif chat_type == 'group':
@@ -472,16 +536,7 @@ def ajax_chat_updates(request, chat_type, chat_id):
             new_messages = ChatMessageGroup.objects.filter(
                 chat=chat, id__gt=last_id
             ).order_by('id').select_related('user')
-            data = [
-                {
-                    'id': m.id,
-                    'user': str(m.user),
-                    'user_id': m.user.id,
-                    'message': m.message,
-                    'created_at': m.created_at.strftime('%d.%m.%Y %H:%M'),
-                }
-                for m in new_messages
-            ]
+            data = [_chat_message_payload(m, m.user) for m in new_messages]
             for m in new_messages:
                 m.mark_as_read_by(request.user)
         else:

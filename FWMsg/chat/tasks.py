@@ -3,8 +3,58 @@ from chat.models import ChatGroup, ChatMessageDirect, ChatMessageGroup
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.urls import reverse
+from django.utils.html import escape
 from Global.push_notification import send_push_notification_to_user
 from Global.send_email import send_email_with_archive
+
+# Short badge for mails/push when the chat row has an image (no inline image).
+_IMAGE_NOTE_PLAIN = "📷 Bild"
+
+_IMAGE_BADGE_HTML = (
+    '<p style="margin:0 0 10px 0;">'
+    '<span style="display:inline-block;background:#e7f5ff;color:#1864ab;'
+    'font-size:12px;font-weight:600;padding:5px 12px;border-radius:999px;">'
+    "📷 Bild</span>"
+    "</p>"
+)
+
+
+def _message_has_image(msg):
+    return bool(getattr(msg, "image", None) and getattr(msg.image, "name", None))
+
+
+def _chat_email_message_html(msg):
+    """Escaped HTML body: optional image badge + text (never embeds the file)."""
+    parts = []
+    if _message_has_image(msg):
+        parts.append(_IMAGE_BADGE_HTML)
+    text = (msg.message or "").strip()
+    if text:
+        parts.append(escape(text).replace("\n", "<br>\n"))
+    return "".join(parts) if parts else "&nbsp;"
+
+
+def _chat_email_plain_body(prefix: str, msg) -> str:
+    """Plain-text body: prefix + optional 📷 note + message text."""
+    bits = []
+    if _message_has_image(msg):
+        bits.append(_IMAGE_NOTE_PLAIN)
+    text = (msg.message or "").strip()
+    if text:
+        bits.append(text)
+    if bits:
+        return prefix + ": " + " · ".join(bits)
+    return prefix
+
+
+def _chat_push_body(sender_user: User, msg) -> str:
+    text = (msg.message or "").strip()
+    has_img = _message_has_image(msg)
+    if has_img and text:
+        return f"💬 {sender_user}: {text} · {_IMAGE_NOTE_PLAIN}"
+    if has_img:
+        return f"💬 {sender_user}: {_IMAGE_NOTE_PLAIN}"
+    return f"💬 {sender_user}: {text}"
 
 email_template_new_group_chat = """<!DOCTYPE html>
 <html lang="de">
@@ -67,14 +117,14 @@ email_template_chat_message = """<!DOCTYPE html>
             </td>
           </tr>
 
-          <!-- Speech bubble -->
+          <!-- Speech bubble (image = badge only, never inline image) -->
           <tr>
             <td style="background:#f1f3f5;border-radius:1.1rem;border-bottom-left-radius:0.25rem;
                        padding:16px 20px;
                        box-shadow:0 1px 4px rgba(0,0,0,.08);">
-              <p style="margin:0;font-size:15px;line-height:1.6;color:#1a1a1a;">
-                {message}
-              </p>
+              <div style="margin:0;font-size:15px;line-height:1.6;color:#1a1a1a;">
+                __MESSAGE_BODY__
+              </div>
             </td>
           </tr>
 
@@ -145,14 +195,16 @@ def notify_users_about_new_direct_chat_message(direct_message_id, sender_user_id
             continue
         
         subject = f'Neue Nachricht von {str(sender_user)}'
-        email_content = f'Du hast eine neue Nachricht von {str(sender_user)} erhalten: {direct_message.message}'
-        email_html = email_template_chat_message.format(
-            subject=subject,
-            message=direct_message.message,
-            sender=str(sender_user),
-            url=f'{settings.DOMAIN_HOST}{reverse("chat_direct", args=[direct_chat.get_identifier()])}',
+        chat_url = f'{settings.DOMAIN_HOST}{reverse("chat_direct", args=[direct_chat.get_identifier()])}'
+        email_content = _chat_email_plain_body(
+            f"Du hast eine neue Nachricht von {sender_user} erhalten",
+            direct_message,
         )
-        push_content = f'💬 {str(sender_user)}: {direct_message.message}'
+        email_html = email_template_chat_message.format(
+            sender=str(sender_user),
+            url=chat_url,
+        ).replace("__MESSAGE_BODY__", _chat_email_message_html(direct_message))
+        push_content = _chat_push_body(sender_user, direct_message)
         
         if recipient_user.customuser.mail_notifications:
             send_email_with_archive(
@@ -180,14 +232,16 @@ def notify_users_about_new_group_chat_message(group_message_id, sender_user_id):
             continue
         
         subject = f'Neue Nachricht in Gruppe {group_chat.name}'
-        email_content = f'Du hast eine neue Nachricht in der Gruppe {group_chat.name} von {str(sender_user)} erhalten: {group_message.message}'
-        email_html = email_template_chat_message.format(
-            subject=subject,
-            message=group_message.message,
-            sender=str(sender_user),
-            url=f'{settings.DOMAIN_HOST}{reverse("chat_group", args=[group_chat.get_identifier()])}',
+        chat_url = f'{settings.DOMAIN_HOST}{reverse("chat_group", args=[group_chat.get_identifier()])}'
+        email_content = _chat_email_plain_body(
+            f'Du hast eine neue Nachricht in der Gruppe „{group_chat.name}" von {sender_user} erhalten',
+            group_message,
         )
-        push_content = f'💬 {str(sender_user)}: {group_message.message}'
+        email_html = email_template_chat_message.format(
+            sender=str(sender_user),
+            url=chat_url,
+        ).replace("__MESSAGE_BODY__", _chat_email_message_html(group_message))
+        push_content = _chat_push_body(sender_user, group_message)
         
         if recipient_user.customuser.mail_notifications:
             send_email_with_archive(

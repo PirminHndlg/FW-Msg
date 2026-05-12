@@ -30,18 +30,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.chat_type  = self.scope["url_route"]["kwargs"]["chat_type"]
         self.identifier = self.scope["url_route"]["kwargs"]["identifier"]
 
-        # Verify membership and fetch the chat pk in one query.
-        # The group name uses the integer pk so it is always short and
-        # contains only alphanumerics — the identifier hash is 128 chars
-        # which exceeds the channels_redis 100-char limit.
-        self.identifier = await self.get_identifier_if_member()
-        if self.identifier is None:
+        # Verify membership in this org (same rules as HTTP chat views).
+        chat_ctx = await self.resolve_chat_membership()
+        if chat_ctx is None:
             await self.close(code=4003)
             return
 
+        self.identifier, self.chat_pk = chat_ctx
+
         # channels_redis requires group names < 100 chars.
-        # The full identifier is 128 hex chars; truncate to 80 for the name
-        # (prefix is 11-12 chars → total ≤ 92). Still effectively unique.
+        # Identifier strings are long opaque hashes; truncate for Redis group-name limits.
         self.room_group = f"chat_{self.chat_type}_{self.identifier[:80]}"
 
         await self.channel_layer.group_add(self.room_group, self.channel_name)
@@ -91,6 +89,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     "user":       event["user"],
                     "user_id":    event["user_id"],
                     "created_at": event["created_at"],
+                    "image_url":  event.get("image_url"),
                 }
             )
         )
@@ -99,28 +98,53 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def mark_message_read(self, message_id):
-        """Mark a single message as read for the current user (receiver)."""
+        """Mark a single message as read for the current user (receiver).
+
+        Scoped to ``self.chat_pk`` so we never touch rows from other chats,
+        even if a bogus ``message_id`` appeared in an event.
+        """
         if self.chat_type == "direct":
-            ChatMessageDirect.objects.filter(id=message_id).update(read=True)
+            ChatMessageDirect.objects.filter(
+                id=message_id, chat_id=self.chat_pk
+            ).update(read=True)
         else:
             try:
-                msg = ChatMessageGroup.objects.get(id=message_id)
+                msg = ChatMessageGroup.objects.get(id=message_id, chat_id=self.chat_pk)
                 msg.read_by.add(self.user)
             except ChatMessageGroup.DoesNotExist:
                 pass
 
     @database_sync_to_async
-    def get_identifier_if_member(self):
-        """Return the chat pk if the user is a member, otherwise None."""
+    def resolve_chat_membership(self):
+        """Return (canonical_identifier, chat_pk) if the user may join this room; else None."""
+        org = getattr(self.user, "org", None)
+        if org is None:
+            return None
+
         if self.chat_type == "direct":
-            chat = ChatDirect.objects.filter(
-                identifier=self.identifier, users=self.user
-            ).only("identifier").first()
+            chat = (
+                ChatDirect.objects.filter(
+                    identifier=self.identifier,
+                    users=self.user,
+                    org=org,
+                )
+                .only("identifier", "pk")
+                .first()
+            )
         else:
-            chat = ChatGroup.objects.filter(
-                identifier=self.identifier, users=self.user
-            ).only("identifier").first()
-        return chat.identifier if chat else None
+            chat = (
+                ChatGroup.objects.filter(
+                    identifier=self.identifier,
+                    users=self.user,
+                    org=org,
+                )
+                .only("identifier", "pk")
+                .first()
+            )
+
+        if chat is None:
+            return None
+        return (chat.identifier, chat.pk)
 
     @database_sync_to_async
     def save_message(self, text):
@@ -128,14 +152,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         org = self.user.customuser.org
 
         if self.chat_type == "direct":
-            chat = ChatDirect.objects.get(identifier=self.identifier)
-            msg  = ChatMessageDirect.objects.create(
+            chat = ChatDirect.objects.get(pk=self.chat_pk, org=org)
+            msg = ChatMessageDirect.objects.create(
                 org=org, chat=chat, user=self.user, message=text
             )
             notify_users_about_new_direct_chat_message.s(msg.id, self.user.id).apply_async(countdown=10)
         else:
-            chat = ChatGroup.objects.get(identifier=self.identifier)
-            msg  = ChatMessageGroup.objects.create(
+            chat = ChatGroup.objects.get(pk=self.chat_pk, org=org)
+            msg = ChatMessageGroup.objects.create(
                 org=org, chat=chat, user=self.user, message=text
             )
             # Mark the message as read by the sender immediately.
@@ -145,14 +169,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
         for recipient in chat.users.exclude(pk=self.user.pk):
             broadcast_unread_badge_for_user(recipient)
 
+        image_url = msg.get_image_public_url()
+
         return {
-            "id":         msg.id,
-            "message":    msg.message,
+            "id": msg.id,
+            "message": msg.message,
             # str(user) uses the project's monkey-patched __str__
             # → get_full_name() or username
-            "user":       str(self.user),
-            "user_id":    self.user.id,
+            "user": str(self.user),
+            "user_id": self.user.id,
             "created_at": msg.created_at.strftime("%d.%m.%Y %H:%M"),
+            "image_url": image_url,
         }
 
 

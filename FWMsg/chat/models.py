@@ -1,9 +1,50 @@
+import uuid
+from pathlib import Path
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from Global.models import OrgModel
 from simple_history.models import HistoricalRecords
 from Global.models import get_random_hash
+
+_CHAT_IMAGE_EXTS = frozenset({".jpg", ".jpeg", ".png", ".gif", ".webp"})
+
+
+def chat_message_image_upload_to(instance, filename):
+    """Store files as ``chat_images/<uuid>.<ext>``; sets ``image_identifier`` when missing."""
+    ext = Path(filename).suffix.lower()
+    if ext not in _CHAT_IMAGE_EXTS:
+        ext = ""
+    if instance.image_identifier is None:
+        instance.image_identifier = uuid.uuid4()
+    return f"chat_images/{instance.image_identifier}{ext}"
+
+
+def _sync_chat_message_image_identifier(instance):
+    if not instance.image:
+        instance.image_identifier = None
+    elif instance.image_identifier is None:
+        instance.image_identifier = uuid.uuid4()
+
+
+class ChatMessageImageUrlMixin:
+    """Opaque image URLs (UUID); never expose storage paths to clients."""
+
+    def get_image_public_url(self):
+        from django.urls import reverse
+
+        if (
+            not getattr(self, "image", None)
+            or not self.image.name
+            or not getattr(self, "image_identifier", None)
+        ):
+            return None
+        return reverse(
+            "serve_chat_image",
+            kwargs={"image_identifier": self.image_identifier},
+        )
+
 
 class ChatDirect(OrgModel):
     identifier = models.CharField(max_length=255, unique=True, null=True, blank=True)
@@ -69,15 +110,25 @@ class ChatGroup(OrgModel):
         return self.name
 
 
-class ChatMessageDirect(OrgModel):
+class ChatMessageDirect(ChatMessageImageUrlMixin, OrgModel):
     chat = models.ForeignKey(ChatDirect, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
+    image = models.ImageField(
+        upload_to=chat_message_image_upload_to, blank=True, null=True
+    )
+    image_identifier = models.UUIDField(
+        null=True, blank=True, editable=False, db_index=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     read = models.BooleanField(default=False)
 
     history = HistoricalRecords()
+
+    def save(self, *args, **kwargs):
+        _sync_chat_message_image_identifier(self)
+        super().save(*args, **kwargs)
 
     def mark_as_read(self):
         self.read = True
@@ -87,15 +138,25 @@ class ChatMessageDirect(OrgModel):
         return self.message
     
     
-class ChatMessageGroup(OrgModel):
+class ChatMessageGroup(ChatMessageImageUrlMixin, OrgModel):
     chat = models.ForeignKey(ChatGroup, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
+    image = models.ImageField(
+        upload_to=chat_message_image_upload_to, blank=True, null=True
+    )
+    image_identifier = models.UUIDField(
+        null=True, blank=True, editable=False, db_index=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     read_by = models.ManyToManyField(User, related_name='chat_message_group_read_by')
     
     history = HistoricalRecords()
+
+    def save(self, *args, **kwargs):
+        _sync_chat_message_image_identifier(self)
+        super().save(*args, **kwargs)
 
     def mark_as_read_by(self, user):
         self.read_by.add(user)

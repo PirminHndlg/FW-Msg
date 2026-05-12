@@ -30,3 +30,20 @@ def broadcast_unread_badge_for_user(user):
         f"chat_user_{user.pk}",
         {"type": "unread.badge", "number_of_unread_messages": n},
     )
+
+
+def broadcast_chat_message_to_room(chat_type, identifier, msg_dict):
+    """Broadcast a saved chat message to all WebSocket clients in the room.
+
+    chat_type: \"direct\" or \"group\"
+    identifier: full chat identifier string (same truncation as ChatConsumer.room_group)
+    msg_dict: keys id, message, user, user_id, created_at, image_url (opaque ``serve_chat_image`` URL).
+    """
+    layer = get_channel_layer()
+    if layer is None:
+        return
+    room_group = f"chat_{chat_type}_{identifier[:80]}"
+    async_to_sync(layer.group_send)(
+        room_group,
+        {"type": "chat_message", **msg_dict},
+    )

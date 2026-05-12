@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from .models import ChatDirect, ChatGroup
 
@@ -50,14 +51,44 @@ _CHAT_MESSAGE_WIDGET_ATTRS = {
 
 
 class SendDirectMessageForm(forms.Form):
+    image = forms.ImageField(
+        widget=forms.FileInput(attrs={'class': 'form-control'}),
+        label='',
+        required=False,
+    )
     message = forms.CharField(
         widget=forms.Textarea(attrs=_CHAT_MESSAGE_WIDGET_ATTRS),
         label='',
+        required=False,
     )
+
+    def clean(self):
+        cleaned = super().clean()
+        message = (cleaned.get('message') or '').strip()
+        image = cleaned.get('image')
+        if not message and not image:
+            raise ValidationError('Nachricht oder Bild erforderlich.')
+        cleaned['message'] = message
+        return cleaned
 
 
 class SendGroupMessageForm(forms.Form):
+    image = forms.ImageField(
+        widget=forms.FileInput(attrs={'class': 'form-control'}),
+        label='',
+        required=False,
+    )
     message = forms.CharField(
         widget=forms.Textarea(attrs=_CHAT_MESSAGE_WIDGET_ATTRS),
         label='',
+        required=False,
     )
+
+    def clean(self):
+        cleaned = super().clean()
+        message = (cleaned.get('message') or '').strip()
+        image = cleaned.get('image')
+        if not message and not image:
+            raise ValidationError('Nachricht oder Bild erforderlich.')
+        cleaned['message'] = message
+        return cleaned
