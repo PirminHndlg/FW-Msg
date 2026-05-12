@@ -117,6 +117,70 @@
     display: block;
     margin-bottom: 0.35rem;
     object-fit: contain;
+    cursor: zoom-in;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Fullscreen tap-to-view (opened from chat bubbles) */
+.chat-image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1055;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+            max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.92);
+    cursor: zoom-out;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.chat-image-lightbox.is-open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.chat-image-lightbox-img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    cursor: default;
+    border-radius: 0.35rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    -webkit-touch-callout: none;
+    user-select: none;
+}
+
+.chat-image-lightbox-close {
+    position: absolute;
+    top: max(8px, env(safe-area-inset-top));
+    right: max(8px, env(safe-area-inset-right));
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 1.75rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.chat-image-lightbox-close:hover,
+.chat-image-lightbox-close:focus-visible {
+    background: rgba(255, 255, 255, 0.28);
+    outline: none;
 }
 
 .chat-image-preview-thumb {

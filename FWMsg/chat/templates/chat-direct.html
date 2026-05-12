@@ -39,7 +39,8 @@
       <div class="d-flex flex-column {% if msg.user == request.user %}align-items-end{% else %}align-items-start{% endif %}" data-msg-id="{{ msg.id }}">
         <div class="bubble {% if msg.user == request.user %}bubble-own{% else %}bubble-other{% endif %}">
           {% if msg.image and msg.image_identifier %}
-            <img src="{{ msg.get_image_public_url }}" class="chat-bubble-image" alt="">
+            <img src="{{ msg.get_image_public_url }}" class="chat-bubble-image" alt=""
+                 role="button" tabindex="0" aria-label="{% trans 'Bild vergrößern' %}">
           {% endif %}
           {% if msg.message %}
             <p>{{ msg.message|linebreaksbr }}</p>

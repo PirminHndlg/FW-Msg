@@ -41,7 +41,8 @@
               <br>
             {% endif %}
           {% if msg.image and msg.image_identifier %}
-            <img src="{{ msg.get_image_public_url }}" class="chat-bubble-image" alt="">
+            <img src="{{ msg.get_image_public_url }}" class="chat-bubble-image" alt=""
+                 role="button" tabindex="0" aria-label="{% trans 'Bild vergrößern' %}">
           {% endif %}
           {% if msg.message %}
             <p>{{ msg.message|linebreaksbr }}</p>

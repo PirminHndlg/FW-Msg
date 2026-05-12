@@ -5,6 +5,8 @@
  * Fallback path : HTTP fetch polling every 3 s (used when WS is unavailable
  *                 or after an unexpected disconnect while waiting to reconnect)
  *
+ * Tap / click chat images for fullscreen preview (setupChatImageLightbox).
+ *
  * @param {number} chatId           - Database id of the current chat
  * @param {string} chatType         - 'direct' or 'group'
  * @param {number} currentUserId    - Logged-in user's id
@@ -12,8 +14,106 @@
  * @param {string} fallbackSendUrl  - HTTP POST URL used when WS is not open
  * @param {string} fallbackPollUrl  - HTTP GET URL used to catch missed messages
  */
+
+var _chatImageLightboxInst = null;
+
+/** Singleton fullscreen overlay; binds each #chat-window once. */
+function ensureChatImageLightboxDom() {
+    if (_chatImageLightboxInst) return _chatImageLightboxInst;
+
+    const lb = document.createElement('div');
+    lb.id = 'chat-image-lightbox';
+    lb.className = 'chat-image-lightbox';
+    lb.setAttribute('role', 'dialog');
+    lb.setAttribute('aria-modal', 'true');
+    lb.setAttribute('aria-hidden', 'true');
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'chat-image-lightbox-close';
+    closeBtn.setAttribute('aria-label', 'Schließen');
+    closeBtn.innerHTML = '&times;';
+
+    const fullImg = document.createElement('img');
+    fullImg.className = 'chat-image-lightbox-img';
+    fullImg.alt = '';
+
+    lb.appendChild(closeBtn);
+    lb.appendChild(fullImg);
+    document.body.appendChild(lb);
+
+    function onDocKeyDown(e) {
+        if (e.key === 'Escape') {
+            closeLightbox();
+        }
+    }
+
+    function closeLightbox() {
+        lb.classList.remove('is-open');
+        lb.setAttribute('aria-hidden', 'true');
+        fullImg.removeAttribute('src');
+        document.body.style.overflow = '';
+        document.removeEventListener('keydown', onDocKeyDown);
+    }
+
+    function openLightbox(src) {
+        if (!src) return;
+        fullImg.src = src;
+        lb.classList.add('is-open');
+        lb.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('keydown', onDocKeyDown);
+        closeBtn.focus();
+    }
+
+    closeBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        closeLightbox();
+    });
+
+    lb.addEventListener('click', function (e) {
+        if (e.target === lb) {
+            closeLightbox();
+        }
+    });
+
+    fullImg.addEventListener('click', function (e) {
+        e.stopPropagation();
+    });
+
+    _chatImageLightboxInst = { openLightbox: openLightbox, closeLightbox: closeLightbox };
+    return _chatImageLightboxInst;
+}
+
+function setupChatImageLightbox(chatWindow) {
+    if (!chatWindow || chatWindow.dataset.chatImageLightboxBound === '1') return;
+    chatWindow.dataset.chatImageLightboxBound = '1';
+
+    const api = ensureChatImageLightboxDom();
+
+    chatWindow.addEventListener('click', function (e) {
+        const t = e.target;
+        if (t && t.tagName === 'IMG' && t.classList.contains('chat-bubble-image')) {
+            e.preventDefault();
+            api.openLightbox(t.currentSrc || t.src);
+        }
+    });
+
+    chatWindow.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const t = e.target;
+        if (t && t.tagName === 'IMG' && t.classList.contains('chat-bubble-image')) {
+            e.preventDefault();
+            api.openLightbox(t.currentSrc || t.src);
+        }
+    });
+}
+
 function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallbackPollUrl) {
     const window_ = document.getElementById('chat-window');
+    if (!window_) {
+        return;
+    }
     const form    = document.getElementById('chat-form');
     const messageField = form ? form.querySelector('[name="message"]') : null;
     const csrf    = form ? form.querySelector('[name=csrfmiddlewaretoken]').value : '';
@@ -43,6 +143,60 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         return !!(imageInput && imageInput.files && imageInput.files.length > 0);
     }
 
+    /** User deliberately scrolled up — stop fighting them during lazy image/layout shifts. */
+    let userLeftChatBottom = false;
+
+    function scrollToBottom() {
+        window_.scrollTop = Math.max(0, window_.scrollHeight - window_.clientHeight);
+    }
+
+    function syncBottomIfPinned() {
+        if (!userLeftChatBottom) {
+            scrollToBottom();
+        }
+    }
+
+    window_.addEventListener(
+        'scroll',
+        function () {
+            const gap = window_.scrollHeight - window_.scrollTop - window_.clientHeight;
+            if (gap > 120) {
+                userLeftChatBottom = true;
+            }
+        },
+        { passive: true }
+    );
+
+    /**
+     * After refresh, bubble images load async and grow scrollHeight. Re-align to bottom
+     * until the user scrolls away (ResizeObserver + load + delayed ticks).
+     */
+    function bindStickyBottomForLateMedia() {
+        syncBottomIfPinned();
+        requestAnimationFrame(syncBottomIfPinned);
+        requestAnimationFrame(function () {
+            requestAnimationFrame(syncBottomIfPinned);
+        });
+
+        window.addEventListener('load', syncBottomIfPinned);
+
+        window_.querySelectorAll('img.chat-bubble-image').forEach(function (img) {
+            img.addEventListener('load', syncBottomIfPinned, { passive: true });
+            img.addEventListener('error', syncBottomIfPinned, { passive: true });
+        });
+
+        if (typeof ResizeObserver !== 'undefined') {
+            var ro = new ResizeObserver(function () {
+                syncBottomIfPinned();
+            });
+            ro.observe(window_);
+        }
+
+        [0, 50, 150, 400, 1000].forEach(function (ms) {
+            setTimeout(syncBottomIfPinned, ms);
+        });
+    }
+
     // Track the highest message id already on the page so the HTTP fallback
     // can request only messages we haven't seen yet.
     let lastId = 0;
@@ -51,7 +205,9 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         if (id > lastId) lastId = id;
     });
 
-    scrollToBottom();
+    bindStickyBottomForLateMedia();
+
+    setupChatImageLightbox(window_);
 
     const CHAT_MESSAGE_MAX_ROWS = 10;
 
@@ -280,7 +436,7 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
             html += `<small class="text-muted">${escapeHtml(msg.user)}</small><br>`;
         }
         if (msg.image_url) {
-            html += `<img src="${escapeHtml(msg.image_url)}" alt="" class="chat-bubble-image">`;
+            html += `<img src="${escapeHtml(msg.image_url)}" alt="" class="chat-bubble-image" role="button" tabindex="0" aria-label="Bild vergrößern">`;
         }
         if (msg.message) {
             html += `<p>${formatMessageBody(msg.message)}</p>`;
@@ -290,11 +446,8 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
 
         wrapper.innerHTML = html;
         window_.appendChild(wrapper);
+        userLeftChatBottom = false;
         scrollToBottom();
-    }
-
-    function scrollToBottom() {
-        window_.scrollTop = window_.scrollHeight;
     }
 
     function escapeHtml(str) {
