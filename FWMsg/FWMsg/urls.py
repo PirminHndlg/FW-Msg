@@ -19,9 +19,13 @@ from django.urls import path, include
 from django.contrib.auth.views import LoginView, LogoutView
 from .views import logout_view
 from Home import views
+from chat.views import serve_chat_image
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Chat images: ``/chat_images/<uuid>/`` at site root (not under ``/chat/``).
+    path('chat_images/<uuid:image_identifier>/', serve_chat_image, name='serve_chat_image'),
 
     path('', include('Global.urls')),
     path('', include('Home.urls')),
