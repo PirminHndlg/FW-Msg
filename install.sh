@@ -501,7 +501,6 @@ PYEOF
     # ── Step 6: Patch settings.py DATABASES → PostgreSQL ─────────────────────
 
     msg_step "Patching settings.py (SQLite → PostgreSQL)"
-    cp "${INSTALL_DIR}/FWMsg/FWMsg/example-settings.py" "${INSTALL_DIR}/FWMsg/FWMsg/settings.py"
 
     "${PYTHON}" - <<'PYEOF'
 import re

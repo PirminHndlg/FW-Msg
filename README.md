@@ -51,7 +51,6 @@ npm install
 ### 1. Settings Setup
 ```bash
 cd FWMsg
-cp FWMsg/example-settings.py FWMsg/settings.py
 ```
 
 ### 2. Configure Settings

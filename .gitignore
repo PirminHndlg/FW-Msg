@@ -13,9 +13,6 @@ node_modules/
 package-lock.json
 yarn.lock
 
-# Django settings
-FWMsg/FWMsg/settings.py
-
 # Sensitive files with credentials
 FWMsg/ORG/smptMail.py
 
@@ -65,7 +62,7 @@ FWMsg/dokument/Berliner Missionswerk/Freundeskreis/
 FWMsg/dokument/Berliner Missionswerk/LÜV/
 FWMsg/profil_picture/
 FWMsg/send_aufgaben_email.txt
-.secrets.json
+**/.secrets.json
 FWMsg/celerybeat-schedule.db
 FWMsg/uploads/
 
@@ -96,3 +93,4 @@ FWMsg/FWMsg/save_settings.py
 security_report.md
 FWMsg/FWMsg/settings copy.py
 dump.rdb
+FWMsg/media_test/*
