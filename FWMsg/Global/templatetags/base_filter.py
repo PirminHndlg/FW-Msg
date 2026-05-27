@@ -106,53 +106,64 @@ def getattribute(obj, attr):
 def format_text_with_link(text):
     if not text:
         return ''
-    
-    # First escape the text to prevent XSS
-    text = escape(text)
-    
-    # Convert URLs to links
-    links = re.findall(r'https?://\S+', text)
-    for link in links:
-        safe_link = escape(link)
-        target = 'target="_blank"' if not link.startswith(settings.DOMAIN_HOST) else ""
-        text = text.replace(safe_link, f'<a href="{safe_link}" class="text-decoration-underline text-body" {target}>{safe_link}</a>')
-    
-    # Convert www URLs to links
-    links_2 = re.findall(r'www\.\S+', text)
-    for link in links_2:
-        safe_link = escape(link)
-        target = 'target="_blank"' if not link.startswith("www.volunteer.solutions") else ""
-        text = text.replace(safe_link, f'<a href="https://{safe_link}" class="text-decoration-underline text-body" {target}>{safe_link}</a>')
-    
-    # Convert emails to mailto links
-    emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b', text)
-    for email in emails:
-        safe_email = escape(email)
-        text = text.replace(safe_email, f'<a href="mailto:{safe_email}" class="text-decoration-underline text-body" target="_blank">{safe_email}</a>')
-    
-    # Convert phone numbers to tel links
-    # Remove spaces, parentheses and hyphens before searching for phone numbers
-    cleaned_text = re.sub(r'[\s\(\)\-]', '', str(text))
+
+    # Escape HTML first to prevent XSS.
+    text = str(escape(text))
+
+    # ── Phone numbers ────────────────────────────────────────────────────────
+    # Must run before URL substitution; phones don't overlap with URLs.
+    cleaned_text = re.sub(r'[\s()\-]', '', text)
     tel_numbers = re.findall(r'\+\d{10,15}', cleaned_text)
     for tel_number in tel_numbers:
-        # Find the original phone number format in the text by looking for the digits
         original_number = ''
         digit_pos = 0
-        for char in str(text):
+        for char in text:
             if digit_pos < len(tel_number) and char == tel_number[digit_pos]:
                 original_number += char
                 digit_pos += 1
-            elif char in ' ()-' and digit_pos > 0 and digit_pos < len(tel_number):
+            elif char in ' ()-' and 0 < digit_pos < len(tel_number):
                 original_number += char
         if original_number:
-            safe_tel = escape(tel_number)
-            safe_original = escape(original_number)
-            text = text.replace(safe_original, f'<a href="tel:{safe_tel}" class="text-decoration-underline text-body" target="_blank">{safe_original}</a>')
-    
-    # Convert line breaks to <br>
+            text = text.replace(
+                original_number,
+                f'<a href="tel:{tel_number}" class="text-decoration-underline text-body">{original_number}</a>',
+                1,
+            )
+
+    # ── URLs and e-mails — single-pass replacement ───────────────────────────
+    # Using one re.sub call with alternation prevents double-processing:
+    # the engine scans left-to-right and never re-inspects the replacement
+    # text, so already-inserted <a> tags are never matched again.
+    _URL_RE = re.compile(
+        r'(https?://\S+)'                                           # group 1: http/https
+        r'|((?<![/\w])www\.\S+)'                                    # group 2: bare www.
+        r'|(\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b)',  # group 3: e-mail
+        re.IGNORECASE,
+    )
+
+    def _replace(m):
+        https_url = m.group(1)
+        www_url   = m.group(2)
+        email     = m.group(3)
+
+        if https_url:
+            target = ' target="_blank"' if not https_url.startswith(settings.DOMAIN_HOST) else ''
+            return f'<a href="{https_url}" class="text-decoration-underline text-body"{target}>{https_url}</a>'
+
+        if www_url:
+            target = ' target="_blank"' if not www_url.startswith('www.volunteer.solutions') else ''
+            return f'<a href="https://{www_url}" class="text-decoration-underline text-body"{target}>{www_url}</a>'
+
+        if email:
+            return f'<a href="mailto:{email}" class="text-decoration-underline text-body">{email}</a>'
+
+        return m.group(0)
+
+    text = _URL_RE.sub(_replace, text)
+
+    # Line breaks
     text = text.replace('\n', '<br>')
-    
-    # Mark the result as safe since we've properly escaped everything
+
     return mark_safe(text)
 
 @register.filter
