@@ -50,8 +50,7 @@ jobs:
       run: |
         cd FWMsg
         cp FWMsg/.example-secrets.json FWMsg/.secrets.json
-        sed -i \"s|'filename': '/var/log/django/error.log',|'filename': '/tmp/django_error.log',|\" FWMsg/settings.py
-          
+        sed -i 's#/var/log/django/error.log#/tmp/django_error.log#g' FWMsg/settings.py
     - name: Run Tests
       run: |
         cd FWMsg
