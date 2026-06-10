@@ -388,7 +388,7 @@ def create_folder(sender, instance, **kwargs):
     safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
     
     path = os.path.join(safe_ordner_name)
-    os.makedirs(os.path.join('dokument', safe_org_name, path), exist_ok=True)
+    os.makedirs(os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, path), exist_ok=True)
 
 
 @receiver(post_delete, sender=Ordner2)
@@ -398,7 +398,7 @@ def remove_folder(sender, instance, **kwargs):
     safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
     
     path = os.path.join(safe_ordner_name)
-    path = os.path.join('dokument', safe_org_name, path)
+    path = os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, path)
     if os.path.isdir(path):
         os.rmdir(path)
 
@@ -416,7 +416,7 @@ def upload_to_folder(instance, filename):
     safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
     
     path = os.path.join(safe_ordner_name, filename)
-    return os.path.join('dokument', safe_org_name, path)
+    return os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, path)
 
 
 def upload_to_preview_image(instance, filename):
