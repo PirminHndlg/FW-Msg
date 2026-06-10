@@ -20,7 +20,7 @@ from .badge_utils import (
 from .forms import ChatDirectForm, ChatGroupForm, SendDirectMessageForm, SendGroupMessageForm
 from .models import ChatDirect, ChatGroup, ChatMessageDirect, ChatMessageGroup
 from .tasks import notify_users_about_new_direct_chat_message, notify_users_about_new_group_chat_message, notify_users_about_new_group_chat
-
+from django.utils.translation import gettext_lazy as _
 
 def _chat_message_payload(msg, user):
     """JSON-serializable dict aligned with ChatConsumer.chat_message event shape."""
@@ -132,7 +132,7 @@ def chat_direct(request, identifier):
     try:
         chat = ChatDirect.objects.get(identifier=identifier, org=request.user.org, users=request.user)
     except ChatDirect.DoesNotExist:
-        django_messages.error(request, 'Chat nicht gefunden')
+        django_messages.error(request, _('Chat nicht gefunden'))
         return redirect('chat_list')
 
     if request.method == 'POST':
@@ -175,7 +175,7 @@ def chat_group(request, identifier):
     try:
         chat = ChatGroup.objects.get(identifier=identifier, org=request.user.org, users=request.user)
     except ChatGroup.DoesNotExist:
-        django_messages.error(request, 'Chat nicht gefunden')
+        django_messages.error(request, _('Chat nicht gefunden'))
         return redirect('chat_list')
 
     if request.method == 'POST':
@@ -241,7 +241,7 @@ def create_chat_direct(request):
             form.save_m2m()
             chat.users.add(request.user)
             return redirect(reverse('chat_direct', args=[chat.get_identifier()]))
-        django_messages.error(request, 'Fehler beim Erstellen des Chats')
+        django_messages.error(request, _('Fehler beim Erstellen des Chats'))
     else:
         form = ChatDirectForm(org=org, current_user=request.user)
 
@@ -270,7 +270,7 @@ def create_chat_group(request):
             notify_users_about_new_group_chat.s(chat.id, request.user.id).apply_async(countdown=10)
 
             return redirect(reverse('chat_group', args=[chat.get_identifier()]))
-        django_messages.error(request, 'Fehler beim Erstellen des Chats')
+        django_messages.error(request, _('Fehler beim Erstellen des Chats'))
     else:
         form = ChatGroupForm(org=org, current_user=request.user)
 
@@ -308,22 +308,22 @@ def manage_chat_group(request, identifier):
     try:
         chat = ChatGroup.objects.get(identifier=identifier, org=request.user.org, users=request.user)
     except ChatGroup.DoesNotExist:
-        return JsonResponse({'error': 'Chat nicht gefunden'}, status=404)
+        return JsonResponse({'error': _('Chat nicht gefunden')}, status=404)
 
     if chat.created_by != request.user:
-        return JsonResponse({'error': 'Keine Berechtigung'}, status=403)
+        return JsonResponse({'error': _('Keine Berechtigung')}, status=403)
 
     try:
         data = json.loads(request.body)
     except (json.JSONDecodeError, AttributeError):
-        return JsonResponse({'error': 'Ungültige Anfrage'}, status=400)
+        return JsonResponse({'error': _('Ungültige Anfrage')}, status=400)
 
     action = data.get('action')
 
     if action == 'rename':
         name = data.get('name', '').strip()
         if not name:
-            return JsonResponse({'error': 'Name darf nicht leer sein'}, status=400)
+            return JsonResponse({'error': _('Name darf nicht leer sein')}, status=400)
         chat.name = name
         chat.save(update_fields=['name', 'updated_at'])
         return JsonResponse({'ok': True, 'name': chat.name})
@@ -334,7 +334,7 @@ def manage_chat_group(request, identifier):
             user = User.objects.get(pk=user_id, customuser__org=request.user.org)
             user_identifier = user.customuser.get_identifier()
         except User.DoesNotExist:
-            return JsonResponse({'error': 'Benutzer nicht gefunden'}, status=404)
+            return JsonResponse({'error': _('Benutzer nicht gefunden')}, status=404)
         chat.users.add(user)
         return JsonResponse({
             'ok': True,
@@ -346,12 +346,12 @@ def manage_chat_group(request, identifier):
     elif action == 'remove_member':
         user_id = data.get('user_id')
         if int(user_id) == request.user.pk:
-            return JsonResponse({'error': 'Du kannst dich nicht selbst entfernen'}, status=400)
+            return JsonResponse({'error': _('Du kannst dich nicht selbst entfernen')}, status=400)
         try:
             user = User.objects.get(pk=user_id, customuser__org=request.user.org)
             user_identifier = user.customuser.get_identifier()
         except User.DoesNotExist:
-            return JsonResponse({'error': 'Benutzer nicht gefunden'}, status=404)
+            return JsonResponse({'error': _('Benutzer nicht gefunden')}, status=404)
         chat.users.remove(user)
         return JsonResponse({
             'ok': True,
@@ -360,7 +360,7 @@ def manage_chat_group(request, identifier):
             'name': str(user),
         })
 
-    return JsonResponse({'error': 'Unbekannte Aktion'}, status=400)
+    return JsonResponse({'error': _('Unbekannte Aktion')}, status=400)
 
 
 @login_required
@@ -369,15 +369,15 @@ def delete_chat_group(request, identifier):
     try:
         chat = ChatGroup.objects.get(identifier=identifier, org=request.user.org, users=request.user)
     except ChatGroup.DoesNotExist:
-        django_messages.error(request, 'Chat nicht gefunden')
+        django_messages.error(request, _('Chat nicht gefunden'))
         return redirect('chat_list')
 
     if chat.created_by != request.user:
-        django_messages.error(request, 'Keine Berechtigung')
+        django_messages.error(request, _('Keine Berechtigung'))
         return redirect(reverse('chat_group', args=[identifier]))
 
     chat.delete()
-    django_messages.success(request, f'Gruppe wurde gelöscht.')
+    django_messages.success(request, _('Gruppe wurde gelöscht.'))
     return redirect('chat_list')
 
 
@@ -387,15 +387,15 @@ def leave_chat_group(request, identifier):
     try:
         chat = ChatGroup.objects.get(identifier=identifier, org=request.user.org, users=request.user)
     except ChatGroup.DoesNotExist:
-        django_messages.error(request, 'Chat nicht gefunden')
+        django_messages.error(request, _('Chat nicht gefunden'))
         return redirect('chat_list')
 
     if chat.created_by == request.user:
-        django_messages.error(request, 'Als Ersteller:in kannst du die Gruppe nicht verlassen. Lösche sie stattdessen.')
+        django_messages.error(request, _('Als Ersteller:in kannst du die Gruppe nicht verlassen. Lösche sie stattdessen.'))
         return redirect(reverse('chat_group', args=[identifier]))
 
     chat.users.remove(request.user)
-    django_messages.success(request, f'Du hast die Gruppe „{chat.name}" verlassen.')
+    django_messages.success(request, _(f'Du hast die Gruppe „{chat.name}" verlassen.'))
     return redirect('chat_list')
 
 
@@ -405,7 +405,7 @@ def send_message_direct(request, identifier):
     try:
         chat = ChatDirect.objects.get(identifier=identifier, org=request.user.org, users=request.user)
     except ChatDirect.DoesNotExist:
-        return JsonResponse({'error': 'Chat nicht gefunden'}, status=404)
+        return JsonResponse({'error': _('Chat nicht gefunden')}, status=404)
 
     image_file = None
     text = ""
@@ -421,7 +421,7 @@ def send_message_direct(request, identifier):
             text = request.POST.get("message", "").strip()
 
     if not text and not image_file:
-        return JsonResponse({"error": "Leere Nachricht"}, status=400)
+        return JsonResponse({"error": _('Leere Nachricht')}, status=400)
 
     create_kw = {
         "chat": chat,
@@ -448,7 +448,7 @@ def send_message_group(request, identifier):
     try:
         chat = ChatGroup.objects.get(identifier=identifier, org=request.user.org, users=request.user)
     except ChatGroup.DoesNotExist:
-        return JsonResponse({'error': 'Chat nicht gefunden'}, status=404)
+        return JsonResponse({'error': _('Chat nicht gefunden')}, status=404)
 
     image_file = None
     text = ""
@@ -464,7 +464,7 @@ def send_message_group(request, identifier):
             text = request.POST.get("message", "").strip()
 
     if not text and not image_file:
-        return JsonResponse({"error": "Leere Nachricht"}, status=400)
+        return JsonResponse({"error": _('Leere Nachricht')}, status=400)
 
     create_kw = {
         "chat": chat,
@@ -540,9 +540,9 @@ def ajax_chat_updates(request, chat_type, chat_id):
             for m in new_messages:
                 m.mark_as_read_by(request.user)
         else:
-            return JsonResponse({'error': 'Ungültiger Chat-Typ'}, status=400)
+            return JsonResponse({'error': _('Ungültiger Chat-Typ')}, status=400)
     except (ChatDirect.DoesNotExist, ChatGroup.DoesNotExist):
-        return JsonResponse({'error': 'Chat nicht gefunden'}, status=404)
+        return JsonResponse({'error': _('Chat nicht gefunden')}, status=404)
 
     if data:
         broadcast_unread_badge_for_user(request.user)

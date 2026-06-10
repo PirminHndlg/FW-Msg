@@ -6,6 +6,7 @@ from django.dispatch import receiver
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
+from django.utils.translation import gettext_lazy as _
 import random
 import string
 from simple_history.models import HistoricalRecords
@@ -25,8 +26,8 @@ class Organisation(models.Model):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'Organisation'
-        verbose_name_plural = 'Organisationen'
+        verbose_name = _('Organisation')
+        verbose_name_plural = _('Organisationen')
 
     def __str__(self):
         return self.name

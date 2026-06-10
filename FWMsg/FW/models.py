@@ -5,6 +5,7 @@ from django.db import models
 from Global.models import CustomUser, OrgModel, Einsatzland2, Einsatzstelle2
 from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
+from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 
@@ -49,7 +50,7 @@ class Freiwilliger(OrgModel):
         return False
 
     class Meta:
-        verbose_name = 'Freiwillige:r'
+        verbose_name = _('Freiwillige:r')
         verbose_name_plural = 'Freiwillige'
 
     def __init__(self, *args, **kwargs):

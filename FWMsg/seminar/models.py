@@ -4,6 +4,7 @@ from BW.models import Bewerber
 from django.contrib.auth.models import User
 from Global.models import OrgModel
 from ORG.models import Organisation as Org
+from django.utils.translation import gettext_lazy as _
 
 
 # Create your models here.
@@ -16,8 +17,8 @@ class Fragekategorie(OrgModel):
     )
 
     class Meta:
-        verbose_name = "Fragekategorie"
-        verbose_name_plural = "Fragekategorien"
+        verbose_name = _('Fragekategorie')
+        verbose_name_plural = _('Fragekategorien')
 
     def __str__(self):
         return self.name
@@ -49,8 +50,8 @@ class Frage(OrgModel):
         cls.max = max_value
 
     class Meta:
-        verbose_name = "Frage"
-        verbose_name_plural = "Fragen"
+        verbose_name = _('Frage')
+        verbose_name_plural = _('Fragen')
 
     def __str__(self):
         return self.text
@@ -63,8 +64,8 @@ class Einheit(OrgModel):
     )
 
     class Meta:
-        verbose_name = "Einheit"
-        verbose_name_plural = "Einheiten"
+        verbose_name = _('Einheit')
+        verbose_name_plural = _('Einheiten')
 
     def __str__(self):
         return self.name
@@ -87,8 +88,8 @@ class Bewertung(OrgModel):
     )
 
     class Meta:
-        verbose_name = "Bewertung"
-        verbose_name_plural = "Bewertungen"
+        verbose_name = _('Bewertung')
+        verbose_name_plural = _('Bewertungen')
 
     def __str__(self):
         return (
@@ -133,8 +134,8 @@ class Kommentar(OrgModel):
     )
 
     class Meta:
-        verbose_name = "Kommentar"
-        verbose_name_plural = "Kommentare"
+        verbose_name = _('Kommentar')
+        verbose_name_plural = _('Kommentare')
 
     def __str__(self):
         return (
@@ -162,8 +163,8 @@ class Seminar(models.Model):
     bewerber = models.ManyToManyField(Bewerber, blank=True, verbose_name="Bewerber:innen", related_name="seminar_bewerber")
 
     class Meta:
-        verbose_name = "Seminar"
-        verbose_name_plural = "Seminare"
+        verbose_name = _('Seminar')
+        verbose_name_plural = _('Seminare')
 
     def __str__(self):
         return self.name

@@ -90,8 +90,8 @@ class PersonCluster(OrgModel):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'Benutzergruppe'
-        verbose_name_plural = 'Benutzergruppen'
+        verbose_name = _('Benutzergruppe')
+        verbose_name_plural = _('Benutzergruppen')
         
         ordering = ['view']
         
@@ -103,23 +103,23 @@ class PersonCluster(OrgModel):
     
 
 class CustomUser(OrgModel):
-    identifier = models.CharField(max_length=255, blank=True, null=True, verbose_name='Identifikator', help_text='Identifikator für den Benutzer', unique=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Benutzer:in')
-    person_cluster = models.ForeignKey(PersonCluster, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Benutzergruppe')
-    profil_picture = models.ImageField(upload_to='profil_picture/', blank=True, null=True, verbose_name='Profilbild')
-    geburtsdatum = models.DateField(blank=True, null=True, verbose_name='Geburtsdatum')
+    identifier = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('Identifikator'), help_text=_('Identifikator für den Benutzer'), unique=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name=_('Benutzer:in'))
+    person_cluster = models.ForeignKey(PersonCluster, on_delete=models.CASCADE, null=True, blank=True, verbose_name=_('Benutzergruppe'))
+    profil_picture = models.ImageField(upload_to='profil_picture/', blank=True, null=True, verbose_name=_('Profilbild'))
+    geburtsdatum = models.DateField(blank=True, null=True, verbose_name=_('Geburtsdatum'))
 
-    mail_notifications = models.BooleanField(default=True, verbose_name='Mail-Benachrichtigungen')
-    mail_notifications_unsubscribe_auth_key = models.CharField(max_length=255, blank=True, null=True, verbose_name='Mail-Benachrichtigung Abmelde-Key')
+    mail_notifications = models.BooleanField(default=True, verbose_name=_('Mail-Benachrichtigungen'))
+    mail_notifications_unsubscribe_auth_key = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('Mail-Benachrichtigung Abmelde-Key'))
 
-    einmalpasswort = models.CharField(max_length=20, blank=True, null=True, verbose_name='Einmalpasswort', help_text='Wird automatisch erzeugt, wenn leer')
-    einmalpasswort_expires = models.DateTimeField(blank=True, null=True, verbose_name='Einmalpasswort abläuft am')
-    token = models.CharField(max_length=512, blank=True, null=True, verbose_name='Token', help_text='Wird automatisch erzeugt, wenn leer')
-    calendar_token = models.CharField(max_length=512, blank=True, null=True, verbose_name='Kalender-Token', help_text='Wird automatisch erzeugt, wenn leer')
+    einmalpasswort = models.CharField(max_length=20, blank=True, null=True, verbose_name=_('Einmalpasswort'), help_text=_('Wird automatisch erzeugt, wenn leer'))
+    einmalpasswort_expires = models.DateTimeField(blank=True, null=True, verbose_name=_('Einmalpasswort abläuft am'))
+    token = models.CharField(max_length=512, blank=True, null=True, verbose_name=_('Token'), help_text=_('Wird automatisch erzeugt, wenn leer'))
+    calendar_token = models.CharField(max_length=512, blank=True, null=True, verbose_name=_('Kalender-Token'), help_text=_('Wird automatisch erzeugt, wenn leer'))
     
     # Online status tracking
-    last_seen = models.DateTimeField(blank=True, null=True, verbose_name='Zuletzt online')
-    is_online = models.BooleanField(default=False, verbose_name='Ist online')
+    last_seen = models.DateTimeField(blank=True, null=True, verbose_name=_('Zuletzt online'))
+    is_online = models.BooleanField(default=False, verbose_name=_('Ist online'))
 
     history = HistoricalRecords()
 
@@ -254,8 +254,8 @@ class CustomUser(OrgModel):
         return self.user.username
     
     class Meta:
-        verbose_name = 'Benutzer:in'
-        verbose_name_plural = 'Benutzer:innen'
+        verbose_name = _('Benutzer:in')
+        verbose_name_plural = _('Benutzer:innen')
         
 def get_or_create_new_user(email, firstname, lastname, org, person_cluster, create_einmalpasswort=False, create_customuser=True):
     username = firstname.lower().replace(' ', '_')
@@ -360,8 +360,8 @@ class KalenderEvent(OrgModel):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'Kalender-Termin'
-        verbose_name_plural = 'Kalender-Termine'
+        verbose_name = _('Kalender-Termin')
+        verbose_name_plural = _('Kalender-Termine')
 
     def __str__(self):
         return self.title
@@ -431,7 +431,7 @@ def upload_to_preview_image(instance, filename):
     # Sanitize org name
     safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
     
-    folder = os.path.join('dokument', safe_org_name, 'preview_image')
+    folder = os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, 'preview_image')
     os.makedirs(folder, exist_ok=True)
     return os.path.join(folder, filename + '.jpg')
 
@@ -726,8 +726,8 @@ class Einsatzland2(OrgModel):
 
     history = HistoricalRecords()
     class Meta:
-        verbose_name = 'Einsatzland'
-        verbose_name_plural = 'Einsatzländer'
+        verbose_name = _('Einsatzland')
+        verbose_name_plural = _('Einsatzländer')
         ordering = ['name', 'code']
 
     def __str__(self):
@@ -753,8 +753,8 @@ class Einsatzstelle2(OrgModel):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'Einsatzstelle'
-        verbose_name_plural = 'Einsatzstellen'
+        verbose_name = _('Einsatzstelle')
+        verbose_name_plural = _('Einsatzstellen')
 
     def __str__(self):
         return f"{self.name} ({self.land.name})"
@@ -782,8 +782,8 @@ class Attribute(OrgModel):
     visible_in_profile = models.BooleanField(default=True, verbose_name='Im Profil anzeigen', help_text='Aktivieren, um das Feld im Profil auch für die Freiwillige sichtbar zu machen')
 
     class Meta:
-        verbose_name = 'Eigenes Feld'
-        verbose_name_plural = 'Eigene Felder'
+        verbose_name = _('Eigenes Feld')
+        verbose_name_plural = _('Eigene Felder')
 
     def __str__(self):
         return self.name
@@ -795,8 +795,8 @@ class UserAttribute(OrgModel):
     value = models.TextField(verbose_name='Wert', null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Eigenes Feld Benutzer:in'
-        verbose_name_plural = 'Eigene Felder Benutzer:innen'
+        verbose_name = _('Eigenes Feld Benutzer:in')
+        verbose_name_plural = _('Eigene Felder Benutzer:innen')
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.attribute.name
@@ -811,8 +811,8 @@ class Notfallkontakt2(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer:in', null=True, blank=True, help_text='Zugehörige:r Benutzer:in, für den dieser Notfallkontakt gilt')
 
     class Meta:
-        verbose_name = 'Notfallkontakt'
-        verbose_name_plural = 'Notfallkontakte'
+        verbose_name = _('Notfallkontakt')
+        verbose_name_plural = _('Notfallkontakte')
 
     def __str__(self):
         return self.first_name + ' ' + self.last_name
@@ -833,8 +833,8 @@ class Ampel2(OrgModel):
     submission_key = models.UUIDField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Ampel'
-        verbose_name_plural = 'Ampeln'
+        verbose_name = _('Ampel')
+        verbose_name_plural = _('Ampeln')
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.status
@@ -851,8 +851,8 @@ class AufgabenCluster(OrgModel):
     person_cluster = models.ManyToManyField(PersonCluster, verbose_name='Für Benutzergruppen', help_text='Benutzergruppen, für die diese Kategorie relevant ist')
     type = models.CharField(max_length=1, choices=TYPE_CHOICES, verbose_name='Zeitraum', help_text='Zeitraum, in dem Aufgaben dieser Kategorie anfallen (nur für Freiwillige)', null=True, blank=True)
     class Meta:
-        verbose_name = 'Aufgabenkategorie'
-        verbose_name_plural = 'Aufgabenkategorien'
+        verbose_name = _('Aufgabenkategorie')
+        verbose_name_plural = _('Aufgabenkategorien')
 
     def __str__(self):
         return self.name + ' - ' + ', '.join([pc.name for pc in self.person_cluster.all()])
@@ -880,8 +880,8 @@ class Aufgabe2(OrgModel):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'Aufgabe'
-        verbose_name_plural = 'Aufgaben'
+        verbose_name = _('Aufgabe')
+        verbose_name_plural = _('Aufgaben')
 
     def __str__(self):
         return self.name
@@ -893,8 +893,8 @@ class AufgabeZwischenschritte2(OrgModel):
     beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung', help_text='Beschreibung des Zwischenschritts')
 
     class Meta:
-        verbose_name = 'Aufgabe Zwischenschritt'
-        verbose_name_plural = 'Aufgabe Zwischenschritte'
+        verbose_name = _('Aufgabe Zwischenschritt')
+        verbose_name_plural = _('Aufgabe Zwischenschritte')
 
     def __str__(self):
         return self.name
@@ -1007,8 +1007,8 @@ class UserAufgaben(OrgModel):
 
 
     class Meta:
-        verbose_name = 'Benutzeraufgabe'
-        verbose_name_plural = 'Benutzeraufgaben'
+        verbose_name = _('Benutzeraufgabe')
+        verbose_name_plural = _('Benutzeraufgaben')
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.aufgabe.name
@@ -1020,19 +1020,19 @@ class UserAufgabenZwischenschritte(OrgModel):
     erledigt = models.BooleanField(default=False, verbose_name='Erledigt')
 
     class Meta:
-        verbose_name = 'Freiwilliger Aufgaben Zwischenschritt'
-        verbose_name_plural = 'Freiwilliger Aufgaben Zwischenschritte'
+        verbose_name = _('Freiwilliger Aufgaben Zwischenschritt')
+        verbose_name_plural = _('Freiwilliger Aufgaben Zwischenschritte')
 
 class Post2(OrgModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer', help_text='Benutzer, der den Post erstellt hat')
-    title = models.CharField(max_length=50, verbose_name='Post-Titel', help_text='Titel des Posts')
-    text = models.TextField(verbose_name='Text', help_text='Text des Posts', null=True, blank=True)
-    image = models.ImageField(upload_to='posts/', blank=True, null=True, verbose_name='Bild', help_text='Bild des Posts')
-    date = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
-    date_updated = models.DateTimeField(auto_now=True, verbose_name='Aktualisiert am')
-    has_survey = models.BooleanField(default=False, verbose_name='Umfrage', help_text='Post enthält eine Umfrage')
-    person_cluster = models.ManyToManyField(PersonCluster, verbose_name='Für Benutzergruppen', help_text='Benutzergruppen, für die dieser Post relevant ist', blank=True)
-    already_sent_to = models.ManyToManyField(User, verbose_name='Bereits gesendet an', help_text='Benutzer, die diesen Post bereits erhalten haben', blank=True, related_name='already_sent_to')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer'), help_text=_('Benutzer, der den Post erstellt hat'))    
+    title = models.CharField(max_length=50, verbose_name=_('Post-Titel'), help_text=_('Titel des Posts'))
+    text = models.TextField(verbose_name=_('Text'), help_text=_('Text des Posts'), null=True, blank=True)
+    image = models.ImageField(upload_to='posts/', blank=True, null=True, verbose_name=_('Bild'), help_text=_('Bild des Posts'))
+    date = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
+    date_updated = models.DateTimeField(auto_now=True, verbose_name=_('Aktualisiert am'))
+    has_survey = models.BooleanField(default=False, verbose_name=_('Umfrage'), help_text=_('Post enthält eine Umfrage'))
+    person_cluster = models.ManyToManyField(PersonCluster, verbose_name=_('Für Benutzergruppen'), help_text=_('Benutzergruppen, für die dieser Post relevant ist'), blank=True)
+    already_sent_to = models.ManyToManyField(User, verbose_name=_('Bereits gesendet an'), help_text=_('Benutzer, die diesen Post bereits erhalten haben'), blank=True, related_name='already_sent_to')
 
     history = HistoricalRecords()
     
@@ -1043,8 +1043,8 @@ class Post2(OrgModel):
         return PostResponse.objects.filter(original_post=self)
 
     class Meta:
-        verbose_name = 'Post'
-        verbose_name_plural = 'Posts'
+        verbose_name = _('Post')
+        verbose_name_plural = _('Posts')
 
     def __str__(self):
         return self.title
@@ -1058,48 +1058,48 @@ def send_new_post_email_task_receiver(sender, instance, created, **kwargs):
         
         
 class PostResponse(OrgModel):
-    original_post = models.ForeignKey(Post2, on_delete=models.CASCADE, verbose_name='Originaler Post', help_text='Originaler Post, auf den dieser Post antwortet')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer', help_text='Benutzer, der die Antwort erstellt hat')
-    text = models.TextField(verbose_name='Text', help_text='Text der Antwort', null=True, blank=True)
-    image = models.ImageField(upload_to='posts/', blank=True, null=True, verbose_name='Bild', help_text='Bild der Antwort')
-    date_created = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
-    date_updated = models.DateTimeField(auto_now=True, verbose_name='Aktualisiert am')
+    original_post = models.ForeignKey(Post2, on_delete=models.CASCADE, verbose_name=_('Originaler Post'), help_text=_('Originaler Post, auf den dieser Post antwortet'))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer'), help_text=_('Benutzer, der die Antwort erstellt hat'))
+    text = models.TextField(verbose_name=_('Text'), help_text=_('Text der Antwort'), null=True, blank=True)
+    image = models.ImageField(upload_to='posts/', blank=True, null=True, verbose_name=_('Bild'), help_text=_('Bild der Antwort'))
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
+    date_updated = models.DateTimeField(auto_now=True, verbose_name=_('Aktualisiert am'))
     
     class Meta:
-        verbose_name = 'Post Antwort'
-        verbose_name_plural = 'Post Antworten'
+        verbose_name = _('Post Antwort')
+        verbose_name_plural = _('Post Antworten')
         
     def __str__(self):
         return self.user.get_full_name() + ' - ' + self.original_post.title + ' - ' + self.text[:50] + '...'
 
 
 class PostSurveyQuestion(OrgModel):
-    post = models.OneToOneField(Post2, on_delete=models.CASCADE, related_name='survey_question', verbose_name='Post')
-    question_text = models.CharField(max_length=200, verbose_name='Frage', help_text='Text der Umfragefrage')
+    post = models.OneToOneField(Post2, on_delete=models.CASCADE, related_name='survey_question', verbose_name=_('Post'))
+    question_text = models.CharField(max_length=200, verbose_name=_('Frage'), help_text=_('Text der Umfragefrage'))
     
     class Meta:
-        verbose_name = 'Umfragefrage'
-        verbose_name_plural = 'Umfragefragen'
+        verbose_name = _('Umfragefrage')
+        verbose_name_plural = _('Umfragefragen')
         
     def __str__(self):
         return self.question_text
 
 
 class PostSurveyAnswer(OrgModel):
-    question = models.ForeignKey(PostSurveyQuestion, on_delete=models.CASCADE, related_name='survey_answers', verbose_name='Frage')
-    answer_text = models.CharField(max_length=100, verbose_name='Antwort', help_text='Text der Antwortmöglichkeit')
-    votes = models.ManyToManyField(User, verbose_name='Benutzer, die an der Umfrage teilgenommen haben', blank=True)
+    question = models.ForeignKey(PostSurveyQuestion, on_delete=models.CASCADE, related_name='survey_answers', verbose_name=_('Frage'))
+    answer_text = models.CharField(max_length=100, verbose_name=_('Antwort'), help_text=_('Text der Antwortmöglichkeit'))
+    votes = models.ManyToManyField(User, verbose_name=_('Benutzer, die an der Umfrage teilgenommen haben'), blank=True)
     
     class Meta:
-        verbose_name = 'Umfrageantwort'
-        verbose_name_plural = 'Umfrageantworten'
+        verbose_name = _('Umfrageantwort')
+        verbose_name_plural = _('Umfrageantworten')
         
     def __str__(self):
         return self.answer_text
 
 
 class Bilder2(OrgModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer'))
     titel = models.CharField(max_length=100, verbose_name=_('Bildtitel'))
     beschreibung = models.TextField(blank=True, null=True, verbose_name=_('Beschreibung'))
     date_created = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
@@ -1109,8 +1109,8 @@ class Bilder2(OrgModel):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'Bild'
-        verbose_name_plural = 'Bilder'
+        verbose_name = _('Bild')
+        verbose_name_plural = _('Bilder')
 
     def __str__(self):
         return self.titel
@@ -1179,8 +1179,8 @@ class BilderComment(OrgModel):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'Bildkommentar'
-        verbose_name_plural = 'Bildkommentare'
+        verbose_name = _('Bildkommentar')
+        verbose_name_plural = _('Bildkommentare')
         ordering = ['-date_created']
 
     def __str__(self):
@@ -1205,8 +1205,8 @@ class BilderReaction(OrgModel):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'Bildreaktion'
-        verbose_name_plural = 'Bildreaktionen'
+        verbose_name = _('Bildreaktion')
+        verbose_name_plural = _('Bildreaktionen')
         unique_together = ['bilder', 'user']  # Only one reaction per user per image
 
     def __str__(self):
@@ -1222,8 +1222,8 @@ class BilderGallery2(OrgModel):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'Bilder Gallery'
-        verbose_name_plural = 'Bilder Galleries'
+        verbose_name = _('Bilder Gallery')
+        verbose_name_plural = _('Bilder Galleries')
 
     def __str__(self):
         return self.image.name
@@ -1268,8 +1268,8 @@ class ProfilUser2(OrgModel):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'Profil User'
-        verbose_name_plural = 'Profil User'
+        verbose_name = _('Profil User')
+        verbose_name_plural = _('Profil User')
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.attribut
@@ -1280,8 +1280,8 @@ class Maintenance(models.Model):
     maintenance_end_time = models.DateTimeField(verbose_name='Wartung endet am')
 
     class Meta:
-        verbose_name = 'Wartung'
-        verbose_name_plural = 'Wartungen'
+        verbose_name = _('Wartung')
+        verbose_name_plural = _('Wartungen')
 
 
 class PushSubscription(models.Model):
@@ -1299,8 +1299,8 @@ class PushSubscription(models.Model):
     last_used = models.DateTimeField(null=True, blank=True, help_text="When this subscription was last used successfully")
     
     class Meta:
-        verbose_name = "Push-Abonnement"
-        verbose_name_plural = "Push-Abonnements"
+        verbose_name = _('Push-Abonnement')
+        verbose_name_plural = _('Push-Abonnements')
         unique_together = ('user', 'endpoint')
     
     def __str__(self):
@@ -1316,8 +1316,8 @@ class EinsatzstelleNotiz(OrgModel):
     pinned = models.BooleanField(default=False, verbose_name='Angeheftet')
     
     class Meta:
-        verbose_name = 'Einsatzstellen Notiz'
-        verbose_name_plural = 'Einsatzstellen Notizen'
+        verbose_name = _('Einsatzstellen Notiz')
+        verbose_name_plural = _('Einsatzstellen Notizen')
 
     def __str__(self):
         return f"{self.einsatzstelle.name} - {self.notiz[:10]}"
@@ -1331,8 +1331,8 @@ class StickyNote(OrgModel):
     priority = models.IntegerField(default=0, verbose_name='Priorität', help_text='Priorität der Notiz')
     
     class Meta:
-        verbose_name = 'Sticky Note'
-        verbose_name_plural = 'Sticky Notes'
+        verbose_name = _('Sticky Note')
+        verbose_name_plural = _('Sticky Notes')
     
     def __str__(self):
         return f"{self.notiz[:10]}"
@@ -1352,28 +1352,28 @@ class ChangeRequest(OrgModel):
     ]
     
     # Core fields
-    change_type = models.CharField(max_length=20, choices=CHANGE_TYPE_CHOICES, verbose_name='Änderungstyp')
+    change_type = models.CharField(max_length=20, choices=CHANGE_TYPE_CHOICES, verbose_name=_('Änderungstyp'))
     object_id = models.PositiveIntegerField(verbose_name='Objekt-ID')  # ID of Einsatzland2 or Einsatzstelle2
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='Status')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name=_('Status'))
     
     # Users involved
-    requested_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='change_requests_made', verbose_name='Angefragt von')
-    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='change_requests_reviewed', verbose_name='Geprüft von')
+    requested_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='change_requests_made', verbose_name=_('Angefragt von'))
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='change_requests_reviewed', verbose_name=_('Geprüft von'))
     
     # Change data
-    field_changes = models.JSONField(verbose_name='Feldänderungen', help_text='Gespeicherte Feldänderungen als JSON')
-    reason = models.TextField(blank=True, verbose_name='Begründung', help_text='Begründung für die Änderung')
-    review_comment = models.TextField(blank=True, verbose_name='Prüfungskommentar', help_text='Kommentar des Prüfers')
+    field_changes = models.JSONField(verbose_name=_('Feldänderungen'), help_text=_('Gespeicherte Feldänderungen als JSON'))
+    reason = models.TextField(blank=True, verbose_name=_('Begründung'), help_text=_('Begründung für die Änderung'))
+    review_comment = models.TextField(blank=True, verbose_name=_('Prüfungskommentar'), help_text=_('Kommentar des Prüfers'))
     
     # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
-    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name='Geprüft am')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
+    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name=_('Geprüft am'))
     
     history = HistoricalRecords()
     
     class Meta:
-        verbose_name = 'Änderungsantrag'
-        verbose_name_plural = 'Änderungsanträge'
+        verbose_name = _('Änderungsantrag')
+        verbose_name_plural = _('Änderungsanträge')
         ordering = ['-created_at']
     
     def __str__(self):

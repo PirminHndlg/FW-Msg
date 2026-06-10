@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from .models import ChatDirect, ChatGroup
+from django.utils.translation import gettext_lazy as _
 
 
 class ChatDirectForm(forms.ModelForm):
@@ -17,7 +18,7 @@ class ChatDirectForm(forms.ModelForm):
         qs = qs.exclude(customuser__person_cluster__view='B')
         qs = qs.select_related('customuser')
         self.fields['users'].queryset = qs
-        self.fields['users'].label = 'Benutzer:in'
+        self.fields['users'].label = _('Benutzer:in')
         self.fields['users'].widget.attrs.update({'class': 'form-select'})
 
 
@@ -37,14 +38,14 @@ class ChatGroupForm(forms.ModelForm):
         qs = qs.exclude(customuser__person_cluster__view='B')
         qs = qs.select_related('customuser')
         self.fields['users'].queryset = qs
-        self.fields['users'].label = 'Mitglieder'
+        self.fields['users'].label = _('Mitglieder')
         self.fields['users'].widget.attrs.update({'class': 'form-select'})
-        self.fields['name'].label = 'Gruppenname'
+        self.fields['name'].label = _('Gruppenname')
 
 
 _CHAT_MESSAGE_WIDGET_ATTRS = {
     'class': 'form-control chat-message-input',
-    'placeholder': 'Nachricht schreiben…',
+    'placeholder': _('Nachricht schreiben…'),
     'autocomplete': 'off',
     'rows': 1,
 }
@@ -67,7 +68,7 @@ class SendDirectMessageForm(forms.Form):
         message = (cleaned.get('message') or '').strip()
         image = cleaned.get('image')
         if not message and not image:
-            raise ValidationError('Nachricht oder Bild erforderlich.')
+            raise ValidationError(_('Nachricht oder Bild erforderlich.'))
         cleaned['message'] = message
         return cleaned
 
@@ -89,6 +90,6 @@ class SendGroupMessageForm(forms.Form):
         message = (cleaned.get('message') or '').strip()
         image = cleaned.get('image')
         if not message and not image:
-            raise ValidationError('Nachricht oder Bild erforderlich.')
+            raise ValidationError(_('Nachricht oder Bild erforderlich.'))
         cleaned['message'] = message
         return cleaned

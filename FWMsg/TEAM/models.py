@@ -6,6 +6,7 @@ import string
 from Global.models import OrgModel, Einsatzland2
 from django.db.models.signals import post_save
 from django.contrib.auth.models import User
+from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 class Team(OrgModel):
@@ -28,8 +29,8 @@ class Team(OrgModel):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'Teammitglied'
-        verbose_name_plural = 'Team'
+        verbose_name = _('Teammitglied')
+        verbose_name_plural = _('Team')
 
     def __str__(self):
         if self.user:

@@ -3,6 +3,7 @@ from Global.models import OrgModel
 from django.contrib.auth.models import User
 from datetime import datetime
 from Global.models import Einsatzland2, Einsatzstelle2
+from django.utils.translation import gettext_lazy as _
 
 
 # Create your models here.
@@ -268,8 +269,8 @@ class Bewerber(OrgModel):
         return False
     
     class Meta:
-        verbose_name = "Bewerber:in"
-        verbose_name_plural = "Bewerber:innen"
+        verbose_name = _('Bewerber:in')
+        verbose_name_plural = _('Bewerber:innen')
         
     def __str__(self):
         return f"{self.user}"
@@ -348,8 +349,8 @@ class ApplicationQuestion(OrgModel):
     class Meta:
         ordering = ["order"]
         unique_together = ("org", "order")
-        verbose_name = "Bewerbungsfrage"
-        verbose_name_plural = "Bewerbungsfragen"
+        verbose_name = _('Bewerbungsfrage')
+        verbose_name_plural = _('Bewerbungsfragen')
 
 
 class ApplicationAnswer(OrgModel):
@@ -371,8 +372,8 @@ class ApplicationAnswer(OrgModel):
         return self.answer
 
     class Meta:
-        verbose_name = "Bewerbungsantwort"
-        verbose_name_plural = "Bewerbungsantworten"
+        verbose_name = _('Bewerbungsantwort')
+        verbose_name_plural = _('Bewerbungsantworten')
 
 
 class ApplicationText(OrgModel):
@@ -401,8 +402,8 @@ class ApplicationText(OrgModel):
         return self.org.name
 
     class Meta:
-        verbose_name = "Bewerbungstext"
-        verbose_name_plural = "Bewerbungstexte"
+        verbose_name = _('Bewerbungstext')
+        verbose_name_plural = _('Bewerbungstexte')
 
 
 class ApplicationFileQuestion(OrgModel):
@@ -452,8 +453,8 @@ class ApplicationFileQuestion(OrgModel):
 
     class Meta:
         ordering = ["order"]
-        verbose_name = "Bewerbungsdatei"
-        verbose_name_plural = "Bewerbungsdateien"
+        verbose_name = _('Bewerbungsdatei')
+        verbose_name_plural = _('Bewerbungsdateien')
 
 
 class ApplicationAnswerFile(OrgModel):
@@ -478,5 +479,5 @@ class ApplicationAnswerFile(OrgModel):
         return self.org.name
 
     class Meta:
-        verbose_name = "Bewerbungsdatei"
-        verbose_name_plural = "Bewerbungsdateien"
+        verbose_name = _('Bewerbungsdatei')
+        verbose_name_plural = _('Bewerbungsdateien')

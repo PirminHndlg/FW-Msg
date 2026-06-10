@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from Global.models import OrgModel, Einsatzland2
 from django.contrib.auth.models import User
 
@@ -18,8 +19,8 @@ class Ehemalige(OrgModel):
         return False
 
     class Meta:
-        verbose_name = 'Ehemalige'
-        verbose_name_plural = 'Ehemalige'
+        verbose_name = _('Ehemalige')
+        verbose_name_plural = _('Ehemalige')
 
     def __str__(self):
         if self.user:

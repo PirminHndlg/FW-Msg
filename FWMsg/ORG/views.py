@@ -2053,102 +2053,102 @@ def ajax_assign_task_to_all(request):
 def copy_links(request):
     page_elements = [
         {
-        'name': 'Allgemein',
+        'name': _('Allgemein'),
         'pages': [
             {
-                'name': 'Posts',
+                'name': _('Posts'),
                 'url': reverse('posts_overview')
             },
             {
-                'name': 'Dokumente',
+                'name': _('Dokumente'),
                 'url': reverse('dokumente')
             },
             {
-                'name': 'Bilder',
+                'name': _('Bilder'),
                 'url': reverse('bilder')
             },
             {
-                'name': 'Bilder hochladen',
+                'name': _('Bilder hochladen'),
                 'url': reverse('bild')
             },
             {
-                'name': 'Profil',
+                'name': _('Profil'),
                 'url': reverse('profil')
             },
             {
-                'name': 'Einstellungen',
+                'name': _('Einstellungen'),
                 'url': reverse('settings')
             }
         ]
     },
         {
-        'name': 'Freiwillige',
+        'name': _('Freiwillige'),
         'pages': [
             {
-                'name': 'Aufgaben',
+                'name': _('Aufgaben'),
                 'url': reverse('aufgaben')
             },
             {
-                'name': 'Kalender',
+                'name': _('Kalender'),
                 'url': reverse('kalender')
             },
             {
-                'name': 'Ampelmeldungen abgeben',
+                'name': _('Ampelmeldungen abgeben'),
                 'url': reverse('ampel')
             },
             {
-                'name': 'Notfallkontakte eintragen',
+                'name': _('Notfallkontakte eintragen'),
                 'url': reverse('notfallkontakte')
             },
             {
-                'name': 'Einsatzlandinformationen einsehen',
+                'name': _('Einsatzlandinformationen einsehen'),
                 'url': reverse('laenderinfo')
             }
         ]
     }, 
         {
-        'name': 'Team',
+        'name': _('Team'),
         'pages': [
             {
-                'name': 'Kontakte',
+                'name': _('Kontakte'),
                 'url': reverse('team_contacts')
             },
             {
-                'name': 'Ampelmeldung einsehen',
+                'name': _('Ampelmeldung einsehen'),
                 'url': reverse('list_ampel')
             },
             {
-                'name': 'Einsatzstelleninformationen',
+                'name': _('Einsatzstelleninformationen'),
                 'url': reverse('einsatzstellen_info')
             },
             {
-                'name': 'Einsatzstellen Notizen',
+                'name': _('Einsatzstellen Notizen'),
                 'url': reverse('einsatzstellen_notiz')
             },
             {
-                'name': 'Länderinformationen',
+                'name': _('Länderinformationen'),
                 'url': reverse('laender_info')
             }
         ]
     },
         {
-        'name': 'Ehemalige',
+        'name': _('Ehemalige'),
         'pages': [
             {
-                'name': 'Länderinformationen',
+                'name': _('Länderinformationen'),
                 'url': reverse('laender_info')
             },
             {
-                'name': 'Einsatzstelleninformationen',
+                'name': _('Einsatzstelleninformationen'),
                 'url': reverse('einsatzstellen_info')
             }
         ]
     },
         {
-        'name': 'Bewerber',
+        'name': _('Bewerber'),
         'pages': [
             {
-                'name': 'Zuteilung ansehen',
+                'name': _('Zuteilung ansehen'),
                 'url': reverse('my_assignment')
             }
         ]
