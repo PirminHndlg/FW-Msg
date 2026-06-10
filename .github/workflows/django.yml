@@ -50,16 +50,6 @@ jobs:
         run: |
           cd FWMsg
           cp FWMsg/.example-secrets.json FWMsg/.secrets.json
-          # Patch the secrets file directly instead of mangling settings.py
-          python3 -c "
-          import json
-          with open('FWMsg/.secrets.json') as f:
-              s = json.load(f)
-          s['debug'] = False
-          s['secret_key'] = 'django-insecure-test-key-for-ci'
-          with open('FWMsg/.secrets.json', 'w') as f:
-              json.dump(s, f)
-          "
           sed -i \"s|'filename': '/var/log/django/error.log',|'filename': '/tmp/django_error.log',|\" FWMsg/settings.py
           
     - name: Run Tests
