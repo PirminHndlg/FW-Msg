@@ -833,8 +833,8 @@ class Ampel2(OrgModel):
     submission_key = models.UUIDField(null=True, blank=True)
 
     class Meta:
-        verbose_name = _('Ampel')
-        verbose_name_plural = _('Ampeln')
+        verbose_name = _('Ampelmeldung')
+        verbose_name_plural = _('Ampelmeldungen')
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.status

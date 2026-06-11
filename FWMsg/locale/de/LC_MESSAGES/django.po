@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-10 17:48+0200\n"
+"POT-Creation-Date: 2026-06-11 15:26+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: German <de@li.org>\n"
@@ -48,50 +48,49 @@ msgid "Bewerber:innen"
 msgstr "Bewerber:innen"
 
 #: BW/models.py:352
-#, fuzzy
-#| msgid "Bewerbungen"
 msgid "Bewerbungsfrage"
-msgstr "Bewerbungen"
+msgstr "Bewerbungsfrage"
 
 #: BW/models.py:353
-#, fuzzy
-#| msgid "Bewerbungen"
 msgid "Bewerbungsfragen"
-msgstr "Bewerbungen"
+msgstr "Bewerbungsfragen"
 
 #: BW/models.py:375
-#, fuzzy
-#| msgid "Bewerbungsantworten"
 msgid "Bewerbungsantwort"
-msgstr "Bewerbungsantworten"
+msgstr "Bewerbungsantwort"
 
 #: BW/models.py:376 Global/templates/bewerber_detail.html:231
 msgid "Bewerbungsantworten"
 msgstr "Bewerbungsantworten"
 
 #: BW/models.py:405
-#, fuzzy
-#| msgid "Bewerbungen"
 msgid "Bewerbungstext"
-msgstr "Bewerbungen"
+msgstr "Bewerbungstext"
 
 #: BW/models.py:406
-#, fuzzy
-#| msgid "Bewerbungen"
 msgid "Bewerbungstexte"
-msgstr "Bewerbungen"
+msgstr "Bewerbungstexte"
 
 #: BW/models.py:456 BW/models.py:482
-#, fuzzy
-#| msgid "Bewerbungsdetails"
 msgid "Bewerbungsdatei"
-msgstr "Bewerbungsdetails"
+msgstr "Bewerbungsdatei"
 
 #: BW/models.py:457 BW/models.py:483
-#, fuzzy
-#| msgid "Bewerbungen"
 msgid "Bewerbungsdateien"
-msgstr "Bewerbungen"
+msgstr "Bewerbungsdateien"
+
+#: Ehemalige/models.py:8 Global/models.py:107 Global/models.py:257
+#: Global/models.py:335 chat/forms.py:21
+msgid "Benutzer:in"
+msgstr "Benutzer:in"
+
+#: Ehemalige/models.py:9 ORG/tables.py:1128
+msgid "Länder"
+msgstr "Länder"
+
+#: Ehemalige/models.py:12
+msgid "Registrierungsmail"
+msgstr "Registrierungsmail"
 
 #: Ehemalige/models.py:22 Ehemalige/models.py:23 ORG/templates/baseOrg.html:71
 #: ORG/views.py:2135
@@ -252,7 +251,7 @@ msgstr "Alle"
 #: Ehemalige/templates/ehemaligeHome.html:229 ORG/templates/homeOrg_2.html:263
 #: TEAM/templates/teamHome.html:305
 msgid "anzeigen"
-msgstr "Anzeigen"
+msgstr "anzeigen"
 
 #: Ehemalige/templates/ehemaligeHome.html:236 ORG/templates/homeOrg_2.html:270
 #: TEAM/templates/teamHome.html:312
@@ -275,7 +274,7 @@ msgstr "Z.B. Instagram"
 msgid "Freiwillige:r"
 msgstr "Freiwillige:r"
 
-#: FW/templates/ampel.html:10 Global/models.py:836
+#: FW/templates/ampel.html:10
 #: Global/templates/components/profile_header.html:17
 msgid "Ampel"
 msgstr "Ampel"
@@ -284,7 +283,7 @@ msgstr "Ampel"
 #: FW/templates/base.html:149 FW/templates/base.html:274
 #: FW/templates/baseFw.html:102 FW/templates/baseFw.html:170
 #: FW/templates/baseFw.html:286 FW/templates/baseFw.html:395
-#: ORG/templates/components/ampel_modal.html:12
+#: Global/models.py:836 ORG/templates/components/ampel_modal.html:12
 #: TEAM/templates/teamAmpelmeldung.html:5
 msgid "Ampelmeldung"
 msgstr "Ampelmeldung"
@@ -1123,15 +1122,8 @@ msgid "Identifikator"
 msgstr ""
 
 #: Global/models.py:106
-#, fuzzy
-#| msgid "Aufgabe nicht für diese Benutzergruppe"
 msgid "Identifikator für den Benutzer"
-msgstr "Aufgabe nicht für diese Benutzergruppe"
-
-#: Global/models.py:107 Global/models.py:257 Global/models.py:335
-#: chat/forms.py:21
-msgid "Benutzer:in"
-msgstr "Benutzer:in"
+msgstr "Identifikator für den Benutzer"
 
 #: Global/models.py:109 Global/templates/bewerber_detail.html:19
 #: Global/templates/bewerber_detail.html:357
@@ -1153,16 +1145,12 @@ msgid "Geburtsdatum"
 msgstr "Geburtsdatum"
 
 #: Global/models.py:112
-#, fuzzy
-#| msgid "E-Mail-Benachrichtigungen"
 msgid "Mail-Benachrichtigungen"
 msgstr "E-Mail-Benachrichtigungen"
 
 #: Global/models.py:113
-#, fuzzy
-#| msgid "E-Mail-Benachrichtigungen"
 msgid "Mail-Benachrichtigung Abmelde-Key"
-msgstr "E-Mail-Benachrichtigungen"
+msgstr "E-Mail-Benachrichtigungen Abmeldeschlüssel"
 
 #: Global/models.py:115 Home/forms.py:48 Home/forms.py:49
 msgid "Einmalpasswort"
@@ -1173,26 +1161,20 @@ msgid "Wird automatisch erzeugt, wenn leer"
 msgstr ""
 
 #: Global/models.py:116
-#, fuzzy
-#| msgid "Einmalpasswort"
 msgid "Einmalpasswort abläuft am"
-msgstr "Einmalpasswort"
+msgstr "Einmalpasswort abläuft am"
 
 #: Global/models.py:117
 msgid "Token"
 msgstr ""
 
 #: Global/models.py:118
-#, fuzzy
-#| msgid "Kalender-Termine"
 msgid "Kalender-Token"
-msgstr "Kalender-Termine"
+msgstr "Kalender-Token"
 
 #: Global/models.py:121
-#, fuzzy
-#| msgid "Zuletzt"
 msgid "Zuletzt online"
-msgstr "Zuletzt"
+msgstr "Zuletzt online"
 
 #: Global/models.py:122
 msgid "Ist online"
@@ -1211,10 +1193,8 @@ msgid "Anonym einreichen"
 msgstr "Anonym einreichen"
 
 #: Global/models.py:363
-#, fuzzy
-#| msgid "Kalender-Termine"
 msgid "Kalender-Termin"
-msgstr "Kalender-Termine"
+msgstr "Kalender-Termin"
 
 #: Global/models.py:364
 msgid "Kalender-Termine"
@@ -1239,86 +1219,62 @@ msgid "Einsatzstellen"
 msgstr "Einsatzstellen"
 
 #: Global/models.py:785
-#, fuzzy
-#| msgid "Eigene Felder"
 msgid "Eigenes Feld"
-msgstr "Geänderte Felder:"
+msgstr "Eigenes Feld"
 
 #: Global/models.py:786 ORG/templates/baseOrg.html:157
 msgid "Eigene Felder"
 msgstr "Geänderte Felder:"
 
 #: Global/models.py:798
-#, fuzzy
-#| msgid "Eigene Felder"
 msgid "Eigenes Feld Benutzer:in"
-msgstr "Geänderte Felder:"
+msgstr "Eigenes Feld Benutzer:in"
 
 #: Global/models.py:799
-#, fuzzy
-#| msgid "Benutzer:innen"
 msgid "Eigene Felder Benutzer:innen"
-msgstr "Benutzer:innen"
+msgstr "Eigene Felder Benutzer:innen"
 
 #: Global/models.py:814
-#, fuzzy
-#| msgid "Notfallkontakte"
 msgid "Notfallkontakt"
-msgstr "Notfallkontakte"
+msgstr "Notfallkontakt"
 
-#: Global/models.py:837
-#, fuzzy
-#| msgid "Ampel"
-msgid "Ampeln"
-msgstr "Ampel"
+#: Global/models.py:837 ORG/templates/baseOrg.html:97
+#: ORG/templates/homeOrg_2.html:492 ORG/templates/list_ampel.html:7
+#: TEAM/templates/teamHome.html:340
+msgid "Ampelmeldungen"
+msgstr "Ampelmeldungen"
 
 #: Global/models.py:854
-#, fuzzy
-#| msgid "Aufgabenfilter"
 msgid "Aufgabenkategorie"
-msgstr "Aufgaben-Filter"
+msgstr "Aufgabenkategorie"
 
 #: Global/models.py:855
-#, fuzzy
-#| msgid "Aufgabenfilter"
 msgid "Aufgabenkategorien"
-msgstr "Aufgaben-Filter"
+msgstr "Aufgabenkategorien"
 
 #: Global/models.py:896
-#, fuzzy
-#| msgid "Zwischenschritt"
 msgid "Aufgabe Zwischenschritt"
-msgstr "Zwischenschritt"
+msgstr "Aufgabe Zwischenschritt"
 
 #: Global/models.py:897
-#, fuzzy
-#| msgid "Zwischenschritte"
 msgid "Aufgabe Zwischenschritte"
-msgstr "Zwischenschritte"
+msgstr "Aufgabe Zwischenschritte"
 
 #: Global/models.py:1010
-#, fuzzy
-#| msgid "Benutzername"
 msgid "Benutzeraufgabe"
-msgstr "Benutzername"
+msgstr "Benutzeraufgabe"
 
 #: Global/models.py:1011
-#, fuzzy
-#| msgid "Benutzername"
 msgid "Benutzeraufgaben"
-msgstr "Benutzername"
+msgstr "Benutzeraufgaben"
 
 #: Global/models.py:1023
-#, fuzzy
-#| msgid "Fehler beim Laden der Zwischenschritte"
 msgid "Freiwilliger Aufgaben Zwischenschritt"
-msgstr "Fehler beim Laden der Zwischenschritte"
+msgstr "Freiwilliger Aufgaben Zwischenschritt"
 
 #: Global/models.py:1024
-#, fuzzy
-#| msgid "Fehler beim Laden der Zwischenschritte"
 msgid "Freiwilliger Aufgaben Zwischenschritte"
-msgstr "Fehler beim Laden der Zwischenschritte"
+msgstr "Freiwilliger Aufgaben Zwischenschritte"
 
 #: Global/models.py:1027 Global/models.py:1062 Global/models.py:1102
 #: ORG/tables.py:192 ORG/tables.py:651 ORG/tables.py:869 ORG/tables.py:1026
@@ -1331,28 +1287,20 @@ msgid "Benutzer, der den Post erstellt hat"
 msgstr ""
 
 #: Global/models.py:1028
-#, fuzzy
-#| msgid "Titel"
 msgid "Post-Titel"
-msgstr "Titel"
+msgstr "Post-Titel"
 
 #: Global/models.py:1028
-#, fuzzy
-#| msgid "Bild des Posts"
 msgid "Titel des Posts"
-msgstr "Bild des Posts"
+msgstr "Titel des Posts"
 
 #: Global/models.py:1029 Global/models.py:1063
-#, fuzzy
-#| msgid "Long Text"
 msgid "Text"
-msgstr "Langer Text"
+msgstr "Text"
 
 #: Global/models.py:1029
-#, fuzzy
-#| msgid "Bild des Posts"
 msgid "Text des Posts"
-msgstr "Bild des Posts"
+msgstr "Text des Posts"
 
 #: Global/models.py:1031 Global/models.py:1065 Global/models.py:1105
 #: Global/models.py:1176 Global/models.py:1203 Global/models.py:1369
@@ -1372,10 +1320,8 @@ msgid "Umfrage"
 msgstr "Umfrage"
 
 #: Global/models.py:1033
-#, fuzzy
-#| msgid "Enthält eine Umfrage"
 msgid "Post enthält eine Umfrage"
-msgstr "Enthält eine Umfrage"
+msgstr "Post enthält eine Umfrage"
 
 #: Global/models.py:1034 Global/templates/post_add.html:71 ORG/tables.py:144
 #: ORG/tables.py:162 ORG/tables.py:260
@@ -1383,28 +1329,20 @@ msgid "Für Benutzergruppen"
 msgstr "Für Benutzergruppen"
 
 #: Global/models.py:1034
-#, fuzzy
-#| msgid "Wähle die Benutzergruppen aus, für die diese Aufgabe relevant ist."
 msgid "Benutzergruppen, für die dieser Post relevant ist"
-msgstr "Wähle die Benutzergruppen aus, für die diese Aufgabe relevant ist."
+msgstr "Benutzergruppen, für die dieser Post relevant ist"
 
 #: Global/models.py:1035
-#, fuzzy
-#| msgid "Erfolgreich gesendet!"
 msgid "Bereits gesendet an"
-msgstr "Erfolgreich gesendet!"
+msgstr "Bereits gesendet an"
 
 #: Global/models.py:1035
-#, fuzzy
-#| msgid "Benutzergruppen, die diesen Ordner sehen können"
 msgid "Benutzer, die diesen Post bereits erhalten haben"
-msgstr "Benutzergruppen, die diesen Ordner sehen können"
+msgstr "Benutzer, die diesen Post bereits erhalten haben"
 
 #: Global/models.py:1046 Global/models.py:1077
-#, fuzzy
-#| msgid "Posts"
 msgid "Post"
-msgstr "Posts"
+msgstr "Post"
 
 #: Global/models.py:1061
 msgid "Originaler Post"
@@ -1419,16 +1357,12 @@ msgid "Benutzer, der die Antwort erstellt hat"
 msgstr ""
 
 #: Global/models.py:1069
-#, fuzzy
-#| msgid "Antwort"
 msgid "Post Antwort"
-msgstr "Antworten"
+msgstr "Post Antwort"
 
 #: Global/models.py:1070
-#, fuzzy
-#| msgid "Antworten"
 msgid "Post Antworten"
-msgstr "Antworten"
+msgstr "Post Antworten"
 
 #: Global/models.py:1078 Global/models.py:1089 ORG/tables.py:299
 #: seminar/models.py:53
@@ -1436,54 +1370,40 @@ msgid "Frage"
 msgstr "Frage"
 
 #: Global/models.py:1078
-#, fuzzy
-#| msgid "Umfragefrage"
 msgid "Text der Umfragefrage"
-msgstr "Umfragefrage"
+msgstr "Text der Umfragefrage"
 
 #: Global/models.py:1082
-#, fuzzy
-#| msgid "Umfragefrage"
 msgid "Umfragefragen"
-msgstr "Umfragefrage"
+msgstr "Umfragefragen"
 
 #: Global/models.py:1090 Global/templates/post_detail.html:243
 msgid "Antwort"
 msgstr "Antworten"
 
 #: Global/models.py:1090
-#, fuzzy
-#| msgid "Zweite Antwortmöglichkeit"
 msgid "Text der Antwortmöglichkeit"
-msgstr "Zweite Antwortmöglichkeit"
+msgstr "Text der Antwortmöglichkeit"
 
 #: Global/models.py:1091
 msgid "Benutzer, die an der Umfrage teilgenommen haben"
 msgstr ""
 
 #: Global/models.py:1094
-#, fuzzy
-#| msgid "Umfragen"
 msgid "Umfrageantwort"
-msgstr "Umfragen"
+msgstr "Umfrageantwort"
 
 #: Global/models.py:1095
-#, fuzzy
-#| msgid "Umfragen"
 msgid "Umfrageantworten"
-msgstr "Umfragen"
+msgstr "Umfrageantworten"
 
 #: Global/models.py:1182
-#, fuzzy
-#| msgid "Kommentar"
 msgid "Bildkommentar"
-msgstr "Kommentar"
+msgstr "Bildkommentar"
 
 #: Global/models.py:1183
-#, fuzzy
-#| msgid "Kommentare"
 msgid "Bildkommentare"
-msgstr "Kommentare"
+msgstr "Bildkommentare"
 
 #: Global/models.py:1192
 msgid "Daumen hoch"
@@ -1514,46 +1434,32 @@ msgid "Emoji"
 msgstr "Emoji"
 
 #: Global/models.py:1208
-#, fuzzy
-#| msgid "Bilderseiten"
 msgid "Bildreaktion"
-msgstr "Bildseiten"
+msgstr "Bildreaktion"
 
 #: Global/models.py:1209
-#, fuzzy
-#| msgid "Reaktionen"
 msgid "Bildreaktionen"
-msgstr "Reaktionen"
+msgstr "Bildreaktionen"
 
 #: Global/models.py:1225
-#, fuzzy
-#| msgid "Bilder hochladen"
 msgid "Bilder Gallery"
-msgstr "Bilder hochladen"
+msgstr "Bilder Gallery"
 
 #: Global/models.py:1226
-#, fuzzy
-#| msgid "Bilderseiten"
 msgid "Bilder Galleries"
-msgstr "Bildseiten"
+msgstr "Bilder Galleries"
 
 #: Global/models.py:1271 Global/models.py:1272
-#, fuzzy
-#| msgid "Profile"
 msgid "Profil User"
-msgstr "Profile"
+msgstr "Profil User"
 
 #: Global/models.py:1283
-#, fuzzy
-#| msgid "Bewertung"
 msgid "Wartung"
-msgstr "Bewertung"
+msgstr "Wartung"
 
 #: Global/models.py:1284
-#, fuzzy
-#| msgid "Anmerkungen"
 msgid "Wartungen"
-msgstr "Anmerkungen"
+msgstr "Wartungen"
 
 #: Global/models.py:1302
 msgid "Push-Abonnement"
@@ -1564,50 +1470,36 @@ msgid "Push-Abonnements"
 msgstr ""
 
 #: Global/models.py:1319
-#, fuzzy
-#| msgid "Einsatzstellen Notizen"
 msgid "Einsatzstellen Notiz"
-msgstr "Einsatzstellen Notizen"
+msgstr "Einsatzstellen Notiz"
 
 #: Global/models.py:1320 ORG/views.py:2125
 msgid "Einsatzstellen Notizen"
 msgstr "Einsatzstellen Notizen"
 
 #: Global/models.py:1334
-#, fuzzy
-#| msgid "Neue Sticky Note"
 msgid "Sticky Note"
-msgstr "Neue Sticky Note"
+msgstr "Sticky Note"
 
 #: Global/models.py:1335
-#, fuzzy
-#| msgid "Neue Sticky Note"
 msgid "Sticky Notes"
-msgstr "Neue Sticky Note"
+msgstr "Sticky Notes"
 
 #: Global/models.py:1355
-#, fuzzy
-#| msgid "Änderungen:"
 msgid "Änderungstyp"
-msgstr "Änderungen:"
+msgstr "Änderungstyp"
 
 #: Global/models.py:1360
-#, fuzzy
-#| msgid "Angefragt von:"
 msgid "Angefragt von"
-msgstr "Angefragt von:"
+msgstr "Angefragt von"
 
 #: Global/models.py:1361
-#, fuzzy
-#| msgid "Geprüft von:"
 msgid "Geprüft von"
-msgstr "Geprüft von:"
+msgstr "Geprüft von"
 
 #: Global/models.py:1364
-#, fuzzy
-#| msgid "Änderungen:"
 msgid "Feldänderungen"
-msgstr "Änderungen:"
+msgstr "Feldänderungen"
 
 #: Global/models.py:1364
 msgid "Gespeicherte Feldänderungen als JSON"
@@ -1618,36 +1510,26 @@ msgid "Begründung"
 msgstr "Begründung"
 
 #: Global/models.py:1365
-#, fuzzy
-#| msgid "Begründung für Änderung"
 msgid "Begründung für die Änderung"
-msgstr "Begründung für Änderung"
+msgstr "Begründung für die Änderung"
 
 #: Global/models.py:1366
 msgid "Prüfungskommentar"
 msgstr ""
 
 #: Global/models.py:1366
-#, fuzzy
-#| msgid "Kommentar senden"
 msgid "Kommentar des Prüfers"
-msgstr "Kommentar senden"
+msgstr "Kommentar des Prüfers"
 
 #: Global/models.py:1370
-#, fuzzy
-#| msgid "Geprüft von:"
 msgid "Geprüft am"
-msgstr "Geprüft von:"
+msgstr "Geprüft am"
 
 #: Global/models.py:1375
-#, fuzzy
-#| msgid "Änderungen:"
 msgid "Änderungsantrag"
-msgstr "Änderungen:"
+msgstr "Änderungsantrag"
 
 #: Global/models.py:1376
-#, fuzzy
-#| msgid "Änderungsvorschläge"
 msgid "Änderungsanträge"
 msgstr "Änderungsanträge"
 
@@ -3559,17 +3441,13 @@ msgstr ""
 "Kalendereintrag erfolgreich gespeichert. Mail-Erinnerung wird in "
 "{mail_task_delay_formatted} Minuten gesendet."
 
-#: ORG/models.py:29
-#, fuzzy
-#| msgid "Organisation:"
-msgid "Organisation"
-msgstr "Organisation:"
-
 #: ORG/models.py:30
-#, fuzzy
-#| msgid "Organisation:"
+msgid "Organisation"
+msgstr "Organisation"
+
+#: ORG/models.py:31
 msgid "Organisationen"
-msgstr "Organisation:"
+msgstr "Organisationen"
 
 #: ORG/pdf_utils.py:236 survey/pdf_utils.py:381
 msgid "Organisation:"
@@ -3694,9 +3572,9 @@ msgstr "Zuteilung freigegeben"
 msgid "Reaktion auf Zuteilung"
 msgstr "Reaktionen"
 
-#: ORG/tables.py:1031 ORG/tables.py:1128
+#: ORG/tables.py:1031
 msgid "Länderzuständigkeit"
-msgstr "Änderungsanträge"
+msgstr "Länderzuständigkeit"
 
 #: ORG/tables.py:1036 ORG/templates/baseOrg.html:90
 #: ORG/templates/list_aufgaben_table.html:109
@@ -3958,11 +3836,6 @@ msgstr "Team"
 msgid "Aufgabenliste"
 msgstr "Aufgaben-Filter"
 
-#: ORG/templates/baseOrg.html:97 ORG/templates/homeOrg_2.html:492
-#: ORG/templates/list_ampel.html:7 TEAM/templates/teamHome.html:340
-msgid "Ampelmeldungen"
-msgstr "Ampelmeldungen"
-
 #: ORG/templates/baseOrg.html:105
 msgid "Inhalte"
 msgstr "Inhalte"
@@ -3996,7 +3869,7 @@ msgstr "Links kopieren"
 #: ORG/templates/change_request_history.html:5
 #: ORG/templates/change_request_history.html:24
 msgid "Änderungsvorschläge Verlauf"
-msgstr "Änderungsanträge"
+msgstr ""
 
 #: ORG/templates/change_request_history.html:25
 msgid "Übersicht aller bearbeiteten Änderungsanfragen"
@@ -4041,7 +3914,7 @@ msgstr "Keine Änderungsvorschläge mit diesem Status"
 
 #: ORG/templates/change_request_history.html:131
 msgid "Keine Änderungsvorschläge"
-msgstr "Änderungsanträge"
+msgstr ""
 
 #: ORG/templates/change_request_history.html:136
 msgid "Es wurden keine Änderungsvorschläge mit dem gewählten Status gefunden."
@@ -4898,56 +4771,40 @@ msgid "Allgemein"
 msgstr ""
 
 #: ORG/views.py:2096
-#, fuzzy
-#| msgid "Ampelmeldung gelesen"
 msgid "Ampelmeldungen abgeben"
-msgstr "Ampelmeldung gelesen"
+msgstr "Ampelmeldungen abgeben"
 
 #: ORG/views.py:2100
-#, fuzzy
-#| msgid "Notfallkontakt hinzufügen"
 msgid "Notfallkontakte eintragen"
-msgstr "Notfallkontakt hinzufügen"
+msgstr "Notfallkontakte eintragen"
 
 #: ORG/views.py:2104
-#, fuzzy
-#| msgid "Konsulatsinformationen hier eingeben..."
 msgid "Einsatzlandinformationen einsehen"
-msgstr "Konsulatsinformationen hier eingeben..."
+msgstr "Einsatzlandinformationen einsehen"
 
 #: ORG/views.py:2113 TEAM/templates/teamContacts.html:5
 msgid "Kontakte"
 msgstr "Kontakte"
 
 #: ORG/views.py:2117
-#, fuzzy
-#| msgid "Ampelmeldung gelesen"
 msgid "Ampelmeldung einsehen"
-msgstr "Ampelmeldung gelesen"
+msgstr "Ampelmeldung einsehen"
 
 #: ORG/views.py:2121 ORG/views.py:2142
-#, fuzzy
-#| msgid "Einsatzstellen Notizen"
 msgid "Einsatzstelleninformationen"
-msgstr "Einsatzstellen Notizen"
+msgstr "Einsatzstelleninformationen"
 
 #: ORG/views.py:2148
-#, fuzzy
-#| msgid "Bewerber:in"
 msgid "Bewerber"
 msgstr "Bewerber:in"
 
 #: ORG/views.py:2151
-#, fuzzy
-#| msgid "Zuteilung"
 msgid "Zuteilung ansehen"
-msgstr "Zuteilung"
+msgstr "Zuteilung ansehen"
 
 #: TEAM/models.py:32
-#, fuzzy
-#| msgid "Mitglieder"
 msgid "Teammitglied"
-msgstr "Mitglieder"
+msgstr "Teammitglied"
 
 #: TEAM/templates/teamAmpelmeldung.html:11
 msgid "Ampel Übersicht"
@@ -4994,16 +4851,12 @@ msgid "Gruppenname"
 msgstr "Gruppenname"
 
 #: chat/forms.py:48
-#, fuzzy
-#| msgid "Nachrichten"
 msgid "Nachricht schreiben…"
-msgstr "Nachrichten"
+msgstr "Nachricht schreiben…"
 
 #: chat/forms.py:71 chat/forms.py:93
-#, fuzzy
-#| msgid "Mindestens ein Text oder Bild ist erforderlich"
 msgid "Nachricht oder Bild erforderlich."
-msgstr "Mindestens ein Text oder Bild ist erforderlich"
+msgstr "Nachricht oder Bild erforderlich."
 
 #: chat/templates/chat-direct.html:6 chat/templates/chat-group.html:5
 #: chat/templates/chat-list.html:5 chat/templates/chat-list.html:14
@@ -5146,40 +4999,28 @@ msgstr "Person(en) ausgewählt"
 
 #: chat/views.py:135 chat/views.py:178 chat/views.py:311 chat/views.py:372
 #: chat/views.py:390 chat/views.py:408 chat/views.py:451 chat/views.py:545
-#, fuzzy
-#| msgid "Seite nicht gefunden"
 msgid "Chat nicht gefunden"
-msgstr "Seite nicht gefunden"
+msgstr "Chat nicht gefunden"
 
 #: chat/views.py:244 chat/views.py:273
-#, fuzzy
-#| msgid "Fehler beim Aktualisieren des Status"
 msgid "Fehler beim Erstellen des Chats"
-msgstr "Fehler beim Aktualisieren des Status"
+msgstr "Fehler beim Erstellen des Chats"
 
 #: chat/views.py:314 chat/views.py:376
-#, fuzzy
-#| msgid "Kein Termin"
 msgid "Keine Berechtigung"
-msgstr "Kein Termin"
+msgstr "Keine Berechtigung"
 
 #: chat/views.py:319
-#, fuzzy
-#| msgid "Ungültiger Status"
 msgid "Ungültige Anfrage"
-msgstr "Ungültiger Status"
+msgstr "Ungültige Anfrage"
 
 #: chat/views.py:326
-#, fuzzy
-#| msgid "Ordner nicht leer"
 msgid "Name darf nicht leer sein"
-msgstr "Ordner nicht leer"
+msgstr "Name darf nicht leer sein"
 
 #: chat/views.py:337 chat/views.py:354
-#, fuzzy
-#| msgid "Benutzer nicht gefunden."
 msgid "Benutzer nicht gefunden"
-msgstr "Benutzer nicht gefunden."
+msgstr "Benutzer nicht gefunden"
 
 #: chat/views.py:349
 msgid "Du kannst dich nicht selbst entfernen"
@@ -5190,10 +5031,8 @@ msgid "Unbekannte Aktion"
 msgstr ""
 
 #: chat/views.py:380
-#, fuzzy
-#| msgid "Gruppe löschen"
 msgid "Gruppe wurde gelöscht."
-msgstr "Alle löschen"
+msgstr "Gruppe wurde gelöscht."
 
 #: chat/views.py:394
 msgid ""
@@ -5202,56 +5041,40 @@ msgid ""
 msgstr ""
 
 #: chat/views.py:424 chat/views.py:467
-#, fuzzy
-#| msgid "Nachrichten"
 msgid "Leere Nachricht"
-msgstr "Nachrichten"
+msgstr "Leere Nachricht"
 
 #: chat/views.py:543
-#, fuzzy
-#| msgid "Ungültiger Status"
 msgid "Ungültiger Chat-Typ"
-msgstr "Ungültiger Status"
+msgstr "Ungültiger Chat-Typ"
 
 #: seminar/models.py:20
-#, fuzzy
-#| msgid "Aufgabenfilter"
 msgid "Fragekategorie"
-msgstr "Aufgaben-Filter"
+msgstr "Fragekategorie"
 
 #: seminar/models.py:21
-#, fuzzy
-#| msgid "Aufgabenfilter"
 msgid "Fragekategorien"
-msgstr "Aufgaben-Filter"
+msgstr "Fragekategorien"
 
 #: seminar/models.py:54
-#, fuzzy
-#| msgid "Frage"
 msgid "Fragen"
-msgstr "Frage"
+msgstr "Fragen"
 
 #: seminar/models.py:67
 msgid "Einheit"
 msgstr ""
 
 #: seminar/models.py:68
-#, fuzzy
-#| msgid "Neuigkeiten"
 msgid "Einheiten"
-msgstr "Neuigkeiten"
+msgstr "Einheiten"
 
 #: seminar/models.py:92
-#, fuzzy
-#| msgid "Bewerbungen"
 msgid "Bewertungen"
-msgstr "Bewerbungen"
+msgstr "Bewertungen"
 
 #: seminar/models.py:167
-#, fuzzy
-#| msgid "Seminar"
 msgid "Seminare"
-msgstr "Seminar"
+msgstr "Seminare"
 
 #: seminar/templates/components/seminar_display_info.html:28
 msgid "Zum Seminar"
@@ -5345,6 +5168,16 @@ msgstr "Umfrage-Admin"
 #: survey/admin.py:229
 msgid "Survey Management"
 msgstr "Umfragenverwaltung"
+
+#: survey/excel_utils.py:73 survey/templates/survey/survey_manage.html:234
+#: survey/templates/survey/survey_results.html:217
+msgid "Participant"
+msgstr "Teilnehmer"
+
+#: survey/excel_utils.py:75 survey/templates/survey/survey_manage.html:236
+#: survey/templates/survey/survey_results.html:219
+msgid "Submitted"
+msgstr "Eingereicht"
 
 #: survey/forms.py:36
 msgid "Enter survey title"
@@ -5658,7 +5491,7 @@ msgstr "Erstellt"
 
 #: survey/templates/survey/admin_survey_list.html:44
 #: survey/templates/survey/survey_manage.html:150
-#: survey/templates/survey/survey_results.html:216
+#: survey/templates/survey/survey_results.html:221
 msgid "Actions"
 msgstr "Aktionen"
 
@@ -6068,7 +5901,7 @@ msgstr "Verwalten"
 #: survey/templates/survey/survey_manage.html:88
 #: survey/templates/survey/survey_manage.html:248
 #: survey/templates/survey/survey_results.html:155
-#: survey/templates/survey/survey_results.html:227
+#: survey/templates/survey/survey_results.html:232
 msgid "Anonymous"
 msgstr "Anonym"
 
@@ -6116,23 +5949,13 @@ msgstr "Kürzliche Antworten"
 msgid "View All Results"
 msgstr "Alle Ergebnisse anzeigen"
 
-#: survey/templates/survey/survey_manage.html:234
-#: survey/templates/survey/survey_results.html:212
-msgid "Participant"
-msgstr "Teilnehmer"
-
-#: survey/templates/survey/survey_manage.html:236
-#: survey/templates/survey/survey_results.html:214
-msgid "Submitted"
-msgstr "Eingereicht"
-
 #: survey/templates/survey/survey_manage.html:237
-#: survey/templates/survey/survey_results.html:215
+#: survey/templates/survey/survey_results.html:220
 msgid "Answers"
 msgstr "Antworten"
 
 #: survey/templates/survey/survey_manage.html:287
-#: survey/templates/survey/survey_results.html:297
+#: survey/templates/survey/survey_results.html:302
 #: survey/templates/survey/survey_thank_you.html:105
 msgid "Copied!"
 msgstr "Kopiert!"
@@ -6231,8 +6054,8 @@ msgid "Response Details"
 msgstr "Antwortdetails"
 
 #: survey/templates/survey/survey_results.html:189
-msgid "Export PDF"
-msgstr "Export PDF"
+msgid "Export"
+msgstr "Export"
 
 #: survey/templates/survey/survey_results.html:194
 msgid "All Responses as PDF"
@@ -6242,19 +6065,23 @@ msgstr "Antworten"
 msgid "All Responses individually as ZIP"
 msgstr "Alle Antworten einzeln als ZIP"
 
-#: survey/templates/survey/survey_results.html:244
+#: survey/templates/survey/survey_results.html:204
+msgid "All Responses as Excel"
+msgstr "Alle Antworten als Excel"
+
+#: survey/templates/survey/survey_results.html:249
 msgid "Export as PDF"
 msgstr "Als PDF exportieren"
 
-#: survey/templates/survey/survey_results.html:266
+#: survey/templates/survey/survey_results.html:271
 msgid "No Responses Yet"
 msgstr "Noch keine Antworten vorhanden"
 
-#: survey/templates/survey/survey_results.html:268
+#: survey/templates/survey/survey_results.html:273
 msgid "Share your survey to start collecting responses!"
 msgstr "Teile deine Umfrage, um mit der Sammlung von Antworten zu beginnen!"
 
-#: survey/templates/survey/survey_results.html:275
+#: survey/templates/survey/survey_results.html:280
 msgid "Copy URL"
 msgstr "URL kopieren"
 
@@ -6314,46 +6141,49 @@ msgstr ""
 msgid "Public URL:"
 msgstr "Öffentliche URL:"
 
-#: survey/views.py:55
+#: survey/views.py:56
 msgid "This survey is not currently available."
 msgstr "Diese Umfrage ist derzeit nicht verfügbar."
 
-#: survey/views.py:60
+#: survey/views.py:61
 msgid "You need to be logged in to participate in this survey."
 msgstr "Du musst angemeldet sein, um an dieser Umfrage teilzunehmen."
 
-#: survey/views.py:155
+#: survey/views.py:156
 msgid "Survey created successfully!"
 msgstr "Umfrage erfolgreich erstellt!"
 
-#: survey/views.py:179
+#: survey/views.py:180
 msgid "Survey updated successfully!"
 msgstr "Umfrage erfolgreich aktualisiert!"
 
-#: survey/views.py:199
+#: survey/views.py:200
 msgid "Survey deleted successfully!"
 msgstr "Umfrage erfolgreich gelöscht!"
 
-#: survey/views.py:244
+#: survey/views.py:245
 msgid "Question added successfully!"
 msgstr "Frage erfolgreich hinzugefügt!"
 
-#: survey/views.py:286
+#: survey/views.py:287
 msgid "Question updated successfully!"
 msgstr "Frage erfolgreich aktualisiert!"
 
-#: survey/views.py:318
+#: survey/views.py:319
 msgid "Question deleted successfully!"
 msgstr "Frage erfolgreich gelöscht!"
 
-#: survey/views.py:474
+#: survey/views.py:475 survey/views.py:556
 msgid "No completed responses found for this survey."
 msgstr "Keine abgeschlossenen Antworten für diese Umfrage gefunden."
 
-#: survey/views.py:518
+#: survey/views.py:519
 #, python-format
 msgid "Error generating PDF export: %(error)s"
 msgstr "Fehler beim Erstellen des PDF-Exports: %(error)s"
+
+#~ msgid "Ampeln"
+#~ msgstr "Ampeln"
 
 #~ msgid "Weiterlesen"
 #~ msgstr "Weiterlesen"

@@ -1125,7 +1125,7 @@ def get_ehemalige_table_class(org, request=None):
             order_by='user_sort'
         ),
         'land': tables.Column(
-            verbose_name=_('Länderzuständigkeit'),
+            verbose_name=_('Länder'),
             accessor='ehemalige.land',
             orderable=False
         ),

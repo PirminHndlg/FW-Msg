@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 import random
 import string
 from simple_history.models import HistoricalRecords
+from django.conf import settings
 
 # Create your models here.
 class Organisation(models.Model):
@@ -33,7 +34,7 @@ class Organisation(models.Model):
         return self.name
     
 @receiver(post_save, sender=Organisation)
-def create_folder(sender, instance, created, **kwargs):
+def create_org_folder(sender, instance, created, **kwargs):
     if created:
         from Global.models import CustomUser, PersonCluster
         from ORG.tasks import send_register_email_task
@@ -41,7 +42,7 @@ def create_folder(sender, instance, created, **kwargs):
         # Sanitize organization name for folder creation
         safe_org_name = instance.name.replace('/', '').replace('\\', '').replace('..', '')
         path = os.path.join(safe_org_name)
-        os.makedirs(os.path.join('dokument', safe_org_name), exist_ok=True)
+        os.makedirs(os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name), exist_ok=True)
 
         if instance.kurzname:
             user_name = instance.kurzname.lower().replace(' ', '_')
@@ -114,7 +115,7 @@ def create_folder(sender, instance, **kwargs):
     safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
     
     path = os.path.join(safe_ordner_name)
-    os.makedirs(os.path.join('dokument', safe_org_name, path), exist_ok=True)
+    os.makedirs(os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, path), exist_ok=True)
 
 
 @receiver(post_delete, sender=Ordner)
@@ -124,7 +125,7 @@ def remove_folder(sender, instance, **kwargs):
     safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
     
     path = os.path.join(safe_ordner_name)
-    path = os.path.join('dokument', safe_org_name, path)
+    path = os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, path)
     if os.path.isdir(path):
         os.rmdir(path)
 
@@ -142,7 +143,8 @@ def upload_to_folder(instance, filename):
     safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
     
     path = os.path.join(safe_ordner_name, filename)
-    return os.path.join('dokument', safe_org_name, path)
+    return os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, path)
+
 
 
 def upload_to_preview_image(instance, filename):
@@ -157,7 +159,7 @@ def upload_to_preview_image(instance, filename):
     # Sanitize org name
     safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
     
-    folder = os.path.join('dokument', safe_org_name, 'preview_image')
+    folder = os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, 'preview_image')
     os.makedirs(folder, exist_ok=True)
     return os.path.join(folder, filename + '.jpg')
 

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-10 17:48+0200\n"
+"POT-Creation-Date: 2026-06-11 15:26+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: English <en@li.org>\n"
@@ -77,6 +77,19 @@ msgstr "Application file"
 #: BW/models.py:457 BW/models.py:483
 msgid "Bewerbungsdateien"
 msgstr "Application files"
+
+#: Ehemalige/models.py:8 Global/models.py:107 Global/models.py:257
+#: Global/models.py:335 chat/forms.py:21
+msgid "Benutzer:in"
+msgstr "User"
+
+#: Ehemalige/models.py:9 ORG/tables.py:1128
+msgid "Länder"
+msgstr "Countries"
+
+#: Ehemalige/models.py:12
+msgid "Registrierungsmail"
+msgstr "Registration email"
 
 #: Ehemalige/models.py:22 Ehemalige/models.py:23 ORG/templates/baseOrg.html:71
 #: ORG/views.py:2135
@@ -260,7 +273,7 @@ msgstr "E.g. Instagram"
 msgid "Freiwillige:r"
 msgstr "Volunteer"
 
-#: FW/templates/ampel.html:10 Global/models.py:836
+#: FW/templates/ampel.html:10
 #: Global/templates/components/profile_header.html:17
 msgid "Ampel"
 msgstr "Status"
@@ -269,7 +282,7 @@ msgstr "Status"
 #: FW/templates/base.html:149 FW/templates/base.html:274
 #: FW/templates/baseFw.html:102 FW/templates/baseFw.html:170
 #: FW/templates/baseFw.html:286 FW/templates/baseFw.html:395
-#: ORG/templates/components/ampel_modal.html:12
+#: Global/models.py:836 ORG/templates/components/ampel_modal.html:12
 #: TEAM/templates/teamAmpelmeldung.html:5
 msgid "Ampelmeldung"
 msgstr "Status report"
@@ -1102,11 +1115,6 @@ msgstr "identifier"
 msgid "Identifikator für den Benutzer"
 msgstr "Identifier for the user"
 
-#: Global/models.py:107 Global/models.py:257 Global/models.py:335
-#: chat/forms.py:21
-msgid "Benutzer:in"
-msgstr "User"
-
 #: Global/models.py:109 Global/templates/bewerber_detail.html:19
 #: Global/templates/bewerber_detail.html:357
 #: Global/templates/bewerber_detail.html:361
@@ -1220,9 +1228,11 @@ msgstr "Custom user fields"
 msgid "Notfallkontakt"
 msgstr "Emergency contact"
 
-#: Global/models.py:837
-msgid "Ampeln"
-msgstr "Traffic lights"
+#: Global/models.py:837 ORG/templates/baseOrg.html:97
+#: ORG/templates/homeOrg_2.html:492 ORG/templates/list_ampel.html:7
+#: TEAM/templates/teamHome.html:340
+msgid "Ampelmeldungen"
+msgstr "Status report"
 
 #: Global/models.py:854
 msgid "Aufgabenkategorie"
@@ -3398,11 +3408,11 @@ msgstr ""
 "Calendar entry saved successfully. Email reminder will be sent in "
 "{mail_task_delay_formatted} minutes."
 
-#: ORG/models.py:29
+#: ORG/models.py:30
 msgid "Organisation"
 msgstr "Organization"
 
-#: ORG/models.py:30
+#: ORG/models.py:31
 msgid "Organisationen"
 msgstr "Organizations"
 
@@ -3529,7 +3539,7 @@ msgstr "Assignment released"
 msgid "Reaktion auf Zuteilung"
 msgstr "Response to assignment"
 
-#: ORG/tables.py:1031 ORG/tables.py:1128
+#: ORG/tables.py:1031
 msgid "Länderzuständigkeit"
 msgstr "Country responsibility"
 
@@ -3785,11 +3795,6 @@ msgstr "Team"
 #: ORG/templates/baseOrg.html:93
 msgid "Aufgabenliste"
 msgstr "Task list"
-
-#: ORG/templates/baseOrg.html:97 ORG/templates/homeOrg_2.html:492
-#: ORG/templates/list_ampel.html:7 TEAM/templates/teamHome.html:340
-msgid "Ampelmeldungen"
-msgstr "Status report"
 
 #: ORG/templates/baseOrg.html:105
 msgid "Inhalte"
@@ -4990,8 +4995,7 @@ msgstr "Group has been deleted."
 msgid ""
 "Als Ersteller:in kannst du die Gruppe nicht verlassen. Lösche sie "
 "stattdessen."
-msgstr ""
-"As the creator, you cannot leave the group. Please delete it instead."
+msgstr "As the creator, you cannot leave the group. Please delete it instead."
 
 #: chat/views.py:424 chat/views.py:467
 msgid "Leere Nachricht"
@@ -5121,6 +5125,16 @@ msgstr "Survey Admin"
 #: survey/admin.py:229
 msgid "Survey Management"
 msgstr "Survey Management"
+
+#: survey/excel_utils.py:73 survey/templates/survey/survey_manage.html:234
+#: survey/templates/survey/survey_results.html:217
+msgid "Participant"
+msgstr "Participant"
+
+#: survey/excel_utils.py:75 survey/templates/survey/survey_manage.html:236
+#: survey/templates/survey/survey_results.html:219
+msgid "Submitted"
+msgstr "Submitted"
 
 #: survey/forms.py:36
 msgid "Enter survey title"
@@ -5434,7 +5448,7 @@ msgstr "Created"
 
 #: survey/templates/survey/admin_survey_list.html:44
 #: survey/templates/survey/survey_manage.html:150
-#: survey/templates/survey/survey_results.html:216
+#: survey/templates/survey/survey_results.html:221
 msgid "Actions"
 msgstr "Actions"
 
@@ -5843,7 +5857,7 @@ msgstr "Manage"
 #: survey/templates/survey/survey_manage.html:88
 #: survey/templates/survey/survey_manage.html:248
 #: survey/templates/survey/survey_results.html:155
-#: survey/templates/survey/survey_results.html:227
+#: survey/templates/survey/survey_results.html:232
 msgid "Anonymous"
 msgstr "Anonymous"
 
@@ -5891,23 +5905,13 @@ msgstr "Recent Responses"
 msgid "View All Results"
 msgstr "View All Results"
 
-#: survey/templates/survey/survey_manage.html:234
-#: survey/templates/survey/survey_results.html:212
-msgid "Participant"
-msgstr "Participant"
-
-#: survey/templates/survey/survey_manage.html:236
-#: survey/templates/survey/survey_results.html:214
-msgid "Submitted"
-msgstr "Submitted"
-
 #: survey/templates/survey/survey_manage.html:237
-#: survey/templates/survey/survey_results.html:215
+#: survey/templates/survey/survey_results.html:220
 msgid "Answers"
 msgstr "Answers"
 
 #: survey/templates/survey/survey_manage.html:287
-#: survey/templates/survey/survey_results.html:297
+#: survey/templates/survey/survey_results.html:302
 #: survey/templates/survey/survey_thank_you.html:105
 msgid "Copied!"
 msgstr "Copied!"
@@ -6004,8 +6008,8 @@ msgid "Response Details"
 msgstr "Response Details"
 
 #: survey/templates/survey/survey_results.html:189
-msgid "Export PDF"
-msgstr "Export PDF"
+msgid "Export"
+msgstr "Export"
 
 #: survey/templates/survey/survey_results.html:194
 msgid "All Responses as PDF"
@@ -6015,19 +6019,23 @@ msgstr "All Responses as PDF"
 msgid "All Responses individually as ZIP"
 msgstr "All Responses individually as ZIP"
 
-#: survey/templates/survey/survey_results.html:244
+#: survey/templates/survey/survey_results.html:204
+msgid "All Responses as Excel"
+msgstr "All Responses as Excel"
+
+#: survey/templates/survey/survey_results.html:249
 msgid "Export as PDF"
 msgstr "Export as PDF"
 
-#: survey/templates/survey/survey_results.html:266
+#: survey/templates/survey/survey_results.html:271
 msgid "No Responses Yet"
 msgstr "No Responses Yet"
 
-#: survey/templates/survey/survey_results.html:268
+#: survey/templates/survey/survey_results.html:273
 msgid "Share your survey to start collecting responses!"
 msgstr "Share your survey to start collecting responses!"
 
-#: survey/templates/survey/survey_results.html:275
+#: survey/templates/survey/survey_results.html:280
 msgid "Copy URL"
 msgstr "Copy URL"
 
@@ -6084,46 +6092,49 @@ msgstr "This unique key is used to access your survey and cannot be changed."
 msgid "Public URL:"
 msgstr "Public URL:"
 
-#: survey/views.py:55
+#: survey/views.py:56
 msgid "This survey is not currently available."
 msgstr "This survey is not currently available."
 
-#: survey/views.py:60
+#: survey/views.py:61
 msgid "You need to be logged in to participate in this survey."
 msgstr "You need to be logged in to participate in this survey."
 
-#: survey/views.py:155
+#: survey/views.py:156
 msgid "Survey created successfully!"
 msgstr "Survey created successfully!"
 
-#: survey/views.py:179
+#: survey/views.py:180
 msgid "Survey updated successfully!"
 msgstr "Survey updated successfully!"
 
-#: survey/views.py:199
+#: survey/views.py:200
 msgid "Survey deleted successfully!"
 msgstr "Survey deleted successfully!"
 
-#: survey/views.py:244
+#: survey/views.py:245
 msgid "Question added successfully!"
 msgstr "Question added successfully!"
 
-#: survey/views.py:286
+#: survey/views.py:287
 msgid "Question updated successfully!"
 msgstr "Question updated successfully!"
 
-#: survey/views.py:318
+#: survey/views.py:319
 msgid "Question deleted successfully!"
 msgstr "Question deleted successfully!"
 
-#: survey/views.py:474
+#: survey/views.py:475 survey/views.py:556
 msgid "No completed responses found for this survey."
 msgstr "No completed responses found for this survey."
 
-#: survey/views.py:518
+#: survey/views.py:519
 #, python-format
 msgid "Error generating PDF export: %(error)s"
 msgstr "Error generating PDF export: %(error)s"
+
+#~ msgid "Ampeln"
+#~ msgstr "Traffic lights"
 
 #~ msgid "User identifier"
 #~ msgstr "User identifier"
@@ -6183,9 +6194,6 @@ msgstr "Error generating PDF export: %(error)s"
 
 #~ msgid "Neuer Wert"
 #~ msgstr "New value"
-
-#~ msgid "Länder"
-#~ msgstr "Countries"
 
 #~ msgid "Geplante Änderungen:"
 #~ msgstr "Planned changes"
