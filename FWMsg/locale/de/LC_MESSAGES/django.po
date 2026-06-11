@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-11 15:26+0200\n"
+"POT-Creation-Date: 2026-06-11 15:36+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: German <de@li.org>\n"
@@ -5417,7 +5417,7 @@ msgstr "Keine Antwort angegeben"
 #: survey/templates/survey/add_question.html:5
 #: survey/templates/survey/add_question.html:14
 #: survey/templates/survey/add_question.html:120
-#: survey/templates/survey/survey_manage.html:136
+#: survey/templates/survey/survey_manage.html:136 survey/tests.py:563
 msgid "Add Question"
 msgstr "Frage hinzufügen"
 
@@ -5469,7 +5469,7 @@ msgstr ""
 "Radio- und Checkbox-Fragen hinzufügen."
 
 #: survey/templates/survey/admin_survey_list.html:4
-#: survey/templates/survey/admin_survey_list.html:13
+#: survey/templates/survey/admin_survey_list.html:13 survey/tests.py:689
 msgid "All Surveys"
 msgstr "Alle Umfragen"
 
@@ -5568,7 +5568,7 @@ msgstr "Meine Umfragen"
 #: survey/templates/survey/base_survey.html:246
 #: survey/templates/survey/survey_create.html:5
 #: survey/templates/survey/survey_create.html:147
-#: survey/templates/survey/survey_thank_you.html:58
+#: survey/templates/survey/survey_thank_you.html:58 survey/tests.py:359
 msgid "Create Survey"
 msgstr "Umfrage erstellen"
 
@@ -5641,7 +5641,7 @@ msgid "Yes, Delete Question"
 msgstr "Ja, Frage löschen"
 
 #: survey/templates/survey/edit_question.html:5
-#: survey/templates/survey/edit_question.html:14
+#: survey/templates/survey/edit_question.html:14 survey/tests.py:601
 msgid "Edit Question"
 msgstr "Frage bearbeiten"
 
@@ -5723,9 +5723,9 @@ msgid "Long text answer"
 msgstr "Lange Textantwort"
 
 #: survey/templates/survey/survey_already_completed.html:4
-#: survey/templates/survey/survey_already_completed.html:14
+#: survey/templates/survey/survey_already_completed.html:14 survey/tests.py:316
 msgid "Already Completed"
-msgstr "Already Completed"
+msgstr "Bereits abgeschlossen"
 
 #: survey/templates/survey/survey_already_completed.html:15
 msgid "You have already participated in this survey"
@@ -6027,7 +6027,7 @@ msgstr "Administrator kontaktieren"
 msgid "Results"
 msgstr "Ergebnisse"
 
-#: survey/templates/survey/survey_results.html:13
+#: survey/templates/survey/survey_results.html:13 survey/tests.py:465
 msgid "Survey Results"
 msgstr "Umfrageergebnisse"
 
@@ -6097,7 +6097,7 @@ msgstr "Danke!"
 msgid "Your response has been recorded successfully"
 msgstr "Deine Antwort wurde erfolgreich erfasst"
 
-#: survey/templates/survey/survey_thank_you.html:31
+#: survey/templates/survey/survey_thank_you.html:31 survey/tests.py:324
 msgid "Thank you for participating in this survey."
 msgstr "Vielen Dank für deine Teilnahme an dieser Umfrage."
 
@@ -6141,7 +6141,7 @@ msgstr ""
 msgid "Public URL:"
 msgstr "Öffentliche URL:"
 
-#: survey/views.py:56
+#: survey/tests.py:237 survey/tests.py:245 survey/views.py:56
 msgid "This survey is not currently available."
 msgstr "Diese Umfrage ist derzeit nicht verfügbar."
 

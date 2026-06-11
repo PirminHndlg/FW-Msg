@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-11 15:26+0200\n"
+"POT-Creation-Date: 2026-06-11 15:36+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: English <en@li.org>\n"
@@ -5374,7 +5374,7 @@ msgstr "No answer provided"
 #: survey/templates/survey/add_question.html:5
 #: survey/templates/survey/add_question.html:14
 #: survey/templates/survey/add_question.html:120
-#: survey/templates/survey/survey_manage.html:136
+#: survey/templates/survey/survey_manage.html:136 survey/tests.py:563
 msgid "Add Question"
 msgstr "Add Question"
 
@@ -5426,7 +5426,7 @@ msgstr ""
 "dropdown, radio, and checkbox questions."
 
 #: survey/templates/survey/admin_survey_list.html:4
-#: survey/templates/survey/admin_survey_list.html:13
+#: survey/templates/survey/admin_survey_list.html:13 survey/tests.py:689
 msgid "All Surveys"
 msgstr "All Surveys"
 
@@ -5525,7 +5525,7 @@ msgstr "My Surveys"
 #: survey/templates/survey/base_survey.html:246
 #: survey/templates/survey/survey_create.html:5
 #: survey/templates/survey/survey_create.html:147
-#: survey/templates/survey/survey_thank_you.html:58
+#: survey/templates/survey/survey_thank_you.html:58 survey/tests.py:359
 msgid "Create Survey"
 msgstr "Create Survey"
 
@@ -5598,7 +5598,7 @@ msgid "Yes, Delete Question"
 msgstr "Yes, Delete Question"
 
 #: survey/templates/survey/edit_question.html:5
-#: survey/templates/survey/edit_question.html:14
+#: survey/templates/survey/edit_question.html:14 survey/tests.py:601
 msgid "Edit Question"
 msgstr "Edit Question"
 
@@ -5680,7 +5680,7 @@ msgid "Long text answer"
 msgstr "Long text answer"
 
 #: survey/templates/survey/survey_already_completed.html:4
-#: survey/templates/survey/survey_already_completed.html:14
+#: survey/templates/survey/survey_already_completed.html:14 survey/tests.py:316
 msgid "Already Completed"
 msgstr "Already Completed"
 
@@ -5981,7 +5981,7 @@ msgstr "Contact Administrator"
 msgid "Results"
 msgstr "Results"
 
-#: survey/templates/survey/survey_results.html:13
+#: survey/templates/survey/survey_results.html:13 survey/tests.py:465
 msgid "Survey Results"
 msgstr "Survey Results"
 
@@ -6051,7 +6051,7 @@ msgstr "Thank You!"
 msgid "Your response has been recorded successfully"
 msgstr "Your response has been recorded successfully"
 
-#: survey/templates/survey/survey_thank_you.html:31
+#: survey/templates/survey/survey_thank_you.html:31 survey/tests.py:324
 msgid "Thank you for participating in this survey."
 msgstr "Thank you for participating in this survey."
 
@@ -6092,7 +6092,7 @@ msgstr "This unique key is used to access your survey and cannot be changed."
 msgid "Public URL:"
 msgstr "Public URL:"
 
-#: survey/views.py:56
+#: survey/tests.py:237 survey/tests.py:245 survey/views.py:56
 msgid "This survey is not currently available."
 msgstr "This survey is not currently available."
 

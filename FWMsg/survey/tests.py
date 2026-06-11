@@ -8,6 +8,7 @@ from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.messages import get_messages
+from django.utils.translation import gettext_lazy as _
 
 from .models import Survey, SurveyQuestion, SurveyQuestionOption, SurveyResponse, SurveyAnswer
 from ORG.models import Organisation
@@ -233,7 +234,7 @@ class SurveyPublicViewsTests(SurveyViewsTestCase):
                                          kwargs={'survey_key': self.survey3.survey_key}))
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'not currently available')
+        self.assertContains(response, _('This survey is not currently available.'))
     
     def test_survey_detail_future_start_date(self):
         """Test survey detail view for survey with future start date"""
@@ -241,7 +242,7 @@ class SurveyPublicViewsTests(SurveyViewsTestCase):
                                          kwargs={'survey_key': self.survey5.survey_key}))
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'not currently available')
+        self.assertContains(response, _('This survey is not currently available.'))
     
     def test_survey_detail_invalid_key(self):
         """Test survey detail view with invalid survey key"""
@@ -312,7 +313,7 @@ class SurveyPublicViewsTests(SurveyViewsTestCase):
                                          kwargs={'survey_key': self.survey2.survey_key}))
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Already Completed')
+        self.assertContains(response, _('Already Completed'))
     
     def test_survey_thank_you_page(self):
         """Test survey thank you page"""
@@ -320,7 +321,7 @@ class SurveyPublicViewsTests(SurveyViewsTestCase):
                                          kwargs={'survey_key': self.survey1.survey_key}))
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Thank you')
+        self.assertContains(response, _('Thank you for participating in this survey.'))
         self.assertContains(response, self.survey1.title)
 
 
@@ -355,7 +356,7 @@ class SurveyManagementViewsTests(SurveyViewsTestCase):
         response = self.client.get(reverse('survey:survey_create'))
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Create Survey')
+        self.assertContains(response, _('Create Survey'))
     
     def test_survey_create_post(self):
         """Test survey creation"""
@@ -461,7 +462,7 @@ class SurveyManagementViewsTests(SurveyViewsTestCase):
         )
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Survey Results')
+        self.assertContains(response, _('Survey Results'))
         self.assertContains(response, self.survey1.title)
 
     def test_export_survey_all_responses_excel(self):
@@ -559,7 +560,7 @@ class SurveyQuestionManagementTests(SurveyViewsTestCase):
         )
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Add Question')
+        self.assertContains(response, _('Add Question'))
     
     def test_add_question_post(self):
         """Test adding a new question"""
@@ -597,7 +598,7 @@ class SurveyQuestionManagementTests(SurveyViewsTestCase):
         )
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Edit Question')
+        self.assertContains(response, _('Edit Question'))
         self.assertContains(response, self.question2.question_text)
     
     def test_edit_question_post(self):
@@ -685,7 +686,7 @@ class SurveyAdminViewsTests(SurveyViewsTestCase):
         response = self.client.get(reverse('survey:admin_survey_list'))
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'All Surveys')
+        self.assertContains(response, _('All Surveys'))
         # Staff user should only see surveys from their organization
         self.assertContains(response, self.survey1.title)
         self.assertNotContains(response, self.survey4.title)
