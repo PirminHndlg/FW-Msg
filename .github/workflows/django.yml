@@ -51,7 +51,12 @@ jobs:
         cd FWMsg
         cp FWMsg/.example-secrets.json FWMsg/.secrets.json
         sed -i 's#/var/log/django/error.log#/tmp/django_error.log#g' FWMsg/settings.py
+    - name: Setup npm dependencies
+      run: |
+        cd FWMsg
+        npm install
     - name: Run Tests
       run: |
         cd FWMsg
+        python manage.py collectstatic --noinput
         python manage.py test --parallel 20 -v 3
