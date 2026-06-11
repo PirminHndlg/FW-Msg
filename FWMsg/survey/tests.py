@@ -464,6 +464,88 @@ class SurveyManagementViewsTests(SurveyViewsTestCase):
         self.assertContains(response, 'Survey Results')
         self.assertContains(response, self.survey1.title)
 
+    def test_export_survey_all_responses_excel(self):
+        """Test exporting all survey responses as Excel"""
+        date_question = SurveyQuestion.objects.create(
+            survey=self.survey1,
+            org=self.org1,
+            question_text='When did you start?',
+            question_type='date',
+            order=3,
+        )
+
+        survey_response = SurveyResponse.objects.create(
+            survey=self.survey1,
+            org=self.survey1.org,
+            respondent=self.user1,
+            is_complete=True,
+        )
+
+        SurveyAnswer.objects.create(
+            response=survey_response,
+            org=self.survey1.org,
+            question=self.question1,
+            text_answer='Test Answer',
+        )
+        choice_answer = SurveyAnswer.objects.create(
+            response=survey_response,
+            org=self.survey1.org,
+            question=self.question2,
+        )
+        choice_answer.selected_options.add(self.option1)
+        SurveyAnswer.objects.create(
+            response=survey_response,
+            org=self.survey1.org,
+            question=date_question,
+            text_answer='2026-06-10',
+        )
+
+        self.client.login(username='user1', password='testpass123')
+
+        response = self.client.get(
+            reverse(
+                'survey:export_survey_all_responses_excel',
+                kwargs={'survey_id': self.survey1.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response['Content-Type'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        self.assertTrue(response.content.startswith(b'PK'))
+        self.assertGreater(len(response.content), 0)
+
+        import io
+
+        import pandas as pd
+
+        df = pd.read_excel(io.BytesIO(response.content))
+        self.assertEqual(df['When did you start?'].iloc[0], '10.06.2026')
+        submitted_column = df.columns[1]
+        submitted = df[submitted_column].iloc[0]
+        if hasattr(submitted, 'strftime'):
+            submitted = submitted.strftime('%d.%m.%Y')
+        self.assertRegex(str(submitted), r'^\d{2}\.\d{2}\.\d{4}$')
+
+    def test_export_survey_all_responses_excel_no_responses(self):
+        """Test Excel export redirects when no completed responses exist"""
+        self.client.login(username='user1', password='testpass123')
+
+        response = self.client.get(
+            reverse(
+                'survey:export_survey_all_responses_excel',
+                kwargs={'survey_id': self.survey1.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            reverse('survey:survey_results', kwargs={'pk': self.survey1.pk}),
+        )
+
 
 class SurveyQuestionManagementTests(SurveyViewsTestCase):
     """Test survey question management views"""

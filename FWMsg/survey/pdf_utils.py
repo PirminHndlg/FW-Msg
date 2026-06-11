@@ -77,7 +77,7 @@ class LogoWithBackground(Flowable):
         c.setFillColor(colors.Color(*self.bg_color))
         c.setStrokeColor(colors.Color(*self.bg_color, alpha=0.8))
         c.setLineWidth(1)
-        c.roundRect(x, y, self.width, self.height, self.corner_radius, fill=1, stroke=1)
+        c.roundRect(x, y + self.height/4, self.width, self.height/2, self.corner_radius, fill=1, stroke=1)
         
         # Add some padding for the logo
         padding = 5
@@ -344,7 +344,7 @@ def generate_survey_response_pdf(survey_response):
                 logo_path = os.path.join(settings.MEDIA_ROOT, str(org.logo))
                 if os.path.exists(logo_path):
                     # Small logo without background for header
-                    logo_img = Image(logo_path, width=0.8*inch, height=0.8*inch, kind='proportional')
+                    logo_img = LogoWithBackground(logo_path=logo_path, width=0.8*inch, height=0.4*inch, bg_color=org_color)
                     header_data = [[logo_img, create_paragraph_with_emojis(org.name, org_name_style)]]
                 else:
                     # No logo file, just show org name
@@ -569,7 +569,7 @@ def generate_survey_all_responses_pdf(survey):
                 logo_path = os.path.join(settings.MEDIA_ROOT, str(org.logo))
                 if os.path.exists(logo_path):
                     # Small logo without background for header
-                    logo_img = Image(logo_path, width=0.6*inch, height=0.6*inch, kind='proportional')
+                    logo_img = LogoWithBackground(logo_path=logo_path, width=0.6*inch, height=0.6*inch, bg_color=org_color)
                     header_data = [[logo_img, create_paragraph_with_emojis(org.name, org_name_style)]]
                 else:
                     # No logo file, just show org name

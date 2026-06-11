@@ -186,7 +186,7 @@
                     {% if total_responses > 0 %}
                             <div class="btn-group" role="group">
                                 <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
-                                    <i class="fas fa-file-pdf me-2"></i>{% trans "Export PDF" %}
+                                    <i class="fas fa-file-pdf me-2"></i>{% trans "Export" %}
                                 </button>
                                 <ul class="dropdown-menu">
                                     <li>
@@ -197,6 +197,11 @@
                                     <li>
                                         <a class="dropdown-item" href="{% url 'survey:export_survey_responses_pdf' survey.id %}">
                                             <i class="fas fa-download me-2"></i>{% trans "All Responses individually as ZIP" %}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'survey:export_survey_all_responses_excel' survey.id %}">
+                                            <i class="fas fa-file-excel me-2"></i>{% trans "All Responses as Excel" %}
                                         </a>
                                     </li>
                                 </ul>

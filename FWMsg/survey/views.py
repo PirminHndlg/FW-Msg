@@ -23,6 +23,7 @@ from .forms import (
     SurveyParticipationForm, SurveyQuestionOptionFormSet
 )
 from .pdf_utils import generate_survey_response_pdf, create_pdf_response, generate_survey_all_responses_pdf
+from .excel_utils import generate_survey_all_responses_excel, create_excel_response
 
 
 def get_client_ip(request):
@@ -538,3 +539,27 @@ def export_survey_all_responses_pdf(request, survey_id):
     filename = filename.replace(' ', '_')
     
     return create_pdf_response(pdf_content, filename)
+
+
+@login_required
+@required_role('OTE')
+def export_survey_all_responses_excel(request, survey_id):
+    """Export all completed survey responses as an Excel file."""
+    if request.user.role == 'O':
+        survey = get_object_or_404(Survey, id=survey_id)
+    else:
+        survey = get_object_or_404(Survey, id=survey_id, created_by=request.user)
+    check_survey_access(request, survey)
+
+    responses = survey.responses.filter(is_complete=True)
+    if not responses.exists():
+        messages.warning(request, _('No completed responses found for this survey.'))
+        return redirect('survey:survey_results', pk=survey.id)
+
+    excel_content = generate_survey_all_responses_excel(survey)
+
+    filename = f"survey_all_responses_{survey.title}_{survey.id}.xlsx"
+    filename = "".join(c for c in filename if c.isalnum() or c in (' ', '-', '_', '.')).rstrip()
+    filename = filename.replace(' ', '_')
+
+    return create_excel_response(excel_content, filename)
