@@ -1,21 +1,20 @@
 {% extends 'mail/base_email.html' %}
-{% load i18n %}
 
 {% block german_content %}
 <tr>
     <td style="padding: 40px 30px;">
         <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
-            {% blocktrans with org=org_name %}Deine Registrierung bei {{ org }} wurde freigeschaltet.{% endblocktrans %}
+            Deine Registrierung bei {{ org_name }} wurde freigeschaltet.
         </p>
 
         <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
-            {% trans "Um dein Passwort festzulegen, besuche die Passwort-zurücksetzen-Seite und gib deine E-Mail-Adresse ein. Du erhältst anschließend eine E-Mail mit weiteren Anweisungen zum ersten Login." %}
+            Um dein Passwort festzulegen, besuche die Passwort-zurücksetzen-Seite und gib deine E-Mail-Adresse ein. Du erhältst anschließend eine E-Mail mit weiteren Anweisungen zum ersten Login.
         </p>
     </td>
 </tr>
 {% endblock %}
 
-{% block german_button_text %}{% trans "Passwort festlegen" %}{% endblock %}
+{% block german_button_text %}Passwort festlegen{% endblock %}
 
 {% block english_content %}
 <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">

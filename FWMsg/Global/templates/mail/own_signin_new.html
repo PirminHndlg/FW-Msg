@@ -1,11 +1,10 @@
 {% extends 'mail/base_email.html' %}
-{% load i18n %}
 
 {% block german_content %}
 <tr>
     <td style="padding: 40px 30px;">
         <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
-            {% trans "Eine neue Registrierungsanfrage wurde eingereicht und wartet auf deine Freigabe." %}
+            Eine neue Registrierungsanfrage wurde eingereicht und wartet auf die Prüfung.
         </p>
 
         <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 30px;">
@@ -14,26 +13,26 @@
                     <table cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
                         <tr>
                             <td style="padding-bottom: 15px;">
-                                <strong style="color: #495057; display: block; margin-bottom: 5px;">{% trans "Name" %}</strong>
+                                <strong style="color: #495057; display: block; margin-bottom: 5px;">Name</strong>
                                 <span style="color: #6c757d;">{{ applicant_name }}</span>
                             </td>
                         </tr>
                         <tr>
                             <td style="padding-bottom: 15px;">
-                                <strong style="color: #495057; display: block; margin-bottom: 5px;">{% trans "E-Mail" %}</strong>
+                                <strong style="color: #495057; display: block; margin-bottom: 5px;">E-Mail</strong>
                                 <span style="color: #6c757d;">{{ applicant_email }}</span>
                             </td>
                         </tr>
                         <tr>
                             <td style="padding-bottom: 15px;">
-                                <strong style="color: #495057; display: block; margin-bottom: 5px;">{% trans "Benutzergruppe" %}</strong>
+                                <strong style="color: #495057; display: block; margin-bottom: 5px;">Benutzergruppe</strong>
                                 <span style="color: #6c757d;">{{ person_cluster_name }}</span>
                             </td>
                         </tr>
                         {% if land_name %}
                         <tr>
                             <td>
-                                <strong style="color: #495057; display: block; margin-bottom: 5px;">{% trans "Land" %}</strong>
+                                <strong style="color: #495057; display: block; margin-bottom: 5px;">Land</strong>
                                 <span style="color: #6c757d;">{{ land_name }}</span>
                             </td>
                         </tr>
@@ -44,17 +43,17 @@
         </table>
 
         <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
-            {% trans "Bitte prüfe die Anfrage und entscheide, ob das Konto freigeschaltet oder abgelehnt werden soll." %}
+            Bitte prüfe die Anfrage und entscheide, ob die Registrierung genehmigt oder abgelehnt werden soll.
         </p>
     </td>
 </tr>
 {% endblock %}
 
-{% block german_button_text %}{% trans "Registrierung prüfen" %}{% endblock %}
+{% block german_button_text %}Registrierung prüfen{% endblock %}
 
 {% block english_content %}
 <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
-    A new registration request has been submitted and is waiting for your approval.
+    A new registration request has been submitted and is waiting for approval.
 </p>
 
 <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 30px;">
@@ -93,7 +92,7 @@
 </table>
 
 <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
-    Please review the request and decide whether to approve or reject the account.
+    Please review the request and decide whether to approve or reject the registration.
 </p>
 {% endblock %}
 

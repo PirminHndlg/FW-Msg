@@ -1,22 +1,21 @@
 {% extends 'mail/base_email.html' %}
-{% load i18n %}
 
 {% block german_content %}
 <tr>
     <td style="padding: 40px 30px;">
         <h1 style="color: {{ org_color }}; margin: 0 0 20px 0; font-size: 24px; font-weight: 600;">
             {% if status == 'approved' %}
-                {% trans "Änderungsvorschlag genehmigt" %}
+                Änderungsvorschlag genehmigt
             {% else %}
-                {% trans "Änderungsvorschlag abgelehnt" %}
+                Änderungsvorschlag abgelehnt
             {% endif %}
         </h1>
         
         <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
             {% if status == 'approved' %}
-                {% trans "Dein Änderungsvorschlag wurde genehmigt und die Änderungen wurden übernommen." %}
+                Dein Änderungsvorschlag wurde genehmigt und die Änderungen wurden übernommen.
             {% else %}
-                {% trans "Dein Änderungsvorschlag wurde abgelehnt." %}
+                Dein Änderungsvorschlag wurde abgelehnt.
             {% endif %}
         </p>
         
@@ -33,7 +32,7 @@
                         </tr>
                         <tr>
                             <td style="padding-bottom: 15px;">
-                                <strong style="color: #495057; display: block; margin-bottom: 5px;">{% trans "Status:" %}</strong>
+                                <strong style="color: #495057; display: block; margin-bottom: 5px;">Status:</strong>
                                 <span style="color: {% if status == 'approved' %}#198754{% else %}#dc3545{% endif %}; font-weight: 600;">
                                     {{ status_display }}
                                 </span>
@@ -41,14 +40,14 @@
                         </tr>
                         <tr>
                             <td style="padding-bottom: 15px;">
-                                <strong style="color: #495057; display: block; margin-bottom: 5px;">{% trans "Geprüft von:" %}</strong>
+                                <strong style="color: #495057; display: block; margin-bottom: 5px;">Geprüft von:</strong>
                                 <span style="color: #6c757d;">{{ reviewer_name }}</span>
                             </td>
                         </tr>
                         {% if review_comment %}
                         <tr>
                             <td>
-                                <strong style="color: #495057; display: block; margin-bottom: 5px;">{% trans "Kommentar:" %}</strong>
+                                <strong style="color: #495057; display: block; margin-bottom: 5px;">Kommentar:</strong>
                                 <span style="color: #6c757d;">{{ review_comment }}</span>
                             </td>
                         </tr>
@@ -61,4 +60,4 @@
 </tr>
 {% endblock %}
 
-{% block german_button_text %}{% trans "Details ansehen" %}{% endblock %}
+{% block german_button_text %}Details ansehen{% endblock %}
