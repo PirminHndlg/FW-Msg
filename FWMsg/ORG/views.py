@@ -682,7 +682,7 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
                     new_data.append(row)
             
             data = new_data
-        
+            
         # Sort data by default if no sort parameter is provided
         if not request.GET.get('sort'):
             data = sorted(data, key=lambda x: x.get('user_sort', ''))
@@ -697,6 +697,8 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
         # Check if any filter is active
         has_active_filters = any(f.get('has_active_filter', False) for f in filter_options) if filter_options else False
         
+        all_emails = ','.join([row.get(model_name.lower(), '').user.email for row in data])
+        
         response = render(request, 'list_objects_table.html', {
             'table': table,
             'model_name': model_name,
@@ -708,7 +710,8 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
             'large_container': True,
             'checkbox_submit_texts': checkbox_submit_texts,
             'filter_options': filter_options,
-            'has_active_filters': has_active_filters
+            'has_active_filters': has_active_filters,
+            'all_emails': all_emails
         })
         
         for filter in filter_options:
