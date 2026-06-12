@@ -56,7 +56,7 @@ class OrgManager(models.Manager):
 
 
 class OrgModel(models.Model):
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name='Organisation')
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, verbose_name=_('Organisation'))
     objects = OrgManager()
 
     class Meta:
@@ -73,21 +73,21 @@ class PersonCluster(OrgModel):
         ('B', 'Bewerber:in')
     ]
 
-    name = models.CharField(max_length=50, verbose_name='Benutzergruppe', help_text='Name der Benutzergruppe, z.B. "Freiwillige 2023" oder "Teamleitung"')
+    name = models.CharField(max_length=50, verbose_name=_('Benutzergruppe'), help_text=_('Name der Benutzergruppe, z.B. "Freiwillige 2023" oder "Teamleitung"'))
 
-    aufgaben = models.BooleanField(default=False, verbose_name='Aufgaben anzeigen', help_text='Aktivieren, um Aufgaben für diese Gruppe anzuzeigen')
-    calendar = models.BooleanField(default=False, verbose_name='Kalender anzeigen', help_text='Aktivieren, um den Kalender für diese Gruppe anzuzeigen')
-    dokumente = models.BooleanField(default=False, verbose_name='Dokumente anzeigen', help_text='Aktivieren, um Dokumente für diese Gruppe anzuzeigen')
-    ampel = models.BooleanField(default=False, verbose_name='Ampelmeldungen abgeben', help_text='Aktivieren, um die Ampelmeldungen für diese Gruppe abgeben zu können')
-    notfallkontakt = models.BooleanField(default=False, verbose_name='Notfallkontakt anlegen', help_text='Aktivieren, um Notfallkontakte für diese Gruppe anlegen zu können')
-    bilder = models.BooleanField(default=False, verbose_name='Bilder hochladen', help_text='Aktivieren, um Bilder für diese Gruppe hochladen zu können')
-    posts = models.BooleanField(default=False, verbose_name='Posts verfassen', help_text='Aktivieren, um Posts für diese Gruppe verfassen zu können')
-    map = models.BooleanField(default=False, verbose_name='Karte sichtbar', help_text='Aktivieren, um die Standortkarte für diese Gruppe sichtbar zu machen')
+    aufgaben = models.BooleanField(default=False, verbose_name=_('Aufgaben anzeigen'), help_text=_('Aktivieren, um Aufgaben für diese Gruppe anzuzeigen'))
+    calendar = models.BooleanField(default=False, verbose_name=_('Kalender anzeigen'), help_text=_('Aktivieren, um den Kalender für diese Gruppe anzuzeigen'))
+    dokumente = models.BooleanField(default=False, verbose_name=_('Dokumente anzeigen'), help_text=_('Aktivieren, um Dokumente für diese Gruppe anzuzeigen'))
+    ampel = models.BooleanField(default=False, verbose_name=_('Ampelmeldungen abgeben'), help_text=_('Aktivieren, um die Ampelmeldungen für diese Gruppe abgeben zu können'))
+    notfallkontakt = models.BooleanField(default=False, verbose_name=_('Notfallkontakt anlegen'), help_text=_('Aktivieren, um Notfallkontakte für diese Gruppe anlegen zu können'))
+    bilder = models.BooleanField(default=False, verbose_name=_('Bilder hochladen'), help_text=_('Aktivieren, um Bilder für diese Gruppe hochladen zu können'))
+    posts = models.BooleanField(default=False, verbose_name=_('Posts verfassen'), help_text=_('Aktivieren, um Posts für diese Gruppe verfassen zu können'))
+    map = models.BooleanField(default=False, verbose_name=_('Karte sichtbar'), help_text=_('Aktivieren, um die Standortkarte für diese Gruppe sichtbar zu machen'))
     
-    view = models.CharField(max_length=1, choices=view_choices, default='F', verbose_name='Standardansicht', help_text='Bestimmt die Standardansicht für Mitglieder dieser Gruppe')
-    active = models.BooleanField(default=True, verbose_name='Aktiv', help_text='Wenn deaktiviert, können sich Benutzer in dieser Gruppe nicht mehr anmelden und die Benutzergruppe wird nicht mehr angezeigt')
+    view = models.CharField(max_length=1, choices=view_choices, default='F', verbose_name=_('Standardansicht'), help_text=_('Bestimmt die Standardansicht für Mitglieder dieser Gruppe'))
+    active = models.BooleanField(default=True, verbose_name=_('Aktiv'), help_text=_('Wenn deaktiviert, können sich Benutzer in dieser Gruppe nicht mehr anmelden und die Benutzergruppe wird nicht mehr angezeigt'))
     
-    own_signin_token = models.CharField(max_length=255, blank=True, null=True, verbose_name='Anmeldetoken zum eigenen Registrieren', help_text='Wenn leer, kann sich kein Benutzer in dieser Gruppe selbst registrieren')
+    own_signin_token = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('Anmeldetoken zum eigenen Registrieren'), help_text=_('Wenn leer, kann sich kein Benutzer in dieser Gruppe selbst registrieren'))
 
     history = HistoricalRecords()
 
@@ -361,13 +361,13 @@ def post_save_handler(sender, instance, created, **kwargs):
         send_feedback_email_task.s(instance.id).apply_async(countdown=10)
 
 class KalenderEvent(OrgModel):
-    user = models.ManyToManyField(User, verbose_name='Teilnehmer:innen', help_text='Personen, die an diesem Termin teilnehmen', related_name='calendar_events')
-    title = models.CharField(max_length=255, verbose_name='Titel', help_text='Titel des Termins')
-    start = models.DateTimeField(verbose_name='Beginnt am', help_text='Startdatum und -uhrzeit des Termins')
-    end = models.DateTimeField(verbose_name='Endet am', help_text='Enddatum und -uhrzeit des Termins')
-    location = models.CharField(max_length=255, verbose_name='Ort', null=True, blank=True, help_text='Ort des Termins (optional)')
-    description = models.TextField(verbose_name='Beschreibung', null=True, blank=True, help_text='Ausführliche Beschreibung des Termins (optional)')
-    mail_reminder_sent_to = models.ManyToManyField(User, blank=True, verbose_name='Mail-Erinnerung gesendet an', help_text='Personen, an die eine Mail-Erinnerung gesendet wurde', related_name='calendar_reminders')
+    user = models.ManyToManyField(User, verbose_name=_('Teilnehmer:innen'), help_text=_('Personen, die an diesem Termin teilnehmen'), related_name='calendar_events')
+    title = models.CharField(max_length=255, verbose_name=_('Titel'), help_text=_('Titel des Termins'))
+    start = models.DateTimeField(verbose_name=_('Beginnt am'), help_text=_('Startdatum und -uhrzeit des Termins'))
+    end = models.DateTimeField(verbose_name=_('Endet am'), help_text=_('Enddatum und -uhrzeit des Termins'))
+    location = models.CharField(max_length=255, verbose_name=_('Ort'), null=True, blank=True, help_text=_('Ort des Termins (optional)'))
+    description = models.TextField(verbose_name=_('Beschreibung'), null=True, blank=True, help_text=_('Ausführliche Beschreibung des Termins (optional)'))
+    mail_reminder_sent_to = models.ManyToManyField(User, blank=True, verbose_name=_('Mail-Erinnerung gesendet an'), help_text=_('Personen, an die eine Mail-Erinnerung gesendet wurde'), related_name='calendar_reminders')
 
     history = HistoricalRecords()
 
@@ -380,9 +380,9 @@ class KalenderEvent(OrgModel):
     
     
 class Ordner2(OrgModel):
-    ordner_name = models.CharField(max_length=255, verbose_name='Ordnername', help_text='Name des Ordners')
-    typ = models.ManyToManyField(PersonCluster, verbose_name='Sichtbar für', help_text='Benutzergruppen, die diesen Ordner sehen können')
-    color = models.ForeignKey('DokumentColor2', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Farbkennzeichnung', help_text='Farbliche Markierung des Ordners')
+    ordner_name = models.CharField(max_length=255, verbose_name=_('Ordnername'), help_text=_('Name des Ordners'))
+    typ = models.ManyToManyField(PersonCluster, verbose_name=_('Sichtbar für'), help_text=_('Benutzergruppen, die diesen Ordner sehen können'))
+    color = models.ForeignKey('DokumentColor2', on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('Farbkennzeichnung'), help_text=_('Farbliche Markierung des Ordners'))
 
     history = HistoricalRecords()
 
@@ -450,15 +450,15 @@ def upload_to_preview_image(instance, filename):
 
 class Dokument2(models.Model):
     org = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    identifier = models.CharField(max_length=255, null=True, blank=True, verbose_name='Identifier', help_text='Eindeutige Kennung der Datei')
+    identifier = models.CharField(max_length=255, null=True, blank=True, verbose_name=_('Identifier'), help_text=_('Eindeutige Kennung der Datei'))
     ordner = models.ForeignKey(Ordner2, on_delete=models.CASCADE)
     dokument = models.FileField(upload_to=upload_to_folder, max_length=255, null=True, blank=True)
-    link = models.URLField(null=True, blank=True, verbose_name='Link', help_text='Link zu einer externen Datei')
-    date_created = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am', help_text='Datum der Erstellung der Datei')
-    date_modified = models.DateTimeField(auto_now=True, verbose_name='Zuletzt geändert am', help_text='Datum der letzten Änderung der Datei')
-    titel = models.CharField(max_length=255, null=True, blank=True, verbose_name='Titel', help_text='Titel der Datei')
-    beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung', help_text='Beschreibung der Datei')
-    darf_bearbeiten = models.ManyToManyField(PersonCluster, verbose_name='Darf bearbeiten', help_text='Benutzergruppen, die diese Datei bearbeiten können')
+    link = models.URLField(null=True, blank=True, verbose_name=_('Link'), help_text=_('Link zu einer externen Datei'))
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'), help_text=_('Datum der Erstellung der Datei'))
+    date_modified = models.DateTimeField(auto_now=True, verbose_name=_('Zuletzt geändert am'), help_text=_('Datum der letzten Änderung der Datei'))
+    titel = models.CharField(max_length=255, null=True, blank=True, verbose_name=_('Titel'), help_text=_('Titel der Datei'))
+    beschreibung = models.TextField(null=True, blank=True, verbose_name=_('Beschreibung'), help_text=_('Beschreibung der Datei'))
+    darf_bearbeiten = models.ManyToManyField(PersonCluster, verbose_name=_('Darf bearbeiten'), help_text=_('Benutzergruppen, die diese Datei bearbeiten können'))
     preview_image = models.ImageField(upload_to=upload_to_preview_image, null=True, blank=True)
 
     history = HistoricalRecords()
@@ -653,8 +653,8 @@ def remove_file(sender, instance, **kwargs):
         os.remove(instance.preview_image.path)
 
 class DokumentColor2(models.Model):
-    name = models.CharField(max_length=50, verbose_name='Farbname')
-    color = models.CharField(max_length=7, verbose_name='Farbcodes')
+    name = models.CharField(max_length=50, verbose_name=_('Farbname'))
+    color = models.CharField(max_length=7, verbose_name=_('Farbcodes'))
 
     history = HistoricalRecords()
 
@@ -728,13 +728,13 @@ def calculate_small_image(image, size=(750, 750), jpeg_quality=85, background_co
 
 
 class Einsatzland2(OrgModel):
-    name = models.CharField(max_length=50, verbose_name='Einsatzland')
-    code = models.CharField(max_length=2, verbose_name='Einsatzland-Code', help_text='Zweistelliger ISO-Code des Einsatzlandes (z.B. DE, CH, AT, ...)')
+    name = models.CharField(max_length=50, verbose_name=_('Einsatzland'))
+    code = models.CharField(max_length=2, verbose_name=_('Einsatzland-Code'), help_text=_('Zweistelliger ISO-Code des Einsatzlandes (z.B. DE, CH, AT, ...)'))
 
-    notfallnummern = models.TextField(verbose_name='Notfallnummern', null=True, blank=True)
-    arztpraxen = models.TextField(verbose_name='Arztpraxen', null=True, blank=True)
-    apotheken = models.TextField(verbose_name='Apotheken', null=True, blank=True)
-    informationen = models.TextField(verbose_name='Weitere Informationen', null=True, blank=True)
+    notfallnummern = models.TextField(verbose_name=_('Notfallnummern'), null=True, blank=True)
+    arztpraxen = models.TextField(verbose_name=_('Arztpraxen'), null=True, blank=True)
+    apotheken = models.TextField(verbose_name=_('Apotheken'), null=True, blank=True)
+    informationen = models.TextField(verbose_name=_('Weitere Informationen'), null=True, blank=True)
 
     history = HistoricalRecords()
     class Meta:
@@ -746,20 +746,20 @@ class Einsatzland2(OrgModel):
         return self.name
 
 class Einsatzstelle2(OrgModel):
-    name = models.CharField(max_length=50, verbose_name='Einsatzstelle')
-    land = models.ForeignKey(Einsatzland2, on_delete=models.CASCADE, verbose_name='Einsatzland', null=True, blank=True)
+    name = models.CharField(max_length=50, verbose_name=_('Einsatzstelle'))
+    land = models.ForeignKey(Einsatzland2, on_delete=models.CASCADE, verbose_name=_('Einsatzland'), null=True, blank=True)
 
-    partnerorganisation = models.TextField(verbose_name='Partnerorganisation', null=True, blank=True)
-    arbeitsvorgesetzter = models.TextField(verbose_name='Arbeitsvorgesetzte:r', null=True, blank=True)
-    mentor = models.TextField(verbose_name='Mentor:in', null=True, blank=True)
-    botschaft = models.TextField(verbose_name='Botschaft', null=True, blank=True)
-    konsulat = models.TextField(verbose_name='Konsulat', null=True, blank=True)
-    informationen = models.TextField(verbose_name='Weitere Informationen', null=True, blank=True)
+    partnerorganisation = models.TextField(verbose_name=_('Partnerorganisation'), null=True, blank=True)
+    arbeitsvorgesetzter = models.TextField(verbose_name=_('Arbeitsvorgesetzte:r'), null=True, blank=True)
+    mentor = models.TextField(verbose_name=_('Mentor:in'), null=True, blank=True)
+    botschaft = models.TextField(verbose_name=_('Botschaft'), null=True, blank=True)
+    konsulat = models.TextField(verbose_name=_('Konsulat'), null=True, blank=True)
+    informationen = models.TextField(verbose_name=_('Weitere Informationen'), null=True, blank=True)
     
-    start_geplant = models.CharField(max_length=6, blank=True, null=True, verbose_name='Start geplant', help_text='Das Datum wann der Einsatzstart geplant ist (Format: DD.MM. (z.B. 15.03.))')
-    ende_geplant = models.CharField(max_length=6, blank=True, null=True, verbose_name='Ende geplant', help_text='Das Datum wann das Einsatzende geplant ist (Format: DD.MM. (z.B. 15.03.))')
+    start_geplant = models.CharField(max_length=6, blank=True, null=True, verbose_name=_('Start geplant'), help_text=_('Das Datum wann der Einsatzstart geplant ist (Format: DD.MM. (z.B. 15.03.))'))
+    ende_geplant = models.CharField(max_length=6, blank=True, null=True, verbose_name=_('Ende geplant'), help_text=_('Das Datum wann das Einsatzende geplant ist (Format: DD.MM. (z.B. 15.03.))'))
     
-    max_freiwillige = models.IntegerField(blank=True, null=True, default=1, verbose_name='Maximale Anzahl Freiwillige')
+    max_freiwillige = models.IntegerField(blank=True, null=True, default=1, verbose_name=_('Maximale Anzahl Freiwillige'))
 
 
     history = HistoricalRecords()
@@ -787,11 +787,11 @@ class Attribute(OrgModel):
         ('C', 'Auswahl')
     ]
 
-    name = models.CharField(max_length=50, verbose_name='Bezeichnung', help_text='Name des benutzerdefinierten Datenfelds')
-    type = models.CharField(max_length=1, choices=TYPE_CHOICES, verbose_name='Datentyp', default='T', help_text='Art der Daten, die in diesem Feld gespeichert werden')
-    value_for_choices = models.CharField(null=True, blank=True, max_length=250, verbose_name='Auswahloptionen', help_text='Nur für Datentyp "Auswahl": Kommagetrennte Optionen, z.B. "Vegan, Vegetarisch, Konventionell"')
-    person_cluster = models.ManyToManyField(PersonCluster, verbose_name='Für Benutzergruppen', help_text='Benutzergruppen, für die dieses Feld relevant ist')
-    visible_in_profile = models.BooleanField(default=True, verbose_name='Im Profil anzeigen', help_text='Aktivieren, um das Feld im Profil auch für die Freiwillige sichtbar zu machen')
+    name = models.CharField(max_length=50, verbose_name=_('Bezeichnung'), help_text=_('Name des benutzerdefinierten Datenfelds'))
+    type = models.CharField(max_length=1, choices=TYPE_CHOICES, verbose_name=_('Datentyp'), default='T', help_text=_('Art der Daten, die in diesem Feld gespeichert werden'))
+    value_for_choices = models.CharField(null=True, blank=True, max_length=250, verbose_name=_('Auswahloptionen'), help_text=_('Nur für Datentyp "Auswahl": Kommagetrennte Optionen, z.B. "Vegan, Vegetarisch, Konventionell"'))
+    person_cluster = models.ManyToManyField(PersonCluster, verbose_name=_('Für Benutzergruppen'), help_text=_('Benutzergruppen, für die dieses Feld relevant ist'))
+    visible_in_profile = models.BooleanField(default=True, verbose_name=_('Im Profil anzeigen'), help_text=_('Aktivieren, um das Feld im Profil auch für die Freiwillige sichtbar zu machen'))
 
     class Meta:
         verbose_name = _('Eigenes Feld')
@@ -802,9 +802,9 @@ class Attribute(OrgModel):
 
 
 class UserAttribute(OrgModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer:in')
-    attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE, verbose_name='Eigenes Feld')
-    value = models.TextField(verbose_name='Wert', null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer:in'))
+    attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE, verbose_name=_('Eigenes Feld'))
+    value = models.TextField(verbose_name=_('Wert'), null=True, blank=True)
 
     class Meta:
         verbose_name = _('Eigenes Feld Benutzer:in')
@@ -815,12 +815,12 @@ class UserAttribute(OrgModel):
 
 
 class Notfallkontakt2(OrgModel):
-    first_name = models.CharField(max_length=50, verbose_name='Vorname', help_text='Vorname des Notfallkontakts')
-    last_name = models.CharField(max_length=50, verbose_name='Nachname', help_text='Nachname des Notfallkontakts')
-    phone_work = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon (Arbeit)', help_text='Geschäftliche Telefonnummer')
-    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name='Telefon (Mobil)', help_text='Mobiltelefonnummer')
-    email = models.EmailField(max_length=100, blank=True, null=True, verbose_name='E-Mail', help_text='E-Mail-Adresse des Notfallkontakts')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer:in', null=True, blank=True, help_text='Zugehörige:r Benutzer:in, für den dieser Notfallkontakt gilt')
+    first_name = models.CharField(max_length=50, verbose_name=_('Vorname'), help_text=_('Vorname des Notfallkontakts'))
+    last_name = models.CharField(max_length=50, verbose_name=_('Nachname'), help_text=_('Nachname des Notfallkontakts'))
+    phone_work = models.CharField(max_length=20, blank=True, null=True, verbose_name=_('Telefon (Arbeit)'), help_text=_('Geschäftliche Telefonnummer'))
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name=_('Telefon (Mobil)'), help_text=_('Mobiltelefonnummer'))
+    email = models.EmailField(max_length=100, blank=True, null=True, verbose_name=_('E-Mail'), help_text=_('E-Mail-Adresse des Notfallkontakts'))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer:in'), null=True, blank=True, help_text=_('Zugehörige:r Benutzer:in, für den dieser Notfallkontakt gilt'))
 
     class Meta:
         verbose_name = _('Notfallkontakt')
@@ -837,11 +837,11 @@ class Ampel2(OrgModel):
         ('R', 'Rot'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer:in', help_text='Benutzer:in, für den dieser Status gilt')
-    status = models.CharField(max_length=1, choices=CHOICES, verbose_name='Status', help_text='Aktueller Status (Grün = alles in Ordnung, Gelb = Aufmerksamkeit nötig, Rot = unmittelbare Hilfe erforderlich)')
-    comment = models.TextField(blank=True, null=True, verbose_name='Kommentar', help_text='Kommentar zur Erläuterung des Status')
-    date = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
-    read = models.BooleanField(default=False, verbose_name='Gelesen', help_text='Zeigt an, ob die Ampel als gelesen markiert ist')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer:in'), help_text=_('Benutzer:in, für den dieser Status gilt'))
+    status = models.CharField(max_length=1, choices=CHOICES, verbose_name=_('Status'), help_text=_('Aktueller Status (Grün = alles in Ordnung, Gelb = Aufmerksamkeit nötig, Rot = unmittelbare Hilfe erforderlich)'))
+    comment = models.TextField(blank=True, null=True, verbose_name=_('Kommentar'), help_text=_('Kommentar zur Erläuterung des Status'))
+    date = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
+    read = models.BooleanField(default=False, verbose_name=_('Gelesen'), help_text=_('Zeigt an, ob die Ampel als gelesen markiert ist'))
     submission_key = models.UUIDField(null=True, blank=True)
 
     class Meta:
@@ -859,9 +859,9 @@ class AufgabenCluster(OrgModel):
         ('N', 'Nach Einsatz'),
     ]
 
-    name = models.CharField(max_length=50, verbose_name='Kategoriename', help_text='Name der Aufgabenkategorie')
-    person_cluster = models.ManyToManyField(PersonCluster, verbose_name='Für Benutzergruppen', help_text='Benutzergruppen, für die diese Kategorie relevant ist')
-    type = models.CharField(max_length=1, choices=TYPE_CHOICES, verbose_name='Zeitraum', help_text='Zeitraum, in dem Aufgaben dieser Kategorie anfallen (nur für Freiwillige)', null=True, blank=True)
+    name = models.CharField(max_length=50, verbose_name=_('Kategoriename'), help_text=_('Name der Aufgabenkategorie'))
+    person_cluster = models.ManyToManyField(PersonCluster, verbose_name=_('Für Benutzergruppen'), help_text=_('Benutzergruppen, für die diese Kategorie relevant ist'))
+    type = models.CharField(max_length=1, choices=TYPE_CHOICES, verbose_name=_('Zeitraum'), help_text=_('Zeitraum, in dem Aufgaben dieser Kategorie anfallen (nur für Freiwillige)'), null=True, blank=True)
     class Meta:
         verbose_name = _('Aufgabenkategorie')
         verbose_name_plural = _('Aufgabenkategorien')
@@ -871,23 +871,23 @@ class AufgabenCluster(OrgModel):
 
 class Aufgabe2(OrgModel):
 
-    name = models.CharField(max_length=50, verbose_name='Name', help_text='Name der Aufgabe')
-    beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung', help_text='Ausführliche Beschreibung der Aufgabe')
-    mitupload = models.BooleanField(default=True, verbose_name='Datei-Upload erforderlich', help_text='Ermöglicht und erfordert das Hochladen von Dateien bei dieser Aufgabe')
-    requires_submission = models.BooleanField(default=True, verbose_name='Bestätigung erforderlich', help_text='Wenn aktiviert, wird die Aufgabe nach Erledigung als pending markiert und muss manuell als erledigt bestätigt werden')
-    with_email_notification = models.BooleanField(default=True, verbose_name='E-Mail-Benachrichtigung', help_text='Wenn aktiviert, wird eine E-Mail-Benachrichtigung an die Organisation gesendet, wenn die Aufgabe erledigt ist')
-    faellig_art = models.ForeignKey(AufgabenCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Kategorie', help_text='Kategorie dieser Aufgabe, bestimmt den Zeitraum')
-    faellig_tag = models.IntegerField(blank=True, null=True, verbose_name='Fällig am Tag', validators=[validators.MinValueValidator(1), validators.MaxValueValidator(31)], help_text='Tag im Monat, an dem die Aufgabe fällig ist (1-31)')
-    faellig_monat = models.IntegerField(blank=True, null=True, verbose_name='Fällig im Monat', validators=[validators.MinValueValidator(1), validators.MaxValueValidator(12)], help_text='Monat, in dem die Aufgabe fällig ist (1-12)')
-    faellig_tage_nach_start = models.IntegerField(blank=True, null=True, verbose_name='Tage nach Einsatzbeginn', validators=[validators.MinValueValidator(0)], help_text='Anzahl der Tage nach Einsatzbeginn, wann die Aufgabe fällig ist')
-    faellig_tage_vor_ende = models.IntegerField(blank=True, null=True, verbose_name='Tage vor Einsatzende', validators=[validators.MinValueValidator(0)], help_text='Anzahl der Tage vor Einsatzende, wann die Aufgabe fällig ist')
-    repeat_push_days = models.IntegerField(default=7, verbose_name='Wartezeit bis nächste Benachrichtigung', validators=[validators.MinValueValidator(0)], help_text='Anzahl der Tage, die gewartet wird, bevor eine neue Benachrichtigung für eine nicht erledigte Aufgabe gesendet wird')
-    person_cluster = models.ManyToManyField(PersonCluster, verbose_name='Für Benutzergruppen', help_text='Benutzergruppen, für die diese Aufgabe relevant ist')
-    wiederholung = models.BooleanField(default=False, verbose_name='Regelmäßige Wiederholung', help_text='Wenn aktiviert, wird die Aufgabe regelmäßig wiederholt')
-    wiederholung_interval_wochen = models.IntegerField(blank=True, null=True, verbose_name='Wiederholung alle x Wochen', validators=[validators.MinValueValidator(0)], help_text='Wiederholungsintervall in Wochen')
-    wiederholung_ende = models.DateField(blank=True, null=True, verbose_name='Wiederholung bis', help_text='Datum, bis zu dem die Aufgabe wiederholt wird')
-    attachment = models.FileField(upload_to='aufgaben_attachments/', blank=True, null=True, verbose_name='Anhang', help_text='Optionale Datei als Anhang für diese Aufgabe')
-    visible_by_team = models.BooleanField(default=False, verbose_name='Für Team sichtbar', help_text='Aktivieren, um die Aufgabe auch für Teammitglieder mit gleichem Land sichtbar zu machen (nur für Aufgaben für Freiwillige)')
+    name = models.CharField(max_length=50, verbose_name=_('Name'), help_text=_('Name der Aufgabe'))
+    beschreibung = models.TextField(null=True, blank=True, verbose_name=_('Beschreibung'), help_text=_('Ausführliche Beschreibung der Aufgabe'))
+    mitupload = models.BooleanField(default=True, verbose_name=_('Datei-Upload erforderlich'), help_text=_('Ermöglicht und erfordert das Hochladen von Dateien bei dieser Aufgabe'))
+    requires_submission = models.BooleanField(default=True, verbose_name=_('Bestätigung erforderlich'), help_text=_('Wenn aktiviert, wird die Aufgabe nach Erledigung als pending markiert und muss manuell als erledigt bestätigt werden'))
+    with_email_notification = models.BooleanField(default=True, verbose_name=_('E-Mail-Benachrichtigung'), help_text=_('Wenn aktiviert, wird eine E-Mail-Benachrichtigung an die Organisation gesendet, wenn die Aufgabe erledigt ist'))
+    faellig_art = models.ForeignKey(AufgabenCluster, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('Kategorie'), help_text=_('Kategorie dieser Aufgabe, bestimmt den Zeitraum'))
+    faellig_tag = models.IntegerField(blank=True, null=True, verbose_name=_('Fällig am Tag'), validators=[validators.MinValueValidator(1), validators.MaxValueValidator(31)], help_text=_('Tag im Monat, an dem die Aufgabe fällig ist (1-31)'))
+    faellig_monat = models.IntegerField(blank=True, null=True, verbose_name=_('Fällig im Monat'), validators=[validators.MinValueValidator(1), validators.MaxValueValidator(12)], help_text=_('Monat, in dem die Aufgabe fällig ist (1-12)'))
+    faellig_tage_nach_start = models.IntegerField(blank=True, null=True, verbose_name=_('Tage nach Einsatzbeginn'), validators=[validators.MinValueValidator(0)], help_text=_('Anzahl der Tage nach Einsatzbeginn, wann die Aufgabe fällig ist'))
+    faellig_tage_vor_ende = models.IntegerField(blank=True, null=True, verbose_name=_('Tage vor Einsatzende'), validators=[validators.MinValueValidator(0)], help_text=_('Anzahl der Tage vor Einsatzende, wann die Aufgabe fällig ist'))
+    repeat_push_days = models.IntegerField(default=7, verbose_name=_('Wartezeit bis nächste Benachrichtigung'), validators=[validators.MinValueValidator(0)], help_text=_('Anzahl der Tage, die gewartet wird, bevor eine neue Benachrichtigung für eine nicht erledigte Aufgabe gesendet wird'))
+    person_cluster = models.ManyToManyField(PersonCluster, verbose_name=_('Für Benutzergruppen'), help_text=_('Benutzergruppen, für die diese Aufgabe relevant ist'))
+    wiederholung = models.BooleanField(default=False, verbose_name=_('Regelmäßige Wiederholung'), help_text=_('Wenn aktiviert, wird die Aufgabe regelmäßig wiederholt'))
+    wiederholung_interval_wochen = models.IntegerField(blank=True, null=True, verbose_name=_('Wiederholung alle x Wochen'), validators=[validators.MinValueValidator(0)], help_text=_('Wiederholungsintervall in Wochen'))
+    wiederholung_ende = models.DateField(blank=True, null=True, verbose_name=_('Wiederholung bis'), help_text=_('Datum, bis zu dem die Aufgabe wiederholt wird'))
+    attachment = models.FileField(upload_to='aufgaben_attachments/', blank=True, null=True, verbose_name=_('Anhang'), help_text=_('Optionale Datei als Anhang für diese Aufgabe'))
+    visible_by_team = models.BooleanField(default=False, verbose_name=_('Für Team sichtbar'), help_text=_('Aktivieren, um die Aufgabe auch für Teammitglieder mit gleichem Land sichtbar zu machen (nur für Aufgaben für Freiwillige)'))
 
     history = HistoricalRecords()
 
@@ -900,9 +900,9 @@ class Aufgabe2(OrgModel):
     
 
 class AufgabeZwischenschritte2(OrgModel):
-    aufgabe = models.ForeignKey(Aufgabe2, on_delete=models.CASCADE, verbose_name='Aufgabe')
-    name = models.CharField(max_length=50, verbose_name='Name', help_text='Name des Zwischenschritts')
-    beschreibung = models.TextField(null=True, blank=True, verbose_name='Beschreibung', help_text='Beschreibung des Zwischenschritts')
+    aufgabe = models.ForeignKey(Aufgabe2, on_delete=models.CASCADE, verbose_name=_('Aufgabe'))
+    name = models.CharField(max_length=50, verbose_name=_('Name'), help_text=_('Name des Zwischenschritts'))
+    beschreibung = models.TextField(null=True, blank=True, verbose_name=_('Beschreibung'), help_text=_('Beschreibung des Zwischenschritts'))
 
     class Meta:
         verbose_name = _('Aufgabe Zwischenschritt')
@@ -937,19 +937,19 @@ class UserAufgaben(OrgModel):
         ('N', 'Nicht wiederholen')
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer:in', help_text='Benutzer:in, dem diese Aufgabe zugewiesen ist', db_index=True)
-    aufgabe = models.ForeignKey(Aufgabe2, on_delete=models.CASCADE, verbose_name='Aufgabe', help_text='Die zugewiesene Aufgabe', db_index=True)
-    personalised_description = models.TextField(blank=True, null=True, verbose_name='Persönliche Notizen', help_text='Individuelle Anmerkungen zu dieser Aufgabe')
-    erledigt = models.BooleanField(default=False, verbose_name='Abgeschlossen', help_text='Zeigt an, ob die Aufgabe abgeschlossen ist')
-    pending = models.BooleanField(default=False, verbose_name='Pending', help_text='Zeigt an, dass die Aufgabe begonnen aber noch nicht abgeschlossen wurde')
-    datetime = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
-    faellig = models.DateField(blank=True, null=True, verbose_name='Fälligkeitsdatum', help_text='Datum, bis zu dem die Aufgabe erledigt sein sollte')
-    last_reminder = models.DateField(blank=True, null=True, verbose_name='Letzte Erinnerung', help_text='Datum der letzten versendeten Erinnerung')
-    erledigt_am = models.DateField(blank=True, null=True, verbose_name='Abgeschlossen am', help_text='Datum, an dem die Aufgabe abgeschlossen wurde')
-    file = models.FileField(upload_to='uploads/', max_length=255, blank=True, null=True, verbose_name='Angehängte Datei', help_text='Datei, die für diese Aufgabe hochgeladen wurde')
-    file_list = models.JSONField(blank=True, null=True, verbose_name='Angehängte Dateien', help_text='Dateien, die für diese Aufgabe hochgeladen wurden')
-    file_downloaded_of = models.ManyToManyField(User, blank=True, verbose_name='Dateien heruntergeladen von', help_text='Benutzer, die die Dateien heruntergeladen haben', related_name='file_downloaded_of')
-    benachrichtigung_cc = models.CharField(max_length=255, blank=True, null=True, verbose_name='E-Mail-Kopie an', help_text='Weitere E-Mail-Adressen, die Benachrichtigungen erhalten sollen (kommagetrennt)')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer:in'), help_text=_('Benutzer:in, dem diese Aufgabe zugewiesen ist'), db_index=True)
+    aufgabe = models.ForeignKey(Aufgabe2, on_delete=models.CASCADE, verbose_name=_('Aufgabe'), help_text=_('Die zugewiesene Aufgabe'), db_index=True)
+    personalised_description = models.TextField(blank=True, null=True, verbose_name=_('Persönliche Notizen'), help_text=_('Individuelle Anmerkungen zu dieser Aufgabe'))
+    erledigt = models.BooleanField(default=False, verbose_name=_('Abgeschlossen'), help_text=_('Zeigt an, ob die Aufgabe abgeschlossen ist'))
+    pending = models.BooleanField(default=False, verbose_name=_('Pending'), help_text=_('Zeigt an, dass die Aufgabe begonnen aber noch nicht abgeschlossen wurde'))
+    datetime = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
+    faellig = models.DateField(blank=True, null=True, verbose_name=_('Fälligkeitsdatum'), help_text=_('Datum, bis zu dem die Aufgabe erledigt sein sollte'))
+    last_reminder = models.DateField(blank=True, null=True, verbose_name=_('Letzte Erinnerung'), help_text=_('Datum der letzten versendeten Erinnerung'))
+    erledigt_am = models.DateField(blank=True, null=True, verbose_name=_('Abgeschlossen am'), help_text=_('Datum, an dem die Aufgabe abgeschlossen wurde'))
+    file = models.FileField(upload_to='uploads/', max_length=255, blank=True, null=True, verbose_name=_('Angehängte Datei'), help_text=_('Datei, die für diese Aufgabe hochgeladen wurde'))
+    file_list = models.JSONField(blank=True, null=True, verbose_name=_('Angehängte Dateien'), help_text=_('Dateien, die für diese Aufgabe hochgeladen wurden'))
+    file_downloaded_of = models.ManyToManyField(User, blank=True, verbose_name=_('Dateien heruntergeladen von'), help_text=_('Benutzer, die die Dateien heruntergeladen haben'), related_name='file_downloaded_of')
+    benachrichtigung_cc = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('E-Mail-Kopie an'), help_text=_('Weitere E-Mail-Adressen, die Benachrichtigungen erhalten sollen (kommagetrennt)'))
     history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
@@ -1027,9 +1027,9 @@ class UserAufgaben(OrgModel):
 
 
 class UserAufgabenZwischenschritte(OrgModel):
-    user_aufgabe = models.ForeignKey(UserAufgaben, on_delete=models.CASCADE, verbose_name='User Aufgabe')
-    aufgabe_zwischenschritt = models.ForeignKey(AufgabeZwischenschritte2, on_delete=models.CASCADE, verbose_name='Aufgabe Zwischenschritt')
-    erledigt = models.BooleanField(default=False, verbose_name='Erledigt')
+    user_aufgabe = models.ForeignKey(UserAufgaben, on_delete=models.CASCADE, verbose_name=_('User Aufgabe'))
+    aufgabe_zwischenschritt = models.ForeignKey(AufgabeZwischenschritte2, on_delete=models.CASCADE, verbose_name=_('Aufgabe Zwischenschritt'))
+    erledigt = models.BooleanField(default=False, verbose_name=_('Erledigt'))
 
     class Meta:
         verbose_name = _('Freiwilliger Aufgaben Zwischenschritt')
@@ -1182,8 +1182,8 @@ class Bilder2(OrgModel):
         return reactions_by_emoji
 
 class BilderComment(OrgModel):
-    bilder = models.ForeignKey(Bilder2, on_delete=models.CASCADE, related_name='comments', verbose_name='Bild')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
+    bilder = models.ForeignKey(Bilder2, on_delete=models.CASCADE, related_name='comments', verbose_name=_('Bild'))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer'))
     comment = models.TextField(max_length=500, verbose_name=_('Kommentar'))
     date_created = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
     date_updated = models.DateTimeField(auto_now=True, verbose_name=_('Aktualisiert am'))
@@ -1209,8 +1209,8 @@ class BilderReaction(OrgModel):
         ('😡', _('Wütend')),
     ]
     
-    bilder = models.ForeignKey(Bilder2, on_delete=models.CASCADE, related_name='reactions', verbose_name='Bild')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
+    bilder = models.ForeignKey(Bilder2, on_delete=models.CASCADE, related_name='reactions', verbose_name=_('Bild'))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer'))
     emoji = models.CharField(max_length=10, choices=EMOJI_CHOICES, verbose_name=_('Emoji'))
     date_created = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
 
@@ -1226,10 +1226,10 @@ class BilderReaction(OrgModel):
 
 
 class BilderGallery2(OrgModel):
-    image = models.ImageField(upload_to='bilder/', verbose_name='Bild')
+    image = models.ImageField(upload_to='bilder/', verbose_name=_('Bild'))
 
-    small_image = models.ImageField(upload_to='bilder/small/', blank=True, null=True, verbose_name='Kleines Bild')
-    bilder = models.ForeignKey(Bilder2, on_delete=models.CASCADE, verbose_name='Bild')
+    small_image = models.ImageField(upload_to='bilder/small/', blank=True, null=True, verbose_name=_('Kleines Bild'))
+    bilder = models.ForeignKey(Bilder2, on_delete=models.CASCADE, verbose_name=_('Bild'))
 
     history = HistoricalRecords()
 
@@ -1273,9 +1273,9 @@ def delete_bilder_files(sender, instance, **kwargs):
 
 
 class ProfilUser2(OrgModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
-    attribut = models.CharField(max_length=50, verbose_name='Attribut', help_text='Attribut, das gespeichert werden soll')
-    value = models.TextField(verbose_name='Wert', help_text='Wert, der gespeichert werden soll')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer'))
+    attribut = models.CharField(max_length=50, verbose_name=_('Attribut'), help_text=_('Attribut, das gespeichert werden soll'))
+    value = models.TextField(verbose_name=_('Wert'), help_text=_('Wert, der gespeichert werden soll'))
 
     history = HistoricalRecords()
 
@@ -1288,8 +1288,8 @@ class ProfilUser2(OrgModel):
 
 
 class Maintenance(models.Model):
-    maintenance_start_time = models.DateTimeField(verbose_name='Wartung startet am')
-    maintenance_end_time = models.DateTimeField(verbose_name='Wartung endet am')
+    maintenance_start_time = models.DateTimeField(verbose_name=_('Wartung startet am'))
+    maintenance_end_time = models.DateTimeField(verbose_name=_('Wartung endet am'))
 
     class Meta:
         verbose_name = _('Wartung')
@@ -1301,14 +1301,14 @@ class PushSubscription(models.Model):
     Model to store push notification subscription information for users.
     This enables web push notifications to be sent to browsers.
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, help_text="User who has subscribed to push notifications")
-    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, help_text="Organization the user belongs to")
-    endpoint = models.URLField(max_length=500, help_text="Push subscription endpoint URL")
-    p256dh = models.CharField(max_length=500, help_text="User's public key for encryption")
-    auth = models.CharField(max_length=500, help_text="Authentication secret")
-    name = models.CharField(max_length=255, blank=True, null=True, help_text="Optional name for this device/browser")
-    created_at = models.DateTimeField(auto_now_add=True, help_text="When this subscription was created")
-    last_used = models.DateTimeField(null=True, blank=True, help_text="When this subscription was last used successfully")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, help_text=_("User who has subscribed to push notifications"))
+    org = models.ForeignKey(Organisation, on_delete=models.CASCADE, help_text=_("Organization the user belongs to"))
+    endpoint = models.URLField(max_length=500, help_text=_("Push subscription endpoint URL"))
+    p256dh = models.CharField(max_length=500, help_text=_("User's public key for encryption"))
+    auth = models.CharField(max_length=500, help_text=_("Authentication secret"))
+    name = models.CharField(max_length=255, blank=True, null=True, help_text=_("Optional name for this device/browser"))
+    created_at = models.DateTimeField(auto_now_add=True, help_text=_("When this subscription was created"))
+    last_used = models.DateTimeField(null=True, blank=True, help_text=_("When this subscription was last used successfully"))
     
     class Meta:
         verbose_name = _('Push-Abonnement')
@@ -1321,11 +1321,11 @@ class PushSubscription(models.Model):
 
 
 class EinsatzstelleNotiz(OrgModel):
-    einsatzstelle = models.ForeignKey(Einsatzstelle2, on_delete=models.CASCADE, verbose_name='Einsatzstelle')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
-    notiz = models.TextField(verbose_name='Notiz', null=True, blank=True, help_text='Notiz der Einsatzstelle')
-    date = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
-    pinned = models.BooleanField(default=False, verbose_name='Angeheftet')
+    einsatzstelle = models.ForeignKey(Einsatzstelle2, on_delete=models.CASCADE, verbose_name=_('Einsatzstelle'))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer'))
+    notiz = models.TextField(verbose_name=_('Notiz'), null=True, blank=True, help_text=_('Notiz der Einsatzstelle'))
+    date = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
+    pinned = models.BooleanField(default=False, verbose_name=_('Angeheftet'))
     
     class Meta:
         verbose_name = _('Einsatzstellen Notiz')
@@ -1336,11 +1336,11 @@ class EinsatzstelleNotiz(OrgModel):
     
     
 class StickyNote(OrgModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Benutzer')
-    notiz = models.CharField(max_length=1000, verbose_name='Notiz', null=True, blank=True, help_text='Notiz')
-    date = models.DateTimeField(auto_now_add=True, verbose_name='Erstellt am')
-    pinned = models.BooleanField(default=False, verbose_name='Angeheftet')
-    priority = models.IntegerField(default=0, verbose_name='Priorität', help_text='Priorität der Notiz')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer'))
+    notiz = models.CharField(max_length=1000, verbose_name=_('Notiz'), null=True, blank=True, help_text=_('Notiz'))
+    date = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
+    pinned = models.BooleanField(default=False, verbose_name=_('Angeheftet'))
+    priority = models.IntegerField(default=0, verbose_name=_('Priorität'), help_text=_('Priorität der Notiz'))
     
     class Meta:
         verbose_name = _('Sticky Note')
@@ -1365,7 +1365,7 @@ class ChangeRequest(OrgModel):
     
     # Core fields
     change_type = models.CharField(max_length=20, choices=CHANGE_TYPE_CHOICES, verbose_name=_('Änderungstyp'))
-    object_id = models.PositiveIntegerField(verbose_name='Objekt-ID')  # ID of Einsatzland2 or Einsatzstelle2
+    object_id = models.PositiveIntegerField(verbose_name=_('Objekt-ID'))  # ID of Einsatzland2 or Einsatzstelle2
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name=_('Status'))
     
     # Users involved
