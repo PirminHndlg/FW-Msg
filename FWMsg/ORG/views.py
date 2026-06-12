@@ -2525,16 +2525,16 @@ def own_signin_requests(request):
     })
 
 
-@login_required
-@required_role('O')
-def review_own_signin_user(request, pk):
-    """Review a pending own-signin registration request."""
-    from Home.models import OwnSigninUser
+def _redirect_after_own_signin_action(request):
+    from django.utils.http import url_has_allowed_host_and_scheme
 
-    own_signin_user = get_object_or_404(OwnSigninUser, pk=pk, org=request.user.org)
-    return render(request, 'review_own_signin_user.html', {
-        'own_signin_user': own_signin_user,
-    })
+    next_url = request.POST.get('next')
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+    ):
+        return redirect(next_url)
+    return redirect('own_signin_requests')
 
 
 @login_required
@@ -2549,15 +2549,11 @@ def approve_own_signin_user(request, pk):
     own_signin_user = get_object_or_404(OwnSigninUser, pk=pk, org=request.user.org)
     try:
         approve_signin(own_signin_user)
-        messages.success(
-            request,
-            _('Registrierung wurde freigeschaltet. Der Benutzer wurde per E-Mail benachrichtigt.'),
-        )
     except OwnSigninApprovalError as e:
         messages.error(request, str(e))
     except Exception as e:
         messages.error(request, _('Fehler bei der Freischaltung: %(error)s') % {'error': str(e)})
-    return redirect('own_signin_requests')
+    return _redirect_after_own_signin_action(request)
 
 
 @login_required
@@ -2574,4 +2570,4 @@ def deny_own_signin_user(request, pk):
         messages.success(request, _('Registrierung wurde abgelehnt.'))
     except Exception as e:
         messages.error(request, _('Fehler bei der Ablehnung: %(error)s') % {'error': str(e)})
-    return redirect('own_signin_requests')
+    return _redirect_after_own_signin_action(request)

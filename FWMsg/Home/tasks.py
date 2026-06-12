@@ -35,7 +35,7 @@ def send_own_signin_org_notification_task(own_signin_user_id):
         return False
 
     applicant_name = f'{own_signin_user.first_name} {own_signin_user.last_name}'.strip()
-    action_url = f'{settings.DOMAIN_HOST}{reverse("review_own_signin_user", args=[own_signin_user.id])}'
+    action_url = f'{settings.DOMAIN_HOST}{reverse("own_signin_requests")}'
     image_url = get_logo_url(org)
     org_color = get_org_color(org)
 

@@ -64,7 +64,6 @@ urlpatterns = [
 
     # Own signin registration requests
     path('own-signin-requests/', views.own_signin_requests, name='own_signin_requests'),
-    path('own-signin-requests/<int:pk>/', views.review_own_signin_user, name='review_own_signin_user'),
     path('own-signin-requests/<int:pk>/approve/', views.approve_own_signin_user, name='approve_own_signin_user'),
     path('own-signin-requests/<int:pk>/deny/', views.deny_own_signin_user, name='deny_own_signin_user'),
 ]

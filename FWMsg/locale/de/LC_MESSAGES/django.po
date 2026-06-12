@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 15:28+0200\n"
+"POT-Creation-Date: 2026-06-12 17:15+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: German <de@li.org>\n"
@@ -94,7 +94,7 @@ msgid "Registrierungsmail"
 msgstr "Registrierungsmail"
 
 #: Ehemalige/models.py:22 Ehemalige/models.py:23 ORG/templates/baseOrg.html:71
-#: ORG/views.py:2183
+#: ORG/views.py:2186
 msgid "Ehemalige"
 msgstr "Ehemalige"
 
@@ -108,7 +108,7 @@ msgid "Home"
 msgstr "Home"
 
 #: Ehemalige/templates/baseEhemalige.html:59 Global/models.py:1059
-#: ORG/templates/baseOrg.html:115 ORG/views.py:2107
+#: ORG/templates/baseOrg.html:115 ORG/views.py:2110
 msgid "Posts"
 msgstr "Posts"
 
@@ -116,7 +116,7 @@ msgstr "Posts"
 #: FW/templates/baseFw.html:295 Global/models.py:1125
 #: Global/templates/bild.html:67 Global/templates/bilder.html:9
 #: Global/templates/bilder.html:23 Global/templates/profil.html:37
-#: ORG/templates/baseOrg.html:112 ORG/views.py:2115
+#: ORG/templates/baseOrg.html:112 ORG/views.py:2118
 msgid "Bilder"
 msgstr "Bilder"
 
@@ -127,7 +127,7 @@ msgstr "Bilder"
 #: FW/templates/homeFw.html:22 Global/models.py:896
 #: ORG/templates/aufgaben_assign.html:82 ORG/templates/baseOrg.html:86
 #: ORG/templates/list_aufgaben.html:5 ORG/templates/list_aufgaben_table.html:5
-#: ORG/views.py:2136 TEAM/templates/baseTeam.html:54
+#: ORG/views.py:2139 TEAM/templates/baseTeam.html:54
 msgid "Aufgaben"
 msgstr "Aufgaben"
 
@@ -135,7 +135,7 @@ msgstr "Aufgaben"
 #: FW/templates/base.html:170 FW/templates/baseFw.html:107
 #: FW/templates/baseFw.html:163 FW/templates/baseFw.html:279
 #: FW/templates/components/calendar.html:9 Global/templates/kalender.html:6
-#: ORG/templates/baseOrg.html:122 ORG/views.py:2140
+#: ORG/templates/baseOrg.html:122 ORG/views.py:2143
 #: TEAM/templates/baseTeam.html:59
 msgid "Kalender"
 msgstr "Kalender"
@@ -145,7 +145,7 @@ msgstr "Kalender"
 #: FW/templates/baseFw.html:309 FW/templates/baseFw.html:406
 #: Global/templates/dokumente.html:121 Global/templates/dokumente.html:135
 #: Home/templates/dokumente_public.html:10 ORG/templates/baseOrg.html:109
-#: ORG/views.py:2111 TEAM/templates/baseTeam.html:64
+#: ORG/views.py:2114 TEAM/templates/baseTeam.html:64
 msgid "Dokumente"
 msgstr "Dokumente"
 
@@ -189,39 +189,39 @@ msgid "Feedback senden"
 msgstr "Feedback senden"
 
 #: Ehemalige/templates/ehemaligeHome.html:116 ORG/templates/homeOrg.html:378
-#: ORG/templates/homeOrg_2.html:623 TEAM/templates/teamHome.html:395
+#: ORG/templates/homeOrg_2.html:621 TEAM/templates/teamHome.html:395
 msgid "Neueste Posts"
 msgstr "Neueste Posts"
 
 #: Ehemalige/templates/ehemaligeHome.html:140 FW/templates/homeFw.html:52
-#: ORG/templates/homeOrg_2.html:651 TEAM/templates/teamHome.html:419
+#: ORG/templates/homeOrg_2.html:649 TEAM/templates/teamHome.html:419
 msgid "Alle Posts"
 msgstr "Alle Posts"
 
-#: Ehemalige/templates/ehemaligeHome.html:146 ORG/templates/homeOrg_2.html:657
+#: Ehemalige/templates/ehemaligeHome.html:146 ORG/templates/homeOrg_2.html:655
 #: TEAM/templates/teamHome.html:425
 msgid "Keine Posts vorhanden"
 msgstr "Keine Posts vorhanden"
 
 #: Ehemalige/templates/ehemaligeHome.html:163 ORG/templates/homeOrg.html:354
-#: ORG/templates/homeOrg_2.html:674 TEAM/templates/teamHome.html:442
+#: ORG/templates/homeOrg_2.html:672 TEAM/templates/teamHome.html:442
 msgid "Neueste Bilder"
 msgstr "Neueste Bilder"
 
 #: Ehemalige/templates/ehemaligeHome.html:177 FW/templates/homeFw.html:53
-#: ORG/templates/homeOrg_2.html:695 TEAM/templates/teamHome.html:456
+#: ORG/templates/homeOrg_2.html:693 TEAM/templates/teamHome.html:456
 msgid "Alle Bilder"
 msgstr "Alle Bilder"
 
 #: Ehemalige/templates/ehemaligeHome.html:183
 #: Global/templates/bilder_show.html:42 Global/templates/profil.html:51
-#: ORG/templates/homeOrg.html:365 ORG/templates/homeOrg_2.html:689
-#: ORG/templates/homeOrg_2.html:701 TEAM/templates/teamHome.html:462
+#: ORG/templates/homeOrg.html:365 ORG/templates/homeOrg_2.html:687
+#: ORG/templates/homeOrg_2.html:699 TEAM/templates/teamHome.html:462
 msgid "Keine Bilder vorhanden"
 msgstr "Keine Bilder vorhanden"
 
 #: Ehemalige/templates/ehemaligeHome.html:211 ORG/templates/homeOrg.html:259
-#: ORG/templates/homeOrg_2.html:291 TEAM/templates/teamHome.html:287
+#: ORG/templates/homeOrg_2.html:289 TEAM/templates/teamHome.html:287
 msgid "Meine Aufgaben"
 msgstr "Meine Aufgaben"
 
@@ -235,7 +235,7 @@ msgstr "Meine Aufgaben"
 #: Global/templates/posts_overview.html:21
 #: Global/templates/posts_overview.html:31 ORG/tables.py:398 ORG/tables.py:779
 #: ORG/templates/components/task_filter.html:9 ORG/templates/homeOrg_2.html:104
-#: ORG/templates/homeOrg_2.html:171 ORG/templates/homeOrg_2.html:329
+#: ORG/templates/homeOrg_2.html:169 ORG/templates/homeOrg_2.html:327
 #: ORG/templates/list_ampel.html:33 ORG/templates/list_ampel.html:43
 #: ORG/templates/list_ampel.html:58 ORG/templates/list_ampel.html:69
 #: ORG/templates/list_aufgaben_table.html:128
@@ -250,12 +250,12 @@ msgstr "Meine Aufgaben"
 msgid "Alle"
 msgstr "Alle"
 
-#: Ehemalige/templates/ehemaligeHome.html:229 ORG/templates/homeOrg_2.html:329
+#: Ehemalige/templates/ehemaligeHome.html:229 ORG/templates/homeOrg_2.html:327
 #: TEAM/templates/teamHome.html:305
 msgid "anzeigen"
 msgstr "anzeigen"
 
-#: Ehemalige/templates/ehemaligeHome.html:236 ORG/templates/homeOrg_2.html:336
+#: Ehemalige/templates/ehemaligeHome.html:236 ORG/templates/homeOrg_2.html:334
 #: TEAM/templates/teamHome.html:312
 msgid "Keine offenen Aufgaben"
 msgstr "Keine offenen Aufgaben"
@@ -304,7 +304,6 @@ msgstr "Anmerkungen"
 #: Global/templates/image_detail.html:81 ORG/templates/add_aufgabe.html:1008
 #: ORG/templates/edit_object.html:50 ORG/templates/own_signin_requests.html:15
 #: ORG/templates/review_change_request.html:31
-#: ORG/templates/review_own_signin_user.html:26
 #: chat/templates/chat-direct.html:16 chat/templates/chat-group.html:14
 #: chat/templates/create-chat-direct.html:19
 #: chat/templates/create-chat-group.html:36
@@ -392,14 +391,14 @@ msgstr "Englisch"
 
 #: FW/templates/base.html:144 FW/templates/base.html:272
 #: FW/templates/baseFw.html:392 Global/models.py:83
-#: Global/templates/bild.html:73 ORG/views.py:2119
+#: Global/templates/bild.html:73 ORG/views.py:2122
 msgid "Bilder hochladen"
 msgstr "Bilder hochladen"
 
 #: FW/templates/base.html:159 FW/templates/base.html:287
 #: FW/templates/baseFw.html:236 FW/templates/baseFw.html:342
 #: FW/templates/baseFw.html:414 Global/templates/profil.html:11
-#: ORG/views.py:2123
+#: ORG/views.py:2126
 msgid "Profil"
 msgstr "Profil"
 
@@ -429,7 +428,7 @@ msgstr "Chat"
 
 #: FW/templates/baseFw.html:122 FW/templates/baseFw.html:241
 #: FW/templates/baseFw.html:347 Global/templates/settings.html:40
-#: ORG/templates/baseOrg.html:147 ORG/views.py:2127
+#: ORG/templates/baseOrg.html:147 ORG/views.py:2130
 msgid "Einstellungen"
 msgstr "Einstellungen"
 
@@ -468,9 +467,9 @@ msgstr "Konto & Einstellungen"
 #: ORG/templates/components/delete_modal.html:18
 #: ORG/templates/components/task_country_modal.html:27
 #: ORG/templates/edit_object.html:86 ORG/templates/homeOrg.html:218
-#: ORG/templates/homeOrg_2.html:746 ORG/templates/list_aufgaben_table.html:220
+#: ORG/templates/homeOrg_2.html:744 ORG/templates/list_aufgaben_table.html:220
 #: ORG/templates/list_aufgaben_table.html:253
-#: ORG/templates/list_objects_table.html:175
+#: ORG/templates/list_objects_table.html:200
 #: TEAM/templates/teamAufgabenuebersicht.html:96
 #: chat/templates/create-chat-group.html:166
 msgid "Abbrechen"
@@ -500,7 +499,7 @@ msgstr "Bitte wähle eine Farbe aus"
 #: FW/templates/components/ampel_status.html:5
 #: ORG/templates/components/task_item.html:51
 #: ORG/templates/components/task_table_row.html:143
-#: ORG/templates/homeOrg_2.html:498
+#: ORG/templates/homeOrg_2.html:496
 msgid "Zuletzt"
 msgstr "Zuletzt"
 
@@ -616,7 +615,7 @@ msgstr "Offen"
 #: FW/templates/components/task_progress.html:35 Global/models.py:944
 #: ORG/templates/components/task_legend.html:8
 #: ORG/templates/components/task_table_row.html:100
-#: ORG/templates/homeOrg_2.html:375
+#: ORG/templates/homeOrg_2.html:373
 msgid "Pending"
 msgstr "Pending"
 
@@ -673,7 +672,7 @@ msgstr "Datei hochgeladen"
 #: FW/templates/components/task_card.html:67
 #: FW/templates/components/task_detail_form.html:90
 #: ORG/templates/components/task_legend.html:11
-#: ORG/templates/homeOrg_2.html:391
+#: ORG/templates/homeOrg_2.html:389
 msgid "Überfällig"
 msgstr "Überfällig"
 
@@ -749,7 +748,7 @@ msgid "Hochgeladen"
 msgstr "Hochgeladen"
 
 #: FW/templates/components/task_detail_form.html:79
-#: ORG/templates/homeOrg_2.html:417 ORG/templates/homeOrg_2.html:486
+#: ORG/templates/homeOrg_2.html:415 ORG/templates/homeOrg_2.html:484
 #: ORG/templates/list_aufgaben.html:47 ORG/templates/list_aufgaben.html:114
 msgid "Fällig"
 msgstr "Fällig"
@@ -868,7 +867,7 @@ msgstr "Geplantes Ende"
 msgid "Entsendende Organisation"
 msgstr "Entsendende Organisation"
 
-#: FW/templates/laenderinfo.html:81 ORG/views.py:2177 ORG/views.py:2186
+#: FW/templates/laenderinfo.html:81 ORG/views.py:2180 ORG/views.py:2189
 msgid "Länderinformationen"
 msgstr "Länderinformationen"
 
@@ -1099,7 +1098,7 @@ msgid "Mindestens ein Text oder Bild ist erforderlich"
 msgstr "Mindestens ein Text oder Bild ist erforderlich"
 
 #: Global/forms.py:297 Global/models.py:1326 Global/models.py:1340
-#: ORG/templates/homeOrg.html:199 ORG/templates/homeOrg_2.html:728
+#: ORG/templates/homeOrg.html:199 ORG/templates/homeOrg_2.html:726
 msgid "Notiz"
 msgstr "Notiz"
 
@@ -1118,7 +1117,7 @@ msgid "Stadt"
 msgstr "Stadt"
 
 #: Global/forms.py:339 Global/models.py:1504 Global/templates/karte.html:122
-#: Home/models.py:14 ORG/templates/review_own_signin_user.html:63
+#: Home/models.py:14
 msgid "Land"
 msgstr "Land"
 
@@ -1131,7 +1130,6 @@ msgstr "Organisation"
 #: Global/templates/karte.html:32 Global/templates/posts_overview.html:18
 #: Home/models.py:10 ORG/tables.py:393 ORG/templates/list_ampel.html:30
 #: ORG/templates/list_aufgaben_table.html:124
-#: ORG/templates/review_own_signin_user.html:54
 #: TEAM/templates/teamAufgabenuebersicht.html:52
 msgid "Benutzergruppe"
 msgstr "Benutzergruppe"
@@ -1165,7 +1163,7 @@ msgstr "Dokumente anzeigen"
 msgid "Aktivieren, um Dokumente für diese Gruppe anzuzeigen"
 msgstr "Aktivieren, um Dokumente für diese Gruppe anzuzeigen"
 
-#: Global/models.py:81 ORG/views.py:2144
+#: Global/models.py:81 ORG/views.py:2147
 msgid "Ampelmeldungen abgeben"
 msgstr "Ampelmeldungen abgeben"
 
@@ -1608,7 +1606,7 @@ msgid "Mobiltelefonnummer"
 msgstr ""
 
 #: Global/models.py:822 Home/models.py:9 ORG/tables.py:179
-#: ORG/templates/review_own_signin_user.html:46
+#: ORG/templates/list_objects_table.html:41
 msgid "E-Mail"
 msgstr "E-Mail"
 
@@ -1639,7 +1637,7 @@ msgid "Kommentar zur Erläuterung des Status"
 msgstr ""
 
 #: Global/models.py:844 ORG/templates/components/ampel_modal.html:35
-#: ORG/templates/homeOrg_2.html:585
+#: ORG/templates/homeOrg_2.html:583
 msgid "Gelesen"
 msgstr "Weiterlesen"
 
@@ -1648,7 +1646,7 @@ msgid "Zeigt an, ob die Ampel als gelesen markiert ist"
 msgstr ""
 
 #: Global/models.py:849 ORG/templates/baseOrg.html:97
-#: ORG/templates/homeOrg_2.html:558 ORG/templates/list_ampel.html:7
+#: ORG/templates/homeOrg_2.html:556 ORG/templates/list_ampel.html:7
 #: TEAM/templates/teamHome.html:340
 msgid "Ampelmeldungen"
 msgstr "Ampelmeldungen"
@@ -2184,12 +2182,12 @@ msgstr "Angeheftet"
 msgid "Einsatzstellen Notiz"
 msgstr "Einsatzstellen Notiz"
 
-#: Global/models.py:1332 ORG/views.py:2173
+#: Global/models.py:1332 ORG/views.py:2176
 msgid "Einsatzstellen Notizen"
 msgstr "Einsatzstellen Notizen"
 
 #: Global/models.py:1343 ORG/templates/homeOrg.html:204
-#: ORG/templates/homeOrg_2.html:732
+#: ORG/templates/homeOrg_2.html:730
 msgid "Priorität"
 msgstr "Priorität"
 
@@ -2433,7 +2431,7 @@ msgstr "Schließen"
 #: Global/templates/karte.html:169
 #: ORG/templates/components/ampel_table.html:124
 #: ORG/templates/edit_object.html:65 ORG/templates/homeOrg.html:219
-#: ORG/templates/homeOrg_2.html:747 chat/templates/chat-group.html:105
+#: ORG/templates/homeOrg_2.html:745 chat/templates/chat-group.html:105
 msgid "Speichern"
 msgstr "Speichern"
 
@@ -2732,7 +2730,7 @@ msgstr "Dieses Bild wirklich löschen?"
 #: Global/templates/components/post_delete_modal.html:20
 #: ORG/templates/components/delete_modal.html:12
 #: ORG/templates/edit_object.html:82 ORG/templates/list_aufgaben_table.html:249
-#: ORG/templates/list_objects_table.html:170
+#: ORG/templates/list_objects_table.html:195
 msgid "Diese Aktion kann nicht rückgängig gemacht werden!"
 msgstr "Diese Aktion kann nicht rückgängig gemacht werden!"
 
@@ -2847,7 +2845,6 @@ msgstr "Änderungsvorschlag ausstehend"
 
 #: Global/templates/einsatzstellen_info.html:105
 #: Global/templates/laender_info.html:67
-#: ORG/templates/review_own_signin_user.html:72
 msgid "Eingereicht am"
 msgstr "Eingereicht am"
 
@@ -4433,7 +4430,7 @@ msgid "Aufgaben zuweisen"
 msgstr "Aufgaben zuweisen"
 
 #: ORG/templates/aufgaben_assign.html:22 ORG/templates/baseOrg.html:65
-#: ORG/templates/list_aufgaben.html:112 ORG/views.py:2133
+#: ORG/templates/list_aufgaben.html:112 ORG/views.py:2136
 msgid "Freiwillige"
 msgstr "Freiwillige"
 
@@ -4469,7 +4466,7 @@ msgstr "Alle Profile auswählen"
 msgid "Personen"
 msgstr "Personen"
 
-#: ORG/templates/baseOrg.html:68 ORG/views.py:2158 TEAM/models.py:33
+#: ORG/templates/baseOrg.html:68 ORG/views.py:2161 TEAM/models.py:33
 msgid "Team"
 msgstr "Team"
 
@@ -4529,7 +4526,7 @@ msgstr "Status filtern:"
 #: ORG/templates/homeOrg.html:285 ORG/templates/homeOrg.html:299
 #: ORG/templates/homeOrg.html:318 ORG/templates/homeOrg.html:355
 #: ORG/templates/homeOrg.html:379 ORG/templates/homeOrg_2.html:68
-#: ORG/templates/homeOrg_2.html:128 ORG/templates/homeOrg_2.html:607
+#: ORG/templates/homeOrg_2.html:128 ORG/templates/homeOrg_2.html:605
 #: TEAM/templates/teamHome.html:379
 msgid "Alle anzeigen"
 msgstr "Alle anzeigen"
@@ -4685,8 +4682,7 @@ msgid "Geänderte Felder:"
 msgstr "Geänderte Felder:"
 
 #: ORG/templates/components/change_request_item.html:62
-#: ORG/templates/homeOrg_2.html:94 ORG/templates/homeOrg_2.html:161
-#: ORG/templates/own_signin_requests.html:48
+#: ORG/templates/homeOrg_2.html:94
 msgid "Prüfen"
 msgstr "Prüfen"
 
@@ -4705,6 +4701,19 @@ msgstr "löschen?"
 #: ORG/templates/components/form_field.html:57
 msgid "ausgewählt"
 msgstr "ausgewählt"
+
+#: ORG/templates/components/own_signin_actions.html:9
+msgid "Freischalten"
+msgstr "Freischalten"
+
+#: ORG/templates/components/own_signin_actions.html:13
+msgid "Registrierung wirklich ablehnen?"
+msgstr "Registrierung wirklich ablehnen?"
+
+#: ORG/templates/components/own_signin_actions.html:19
+#: ORG/templates/review_change_request.html:192
+msgid "Ablehnen"
+msgstr "Ablehnen"
 
 #: ORG/templates/components/person_cluster_selector.html:10
 #: ORG/templates/components/person_cluster_selector.html:15
@@ -4748,7 +4757,7 @@ msgstr "Noch nicht heruntergeladen"
 #: ORG/templates/components/task_table_row.html:120
 #: ORG/templates/components/task_table_row.html:157
 #: ORG/templates/components/task_zwischenschritte_modal.html:116
-#: ORG/templates/homeOrg_2.html:452 ORG/templates/homeOrg_2.html:506
+#: ORG/templates/homeOrg_2.html:450 ORG/templates/homeOrg_2.html:504
 msgid "Als erledigt markieren"
 msgstr "Als erledigt markieren"
 
@@ -4756,11 +4765,11 @@ msgstr "Als erledigt markieren"
 msgid "Erinnerung heute bereits gesendet"
 msgstr "Erinnerung heute bereits gesendet"
 
-#: ORG/templates/components/task_item.html:51 ORG/templates/homeOrg_2.html:498
+#: ORG/templates/components/task_item.html:51 ORG/templates/homeOrg_2.html:496
 msgid "Erinnerung senden"
 msgstr "Erinnerung senden"
 
-#: ORG/templates/components/task_item.html:52 ORG/templates/homeOrg_2.html:1028
+#: ORG/templates/components/task_item.html:52 ORG/templates/homeOrg_2.html:1026
 #: ORG/templates/list_aufgaben_table.html:638
 msgid "Erinnerung gesendet"
 msgstr "Erinnerung gesendet"
@@ -4864,7 +4873,7 @@ msgstr "Link wurde in die Zwischenablage kopiert."
 msgid "Link kopiert:"
 msgstr "Link kopiert:"
 
-#: ORG/templates/copy_links.html:123 ORG/templates/list_objects_table.html:345
+#: ORG/templates/copy_links.html:123 ORG/templates/list_objects_table.html:370
 msgid "Fehler beim Kopieren des Links"
 msgstr "Fehler beim Kopieren des Links"
 
@@ -4916,11 +4925,11 @@ msgstr "Neue Sticky Note"
 msgid "Angeheftete Notizen"
 msgstr "Angeheftete Notizen"
 
-#: ORG/templates/homeOrg.html:47 ORG/templates/homeOrg_2.html:738
+#: ORG/templates/homeOrg.html:47 ORG/templates/homeOrg_2.html:736
 msgid "Hoch"
 msgstr "Hoch"
 
-#: ORG/templates/homeOrg.html:47 ORG/templates/homeOrg_2.html:741
+#: ORG/templates/homeOrg.html:47 ORG/templates/homeOrg_2.html:739
 msgid "Sehr Hoch"
 msgstr "Sehr Hoch"
 
@@ -4944,7 +4953,7 @@ msgstr "Neues Dashboard bald verfügbar!"
 msgid "Neues Dashboard testen"
 msgstr "Neues Dashboard testen"
 
-#: ORG/templates/homeOrg.html:192 ORG/templates/homeOrg_2.html:721
+#: ORG/templates/homeOrg.html:192 ORG/templates/homeOrg_2.html:719
 msgid "Neue Notiz erstellen"
 msgstr "Neue Notiz erstellen"
 
@@ -4952,7 +4961,7 @@ msgstr "Neue Notiz erstellen"
 msgid "Keine Aufgaben"
 msgstr "Keine Aufgaben"
 
-#: ORG/templates/homeOrg.html:293 ORG/templates/homeOrg_2.html:462
+#: ORG/templates/homeOrg.html:293 ORG/templates/homeOrg_2.html:460
 msgid "Keine pending Aufgaben"
 msgstr "Keine pending Aufgaben"
 
@@ -5003,71 +5012,71 @@ msgid ""
 "freigeschaltet oder abgelehnt werden."
 msgstr ""
 
-#: ORG/templates/homeOrg_2.html:171
+#: ORG/templates/homeOrg_2.html:169
 msgid "Anfragen anzeigen"
 msgstr "Anfragen anzeigen"
 
-#: ORG/templates/homeOrg_2.html:350
+#: ORG/templates/homeOrg_2.html:348
 msgid "Aufgabenmanagement"
 msgstr "Aufgabenmanagement"
 
-#: ORG/templates/homeOrg_2.html:423
+#: ORG/templates/homeOrg_2.html:421
 msgid "Eingereicht"
 msgstr "Eingereicht"
 
-#: ORG/templates/homeOrg_2.html:437
+#: ORG/templates/homeOrg_2.html:435
 msgid "Heruntergeladen von:"
 msgstr "Heruntergeladen von"
 
-#: ORG/templates/homeOrg_2.html:442
+#: ORG/templates/homeOrg_2.html:440
 msgid "Noch nicht heruntergeladen."
 msgstr "Noch nicht heruntergeladen"
 
-#: ORG/templates/homeOrg_2.html:516
+#: ORG/templates/homeOrg_2.html:514
 msgid "Keine überfälligen Aufgaben"
 msgstr "Keine überfälligen Aufgaben"
 
-#: ORG/templates/homeOrg_2.html:525
+#: ORG/templates/homeOrg_2.html:523
 msgid "Alle Aufgaben sind auf dem neuesten Stand"
 msgstr "Alle Aufgaben sind auf dem neuesten Stand"
 
-#: ORG/templates/homeOrg_2.html:531
+#: ORG/templates/homeOrg_2.html:529
 msgid "Aufgaben verwalten"
 msgstr "Aufgaben verwalten"
 
-#: ORG/templates/homeOrg_2.html:561 TEAM/templates/teamHome.html:343
+#: ORG/templates/homeOrg_2.html:559 TEAM/templates/teamHome.html:343
 msgid "Letzte 5 Tage"
 msgstr "Letzte 5 Tage"
 
-#: ORG/templates/homeOrg_2.html:587
+#: ORG/templates/homeOrg_2.html:585
 msgid "Ungelesen"
 msgstr "Weiterlesen"
 
-#: ORG/templates/homeOrg_2.html:602 TEAM/templates/teamHome.html:374
+#: ORG/templates/homeOrg_2.html:600 TEAM/templates/teamHome.html:374
 msgid "Keine Meldungen"
 msgstr "Keine Meldungen"
 
-#: ORG/templates/homeOrg_2.html:735
+#: ORG/templates/homeOrg_2.html:733
 msgid "Normal"
 msgstr "Normal"
 
-#: ORG/templates/homeOrg_2.html:974
+#: ORG/templates/homeOrg_2.html:972
 msgid "Aufgabe als erledigt markiert"
 msgstr "Aufgabe als erledigt markiert"
 
-#: ORG/templates/homeOrg_2.html:979
+#: ORG/templates/homeOrg_2.html:977
 msgid "Fehler beim Markieren der Aufgabe"
 msgstr "Fehler beim Markieren der Aufgabe"
 
-#: ORG/templates/homeOrg_2.html:987 ORG/templates/homeOrg_2.html:1047
+#: ORG/templates/homeOrg_2.html:985 ORG/templates/homeOrg_2.html:1045
 msgid "Netzwerkfehler"
 msgstr "Netzwerkfehler"
 
-#: ORG/templates/homeOrg_2.html:1024
+#: ORG/templates/homeOrg_2.html:1022
 msgid "Erinnerung erfolgreich gesendet"
 msgstr "Erinnerung erfolgreich gesendet"
 
-#: ORG/templates/homeOrg_2.html:1040 ORG/templates/list_aufgaben_table.html:641
+#: ORG/templates/homeOrg_2.html:1038 ORG/templates/list_aufgaben_table.html:641
 msgid "Fehler beim Senden der Erinnerung"
 msgstr "Fehler beim Senden der Erinnerung"
 
@@ -5188,7 +5197,7 @@ msgstr "Datei herunterladen"
 msgid "Tabelle wird aktualisiert..."
 msgstr "Tabelle wird aktualisiert..."
 
-#: ORG/templates/list_objects.html:159 ORG/templates/list_objects_table.html:49
+#: ORG/templates/list_objects.html:159 ORG/templates/list_objects_table.html:74
 msgid "Drücke 'F' um schnell ins Suchfeld zu springen"
 msgstr "Drücke 'F' um schnell ins Suchfeld zu springen"
 
@@ -5198,17 +5207,17 @@ msgstr "Anzeige gefiltert:"
 
 #: ORG/templates/list_objects.html:181 ORG/templates/list_objects.html:196
 #: ORG/templates/list_objects.html:341
-#: ORG/templates/list_objects_table.html:109
+#: ORG/templates/list_objects_table.html:134
 msgid "von"
 msgstr "von"
 
 #: ORG/templates/list_objects.html:183
-#: ORG/templates/list_objects_table.html:102
+#: ORG/templates/list_objects_table.html:127
 msgid "insgesamt"
 msgstr "insgesamt"
 
 #: ORG/templates/list_objects.html:196
-#: ORG/templates/list_objects_table.html:109
+#: ORG/templates/list_objects_table.html:134
 msgid "Seite"
 msgstr "Seite"
 
@@ -5225,17 +5234,17 @@ msgid "Zeige"
 msgstr "Zeige"
 
 #: ORG/templates/list_objects.html:427
-#: ORG/templates/list_objects_table.html:297
+#: ORG/templates/list_objects_table.html:322
 msgid "Erfolgreich gesendet!"
 msgstr "Erfolgreich gesendet!"
 
 #: ORG/templates/list_objects.html:436
-#: ORG/templates/list_objects_table.html:300
+#: ORG/templates/list_objects_table.html:325
 msgid "Fehler beim Senden der Registrierungsmail:"
 msgstr "Fehler beim Senden der Registrierungsmail:"
 
 #: ORG/templates/list_objects.html:441
-#: ORG/templates/list_objects_table.html:305
+#: ORG/templates/list_objects_table.html:330
 msgid "Error sending registration mail"
 msgstr "Fehler beim Senden der Registrierungsmail"
 
@@ -5247,39 +5256,51 @@ msgstr "Status"
 msgid "Excel exportieren"
 msgstr "Excel exportieren"
 
-#: ORG/templates/list_objects_table.html:46
+#: ORG/templates/list_objects_table.html:45
+msgid "Toggle Dropdown"
+msgstr "Toggle Dropdown"
+
+#: ORG/templates/list_objects_table.html:50
+msgid "CC"
+msgstr ""
+
+#: ORG/templates/list_objects_table.html:55
+msgid "BCC"
+msgstr ""
+
+#: ORG/templates/list_objects_table.html:71
 msgid "Suche"
 msgstr "Suche"
 
-#: ORG/templates/list_objects_table.html:144
+#: ORG/templates/list_objects_table.html:169
 msgid "Aktion bestätigen"
 msgstr "Aktionen"
 
-#: ORG/templates/list_objects_table.html:149
+#: ORG/templates/list_objects_table.html:174
 msgid "Möchten Sie diese Aktion wirklich durchführen?"
 msgstr "Möchtest du dieses Objekt wirklich löschen?"
 
-#: ORG/templates/list_objects_table.html:152
+#: ORG/templates/list_objects_table.html:177
 msgid "Aktion:"
 msgstr "Aktion"
 
-#: ORG/templates/list_objects_table.html:157
+#: ORG/templates/list_objects_table.html:182
 msgid "Erklärung:"
 msgstr "Erklärung:"
 
-#: ORG/templates/list_objects_table.html:161
+#: ORG/templates/list_objects_table.html:186
 msgid "Ausgewählte Objekte:"
 msgstr "Ausgewählte Objekte:"
 
-#: ORG/templates/list_objects_table.html:178
+#: ORG/templates/list_objects_table.html:203
 msgid "Bestätigen"
 msgstr "Bestätigen"
 
-#: ORG/templates/list_objects_table.html:348
+#: ORG/templates/list_objects_table.html:373
 msgid "Fehler beim Abrufen des Registrierungslinks:"
 msgstr "Fehler beim Abrufen des Registrierungslinks:"
 
-#: ORG/templates/list_objects_table.html:353
+#: ORG/templates/list_objects_table.html:378
 msgid "Fehler beim Abrufen des Registrierungslinks"
 msgstr "Fehler beim Abrufen des Registrierungslinks"
 
@@ -5296,7 +5317,7 @@ msgid ""
 "Neue Registrierungen über den eigenen Anmeldelink freischalten oder ablehnen"
 msgstr ""
 
-#: ORG/templates/own_signin_requests.html:59
+#: ORG/templates/own_signin_requests.html:57
 msgid "Keine offenen Registrierungsanfragen."
 msgstr "Keine offenen Registrierungsanfragen."
 
@@ -5350,11 +5371,6 @@ msgstr "Dieser Kommentar wird an"
 msgid "gesendet"
 msgstr "gesendet"
 
-#: ORG/templates/review_change_request.html:192
-#: ORG/templates/review_own_signin_user.html:99
-msgid "Ablehnen"
-msgstr "Ablehnen"
-
 #: ORG/templates/review_change_request.html:195
 msgid "Genehmigen"
 msgstr "Genehmigen"
@@ -5370,33 +5386,6 @@ msgstr ""
 #: ORG/templates/review_change_request.html:238
 msgid "Sicher, dass Du diesen Änderungsvorschlag ablehnen möchtest?"
 msgstr "Bist Du sicher, dass Du diesen Beitrag löschen möchtest?"
-
-#: ORG/templates/review_own_signin_user.html:5
-#: ORG/templates/review_own_signin_user.html:22
-msgid "Registrierung prüfen"
-msgstr "Registrierung prüfen"
-
-#: ORG/templates/review_own_signin_user.html:23
-msgid "Registrierungsanfrage freischalten oder ablehnen"
-msgstr "Registrierungsanfrage freischalten oder ablehnen"
-
-#: ORG/templates/review_own_signin_user.html:84
-msgid "Entscheidung"
-msgstr "Entscheidung"
-
-#: ORG/templates/review_own_signin_user.html:87
-msgid ""
-"Bei Freischaltung wird ein Benutzerkonto erstellt und der Antragsteller per "
-"E-Mail benachrichtigt, um sein Passwort festzulegen."
-msgstr ""
-
-#: ORG/templates/review_own_signin_user.html:93
-msgid "Freischalten"
-msgstr "Freischalten"
-
-#: ORG/templates/review_own_signin_user.html:96
-msgid "Registrierung wirklich ablehnen?"
-msgstr "Registrierung wirklich ablehnen?"
 
 #: ORG/templates/statistik.html:70
 msgid "Benutzergruppe:"
@@ -5430,97 +5419,91 @@ msgstr "Prozent"
 msgid "Wähle ein Feld aus, um die Daten anzuzeigen."
 msgstr "Wähle ein Feld aus, um die Daten anzuzeigen."
 
-#: ORG/views.py:758
+#: ORG/views.py:761
 #, python-brace-format
 msgid "Table not found for model: {}"
 msgstr "Tabelle für Modell nicht gefunden: {}"
 
-#: ORG/views.py:920
+#: ORG/views.py:923
 #, python-brace-format
 msgid "Aktion für {instance} nicht erfolgreich durchgeführt."
 msgstr "Aktion für {instance} nicht erfolgreich durchgeführt."
 
-#: ORG/views.py:925
+#: ORG/views.py:928
 #, python-brace-format
 msgid "Aktionen für {counter} {object_name} erfolgreich durchgeführt."
 msgstr "Aktionen für {counter} {object_name} erfolgreich durchgeführt."
 
-#: ORG/views.py:929
+#: ORG/views.py:932
 msgid "Keine Objekte ausgewählt."
 msgstr "Keine Objekte ausgewählt."
 
-#: ORG/views.py:1175 ORG/views.py:1192
+#: ORG/views.py:1178 ORG/views.py:1195
 msgid "Aufgabe nicht gefunden"
 msgstr "Aufgabe nicht gefunden"
 
-#: ORG/views.py:1185
+#: ORG/views.py:1188
 msgid "E-Mail-Benachrichtigungen deaktiviert"
 msgstr "E-Mail-Benachrichtigungen deaktiviert"
 
-#: ORG/views.py:1188
+#: ORG/views.py:1191
 msgid "Erinnerung wurde bereits heute gesendet"
 msgstr "Erinnerung wurde bereits heute gesendet"
 
-#: ORG/views.py:1437
+#: ORG/views.py:1440
 msgid "Benutzergruppe nicht angegeben"
 msgstr "Benutzergruppe nicht angegeben"
 
-#: ORG/views.py:1454
+#: ORG/views.py:1457
 msgid "Benutzergruppe nicht gefunden"
 msgstr "Benutzergruppe nicht gefunden"
 
-#: ORG/views.py:1459 chat/views.py:319
+#: ORG/views.py:1462 chat/views.py:319
 msgid "Ungültige Anfrage"
 msgstr "Ungültige Anfrage"
 
-#: ORG/views.py:2104
+#: ORG/views.py:2107
 msgid "Allgemein"
 msgstr ""
 
-#: ORG/views.py:2148
+#: ORG/views.py:2151
 msgid "Notfallkontakte eintragen"
 msgstr "Notfallkontakte eintragen"
 
-#: ORG/views.py:2152
+#: ORG/views.py:2155
 msgid "Einsatzlandinformationen einsehen"
 msgstr "Einsatzlandinformationen einsehen"
 
-#: ORG/views.py:2161 TEAM/templates/teamContacts.html:5
+#: ORG/views.py:2164 TEAM/templates/teamContacts.html:5
 msgid "Kontakte"
 msgstr "Kontakte"
 
-#: ORG/views.py:2165
+#: ORG/views.py:2168
 msgid "Ampelmeldung einsehen"
 msgstr "Ampelmeldung einsehen"
 
-#: ORG/views.py:2169 ORG/views.py:2190
+#: ORG/views.py:2172 ORG/views.py:2193
 msgid "Einsatzstelleninformationen"
 msgstr "Einsatzstelleninformationen"
 
-#: ORG/views.py:2196
+#: ORG/views.py:2199
 msgid "Bewerber"
 msgstr "Bewerber:in"
 
-#: ORG/views.py:2199
+#: ORG/views.py:2202
 msgid "Zuteilung ansehen"
 msgstr "Zuteilung ansehen"
 
-#: ORG/views.py:2551
-msgid ""
-"Registrierung wurde freigeschaltet. Der Benutzer wurde per E-Mail "
-"benachrichtigt."
-msgstr ""
-
-#: ORG/views.py:2556
+#: ORG/views.py:2555
 #, python-format
 msgid "Fehler bei der Freischaltung: %(error)s"
 msgstr ""
 
-#: ORG/views.py:2571
+#: ORG/views.py:2570
 msgid "Registrierung wurde abgelehnt."
 msgstr "Registrierung wurde abgelehnt"
 
-#: ORG/views.py:2573
+#: ORG/views.py:2572
 #, python-format
 msgid "Fehler bei der Ablehnung: %(error)s"
 msgstr ""
@@ -6918,6 +6901,15 @@ msgstr "Keine abgeschlossenen Antworten für diese Umfrage gefunden."
 #, python-format
 msgid "Error generating PDF export: %(error)s"
 msgstr "Fehler beim Erstellen des PDF-Exports: %(error)s"
+
+#~ msgid "Registrierung prüfen"
+#~ msgstr "Registrierung prüfen"
+
+#~ msgid "Registrierungsanfrage freischalten oder ablehnen"
+#~ msgstr "Registrierungsanfrage freischalten oder ablehnen"
+
+#~ msgid "Entscheidung"
+#~ msgstr "Entscheidung"
 
 #~ msgid "Änderungsvorschlag genehmigt"
 #~ msgstr "Änderungsvorschlag genehmigt"
