@@ -684,7 +684,7 @@ def _get_answer_content(answer):
         return answer.text_answer
     
     else:
-        return _("No answer provided")
+        return ""
 
 
 def create_pdf_response(pdf_content, filename):
