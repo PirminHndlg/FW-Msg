@@ -26,7 +26,7 @@ class SurveyAnswerInline(admin.TabularInline):
     """Inline for viewing survey answers"""
     model = SurveyAnswer
     extra = 0
-    readonly_fields = ['question', 'text_answer', 'get_selected_options']
+    readonly_fields = ['question', 'get_selected_options']
     fields = ['question', 'text_answer', 'get_selected_options']
     
     def get_selected_options(self, obj):
@@ -191,7 +191,7 @@ class SurveyAnswerAdmin(admin.ModelAdmin):
         'response__survey__title'
     ]
     readonly_fields = [
-        'response', 'question', 'text_answer', 
+        'response', 'question', 
         'selected_options'
     ]
     
