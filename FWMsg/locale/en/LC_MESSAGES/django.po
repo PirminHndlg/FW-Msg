@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 09:54+0200\n"
+"POT-Creation-Date: 2026-06-12 15:07+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: English <en@li.org>\n"
@@ -101,7 +101,7 @@ msgstr "Alumni"
 #: FW/templates/base.html:255 FW/templates/baseFw.html:145
 #: FW/templates/baseFw.html:264 FW/templates/baseFw.html:373
 #: ORG/templates/baseOrg.html:54 TEAM/templates/baseTeam.html:50
-#: survey/templates/survey/base_survey.html:229
+#: survey/templates/survey/base_survey.html:228
 #: survey/templates/survey/survey_thank_you.html:64
 msgid "Home"
 msgstr "Home"
@@ -155,11 +155,11 @@ msgstr "Documents"
 msgid "Karte"
 msgstr "Map"
 
-#: Ehemalige/templates/baseEhemalige.html:100 survey/models.py:86
-#: survey/models.py:131 survey/models.py:191
+#: Ehemalige/templates/baseEhemalige.html:100 survey/models.py:104
+#: survey/models.py:149 survey/models.py:209
 #: survey/templates/survey/admin_survey_list.html:38
 #: survey/templates/survey/base_survey.html:8
-#: survey/templates/survey/base_survey.html:221
+#: survey/templates/survey/base_survey.html:220
 msgid "Survey"
 msgstr "Survey"
 
@@ -299,7 +299,7 @@ msgid "Anmerkungen"
 msgstr "Comments"
 
 #: FW/templates/ampel.html:51 FW/templates/components/task_detail_form.html:145
-#: Global/templates/image_detail.html:81 ORG/templates/add_aufgabe.html:1009
+#: Global/templates/image_detail.html:81 ORG/templates/add_aufgabe.html:1008
 #: ORG/templates/edit_object.html:50 ORG/templates/own_signin_requests.html:15
 #: ORG/templates/review_change_request.html:31
 #: ORG/templates/review_own_signin_user.html:26
@@ -460,7 +460,7 @@ msgstr "Account & Settings"
 #: Global/templates/karte.html:184 Global/templates/laender_info.html:209
 #: Global/templates/post_add.html:168 Global/templates/post_add.html:172
 #: Global/templates/post_detail.html:318 Global/templates/profil.html:167
-#: Global/templates/settings.html:295 ORG/templates/add_aufgabe.html:1001
+#: Global/templates/settings.html:295 ORG/templates/add_aufgabe.html:1000
 #: ORG/templates/components/ampel_table.html:123
 #: ORG/templates/components/cascade_modal.html:52
 #: ORG/templates/components/delete_modal.html:18
@@ -1219,7 +1219,7 @@ msgstr "Registration token for self-registration"
 msgid "Wenn leer, kann sich kein Benutzer in dieser Gruppe selbst registrieren"
 msgstr "If empty, no user can self-register in this group"
 
-#: Global/models.py:96 ORG/templates/add_aufgabe.html:465
+#: Global/models.py:96 ORG/templates/add_aufgabe.html:464
 #: ORG/templates/baseOrg.html:154
 msgid "Benutzergruppen"
 msgstr "User groups"
@@ -2482,7 +2482,7 @@ msgstr "Do you really want to delete this image?"
 #: Global/templates/components/image_interactions.html:87
 #: Global/templates/components/post_card_object.html:29
 #: Global/templates/karte.html:156 Global/templates/post_detail.html:323
-#: Global/templates/profil.html:142 ORG/templates/add_aufgabe.html:1023
+#: Global/templates/profil.html:142 ORG/templates/add_aufgabe.html:1022
 #: ORG/templates/components/additional_table_actions.html:36
 #: ORG/templates/components/delete_modal.html:19
 #: ORG/templates/components/table_actions.html:15
@@ -2819,7 +2819,7 @@ msgstr "Report changes"
 
 #: Global/templates/components/profile_details.html:15
 #: Home/templates/password_reset.html:65 Home/templates/password_reset.html:66
-#: survey/models.py:121 survey/templates/survey/add_question.html:146
+#: survey/models.py:139 survey/templates/survey/add_question.html:146
 #: survey/templates/survey/partials/question_form.html:16
 msgid "Email"
 msgstr "Email"
@@ -3379,7 +3379,7 @@ msgid "Melde dich ab"
 msgstr "Log out"
 
 #: Global/templates/push_settings.html:110
-#: survey/templates/survey/base_survey.html:261
+#: survey/templates/survey/base_survey.html:260
 msgid "Logout"
 msgstr "Logout"
 
@@ -3687,7 +3687,7 @@ msgstr "Edit profile"
 msgid "Aktualisieren Sie Ihre persönlichen Informationen"
 msgstr "Update your personal information"
 
-#: Global/templates/settings.html:91 ORG/templates/add_aufgabe.html:891
+#: Global/templates/settings.html:91 ORG/templates/add_aufgabe.html:890
 msgid "Benachrichtigungen"
 msgstr "Push notifications"
 
@@ -4132,11 +4132,10 @@ msgstr "Reset password"
 
 #: Home/templates/password_reset.html:48
 msgid ""
-"Bitte gib deine E-Mail-Adresse ein. Du erhältst eine E-Mail mit einem Link "
-"zum Zurücksetzen des Passworts."
+"Du erhältst per E-Mail ein Einmalpasswort, um ein neues Passwort zu setzen. "
+"Das Einmalpasswort ist nur 24 Stunden gültig."
 msgstr ""
-"Please enter your email address. You will receive an email with a link to "
-"reset your password."
+"You will receive a one-time password by email to set a new password. The one-time password is valid for 24 hours only."
 
 #: Home/templates/password_reset.html:122
 msgid "Beliebte Passwort-Manager sind"
@@ -4187,7 +4186,7 @@ msgstr "Invalid one-time password."
 msgid "Fehler beim Login. Bitte versuchen Sie es erneut."
 msgstr "Login error. Please try again."
 
-#: Home/views.py:318
+#: Home/views.py:320
 msgid "Ihr Passwort wurde erfolgreich geändert."
 msgstr "Your password has been successfully changed."
 
@@ -4252,7 +4251,7 @@ msgstr "Send registration email"
 
 #: ORG/tables.py:259
 msgid "URL zum eigenen Registrieren kopieren"
-msgstr "Copy URL for self-registration"
+msgstr "Copy link for self-registration"
 
 #: ORG/tables.py:294
 msgid "Begrüßung"
@@ -4322,42 +4321,42 @@ msgstr "Country responsibility"
 msgid "Aufgabenübersicht"
 msgstr "Task overview"
 
-#: ORG/templates/add_aufgabe.html:7 ORG/templates/add_aufgabe.html:453
+#: ORG/templates/add_aufgabe.html:7 ORG/templates/add_aufgabe.html:452
 msgid "Aufgabe bearbeiten"
 msgstr "Edit task"
 
-#: ORG/templates/add_aufgabe.html:9 ORG/templates/add_aufgabe.html:455
+#: ORG/templates/add_aufgabe.html:9 ORG/templates/add_aufgabe.html:454
 #: ORG/templates/components/task_table_header.html:52
 msgid "Neue Aufgabe erstellen"
 msgstr "Create new task"
 
-#: ORG/templates/add_aufgabe.html:427
+#: ORG/templates/add_aufgabe.html:426
 msgid "Fehler:"
 msgstr "Error:"
 
-#: ORG/templates/add_aufgabe.html:437
+#: ORG/templates/add_aufgabe.html:436
 msgid "Formularfehler:"
 msgstr "Form error:"
 
-#: ORG/templates/add_aufgabe.html:469
+#: ORG/templates/add_aufgabe.html:468
 msgid "Wähle die Benutzergruppen aus, für die diese Aufgabe relevant ist."
 msgstr "Select the user groups for which this task is relevant."
 
-#: ORG/templates/add_aufgabe.html:515
+#: ORG/templates/add_aufgabe.html:514
 msgid "Grundinformationen"
 msgstr "Basic information"
 
-#: ORG/templates/add_aufgabe.html:519
+#: ORG/templates/add_aufgabe.html:518
 msgid ""
 "Gib der Aufgabe einen aussagekräftigen Namen und eine detaillierte "
 "Beschreibung."
 msgstr "Give the task a meaningful name and a detailed description."
 
-#: ORG/templates/add_aufgabe.html:597
+#: ORG/templates/add_aufgabe.html:596
 msgid "Aufgaben-Konfiguration"
 msgstr "Task configuration"
 
-#: ORG/templates/add_aufgabe.html:601
+#: ORG/templates/add_aufgabe.html:600
 msgid ""
 "Definiere, wie die Aufgabe bearbeitet werden soll - mit Datei-Upload und/"
 "oder Bestätigung."
@@ -4365,112 +4364,112 @@ msgstr ""
 "Define how the task should be completed – with file upload and/or "
 "confirmation."
 
-#: ORG/templates/add_aufgabe.html:699
+#: ORG/templates/add_aufgabe.html:698
 msgid "Fälligkeitstermin"
 msgstr "Due date"
 
-#: ORG/templates/add_aufgabe.html:703
+#: ORG/templates/add_aufgabe.html:702
 msgid "Bestimme, wann diese Aufgabe fällig wird."
 msgstr "Specify when this task is due."
 
-#: ORG/templates/add_aufgabe.html:712
+#: ORG/templates/add_aufgabe.html:711
 msgid "Festes Datum"
 msgstr "Fixed date"
 
-#: ORG/templates/add_aufgabe.html:717
+#: ORG/templates/add_aufgabe.html:716
 msgid "Relativ zum Einsatzbeginn"
 msgstr "Relative to start of deployment"
 
-#: ORG/templates/add_aufgabe.html:722
+#: ORG/templates/add_aufgabe.html:721
 msgid "Relativ zum Einsatzende"
 msgstr "Relative to end of deployment"
 
-#: ORG/templates/add_aufgabe.html:727
+#: ORG/templates/add_aufgabe.html:726
 msgid "Ohne Fälligkeit"
 msgstr "No due date"
 
-#: ORG/templates/add_aufgabe.html:761
+#: ORG/templates/add_aufgabe.html:760
 msgid "Monat wählen..."
 msgstr "Select month..."
 
-#: ORG/templates/add_aufgabe.html:762
+#: ORG/templates/add_aufgabe.html:761
 msgid "Januar"
 msgstr "January"
 
-#: ORG/templates/add_aufgabe.html:763
+#: ORG/templates/add_aufgabe.html:762
 msgid "Februar"
 msgstr "February"
 
-#: ORG/templates/add_aufgabe.html:764
+#: ORG/templates/add_aufgabe.html:763
 msgid "März"
 msgstr "March"
 
-#: ORG/templates/add_aufgabe.html:765
+#: ORG/templates/add_aufgabe.html:764
 msgid "April"
 msgstr "April"
 
-#: ORG/templates/add_aufgabe.html:766
+#: ORG/templates/add_aufgabe.html:765
 msgid "Mai"
 msgstr "May"
 
-#: ORG/templates/add_aufgabe.html:767
+#: ORG/templates/add_aufgabe.html:766
 msgid "Juni"
 msgstr "June"
 
-#: ORG/templates/add_aufgabe.html:768
+#: ORG/templates/add_aufgabe.html:767
 msgid "Juli"
 msgstr "July"
 
-#: ORG/templates/add_aufgabe.html:769
+#: ORG/templates/add_aufgabe.html:768
 msgid "August"
 msgstr "August"
 
-#: ORG/templates/add_aufgabe.html:770
+#: ORG/templates/add_aufgabe.html:769
 msgid "September"
 msgstr "September"
 
-#: ORG/templates/add_aufgabe.html:771
+#: ORG/templates/add_aufgabe.html:770
 msgid "Oktober"
 msgstr "October"
 
-#: ORG/templates/add_aufgabe.html:772
+#: ORG/templates/add_aufgabe.html:771
 msgid "November"
 msgstr "November"
 
-#: ORG/templates/add_aufgabe.html:773
+#: ORG/templates/add_aufgabe.html:772
 msgid "Dezember"
 msgstr "December"
 
-#: ORG/templates/add_aufgabe.html:829
+#: ORG/templates/add_aufgabe.html:828
 msgid "Setze keinen Fälligkeitstermin."
 msgstr "Do not set a due date."
 
-#: ORG/templates/add_aufgabe.html:842
+#: ORG/templates/add_aufgabe.html:841
 msgid "Wiederholung (optional)"
 msgstr "Repetition (optional)"
 
-#: ORG/templates/add_aufgabe.html:846
+#: ORG/templates/add_aufgabe.html:845
 msgid ""
 "Soll diese Aufgabe regelmäßig wiederholt werden? Definiere das Intervall und "
 "das Enddatum."
 msgstr ""
 "Should this task be repeated regularly? Define the interval and the end date."
 
-#: ORG/templates/add_aufgabe.html:854
+#: ORG/templates/add_aufgabe.html:853
 msgid "Diese Aufgabe regelmäßig wiederholen"
 msgstr "Repeat this task regularly"
 
-#: ORG/templates/add_aufgabe.html:895
+#: ORG/templates/add_aufgabe.html:894
 msgid ""
 "Bestimme, wie oft Erinnerungen für nicht erledigte Aufgaben gesendet werden "
 "sollen."
 msgstr "Specify how often reminders should be sent for incomplete tasks."
 
-#: ORG/templates/add_aufgabe.html:920
+#: ORG/templates/add_aufgabe.html:919
 msgid "Zwischenschritte für pending Aufgaben (optional)"
 msgstr "Intermediate steps for pending tasks (optional)"
 
-#: ORG/templates/add_aufgabe.html:924
+#: ORG/templates/add_aufgabe.html:923
 msgid ""
 "Wenn eine Aufgabe als pending markiert wird, werden die Zwischenschritte "
 "angezeigt, um die Folgeaufgaben für die Organisation in kleinere Teile zu "
@@ -4479,7 +4478,7 @@ msgstr ""
 "When a task is marked as pending, the intermediate steps are shown to break "
 "down follow-up tasks for the organization into smaller parts."
 
-#: ORG/templates/add_aufgabe.html:926
+#: ORG/templates/add_aufgabe.html:925
 msgid ""
 "Beispiel: Aufgabe <b>'Flugticket buchen'</b> hat 2 Zwischenschritte: "
 "<b>'Partnerorganisation Bescheid geben'</b> und <b>'Abreisedatum "
@@ -4488,29 +4487,29 @@ msgstr ""
 "Example: Task <b>'Book flight ticket'</b> has 2 intermediate steps: "
 "<b>'Notify partner organization'</b> and <b>'Update departure date'</b>."
 
-#: ORG/templates/add_aufgabe.html:933
+#: ORG/templates/add_aufgabe.html:932
 msgid "Zwischenschritte hinzufügen"
 msgstr "Add intermediate steps"
 
-#: ORG/templates/add_aufgabe.html:948
+#: ORG/templates/add_aufgabe.html:947
 #: ORG/templates/components/zwischenschritt_form.html:11
 #: ORG/templates/components/zwischenschritt_form.html:48
 msgid "Zwischenschritt"
 msgstr "Intermediate step"
 
-#: ORG/templates/add_aufgabe.html:986
+#: ORG/templates/add_aufgabe.html:985
 msgid "Pflichtfelder"
 msgstr "Required fields"
 
-#: ORG/templates/add_aufgabe.html:1012
+#: ORG/templates/add_aufgabe.html:1011
 msgid "Weiter"
 msgstr "Continue"
 
-#: ORG/templates/add_aufgabe.html:1027
+#: ORG/templates/add_aufgabe.html:1026
 msgid "Änderungen speichern"
 msgstr "Save changes"
 
-#: ORG/templates/add_aufgabe.html:1032 ORG/templates/list_objects_table.html:16
+#: ORG/templates/add_aufgabe.html:1031 ORG/templates/list_objects_table.html:16
 msgid "Aufgabe erstellen"
 msgstr "Create task"
 
@@ -5849,6 +5848,10 @@ msgstr "Empty message"
 msgid "Ungültiger Chat-Typ"
 msgstr "Invalid chat type"
 
+#: mission/templates/bless_box_2_go.html:5
+msgid "Bless Box 2 Go"
+msgstr ""
+
 #: seminar/models.py:20
 msgid "Fragekategorie"
 msgstr "Question category"
@@ -5889,33 +5892,51 @@ msgstr "View applications"
 msgid "Keine Bewerbungen vorhanden."
 msgstr "No applications available."
 
-#: survey/admin.py:38 survey/admin.py:213
+#: survey/admin.py:8 survey/admin.py:19
+msgid "Reapply question ordering"
+msgstr ""
+
+#: survey/admin.py:15 survey/admin.py:27
+#, python-format
+msgid "Reapplied question ordering for %(count)d survey(s)."
+msgstr ""
+
+#: survey/admin.py:31
+msgid "Reapply option ordering"
+msgstr ""
+
+#: survey/admin.py:39
+#, python-format
+msgid "Reapplied option ordering for %(count)d question(s)."
+msgstr ""
+
+#: survey/admin.py:73 survey/admin.py:251
 msgid "Selected Options"
 msgstr "Selected Options"
 
-#: survey/admin.py:57
+#: survey/admin.py:93
 msgid "Basic Information"
 msgstr "Basic Information"
 
-#: survey/admin.py:60
+#: survey/admin.py:96
 msgid "Access Settings"
 msgstr "Access Settings"
 
-#: survey/admin.py:63
+#: survey/admin.py:99
 msgid "Schedule & Limits"
 msgstr "Schedule & Limits"
 
-#: survey/admin.py:67
+#: survey/admin.py:103
 msgid "System Information"
 msgstr "System Information"
 
-#: survey/admin.py:75 survey/templates/survey/admin_survey_list.html:42
+#: survey/admin.py:111 survey/templates/survey/admin_survey_list.html:42
 #: survey/templates/survey/survey_list.html:56
 #: survey/templates/survey/survey_manage.html:48
 msgid "Responses"
 msgstr "Responses"
 
-#: survey/admin.py:80 survey/templates/survey/admin_survey_list.html:43
+#: survey/admin.py:116 survey/templates/survey/admin_survey_list.html:43
 #: survey/templates/survey/survey_list.html:50
 #: survey/templates/survey/survey_manage.html:41
 #: survey/templates/survey/survey_manage.html:133
@@ -5923,50 +5944,50 @@ msgstr "Responses"
 msgid "Questions"
 msgstr "Questions"
 
-#: survey/admin.py:88 survey/templates/survey/admin_survey_list.html:99
+#: survey/admin.py:124 survey/templates/survey/admin_survey_list.html:99
 msgid "View Survey"
 msgstr "View Survey"
 
-#: survey/admin.py:91
+#: survey/admin.py:127
 msgid "Public Link"
 msgstr "Public Link"
 
-#: survey/admin.py:116 survey/templates/survey/add_question.html:30
+#: survey/admin.py:153 survey/templates/survey/add_question.html:30
 #: survey/templates/survey/edit_question.html:34
 msgid "Question Details"
 msgstr "Question Details"
 
-#: survey/admin.py:119
+#: survey/admin.py:156
 msgid "Settings"
 msgstr "Settings"
 
-#: survey/admin.py:126 survey/admin.py:200 survey/models.py:133
-#: survey/models.py:167 survey/models.py:249
+#: survey/admin.py:163 survey/admin.py:238 survey/models.py:151
+#: survey/models.py:185 survey/models.py:267
 #: survey/templates/survey/survey_manage.html:146
 msgid "Question"
 msgstr "Question"
 
-#: survey/admin.py:130 survey/templates/survey/survey_manage.html:149
+#: survey/admin.py:167 survey/templates/survey/survey_manage.html:149
 msgid "Options"
 msgstr "Options"
 
-#: survey/admin.py:167 survey/models.py:197
+#: survey/admin.py:205 survey/models.py:215
 msgid "Respondent"
 msgstr "Respondent"
 
-#: survey/admin.py:206
+#: survey/admin.py:244
 msgid "Text Answer"
 msgstr "Text Answer"
 
-#: survey/admin.py:227
+#: survey/admin.py:265
 msgid "FWMsg Survey Administration"
 msgstr "FWMsg Survey Administration"
 
-#: survey/admin.py:228
+#: survey/admin.py:266
 msgid "Survey Admin"
 msgstr "Survey Admin"
 
-#: survey/admin.py:229
+#: survey/admin.py:267
 msgid "Survey Management"
 msgstr "Survey Management"
 
@@ -6004,190 +6025,190 @@ msgstr "Enter option text"
 msgid "Select an option"
 msgstr "Select an option"
 
-#: survey/models.py:46
+#: survey/models.py:64
 msgid "Title"
 msgstr "Title"
 
-#: survey/models.py:47
+#: survey/models.py:65
 msgid "Description"
 msgstr "Description"
 
-#: survey/models.py:52
+#: survey/models.py:70
 msgid "Survey Key"
 msgstr "Survey Key"
 
-#: survey/models.py:57 survey/templates/survey/admin_survey_list.html:39
+#: survey/models.py:75 survey/templates/survey/admin_survey_list.html:39
 #: survey/templates/survey/survey_list.html:36
 msgid "Created by"
 msgstr "Created by"
 
-#: survey/models.py:59
+#: survey/models.py:77
 msgid "Created at"
 msgstr "Created at"
 
-#: survey/models.py:60
+#: survey/models.py:78
 msgid "Updated at"
 msgstr "Updated at"
 
-#: survey/models.py:61
+#: survey/models.py:79
 msgid "Is active"
 msgstr "Is active"
 
-#: survey/models.py:64
+#: survey/models.py:82
 msgid "Allow participation without login"
 msgstr "Allow participation without login"
 
-#: survey/models.py:68
+#: survey/models.py:86
 msgid "Responses are anonymous"
 msgstr "Responses are anonymous"
 
-#: survey/models.py:72
+#: survey/models.py:90
 msgid "Start date"
 msgstr "Start date"
 
-#: survey/models.py:73
+#: survey/models.py:91
 msgid "Before this date the survey is not available"
 msgstr "Before this date the survey is not available"
 
-#: survey/models.py:77
+#: survey/models.py:95
 msgid "End date"
 msgstr "End date"
 
-#: survey/models.py:78
+#: survey/models.py:96
 msgid "After this date the survey is not available"
 msgstr "After this date the survey is not available"
 
-#: survey/models.py:82
+#: survey/models.py:100
 msgid "Maximum responses"
 msgstr "Maximum responses"
 
-#: survey/models.py:87
+#: survey/models.py:105
 msgid "Surveys"
 msgstr "Surveys"
 
-#: survey/models.py:116 survey/templates/survey/add_question.html:140
+#: survey/models.py:134 survey/templates/survey/add_question.html:140
 #: survey/templates/survey/partials/question_form.html:6
 msgid "Short Text"
 msgstr "Short Text"
 
-#: survey/models.py:117 survey/templates/survey/add_question.html:143
+#: survey/models.py:135 survey/templates/survey/add_question.html:143
 #: survey/templates/survey/partials/question_form.html:8
 msgid "Long Text"
 msgstr "Long Text"
 
-#: survey/models.py:118 survey/templates/survey/add_question.html:156
+#: survey/models.py:136 survey/templates/survey/add_question.html:156
 #: survey/templates/survey/partials/question_form.html:10
 msgid "Dropdown"
 msgstr "Dropdown"
 
-#: survey/models.py:119 survey/templates/survey/add_question.html:159
+#: survey/models.py:137 survey/templates/survey/add_question.html:159
 #: survey/templates/survey/partials/question_form.html:12
 msgid "Radio Buttons"
 msgstr "Radio Buttons"
 
-#: survey/models.py:120 survey/templates/survey/add_question.html:162
+#: survey/models.py:138 survey/templates/survey/add_question.html:162
 #: survey/templates/survey/partials/question_form.html:14
 msgid "Checkboxes"
 msgstr "Checkboxes"
 
-#: survey/models.py:122 survey/templates/survey/add_question.html:149
+#: survey/models.py:140 survey/templates/survey/add_question.html:149
 #: survey/templates/survey/partials/question_form.html:18
 msgid "Number"
 msgstr "Number"
 
-#: survey/models.py:123 survey/templates/survey/partials/question_form.html:20
+#: survey/models.py:141 survey/templates/survey/partials/question_form.html:20
 msgid "Date"
 msgstr "Date"
 
-#: survey/models.py:124 survey/templates/survey/partials/question_form.html:22
+#: survey/models.py:142 survey/templates/survey/partials/question_form.html:22
 msgid "Rating (1-5)"
 msgstr "Rating (1-5)"
 
-#: survey/models.py:138
+#: survey/models.py:156
 msgid "Question Type"
 msgstr "Question Type"
 
-#: survey/models.py:140 survey/templates/survey/delete_question.html:46
+#: survey/models.py:158 survey/templates/survey/delete_question.html:46
 #: survey/templates/survey/survey_manage.html:148
 #: survey/templates/survey/survey_results.html:83
 msgid "Required"
 msgstr "Required"
 
-#: survey/models.py:140
+#: survey/models.py:158
 msgid "If the question is required"
 msgstr "If the question is required"
 
-#: survey/models.py:141 survey/models.py:170
+#: survey/models.py:159 survey/models.py:188
 #: survey/templates/survey/edit_question.html:145
 #: survey/templates/survey/survey_manage.html:145
 msgid "Order"
 msgstr "Order"
 
-#: survey/models.py:145
+#: survey/models.py:163
 msgid "Help text"
 msgstr "Help text"
 
-#: survey/models.py:149
+#: survey/models.py:167
 msgid "Survey Question"
 msgstr "Survey Question"
 
-#: survey/models.py:150 survey/templates/survey/survey_detail.html:38
+#: survey/models.py:168 survey/templates/survey/survey_detail.html:38
 msgid "Survey Questions"
 msgstr "Survey Questions"
 
-#: survey/models.py:169
+#: survey/models.py:187
 msgid "Option text"
 msgstr "Option text"
 
-#: survey/models.py:173
+#: survey/models.py:191
 msgid "Question Option"
 msgstr "Question Option"
 
-#: survey/models.py:174
+#: survey/models.py:192
 msgid "Question Options"
 msgstr "Question Options"
 
-#: survey/models.py:202
+#: survey/models.py:220
 msgid "Session key"
 msgstr "Session key"
 
-#: survey/models.py:206
+#: survey/models.py:224
 msgid "IP Address"
 msgstr "IP Address"
 
-#: survey/models.py:208
+#: survey/models.py:226
 msgid "Submitted at"
 msgstr "Submitted at"
 
-#: survey/models.py:209
+#: survey/models.py:227
 msgid "Is complete"
 msgstr "Is complete"
 
-#: survey/models.py:212
+#: survey/models.py:230
 msgid "Survey Response"
 msgstr "Survey Response"
 
-#: survey/models.py:213
+#: survey/models.py:231
 msgid "Survey Responses"
 msgstr "Survey Responses"
 
-#: survey/models.py:244
+#: survey/models.py:262
 msgid "Response"
 msgstr "Response"
 
-#: survey/models.py:251
+#: survey/models.py:269
 msgid "Text answer"
 msgstr "Text answer"
 
-#: survey/models.py:255
+#: survey/models.py:273
 msgid "Selected options"
 msgstr "Selected options"
 
-#: survey/models.py:259
+#: survey/models.py:277
 msgid "Survey Answer"
 msgstr "Survey Answer"
 
-#: survey/models.py:260
+#: survey/models.py:278
 msgid "Survey Answers"
 msgstr "Survey Answers"
 
@@ -6210,10 +6231,6 @@ msgstr "Participants:"
 #: survey/pdf_utils.py:621 survey/pdf_utils.py:655 survey/pdf_utils.py:669
 msgid "Anonym"
 msgstr "Anonymous"
-
-#: survey/pdf_utils.py:687
-msgid "No answer provided"
-msgstr "No answer provided"
 
 #: survey/templates/survey/add_question.html:5
 #: survey/templates/survey/add_question.html:14
@@ -6356,8 +6373,8 @@ msgstr "Active Surveys"
 msgid "Today"
 msgstr "Today"
 
-#: survey/templates/survey/base_survey.html:241
-#: survey/templates/survey/base_survey.html:255
+#: survey/templates/survey/base_survey.html:240
+#: survey/templates/survey/base_survey.html:254
 #: survey/templates/survey/survey_already_completed.html:63
 #: survey/templates/survey/survey_list.html:4
 #: survey/templates/survey/survey_list.html:13
@@ -6366,26 +6383,26 @@ msgstr "Today"
 msgid "My Surveys"
 msgstr "My Surveys"
 
-#: survey/templates/survey/base_survey.html:246
+#: survey/templates/survey/base_survey.html:245
 #: survey/templates/survey/survey_create.html:5
 #: survey/templates/survey/survey_create.html:147
 #: survey/templates/survey/survey_thank_you.html:58 survey/tests.py:359
 msgid "Create Survey"
 msgstr "Create Survey"
 
-#: survey/templates/survey/base_survey.html:258
+#: survey/templates/survey/base_survey.html:257
 msgid "Admin: All Surveys"
 msgstr "Admin: All Surveys"
 
-#: survey/templates/survey/base_survey.html:267
+#: survey/templates/survey/base_survey.html:266
 msgid "Login"
 msgstr "Login"
 
-#: survey/templates/survey/base_survey.html:303
+#: survey/templates/survey/base_survey.html:302
 msgid "Survey System"
 msgstr "Survey System"
 
-#: survey/templates/survey/base_survey.html:316
+#: survey/templates/survey/base_survey.html:315
 msgid "All rights reserved."
 msgstr "All rights reserved."
 
@@ -6976,6 +6993,9 @@ msgstr "No completed responses found for this survey."
 #, python-format
 msgid "Error generating PDF export: %(error)s"
 msgstr "Error generating PDF export: %(error)s"
+
+#~ msgid "No answer provided"
+#~ msgstr "No answer provided"
 
 #~ msgid "User task"
 #~ msgstr "User task"

@@ -69,7 +69,7 @@ def send_own_signin_accepted_email_task(applicant_email, applicant_name, org_id)
         logger.error(f'Organisation with id {org_id} does not exist')
         return False
 
-    action_url = f'{settings.DOMAIN_HOST}{reverse("password_reset")}'
+    action_url = f'{settings.DOMAIN_HOST}{reverse("password_reset")}?email={applicant_email}'
     image_url = get_logo_url(org)
     org_color = get_org_color(org)
 

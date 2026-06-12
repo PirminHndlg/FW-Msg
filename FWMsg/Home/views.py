@@ -305,7 +305,9 @@ def password_reset(request):
                 return redirect('password_reset')
     else:
         form = PasswordResetForm()
-    return render(request, 'password_reset.html', {'form': form})
+        email = request.GET.get('email', None)
+       
+    return render(request, 'password_reset.html', {'form': form, 'email': email})
 
 @login_required
 def password_change(request):
