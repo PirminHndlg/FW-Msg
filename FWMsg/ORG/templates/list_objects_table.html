@@ -24,8 +24,8 @@
             </a>
             {% endif %}
             {% if model_name == 'freiwilliger' %}
-                <a href="{% url 'statistik' %}" class="btn btn-sm rounded-4 btn-outline-primary">
-                    <i class="bi bi-bar-chart me-2"></i>{% trans "Statistik" %}
+                <a href="{% url 'statistik' %}" class="btn btn-sm rounded-4 btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans "Statistik" %}">
+                    <i class="bi bi-bar-chart"></i>
                 </a>
             {% endif %}
             {% if model_name == 'bewerber' %}
@@ -36,22 +36,23 @@
             {% comment %} if freiwilliger, bewerber, team or ehemaliger add email all button with dropdown (cc or bcc) {% endcomment %}
             {% if all_emails %}
             <div class="btn-group">
-                <a href="mailto:{{ all_emails }}" class="btn btn-sm rounded-start-4 btn-outline-primary">
-                    <i class="bi bi-envelope me-2"></i>{% trans "E-Mail" %}
+                <a href="mailto:{{ all_emails }}" class="btn btn-sm rounded-start-4 btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans "E-Mail an alle senden" %}">
+                    <i class="bi bi-envelope"></i>
                 </a>
                 <button type="button" class="btn btn-sm rounded-end-4 btn-outline-primary dropdown-toggle dropdown-toggle-split"
                         data-bs-toggle="dropdown" aria-expanded="false">
                     <span class="visually-hidden">{% trans "Toggle Dropdown" %}</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
+                    <li class="dropdown-header">{% trans "E-Mail an alle" %}</li>
                     <li>
                         <a class="dropdown-item" href="mailto:?cc={{ all_emails }}">
-                            <i class="bi bi-envelope me-2"></i>{% trans "CC" %}
+                            <i class="bi bi-eye-fill me-2"></i>{% trans "im Cc" %}
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item" href="mailto:?bcc={{ all_emails }}">
-                            <i class="bi bi-envelope-dash me-2"></i>{% trans "BCC" %}
+                            <i class="bi bi-eye-slash-fill me-2"></i>{% trans "im Bcc" %}
                         </a>
                     </li>
                 </ul>
