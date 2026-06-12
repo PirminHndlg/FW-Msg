@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 15:07+0200\n"
+"POT-Creation-Date: 2026-06-12 15:28+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: German <de@li.org>\n"
@@ -1118,8 +1118,7 @@ msgid "Stadt"
 msgstr "Stadt"
 
 #: Global/forms.py:339 Global/models.py:1504 Global/templates/karte.html:122
-#: Global/templates/mail/own_signin_new.html:36 Home/models.py:14
-#: ORG/templates/review_own_signin_user.html:63
+#: Home/models.py:14 ORG/templates/review_own_signin_user.html:63
 msgid "Land"
 msgstr "Land"
 
@@ -1129,9 +1128,9 @@ msgstr "Organisation"
 
 #: Global/models.py:76 Global/models.py:95 Global/models.py:120
 #: Global/templates/bilder.html:31 Global/templates/dokumente.html:144
-#: Global/templates/karte.html:32 Global/templates/mail/own_signin_new.html:29
-#: Global/templates/posts_overview.html:18 Home/models.py:10 ORG/tables.py:393
-#: ORG/templates/list_ampel.html:30 ORG/templates/list_aufgaben_table.html:124
+#: Global/templates/karte.html:32 Global/templates/posts_overview.html:18
+#: Home/models.py:10 ORG/tables.py:393 ORG/templates/list_ampel.html:30
+#: ORG/templates/list_aufgaben_table.html:124
 #: ORG/templates/review_own_signin_user.html:54
 #: TEAM/templates/teamAufgabenuebersicht.html:52
 msgid "Benutzergruppe"
@@ -1608,8 +1607,7 @@ msgstr "Telefon (Mobil)"
 msgid "Mobiltelefonnummer"
 msgstr ""
 
-#: Global/models.py:822 Global/templates/mail/own_signin_new.html:23
-#: Home/models.py:9 ORG/tables.py:179
+#: Global/models.py:822 Home/models.py:9 ORG/tables.py:179
 #: ORG/templates/review_own_signin_user.html:46
 msgid "E-Mail"
 msgstr "E-Mail"
@@ -1685,10 +1683,9 @@ msgid "Aufgabenkategorien"
 msgstr "Aufgabenkategorien"
 
 #: Global/models.py:874 Global/models.py:904
-#: Global/templates/list_bewerber.html:40
-#: Global/templates/mail/own_signin_new.html:17 ORG/tables.py:95
-#: ORG/tables.py:107 ORG/tables.py:156 ORG/tables.py:250 ORG/tables.py:272
-#: ORG/tables.py:326 ORG/templates/components/zwischenschritt_form.html:54
+#: Global/templates/list_bewerber.html:40 ORG/tables.py:95 ORG/tables.py:107
+#: ORG/tables.py:156 ORG/tables.py:250 ORG/tables.py:272 ORG/tables.py:326
+#: ORG/templates/components/zwischenschritt_form.html:54
 msgid "Name"
 msgstr "Name"
 
@@ -2342,7 +2339,6 @@ msgid "Rot"
 msgstr "Rot"
 
 #: Global/templates/bewerber_detail.html:94
-#: Global/templates/mail/change_request_decision.html:51
 msgid "Kommentar:"
 msgstr "Kommentar:"
 
@@ -2857,7 +2853,6 @@ msgstr "Eingereicht am"
 
 #: Global/templates/einsatzstellen_info.html:108
 #: Global/templates/laender_info.html:70
-#: Global/templates/mail/change_request_new.html:35
 #: ORG/templates/components/change_request_item.html:44
 msgid "Begründung:"
 msgstr "Begründung:"
@@ -3103,109 +3098,6 @@ msgid ""
 msgstr ""
 "Es sind noch keine Bewerbungen eingegangen oder du hast keinen Zugriff auf "
 "Bewerbungen."
-
-#: Global/templates/mail/change_request_decision.html:9
-msgid "Änderungsvorschlag genehmigt"
-msgstr "Änderungsvorschlag genehmigt"
-
-#: Global/templates/mail/change_request_decision.html:11
-msgid "Änderungsvorschlag abgelehnt"
-msgstr "Änderungsvorschlag abgelehnt"
-
-#: Global/templates/mail/change_request_decision.html:17
-msgid ""
-"Dein Änderungsvorschlag wurde genehmigt und die Änderungen wurden übernommen."
-msgstr ""
-"Dein Änderungsvorschlag wurde genehmigt und die Änderungen wurden übernommen."
-
-#: Global/templates/mail/change_request_decision.html:19
-msgid "Dein Änderungsvorschlag wurde abgelehnt."
-msgstr "Dein Änderungsvorschlag wurde abgelehnt."
-
-#: Global/templates/mail/change_request_decision.html:36
-msgid "Status:"
-msgstr "Status:"
-
-#: Global/templates/mail/change_request_decision.html:44
-msgid "Geprüft von:"
-msgstr "Geprüft von:"
-
-#: Global/templates/mail/change_request_decision.html:64
-msgid "Details ansehen"
-msgstr "Details anzeigen"
-
-#: Global/templates/mail/change_request_new.html:8
-msgid "Neuer Änderungsvorschlag"
-msgstr "Neuer Änderungsvorschlag"
-
-#: Global/templates/mail/change_request_new.html:12
-msgid "ein neuer Änderungsvorschlag wurde eingereicht und wartet auf Prüfung."
-msgstr "ein neuer Änderungsvorschlag wurde eingereicht und wartet auf Prüfung."
-
-#: Global/templates/mail/change_request_new.html:28
-msgid "Angefragt von:"
-msgstr "Angefragt von:"
-
-#: Global/templates/mail/change_request_new.html:46
-msgid ""
-"Bitte prüfe den Vorschlag und entscheide, ob die Änderungen genehmigt oder "
-"abgelehnt werden sollen."
-msgstr ""
-"Bitte prüfe den Vorschlag und entscheide, ob die Änderungen genehmigt oder "
-"abgelehnt werden sollen."
-
-#: Global/templates/mail/change_request_new.html:51
-#: ORG/templates/review_change_request.html:5
-#: ORG/templates/review_change_request.html:27
-msgid "Änderungsvorschlag prüfen"
-msgstr "Änderungsanträge"
-
-#: Global/templates/mail/own_signin_accepted.html:8
-#, python-format
-msgid "Deine Registrierung bei %(org)s wurde freigeschaltet."
-msgstr ""
-
-#: Global/templates/mail/own_signin_accepted.html:12
-msgid ""
-"Um dein Passwort festzulegen, besuche die Passwort-zurücksetzen-Seite und "
-"gib deine E-Mail-Adresse ein. Du erhältst anschließend eine E-Mail mit "
-"weiteren Anweisungen zum ersten Login."
-msgstr ""
-
-#: Global/templates/mail/own_signin_accepted.html:18
-msgid "Passwort festlegen"
-msgstr "Passwort festlegen"
-
-#: Global/templates/mail/own_signin_denied.html:8
-#, python-format
-msgid "Deine Registrierungsanfrage bei %(org)s wurde leider abgelehnt."
-msgstr ""
-
-#: Global/templates/mail/own_signin_denied.html:12
-msgid "Bei Fragen wende dich bitte direkt an die Organisation."
-msgstr ""
-
-#: Global/templates/mail/own_signin_new.html:8
-msgid ""
-"Eine neue Registrierungsanfrage wurde eingereicht und wartet auf deine "
-"Freigabe."
-msgstr ""
-"Eine neue Registrierungsanfrage wurde eingereicht und wartet auf deine "
-"Freigabe."
-
-#: Global/templates/mail/own_signin_new.html:47
-msgid ""
-"Bitte prüfe die Anfrage und entscheide, ob das Konto freigeschaltet oder "
-"abgelehnt werden soll."
-msgstr ""
-"Bitte prüfe die Anfrage und entscheide, ob das Konto freigeschaltet oder "
-"abgelehnt werden soll."
-
-#: Global/templates/mail/own_signin_new.html:53
-#: ORG/templates/review_own_signin_user.html:5
-#: ORG/templates/review_own_signin_user.html:22
-msgid "Registrierung prüfen"
-msgstr "Registrierung prüfen"
 
 #: Global/templates/post_add.html:6 Global/templates/posts_overview.html:13
 #: Global/templates/profil.html:63
@@ -5408,6 +5300,11 @@ msgstr ""
 msgid "Keine offenen Registrierungsanfragen."
 msgstr "Keine offenen Registrierungsanfragen."
 
+#: ORG/templates/review_change_request.html:5
+#: ORG/templates/review_change_request.html:27
+msgid "Änderungsvorschlag prüfen"
+msgstr "Änderungsanträge"
+
 #: ORG/templates/review_change_request.html:28
 msgid "Überprüfen und entscheiden Sie über die vorgeschlagenen Änderungen"
 msgstr "Überprüfe und entscheide über die vorgeschlagenen Änderungen"
@@ -5473,6 +5370,11 @@ msgstr ""
 #: ORG/templates/review_change_request.html:238
 msgid "Sicher, dass Du diesen Änderungsvorschlag ablehnen möchtest?"
 msgstr "Bist Du sicher, dass Du diesen Beitrag löschen möchtest?"
+
+#: ORG/templates/review_own_signin_user.html:5
+#: ORG/templates/review_own_signin_user.html:22
+msgid "Registrierung prüfen"
+msgstr "Registrierung prüfen"
 
 #: ORG/templates/review_own_signin_user.html:23
 msgid "Registrierungsanfrage freischalten oder ablehnen"
@@ -7016,6 +6918,66 @@ msgstr "Keine abgeschlossenen Antworten für diese Umfrage gefunden."
 #, python-format
 msgid "Error generating PDF export: %(error)s"
 msgstr "Fehler beim Erstellen des PDF-Exports: %(error)s"
+
+#~ msgid "Änderungsvorschlag genehmigt"
+#~ msgstr "Änderungsvorschlag genehmigt"
+
+#~ msgid "Änderungsvorschlag abgelehnt"
+#~ msgstr "Änderungsvorschlag abgelehnt"
+
+#~ msgid ""
+#~ "Dein Änderungsvorschlag wurde genehmigt und die Änderungen wurden "
+#~ "übernommen."
+#~ msgstr ""
+#~ "Dein Änderungsvorschlag wurde genehmigt und die Änderungen wurden "
+#~ "übernommen."
+
+#~ msgid "Dein Änderungsvorschlag wurde abgelehnt."
+#~ msgstr "Dein Änderungsvorschlag wurde abgelehnt."
+
+#~ msgid "Status:"
+#~ msgstr "Status:"
+
+#~ msgid "Geprüft von:"
+#~ msgstr "Geprüft von:"
+
+#~ msgid "Details ansehen"
+#~ msgstr "Details anzeigen"
+
+#~ msgid "Neuer Änderungsvorschlag"
+#~ msgstr "Neuer Änderungsvorschlag"
+
+#~ msgid ""
+#~ "ein neuer Änderungsvorschlag wurde eingereicht und wartet auf Prüfung."
+#~ msgstr ""
+#~ "ein neuer Änderungsvorschlag wurde eingereicht und wartet auf Prüfung."
+
+#~ msgid "Angefragt von:"
+#~ msgstr "Angefragt von:"
+
+#~ msgid ""
+#~ "Bitte prüfe den Vorschlag und entscheide, ob die Änderungen genehmigt "
+#~ "oder abgelehnt werden sollen."
+#~ msgstr ""
+#~ "Bitte prüfe den Vorschlag und entscheide, ob die Änderungen genehmigt "
+#~ "oder abgelehnt werden sollen."
+
+#~ msgid "Passwort festlegen"
+#~ msgstr "Passwort festlegen"
+
+#~ msgid ""
+#~ "Eine neue Registrierungsanfrage wurde eingereicht und wartet auf deine "
+#~ "Freigabe."
+#~ msgstr ""
+#~ "Eine neue Registrierungsanfrage wurde eingereicht und wartet auf deine "
+#~ "Freigabe."
+
+#~ msgid ""
+#~ "Bitte prüfe die Anfrage und entscheide, ob das Konto freigeschaltet oder "
+#~ "abgelehnt werden soll."
+#~ msgstr ""
+#~ "Bitte prüfe die Anfrage und entscheide, ob das Konto freigeschaltet oder "
+#~ "abgelehnt werden soll."
 
 #~ msgid "No answer provided"
 #~ msgstr "Keine Antwort angegeben"

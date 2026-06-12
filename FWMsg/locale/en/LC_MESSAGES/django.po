@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 15:07+0200\n"
+"POT-Creation-Date: 2026-06-12 15:28+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: English <en@li.org>\n"
@@ -1108,8 +1108,7 @@ msgid "Stadt"
 msgstr "City"
 
 #: Global/forms.py:339 Global/models.py:1504 Global/templates/karte.html:122
-#: Global/templates/mail/own_signin_new.html:36 Home/models.py:14
-#: ORG/templates/review_own_signin_user.html:63
+#: Home/models.py:14 ORG/templates/review_own_signin_user.html:63
 msgid "Land"
 msgstr "Country"
 
@@ -1119,9 +1118,9 @@ msgstr "Organization"
 
 #: Global/models.py:76 Global/models.py:95 Global/models.py:120
 #: Global/templates/bilder.html:31 Global/templates/dokumente.html:144
-#: Global/templates/karte.html:32 Global/templates/mail/own_signin_new.html:29
-#: Global/templates/posts_overview.html:18 Home/models.py:10 ORG/tables.py:393
-#: ORG/templates/list_ampel.html:30 ORG/templates/list_aufgaben_table.html:124
+#: Global/templates/karte.html:32 Global/templates/posts_overview.html:18
+#: Home/models.py:10 ORG/tables.py:393 ORG/templates/list_ampel.html:30
+#: ORG/templates/list_aufgaben_table.html:124
 #: ORG/templates/review_own_signin_user.html:54
 #: TEAM/templates/teamAufgabenuebersicht.html:52
 msgid "Benutzergruppe"
@@ -1603,8 +1602,7 @@ msgstr "Mobile phone"
 msgid "Mobiltelefonnummer"
 msgstr "Mobile phone number"
 
-#: Global/models.py:822 Global/templates/mail/own_signin_new.html:23
-#: Home/models.py:9 ORG/tables.py:179
+#: Global/models.py:822 Home/models.py:9 ORG/tables.py:179
 #: ORG/templates/review_own_signin_user.html:46
 msgid "E-Mail"
 msgstr "Email"
@@ -1682,10 +1680,9 @@ msgid "Aufgabenkategorien"
 msgstr "Task categories"
 
 #: Global/models.py:874 Global/models.py:904
-#: Global/templates/list_bewerber.html:40
-#: Global/templates/mail/own_signin_new.html:17 ORG/tables.py:95
-#: ORG/tables.py:107 ORG/tables.py:156 ORG/tables.py:250 ORG/tables.py:272
-#: ORG/tables.py:326 ORG/templates/components/zwischenschritt_form.html:54
+#: Global/templates/list_bewerber.html:40 ORG/tables.py:95 ORG/tables.py:107
+#: ORG/tables.py:156 ORG/tables.py:250 ORG/tables.py:272 ORG/tables.py:326
+#: ORG/templates/components/zwischenschritt_form.html:54
 msgid "Name"
 msgstr "Name"
 
@@ -2347,7 +2344,6 @@ msgid "Rot"
 msgstr "Red"
 
 #: Global/templates/bewerber_detail.html:94
-#: Global/templates/mail/change_request_decision.html:51
 msgid "Kommentar:"
 msgstr "Comment:"
 
@@ -2862,7 +2858,6 @@ msgstr "Submitted on"
 
 #: Global/templates/einsatzstellen_info.html:108
 #: Global/templates/laender_info.html:70
-#: Global/templates/mail/change_request_new.html:35
 #: ORG/templates/components/change_request_item.html:44
 msgid "Begründung:"
 msgstr "Reason:"
@@ -3107,111 +3102,6 @@ msgid ""
 msgstr ""
 "No applications have been received yet, or you do not have access to any "
 "applications."
-
-#: Global/templates/mail/change_request_decision.html:9
-msgid "Änderungsvorschlag genehmigt"
-msgstr "Change request approved"
-
-#: Global/templates/mail/change_request_decision.html:11
-msgid "Änderungsvorschlag abgelehnt"
-msgstr "Change request rejected"
-
-#: Global/templates/mail/change_request_decision.html:17
-msgid ""
-"Dein Änderungsvorschlag wurde genehmigt und die Änderungen wurden übernommen."
-msgstr ""
-"Your change request has been approved and the changes have been applied."
-
-#: Global/templates/mail/change_request_decision.html:19
-msgid "Dein Änderungsvorschlag wurde abgelehnt."
-msgstr "Your change request has been rejected."
-
-#: Global/templates/mail/change_request_decision.html:36
-msgid "Status:"
-msgstr "Status:"
-
-#: Global/templates/mail/change_request_decision.html:44
-msgid "Geprüft von:"
-msgstr "Reviewed by:"
-
-#: Global/templates/mail/change_request_decision.html:64
-msgid "Details ansehen"
-msgstr "View details"
-
-#: Global/templates/mail/change_request_new.html:8
-msgid "Neuer Änderungsvorschlag"
-msgstr "New change request"
-
-#: Global/templates/mail/change_request_new.html:12
-msgid "ein neuer Änderungsvorschlag wurde eingereicht und wartet auf Prüfung."
-msgstr "a new change request has been submitted and is awaiting review."
-
-#: Global/templates/mail/change_request_new.html:28
-msgid "Angefragt von:"
-msgstr "Requested by:"
-
-#: Global/templates/mail/change_request_new.html:46
-msgid ""
-"Bitte prüfe den Vorschlag und entscheide, ob die Änderungen genehmigt oder "
-"abgelehnt werden sollen."
-msgstr ""
-"Please review the request and decide whether the changes should be approved "
-"or rejected."
-
-#: Global/templates/mail/change_request_new.html:51
-#: ORG/templates/review_change_request.html:5
-#: ORG/templates/review_change_request.html:27
-msgid "Änderungsvorschlag prüfen"
-msgstr "Review change request"
-
-#: Global/templates/mail/own_signin_accepted.html:8
-#, python-format
-msgid "Deine Registrierung bei %(org)s wurde freigeschaltet."
-msgstr "Your registration at %(org)s has been approved."
-
-#: Global/templates/mail/own_signin_accepted.html:12
-msgid ""
-"Um dein Passwort festzulegen, besuche die Passwort-zurücksetzen-Seite und "
-"gib deine E-Mail-Adresse ein. Du erhältst anschließend eine E-Mail mit "
-"weiteren Anweisungen zum ersten Login."
-msgstr ""
-"To set your password, visit the password reset page and enter your email "
-"address. You will then receive an email with further instructions for your "
-"first login."
-
-#: Global/templates/mail/own_signin_accepted.html:18
-msgid "Passwort festlegen"
-msgstr "Set password"
-
-#: Global/templates/mail/own_signin_denied.html:8
-#, python-format
-msgid "Deine Registrierungsanfrage bei %(org)s wurde leider abgelehnt."
-msgstr "Unfortunately, your registration request at %(org)s has been denied."
-
-#: Global/templates/mail/own_signin_denied.html:12
-msgid "Bei Fragen wende dich bitte direkt an die Organisation."
-msgstr "If you have any questions, please contact the organization directly."
-
-#: Global/templates/mail/own_signin_new.html:8
-msgid ""
-"Eine neue Registrierungsanfrage wurde eingereicht und wartet auf deine "
-"Freigabe."
-msgstr ""
-"A new registration request has been submitted and is awaiting your approval."
-
-#: Global/templates/mail/own_signin_new.html:47
-msgid ""
-"Bitte prüfe die Anfrage und entscheide, ob das Konto freigeschaltet oder "
-"abgelehnt werden soll."
-msgstr ""
-"Please review the request and decide whether the account should be approved "
-"or denied."
-
-#: Global/templates/mail/own_signin_new.html:53
-#: ORG/templates/review_own_signin_user.html:5
-#: ORG/templates/review_own_signin_user.html:22
-msgid "Registrierung prüfen"
-msgstr "Review registration"
 
 #: Global/templates/post_add.html:6 Global/templates/posts_overview.html:13
 #: Global/templates/profil.html:63
@@ -4135,7 +4025,8 @@ msgid ""
 "Du erhältst per E-Mail ein Einmalpasswort, um ein neues Passwort zu setzen. "
 "Das Einmalpasswort ist nur 24 Stunden gültig."
 msgstr ""
-"You will receive a one-time password by email to set a new password. The one-time password is valid for 24 hours only."
+"You will receive a one-time password by email to set a new password. The one-"
+"time password is valid for 24 hours only."
 
 #: Home/templates/password_reset.html:122
 msgid "Beliebte Passwort-Manager sind"
@@ -5390,6 +5281,11 @@ msgstr "Approve or reject new registrations via the personal sign-up link"
 msgid "Keine offenen Registrierungsanfragen."
 msgstr "No open registration requests."
 
+#: ORG/templates/review_change_request.html:5
+#: ORG/templates/review_change_request.html:27
+msgid "Änderungsvorschlag prüfen"
+msgstr "Review change request"
+
 #: ORG/templates/review_change_request.html:28
 msgid "Überprüfen und entscheiden Sie über die vorgeschlagenen Änderungen"
 msgstr "Review and decide on the proposed changes"
@@ -5454,6 +5350,11 @@ msgstr ""
 #: ORG/templates/review_change_request.html:238
 msgid "Sicher, dass Du diesen Änderungsvorschlag ablehnen möchtest?"
 msgstr "Are you sure you want to reject this change request?"
+
+#: ORG/templates/review_own_signin_user.html:5
+#: ORG/templates/review_own_signin_user.html:22
+msgid "Registrierung prüfen"
+msgstr "Review registration"
 
 #: ORG/templates/review_own_signin_user.html:23
 msgid "Registrierungsanfrage freischalten oder ablehnen"
@@ -6993,6 +6894,86 @@ msgstr "No completed responses found for this survey."
 #, python-format
 msgid "Error generating PDF export: %(error)s"
 msgstr "Error generating PDF export: %(error)s"
+
+#~ msgid "Änderungsvorschlag genehmigt"
+#~ msgstr "Change request approved"
+
+#~ msgid "Änderungsvorschlag abgelehnt"
+#~ msgstr "Change request rejected"
+
+#~ msgid ""
+#~ "Dein Änderungsvorschlag wurde genehmigt und die Änderungen wurden "
+#~ "übernommen."
+#~ msgstr ""
+#~ "Your change request has been approved and the changes have been applied."
+
+#~ msgid "Dein Änderungsvorschlag wurde abgelehnt."
+#~ msgstr "Your change request has been rejected."
+
+#~ msgid "Status:"
+#~ msgstr "Status:"
+
+#~ msgid "Geprüft von:"
+#~ msgstr "Reviewed by:"
+
+#~ msgid "Details ansehen"
+#~ msgstr "View details"
+
+#~ msgid "Neuer Änderungsvorschlag"
+#~ msgstr "New change request"
+
+#~ msgid ""
+#~ "ein neuer Änderungsvorschlag wurde eingereicht und wartet auf Prüfung."
+#~ msgstr "a new change request has been submitted and is awaiting review."
+
+#~ msgid "Angefragt von:"
+#~ msgstr "Requested by:"
+
+#~ msgid ""
+#~ "Bitte prüfe den Vorschlag und entscheide, ob die Änderungen genehmigt "
+#~ "oder abgelehnt werden sollen."
+#~ msgstr ""
+#~ "Please review the request and decide whether the changes should be "
+#~ "approved or rejected."
+
+#, python-format
+#~ msgid "Deine Registrierung bei %(org)s wurde freigeschaltet."
+#~ msgstr "Your registration at %(org)s has been approved."
+
+#~ msgid ""
+#~ "Um dein Passwort festzulegen, besuche die Passwort-zurücksetzen-Seite und "
+#~ "gib deine E-Mail-Adresse ein. Du erhältst anschließend eine E-Mail mit "
+#~ "weiteren Anweisungen zum ersten Login."
+#~ msgstr ""
+#~ "To set your password, visit the password reset page and enter your email "
+#~ "address. You will then receive an email with further instructions for "
+#~ "your first login."
+
+#~ msgid "Passwort festlegen"
+#~ msgstr "Set password"
+
+#, python-format
+#~ msgid "Deine Registrierungsanfrage bei %(org)s wurde leider abgelehnt."
+#~ msgstr ""
+#~ "Unfortunately, your registration request at %(org)s has been denied."
+
+#~ msgid "Bei Fragen wende dich bitte direkt an die Organisation."
+#~ msgstr ""
+#~ "If you have any questions, please contact the organization directly."
+
+#~ msgid ""
+#~ "Eine neue Registrierungsanfrage wurde eingereicht und wartet auf deine "
+#~ "Freigabe."
+#~ msgstr ""
+#~ "A new registration request has been submitted and is awaiting your "
+#~ "approval."
+
+#~ msgid ""
+#~ "Bitte prüfe die Anfrage und entscheide, ob das Konto freigeschaltet oder "
+#~ "abgelehnt werden soll."
+#~ msgstr ""
+#~ "Please review the request and decide whether the account should be "
+#~ "approved or denied."
 
 #~ msgid "No answer provided"
 #~ msgstr "No answer provided"
