@@ -1,0 +1,63 @@
+{% extends 'baseOrg.html' %}
+{% load i18n %}
+
+{% block title %}
+  {% trans 'Registrierungsanfragen' %} | {{ user.org.name }}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-1">{% trans 'Registrierungsanfragen' %}</h1>
+    <p class="text-muted mb-0">{% trans 'Neue Registrierungen über den eigenen Anmeldelink freischalten oder ablehnen' %}</p>
+  </div>
+  <a href="{% url 'org_home' %}" class="btn btn-outline-secondary rounded-pill">
+    <i class="bi bi-arrow-left me-2"></i>{% trans 'Zurück' %}
+  </a>
+</div>
+
+{% if own_signin_users %}
+<div class="row g-3">
+  {% for signup in own_signin_users %}
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="card rounded-4 h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-3">
+          <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+            <i class="bi bi-person text-on-org-color"></i>
+          </div>
+          <div>
+            <h5 class="mb-0">{{ signup.first_name }} {{ signup.last_name }}</h5>
+            <small class="text-muted">{{ signup.person_cluster.name }}</small>
+          </div>
+        </div>
+        <p class="text-muted small mb-2">
+          <a href="mailto:{{ signup.email }}">
+            <i class="bi bi-envelope me-1"></i>{{ signup.email }}
+          </a>
+        </p>
+        {% if signup.land %}
+        <p class="text-muted small mb-2">
+          <i class="bi bi-geo-alt me-1"></i>{{ signup.land.name }}
+        </p>
+        {% endif %}
+        <p class="text-muted small mb-3">
+          <i class="bi bi-clock me-1"></i>{{ signup.created_at|date:"d.m.Y H:i" }}
+        </p>
+        <a href="{% url 'review_own_signin_user' signup.id %}" class="btn btn-primary rounded-3 w-100">
+          <i class="bi bi-eye me-1"></i>{% trans 'Prüfen' %}
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card rounded-4">
+  <div class="card-body text-center py-5">
+    <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+    <p class="text-muted mt-3 mb-0">{% trans 'Keine offenen Registrierungsanfragen.' %}</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

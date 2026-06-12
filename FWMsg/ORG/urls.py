@@ -50,6 +50,7 @@ urlpatterns = [
     path('nginx-statistic/', views.nginx_statistic, name='nginx_statistic'),
 
     path('send-registration-mail/', views.send_registration_mail, name='send_registration_mail'),
+    path('get-own-signin-url/', views.get_own_signin_url, name='get_own_signin_url'),
     path('get-cascade-info/', views.get_cascade_info, name='get_cascade_info'),
     path('create-sticky-note/', views.create_sticky_note, name='create_sticky_note'),
     path('delete-sticky-note/', views.delete_sticky_note, name='delete_sticky_note'),
@@ -60,4 +61,10 @@ urlpatterns = [
     path('change-requests/', views.change_requests, name='change_requests'),
     path('change-requests/<int:request_id>/review/', views.review_change_request, name='review_change_request'),
     path('change-requests/history/', views.change_request_history, name='change_request_history'),
+
+    # Own signin registration requests
+    path('own-signin-requests/', views.own_signin_requests, name='own_signin_requests'),
+    path('own-signin-requests/<int:pk>/', views.review_own_signin_user, name='review_own_signin_user'),
+    path('own-signin-requests/<int:pk>/approve/', views.approve_own_signin_user, name='approve_own_signin_user'),
+    path('own-signin-requests/<int:pk>/deny/', views.deny_own_signin_user, name='deny_own_signin_user'),
 ]

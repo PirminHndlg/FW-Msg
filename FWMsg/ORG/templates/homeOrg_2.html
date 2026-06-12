@@ -27,11 +27,6 @@
       margin: 0;
     }
     
-    .card-compact {
-      border: 1px solid #e9ecef;
-      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    }
-    
     .priority-high { border-left: 4px solid #dc3545; }
     .priority-medium { border-left: 4px solid #ffc107; }
     .priority-low { border-left: 4px solid #28a745; }
@@ -60,7 +55,7 @@
 <!-- Pending Change Requests Section -->
 {% if pending_change_requests %}
 <div class="dashboard-section">
-  <div class="card card-compact rounded-4">
+  <div class="card rounded-4">
     <div class="card-header bg-white border-bottom-0 d-flex align-items-center justify-content-between rounded-top-4">
       <h2 class="section-title mb-0">
         <i class="bi bi-pencil-square me-2 text-warning"></i>
@@ -76,7 +71,7 @@
       <div class="row g-3">
         {% for request in pending_change_requests|slice:":3" %}
         <div class="col-12 col-md-6 col-lg-4">
-          <div class="card shadow-sm rounded-4 border border-1 border-light-subtle">
+          <div class="card rounded-4">
             <div class="card-body">
               <div class="d-flex align-items-center mb-3">
                 <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-2">
@@ -115,6 +110,71 @@
 </div>
 {% endif %}
 
+<!-- Pending Own Signin Requests -->
+{% if pending_own_signin_users %}
+<div class="dashboard-section">
+  <div class="card rounded-4">
+    <div class="card-header bg-white border-bottom-0 d-flex align-items-center justify-content-between rounded-top-4">
+      <h2 class="section-title mb-0">
+        <i class="bi bi-person-plus me-2 text-primary"></i>
+        {% trans "Registrierungsanfragen" %}
+        <i class="bi bi-question-circle me-2" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Neue Registrierungsanfragen über den eigenen Anmeldelink. Diese können freigeschaltet oder abgelehnt werden.' %}"></i>
+      </h2>
+      <a href="{% url 'own_signin_requests' %}" class="btn btn-sm btn-primary rounded-3">
+        <i class="bi bi-eye me-2"></i>{% trans "Alle anzeigen" %}
+      </a>
+    </div>
+
+    <div class="card-body">
+      <div class="row g-3">
+        {% for signup in pending_own_signin_users|slice:":3" %}
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card rounded-4">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-3">
+                <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                  <i class="bi bi-person text-on-org-color"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="mb-0">{{ signup.first_name }} {{ signup.last_name }}</h6>
+                  <small class="text-muted">{{ signup.person_cluster.name }}</small>
+                </div>
+              </div>
+              <p class="text-muted small mb-2">
+                <a href="mailto:{{ signup.email }}">
+                  <i class="bi bi-envelope me-1"></i>{{ signup.email }}
+                </a>
+              </p>
+              {% if signup.land %}
+              <p class="text-muted small mb-2">
+                <i class="bi bi-geo-alt me-1"></i>{{ signup.land.name }}
+              </p>
+              {% endif %}
+              <p class="text-muted small mb-3">
+                <i class="bi bi-clock me-1"></i>{{ signup.created_at|date:"d.m.Y H:i" }}
+              </p>
+              <a href="{% url 'review_own_signin_user' signup.id %}" class="btn btn-sm btn-primary rounded-3 w-100">
+                <i class="bi bi-eye me-1"></i>{% trans "Prüfen" %}
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        {% if pending_own_signin_users.count > 3 %}
+        <div class="col-12">
+          <div class="text-center">
+            <a href="{% url 'own_signin_requests' %}" class="btn btn-outline-primary rounded-3">
+              {% trans "Alle" %} {{ pending_own_signin_users.count }} {% trans "Anfragen anzeigen" %}
+            </a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 {% include 'components/seminar_display_info.html' %}
 
 <!-- Sticky Notes & Pinned Items Section -->
@@ -127,7 +187,8 @@
     </h2>
   </div> {% endcomment %}
   
-  <div class="pin-wall p-4 bg-light rounded-4 border">
+  <div class="card rounded-4 pin-wall">
+    <div class="card-body p-4 bg-light">
     <div class="row g-3">
       {% for notiz in sticky_notes %}
         <div class="col-12 col-md-6 col-lg-4 col-xl-3">
@@ -198,6 +259,7 @@
         </div>
       {% endfor %}
     </div>
+    </div>
   </div>
 </div>
 {% endif %}
@@ -214,7 +276,7 @@
   <div class="grid-2 gap-3">
     <!-- My Tasks -->
     {% if request.user.customuser.person_cluster.aufgaben %}
-    <div class="card card-compact h-100 rounded-4">
+    <div class="card h-100 rounded-4">
       <div class="card-header bg-white border-bottom-0 rounded-top-4">
         <div class="d-flex justify-content-between align-items-center">
           <a href="{% url 'aufgaben' %}" class="text-decoration-none text-body">
@@ -272,7 +334,7 @@
     {% endif %}
 
     <!-- Organization Tasks -->
-    <div class="card card-compact h-100 rounded-4">
+    <div class="card h-100 rounded-4">
       <div class="card-header bg-white border-bottom-0 rounded-top-4">
         <div class="d-flex justify-content-between align-items-center">
           <h5 class="mb-0">
@@ -479,7 +541,7 @@
   <div class="row g-3">
     <!-- Recent Ampel Entries -->
     <div class="col-12 col-md-6 col-lg-3">
-      <div class="card card-compact h-100 rounded-4">
+      <div class="card h-100 rounded-4">
       <div class="card-header bg-white border-bottom-0 rounded-top-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap">
           <a href="{% url 'list_ampel' %}" class="text-decoration-none text-body">
@@ -544,7 +606,7 @@
     <!-- Recent Posts -->
     {% if request.user.customuser.person_cluster.posts %}
     <div class="col-12 col-md-6 col-lg-3">
-      <div class="card card-compact h-100 rounded-4">
+      <div class="card h-100 rounded-4">
       <div class="card-header bg-white border-bottom-0 rounded-top-4">
         <div class="d-flex justify-content-between align-items-center">
           <a href="{% url 'posts_overview' %}" class="text-decoration-none text-body">
@@ -594,7 +656,7 @@
     <!-- Recent Images -->
     {% if request.user.customuser.person_cluster.bilder %}
     <div class="col-12 col-lg-6">
-      <div class="card card-compact h-100 rounded-4">
+      <div class="card h-100 rounded-4">
       <div class="card-header bg-white border-bottom-0 rounded-top-4">
         <div class="d-flex justify-content-between align-items-center">
           <a href="{% url 'bilder' %}" class="text-decoration-none text-body">
@@ -682,10 +744,6 @@
 
 <!-- Include existing styles for sticky notes -->
 <style>
-  .pin-wall {
-    border: 1px solid #dee2e6;
-  }
-
   .sticky-note {
     position: relative;
     margin-bottom: 1rem;

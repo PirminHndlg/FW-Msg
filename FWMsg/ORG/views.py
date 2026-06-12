@@ -266,6 +266,11 @@ def home_2(request):
         status='pending'
     ).select_related('requested_by').order_by('-created_at')
 
+    from Home.models import OwnSigninUser
+    pending_own_signin_users = OwnSigninUser.objects.filter(
+        org=request.user.org,
+    ).select_related('person_cluster', 'land').order_by('-created_at')
+
     context = {
         'gallery_images': gallery_images,
         'pending_tasks': pending_tasks,
@@ -276,6 +281,7 @@ def home_2(request):
         'sticky_notes': sticky_notes,
         'recent_ampel_entries': recent_ampel_entries,
         'pending_change_requests': pending_change_requests,
+        'pending_own_signin_users': pending_own_signin_users,
         'large_container': True,
         'today': date.today()
     }
@@ -1417,6 +1423,48 @@ def send_registration_mail(request):
             'error': str(e)
         }, status=500)
 
+
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def get_own_signin_url(request):
+    try:
+        data = json.loads(request.body)
+        person_cluster_id = data.get('personClusterId')
+        if person_cluster_id is None:
+            return JsonResponse({
+                'success': False,
+                'error': _('Benutzergruppe nicht angegeben'),
+            }, status=400)
+
+        person_cluster = PersonCluster.objects.get(
+            pk=person_cluster_id,
+            org=request.user.org,
+        )
+        url = person_cluster.get_own_signin_url()
+
+        return JsonResponse({
+            'success': True,
+            'url': url,
+        })
+
+    except PersonCluster.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': _('Benutzergruppe nicht gefunden'),
+        }, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': _('Ungültige Anfrage'),
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+        }, status=500)
+
+
 def _check_model_exists(model_name, model=None):
     """
     Verify if a model exists for the given model_name.
@@ -2457,3 +2505,70 @@ def ajax_load_aufgaben_table_data(request):
             'success': False,
             'error': f'Fehler beim Laden der Daten: {str(e)}'
         }, status=500)
+
+
+@login_required
+@required_role('O')
+def own_signin_requests(request):
+    """List all pending own-signin registration requests."""
+    from Home.models import OwnSigninUser
+
+    own_signin_users = OwnSigninUser.objects.filter(
+        org=request.user.org,
+    ).select_related('person_cluster', 'land').order_by('-created_at')
+
+    return render(request, 'own_signin_requests.html', {
+        'own_signin_users': own_signin_users,
+    })
+
+
+@login_required
+@required_role('O')
+def review_own_signin_user(request, pk):
+    """Review a pending own-signin registration request."""
+    from Home.models import OwnSigninUser
+
+    own_signin_user = get_object_or_404(OwnSigninUser, pk=pk, org=request.user.org)
+    return render(request, 'review_own_signin_user.html', {
+        'own_signin_user': own_signin_user,
+    })
+
+
+@login_required
+@required_role('O')
+@require_http_methods(['POST'])
+def approve_own_signin_user(request, pk):
+    """Approve a pending own-signin registration request."""
+    from Home.models import OwnSigninUser
+    from Home.own_signin_service import OwnSigninApprovalError
+    from Home.own_signin_service import approve_own_signin_user as approve_signin
+
+    own_signin_user = get_object_or_404(OwnSigninUser, pk=pk, org=request.user.org)
+    try:
+        approve_signin(own_signin_user)
+        messages.success(
+            request,
+            _('Registrierung wurde freigeschaltet. Der Benutzer wurde per E-Mail benachrichtigt.'),
+        )
+    except OwnSigninApprovalError as e:
+        messages.error(request, str(e))
+    except Exception as e:
+        messages.error(request, _('Fehler bei der Freischaltung: %(error)s') % {'error': str(e)})
+    return redirect('own_signin_requests')
+
+
+@login_required
+@required_role('O')
+@require_http_methods(['POST'])
+def deny_own_signin_user(request, pk):
+    """Deny a pending own-signin registration request."""
+    from Home.models import OwnSigninUser
+    from Home.own_signin_service import deny_own_signin_user as deny_signin
+
+    own_signin_user = get_object_or_404(OwnSigninUser, pk=pk, org=request.user.org)
+    try:
+        deny_signin(own_signin_user)
+        messages.success(request, _('Registrierung wurde abgelehnt.'))
+    except Exception as e:
+        messages.error(request, _('Fehler bei der Ablehnung: %(error)s') % {'error': str(e)})
+    return redirect('own_signin_requests')

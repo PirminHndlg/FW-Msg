@@ -86,6 +86,8 @@ class PersonCluster(OrgModel):
     
     view = models.CharField(max_length=1, choices=view_choices, default='F', verbose_name='Standardansicht', help_text='Bestimmt die Standardansicht für Mitglieder dieser Gruppe')
     active = models.BooleanField(default=True, verbose_name='Aktiv', help_text='Wenn deaktiviert, können sich Benutzer in dieser Gruppe nicht mehr anmelden und die Benutzergruppe wird nicht mehr angezeigt')
+    
+    own_signin_token = models.CharField(max_length=255, blank=True, null=True, verbose_name='Anmeldetoken zum eigenen Registrieren', help_text='Wenn leer, kann sich kein Benutzer in dieser Gruppe selbst registrieren')
 
     history = HistoricalRecords()
 
@@ -100,6 +102,16 @@ class PersonCluster(OrgModel):
     
     def get_users(self):
         return User.objects.filter(customuser__person_cluster=self)
+    
+    def get_own_signin_url(self):
+        if not self.own_signin_token:
+            self.create_own_signin_token()
+            self.save()
+        return f"{settings.DOMAIN_HOST}{reverse('own_signin', kwargs={'token': self.own_signin_token})}"
+    
+    def create_own_signin_token(self):
+        self.own_signin_token = get_random_hash(str(self.pk), 128)
+        self.save()
     
 
 class CustomUser(OrgModel):

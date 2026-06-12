@@ -2,8 +2,12 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
+from Global.models import Einsatzland2
 
+from .models import OwnSigninUser
+
+User = get_user_model()
 
 # class PasswordResetForm(forms.Form):
 #     email = forms.EmailField(label='Email')
@@ -80,3 +84,60 @@ class FirstLoginForm(forms.Form):
                 pass  # Username validation will be handled elsewhere
 
         return cleaned_data
+
+
+class OwnSigninForm(forms.ModelForm):
+    class Meta:
+        model = OwnSigninUser
+        fields = ['first_name', 'last_name', 'email', 'land']
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control rounded-3',
+                'autocomplete': 'given-name',
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control rounded-3',
+                'autocomplete': 'family-name',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control rounded-3',
+                'autocomplete': 'email',
+            }),
+            'land': forms.Select(attrs={
+                'class': 'form-select rounded-3',
+            }),
+        }
+
+    def __init__(self, org, person_cluster=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.org = org
+        self.person_cluster = person_cluster
+        if person_cluster and person_cluster.view == 'B':
+            del self.fields['land']
+        elif 'land' in self.fields:
+            self.fields['land'].queryset = Einsatzland2.objects.filter(org=org)
+            self.fields['land'].empty_label = _('Land auswählen')
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if not email:
+            return email
+
+        if User.objects.filter(email__iexact=email).exists():
+            raise ValidationError(_('Ein Benutzer mit dieser E-Mail-Adresse existiert bereits.'))
+
+        pending = OwnSigninUser.objects.filter(org=self.org, email__iexact=email)
+        if self.instance.pk:
+            pending = pending.exclude(pk=self.instance.pk)
+        if pending.exists():
+            raise ValidationError(_('Für diese E-Mail-Adresse liegt bereits eine Registrierungsanfrage vor.'))
+
+        return email
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.org = self.org
+        instance.person_cluster = self.person_cluster
+        if commit:
+            instance.save()
+        return instance

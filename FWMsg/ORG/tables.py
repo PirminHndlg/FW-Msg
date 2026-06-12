@@ -249,6 +249,20 @@ def get_customuser_filter(request, org, objects):
 class PersonClusterTable(BaseOrgTable):
     name = tables.Column(verbose_name=_('Name'))
     
+    def render_actions(self, value, record):
+        context = {
+            'model_name': 'personcluster',
+            'action_url': '',
+            'onclick': f'copyOwnSigninToken({record.pk}, this)',
+            'color': 'info',
+            'icon': 'bi bi-clipboard',
+            'title': _('URL zum eigenen Registrieren kopieren'),
+            'record': record,
+            'button_text': '',
+        }
+        html = render_to_string('components/additional_table_actions.html', context)
+        return mark_safe(html)
+    
     class Meta(BaseOrgTable.Meta):
         model = PersonCluster
         fields = ('name', 'view', 'aufgaben', 'calendar', 'dokumente', 'ampel', 'notfallkontakt', 'bilder', 'posts', 'map', 'active', 'actions')

@@ -356,6 +356,43 @@ def format_change_request_decision_email(status, status_display, change_type, ob
     }
     return render_to_string('mail/change_request_decision.html', context)
 
+
+def format_own_signin_new_email(applicant_name, applicant_email, person_cluster_name, land_name, action_url, user_name, org_name, image_url, org_color):
+    context = {
+        'applicant_name': applicant_name,
+        'applicant_email': applicant_email,
+        'person_cluster_name': person_cluster_name,
+        'land_name': land_name,
+        'action_url': action_url,
+        'user_name': user_name,
+        'org_name': org_name,
+        'image_url': image_url,
+        'org_color': org_color,
+    }
+    return render_to_string('mail/own_signin_new.html', context)
+
+
+def format_own_signin_accepted_email(applicant_name, action_url, org_name, image_url, org_color):
+    context = {
+        'user_name': applicant_name,
+        'action_url': action_url,
+        'org_name': org_name,
+        'image_url': image_url,
+        'org_color': org_color,
+    }
+    return render_to_string('mail/own_signin_accepted.html', context)
+
+
+def format_own_signin_denied_email(applicant_name, org_name, image_url, org_color):
+    context = {
+        'user_name': applicant_name,
+        'org_name': org_name,
+        'image_url': image_url,
+        'org_color': org_color,
+    }
+    return render_to_string('mail/own_signin_denied.html', context)
+
+
 def get_logo_base64(org):
     with open(org.logo.path, "rb") as org_logo:
         base64_image = base64.b64encode(org_logo.read()).decode('utf-8')

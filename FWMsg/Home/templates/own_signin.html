@@ -1,0 +1,163 @@
+{% load static %}
+{% load i18n %}
+{% load base_filter %}
+
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FW Msg - {% trans "Registrierung" %}</title>
+
+    <link rel="icon" type="image/png" href="/favicons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicons/favicon.svg" />
+    <link rel="shortcut icon" href="/favicons/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Volunteer.Solutions" />
+    <meta name="theme-color" content="{{ person_cluster.org.farbe }}">
+    <link rel="manifest" href="/favicons/site.webmanifest" />
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-icons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/flag-icons.min.css' %}">
+
+    <style>
+        :root {
+            --color: {{ person_cluster.org.farbe }};
+            --color-primary: {{ person_cluster.org.farbe }};
+            --secondary_color: {{ person_cluster.org.farbe }};
+            --text_color_on_org_color: {{ person_cluster.org.text_color_on_org_color }};
+            --bs-primary-rgb: {{ person_cluster.org.farbe|hex_to_rgb }};
+            --bs-btn-bg: {{ person_cluster.org.farbe }};
+            --bs-primary: {{ person_cluster.org.farbe }};
+            --bs-secondary-bg-rgb: {{ person_cluster.org.farbe|hex_to_rgb }};
+            --bs-secondary: {{ person_cluster.org.farbe }};
+        }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--bs-primary) 0%, rgba(var(--bs-primary-rgb), 0.75) 100%);
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .hover-shadow {
+            transition: all 0.3s ease;
+        }
+        .hover-shadow:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--bs-primary);
+            box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+        }
+    </style>
+    <link rel="stylesheet" href="{% static 'css/button-overrides.css' %}">
+</head>
+
+<body class="container p-4">
+    <div class="d-flex align-items-center py-4">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-10 col-lg-8 col-xl-6">
+                    <div class="card border-0 shadow-lg rounded-4 login-card hover-shadow">
+                        <div class="card-body p-5">
+                            <a href="{% url 'index_home' %}" class="btn btn-outline-primary mb-3">
+                                <i class="bi bi-arrow-left"></i> {% trans "Zurück zur Startseite" %}
+                            </a>
+
+                            <div class="d-flex align-items-center gap-3 mb-4">
+                                <img src="{% url 'serve_image' person_cluster.org.id %}"
+                                     alt="{{ person_cluster.org.name }}"
+                                     class="img-fluid rounded-circle border border-2 border-light shadow-sm bg-primary p-1"
+                                     style="height: 50px; object-fit: cover;">
+                                <div>
+                                    <h4 class="mb-0 fw-semibold text-primary">{{ person_cluster.org.name }}</h4>
+                                    <p class="text-muted small mb-0">{{ person_cluster.name }}</p>
+                                </div>
+                            </div>
+
+                            <h2 class="fw-bold mb-0">{% trans "Registrierung" %}</h2>
+                            <p class="text-muted mb-1">
+                                {% trans "Bitte fülle das Formular aus, um dich zu registrieren." %}
+                            </p>
+                            <p class="text-muted small mb-4">
+                                {% trans "Nach der Registrierung muss dein Konto von der Organisation freigeschaltet werden." %}
+                            </p>
+
+                            {% include 'error_message.html' %}
+
+                            <form method="post">
+                                {% csrf_token %}
+
+                                {% if form.errors %}
+                                <div class="alert alert-danger" role="alert">
+                                    {% for field in form %}
+                                        {% for error in field.errors %}
+                                            <p class="mb-0">{{ error }}</p>
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {% for error in form.non_field_errors %}
+                                        <p class="mb-0">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+
+                                <div class="form-floating mb-3">
+                                    {{ form.first_name }}
+                                    <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                                </div>
+
+                                <div class="form-floating mb-3">
+                                    {{ form.last_name }}
+                                    <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                                </div>
+
+                                <div class="form-floating mb-3">
+                                    {{ form.email }}
+                                    <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                                </div>
+
+                                {% if person_cluster.view != 'B' %}
+                                <div class="form-floating mb-4">
+                                    {{ form.land }}
+                                    <label for="{{ form.land.id_for_label }}">{{ form.land.label }}</label>
+                                </div>
+                                {% endif %}
+
+                                <button class="w-100 btn btn-lg btn-primary rounded-3" type="submit">
+                                    {% trans "Registrieren" %}
+                                </button>
+                            </form>
+
+                            <div class="mt-4 text-center">
+                                <form action="{% url 'set_language' %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.path }}">
+
+                                    {% get_current_language as CURRENT_LANGUAGE %}
+                                    {% get_available_languages as LANGUAGES %}
+
+                                    {% for lang_code, lang_name in LANGUAGES %}
+                                        <button type="submit" name="language" value="{{ lang_code }}"
+                                                class="btn btn-link btn-sm {% if CURRENT_LANGUAGE == lang_code %}text-primary{% else %}text-muted{% endif %}">
+                                            <span class="fi fi-{% if lang_code == 'de' %}de{% else %}gb{% endif %}"></span>
+                                            {% if lang_code == 'de' %}{% trans "Deutsch" %}{% else %}{% trans "English" %} (Beta){% endif %}
+                                        </button>
+                                    {% endfor %}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="" class="text-white text-decoration-none small">{% trans "Datenschutz" %}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

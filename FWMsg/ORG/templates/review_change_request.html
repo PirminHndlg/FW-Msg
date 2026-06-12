@@ -34,7 +34,7 @@
 
 <!-- Request Information Card -->
 <div class="dashboard-section">
-  <div class="card border-0 shadow-sm rounded-4 mb-4">
+  <div class="card rounded-4 mb-4">
     <div class="card-body p-4">
       <div class="d-flex align-items-start justify-content-between mb-4">
         <div class="d-flex align-items-center">
@@ -93,7 +93,7 @@
 <!-- Reason -->
 {% if change_request.reason %}
   <div class="dashboard-section">
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card rounded-4 mb-4">
       <div class="card-body p-4">
         <div class="d-flex align-items-center mb-3">
           <div class="bg-info-subtle rounded-circle p-2 me-2">
@@ -117,7 +117,7 @@
     </h2>
   </div>
   
-  <div class="card border-0 shadow-sm rounded-4 mb-4">
+  <div class="card rounded-4 mb-4">
     <div class="card-body p-4">
       {% for change in field_changes_display %}
         <div class="mb-4 {% if not forloop.last %}pb-4 border-bottom{% endif %}">
@@ -170,7 +170,7 @@
     </h2>
   </div>
   
-  <div class="card border-0 shadow-sm rounded-4">
+  <div class="card rounded-4">
     <div class="card-body p-4">
       <form method="post" id="reviewForm">
         {% csrf_token %}

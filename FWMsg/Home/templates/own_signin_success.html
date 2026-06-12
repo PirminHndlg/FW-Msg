@@ -1,0 +1,129 @@
+{% load static %}
+{% load i18n %}
+{% load base_filter %}
+
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FW Msg - {% trans "Registrierung erfolgreich" %}</title>
+
+    <link rel="icon" type="image/png" href="/favicons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicons/favicon.svg" />
+    <link rel="shortcut icon" href="/favicons/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Volunteer.Solutions" />
+    {% if org %}<meta name="theme-color" content="{{ org.farbe }}">{% endif %}
+    <link rel="manifest" href="/favicons/site.webmanifest" />
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-icons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/flag-icons.min.css' %}">
+
+    <style>
+        :root {
+            {% if org %}
+            --color: {{ org.farbe }};
+            --color-primary: {{ org.farbe }};
+            --secondary_color: {{ org.farbe }};
+            --text_color_on_org_color: {{ org.text_color_on_org_color }};
+            --bs-primary-rgb: {{ org.farbe|hex_to_rgb }};
+            --bs-btn-bg: {{ org.farbe }};
+            --bs-primary: {{ org.farbe }};
+            --bs-secondary-bg-rgb: {{ org.farbe|hex_to_rgb }};
+            --bs-secondary: {{ org.farbe }};
+            {% else %}
+            --color: #007bff;
+            --color-primary: #007bff;
+            --secondary_color: #007bff;
+            --text_color_on_org_color: #000000;
+            --bs-primary-rgb: 0, 123, 255;
+            --bs-btn-bg: #007bff;
+            --bs-primary: #007bff;
+            --bs-secondary-bg-rgb: 0, 123, 255;
+            --bs-secondary: #007bff;
+            {% endif %}
+        }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--bs-primary) 0%, rgba(var(--bs-primary-rgb), 0.75) 100%);
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .hover-shadow {
+            transition: all 0.3s ease;
+        }
+        .hover-shadow:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+    </style>
+    <link rel="stylesheet" href="{% static 'css/button-overrides.css' %}">
+</head>
+
+<body class="container p-4">
+    <div class="d-flex align-items-center py-4">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-10 col-lg-8 col-xl-6">
+                    <div class="card border-0 shadow-lg rounded-4 login-card hover-shadow">
+                        <div class="card-body p-5 text-center">
+                            <div class="mb-4">
+                                <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                            </div>
+
+                            <h2 class="fw-bold mb-3">{% trans "Registrierung erfolgreich" %}</h2>
+
+                            <div class="alert alert-info rounded-3 text-start mb-4">
+                                <div class="d-flex">
+                                    <div class="me-3">
+                                        <i class="bi bi-info-circle-fill fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-2">
+                                            {% trans "Vielen Dank für deine Registrierung!" %}
+                                        </p>
+                                        <p class="mb-0">
+                                            {% trans "Dein Konto muss noch von der Organisation überprüft und freigeschaltet werden. Du erhältst eine E-Mail mit deinen Zugangsdaten, sobald dein Konto aktiviert wurde." %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <a href="{% url 'index_home' %}" class="w-100 btn btn-lg btn-primary rounded-3">
+                                {% trans "Zurück zur Startseite" %}
+                            </a>
+
+                            <div class="mt-4">
+                                <form action="{% url 'set_language' %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.path }}">
+
+                                    {% get_current_language as CURRENT_LANGUAGE %}
+                                    {% get_available_languages as LANGUAGES %}
+
+                                    {% for lang_code, lang_name in LANGUAGES %}
+                                        <button type="submit" name="language" value="{{ lang_code }}"
+                                                class="btn btn-link btn-sm {% if CURRENT_LANGUAGE == lang_code %}text-primary{% else %}text-muted{% endif %}">
+                                            <span class="fi fi-{% if lang_code == 'de' %}de{% else %}gb{% endif %}"></span>
+                                            {% if lang_code == 'de' %}{% trans "Deutsch" %}{% else %}{% trans "English" %} (Beta){% endif %}
+                                        </button>
+                                    {% endfor %}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="" class="text-white text-decoration-none small">{% trans "Datenschutz" %}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

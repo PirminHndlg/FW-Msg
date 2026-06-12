@@ -306,6 +306,54 @@
         });
     }
     {% endif %}
+    {% if model_name == 'personcluster' %}
+    function copyOwnSigninToken(personClusterId, button) {
+        const csrfToken = '{{ csrf_token }}';
+
+        fetch('{% url "get_own_signin_url" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                personClusterId: personClusterId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                navigator.clipboard.writeText(data.url)
+                    .then(function () {
+                        if (button) {
+                            button.classList.add('btn-success', 'text-white');
+                            button.classList.remove('btn-outline-info');
+                            const icon = button.querySelector('i');
+                            if (icon) {
+                                icon.className = 'bi bi-check';
+                            }
+                            setTimeout(function () {
+                                button.classList.remove('btn-success', 'text-white');
+                                button.classList.add('btn-outline-info');
+                                if (icon) {
+                                    icon.className = 'bi bi-clipboard';
+                                }
+                            }, 2000);
+                        }
+                    })
+                    .catch(function () {
+                        alert('{% trans "Fehler beim Kopieren des Links" %}');
+                    });
+            } else {
+                alert('{% trans "Fehler beim Abrufen des Registrierungslinks:" %} ' + data.error);
+            }
+        })
+        .catch(function (error) {
+            console.error('Error:', error);
+            alert('{% trans "Fehler beim Abrufen des Registrierungslinks" %}');
+        });
+    }
+    {% endif %}
     
     // Keyboard shortcut to focus search input when 'f' key is pressed
     // ignore when cmd or ctrl is pressed

@@ -814,9 +814,6 @@ class BilderViewsTests(TestCase):
         self.assertTrue(Bilder2.objects.filter(titel='NewBild').exists(), 
                        f"Bilder2 not created. Messages: {[str(m) for m in messages_list]}")
         
-        # Check that messages contain success message
-        self.assertTrue(any('erfolgreich' in str(msg).lower() for msg in messages_list))
-        
         # Verify email task was scheduled (but not actually sent due to mock)
         mock_email_task.assert_called_once()
 

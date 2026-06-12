@@ -1,0 +1,30 @@
+{% extends 'mail/base_email.html' %}
+{% load i18n %}
+
+{% block german_content %}
+<tr>
+    <td style="padding: 40px 30px;">
+        <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+            {% blocktrans with org=org_name %}Deine Registrierungsanfrage bei {{ org }} wurde leider abgelehnt.{% endblocktrans %}
+        </p>
+
+        <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+            {% trans "Bei Fragen wende dich bitte direkt an die Organisation." %}
+        </p>
+    </td>
+</tr>
+{% endblock %}
+
+{% block german_action_button %}{% endblock %}
+
+{% block english_content %}
+<p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+    Your registration request at {{ org_name }} has been declined.
+</p>
+
+<p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+    If you have any questions, please contact the organization directly.
+</p>
+{% endblock %}
+
+{% block english_action_button %}{% endblock %}

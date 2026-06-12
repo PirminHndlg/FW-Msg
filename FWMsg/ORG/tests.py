@@ -2607,3 +2607,108 @@ class GetCascadeInfoTestCase(TestCase):
         for cascade_obj in data['cascade_objects']:
             self.assertGreater(cascade_obj['count'], 0)
             self.assertIsInstance(cascade_obj['count'], int)
+
+
+class GetOwnSigninUrlTests(TestCase):
+    def setUp(self):
+        self.org = Organisation.objects.create(
+            name='Test Org',
+            email='test@test.com',
+        )
+        self.other_org = Organisation.objects.create(
+            name='Other Org',
+            email='other@test.com',
+        )
+        self.person_cluster_org = PersonCluster.objects.create(
+            org=self.org,
+            name='Organisation',
+            view='O',
+        )
+        self.person_cluster_fw = PersonCluster.objects.create(
+            org=self.org,
+            name='Freiwillige',
+            view='F',
+        )
+        self.other_org_cluster = PersonCluster.objects.create(
+            org=self.other_org,
+            name='Other Cluster',
+            view='F',
+        )
+
+        self.admin_user = get_user_model().objects.create_user(
+            username='orgadmin',
+            password='adminpass123',
+        )
+        CustomUser.objects.create(
+            org=self.org,
+            user=self.admin_user,
+            person_cluster=self.person_cluster_org,
+        )
+
+        self.volunteer_user = get_user_model().objects.create_user(
+            username='volunteer',
+            password='volpass123',
+        )
+        CustomUser.objects.create(
+            org=self.org,
+            user=self.volunteer_user,
+            person_cluster=self.person_cluster_fw,
+        )
+
+        self.client.login(username='orgadmin', password='adminpass123')
+
+    def _post_own_signin_url(self, person_cluster_id):
+        return self.client.post(
+            reverse('get_own_signin_url'),
+            data=json.dumps({'personClusterId': person_cluster_id}),
+            content_type='application/json',
+        )
+
+    def test_org_admin_gets_own_signin_url(self):
+        self.assertIsNone(self.person_cluster_fw.own_signin_token)
+
+        response = self._post_own_signin_url(self.person_cluster_fw.pk)
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertTrue(data['success'])
+        self.assertIn('/p/signin/', data['url'])
+        self.assertNotIn('own_signin_token', data)
+
+        self.person_cluster_fw.refresh_from_db()
+        self.assertIsNotNone(self.person_cluster_fw.own_signin_token)
+        self.assertIn(self.person_cluster_fw.own_signin_token, data['url'])
+
+    def test_other_org_cluster_returns_404(self):
+        response = self._post_own_signin_url(self.other_org_cluster.pk)
+
+        self.assertEqual(response.status_code, 404)
+        data = json.loads(response.content)
+        self.assertFalse(data['success'])
+
+    def test_unauthenticated_returns_redirect(self):
+        self.client.logout()
+        response = self._post_own_signin_url(self.person_cluster_fw.pk)
+        self.assertEqual(response.status_code, 302)
+
+    def test_non_org_user_returns_403(self):
+        self.client.logout()
+        self.client.login(username='volunteer', password='volpass123')
+
+        response = self._post_own_signin_url(self.person_cluster_fw.pk)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_get_request_returns_405(self):
+        response = self.client.get(reverse('get_own_signin_url'))
+        self.assertEqual(response.status_code, 405)
+
+    def test_missing_person_cluster_id_returns_400(self):
+        response = self.client.post(
+            reverse('get_own_signin_url'),
+            data=json.dumps({}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.content)
+        self.assertFalse(data['success'])
