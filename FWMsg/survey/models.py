@@ -16,16 +16,24 @@ def generate_survey_key():
 class OrderedModelMixin:
     """Mixin to handle automatic ordering of models"""
     
+    def _uses_default_order(self):
+        return self.order is None or self.order == -1
+    
     def save(self, *args, **kwargs):
-        if self.order == -1:
-            # Get max order for this model's specific context
-            queryset = self._get_ordering_queryset()
+        auto_assigned_order = False
+        if self._uses_default_order():
+            queryset = self._get_ordering_queryset().exclude(pk=self.pk)
             max_order = queryset.aggregate(models.Max('order'))['order__max'] or 0
             self.order = max_order + 1
+            auto_assigned_order = True
         else:
-            # Handle order conflicts by pushing other items down
             self._resolve_order_conflicts()
+        update_fields = kwargs.get('update_fields')
+        if auto_assigned_order and update_fields is not None:
+            kwargs['update_fields'] = set(update_fields) | {'order'}
         super().save(*args, **kwargs)
+        if auto_assigned_order and self.pk:
+            type(self).objects.filter(pk=self.pk).update(order=self.order)
     
     def _get_ordering_queryset(self):
         """Override in subclasses to define the queryset for ordering"""
@@ -33,11 +41,18 @@ class OrderedModelMixin:
     
     def _resolve_order_conflicts(self):
         """Resolve conflicts when an order is already taken"""
-        queryset = self._get_ordering_queryset()
-        for item in queryset:
-            if item.order == self.order and item.id != self.id:
-                item.order = item.order + 1
-                item.save()
+        queryset = self._get_ordering_queryset().exclude(pk=self.pk)
+        if queryset.filter(order=self.order).exists():
+            queryset.filter(order__gte=self.order).update(order=models.F('order') + 1)
+
+    def delete(self, *args, **kwargs):
+        remaining = list(
+            self._get_ordering_queryset().exclude(pk=self.pk).order_by('order')
+        )
+        result = super().delete(*args, **kwargs)
+        for i, item in enumerate(remaining):
+            type(item).objects.filter(pk=item.pk).update(order=i + 1)
+        return result
 
 
 class Survey(OrgModel):
