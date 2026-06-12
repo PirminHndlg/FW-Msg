@@ -45,13 +45,16 @@ class OrderedModelMixin:
         if queryset.filter(order=self.order).exists():
             queryset.filter(order__gte=self.order).update(order=models.F('order') + 1)
 
+    @classmethod
+    def reapply_ordering(cls, queryset):
+        """Repack order values to 1, 2, 3, ... without gaps."""
+        for i, item in enumerate(queryset.order_by('order', 'pk')):
+            cls.objects.filter(pk=item.pk).update(order=i + 1)
+
     def delete(self, *args, **kwargs):
-        remaining = list(
-            self._get_ordering_queryset().exclude(pk=self.pk).order_by('order')
-        )
+        remaining = self._get_ordering_queryset().exclude(pk=self.pk)
         result = super().delete(*args, **kwargs)
-        for i, item in enumerate(remaining):
-            type(item).objects.filter(pk=item.pk).update(order=i + 1)
+        type(self).reapply_ordering(remaining)
         return result
 
 

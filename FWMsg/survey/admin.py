@@ -5,6 +5,41 @@ from django.utils.translation import gettext_lazy as _
 from .models import Survey, SurveyQuestion, SurveyQuestionOption, SurveyResponse, SurveyAnswer
 
 
+@admin.action(description=_('Reapply question ordering'))
+def reapply_survey_question_ordering(modeladmin, request, queryset):
+    for survey in queryset:
+        questions = SurveyQuestion.objects.filter(survey=survey, org=survey.org)
+        SurveyQuestion.reapply_ordering(questions)
+    modeladmin.message_user(
+        request,
+        _('Reapplied question ordering for %(count)d survey(s).') % {'count': queryset.count()},
+    )
+
+
+@admin.action(description=_('Reapply question ordering'))
+def reapply_question_ordering(modeladmin, request, queryset):
+    survey_ids = queryset.values_list('survey_id', flat=True).distinct()
+    for survey_id in survey_ids:
+        questions = SurveyQuestion.objects.filter(survey_id=survey_id)
+        SurveyQuestion.reapply_ordering(questions)
+    modeladmin.message_user(
+        request,
+        _('Reapplied question ordering for %(count)d survey(s).') % {'count': len(survey_ids)},
+    )
+
+
+@admin.action(description=_('Reapply option ordering'))
+def reapply_option_ordering(modeladmin, request, queryset):
+    question_ids = queryset.values_list('question_id', flat=True).distinct()
+    for question_id in question_ids:
+        options = SurveyQuestionOption.objects.filter(question_id=question_id)
+        SurveyQuestionOption.reapply_ordering(options)
+    modeladmin.message_user(
+        request,
+        _('Reapplied option ordering for %(count)d question(s).') % {'count': len(question_ids)},
+    )
+
+
 class SurveyQuestionOptionInline(admin.TabularInline):
     """Inline for managing question options"""
     model = SurveyQuestionOption
@@ -41,6 +76,7 @@ class SurveyAnswerInline(admin.TabularInline):
 @admin.register(Survey)
 class SurveyAdmin(admin.ModelAdmin):
     """Admin interface for Survey model"""
+    actions = [reapply_survey_question_ordering]
     list_display = [
         'title', 'created_by', 'is_active', 'allow_anonymous', 
         'response_count', 'question_count', 'created_at', 'survey_link'
@@ -103,6 +139,7 @@ class SurveyAdmin(admin.ModelAdmin):
 @admin.register(SurveyQuestion)
 class SurveyQuestionAdmin(admin.ModelAdmin):
     """Admin interface for SurveyQuestion model"""
+    actions = [reapply_question_ordering]
     list_display = [
         'survey', 'question_text_short', 'question_type', 
         'is_required', 'order', 'option_count'
@@ -133,6 +170,7 @@ class SurveyQuestionAdmin(admin.ModelAdmin):
 @admin.register(SurveyQuestionOption)
 class SurveyQuestionOptionAdmin(admin.ModelAdmin):
     """Admin interface for SurveyQuestionOption model"""
+    actions = [reapply_option_ordering]
     list_display = ['question', 'option_text', 'order']
     list_filter = ['question__survey', 'question__question_type']
     search_fields = ['option_text', 'question__question_text']
