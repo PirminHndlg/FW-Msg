@@ -2906,6 +2906,16 @@ def karte(request):
         map_locations = MapLocation.objects.filter(org=request.user.org).filter(
             Q(user__id__in=users_same_person_cluster, visibility='F') | Q(visibility='P')
         )
+        
+        # if filter is set, filter the map locations by the person cluster
+        filter_person_cluster = request.GET.get('person_cluster_filter')
+        if filter_person_cluster and filter_person_cluster != 'None':
+            try:
+                filter_person_cluster = PersonCluster.objects.get(id=int(filter_person_cluster), org=request.user.org)
+                if filter_person_cluster == request.user.customuser.person_cluster:
+                    map_locations = map_locations.filter(user__customuser__person_cluster=filter_person_cluster)
+            except Exception as e:
+                messages.warning(request, f'Fehler beim Filtern der Benutzergruppen: {str(e)}')
     
     context = {
         'form': form,
