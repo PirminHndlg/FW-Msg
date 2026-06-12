@@ -57,11 +57,13 @@
 <div class="dashboard-section">
   <div class="card rounded-4">
     <div class="card-header bg-white border-bottom-0 d-flex align-items-center justify-content-between rounded-top-4">
+      <a href="{% url 'change_requests' %}" class="text-decoration-none text-body">
       <h2 class="section-title mb-0">
         <i class="bi bi-pencil-square me-2 text-warning"></i>
         {% trans "Änderungsvorschläge" %}
         <i class="bi bi-question-circle me-2" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Ein Änderungsvorschlag für eine Einsatzstelle oder ein Einsatzland wurde eingereicht. Diese Änderungen kann genehmigt oder abgelehnt werden.' %}"></i>
       </h2>
+      </a>
       <a href="{% url 'change_requests' %}" class="btn btn-sm btn-warning rounded-3">
         <i class="bi bi-eye me-2"></i>{% trans "Alle anzeigen" %}
       </a>
@@ -115,11 +117,13 @@
 <div class="dashboard-section">
   <div class="card rounded-4">
     <div class="card-header bg-white border-bottom-0 d-flex align-items-center justify-content-between rounded-top-4">
+      <a href="{% url 'own_signin_requests' %}" class="text-decoration-none text-body">
       <h2 class="section-title mb-0">
         <i class="bi bi-person-plus me-2 text-primary"></i>
         {% trans "Registrierungsanfragen" %}
         <i class="bi bi-question-circle me-2" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Neue Registrierungsanfragen über den eigenen Anmeldelink. Diese können freigeschaltet oder abgelehnt werden.' %}"></i>
       </h2>
+      </a>
       <a href="{% url 'own_signin_requests' %}" class="btn btn-sm btn-primary rounded-3">
         <i class="bi bi-eye me-2"></i>{% trans "Alle anzeigen" %}
       </a>
