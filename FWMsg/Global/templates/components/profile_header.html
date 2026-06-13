@@ -9,6 +9,12 @@
         {{ displayed_user.username }}
       {% endif %}
     </h3>
+
+    {% if displayed_user.customuser.person_cluster %}
+      <span class="badge rounded-pill bg-primary">
+        {{ displayed_user.customuser.person_cluster.name }}
+      </span>
+    {% endif %}
     
     {% if this_user and displayed_user == request.user or request.user.role in 'OT' %}
       {% if ampel_of_user %}
