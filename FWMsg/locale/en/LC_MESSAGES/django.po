@@ -511,7 +511,7 @@ msgstr "submitted"
 
 #: FW/templates/components/ampel_status.html:13
 msgid "Keine Ampelmeldung vorhanden"
-msgstr "Status report"
+msgstr "No status report available"
 
 #: FW/templates/components/calendar.html:15
 #: FW/templates/components/calendar.html:38
@@ -1645,7 +1645,7 @@ msgstr "Indicates whether the status indicator has been marked as read"
 #: ORG/templates/homeOrg_2.html:556 ORG/templates/list_ampel.html:7
 #: TEAM/templates/teamHome.html:340
 msgid "Ampelmeldungen"
-msgstr "Status report"
+msgstr "Status reports"
 
 #: Global/models.py:862
 msgid "Kategoriename"
@@ -2445,7 +2445,7 @@ msgstr "Please select at least one image."
 
 #: Global/templates/bilder.html:25
 msgid "Bilder hinzufügen"
-msgstr "Add"
+msgstr "Add images"
 
 #: Global/templates/bilder.html:78
 msgid "Bilderseiten"
@@ -2639,7 +2639,7 @@ msgstr "will be deleted when a new document is uploaded."
 
 #: Global/templates/components/document_modal.html:45
 msgid "Dokument"
-msgstr "Documents"
+msgstr "Document"
 
 #: Global/templates/components/document_modal.html:58
 msgid "Bearbeiten dürfen"
@@ -2749,7 +2749,7 @@ msgstr "Delete image"
 
 #: Global/templates/components/image_card_header.html:136
 msgid "weitere Bilder löschen?"
-msgstr "Delete all images"
+msgstr "delete more images?"
 
 #: Global/templates/components/image_carousel.html:19
 msgid "Vorheriges"
@@ -2800,7 +2800,7 @@ msgstr "By"
 #: Global/templates/components/post_delete_modal.html:10
 #: Global/templates/components/post_delete_modal.html:38
 msgid "Beitrag löschen"
-msgstr "Delete image"
+msgstr "Delete post"
 
 #: Global/templates/components/post_delete_modal.html:19
 msgid "Bist Du sicher, dass Du diesen Beitrag löschen möchtest?"
@@ -3575,7 +3575,7 @@ msgstr "Update your personal information"
 
 #: Global/templates/settings.html:91 ORG/templates/add_aufgabe.html:890
 msgid "Benachrichtigungen"
-msgstr "Push notifications"
+msgstr "Notifications"
 
 #: Global/templates/settings.html:103
 msgid ""
@@ -3594,7 +3594,7 @@ msgstr "Email notifications for tasks, calendar events and more"
 
 #: Global/templates/settings.html:135
 msgid "Datenschutz & Sicherheit"
-msgstr "Privacy Policy"
+msgstr "Privacy & Security"
 
 #: Global/templates/settings.html:146
 msgid "Datenschutzerklärung"
@@ -4407,7 +4407,7 @@ msgstr "Create application"
 #: ORG/templates/aufgaben_assign.html:5 ORG/templates/aufgaben_assign.html:10
 #: ORG/templates/aufgaben_assign.html:196
 msgid "Aufgaben zuweisen"
-msgstr "Complete task"
+msgstr "Assign tasks"
 
 #: ORG/templates/aufgaben_assign.html:22 ORG/templates/baseOrg.html:65
 #: ORG/templates/list_aufgaben.html:112 ORG/views.py:2136
@@ -4428,7 +4428,7 @@ msgstr "Profile"
 
 #: ORG/templates/aufgaben_assign.html:104
 msgid "Aufgaben suchen..."
-msgstr "Tasks"
+msgstr "Search tasks..."
 
 #: ORG/templates/aufgaben_assign.html:114
 msgid "Alle Aufgaben auswählen"
@@ -4801,7 +4801,7 @@ msgstr "has disabled email notifications"
 
 #: ORG/templates/components/task_table_row.html:167
 msgid "Aufgabe zuweisen"
-msgstr "Complete task"
+msgstr "Assign task"
 
 #: ORG/templates/components/task_table_row.html:173
 msgid "Aufgabe nicht für diese Benutzergruppe"
@@ -5062,7 +5062,7 @@ msgstr "Error sending reminder"
 
 #: ORG/templates/list_ampel.html:16
 msgid "Ampelübersicht"
-msgstr "Status report"
+msgstr "Status overview"
 
 #: ORG/templates/list_ampel.html:55
 msgid "Ampel diesen Monat"
@@ -5070,7 +5070,7 @@ msgstr "Status this month"
 
 #: ORG/templates/list_aufgaben.html:16
 msgid "Fällige Aufgaben"
-msgstr "Tasks"
+msgstr "Due tasks"
 
 #: ORG/templates/list_aufgaben.html:45 ORG/templates/list_aufgaben.html:171
 msgid "Freiwilliger"
@@ -5199,7 +5199,7 @@ msgstr "Total"
 #: ORG/templates/list_objects.html:196
 #: ORG/templates/list_objects_table.html:135
 msgid "Seite"
-msgstr "Site"
+msgstr "Page"
 
 #: ORG/templates/list_objects.html:310
 msgid "Send Registration Mail"
@@ -5368,7 +5368,8 @@ msgid ""
 "Sicher, dass Du diesen Änderungsvorschlag genehmigen möchtest? Die "
 "Änderungen werden sofort angewendet."
 msgstr ""
-"Are you sure you want to delete this object? This action cannot be undone."
+"Are you sure you want to approve this change request? The changes will be "
+"applied immediately."
 
 #: ORG/templates/review_change_request.html:238
 msgid "Sicher, dass Du diesen Änderungsvorschlag ablehnen möchtest?"
@@ -5643,7 +5644,7 @@ msgid ""
 "Durch Push-Benachrichtigungen erhältst du sofortige "
 "Nachrichtenbenachrichtigungen, auch wenn du die Website nicht geöffnet hast."
 msgstr ""
-"With push notifications you receive immediate task notifications, even when "
+"With push notifications you receive immediate message notifications, even when "
 "you don't have the website open."
 
 #: chat/templates/create-chat-direct.html:36
