@@ -553,47 +553,72 @@ class BilderGalleryAdmin(admin.ModelAdmin):
     def rotation_controls(self, obj):
         if not obj.pk:
             return '-'
-        cw_url  = reverse('admin:bildergallery2_rotate_cw',  args=[obj.pk])
-        ccw_url = reverse('admin:bildergallery2_rotate_ccw', args=[obj.pk])
+        img_cw_url  = reverse('admin:bildergallery2_rotate_image_cw',  args=[obj.pk])
+        img_ccw_url = reverse('admin:bildergallery2_rotate_image_ccw', args=[obj.pk])
+        small_cw_url  = reverse('admin:bildergallery2_rotate_small_cw',  args=[obj.pk])
+        small_ccw_url = reverse('admin:bildergallery2_rotate_small_ccw', args=[obj.pk])
+        btn = 'style="margin-right:6px;"'
         return format_html(
-            '<a href="{}" class="button" style="margin-right:8px;">&#8635; 90° im Uhrzeigersinn</a>'
-            '<a href="{}" class="button">&#8634; 90° gegen Uhrzeigersinn</a>',
-            cw_url, ccw_url,
+            '<strong>Original:</strong>&nbsp;'
+            '<a href="{}" class="button" {}>&#8635; 90° CW</a>'
+            '<a href="{}" class="button">&#8634; 90° CCW</a>'
+            '&emsp;<strong>Vorschau (small):</strong>&nbsp;'
+            '<a href="{}" class="button" {}>&#8635; 90° CW</a>'
+            '<a href="{}" class="button">&#8634; 90° CCW</a>',
+            img_cw_url, btn, img_ccw_url,
+            small_cw_url, btn, small_ccw_url,
         )
     rotation_controls.short_description = 'Bild drehen'
 
     def get_urls(self):
         custom_urls = [
-            path(
-                '<int:pk>/rotate_cw/',
-                self.admin_site.admin_view(self.rotate_cw_view),
-                name='bildergallery2_rotate_cw',
-            ),
-            path(
-                '<int:pk>/rotate_ccw/',
-                self.admin_site.admin_view(self.rotate_ccw_view),
-                name='bildergallery2_rotate_ccw',
-            ),
+            path('<int:pk>/rotate_image_cw/',
+                 self.admin_site.admin_view(self.rotate_image_cw_view),
+                 name='bildergallery2_rotate_image_cw'),
+            path('<int:pk>/rotate_image_ccw/',
+                 self.admin_site.admin_view(self.rotate_image_ccw_view),
+                 name='bildergallery2_rotate_image_ccw'),
+            path('<int:pk>/rotate_small_cw/',
+                 self.admin_site.admin_view(self.rotate_small_cw_view),
+                 name='bildergallery2_rotate_small_cw'),
+            path('<int:pk>/rotate_small_ccw/',
+                 self.admin_site.admin_view(self.rotate_small_ccw_view),
+                 name='bildergallery2_rotate_small_ccw'),
         ]
         return custom_urls + super().get_urls()
 
-    def rotate_cw_view(self, request, pk):
-        obj = self.get_object(request, str(pk))
-        if obj:
-            self._rotate_image(obj, 90)
-            self.message_user(request, "Bild 90° im Uhrzeigersinn gedreht.", messages.SUCCESS)
+    def _redirect_to_change(self, pk):
         return HttpResponseRedirect(
             reverse('admin:Global_bildergallery2_change', args=[pk])
         )
 
-    def rotate_ccw_view(self, request, pk):
+    def rotate_image_cw_view(self, request, pk):
         obj = self.get_object(request, str(pk))
         if obj:
-            self._rotate_image(obj, -90)
-            self.message_user(request, "Bild 90° gegen den Uhrzeigersinn gedreht.", messages.SUCCESS)
-        return HttpResponseRedirect(
-            reverse('admin:Global_bildergallery2_change', args=[pk])
-        )
+            self._rotate_single_field(obj, 'image', 90)
+            self.message_user(request, "Original 90° im Uhrzeigersinn gedreht.", messages.SUCCESS)
+        return self._redirect_to_change(pk)
+
+    def rotate_image_ccw_view(self, request, pk):
+        obj = self.get_object(request, str(pk))
+        if obj:
+            self._rotate_single_field(obj, 'image', -90)
+            self.message_user(request, "Original 90° gegen den Uhrzeigersinn gedreht.", messages.SUCCESS)
+        return self._redirect_to_change(pk)
+
+    def rotate_small_cw_view(self, request, pk):
+        obj = self.get_object(request, str(pk))
+        if obj:
+            self._rotate_single_field(obj, 'small_image', 90)
+            self.message_user(request, "Vorschaubild 90° im Uhrzeigersinn gedreht.", messages.SUCCESS)
+        return self._redirect_to_change(pk)
+
+    def rotate_small_ccw_view(self, request, pk):
+        obj = self.get_object(request, str(pk))
+        if obj:
+            self._rotate_single_field(obj, 'small_image', -90)
+            self.message_user(request, "Vorschaubild 90° gegen den Uhrzeigersinn gedreht.", messages.SUCCESS)
+        return self._redirect_to_change(pk)
 
     def get_image_name(self, obj):
         return obj.image.name.split('/')[-1]
@@ -609,30 +634,34 @@ class BilderGalleryAdmin(admin.ModelAdmin):
     has_small_image.boolean = True
     has_small_image.short_description = 'Has Small Image'
 
-    def _rotate_image(self, obj, degrees):
-        """Rotate both image and small_image by the given degrees and save in place."""
+    def _rotate_single_field(self, obj, field_name, degrees):
+        """Rotate one image field (image or small_image) in place."""
         from PIL import Image as PilImage
         import io
         from django.core.files.base import ContentFile
 
-        for field_name in ('image', 'small_image'):
-            field = getattr(obj, field_name)
-            if not field:
-                continue
-            try:
-                field.open('rb')
-                img = PilImage.open(field)
-                img.load()
-                field.close()
-                rotated = img.rotate(-degrees, expand=True)  # negative = clockwise
-                img_io = io.BytesIO()
-                fmt = img.format or 'JPEG'
-                rotated.save(img_io, format=fmt, optimize=True)
-                original_name = field.name.split('/')[-1]
-                field.save(original_name, ContentFile(img_io.getvalue()), save=False)
-            except Exception as e:
-                pass
+        field = getattr(obj, field_name)
+        if not field:
+            return
+        try:
+            field.open('rb')
+            img = PilImage.open(field)
+            img.load()
+            field.close()
+            rotated = img.rotate(-degrees, expand=True)  # negative = clockwise
+            img_io = io.BytesIO()
+            fmt = img.format or 'JPEG'
+            rotated.save(img_io, format=fmt, optimize=True)
+            original_name = field.name.split('/')[-1]
+            field.save(original_name, ContentFile(img_io.getvalue()), save=False)
+        except Exception:
+            pass
         obj.save()
+
+    def _rotate_image(self, obj, degrees):
+        """Rotate both image and small_image (used by list actions)."""
+        for field_name in ('image', 'small_image'):
+            self._rotate_single_field(obj, field_name, degrees)
 
     def rotate_90_clockwise(self, request, queryset):
         for obj in queryset:
