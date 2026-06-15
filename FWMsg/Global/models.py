@@ -671,20 +671,32 @@ def verify_image(image):
         return False
 
 def remove_meta_data(image):
-    from PIL import Image
-    from PIL.ExifTags import TAGS
-    
+    from PIL import Image, ImageOps
+
     img = Image.open(image)
+
+    # Apply EXIF orientation before stripping metadata so the rotation is
+    # baked into the pixel data and not lost when EXIF is removed.
+    img = ImageOps.exif_transpose(img)
+
+    # JPEG does not support transparency; flatten RGBA/P onto a white background
+    if img.mode in ("RGBA", "P"):
+        background = Image.new("RGB", img.size, (255, 255, 255))
+        background.paste(img, mask=img.split()[-1] if img.mode == "RGBA" else None)
+        img = background
+    elif img.mode != "RGB":
+        img = img.convert("RGB")
+
     data = list(img.getdata())
     image_without_exif = Image.new(img.mode, img.size)
     image_without_exif.putdata(data)
-    
+
     # Encode as optimized/progressive JPEG
     img_io = io.BytesIO()
     image_without_exif.save(img_io, format="JPEG", optimize=True)
 
     # Ensure the returned filename has .jpg extension
-    base = img.name.split('/')[-1] if hasattr(img, 'name') else 'image'
+    base = image.name.split('/')[-1] if hasattr(image, 'name') else 'image'
     base = os.path.splitext(base)[0] + '.jpg'
     return ContentFile(img_io.getvalue(), name=base)
 
