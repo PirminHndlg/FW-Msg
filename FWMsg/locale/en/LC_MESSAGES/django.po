@@ -2656,7 +2656,7 @@ msgstr "Your browser does not support the video tag."
 
 #: Global/templates/components/folder_card.html:37
 msgid "Der muss vor dem Löschen leer sein"
-msgstr "It must be empty before deletion"
+msgstr "The folder must be empty before deletion"
 
 #: Global/templates/components/folder_card.html:44
 msgid "Ordner bearbeiten"

@@ -2651,7 +2651,7 @@ msgstr "Dein Browser unterstützt das Video-Tag nicht."
 
 #: Global/templates/components/folder_card.html:37
 msgid "Der muss vor dem Löschen leer sein"
-msgstr "Er muss vor dem Löschen leer sein"
+msgstr "Der Order muss vor dem Löschen leer sein"
 
 #: Global/templates/components/folder_card.html:44
 msgid "Ordner bearbeiten"

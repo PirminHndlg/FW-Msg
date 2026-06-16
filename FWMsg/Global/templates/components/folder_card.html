@@ -26,39 +26,52 @@
             aria-labelledby="heading{{ structure.ordner.id }}" 
             data-bs-parent="#folderAccordion">
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="d-flex gap-2">
-                    {% if user.role == 'O' %}
 
-                    <button class="btn btn-outline-danger btn-sm rounded-4" 
+            {# ── Toolbar: add button floated right so left content wraps naturally ── #}
+            <div class="clearfix mb-3">
+
+                {# Float the add button first so it always anchors top-right #}
+                <button class="btn btn-primary btn-sm rounded-4 float-end ms-2"
+                        onclick="addDokument({{ structure.ordner.id }})">
+                    <i class="bi bi-plus-lg"></i>
+                    <span class="d-none d-md-inline">{% trans "Neues Dokument" %}</span>
+                </button>
+
+                {# Action buttons + badges flow left, wrapping below when needed #}
+                {% if user.role == 'O' %}
+                <div class="d-flex flex-wrap align-items-center gap-2">
+
+                    <button class="btn btn-outline-danger btn-sm rounded-4"
                             onclick="removeOrdner({{ structure.ordner.id }}, '{{ structure.ordner }}')"
                             {% if structure.dokumente|length > 0 %}
                             data-bs-toggle="tooltip"
                             data-bs-title="{% trans 'Der muss vor dem Löschen leer sein' %}"
-                            {% endif %}>
+                            {% endif %}
+                            aria-label="{% trans 'Ordner löschen' %}">
                         <i class="bi bi-trash"></i>
                     </button>
 
-                    <button class="btn btn-sm btn-outline-secondary rounded-4" 
+                    <button class="btn btn-sm btn-outline-secondary rounded-4"
                             data-bs-toggle="tooltip"
                             data-bs-title="{% trans 'Ordner bearbeiten' %}"
-                            onclick="editOrdner({{ structure.ordner.id }}, '{{ structure.ordner }}', '{% for typ in structure.ordner.typ.all %}{{ typ.id }},{% endfor %}', '{% if structure.ordner.color %}{{ structure.ordner.color.id }}{% endif %}')">
+                            onclick="editOrdner({{ structure.ordner.id }}, '{{ structure.ordner }}', '{% for typ in structure.ordner.typ.all %}{{ typ.id }},{% endfor %}', '{% if structure.ordner.color %}{{ structure.ordner.color.id }}{% endif %}')"
+                            aria-label="{% trans 'Ordner bearbeiten' %}">
                         <i class="bi bi-pencil"></i>
                     </button>
 
                     <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary rounded-4 dropdown-toggle" 
-                                type="button" 
-                                id="copyLinkDropdown{{ structure.ordner.id }}" 
-                                data-bs-toggle="dropdown" 
+                        <button class="btn btn-sm btn-outline-secondary rounded-4"
+                                type="button"
+                                id="copyLinkDropdown{{ structure.ordner.id }}"
+                                data-bs-toggle="dropdown"
                                 aria-expanded="false"
-                                data-bs-title="{% trans 'Link zum Ordner kopieren' %}">
-                            <i class="bi bi-clipboard"></i>
+                                aria-label="{% trans 'Link zum Ordner kopieren' %}">
+                            <i class="bi bi-link-45deg"></i>
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="copyLinkDropdown{{ structure.ordner.id }}">
                             <li>
-                                <a class="dropdown-item" 
-                                   href="#" 
+                                <a class="dropdown-item"
+                                   href="#"
                                    onclick="event.preventDefault(); copyFolderLink('{% url 'dokumente' structure.ordner.id %}', this);">
                                     <i class="bi bi-link-45deg me-2"></i>{% trans 'Link zum Ordner kopieren' %}
                                 </a>
@@ -67,30 +80,28 @@
                                 <a class="dropdown-item"
                                    href="#"
                                    onclick="event.preventDefault(); copyPublicFolderLink('{% url 'get_public_link_ordner' structure.ordner.id %}', this);">
-                                    <div class="d-flex align-items-start">
-                                        <i class="bi bi-globe me-2 mt-1"></i>
-                                        <div>
-                                            <div>{% trans 'Öffentlichen Link kopieren' %}</div>
-                                            <small class="text-muted">{% trans '14 Tage gültig' %}</small>
-                                        </div>
-                                    </div>
+                                    <i class="bi bi-globe me-2"></i>
+                                    {% trans 'Öffentlichen Link kopieren' %}
+                                    <small class="d-block text-muted ms-4">{% trans '14 Tage gültig' %}</small>
                                 </a>
                             </li>
                         </ul>
                     </div>
 
-
-                    <div class="d-flex gap-2 align-items-center flex-wrap" data-bs-toggle="tooltip" data-bs-title="Ordner ist sichtbar für:">
+                    {% if structure.ordner.typ.all %}
+                    <div class="d-flex gap-1 align-items-center flex-wrap"
+                         data-bs-toggle="tooltip"
+                         data-bs-title="{% trans 'Ordner ist sichtbar für:' %}">
+                        <i class="bi bi-eye text-muted small"></i>
                         {% for typ in structure.ordner.typ.all %}
-                            <span class="badge bg-secondary me-1 word-break">{{ typ.name }}</span>
+                            <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis">{{ typ.name }}</span>
                         {% endfor %}
-                        </div>
+                    </div>
                     {% endif %}
+
                 </div>
-                <button class="btn btn-primary btn-sm rounded-4" 
-                        onclick="addDokument({{ structure.ordner.id }})">
-                    <i class="bi bi-plus-lg"></i> {% trans "Neues Dokument" %}
-                </button>
+                {% endif %}{# /role == 'O' #}
+
             </div>
             <div class="row g-3">
                 {% for dokument in structure.dokumente %}
