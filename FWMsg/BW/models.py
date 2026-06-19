@@ -2,10 +2,11 @@ from django.db import models
 from Global.models import OrgModel
 from django.contrib.auth.models import User
 from datetime import datetime
-from Global.models import Einsatzland2, Einsatzstelle2
+from Global.models import Einsatzland2, Einsatzstelle2, PersonCluster
 from django.utils.translation import gettext_lazy as _
+from Global.models import get_current_request
 
-
+        
 # Create your models here.
 class Bewerber(OrgModel):
     # Status choices for applicant evaluation
@@ -274,8 +275,8 @@ class Bewerber(OrgModel):
         
     def __str__(self):
         return f"{self.user}"
-
-
+    
+    
 class ApplicationQuestion(OrgModel):
     ANSWER_TYPE_CHOICES = [
         ("t", "Text"),
@@ -377,23 +378,31 @@ class ApplicationAnswer(OrgModel):
 
 
 class ApplicationText(OrgModel):
+    person_cluster = models.ForeignKey(
+        PersonCluster,
+        on_delete=models.SET_NULL,
+        related_name="application_texts",
+        null=True,
+        verbose_name="Bewerbergruppe",
+        help_text="Die Benutzergruppe, der Bewerber:innen zugeordnet werden.",
+    )
     welcome = models.TextField(
         verbose_name="Willkommensnachricht",
-        help_text="Die Begrüßung, die der Bewerber:in beim Start der Bewerbung sieht.",
+        help_text="Die Begrüßung, die beim Start der Bewerbung angezeigt wird.",
     )
     footer = models.TextField(
         verbose_name="Fußzeile",
-        help_text="Die Fußzeile, die der Bewerber:in am Ende der Bewerbung sieht.",
+        help_text="Die Fußzeile, die am Ende der Bewerbung angezeigt wird.",
     )
     deadline = models.DateField(
         verbose_name="Abgabefrist",
         null=True,
         blank=True,
-        help_text="Die Abgabefrist, bis zu welcher die Bewerbung abgeschlossen werden muss.",
+        help_text="Nach diesem Datum können keine Bewerbungen mehr abgegeben werden.",
     )
     welcome_account_create = models.TextField(
         verbose_name="Begrüßung bei Kontoerstellung",
-        help_text="Die Begrüßung, die der Bewerber:in beim Erstellen des Kontos sieht.",
+        help_text="Die Begrüßung, die beim Erstellen des Kontos angezeigt wird.",
         null=True,
         blank=True,
     )
@@ -408,6 +417,7 @@ class ApplicationText(OrgModel):
 
 class ApplicationFileQuestion(OrgModel):
     ALLOWED_EXTENSIONS = [".pdf", ".doc", ".docx", ".txt", ".png", ".jpg", ".jpeg"]
+    ALLOWED_EXTENSIONS_PROFILE_PICTURE = [".png", ".jpg", ".jpeg"]
 
     name = models.CharField(
         verbose_name="Name",

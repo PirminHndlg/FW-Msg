@@ -136,7 +136,7 @@ def bw_application_answer(request, question_id=None):
         if next_question:
             return redirect('bw_application_answer', question_id=next_question.id)
         else:
-            return redirect('bw_home')
+            return redirect('bw_application_answer', question_id=question_id)
         
     answered_questions_ids = ApplicationAnswer.objects.filter(user=request.user).values_list('question_id', flat=True)
     print(answered_questions_ids)

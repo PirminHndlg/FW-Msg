@@ -30,15 +30,18 @@
             <div class="applicant-info p-4 bg-light rounded-3 border-start border-primary border-3 mb-4">
               <div class="row">
                 <div class="col-md-6">
-                  <h5 class="mb-3">Bewerber</h5>
+                  <div class="d-flex align-items-center gap-2 mb-2">
+                    {% if bewerber.user.customuser.profil_picture %}
+                      <img src="{% url 'serve_profil_picture' bewerber.user.customuser.get_identifier %}"
+                           alt="{{ bewerber.user.get_full_name|default:bewerber.user.username }}"
+                           class="rounded-circle" style="width:50px;height:50px;object-fit:cover;">
+                    {% endif %}
+                    <h5 class="mb-0">{{ bewerber.user }}</h5>
+                  </div>
                   <p class="mb-1">
-                    <strong>Name:</strong> {{ bewerber.user }}
-                  </p>
-                  <p class="mb-1">
-                    <strong>Email:</strong> <a href="mailto:{{ bewerber.user.email }}"><i class="bi bi-envelope me-1"></i>{{ bewerber.user.email }}</a>
+                    <a href="mailto:{{ bewerber.user.email }}"><i class="bi bi-envelope me-1"></i>{{ bewerber.user.email }}</a>
                   </p>
                   <p class="mb-0">
-                    <strong>Bewerbungsstand:</strong>
                     {% if bewerber.abgeschlossen %}
                       <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Abgeschlossen</span>
                     {% else %}
@@ -48,9 +51,7 @@
                       <small class="text-muted ms-2">am {{ bewerber.abgeschlossen_am|date:'d.m. H:i' }}</small>
                     {% endif %}
                   </p>
-                  
-                  <!-- Edit Bewerbung -->
-                  <a href="{% url 'edit_object' 'bewerber' bewerber.id %}?next={% url 'application_detail' bewerber.id %}" class="btn btn-sm btn-outline-primary rounded-3 mt-2">
+                  <a href="{% url 'edit_object' 'bewerber' bewerber.id %}?next={% url 'application_detail' bewerber.id %}" class="btn btn-sm btn-outline-primary rounded-3 mt-1">
                     <i class="bi bi-pencil-square me-2"></i>{% trans "Bearbeiten" %}
                   </a>
                 </div>
@@ -86,26 +87,12 @@
                   <!-- Team Member Selection -->
                   <div class="d-flex align-items-center gap-2 mb-3">
                     <h5 class="mb-0">Bewerbung zugänglich für</h5>
+                    {% for user in bewerber.accessible_by_team_member.all %}
+                      {{ user.first_name }} {{ user.last_name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
                     <button type="button" class="btn btn-sm btn-outline-primary rounded-3" data-bs-toggle="modal" data-bs-target="#teamMemberModal">
-                      <i class="bi bi-people me-1"></i>Auswählen
+                      <i class="bi {% if not bewerber.accessible_by_team_member.exists %}bi-people{% else %}bi-plus{% endif %} me-1"></i>{% if not bewerber.accessible_by_team_member.exists %}Auswählen{% endif %}
                     </button>
-                  </div>
-                  <div class="d-flex align-items-center gap-2">
-                    {% if bewerber.accessible_by_team_member.exists %}
-                      <div class="d-flex align-items-center">
-                        <i class="bi bi-person-check me-2 text-success"></i>
-                        <span>
-                          {% for user in bewerber.accessible_by_team_member.all %}
-                            {{ user.first_name }} {{ user.last_name }}{% if not forloop.last %}, {% endif %}
-                          {% endfor %}
-                        </span>
-                      </div>
-                    {% else %}
-                      <div class="d-flex align-items-center">
-                        <i class="bi bi-person-x me-2 text-danger"></i>
-                        <span class="text-muted">Keine Teammitglieder ausgewählt</span>
-                      </div>
-                    {% endif %}
                   </div>
                 </div>
               </div>

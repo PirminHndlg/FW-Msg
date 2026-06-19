@@ -1003,8 +1003,10 @@ class AddApplicationTextForm(OrgFormMixin, forms.ModelForm):
         exclude = ['org']
         
     def __init__(self, *args, **kwargs):
+        self.org = kwargs.pop('org', None)
         super().__init__(*args, **kwargs)
         self.fields['welcome'].widget = forms.Textarea(attrs={'rows': 4})
+        self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.org, view='B')
         self.fields['deadline'].widget = forms.DateInput(
             attrs={'type': 'date', 'class': 'form-control'},
             format='%Y-%m-%d'

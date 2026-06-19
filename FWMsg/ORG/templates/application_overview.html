@@ -19,6 +19,12 @@
               </div>
               <h3 class="card-title mb-0 fw-semibold">Bewerbungsübersicht</h3>
             </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="fw-semibold">Jahrgang:</span>
+              {% for person_cluster in bw_person_clusters %}
+                <a href="{% url 'application_overview' %}?person_cluster={{ person_cluster.id }}" class="btn btn-sm {% if current_person_cluster == person_cluster %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-4 {% if current_person_cluster == person_cluster %}active{% endif %}">{{ person_cluster.name }}</a>
+              {% endfor %}
+            </div>
           </div>
         </div>
         <div class="card-body p-4">
@@ -89,6 +95,25 @@
           </div>
 
           <div class="row g-4">
+            <div class="col-12">
+              <div class="card border-0 bg-light">
+                <div class="card-body">
+                  <div class="d-flex align-items-center">
+                    <h5 class="card-title mb-3 mb-md-0 me-3">Bewerbergruppe:</h5>
+                    <p class="card-text mb-0 flex-shrink-0">{{ application_texts.person_cluster.name }}</p>
+                    <span 
+                      class="ms-1"
+                      tabindex="0"
+                      data-bs-toggle="tooltip" 
+                      data-bs-placement="top" 
+                      title="Bewerbende werden dieser Benutzergruppe zugeordnet.">
+                      <i class="bi bi-question-circle-fill text-secondary"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Welcome Message Card -->
             <div class="col-12">
               <div class="card border-0 bg-light">
@@ -154,6 +179,12 @@
             {% for field in application_text_form %}
               <div class="mb-4">
                 <label for="{{ field.id_for_label }}" class="form-label fw-semibold text-secondary">{{ field.label }}</label>
+                {% if field.name == 'person_cluster' %}
+                  {% comment %} plus button with href {% endcomment %}
+                  <a href="{% url 'add_object' 'personcluster' %}?view=B&next={% url 'application_overview' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle"></i>
+                  </a>
+                {% endif %}
                 <div class="input-group">
                   {{ field|add_class:"form-control form-control-lg shadow-none" }}
                 </div>

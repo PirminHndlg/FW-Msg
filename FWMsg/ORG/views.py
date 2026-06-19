@@ -60,6 +60,21 @@ def get_person_cluster(request):
     else:
         return None
         # return PersonCluster.objects.get(id=person_cluster_id) if person_cluster_id else None
+        
+def _get_active_person_cluster(request):
+    person_cluster_id = request.GET.get('person_cluster') or request.COOKIES.get('selectedPersonClusterBW')
+    if person_cluster_id and person_cluster_id != 'None':
+        person_cluster = PersonCluster.objects.filter(id=person_cluster_id, org=request.user.org).first()
+        if person_cluster:
+            return person_cluster
+    last_person_cluster = PersonCluster.objects.filter(org=request.user.org, view='B').order_by('-id').first()
+    return last_person_cluster
+
+def _set_active_person_cluster(request, person_cluster):
+    request.session['selectedPersonClusterBW'] = person_cluster.id
+    response = HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+    response.set_cookie('selectedPersonClusterBW', person_cluster.id)
+    return response
 
 @login_required
 @required_role('O')
@@ -569,9 +584,20 @@ def edit_object(request, model_name, id):
             form.fields[first_field_name].widget.attrs['autofocus'] = True
         except StopIteration:
             pass
-        
+    
+    next_url = request.GET.get('next')
+    params = request.GET
+    for key, value in params.items():
+        if key == 'next':
+            continue
+        # if key is a element of form.fields, add it a initial value
+        if key in form.fields.keys():
+            form.fields[key].initial = value
+    
     if model_name == 'aufgabe':
         back_url = reverse('list_aufgaben_table')
+    elif next_url:
+        back_url = next_url
     else:
         back_url = reverse('list_object', args=[model_name])
 
@@ -1539,13 +1565,13 @@ def _redirect_after_action(request, model_name, object_id=None):
 @required_role('O')
 def application_overview(request):
     # Get or create application texts
-    application_texts, created = ApplicationText.objects.get_or_create(
-        org=request.user.org,
-        defaults={'welcome': '', 'footer': ''}
-    )
+    application_texts = ApplicationText.objects.filter(org=request.user.org)
     
     if request.method == 'POST':
-        application_text_form = ORGforms.AddApplicationTextForm(request.POST, instance=application_texts)
+        if application_texts.count() > 0:
+            application_text_form = ORGforms.AddApplicationTextForm(request.POST, instance=application_texts.first(), org=request.user.org)
+        else:
+            application_text_form = ORGforms.AddApplicationTextForm(request.POST, org=request.user.org)
         if application_text_form.is_valid():
             application_text_form.instance.org = request.user.org
             application_text_form.save()
@@ -1559,33 +1585,55 @@ def application_overview(request):
     text_questions = ApplicationQuestion.objects.filter(org=request.user.org).order_by('order')
     file_questions = ApplicationFileQuestion.objects.filter(org=request.user.org).order_by('order')
     
+    current_person_cluster = _get_active_person_cluster(request)
+
+    if current_person_cluster:
+        bewerber = Bewerber.objects.filter(org=request.user.org, user__customuser__person_cluster=current_person_cluster)
+    else:
+        bewerber = Bewerber.objects.filter(org=request.user.org)
+    
+    print(current_person_cluster)
+    
     # Get application statistics
-    total_applications = Bewerber.objects.filter(org=request.user.org).count()
-    completed_applications = Bewerber.objects.filter(org=request.user.org, abgeschlossen=True).count()
+    total_applications = bewerber.count()
+    completed_applications = bewerber.filter(abgeschlossen=True).count()
     
     # Calculate completion percentage
     completion_percentage = int(completed_applications / total_applications * 100) if total_applications > 0 else 0
     
-    application_text_form = ORGforms.AddApplicationTextForm(instance=application_texts)
+    if application_texts.count() > 0:
+        application_text_form = ORGforms.AddApplicationTextForm(instance=application_texts.first(), org=request.user.org)
+    else:
+        application_text_form = ORGforms.AddApplicationTextForm(org=request.user.org)
     
     context = {
-        'application_texts': application_texts,
+        'application_texts': application_texts.first() if application_texts.count() > 0 else None,
         'text_questions': text_questions,
         'file_questions': file_questions,
         'total_applications': total_applications,
         'completed_applications': completed_applications,
         'completion_percentage': completion_percentage,
         'application_text_form': application_text_form,
+        'bw_person_clusters': PersonCluster.objects.filter(org=request.user.org, view='B'),
+        'current_person_cluster': current_person_cluster,
     }
-    
-    return render(request, 'application_overview.html', context)
+    response = render(request, 'application_overview.html', context)
+    if current_person_cluster:
+        response.set_cookie('selectedPersonClusterBW', current_person_cluster.id)
+    else:
+        response.delete_cookie('selectedPersonClusterBW')
+    return response
 
 @login_required
 @required_role('O')
 def application_list(request):
     filter_status = request.GET.get('status', 'completed')
     
-    bewerber = Bewerber.objects.filter(org=request.user.org)
+    current_person_cluster = _get_active_person_cluster(request)
+    if current_person_cluster:
+        bewerber = Bewerber.objects.filter(org=request.user.org, user__customuser__person_cluster=current_person_cluster)
+    else:
+        bewerber = Bewerber.objects.filter(org=request.user.org)
     
     if filter_status == 'completed':
         bewerber = bewerber.filter(abgeschlossen=True)
@@ -1694,13 +1742,17 @@ def application_answer_download_fields(request, bewerber_id):
 
 def application_download_all_excel(request):
     
-    seminar_filter = request.COOKIES.get('selectedSeminarFilter')
-    if seminar_filter == 'yes':
-        bewerber = Bewerber.objects.filter(org=request.user.org, seminar_bewerber__isnull=False)
-    elif seminar_filter == 'no':
-        bewerber = Bewerber.objects.filter(org=request.user.org, seminar_bewerber__isnull=True)
+    current_person_cluster = _get_active_person_cluster(request)
+    if current_person_cluster:
+        bewerber = Bewerber.objects.filter(org=request.user.org, user__customuser__person_cluster=current_person_cluster)
     else:
         bewerber = Bewerber.objects.filter(org=request.user.org)
+    
+    seminar_filter = request.COOKIES.get('selectedSeminarFilter')
+    if seminar_filter == 'yes':
+        bewerber = bewerber.filter(seminar_bewerber__isnull=False)
+    elif seminar_filter == 'no':
+        bewerber = bewerber.filter(seminar_bewerber__isnull=True)
     
     user_ids = bewerber.values_list('user_id', flat=True)
     

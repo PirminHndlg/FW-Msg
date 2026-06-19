@@ -4,7 +4,7 @@ import string
 from django import forms
 from django.contrib.auth.models import User
 from Global.models import CustomUser, PersonCluster
-from .models import ApplicationQuestion, ApplicationAnswer, Bewerber, ApplicationAnswerFile
+from BW.models import ApplicationQuestion, ApplicationAnswer, Bewerber, ApplicationAnswerFile, ApplicationText
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 
@@ -70,29 +70,13 @@ class CreateAccountForm(forms.Form):
     
     def save(self):
         from Global.models import get_or_create_new_user
-        # TODO: Remove this code after testing
-        
-        # Ensure unique username
-        # username = self.cleaned_data['first_name'].split(' ')[0].lower()
-        # while User.objects.filter(username=username).exists():
-        #     username = username + str(random.randint(1, 9))
-            
-        # user, created = User.objects.get_or_create(
-        #     email=self.cleaned_data['email'],
-        #     defaults={
-        #         'username': username,
-        #         'first_name': self.cleaned_data['first_name'],
-        #         'last_name': self.cleaned_data['last_name'],
-        #         'password': self.cleaned_data['password']
-        #     }
-        # )
         
         person_cluster = PersonCluster.objects.filter(view='B').first()
-        # custom_user, created = CustomUser.objects.get_or_create(
-        #     org=self.org,
-        #     user=user,
-        #     person_cluster=person_cluster
-        # )
+        application_texts = ApplicationText.objects.filter(org=self.org)
+        if application_texts.exists():
+            application_text = application_texts.first()
+            if application_text.person_cluster:
+                person_cluster = application_text.person_cluster
         
         user = get_or_create_new_user(
             email=self.cleaned_data['email'],
@@ -172,9 +156,20 @@ class ApplicationFileAnswerForm(forms.ModelForm):
         self.file_question = kwargs.pop('file_question', None)
         super().__init__(*args, **kwargs)
         
+        # Determine allowed extensions depending on whether this question
+        # is a profile picture. Use the profile-picture-only whitelist when
+        # appropriate.
+        if self.file_question and getattr(self.file_question, 'is_profile_picture', False):
+            allowed_exts = getattr(self.file_question, 'ALLOWED_EXTENSIONS_PROFILE_PICTURE', [])
+        else:
+            allowed_exts = getattr(self.file_question, 'ALLOWED_EXTENSIONS', [])
+
+        # Store on the form instance for use in clean()
+        self.allowed_extensions = allowed_exts
+
         self.fields['file'].required = True
-        self.fields['file'].help_text = 'Erlaubte Dateiformate: ' + ', '.join(self.file_question.ALLOWED_EXTENSIONS)
-        self.fields['file'].widget = forms.FileInput(attrs={'class': 'form-control', 'accept': ','.join(self.file_question.ALLOWED_EXTENSIONS)})
+        self.fields['file'].help_text = 'Erlaubte Dateiformate: ' + ', '.join(self.allowed_extensions)
+        self.fields['file'].widget = forms.FileInput(attrs={'class': 'form-control', 'accept': ','.join(self.allowed_extensions)})
     
     def clean(self):
         cleaned_data = super().clean()
@@ -187,8 +182,8 @@ class ApplicationFileAnswerForm(forms.ModelForm):
             
             # Check file extension
             ext = '.' + file.name.split('.')[-1].lower()
-            if ext not in self.file_question.ALLOWED_EXTENSIONS:
-                raise forms.ValidationError('Nicht unterstütztes Dateiformat. Erlaubte Formate: ' + ', '.join(self.file_question.ALLOWED_EXTENSIONS))
+            if ext not in getattr(self, 'allowed_extensions', []):
+                raise forms.ValidationError('Nicht unterstütztes Dateiformat. Erlaubte Formate: ' + ', '.join(getattr(self, 'allowed_extensions', [])))
         
         return cleaned_data
     
