@@ -57,9 +57,9 @@ def home(request):
     
     return render(request, 'homeBw.html', context)
 
-def create_account(request, org_id):
+def create_account(request, org_uuid):
     try:
-        org = Organisation.objects.get(id=org_id)
+        org = Organisation.objects.get(uuid=org_uuid)
     except Organisation.DoesNotExist:
         return redirect('bw_home')
     

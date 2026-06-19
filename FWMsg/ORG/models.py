@@ -1,4 +1,5 @@
 import os.path
+import uuid as uuid_module
 
 from django.db import models
 from django.db.models.signals import post_save, post_delete
@@ -14,6 +15,7 @@ from django.conf import settings
 
 # Create your models here.
 class Organisation(models.Model):
+    uuid = models.UUIDField(default=uuid_module.uuid4, editable=False, unique=True)
     name = models.CharField(max_length=100)
     kurzname = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField()

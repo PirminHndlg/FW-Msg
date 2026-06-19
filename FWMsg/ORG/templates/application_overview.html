@@ -34,7 +34,7 @@
                 <h5 class="card-title mb-0 me-2">Link für Bewerbungen</h5>
               </div>
               <div class="input-group input-group-sm">
-                <input type="text" class="form-control form-control-sm bg-light border-secondary-subtle text-secondary-emphasis font-monospace" value="{{ request.scheme }}://{{ request.get_host }}{% url 'bw_create_account' request.user.org.id %}" id="applicationLink" readonly />
+                <input type="text" class="form-control form-control-sm bg-light border-secondary-subtle text-secondary-emphasis font-monospace" value="{{ request.scheme }}://{{ request.get_host }}{% url 'bw_create_account' request.user.org.uuid %}" id="applicationLink" readonly />
                 <button class="btn btn-primary btn-sm" type="button" onclick="copyLink()"><i class="bi bi-clipboard me-1"></i>Kopieren</button>
               </div>
               <div class="alert alert-success alert-sm py-1 px-2 mt-2 d-none" id="copySuccess">
