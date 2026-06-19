@@ -1,6 +1,7 @@
 {% extends extends_base|default:'baseOrg.html' %}
 {% load i18n %}
 {% load static %}
+{% load base_filter %}
 
 {% block title %}
   {% trans "Nachrichten" %} - {% for u in other_users %}{{ u.get_full_name|default:u.username }}{% endfor %}
@@ -43,7 +44,7 @@
                  role="button" tabindex="0" aria-label="{% trans 'Bild vergrößern' %}">
           {% endif %}
           {% if msg.message %}
-            <p>{{ msg.message|linebreaksbr }}</p>
+            <p>{{ msg.message|format_text_with_link|linebreaksbr }}</p>
           {% endif %}
         </div>
         <div class="bubble-meta {% if msg.user == request.user %}text-end me-1{% else %}ms-1{% endif %}">
@@ -80,6 +81,7 @@
   const wsUrl = (location.protocol === 'https:' ? 'wss' : 'ws')
               + '://' + location.host
               + '/ws/chat/direct/{{ chat.get_identifier }}/';
+  const domainHost = '{{ settings.DOMAIN_HOST }}';
   initChat(
     {{ chat.id }},
     'direct',

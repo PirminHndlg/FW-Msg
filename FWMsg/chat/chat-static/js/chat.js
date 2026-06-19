@@ -456,9 +456,69 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         return div.innerHTML;
     }
 
-    /** Escape HTML, then convert newlines to <br> (matches Django linebreaksbr). */
+    /**
+     * Mirrors the Django format_text_with_link filter.
+     * Converts phone numbers, URLs, and emails to clickable links.
+     */
+    function formatTextWithLink(text) {
+        if (!text) return '';
+
+        // ── Phone numbers ────────────────────────────────────────────────────────
+        // Must run before URL substitution; phones don't overlap with URLs.
+        const cleanedText = text.replace(/[\s()\-]/g, '');
+        const telNumbers = cleanedText.match(/\+\d{10,15}/g) || [];
+
+        for (const telNumber of telNumbers) {
+            let originalNumber = '';
+            let digitPos = 0;
+            for (const char of text) {
+                if (digitPos < telNumber.length && char === telNumber[digitPos]) {
+                    originalNumber += char;
+                    digitPos += 1;
+                } else if (' ()-'.includes(char) && 0 < digitPos && digitPos < telNumber.length) {
+                    originalNumber += char;
+                }
+            }
+            if (originalNumber) {
+                text = text.replace(
+                    originalNumber,
+                    `<a href="tel:${telNumber}" class="text-decoration-underline text-body">${originalNumber}</a>`,
+                    1
+                );
+            }
+        }
+
+        // ── URLs and e-mails — single-pass replacement ───────────────────────────
+        // Using one re.sub call with alternation prevents double-processing:
+        // the engine scans left-to-right and never re-inspects the replacement
+        // text, so already-inserted <a> tags are never matched again.
+        const urlRegex = /(https?:\/\/\S+)|((?<![/\w])www\.\S+)|(\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b)/gi;
+
+        text = text.replace(urlRegex, (match, httpsUrl, wwwUrl, email) => {
+            if (httpsUrl) {
+                // Check if it's an internal domain (use domainHost if available, else default)
+                const domain = (typeof domainHost !== 'undefined') ? domainHost : 'volunteer.solutions';
+                const target = httpsUrl.includes(domain) ? '' : ' target="_blank"';
+                return `<a href="${httpsUrl}" class="text-decoration-underline text-body"${target}>${httpsUrl}</a>`;
+            }
+            if (wwwUrl) {
+                const target = wwwUrl.includes('volunteer.solutions') ? '' : ' target="_blank"';
+                return `<a href="https://${wwwUrl}" class="text-decoration-underline text-body"${target}>${wwwUrl}</a>`;
+            }
+            if (email) {
+                return `<a href="mailto:${email}" class="text-decoration-underline text-body">${email}</a>`;
+            }
+            return match;
+        });
+
+        return text;
+    }
+
+    /** Escape HTML, apply link formatting, then convert newlines to <br> (matches Django linebreaksbr). */
     function formatMessageBody(str) {
-        return escapeHtml(str).replace(/\r\n|\r|\n/g, '<br>');
+        const escaped = escapeHtml(str);
+        const withLinks = formatTextWithLink(escaped);
+        return withLinks.replace(/\r\n|\r|\n/g, '<br>');
     }
 
     // Start the WebSocket connection.
