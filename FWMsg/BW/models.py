@@ -1,3 +1,4 @@
+import uuid as uuid_module
 from django.db import models
 from Global.models import OrgModel
 from django.contrib.auth.models import User
@@ -468,6 +469,7 @@ class ApplicationFileQuestion(OrgModel):
 
 
 class ApplicationAnswerFile(OrgModel):
+    uuid = models.UUIDField(default=uuid_module.uuid4, editable=False, unique=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Benutzer:in")
     file_question = models.ForeignKey(
         ApplicationFileQuestion, on_delete=models.CASCADE, verbose_name="Datei"

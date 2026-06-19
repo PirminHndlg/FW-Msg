@@ -2663,12 +2663,12 @@ def api_bewerber_kommentare(request, bewerber_id, kommentar_id=None):
 
 @login_required
 @required_role('BOTE')
-def bw_application_file_answer_download(request, file_answer_id):
+def bw_application_file_answer_download(request, file_answer_uuid):
     try:
         if request.user.customuser.person_cluster.view == 'B':
-            file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, user=request.user)
+            file_answer = ApplicationAnswerFile.objects.get(uuid=file_answer_uuid, user=request.user)
         else:
-            file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, file_question__org=request.user.org)
+            file_answer = ApplicationAnswerFile.objects.get(uuid=file_answer_uuid, file_question__org=request.user.org)
             if request.user.customuser.person_cluster.view in 'TE':
                 try:
                     file_answer_user = file_answer.user

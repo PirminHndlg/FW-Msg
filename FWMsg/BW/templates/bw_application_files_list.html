@@ -40,7 +40,7 @@
                             <div class="d-flex flex-column flex-md-row align-items-center gap-2">
                               <span class="badge bg-success rounded-pill"><i class="bi bi-check-circle me-1"></i>Hochgeladen</span>
                               <div class="d-flex gap-1">
-                                <a href="{% url 'bw_application_file_answer_download' answer.id %}" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-download me-1"></i>Herunterladen</a>
+                                <a href="{% url 'bw_application_file_answer_download' answer.uuid %}" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-download me-1"></i>Herunterladen</a>
                                 <a href="{% url 'bw_application_file_answer' question.id %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil me-1"></i>Bearbeiten</a>
                               </div>
                             </div>
