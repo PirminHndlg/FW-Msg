@@ -295,9 +295,58 @@
 var map;
 var vectorSource;
 
+function styleFunction(feature) {
+    var features = feature.get('features');
+    var size = features.length;
+
+    if (size > 1) {
+        return new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 22,
+                fill: new ol.style.Fill({ color: '#0d6efd' }),
+                stroke: new ol.style.Stroke({ color: 'white', width: 3 })
+            }),
+            text: new ol.style.Text({
+                text: size.toString(),
+                fill: new ol.style.Fill({ color: 'white' }),
+                font: 'bold 14px sans-serif'
+            })
+        });
+    }
+
+    var f = features[0];
+    var canvas = f.get('canvas');
+    var imgSize = f.get('imgSize');
+    if (canvas && imgSize) {
+        return new ol.style.Style({
+            image: new ol.style.Icon({
+                img: canvas,
+                imgSize: imgSize,
+                anchor: [0.5, 0.5],
+                anchorXUnits: 'fraction',
+                anchorYUnits: 'fraction'
+            })
+        });
+    }
+
+    return new ol.style.Style({
+        image: new ol.style.Circle({
+            radius: 20,
+            fill: new ol.style.Fill({ color: '#0d6efd' }),
+            stroke: new ol.style.Stroke({ color: 'white', width: 2 })
+        })
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // Create vector source for markers
     vectorSource = new ol.source.Vector();
+
+    var clusterSource = new ol.source.Cluster({
+        distance: 40,
+        minDistance: 20,
+        source: vectorSource
+    });
     
     // Initialize map with OpenLayers 4
     // CartoDB Voyager tiles are used instead of OSM directly because OSM's
@@ -314,7 +363,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 })
             }),
             new ol.layer.Vector({
-                source: vectorSource
+                source: clusterSource,
+                style: styleFunction
             })
         ],
         target: 'basicMap',
@@ -424,26 +474,10 @@ document.addEventListener('DOMContentLoaded', function () {
             ctx.ellipse(width/2, height/2, width/2 - 1.5, height/2 - 1.5, 0, 0, Math.PI * 2);
             ctx.stroke();
             
-            // Update marker style with canvas
-            marker.setStyle(new ol.style.Style({
-                image: new ol.style.Icon({
-                    img: canvas,
-                    imgSize: [width, height],
-                    anchor: [0.5, 0.5],
-                    anchorXUnits: 'fraction',
-                    anchorYUnits: 'fraction'
-                })
-            }));
+            marker.set('canvas', canvas);
+            marker.set('imgSize', [width, height]);
+            vectorSource.changed();
         };
-        
-        // Temporary style while image loads
-        marker.setStyle(new ol.style.Style({
-            image: new ol.style.Circle({
-                radius: 20,
-                fill: new ol.style.Fill({ color: '#0d6efd' }),
-                stroke: new ol.style.Stroke({ color: 'white', width: 2 })
-            })
-        }));
         
         vectorSource.addFeature(marker);
         {% endif %}
@@ -459,27 +493,43 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
     
-    // Click on marker to show popup
+    // Click on marker to show popup or zoom into cluster
     map.on('click', function(evt) {
-        var feature = map.forEachFeatureAtPixel(evt.pixel, function(feature) {
-            return feature;
+        var feature = map.forEachFeatureAtPixel(evt.pixel, function(f) {
+            return f;
         });
-        
-        if (feature) {
+
+        if (!feature) {
+            overlay.setPosition(undefined);
+            return;
+        }
+
+        var clusterFeatures = feature.get('features');
+        if (clusterFeatures.length > 1) {
+            var extent = ol.extent.boundingExtent(
+                clusterFeatures.map(function(f) {
+                    return f.getGeometry().getCoordinates();
+                })
+            );
+            map.getView().fit(extent, {
+                duration: 500,
+                padding: [50, 50, 50, 50]
+            });
+            overlay.setPosition(undefined);
+        } else {
+            var markerFeature = clusterFeatures[0];
             var coordinates = feature.getGeometry().getCoordinates();
             var popupContent = '<div>' +
-                '<h6 class="mb-1"><strong class="text-primary"><i class="bi bi-person me-1"></i>' + feature.get('user') + '</strong></h6>' +
+                '<h6 class="mb-1"><strong class="text-primary"><i class="bi bi-person me-1"></i>' + markerFeature.get('user') + '</strong></h6>' +
                 '<div class="text-muted small">' +
-                '<div class="mb-1 ' + (feature.get('zip') ? '' : 'd-none') + '"><i class="bi bi-mailbox me-1"></i>' + (feature.get('zip') ? feature.get('zip') : '') + '</div>' +
-                '<div class="mb-1"><i class="bi bi-building me-1"></i>' + feature.get('city') + '</div>' +
-                '<div class="mb-1"><i class="bi bi-flag me-1"></i>' + feature.get('country') + '</div>';
-            
+                '<div class="mb-1 ' + (markerFeature.get('zip') ? '' : 'd-none') + '"><i class="bi bi-mailbox me-1"></i>' + (markerFeature.get('zip') ? markerFeature.get('zip') : '') + '</div>' +
+                '<div class="mb-1"><i class="bi bi-building me-1"></i>' + markerFeature.get('city') + '</div>' +
+                '<div class="mb-1"><i class="bi bi-flag me-1"></i>' + markerFeature.get('country') + '</div>';
+
             popupContent += '</div></div>';
-            
+
             content.innerHTML = popupContent;
             overlay.setPosition(coordinates);
-        } else {
-            overlay.setPosition(undefined);
         }
     });
     
