@@ -3169,7 +3169,7 @@ msgstr "Antwortbild"
 
 #: Global/templates/post_detail.html:264
 msgid "Bild hinzufügen"
-msgstr "Bilder hinzufügen"
+msgstr "Bild hinzufügen"
 
 #: Global/templates/post_detail.html:277
 msgid "Antwort senden"
