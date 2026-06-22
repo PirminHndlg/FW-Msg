@@ -7,6 +7,7 @@
 {% endblock %}
 
 {% block head %}
+  <link rel="stylesheet" href="{% static 'css/homeOrg.css' %}" />
   <link rel="stylesheet" href="{% static 'css/list_ampel.css' %}">
   <style>
     .dashboard-section {
@@ -26,25 +27,6 @@
       margin: 0;
     }
     
-    .card-compact {
-      border: 1px solid #e9ecef;
-      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    }
-    
-    .status-indicator {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      display: inline-block;
-      margin-right: 0.5rem;
-    }
-    
-    .country-flag {
-      width: 24px;
-      height: auto;
-      border-radius: 2px;
-    }
-    
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -62,32 +44,6 @@
         grid-template-columns: 1fr;
       }
     }
-    
-    .country-card {
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    
-    .country-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-    
-    .ampel-indicator {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      display: inline-block;
-      margin-right: 0.25rem;
-    }
-
-    /* Dashboard Header Styling */
-    .dashboard-header {
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      border-radius: 1rem;
-      padding: 1.5rem;
-      border: 1px solid #dee2e6;
-      margin-bottom: 2rem !important;
-    }
 
     .country-flags {
       background: rgba(255, 255, 255, 0.7);
@@ -98,61 +54,21 @@
 
     .flag-container {
       position: relative;
-      transition: transform 0.2s ease;
-    }
-
-    .flag-container:hover {
-      transform: scale(1.1);
     }
 
     .country-flag-header {
-      width: 28px;
-      height: 20px;
+      width: 40px;
+      height: 30px;
       border-radius: 4px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
       display: inline-block;
     }
 
-    .quick-stats {
-      background: rgba(255, 255, 255, 0.9);
-      padding: 1rem;
-      border-radius: 0.75rem;
-      border: 1px solid rgba(0, 0, 0, 0.05);
-    }
-
-    .stat-item {
-      min-width: 80px;
-    }
-
-    .stat-number {
-      font-size: 1.75rem;
-      font-weight: 700;
-      line-height: 1;
-    }
-
-    .team-info .badge {
-      font-size: 0.75rem;
-      padding: 0.25rem 0.5rem;
-    }
-
     @media (max-width: 768px) {
-      .dashboard-header {
-        padding: 1rem;
-      }
-
       .country-flags {
         margin-top: 0.5rem;
         width: 100%;
         justify-content: center;
-      }
-
-      .quick-stats {
-        margin-top: 1rem;
-        justify-content: center !important;
-      }
-
-      .stat-number {
-        font-size: 1.5rem;
       }
     }
   </style>
@@ -160,25 +76,14 @@
 
 {% block content %}
 <!-- Header Section -->
-<div class="mb-4">
-  <div class="d-flex align-items-center justify-content-between">
-    <h1 class="h2 mb-0 me-3">{% trans "Dashboard" %}</h1>
-    {% if assigned_countries %}
-      <a href="{% url 'laender_info' %}" class="text-decoration-none">
-        <div class="country-flags d-flex align-items-center">
-          <small class="text-muted me-2">{% trans "Meine Länder:" %}</small>
-          {% for stat in country_stats %}
-            <div class="flag-container me-1" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ stat.country.name }}">
-              <span class="fi fi-{{ stat.country.code|lower }} country-flag-header"></span>
-            </div>
-          {% endfor %}
-        </div>
-      </a>
-    {% endif %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-1">{% trans "Dashboard" %}</h1>
   </div>
+</div>
 
   {% if not assigned_countries %}
-    <div class="alert alert-warning border-0 mt-3" role="alert">
+    <div class="alert alert-warning border-0 mb-4" role="alert">
       <div class="d-flex align-items-center">
         <i class="bi bi-exclamation-triangle me-2"></i>
         <div>
@@ -194,73 +99,60 @@
       </div>
     </div>
   {% endif %}
-</div>
 
-<!-- Welcome Message for New Users 
-<div class="dashboard-section">
-  <div class="card card-compact border-primary">
-    <div class="card-body text-center py-4">
-      <i class="bi bi-lightbulb text-primary mb-3" style="font-size: 3rem;"></i>
-      <h3 class="mb-3">Hast du Anregungen oder Feedback zum Dashboard?</h3>
-      <p class="text-muted mb-4">
-        Dieses Dashboard befindet sich noch in der Entwicklung.<br>
-        Teile uns gerne deine Ideen oder Wünsche mit. Gerne auch zu anderen Seiten 👀
-      </p>
-      <a href="{% url 'feedback' %}" class="btn btn-primary">
-        <i class="bi bi-chat-dots me-2"></i>Feedback senden
-      </a>
-      <p class="text-muted mt-4 mb-0">
-        Falls dir Fehler auffallen, gib uns bitte Bescheid.
-      </p>
-    </div>
-  </div>
-</div>
- -->
- 
 {% include 'components/seminar_display_info.html' %}
 
 <!-- Quick Stats Section -->
 <div class="dashboard-section">
-  <div class="section-header">
+  {% comment %} <div class="section-header">
     <h2 class="section-title">
       <i class="bi bi-speedometer2 me-2 text-primary"></i>
       Übersicht
     </h2>
-  </div>
+  </div> {% endcomment %}
 
   <div class="grid-3">
     <!-- Total Volunteers -->
-    <div class="card card-compact h-100">
+    <div class="card h-100 rounded-4">
       <div class="card-body text-center">
+        <a href="{% url 'team_contacts' %}" class="text-decoration-none text-body">
         <i class="bi bi-people-fill text-primary mb-3" style="font-size: 2.5rem;"></i>
         <div class="h2 mb-2 text-primary">{{ freiwillige_count }}</div>
         <p class="mb-0 text-muted">Freiwillige gesamt</p>
-        <a href="{% url 'team_contacts' %}" class="btn btn-sm btn-outline-primary mt-2">
-          Kontakte anzeigen
         </a>
       </div>
     </div>
 
     <!-- Total Placement Locations -->
-    <div class="card card-compact h-100">
+    <div class="card h-100 rounded-4">
       <div class="card-body text-center">
+        <a href="{% url 'einsatzstellen_info' %}" class="text-decoration-none text-body">
         <i class="bi bi-geo-alt-fill text-info mb-3" style="font-size: 2.5rem;"></i>
         <div class="h2 mb-2 text-info">{{ einsatzstellen_count }}</div>
         <p class="mb-0 text-muted">Einsatzstellen</p>
-        <a href="{% url 'einsatzstellen_info' %}" class="btn btn-sm btn-outline-info mt-2">
-          Verwalten
         </a>
       </div>
     </div>
 
     <!-- Countries Assigned -->
-    <div class="card card-compact h-100">
+    <div class="card h-100 rounded-4">
       <div class="card-body text-center">
-        <i class="bi bi-flag-fill text-success mb-3" style="font-size: 2.5rem;"></i>
+        <a href="{% url 'laender_info' %}" class="text-decoration-none text-body">
+        {% if assigned_countries %}
+        <div class="d-flex align-items-center justify-content-center mb-3">
+        {% for country in assigned_countries %}
+          <div class="flag-container me-1">
+            <span class="fi fi-{{ country.code|lower }} country-flag-header"></span>
+          </div>
+        {% endfor %}
+        </div>
+        {% else %}
+        <div class="d-flex align-items-center justify-content-center">
+          <i class="bi bi-flag-fill text-success mb-3" style="font-size: 2.5rem;"></i>
+        </div>
+        {% endif %}
         <div class="h2 mb-2 text-success">{{ assigned_countries|length }}</div>
         <p class="mb-0 text-muted">Zugewiesene Länder</p>
-        <a href="{% url 'laender_info' %}" class="btn btn-sm btn-outline-success mt-2">
-          Länder verwalten
         </a>
       </div>
     </div>
@@ -277,8 +169,8 @@
     </h2>
   </div> {% endcomment %}
 
-  <div class="card card-compact">
-    <div class="card-header bg-white border-bottom-0">
+  <div class="card h-100 rounded-4">
+    <div class="card-header bg-white border-bottom-0 rounded-top-4">
       <div class="d-flex justify-content-between align-items-center">
         <a href="{% url 'aufgaben' %}" class="text-decoration-none text-body">
           <h5 class="mb-0">
@@ -292,7 +184,7 @@
     <div class="card-body">
       {% if my_open_tasks %}
         <div class="list-group list-group-flush">
-          <div class="row row-cols-1 row-cols-xxl-2 g-3">
+          <div class="row row-cols-1 row-cols-md-2 row-cols-xxl-3 g-3">
               {% for task in my_open_tasks|slice:':4' %}
                   {% include 'components/task_card.html' with task=task %}
               {% endfor %}
@@ -329,8 +221,8 @@
       <div class="row g-3">
         <!-- Recent Ampel Entries -->
         <div class="col-12 col-md-6 col-lg-3">
-          <div class="card card-compact h-100">
-          <div class="card-header bg-white border-bottom-0">
+          <div class="card h-100 rounded-4">
+          <div class="card-header bg-white border-bottom-0 rounded-top-4">
             <div class="d-flex justify-content-between align-items-center flex-wrap">
               <a href="{% url 'list_ampel' %}" class="text-decoration-none text-body">
               <h5 class="mb-0">
@@ -345,7 +237,7 @@
             {% if recent_ampel_entries %}
               <div class="list-group list-group-flush">
                 {% for entry in recent_ampel_entries %}
-                  <div class="list-group-item px-0 border-0 py-2 cursor-pointer" onclick="showAmpelComment({{ entry.id }}, '{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ entry.user.get_full_name|default:entry.user.username }}', '{{entry.read}}')">
+                  <div class="list-group-item px-0 border-0 py-2 cursor-pointer" onclick="showAmpelComment({{ entry.id }}, '{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ entry.user }}', '{{entry.read}}')">
                     <div class="d-flex justify-content-between align-items-start">
                       <div class="me-auto">
                         <div class="d-flex align-items-center mb-1 gap-1">
@@ -356,7 +248,17 @@
                           <small class="text-muted">{{ entry.comment|truncatewords:8 }}</small>
                         {% endif %}
                       </div>
-                      <small class="text-muted">{{ entry.date|date:'d.m H:i' }}</small>
+                      <div class="d-flex flex-column gap-1 me-2">
+                        <small class="text-muted">{{ entry.date|date:'d.m' }}</small>
+                        <small class="text-muted">{{ entry.date|date:'H:i' }}</small>
+                      </div>
+                      <div class="d-flex gap-1 align-items-center">
+                        {% if entry.read %}
+                          <i class="bi bi-eye" title="{% trans 'Gelesen' %}" data-bs-toggle="tooltip"></i>
+                        {% else %}
+                          <i class="bi bi-envelope" title="{% trans 'Ungelesen' %}" data-bs-toggle="tooltip"></i>
+                        {% endif %}
+                      </div>
                     </div>
                   </div>
 
@@ -384,8 +286,8 @@
         <!-- Recent Posts -->
         {% if request.user.customuser.person_cluster.posts %}
         <div class="col-12 col-md-6 col-lg-3">
-          <div class="card card-compact h-100">
-          <div class="card-header bg-white border-bottom-0">
+          <div class="card h-100 rounded-4">
+          <div class="card-header bg-white border-bottom-0 rounded-top-4">
             <div class="d-flex justify-content-between align-items-center">
               <a href="{% url 'posts_overview' %}" class="text-decoration-none text-body">
                 <h5 class="mb-0">
@@ -397,21 +299,9 @@
           </div>
           <div class="card-body">
             {% if posts %}
-                {% for post in posts|slice:":4" %}
-                <a href="{% url 'post_detail' post.id %}" class="text-decoration-none text-body">
-                  <div class="px-0 border-0 py-2">
-                    <h6 class="mb-1">{{ post.title }}</h6>
-                    <p class="mb-1 text-muted small">{{ post.text|truncatewords:15 }}</p>
-                    <small class="text-muted">
-                      <i class="bi bi-person me-1"></i>{{ post.user.get_full_name|default:post.user.username }}
-                      <i class="bi bi-calendar ms-2 me-1"></i>{{ post.date|date:'d.m.Y' }}
-                    </small>
-                  </div>
-                </a>
-                {% if not forloop.last %}
-                <hr class="my-2">
-                {% endif %}
-                {% endfor %}
+              <div class="d-flex flex-column gap-3">
+                {% include 'components/post_card.html' with posts=posts %}
+              </div>
               <div class="text-center mt-3">
                 <a href="{% url 'posts_overview' %}" class="btn btn-sm btn-outline-primary">
                   {% trans "Alle Posts" %}
@@ -431,8 +321,8 @@
         <!-- Recent Images -->
         {% if request.user.customuser.person_cluster.bilder %}
         <div class="col-12 col-lg-6">
-          <div class="card card-compact h-100">
-          <div class="card-header bg-white border-bottom-0">
+          <div class="card h-100 rounded-4">
+          <div class="card-header bg-white border-bottom-0 rounded-top-4">
             <div class="d-flex justify-content-between align-items-center">
               <a href="{% url 'bilder' %}" class="text-decoration-none text-body">
               <h5 class="mb-0">
@@ -444,8 +334,7 @@
           </div>
           <div class="card-body">
             {% if gallery_images %}
-              <!-- Image Carousel -->
-              <div class="row g-3">
+              <div class="row row-cols-1 row-cols-sm-2 g-3">
                   {% include 'bilder_show.html' with gallery_images=gallery_images small=True %}
               </div>
 
