@@ -7,6 +7,7 @@
 {% endblock %}
 
 {% block head %}
+  <link rel="stylesheet" href="{% static 'css/homeOrg.css' %}" />
   <style>
     .dashboard-section {
       margin-bottom: 2rem;
@@ -25,70 +26,64 @@
       margin: 0;
     }
     
-    .card-compact {
-      border: 1px solid #e9ecef;
-      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
     }
     
-    .grid-2 { 
-      display: grid; 
-      grid-template-columns: 1fr 1fr; 
-      gap: 1.5rem; 
-    }
-    
-    .grid-3 { 
-      display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-      gap: 1.5rem; 
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
     }
     
     @media (max-width: 768px) {
-      .grid-2, .grid-3 { 
-        grid-template-columns: 1fr; 
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
       }
     }
 
-    .welcome-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
+    .country-flags {
+      background: rgba(255, 255, 255, 0.7);
+      padding: 0.25rem 0.75rem;
+      border-radius: 2rem;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .country-flag-header {
+      width: 40px;
+      height: 30px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      display: inline-block;
+    }
+
+    @media (max-width: 768px) {
+      .country-flags {
+        margin-top: 0.5rem;
+        width: 100%;
+        justify-content: center;
+      }
     }
   </style>
 {% endblock %}
 
 {% block content %}
 <!-- Header Section -->
-<div class="mb-4">
-  <div class="d-flex align-items-center justify-content-between">
-    <h1 class="h2 mb-1">{% trans "Dashboard" %}</h1>
-    {% if user.ehemalige.land.exists %}
-    <div class="d-flex align-items-center">
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-1">{% trans "Dashboard" %}</h1>
+  </div>
+  {% if user.ehemalige.land.exists %}
+    <div class="country-flags d-flex align-items-center">
       {% for land in user.ehemalige.land.all %}
-        <span class="fi fi-{{ land.code|lower }} me-2 border" style="font-size: 2rem;"></span>
+        <span class="fi fi-{{ land.code|lower }} country-flag-header me-1" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ land.name }}"></span>
       {% endfor %}
-      </div>
-    {% endif %}
-  </div>
-</div>
-
-<!-- Welcome Section
-<div class="dashboard-section">
-  <div class="card welcome-card">
-    <div class="card-body text-center py-5">
-      <i class="bi bi-people-fill mb-3" style="font-size: 3rem;"></i>
-      <h3 class="mb-3">{% trans "Willkommen auf Volunteer.Solutions!" %}</h3>
-      <p class="mb-4" style="font-size: 1.1rem;">
-        {% trans "Hast du Fragen, Anregungen oder möchtest einfach Hallo sagen? Wir freuen uns von dir zu hören!" %}
-      </p>
-      <div class="d-flex justify-content-center gap-3 flex-wrap">
-        <a href="{% url 'feedback' %}" class="btn btn-light btn-lg">
-          <i class="bi bi-chat-dots me-2"></i>{% trans "Feedback senden" %}
-        </a>
-      </div>
     </div>
-  </div>
+  {% endif %}
 </div>
- -->
 
 {% include 'components/seminar_display_info.html' %}
 
@@ -106,7 +101,7 @@
     <!-- Recent Posts -->
     {% if user.customuser.person_cluster.posts %}
     <div class="col-12 {% if user.customuser.person_cluster.bilder %}col-lg-4 col-xl-6{% endif %}">
-      <div class="card card-compact h-100 rounded-4">
+      <div class="card h-100 rounded-4">
       <div class="card-header bg-white border-bottom-0 rounded-top-4">
         <div class="d-flex justify-content-between align-items-center">
           <a href="{% url 'posts_overview' %}" class="text-decoration-none text-body">
@@ -119,21 +114,9 @@
       </div>
       <div class="card-body">
         {% if posts %}
-            {% for post in posts|slice:":4" %}
-            <a href="{% url 'post_detail' post.id %}" class="text-decoration-none text-body">
-              <div class="px-0 border-0 py-2">
-                <h6 class="mb-1">{{ post.title }}</h6>
-                <p class="mb-1 text-muted small">{{ post.text|truncatewords:15 }}</p>
-                <small class="text-muted">
-                  <i class="bi bi-person me-1"></i>{{ post.user.get_full_name|default:post.user.username }}
-                  <i class="bi bi-calendar ms-2 me-1"></i>{{ post.date|date:'d.m.Y' }}
-                </small>
-              </div>
-            </a>
-            {% if not forloop.last %}
-            <hr class="my-2">
-            {% endif %}
-            {% endfor %}
+          <div class="d-flex flex-column gap-3">
+            {% include 'components/post_card.html' with posts=posts %}
+          </div>
           <div class="text-center mt-3">
             <a href="{% url 'posts_overview' %}" class="btn btn-sm btn-outline-primary">
               {% trans "Alle Posts" %}
@@ -152,8 +135,8 @@
 
     <!-- Recent Images -->
     {% if user.customuser.person_cluster.bilder %}
-    <div class="col-12 {% if user.customuser.person_cluster.posts %}col-lg-8 col-xl-6{% endif %}">
-      <div class="card card-compact h-100 rounded-4">
+    <div class="col-12 col-lg-6">
+      <div class="card h-100 rounded-4">
       <div class="card-header bg-white border-bottom-0 rounded-top-4">
         <div class="d-flex justify-content-between align-items-center">
           <a href="{% url 'bilder' %}" class="text-decoration-none text-body">
@@ -166,8 +149,7 @@
       </div>
       <div class="card-body">
         {% if gallery_images %}
-          <!-- Image Carousel -->
-          <div class="row g-3">
+          <div class="row row-cols-1 row-cols-sm-2 g-3">
               {% include 'bilder_show.html' with gallery_images=gallery_images small=True %}
           </div>
 
@@ -200,8 +182,8 @@
     </h2>
   </div> {% endcomment %}
   
-  <div class="card card-compact rounded-4">
-    <div class="card-header bg-white border-bottom-0">
+  <div class="card h-100 rounded-4">
+    <div class="card-header bg-white border-bottom-0 rounded-top-4">
       <div class="d-flex justify-content-between align-items-center">
         <a href="{% url 'aufgaben' %}" class="text-decoration-none text-body">
         <h5 class="mb-0">
