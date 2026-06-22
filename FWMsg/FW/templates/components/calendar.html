@@ -11,7 +11,7 @@
                 
                 <div class="d-flex align-items-center gap-2">
                 {% if show_calendar_subscription %}
-                    <button type="button" class="btn btn-primary ms-3" data-bs-toggle="modal" data-bs-target="#calendarSubscriptionModal">
+                    <button type="button" class="btn btn-sm rounded-4 btn-primary" data-bs-toggle="modal" data-bs-target="#calendarSubscriptionModal">
                         <i class="bi bi-calendar-plus"></i> {% trans "Kalender abonnieren" %}
                     </button>
                 {% endif %}
@@ -33,32 +33,34 @@
 <!-- Calendar Subscription Modal -->
 <div class="modal fade" id="calendarSubscriptionModal" tabindex="-1" aria-labelledby="calendarSubscriptionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="calendarSubscriptionModalLabel">{% trans "Kalender abonnieren" %}</h5>
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header rounded-4 border-0">
+                <h3 class="card-title mb-0" id="calendarSubscriptionModalLabel">{% trans "Kalender abonnieren" %}</h3>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <div class="mb-4">
+            <div class="modal-body rounded-4 pt-0">
+                <div class="form-group mb-3">
                     <label for="calendarFeedUrl" class="form-label">{% trans "Kalender Feed URL" %}</label>
                     <div class="input-group">
                         <input type="text" class="form-control" id="calendarFeedUrl" value="{{ request.scheme }}://{{ request.get_host }}{% url 'kalender_abbonement' request.user.customuser.ensure_calendar_token %}" readonly>
                         <button class="btn btn-primary" type="button" onclick="copyCalendarUrl()">
-                            <i class="bi bi-clipboard"></i> {% trans "Kopieren" %}
+                            <span class="d-flex align-items-center justify-content-center">
+                                <i class="bi bi-clipboard me-2"></i>{% trans "Kopieren" %}
+                            </span>
                         </button>
                     </div>
                 </div>
 
-                <div class="accordion" id="calendarInstructions">
-                    <div class="accordion-item">
+                <div class="accordion accordion-flush" id="calendarInstructions">
+                    <div class="accordion-item rounded-4 border mb-2">
                         <h2 class="accordion-header">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#googleCalendar" aria-expanded="true" aria-controls="googleCalendar">
+                            <button class="accordion-button rounded-4" type="button" data-bs-toggle="collapse" data-bs-target="#googleCalendar" aria-expanded="true" aria-controls="googleCalendar">
                                 <i class="bi bi-google me-2"></i> {% trans "Google Kalender" %}
                             </button>
                         </h2>
                         <div id="googleCalendar" class="accordion-collapse collapse show" data-bs-parent="#calendarInstructions">
                             <div class="accordion-body">
-                                <ol>
+                                <ol class="mb-0">
                                     <li>{% trans "Öffne Google Kalender" %}</li>
                                     <li>{% trans "Klicke auf das Plus-Symbol neben 'Andere Kalender'" %}</li>
                                     <li>{% trans "Wähle 'Von URL'" %}</li>
@@ -68,15 +70,15 @@
                         </div>
                     </div>
 
-                    <div class="accordion-item">
+                    <div class="accordion-item rounded-4 border mb-2">
                         <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#appleCalendar" aria-expanded="false" aria-controls="appleCalendar">
+                            <button class="accordion-button collapsed rounded-4" type="button" data-bs-toggle="collapse" data-bs-target="#appleCalendar" aria-expanded="false" aria-controls="appleCalendar">
                                 <i class="bi bi-apple me-2"></i> {% trans "Apple Kalender" %}
                             </button>
                         </h2>
                         <div id="appleCalendar" class="accordion-collapse collapse" data-bs-parent="#calendarInstructions">
                             <div class="accordion-body">
-                                <ol>
+                                <ol class="mb-0">
                                     <li>{% trans "Öffne die Kalender App" %}</li>
                                     <li>{% trans "Wähle 'Datei' > 'Neue Kalenderabonnement'" %}</li>
                                     <li>{% trans "Füge die Feed-URL ein und klicke auf 'Abonnieren'" %}</li>
@@ -85,15 +87,15 @@
                         </div>
                     </div>
 
-                    <div class="accordion-item">
+                    <div class="accordion-item rounded-4 border">
                         <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#outlookCalendar" aria-expanded="false" aria-controls="outlookCalendar">
+                            <button class="accordion-button collapsed rounded-4" type="button" data-bs-toggle="collapse" data-bs-target="#outlookCalendar" aria-expanded="false" aria-controls="outlookCalendar">
                                 <i class="bi bi-microsoft me-2"></i> {% trans "Outlook" %}
                             </button>
                         </h2>
                         <div id="outlookCalendar" class="accordion-collapse collapse" data-bs-parent="#calendarInstructions">
                             <div class="accordion-body">
-                                <ol>
+                                <ol class="mb-0">
                                     <li>{% trans "Öffne Outlook" %}</li>
                                     <li>{% trans "Gehe zu 'Kalender'" %}</li>
                                     <li>{% trans "Klicke auf 'Kalender öffnen'" %}</li>
@@ -105,12 +107,11 @@
                     </div>
                 </div>
 
-                <div class="my-2 text-end">
+                <div class="d-flex justify-content-end mt-3">
                     <a href="{% url 'feedback' %}" class="btn btn-link btn-sm p-0 text-muted">
                         <i class="bi bi-exclamation-triangle me-1"></i> {% trans "Probleme melden" %}
                     </a>
                 </div>
-
             </div>
         </div>
     </div>
