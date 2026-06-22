@@ -953,6 +953,50 @@ def ajax_quick_edit_attribute(request):
         logger = logging.getLogger(__name__)
         logger.error(f"Error in ajax_quick_edit_attribute: {e}", exc_info=True)
         return JsonResponse({'error': str(e)}, status=500)
+    
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def ajax_quick_edit_fields(request):
+    try:
+        data = json.loads(request.body)
+        user_id = data.get('user_id')
+        field_name = data.get('field_name')
+        field_value = data.get('field_value')
+        
+        user = User.objects.get(id=user_id, customuser__org=request.user.org)
+        if not user or not user.customuser:
+            return JsonResponse({'error': 'User not found'}, status=404)
+        
+        model = None
+        if user.customuser.person_cluster.view == 'F':
+            model = Freiwilliger
+        elif user.customuser.person_cluster.view == 'T':
+            model = Team
+        elif user.customuser.person_cluster.view == 'E':
+            model = Ehemalige
+        elif user.customuser.person_cluster.view == 'B':
+            model = Bewerber
+        
+        QUICK_EDIT_FIELDS = {'start_geplant', 'start_real', 'ende_geplant', 'ende_real'}
+        model_field_names = [f.name for f in model._meta.fields] if model else []
+
+        if not model or field_name not in QUICK_EDIT_FIELDS or field_name not in model_field_names:
+            return JsonResponse({'error': 'Model or field not found'}, status=404)
+        
+        instance = get_object_or_404(model, user=user, org=request.user.org)
+        field_value = field_value or None
+        setattr(instance, field_name, field_value)
+        instance.save()
+        return JsonResponse({'success': True, 'instance': instance.id})
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in ajax_quick_edit_fields: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 @login_required
 @required_role('O')

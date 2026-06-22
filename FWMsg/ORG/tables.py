@@ -724,6 +724,20 @@ def get_freiwilliger_table_class(org, request=None):
             'hide_button': True,
         }
         return render_to_string('components/additional_table_actions.html', context)
+
+    def make_date_field_render(field_name):
+        def render(self, value, record):
+            freiwilliger = record['freiwilliger']
+            date_val = getattr(freiwilliger, field_name)
+            iso_str = date_val.strftime('%Y-%m-%d') if date_val else ''
+            display_str = date_val.strftime('%d.%m.%Y') if date_val else '—'
+            return format_html(
+                '<input type="date" value="{}" class="form-control quick-edit-input md d-none"'
+                ' data-user-id="{}" data-field-name="{}">'
+                '<div class="quick-edit-alternative">{}</div>',
+                iso_str, freiwilliger.user.id, field_name, display_str
+            )
+        return render
     
     # Define base columns
     base_columns = {
@@ -747,29 +761,29 @@ def get_freiwilliger_table_class(org, request=None):
             accessor='freiwilliger.user.customuser.geburtsdatum',
             format='d.m.Y',
         ),
-        'start_geplant': tables.DateColumn(
+        'start_geplant': tables.Column(
             verbose_name=_('Start geplant'),
             accessor='freiwilliger.start_geplant',
-            format='d.m.Y',
-            order_by='freiwilliger.start_geplant'
+            order_by='freiwilliger.start_geplant',
+            empty_values=(),
         ),
-        'start_real': tables.DateColumn(
+        'start_real': tables.Column(
             verbose_name=_('Start real'),
             accessor='freiwilliger.start_real',
-            format='d.m.Y',
-            order_by='freiwilliger.start_real'
+            order_by='freiwilliger.start_real',
+            empty_values=(),
         ),
-        'ende_geplant': tables.DateColumn(
+        'ende_geplant': tables.Column(
             verbose_name=_('Ende geplant'),
             accessor='freiwilliger.ende_geplant',
-            format='d.m.Y',
-            order_by='freiwilliger.ende_geplant'
+            order_by='freiwilliger.ende_geplant',
+            empty_values=(),
         ),
-        'ende_real': tables.DateColumn(
+        'ende_real': tables.Column(
             verbose_name=_('Ende real'),
             accessor='freiwilliger.ende_real',
-            format='d.m.Y',
-            order_by='freiwilliger.ende_real'
+            order_by='freiwilliger.ende_real',
+            empty_values=(),
         ),
     }
     
@@ -778,7 +792,13 @@ def get_freiwilliger_table_class(org, request=None):
         'start_geplant', 'start_real', 'ende_geplant', 'ende_real'
     ]
     
-    render_methods = {'render_user': render_user}
+    render_methods = {
+        'render_user': render_user,
+        'render_start_geplant': make_date_field_render('start_geplant'),
+        'render_start_real': make_date_field_render('start_real'),
+        'render_ende_geplant': make_date_field_render('ende_geplant'),
+        'render_ende_real': make_date_field_render('ende_real'),
+    }
     
     person_clusters = None
     # If a filter is selected, use filter_person_cluster

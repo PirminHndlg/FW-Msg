@@ -36,6 +36,7 @@ urlpatterns = [
     # Generic dependent selects
     path('ajax/einsatzstellen-by-land/', views.ajax_einsatzstellen_by_land, name='ajax_einsatzstellen_by_land'),
     path('ajax/quick-edit-attribute/', views.ajax_quick_edit_attribute, name='ajax_quick_edit_attribute'),
+    path('ajax/quick-edit-fields/', views.ajax_quick_edit_fields, name='ajax_quick_edit_fields'),
     
     path('bewerbung-overview/', views.application_overview, name='application_overview'),
     path('bewerbung-liste/', views.application_list, name='application_list'),
