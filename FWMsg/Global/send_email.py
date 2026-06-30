@@ -537,7 +537,7 @@ def send_new_post_email(post_id):
                 post_text=post.text,
                 author_name=author_name,
                 post_date=post.date,
-                has_image=post.image is not None,
+                has_image=bool(post.image),
                 has_survey=post.has_survey,
                 action_url=action_url,
                 unsubscribe_url=unsubscribe_url,
