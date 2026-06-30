@@ -6607,7 +6607,7 @@ msgstr "Kein Datum"
 
 #: survey/templates/survey/survey_list.html:99
 msgid "Survey URL:"
-msgstr "URL der Umfrage:"
+msgstr "Link der Umfrage:"
 
 #: survey/templates/survey/survey_list.html:116
 msgid "Manage Survey"
@@ -6638,7 +6638,7 @@ msgstr "Nicht Anonym"
 
 #: survey/templates/survey/survey_manage.html:106
 msgid "Survey URL"
-msgstr "URL der Umfrage"
+msgstr "Lind der Umfrage"
 
 #: survey/templates/survey/survey_manage.html:115
 msgid "Copy"
