@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 18:09+0200\n"
+"POT-Creation-Date: 2026-06-30 12:17+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: German <de@li.org>\n"
@@ -37,51 +37,51 @@ msgstr "Das Passwort erneut eingeben."
 msgid "Passwörter stimmen nicht überein."
 msgstr "Passwörter stimmen nicht überein."
 
-#: BW/models.py:272 Global/models.py:1479
+#: BW/models.py:274 Global/models.py:1491
 #: Global/templates/bewerber_detail.html:30
 msgid "Bewerber:in"
 msgstr "Bewerber:in"
 
-#: BW/models.py:273 Global/templates/list_bewerber.html:19
+#: BW/models.py:275 Global/templates/list_bewerber.html:19
 #: Global/templates/list_bewerber.html:26 ORG/templates/baseOrg.html:74
 msgid "Bewerber:innen"
 msgstr "Bewerber:innen"
 
-#: BW/models.py:352
+#: BW/models.py:354
 msgid "Bewerbungsfrage"
 msgstr "Bewerbungsfrage"
 
-#: BW/models.py:353
+#: BW/models.py:355
 msgid "Bewerbungsfragen"
 msgstr "Bewerbungsfragen"
 
-#: BW/models.py:375
+#: BW/models.py:377
 msgid "Bewerbungsantwort"
 msgstr "Bewerbungsantwort"
 
-#: BW/models.py:376 Global/templates/bewerber_detail.html:231
+#: BW/models.py:378 Global/templates/bewerber_detail.html:231
 msgid "Bewerbungsantworten"
 msgstr "Bewerbungsantworten"
 
-#: BW/models.py:405
+#: BW/models.py:415
 msgid "Bewerbungstext"
 msgstr "Bewerbungstext"
 
-#: BW/models.py:406
+#: BW/models.py:416
 msgid "Bewerbungstexte"
 msgstr "Bewerbungstexte"
 
-#: BW/models.py:456 BW/models.py:482
+#: BW/models.py:467 BW/models.py:494
 msgid "Bewerbungsdatei"
 msgstr "Bewerbungsdatei"
 
-#: BW/models.py:457 BW/models.py:483
+#: BW/models.py:468 BW/models.py:495
 msgid "Bewerbungsdateien"
 msgstr "Bewerbungsdateien"
 
 #: Ehemalige/models.py:8 Global/models.py:119 Global/models.py:269
-#: Global/models.py:347 Global/models.py:805 Global/models.py:823
-#: Global/models.py:840 Global/models.py:940 chat/forms.py:21
+#: Global/models.py:347 Global/models.py:817 Global/models.py:835
+#: Global/models.py:852 Global/models.py:952 chat/forms.py:21
 msgid "Benutzer:in"
 msgstr "Benutzer:in"
 
@@ -94,7 +94,7 @@ msgid "Registrierungsmail"
 msgstr "Registrierungsmail"
 
 #: Ehemalige/models.py:22 Ehemalige/models.py:23 ORG/templates/baseOrg.html:71
-#: ORG/views.py:2186
+#: ORG/views.py:2238
 msgid "Ehemalige"
 msgstr "Ehemalige"
 
@@ -107,16 +107,16 @@ msgstr "Ehemalige"
 msgid "Home"
 msgstr "Home"
 
-#: Ehemalige/templates/baseEhemalige.html:59 Global/models.py:1059
-#: ORG/templates/baseOrg.html:115 ORG/views.py:2110
+#: Ehemalige/templates/baseEhemalige.html:59 Global/models.py:1071
+#: ORG/templates/baseOrg.html:115 ORG/views.py:2162
 msgid "Posts"
 msgstr "Posts"
 
 #: Ehemalige/templates/baseEhemalige.html:66 FW/templates/baseFw.html:182
-#: FW/templates/baseFw.html:295 Global/models.py:1125
+#: FW/templates/baseFw.html:295 Global/models.py:1137
 #: Global/templates/bild.html:67 Global/templates/bilder.html:9
 #: Global/templates/bilder.html:23 Global/templates/profil.html:37
-#: ORG/templates/baseOrg.html:112 ORG/views.py:2118
+#: ORG/templates/baseOrg.html:112 ORG/views.py:2170
 msgid "Bilder"
 msgstr "Bilder"
 
@@ -124,10 +124,10 @@ msgstr "Bilder"
 #: FW/templates/aufgaben.html:21 FW/templates/base.html:139
 #: FW/templates/base.html:261 FW/templates/baseFw.html:156
 #: FW/templates/baseFw.html:272 FW/templates/baseFw.html:381
-#: FW/templates/homeFw.html:22 Global/models.py:896
+#: FW/templates/homeFw.html:22 Global/models.py:908
 #: ORG/templates/aufgaben_assign.html:82 ORG/templates/baseOrg.html:86
 #: ORG/templates/list_aufgaben.html:5 ORG/templates/list_aufgaben_table.html:5
-#: ORG/views.py:2139 TEAM/templates/baseTeam.html:54
+#: ORG/views.py:2191 TEAM/templates/baseTeam.html:54
 msgid "Aufgaben"
 msgstr "Aufgaben"
 
@@ -135,7 +135,7 @@ msgstr "Aufgaben"
 #: FW/templates/base.html:170 FW/templates/baseFw.html:107
 #: FW/templates/baseFw.html:163 FW/templates/baseFw.html:279
 #: FW/templates/components/calendar.html:9 Global/templates/kalender.html:6
-#: ORG/templates/baseOrg.html:122 ORG/views.py:2143
+#: ORG/templates/baseOrg.html:122 ORG/views.py:2195
 #: TEAM/templates/baseTeam.html:59
 msgid "Kalender"
 msgstr "Kalender"
@@ -145,13 +145,13 @@ msgstr "Kalender"
 #: FW/templates/baseFw.html:309 FW/templates/baseFw.html:406
 #: Global/templates/dokumente.html:121 Global/templates/dokumente.html:135
 #: Home/templates/dokumente_public.html:10 ORG/templates/baseOrg.html:109
-#: ORG/views.py:2114 TEAM/templates/baseTeam.html:64
+#: ORG/views.py:2166 TEAM/templates/baseTeam.html:64
 msgid "Dokumente"
 msgstr "Dokumente"
 
 #: Ehemalige/templates/baseEhemalige.html:94 FW/templates/baseFw.html:97
 #: FW/templates/baseFw.html:203 FW/templates/baseFw.html:316
-#: Global/models.py:1510 ORG/templates/baseOrg.html:118
+#: Global/models.py:1522 ORG/templates/baseOrg.html:118
 #: TEAM/templates/baseTeam.html:69
 msgid "Karte"
 msgstr "Karte"
@@ -165,67 +165,50 @@ msgid "Survey"
 msgstr "Umfrage"
 
 #: Ehemalige/templates/ehemaligeHome.html:6
-#: Ehemalige/templates/ehemaligeHome.html:63 ORG/templates/homeOrg.html:6
+#: Ehemalige/templates/ehemaligeHome.html:77 ORG/templates/homeOrg.html:6
 #: ORG/templates/homeOrg.html:16 ORG/templates/homeOrg_2.html:6
-#: ORG/templates/homeOrg_2.html:47 TEAM/templates/teamHome.html:165
+#: ORG/templates/homeOrg_2.html:47 TEAM/templates/teamHome.html:81
 msgid "Dashboard"
 msgstr "Dashboard"
 
-#: Ehemalige/templates/ehemaligeHome.html:79
-msgid "Willkommen auf Volunteer.Solutions!"
-msgstr "Willkommen auf Volunteer.Solutions!"
-
-#: Ehemalige/templates/ehemaligeHome.html:81
-msgid ""
-"Hast du Fragen, Anregungen oder möchtest einfach Hallo sagen? Wir freuen uns "
-"von dir zu hören!"
-msgstr ""
-"Hast du Fragen, Anregungen oder möchtest einfach Hallo sagen? Wir freuen uns "
-"von dir zu hören!"
-
-#: Ehemalige/templates/ehemaligeHome.html:85 Global/templates/feedback.html:76
-#: Global/templates/settings.html:241
-msgid "Feedback senden"
-msgstr "Feedback senden"
-
-#: Ehemalige/templates/ehemaligeHome.html:116 ORG/templates/homeOrg.html:378
-#: ORG/templates/homeOrg_2.html:621 TEAM/templates/teamHome.html:395
+#: Ehemalige/templates/ehemaligeHome.html:111 ORG/templates/homeOrg.html:378
+#: ORG/templates/homeOrg_2.html:621 TEAM/templates/teamHome.html:298
 msgid "Neueste Posts"
 msgstr "Neueste Posts"
 
-#: Ehemalige/templates/ehemaligeHome.html:140 FW/templates/homeFw.html:52
-#: ORG/templates/homeOrg_2.html:649 TEAM/templates/teamHome.html:419
+#: Ehemalige/templates/ehemaligeHome.html:123 FW/templates/homeFw.html:52
+#: ORG/templates/homeOrg_2.html:649 TEAM/templates/teamHome.html:310
 msgid "Alle Posts"
 msgstr "Alle Posts"
 
-#: Ehemalige/templates/ehemaligeHome.html:146 ORG/templates/homeOrg_2.html:655
-#: TEAM/templates/teamHome.html:425
+#: Ehemalige/templates/ehemaligeHome.html:129 ORG/templates/homeOrg_2.html:655
+#: TEAM/templates/teamHome.html:316
 msgid "Keine Posts vorhanden"
 msgstr "Keine Posts vorhanden"
 
-#: Ehemalige/templates/ehemaligeHome.html:163 ORG/templates/homeOrg.html:354
-#: ORG/templates/homeOrg_2.html:672 TEAM/templates/teamHome.html:442
+#: Ehemalige/templates/ehemaligeHome.html:146 ORG/templates/homeOrg.html:354
+#: ORG/templates/homeOrg_2.html:672 TEAM/templates/teamHome.html:333
 msgid "Neueste Bilder"
 msgstr "Neueste Bilder"
 
-#: Ehemalige/templates/ehemaligeHome.html:177 FW/templates/homeFw.html:53
-#: ORG/templates/homeOrg_2.html:693 TEAM/templates/teamHome.html:456
+#: Ehemalige/templates/ehemaligeHome.html:159 FW/templates/homeFw.html:53
+#: ORG/templates/homeOrg_2.html:693 TEAM/templates/teamHome.html:346
 msgid "Alle Bilder"
 msgstr "Alle Bilder"
 
-#: Ehemalige/templates/ehemaligeHome.html:183
+#: Ehemalige/templates/ehemaligeHome.html:165
 #: Global/templates/bilder_show.html:42 Global/templates/profil.html:51
 #: ORG/templates/homeOrg.html:365 ORG/templates/homeOrg_2.html:687
-#: ORG/templates/homeOrg_2.html:699 TEAM/templates/teamHome.html:462
+#: ORG/templates/homeOrg_2.html:699 TEAM/templates/teamHome.html:352
 msgid "Keine Bilder vorhanden"
 msgstr "Keine Bilder vorhanden"
 
-#: Ehemalige/templates/ehemaligeHome.html:211 ORG/templates/homeOrg.html:259
-#: ORG/templates/homeOrg_2.html:289 TEAM/templates/teamHome.html:287
+#: Ehemalige/templates/ehemaligeHome.html:193 ORG/templates/homeOrg.html:259
+#: ORG/templates/homeOrg_2.html:289 TEAM/templates/teamHome.html:180
 msgid "Meine Aufgaben"
 msgstr "Meine Aufgaben"
 
-#: Ehemalige/templates/ehemaligeHome.html:229 FW/templates/homeFw.html:61
+#: Ehemalige/templates/ehemaligeHome.html:211 FW/templates/homeFw.html:61
 #: Global/templates/bilder.html:34 Global/templates/bilder.html:44
 #: Global/templates/bilder.html:59 Global/templates/dokumente.html:147
 #: Global/templates/dokumente.html:157
@@ -246,21 +229,21 @@ msgstr "Meine Aufgaben"
 #: TEAM/templates/teamAufgabenuebersicht.html:55
 #: TEAM/templates/teamAufgabenuebersicht.html:65
 #: TEAM/templates/teamContacts.html:33 TEAM/templates/teamContacts.html:43
-#: TEAM/templates/teamHome.html:305
+#: TEAM/templates/teamHome.html:198
 msgid "Alle"
 msgstr "Alle"
 
-#: Ehemalige/templates/ehemaligeHome.html:229 ORG/templates/homeOrg_2.html:327
-#: TEAM/templates/teamHome.html:305
+#: Ehemalige/templates/ehemaligeHome.html:211 ORG/templates/homeOrg_2.html:327
+#: TEAM/templates/teamHome.html:198
 msgid "anzeigen"
 msgstr "anzeigen"
 
-#: Ehemalige/templates/ehemaligeHome.html:236 ORG/templates/homeOrg_2.html:334
-#: TEAM/templates/teamHome.html:312
+#: Ehemalige/templates/ehemaligeHome.html:218 ORG/templates/homeOrg_2.html:334
+#: TEAM/templates/teamHome.html:205
 msgid "Keine offenen Aufgaben"
 msgstr "Keine offenen Aufgaben"
 
-#: FW/forms.py:41 Global/models.py:1115
+#: FW/forms.py:41 Global/models.py:1127
 msgid "Bildtitel"
 msgstr "Bildtitel"
 
@@ -277,7 +260,7 @@ msgid "Freiwillige:r"
 msgstr "Freiwillige:r"
 
 #: FW/templates/ampel.html:10
-#: Global/templates/components/profile_header.html:17
+#: Global/templates/components/profile_header.html:23
 msgid "Ampel"
 msgstr "Ampel"
 
@@ -285,7 +268,7 @@ msgstr "Ampel"
 #: FW/templates/base.html:149 FW/templates/base.html:274
 #: FW/templates/baseFw.html:102 FW/templates/baseFw.html:170
 #: FW/templates/baseFw.html:286 FW/templates/baseFw.html:395
-#: Global/models.py:848 ORG/templates/components/ampel_modal.html:12
+#: Global/models.py:860 ORG/templates/components/ampel_modal.html:12
 #: TEAM/templates/teamAmpelmeldung.html:5
 msgid "Ampelmeldung"
 msgstr "Ampelmeldung"
@@ -304,7 +287,7 @@ msgstr "Anmerkungen"
 #: Global/templates/image_detail.html:81 ORG/templates/add_aufgabe.html:1008
 #: ORG/templates/edit_object.html:50 ORG/templates/own_signin_requests.html:15
 #: ORG/templates/review_change_request.html:31
-#: chat/templates/chat-direct.html:16 chat/templates/chat-group.html:14
+#: chat/templates/chat-direct.html:18 chat/templates/chat-group.html:15
 #: chat/templates/create-chat-direct.html:19
 #: chat/templates/create-chat-group.html:36
 msgid "Zurück"
@@ -314,8 +297,8 @@ msgstr "Zurück"
 msgid "Abschicken"
 msgstr "Abschicken"
 
-#: FW/templates/aufgabe.html:9 Global/models.py:895 Global/models.py:903
-#: Global/models.py:941 ORG/tables.py:193
+#: FW/templates/aufgabe.html:9 Global/models.py:907 Global/models.py:915
+#: Global/models.py:953 ORG/tables.py:193
 #: ORG/templates/components/task_zwischenschritte_modal.html:13
 #: ORG/templates/list_aufgaben.html:46 ORG/templates/list_aufgaben.html:113
 #: ORG/templates/list_aufgaben.html:172
@@ -360,7 +343,7 @@ msgstr "Mein Einsatzland"
 #: FW/templates/base.html:83 FW/templates/base.html:180
 #: FW/templates/baseFw.html:115 FW/templates/baseFw.html:225
 #: FW/templates/baseFw.html:334 FW/templates/notfallkontakte.html:5
-#: FW/templates/notfallkontakte.html:21 Global/models.py:827
+#: FW/templates/notfallkontakte.html:21 Global/models.py:839
 #: ORG/templates/baseOrg.html:78
 msgid "Notfallkontakte"
 msgstr "Notfallkontakte"
@@ -391,14 +374,14 @@ msgstr "Englisch"
 
 #: FW/templates/base.html:144 FW/templates/base.html:272
 #: FW/templates/baseFw.html:392 Global/models.py:83
-#: Global/templates/bild.html:73 ORG/views.py:2122
+#: Global/templates/bild.html:73 ORG/views.py:2174
 msgid "Bilder hochladen"
 msgstr "Bilder hochladen"
 
 #: FW/templates/base.html:159 FW/templates/base.html:287
 #: FW/templates/baseFw.html:236 FW/templates/baseFw.html:342
 #: FW/templates/baseFw.html:414 Global/templates/profil.html:11
-#: ORG/views.py:2126
+#: ORG/views.py:2178
 msgid "Profil"
 msgstr "Profil"
 
@@ -428,7 +411,7 @@ msgstr "Chat"
 
 #: FW/templates/baseFw.html:122 FW/templates/baseFw.html:241
 #: FW/templates/baseFw.html:347 Global/templates/settings.html:40
-#: ORG/templates/baseOrg.html:147 ORG/views.py:2130
+#: ORG/templates/baseOrg.html:147 ORG/views.py:2182
 msgid "Einstellungen"
 msgstr "Einstellungen"
 
@@ -457,10 +440,10 @@ msgstr "Konto & Einstellungen"
 #: Global/templates/components/post_delete_modal.html:34
 #: Global/templates/components/profile_edit_controls.html:32
 #: Global/templates/einsatzstellen_info.html:293
-#: Global/templates/feedback.html:73 Global/templates/karte.html:162
-#: Global/templates/karte.html:184 Global/templates/laender_info.html:209
-#: Global/templates/post_add.html:168 Global/templates/post_add.html:172
-#: Global/templates/post_detail.html:318 Global/templates/profil.html:167
+#: Global/templates/feedback.html:73 Global/templates/karte.html:163
+#: Global/templates/karte.html:185 Global/templates/laender_info.html:209
+#: Global/templates/post_add.html:145 Global/templates/post_add.html:149
+#: Global/templates/post_detail.html:317 Global/templates/profil.html:167
 #: Global/templates/settings.html:295 ORG/templates/add_aufgabe.html:1000
 #: ORG/templates/components/ampel_table.html:123
 #: ORG/templates/components/cascade_modal.html:52
@@ -524,80 +507,80 @@ msgstr "Kalender abonnieren"
 msgid "Kalender Feed URL"
 msgstr "Kalender Feed URL"
 
-#: FW/templates/components/calendar.html:47
+#: FW/templates/components/calendar.html:48
 msgid "Kopieren"
 msgstr "Kopieren"
 
-#: FW/templates/components/calendar.html:56
+#: FW/templates/components/calendar.html:58
 msgid "Google Kalender"
 msgstr "Google Kalender"
 
-#: FW/templates/components/calendar.html:62
+#: FW/templates/components/calendar.html:64
 msgid "Öffne Google Kalender"
 msgstr "Öffne Google Kalender"
 
-#: FW/templates/components/calendar.html:63
+#: FW/templates/components/calendar.html:65
 msgid "Klicke auf das Plus-Symbol neben 'Andere Kalender'"
 msgstr "Klicke auf das Plus-Symbol neben 'Andere Kalender'"
 
-#: FW/templates/components/calendar.html:64
+#: FW/templates/components/calendar.html:66
 msgid "Wähle 'Von URL'"
 msgstr "Wähle 'Von URL'"
 
-#: FW/templates/components/calendar.html:65
+#: FW/templates/components/calendar.html:67
 msgid "Füge die Feed-URL ein und klicke auf 'Kalender hinzufügen'"
 msgstr "Füge die Feed-URL ein und klicke auf 'Kalender hinzufügen'"
 
-#: FW/templates/components/calendar.html:74
+#: FW/templates/components/calendar.html:76
 msgid "Apple Kalender"
 msgstr "Apple Kalender"
 
-#: FW/templates/components/calendar.html:80
+#: FW/templates/components/calendar.html:82
 msgid "Öffne die Kalender App"
 msgstr "Öffne die Kalender App"
 
-#: FW/templates/components/calendar.html:81
+#: FW/templates/components/calendar.html:83
 msgid "Wähle 'Datei' > 'Neue Kalenderabonnement'"
 msgstr "Wähle 'Datei' > 'Neues Kalenderabonnement'"
 
-#: FW/templates/components/calendar.html:82
+#: FW/templates/components/calendar.html:84
 msgid "Füge die Feed-URL ein und klicke auf 'Abonnieren'"
 msgstr "Füge die Feed-URL ein und klicke auf 'Abonnieren'"
 
-#: FW/templates/components/calendar.html:91
+#: FW/templates/components/calendar.html:93
 msgid "Outlook"
 msgstr "Outlook"
 
-#: FW/templates/components/calendar.html:97
+#: FW/templates/components/calendar.html:99
 msgid "Öffne Outlook"
 msgstr "Öffne Outlook"
 
-#: FW/templates/components/calendar.html:98
+#: FW/templates/components/calendar.html:100
 msgid "Gehe zu 'Kalender'"
 msgstr "Gehe zu 'Kalender'"
 
-#: FW/templates/components/calendar.html:99
+#: FW/templates/components/calendar.html:101
 msgid "Klicke auf 'Kalender öffnen'"
 msgstr "Klicke auf 'Kalender öffnen'"
 
-#: FW/templates/components/calendar.html:100
+#: FW/templates/components/calendar.html:102
 msgid "Wähle 'Aus dem Internet'"
 msgstr "Wähle 'Aus dem Internet'"
 
-#: FW/templates/components/calendar.html:101
+#: FW/templates/components/calendar.html:103
 msgid "Füge die Feed-URL ein und klicke auf 'OK'"
 msgstr "Füge die Feed-URL ein und klicke auf 'OK'"
 
-#: FW/templates/components/calendar.html:110
+#: FW/templates/components/calendar.html:112
 msgid "Probleme melden"
 msgstr "Probleme melden"
 
-#: FW/templates/components/calendar.html:151
+#: FW/templates/components/calendar.html:152
 #: Global/templates/kalender_event.html:96
 msgid "Kopiert!"
 msgstr "Kopiert!"
 
-#: FW/templates/components/calendar.html:176
+#: FW/templates/components/calendar.html:177
 msgid "Heute"
 msgstr "Heute"
 
@@ -612,7 +595,7 @@ msgstr "Offen"
 
 #: FW/templates/components/progress_bar.html:35
 #: FW/templates/components/task_progress.html:20
-#: FW/templates/components/task_progress.html:35 Global/models.py:944
+#: FW/templates/components/task_progress.html:35 Global/models.py:956
 #: ORG/templates/components/task_legend.html:8
 #: ORG/templates/components/task_table_row.html:100
 #: ORG/templates/homeOrg_2.html:373
@@ -622,7 +605,7 @@ msgstr "Pending"
 #: FW/templates/components/progress_bar.html:36
 #: FW/templates/components/task_detail_form.html:160
 #: FW/templates/components/task_progress.html:29
-#: FW/templates/components/task_progress.html:36 Global/models.py:1032
+#: FW/templates/components/task_progress.html:36 Global/models.py:1044
 #: ORG/templates/components/task_legend.html:5
 #: ORG/templates/components/task_table_row.html:53
 #: ORG/templates/components/task_zwischenschritte_modal.html:110
@@ -687,7 +670,7 @@ msgid "Kein Termin"
 msgstr "Kein Termin"
 
 #: FW/templates/components/task_card.html:88
-#: FW/templates/components/task_detail_form.html:114 Global/models.py:943
+#: FW/templates/components/task_detail_form.html:114 Global/models.py:955
 #: Global/templates/bewerber_detail.html:58
 #: Global/templates/list_bewerber.html:102
 msgid "Abgeschlossen"
@@ -707,8 +690,8 @@ msgid "Jetzt erledigen"
 msgstr "Jetzt erledigen"
 
 #: FW/templates/components/task_detail_form.html:10 Global/models.py:369
-#: Global/models.py:460 Global/models.py:875 Global/models.py:905
-#: Global/models.py:1116 Global/templates/components/document_modal.html:30
+#: Global/models.py:460 Global/models.py:887 Global/models.py:917
+#: Global/models.py:1128 Global/templates/components/document_modal.html:30
 #: Global/templates/components/image_card_header.html:74
 #: Global/templates/kalender_event.html:107 ORG/tables.py:158 ORG/tables.py:330
 #: ORG/templates/components/task_table_header.html:20
@@ -718,7 +701,7 @@ msgstr "Jetzt erledigen"
 msgid "Beschreibung"
 msgstr "Beschreibung"
 
-#: FW/templates/components/task_detail_form.html:27 Global/models.py:889
+#: FW/templates/components/task_detail_form.html:27 Global/models.py:901
 msgid "Anhang"
 msgstr "Anhang"
 
@@ -761,8 +744,8 @@ msgstr "Termin einhalten"
 msgid "Flexibel"
 msgstr "Flexibel"
 
-#: FW/templates/components/task_detail_form.html:106 Global/models.py:841
-#: Global/models.py:1369 Global/templates/list_bewerber.html:43
+#: FW/templates/components/task_detail_form.html:106 Global/models.py:853
+#: Global/models.py:1381 Global/templates/list_bewerber.html:43
 #: ORG/tables.py:196 ORG/templates/components/ampel_table.html:92
 #: survey/templates/survey/admin_survey_list.html:41
 #: survey/templates/survey/survey_list.html:67
@@ -829,7 +812,7 @@ msgid "Filter"
 msgstr "Filter"
 
 #: FW/templates/homeFw.html:65 Global/templates/bilder.html:63
-#: Global/templates/karte.html:64
+#: Global/templates/karte.html:65
 msgid "Nur"
 msgstr "Nur"
 
@@ -867,7 +850,7 @@ msgstr "Geplantes Ende"
 msgid "Entsendende Organisation"
 msgstr "Entsendende Organisation"
 
-#: FW/templates/laenderinfo.html:81 ORG/views.py:2180 ORG/views.py:2189
+#: FW/templates/laenderinfo.html:81 ORG/views.py:2232 ORG/views.py:2241
 msgid "Länderinformationen"
 msgstr "Länderinformationen"
 
@@ -895,52 +878,52 @@ msgstr ""
 msgid "Reisehinweise"
 msgstr "Reisehinweise"
 
-#: FW/views.py:207 Global/models.py:734 Global/templates/laender_info.html:91
+#: FW/views.py:207 Global/models.py:746 Global/templates/laender_info.html:91
 #: Global/templates/laender_info.html:170 ORG/tables.py:96
 msgid "Notfallnummern"
 msgstr "Notfallnummern"
 
-#: FW/views.py:217 Global/models.py:755
+#: FW/views.py:217 Global/models.py:767
 #: Global/templates/einsatzstellen_info.html:177
 #: Global/templates/einsatzstellen_info.html:261 ORG/tables.py:114
 msgid "Botschaft"
 msgstr "Botschaft"
 
-#: FW/views.py:225 Global/models.py:756
+#: FW/views.py:225 Global/models.py:768
 #: Global/templates/einsatzstellen_info.html:193
 #: Global/templates/einsatzstellen_info.html:268 ORG/tables.py:115
 msgid "Konsulat"
 msgstr "Konsulat"
 
-#: FW/views.py:236 Global/models.py:753
+#: FW/views.py:236 Global/models.py:765
 #: Global/templates/einsatzstellen_info.html:145
 #: Global/templates/einsatzstellen_info.html:247 ORG/tables.py:112
 msgid "Arbeitsvorgesetzte:r"
 msgstr "Arbeitsvorgesetzte:r"
 
-#: FW/views.py:244 Global/models.py:752
+#: FW/views.py:244 Global/models.py:764
 #: Global/templates/einsatzstellen_info.html:129
 #: Global/templates/einsatzstellen_info.html:240 ORG/tables.py:111
 msgid "Partnerorganisation"
 msgstr "Partnerorganisation"
 
-#: FW/views.py:252 Global/models.py:754
+#: FW/views.py:252 Global/models.py:766
 #: Global/templates/einsatzstellen_info.html:161
 #: Global/templates/einsatzstellen_info.html:254 ORG/tables.py:113
 msgid "Mentor:in"
 msgstr "Mentor:in"
 
-#: FW/views.py:263 Global/models.py:735 Global/templates/laender_info.html:107
+#: FW/views.py:263 Global/models.py:747 Global/templates/laender_info.html:107
 #: Global/templates/laender_info.html:177 ORG/tables.py:97
 msgid "Arztpraxen"
 msgstr "Arztpraxen"
 
-#: FW/views.py:271 Global/models.py:736 Global/templates/laender_info.html:123
+#: FW/views.py:271 Global/models.py:748 Global/templates/laender_info.html:123
 #: Global/templates/laender_info.html:184 ORG/tables.py:98
 msgid "Apotheken"
 msgstr "Apotheken"
 
-#: FW/views.py:279 Global/models.py:737 Global/models.py:757
+#: FW/views.py:279 Global/models.py:749 Global/models.py:769
 #: Global/templates/einsatzstellen_info.html:209
 #: Global/templates/einsatzstellen_info.html:275
 #: Global/templates/laender_info.html:139
@@ -984,7 +967,7 @@ msgstr ""
 msgid "Ungültiger Status"
 msgstr "Ungültiger Status"
 
-#: Global/forms.py:73 Global/templates/post_add.html:100
+#: Global/forms.py:73 Global/templates/post_add.html:83
 msgid "Umfrage hinzufügen"
 msgstr "Umfrage hinzufügen"
 
@@ -992,28 +975,28 @@ msgstr "Umfrage hinzufügen"
 msgid "Aktivieren, um eine einfache Umfrage zum Beitrag hinzuzufügen"
 msgstr "Aktivieren, um eine einfache Umfrage zum Beitrag hinzuzufügen"
 
-#: Global/forms.py:75 Global/forms.py:240 Global/models.py:1042
-#: Global/models.py:1076 Global/models.py:1124 Global/models.py:1185
-#: Global/models.py:1212 Global/models.py:1229 Global/models.py:1232
+#: Global/forms.py:75 Global/forms.py:240 Global/models.py:1054
+#: Global/models.py:1088 Global/models.py:1136 Global/models.py:1197
+#: Global/models.py:1224 Global/models.py:1241 Global/models.py:1244
 #: Global/templates/components/image_card_header.html:126
 #: Global/templates/components/image_carousel.html:9
-#: Global/templates/post_add.html:62 Global/templates/post_detail.html:74
+#: Global/templates/post_add.html:50 Global/templates/post_detail.html:73
 msgid "Bild"
 msgstr "Bild"
 
-#: Global/forms.py:75 Global/models.py:1042
+#: Global/forms.py:75 Global/models.py:1054
 msgid "Bild des Posts"
 msgstr "Bild des Posts"
 
-#: Global/forms.py:77 Global/models.py:1093 Global/templates/post_add.html:106
+#: Global/forms.py:77 Global/models.py:1105 Global/templates/post_add.html:89
 msgid "Umfragefrage"
 msgstr "Umfragefrage"
 
-#: Global/forms.py:78 Global/templates/post_add.html:111
+#: Global/forms.py:78 Global/templates/post_add.html:94
 msgid "Geben Sie die Frage für Ihre Umfrage ein"
 msgstr "Gib die Frage für deine Umfrage ein"
 
-#: Global/forms.py:82 Global/templates/post_add.html:117
+#: Global/forms.py:82 Global/templates/post_add.html:100
 msgid "Antwort 1"
 msgstr "Antwort 1"
 
@@ -1021,7 +1004,7 @@ msgstr "Antwort 1"
 msgid "Erste Antwortmöglichkeit"
 msgstr "Erste Antwortmöglichkeit"
 
-#: Global/forms.py:85 Global/templates/post_add.html:126
+#: Global/forms.py:85 Global/templates/post_add.html:109
 msgid "Antwort 2"
 msgstr "Antwort 2"
 
@@ -1029,7 +1012,7 @@ msgstr "Antwort 2"
 msgid "Zweite Antwortmöglichkeit"
 msgstr "Zweite Antwortmöglichkeit"
 
-#: Global/forms.py:88 Global/templates/post_add.html:138
+#: Global/forms.py:88 Global/templates/post_add.html:120
 msgid "Antwort 3"
 msgstr "Antwort 3"
 
@@ -1037,7 +1020,7 @@ msgstr "Antwort 3"
 msgid "Dritte Antwortmöglichkeit (optional)"
 msgstr "Dritte Antwortmöglichkeit (optional)"
 
-#: Global/forms.py:91 Global/templates/post_add.html:144
+#: Global/forms.py:91 Global/templates/post_add.html:124
 msgid "Antwort 4"
 msgstr "Antwort 4"
 
@@ -1045,7 +1028,7 @@ msgstr "Antwort 4"
 msgid "Vierte Antwortmöglichkeit (optional)"
 msgstr "Vierte Antwortmöglichkeit (optional)"
 
-#: Global/forms.py:94 Global/templates/post_add.html:150
+#: Global/forms.py:94 Global/templates/post_add.html:128
 msgid "Antwort 5"
 msgstr "Antwort 5"
 
@@ -1073,7 +1056,7 @@ msgstr "Bitte gib eine Frage für die Umfrage ein"
 msgid "Mindestens zwei Antwortmöglichkeiten sind erforderlich"
 msgstr "Mindestens zwei Antwortmöglichkeiten sind erforderlich"
 
-#: Global/forms.py:240 Global/models.py:1076
+#: Global/forms.py:240 Global/models.py:1088
 msgid "Bild der Antwort"
 msgstr "Bild der Antwort"
 
@@ -1089,7 +1072,7 @@ msgstr ""
 "Sende eine Benachrichtigung an andere Benutzer:innen, die an diesem Post "
 "interessiert sind"
 
-#: Global/forms.py:254 Global/models.py:1075
+#: Global/forms.py:254 Global/models.py:1087
 msgid "Text der Antwort"
 msgstr "Text der Antwort"
 
@@ -1097,13 +1080,13 @@ msgstr "Text der Antwort"
 msgid "Mindestens ein Text oder Bild ist erforderlich"
 msgstr "Mindestens ein Text oder Bild ist erforderlich"
 
-#: Global/forms.py:297 Global/models.py:1326 Global/models.py:1340
+#: Global/forms.py:297 Global/models.py:1338 Global/models.py:1352
 #: ORG/templates/homeOrg.html:199 ORG/templates/homeOrg_2.html:726
 msgid "Notiz"
 msgstr "Notiz"
 
-#: Global/forms.py:315 Global/models.py:842 Global/models.py:1187
-#: Global/models.py:1481 ORG/templates/components/ampel_table.html:116
+#: Global/forms.py:315 Global/models.py:854 Global/models.py:1199
+#: Global/models.py:1493 ORG/templates/components/ampel_table.html:116
 #: ORG/templates/review_change_request.html:180 seminar/models.py:137
 msgid "Kommentar"
 msgstr "Kommentar"
@@ -1112,16 +1095,16 @@ msgstr "Kommentar"
 msgid "Geben Sie hier Ihren Kommentar ein..."
 msgstr "Gib hier deinen Kommentar ein..."
 
-#: Global/forms.py:338 Global/models.py:1503 Global/templates/karte.html:110
+#: Global/forms.py:338 Global/models.py:1515 Global/templates/karte.html:111
 msgid "Stadt"
 msgstr "Stadt"
 
-#: Global/forms.py:339 Global/models.py:1504 Global/templates/karte.html:122
+#: Global/forms.py:339 Global/models.py:1516 Global/templates/karte.html:123
 #: Home/models.py:14
 msgid "Land"
 msgstr "Land"
 
-#: Global/models.py:59 ORG/models.py:30
+#: Global/models.py:59 ORG/models.py:32
 msgid "Organisation"
 msgstr "Organisation"
 
@@ -1163,7 +1146,7 @@ msgstr "Dokumente anzeigen"
 msgid "Aktivieren, um Dokumente für diese Gruppe anzuzeigen"
 msgstr "Aktivieren, um Dokumente für diese Gruppe anzuzeigen"
 
-#: Global/models.py:81 ORG/views.py:2147
+#: Global/models.py:81 ORG/views.py:2199
 msgid "Ampelmeldungen abgeben"
 msgstr "Ampelmeldungen abgeben"
 
@@ -1246,8 +1229,8 @@ msgstr "Identifikator für den Benutzer"
 #: Global/templates/components/bewerber_kommentar_modal.html:150
 #: Global/templates/components/image_card_header.html:5
 #: Global/templates/components/profile_image.html:7
-#: Global/templates/list_bewerber.html:63 chat/templates/chat-direct.html:25
-#: chat/templates/chat-group.html:118 chat/templates/chat-group.html:311
+#: Global/templates/list_bewerber.html:63 chat/templates/chat-direct.html:27
+#: chat/templates/chat-group.html:119 chat/templates/chat-group.html:312
 #: chat/templates/chat-list.html:50 chat/templates/create-chat-direct.html:74
 #: chat/templates/create-chat-group.html:137
 msgid "Profilbild"
@@ -1317,7 +1300,7 @@ msgstr ""
 #: Global/models.py:365 Global/models.py:459
 #: Global/templates/components/document_modal.html:25
 #: Global/templates/components/image_card_header.html:70
-#: Global/templates/post_add.html:40 ORG/tables.py:285
+#: Global/templates/post_add.html:32 ORG/tables.py:285
 msgid "Titel"
 msgstr "Titel"
 
@@ -1409,12 +1392,12 @@ msgstr "Link"
 msgid "Link zu einer externen Datei"
 msgstr "Link zu einer externen Datei"
 
-#: Global/models.py:457 Global/models.py:843 Global/models.py:945
-#: Global/models.py:1043 Global/models.py:1077 Global/models.py:1117
-#: Global/models.py:1188 Global/models.py:1215 Global/models.py:1327
-#: Global/models.py:1341 Global/models.py:1381 Global/models.py:1482
-#: Global/models.py:1501 Global/templates/components/post_card_object.html:54
-#: Global/templates/post_detail.html:52 Home/models.py:18
+#: Global/models.py:457 Global/models.py:855 Global/models.py:957
+#: Global/models.py:1055 Global/models.py:1089 Global/models.py:1129
+#: Global/models.py:1200 Global/models.py:1227 Global/models.py:1339
+#: Global/models.py:1353 Global/models.py:1393 Global/models.py:1494
+#: Global/models.py:1513 Global/templates/components/post_card_object.html:54
+#: Global/templates/post_detail.html:51 Home/models.py:18
 msgid "Erstellt am"
 msgstr "Erstellt am"
 
@@ -1454,836 +1437,836 @@ msgstr "Farbname"
 msgid "Farbcodes"
 msgstr "Farbcodes"
 
-#: Global/models.py:731 Global/models.py:741 Global/models.py:750
+#: Global/models.py:743 Global/models.py:753 Global/models.py:762
 #: ORG/tables.py:108 ORG/tables.py:670
 msgid "Einsatzland"
 msgstr "Einsatzland"
 
-#: Global/models.py:732
+#: Global/models.py:744
 msgid "Einsatzland-Code"
 msgstr "Einsatzland-Code"
 
-#: Global/models.py:732
+#: Global/models.py:744
 msgid "Zweistelliger ISO-Code des Einsatzlandes (z.B. DE, CH, AT, ...)"
 msgstr ""
 
-#: Global/models.py:742 Global/templates/laender_info.html:6
+#: Global/models.py:754 Global/templates/laender_info.html:6
 #: Global/templates/laender_info.html:34 ORG/templates/baseOrg.html:129
 msgid "Einsatzländer"
 msgstr "Einsatzländer"
 
-#: Global/models.py:749 Global/models.py:768 Global/models.py:1324
+#: Global/models.py:761 Global/models.py:780 Global/models.py:1336
 #: ORG/tables.py:675
 msgid "Einsatzstelle"
 msgstr "Einsatzstellen"
 
-#: Global/models.py:759 Global/templates/components/profile_details.html:21
+#: Global/models.py:771 Global/templates/components/profile_details.html:21
 #: ORG/tables.py:109 ORG/tables.py:685
 msgid "Start geplant"
 msgstr "Start geplant"
 
-#: Global/models.py:759
+#: Global/models.py:771
 msgid ""
 "Das Datum wann der Einsatzstart geplant ist (Format: DD.MM. (z.B. 15.03.))"
 msgstr ""
 
-#: Global/models.py:760 Global/templates/components/profile_details.html:27
+#: Global/models.py:772 Global/templates/components/profile_details.html:27
 #: ORG/tables.py:110 ORG/tables.py:697
 msgid "Ende geplant"
 msgstr "Ende geplant"
 
-#: Global/models.py:760
+#: Global/models.py:772
 msgid ""
 "Das Datum wann das Einsatzende geplant ist (Format: DD.MM. (z.B. 15.03.))"
 msgstr ""
 
-#: Global/models.py:762
+#: Global/models.py:774
 msgid "Maximale Anzahl Freiwillige"
 msgstr ""
 
-#: Global/models.py:769 Global/templates/einsatzstellen_info.html:6
+#: Global/models.py:781 Global/templates/einsatzstellen_info.html:6
 #: Global/templates/einsatzstellen_info.html:34 ORG/templates/baseOrg.html:132
 msgid "Einsatzstellen"
 msgstr "Einsatzstellen"
 
-#: Global/models.py:790
+#: Global/models.py:802
 #: Global/templates/components/profile_edit_controls.html:20 ORG/tables.py:137
 msgid "Bezeichnung"
 msgstr "Bezeichnung"
 
-#: Global/models.py:790
+#: Global/models.py:802
 msgid "Name des benutzerdefinierten Datenfelds"
 msgstr ""
 
-#: Global/models.py:791 ORG/tables.py:140
+#: Global/models.py:803 ORG/tables.py:140
 msgid "Datentyp"
 msgstr "Datentyp"
 
-#: Global/models.py:791
+#: Global/models.py:803
 msgid "Art der Daten, die in diesem Feld gespeichert werden"
 msgstr ""
 
-#: Global/models.py:792 ORG/tables.py:148
+#: Global/models.py:804 ORG/tables.py:148
 msgid "Auswahloptionen"
 msgstr "Auswahloptionen"
 
-#: Global/models.py:792
+#: Global/models.py:804
 msgid ""
 "Nur für Datentyp \"Auswahl\": Kommagetrennte Optionen, z.B. \"Vegan, "
 "Vegetarisch, Konventionell\""
 msgstr ""
 
-#: Global/models.py:793 Global/models.py:863 Global/models.py:885
-#: Global/models.py:1046 Global/templates/post_add.html:71 ORG/tables.py:144
+#: Global/models.py:805 Global/models.py:875 Global/models.py:897
+#: Global/models.py:1058 Global/templates/post_add.html:59 ORG/tables.py:144
 #: ORG/tables.py:162 ORG/tables.py:274
 msgid "Für Benutzergruppen"
 msgstr "Für Benutzergruppen"
 
-#: Global/models.py:793
+#: Global/models.py:805
 msgid "Benutzergruppen, für die dieses Feld relevant ist"
 msgstr "Benutzergruppen, für die dieses Feld relevant ist"
 
-#: Global/models.py:794
+#: Global/models.py:806
 msgid "Im Profil anzeigen"
 msgstr "Im Profil anzeigen"
 
-#: Global/models.py:794
+#: Global/models.py:806
 msgid ""
 "Aktivieren, um das Feld im Profil auch für die Freiwillige sichtbar zu machen"
 msgstr ""
 
-#: Global/models.py:797 Global/models.py:806
+#: Global/models.py:809 Global/models.py:818
 msgid "Eigenes Feld"
 msgstr "Eigenes Feld"
 
-#: Global/models.py:798 ORG/templates/baseOrg.html:157
+#: Global/models.py:810 ORG/templates/baseOrg.html:157
 msgid "Eigene Felder"
 msgstr "Eigene Felder:"
 
-#: Global/models.py:807 Global/models.py:1278
+#: Global/models.py:819 Global/models.py:1290
 #: Global/templates/components/profile_edit_controls.html:24
 msgid "Wert"
 msgstr "Wert"
 
-#: Global/models.py:810
+#: Global/models.py:822
 msgid "Eigenes Feld Benutzer:in"
 msgstr "Eigenes Feld Benutzer:in"
 
-#: Global/models.py:811
+#: Global/models.py:823
 msgid "Eigene Felder Benutzer:innen"
 msgstr "Eigene Felder Benutzer:innen"
 
-#: Global/models.py:818 Home/models.py:7 ORG/tables.py:173
+#: Global/models.py:830 Home/models.py:7 ORG/tables.py:173
 msgid "Vorname"
 msgstr "Vorname"
 
-#: Global/models.py:818
+#: Global/models.py:830
 msgid "Vorname des Notfallkontakts"
 msgstr "Vorname des Notfallkontakts"
 
-#: Global/models.py:819 Home/models.py:8 ORG/tables.py:174
+#: Global/models.py:831 Home/models.py:8 ORG/tables.py:174
 msgid "Nachname"
 msgstr "Nachname"
 
-#: Global/models.py:819
+#: Global/models.py:831
 msgid "Nachname des Notfallkontakts"
 msgstr "Nachname des Notfallkontakts"
 
-#: Global/models.py:820
+#: Global/models.py:832
 msgid "Telefon (Arbeit)"
 msgstr "Telefon (Arbeit)"
 
-#: Global/models.py:820
+#: Global/models.py:832
 msgid "Geschäftliche Telefonnummer"
 msgstr ""
 
-#: Global/models.py:821
+#: Global/models.py:833
 msgid "Telefon (Mobil)"
 msgstr "Telefon (Mobil)"
 
-#: Global/models.py:821
+#: Global/models.py:833
 msgid "Mobiltelefonnummer"
 msgstr ""
 
-#: Global/models.py:822 Home/models.py:9 ORG/tables.py:179
+#: Global/models.py:834 Home/models.py:9 ORG/tables.py:179
 msgid "E-Mail"
 msgstr "E-Mail"
 
-#: Global/models.py:822
+#: Global/models.py:834
 msgid "E-Mail-Adresse des Notfallkontakts"
 msgstr ""
 
-#: Global/models.py:823
+#: Global/models.py:835
 msgid "Zugehörige:r Benutzer:in, für den dieser Notfallkontakt gilt"
 msgstr "Zugehörige:r Benutzer:in, für den dieser Notfallkontakt gilt"
 
-#: Global/models.py:826
+#: Global/models.py:838
 msgid "Notfallkontakt"
 msgstr "Notfallkontakt"
 
-#: Global/models.py:840
+#: Global/models.py:852
 msgid "Benutzer:in, für den dieser Status gilt"
 msgstr "Benutzer:in, für den dieser Status gilt"
 
-#: Global/models.py:841
+#: Global/models.py:853
 msgid ""
 "Aktueller Status (Grün = alles in Ordnung, Gelb = Aufmerksamkeit nötig, Rot "
 "= unmittelbare Hilfe erforderlich)"
 msgstr ""
 
-#: Global/models.py:842
+#: Global/models.py:854
 msgid "Kommentar zur Erläuterung des Status"
 msgstr ""
 
-#: Global/models.py:844 ORG/templates/components/ampel_modal.html:35
-#: ORG/templates/homeOrg_2.html:583
+#: Global/models.py:856 ORG/templates/components/ampel_modal.html:38
+#: ORG/templates/homeOrg_2.html:583 TEAM/templates/teamHome.html:260
 msgid "Gelesen"
 msgstr "Gelesen"
 
-#: Global/models.py:844
+#: Global/models.py:856
 msgid "Zeigt an, ob die Ampel als gelesen markiert ist"
 msgstr ""
 
-#: Global/models.py:849 ORG/templates/baseOrg.html:97
+#: Global/models.py:861 ORG/templates/baseOrg.html:97
 #: ORG/templates/homeOrg_2.html:556 ORG/templates/list_ampel.html:7
-#: TEAM/templates/teamHome.html:340
+#: TEAM/templates/teamHome.html:233
 msgid "Ampelmeldungen"
 msgstr "Ampelmeldungen"
 
-#: Global/models.py:862
+#: Global/models.py:874
 msgid "Kategoriename"
 msgstr "Kategoriename"
 
-#: Global/models.py:862
+#: Global/models.py:874
 msgid "Name der Aufgabenkategorie"
 msgstr "Name der Aufgabenkategorie"
 
-#: Global/models.py:863
+#: Global/models.py:875
 msgid "Benutzergruppen, für die diese Kategorie relevant ist"
 msgstr "Benutzergruppen, für die diese Kategorie relevant ist"
 
-#: Global/models.py:864
+#: Global/models.py:876
 msgid "Zeitraum"
 msgstr "Zeitraum"
 
-#: Global/models.py:864
+#: Global/models.py:876
 msgid ""
 "Zeitraum, in dem Aufgaben dieser Kategorie anfallen (nur für Freiwillige)"
 msgstr ""
 
-#: Global/models.py:866
+#: Global/models.py:878
 msgid "Aufgabenkategorie"
 msgstr "Aufgabenkategorie"
 
-#: Global/models.py:867
+#: Global/models.py:879
 msgid "Aufgabenkategorien"
 msgstr "Aufgabenkategorien"
 
-#: Global/models.py:874 Global/models.py:904
+#: Global/models.py:886 Global/models.py:916
 #: Global/templates/list_bewerber.html:40 ORG/tables.py:95 ORG/tables.py:107
 #: ORG/tables.py:156 ORG/tables.py:250 ORG/tables.py:272 ORG/tables.py:326
 #: ORG/templates/components/zwischenschritt_form.html:54
 msgid "Name"
 msgstr "Name"
 
-#: Global/models.py:874
+#: Global/models.py:886
 msgid "Name der Aufgabe"
 msgstr "Name der Aufgabe"
 
-#: Global/models.py:875
+#: Global/models.py:887
 msgid "Ausführliche Beschreibung der Aufgabe"
 msgstr "Ausführliche Beschreibung der Aufgabe"
 
-#: Global/models.py:876
+#: Global/models.py:888
 msgid "Datei-Upload erforderlich"
 msgstr "Datei-Upload erforderlich"
 
-#: Global/models.py:876
+#: Global/models.py:888
 msgid "Ermöglicht und erfordert das Hochladen von Dateien bei dieser Aufgabe"
 msgstr ""
 
-#: Global/models.py:877
+#: Global/models.py:889
 msgid "Bestätigung erforderlich"
 msgstr "Bestätigung erforderlich"
 
-#: Global/models.py:877
+#: Global/models.py:889
 msgid ""
 "Wenn aktiviert, wird die Aufgabe nach Erledigung als pending markiert und "
 "muss manuell als erledigt bestätigt werden"
 msgstr ""
 
-#: Global/models.py:878
+#: Global/models.py:890
 msgid "E-Mail-Benachrichtigung"
 msgstr "E-Mail-Benachrichtigung"
 
-#: Global/models.py:878
+#: Global/models.py:890
 msgid ""
 "Wenn aktiviert, wird eine E-Mail-Benachrichtigung an die Organisation "
 "gesendet, wenn die Aufgabe erledigt ist"
 msgstr ""
 
-#: Global/models.py:879 ORG/templates/statistik.html:159
+#: Global/models.py:891 ORG/templates/statistik.html:159
 msgid "Kategorie"
 msgstr "Kategorie"
 
-#: Global/models.py:879
+#: Global/models.py:891
 msgid "Kategorie dieser Aufgabe, bestimmt den Zeitraum"
 msgstr ""
 
-#: Global/models.py:880
+#: Global/models.py:892
 msgid "Fällig am Tag"
 msgstr "Fällig am Tag"
 
-#: Global/models.py:880
+#: Global/models.py:892
 msgid "Tag im Monat, an dem die Aufgabe fällig ist (1-31)"
 msgstr "Tag im Monat, an dem die Aufgabe fällig ist (1-31)"
 
-#: Global/models.py:881
+#: Global/models.py:893
 msgid "Fällig im Monat"
 msgstr "Fällig im Monat"
 
-#: Global/models.py:881
+#: Global/models.py:893
 msgid "Monat, in dem die Aufgabe fällig ist (1-12)"
 msgstr "Monat, in dem die Aufgabe fällig ist (1-12)"
 
-#: Global/models.py:882
+#: Global/models.py:894
 msgid "Tage nach Einsatzbeginn"
 msgstr "Tage nach Einsatzbeginn"
 
-#: Global/models.py:882
+#: Global/models.py:894
 msgid "Anzahl der Tage nach Einsatzbeginn, wann die Aufgabe fällig ist"
 msgstr "Anzahl der Tage nach Einsatzbeginn, wann die Aufgabe fällig ist"
 
-#: Global/models.py:883
+#: Global/models.py:895
 msgid "Tage vor Einsatzende"
 msgstr "Tage vor Einsatzende"
 
-#: Global/models.py:883
+#: Global/models.py:895
 msgid "Anzahl der Tage vor Einsatzende, wann die Aufgabe fällig ist"
 msgstr "Anzahl der Tage vor Einsatzende, wann die Aufgabe fällig ist"
 
-#: Global/models.py:884
+#: Global/models.py:896
 msgid "Wartezeit bis nächste Benachrichtigung"
 msgstr ""
 
-#: Global/models.py:884
+#: Global/models.py:896
 msgid ""
 "Anzahl der Tage, die gewartet wird, bevor eine neue Benachrichtigung für "
 "eine nicht erledigte Aufgabe gesendet wird"
 msgstr ""
 
-#: Global/models.py:885
+#: Global/models.py:897
 msgid "Benutzergruppen, für die diese Aufgabe relevant ist"
 msgstr "Benutzergruppen, für die diese Aufgabe relevant ist"
 
-#: Global/models.py:886
+#: Global/models.py:898
 msgid "Regelmäßige Wiederholung"
 msgstr "Regelmäßige Wiederholungs"
 
-#: Global/models.py:886
+#: Global/models.py:898
 msgid "Wenn aktiviert, wird die Aufgabe regelmäßig wiederholt"
 msgstr "Wenn aktiviert, wird die Aufgabe regelmäßig wiederholt"
 
-#: Global/models.py:887
+#: Global/models.py:899
 msgid "Wiederholung alle x Wochen"
 msgstr "Wiederholung alle x Wochen"
 
-#: Global/models.py:887
+#: Global/models.py:899
 msgid "Wiederholungsintervall in Wochen"
 msgstr ""
 
-#: Global/models.py:888
+#: Global/models.py:900
 msgid "Wiederholung bis"
 msgstr "Wiederholung bis"
 
-#: Global/models.py:888
+#: Global/models.py:900
 msgid "Datum, bis zu dem die Aufgabe wiederholt wird"
 msgstr ""
 
-#: Global/models.py:889
+#: Global/models.py:901
 msgid "Optionale Datei als Anhang für diese Aufgabe"
 msgstr ""
 
-#: Global/models.py:890
+#: Global/models.py:902
 msgid "Für Team sichtbar"
 msgstr ""
 
-#: Global/models.py:890
+#: Global/models.py:902
 msgid ""
 "Aktivieren, um die Aufgabe auch für Teammitglieder mit gleichem Land "
 "sichtbar zu machen (nur für Aufgaben für Freiwillige)"
 msgstr ""
 
-#: Global/models.py:904
+#: Global/models.py:916
 msgid "Name des Zwischenschritts"
 msgstr "Name des Zwischenschritts"
 
-#: Global/models.py:905
+#: Global/models.py:917
 msgid "Beschreibung des Zwischenschritts"
 msgstr "Beschreibung des Zwischenschritts"
 
-#: Global/models.py:908 Global/models.py:1031
+#: Global/models.py:920 Global/models.py:1043
 msgid "Aufgabe Zwischenschritt"
 msgstr "Aufgabe Zwischenschritt"
 
-#: Global/models.py:909
+#: Global/models.py:921
 msgid "Aufgabe Zwischenschritte"
 msgstr "Aufgabe Zwischenschritte"
 
-#: Global/models.py:940
+#: Global/models.py:952
 msgid "Benutzer:in, dem diese Aufgabe zugewiesen ist"
 msgstr "Benutzer:in, dem diese Aufgabe zugewiesen ist"
 
-#: Global/models.py:941
+#: Global/models.py:953
 msgid "Die zugewiesene Aufgabe"
 msgstr "Die zugewiesene Aufgabe"
 
-#: Global/models.py:942
+#: Global/models.py:954
 msgid "Persönliche Notizen"
 msgstr "Persönliche Notizen"
 
-#: Global/models.py:942
+#: Global/models.py:954
 msgid "Individuelle Anmerkungen zu dieser Aufgabe"
 msgstr ""
 
-#: Global/models.py:943
+#: Global/models.py:955
 msgid "Zeigt an, ob die Aufgabe abgeschlossen ist"
 msgstr ""
 
-#: Global/models.py:944
+#: Global/models.py:956
 msgid "Zeigt an, dass die Aufgabe begonnen aber noch nicht abgeschlossen wurde"
 msgstr ""
 
-#: Global/models.py:946
+#: Global/models.py:958
 msgid "Fälligkeitsdatum"
 msgstr "Fälligkeitsdatum"
 
-#: Global/models.py:946
+#: Global/models.py:958
 msgid "Datum, bis zu dem die Aufgabe erledigt sein sollte"
 msgstr ""
 
-#: Global/models.py:947
+#: Global/models.py:959
 msgid "Letzte Erinnerung"
 msgstr "Letzte Erinnerung"
 
-#: Global/models.py:947
+#: Global/models.py:959
 msgid "Datum der letzten versendeten Erinnerung"
 msgstr ""
 
-#: Global/models.py:948
+#: Global/models.py:960
 msgid "Abgeschlossen am"
 msgstr "Abgeschlossen am"
 
-#: Global/models.py:948
+#: Global/models.py:960
 msgid "Datum, an dem die Aufgabe abgeschlossen wurde"
 msgstr ""
 
-#: Global/models.py:949
+#: Global/models.py:961
 msgid "Angehängte Datei"
 msgstr ""
 
-#: Global/models.py:949
+#: Global/models.py:961
 msgid "Datei, die für diese Aufgabe hochgeladen wurde"
 msgstr ""
 
-#: Global/models.py:950
+#: Global/models.py:962
 msgid "Angehängte Dateien"
 msgstr "Angehängte Dateien"
 
-#: Global/models.py:950
+#: Global/models.py:962
 msgid "Dateien, die für diese Aufgabe hochgeladen wurden"
 msgstr ""
 
-#: Global/models.py:951
+#: Global/models.py:963
 msgid "Dateien heruntergeladen von"
 msgstr "Dateien heruntergeladen von"
 
-#: Global/models.py:951
+#: Global/models.py:963
 msgid "Benutzer, die die Dateien heruntergeladen haben"
 msgstr "Benutzer, die die Dateien heruntergeladen haben"
 
-#: Global/models.py:952
+#: Global/models.py:964
 msgid "E-Mail-Kopie an"
 msgstr ""
 
-#: Global/models.py:952
+#: Global/models.py:964
 msgid ""
 "Weitere E-Mail-Adressen, die Benachrichtigungen erhalten sollen "
 "(kommagetrennt)"
 msgstr ""
 
-#: Global/models.py:1022
+#: Global/models.py:1034
 msgid "Benutzeraufgabe"
 msgstr "Benutzeraufgabe"
 
-#: Global/models.py:1023
+#: Global/models.py:1035
 msgid "Benutzeraufgaben"
 msgstr "Benutzeraufgaben"
 
-#: Global/models.py:1030
+#: Global/models.py:1042
 msgid "User Aufgabe"
 msgstr "User Aufgabe"
 
-#: Global/models.py:1035
+#: Global/models.py:1047
 msgid "Freiwilliger Aufgaben Zwischenschritt"
 msgstr "Freiwilliger Aufgaben Zwischenschritt"
 
-#: Global/models.py:1036
+#: Global/models.py:1048
 msgid "Freiwilliger Aufgaben Zwischenschritte"
 msgstr "Freiwilliger Aufgaben Zwischenschritte"
 
-#: Global/models.py:1039 Global/models.py:1074 Global/models.py:1114
-#: Global/models.py:1186 Global/models.py:1213 Global/models.py:1276
-#: Global/models.py:1325 Global/models.py:1339 ORG/tables.py:192
+#: Global/models.py:1051 Global/models.py:1086 Global/models.py:1126
+#: Global/models.py:1198 Global/models.py:1225 Global/models.py:1288
+#: Global/models.py:1337 Global/models.py:1351 ORG/tables.py:192
 #: ORG/tables.py:665 ORG/tables.py:883 ORG/tables.py:1040 ORG/tables.py:1137
 msgid "Benutzer"
 msgstr "Benutzer"
 
-#: Global/models.py:1039
+#: Global/models.py:1051
 msgid "Benutzer, der den Post erstellt hat"
 msgstr ""
 
-#: Global/models.py:1040
+#: Global/models.py:1052
 msgid "Post-Titel"
 msgstr "Post-Titel"
 
-#: Global/models.py:1040
+#: Global/models.py:1052
 msgid "Titel des Posts"
 msgstr "Titel des Posts"
 
-#: Global/models.py:1041 Global/models.py:1075
+#: Global/models.py:1053 Global/models.py:1087
 msgid "Text"
 msgstr "Text"
 
-#: Global/models.py:1041
+#: Global/models.py:1053
 msgid "Text des Posts"
 msgstr "Text des Posts"
 
-#: Global/models.py:1044 Global/models.py:1078 Global/models.py:1118
-#: Global/models.py:1189 Global/templates/post_detail.html:55
+#: Global/models.py:1056 Global/models.py:1090 Global/models.py:1130
+#: Global/models.py:1201 Global/templates/post_detail.html:54
 msgid "Aktualisiert am"
 msgstr "Aktualisiert am"
 
-#: Global/models.py:1045 Global/templates/post_detail.html:86
+#: Global/models.py:1057 Global/templates/post_detail.html:85
 msgid "Umfrage"
 msgstr "Umfrage"
 
-#: Global/models.py:1045
+#: Global/models.py:1057
 msgid "Post enthält eine Umfrage"
 msgstr "Post enthält eine Umfrage"
 
-#: Global/models.py:1046
+#: Global/models.py:1058
 msgid "Benutzergruppen, für die dieser Post relevant ist"
 msgstr "Benutzergruppen, für die dieser Post relevant ist"
 
-#: Global/models.py:1047
+#: Global/models.py:1059
 msgid "Bereits gesendet an"
 msgstr "Bereits gesendet an"
 
-#: Global/models.py:1047
+#: Global/models.py:1059
 msgid "Benutzer, die diesen Post bereits erhalten haben"
 msgstr "Benutzer, die diesen Post bereits erhalten haben"
 
-#: Global/models.py:1058 Global/models.py:1089
+#: Global/models.py:1070 Global/models.py:1101
 msgid "Post"
 msgstr "Post"
 
-#: Global/models.py:1073
+#: Global/models.py:1085
 msgid "Originaler Post"
 msgstr ""
 
-#: Global/models.py:1073
+#: Global/models.py:1085
 msgid "Originaler Post, auf den dieser Post antwortet"
 msgstr ""
 
-#: Global/models.py:1074
+#: Global/models.py:1086
 msgid "Benutzer, der die Antwort erstellt hat"
 msgstr ""
 
-#: Global/models.py:1081
+#: Global/models.py:1093
 msgid "Post Antwort"
 msgstr "Post Antwort"
 
-#: Global/models.py:1082
+#: Global/models.py:1094
 msgid "Post Antworten"
 msgstr "Post Antworten"
 
-#: Global/models.py:1090 Global/models.py:1101 ORG/tables.py:313
+#: Global/models.py:1102 Global/models.py:1113 ORG/tables.py:313
 #: seminar/models.py:53
 msgid "Frage"
 msgstr "Frage"
 
-#: Global/models.py:1090
+#: Global/models.py:1102
 msgid "Text der Umfragefrage"
 msgstr "Text der Umfragefrage"
 
-#: Global/models.py:1094
+#: Global/models.py:1106
 msgid "Umfragefragen"
 msgstr "Umfragefragen"
 
-#: Global/models.py:1102 Global/templates/post_detail.html:243
+#: Global/models.py:1114 Global/templates/post_detail.html:243
 msgid "Antwort"
 msgstr "Antworten"
 
-#: Global/models.py:1102
+#: Global/models.py:1114
 msgid "Text der Antwortmöglichkeit"
 msgstr "Text der Antwortmöglichkeit"
 
-#: Global/models.py:1103
+#: Global/models.py:1115
 msgid "Benutzer, die an der Umfrage teilgenommen haben"
 msgstr ""
 
-#: Global/models.py:1106
+#: Global/models.py:1118
 msgid "Umfrageantwort"
 msgstr "Umfrageantwort"
 
-#: Global/models.py:1107
+#: Global/models.py:1119
 msgid "Umfrageantworten"
 msgstr "Umfrageantworten"
 
-#: Global/models.py:1194
+#: Global/models.py:1206
 msgid "Bildkommentar"
 msgstr "Bildkommentar"
 
-#: Global/models.py:1195
+#: Global/models.py:1207
 msgid "Bildkommentare"
 msgstr "Bildkommentare"
 
-#: Global/models.py:1204
+#: Global/models.py:1216
 msgid "Daumen hoch"
 msgstr "Daumen hoch"
 
-#: Global/models.py:1205
+#: Global/models.py:1217
 msgid "Herz"
 msgstr "Herz"
 
-#: Global/models.py:1206
+#: Global/models.py:1218
 msgid "Lachen"
 msgstr "Lachen"
 
-#: Global/models.py:1207
+#: Global/models.py:1219
 msgid "Überrascht"
 msgstr "Überrascht"
 
-#: Global/models.py:1208
+#: Global/models.py:1220
 msgid "Traurig"
 msgstr "Traurig"
 
-#: Global/models.py:1209
+#: Global/models.py:1221
 msgid "Wütend"
 msgstr "Wütend"
 
-#: Global/models.py:1214
+#: Global/models.py:1226
 msgid "Emoji"
 msgstr "Emoji"
 
-#: Global/models.py:1220
+#: Global/models.py:1232
 msgid "Bildreaktion"
 msgstr "Bildreaktion"
 
-#: Global/models.py:1221
+#: Global/models.py:1233
 msgid "Bildreaktionen"
 msgstr "Bildreaktionen"
 
-#: Global/models.py:1231
+#: Global/models.py:1243
 msgid "Kleines Bild"
 msgstr "Kleines Bild"
 
-#: Global/models.py:1237
+#: Global/models.py:1249
 msgid "Bilder Gallery"
 msgstr "Bilder Gallery"
 
-#: Global/models.py:1238
+#: Global/models.py:1250
 msgid "Bilder Galleries"
 msgstr "Bilder Galleries"
 
-#: Global/models.py:1277
+#: Global/models.py:1289
 msgid "Attribut"
 msgstr "Attribut"
 
-#: Global/models.py:1277
+#: Global/models.py:1289
 msgid "Attribut, das gespeichert werden soll"
 msgstr ""
 
-#: Global/models.py:1278
+#: Global/models.py:1290
 msgid "Wert, der gespeichert werden soll"
 msgstr ""
 
-#: Global/models.py:1283 Global/models.py:1284
+#: Global/models.py:1295 Global/models.py:1296
 msgid "Profil User"
 msgstr "Profil User"
 
-#: Global/models.py:1291
+#: Global/models.py:1303
 msgid "Wartung startet am"
 msgstr ""
 
-#: Global/models.py:1292
+#: Global/models.py:1304
 msgid "Wartung endet am"
 msgstr "Wartung endet am"
 
-#: Global/models.py:1295
+#: Global/models.py:1307
 msgid "Wartung"
 msgstr "Wartung"
 
-#: Global/models.py:1296
+#: Global/models.py:1308
 msgid "Wartungen"
 msgstr "Wartungen"
 
-#: Global/models.py:1304
+#: Global/models.py:1316
 msgid "User who has subscribed to push notifications"
 msgstr "Benutzer, der Push-Benachrichtigungen abonniert hat"
 
-#: Global/models.py:1305
+#: Global/models.py:1317
 msgid "Organization the user belongs to"
 msgstr "Organisation, zu der der Benutzer gehört"
 
-#: Global/models.py:1306
+#: Global/models.py:1318
 msgid "Push subscription endpoint URL"
 msgstr "Endpunkt-URL des Push-Abonnements"
 
-#: Global/models.py:1307
+#: Global/models.py:1319
 msgid "User's public key for encryption"
 msgstr "Öffentlicher Schlüssel des Benutzers für Verschlüsselung"
 
-#: Global/models.py:1308
+#: Global/models.py:1320
 msgid "Authentication secret"
 msgstr "Authentifizierungsgeheimnis"
 
-#: Global/models.py:1309
+#: Global/models.py:1321
 msgid "Optional name for this device/browser"
 msgstr "Optionaler Name für dieses Gerät/diesen Browser"
 
-#: Global/models.py:1310
+#: Global/models.py:1322
 msgid "When this subscription was created"
 msgstr "Wann dieses Abonnement erstellt wurde"
 
-#: Global/models.py:1311
+#: Global/models.py:1323
 msgid "When this subscription was last used successfully"
 msgstr "Wann dieses Abonnement zuletzt erfolgreich verwendet wurde"
 
-#: Global/models.py:1314
+#: Global/models.py:1326
 msgid "Push-Abonnement"
 msgstr "Push-Abonnement"
 
-#: Global/models.py:1315
+#: Global/models.py:1327
 msgid "Push-Abonnements"
 msgstr ""
 
-#: Global/models.py:1326
+#: Global/models.py:1338
 msgid "Notiz der Einsatzstelle"
 msgstr "Notiz der Einsatzstelle"
 
-#: Global/models.py:1328 Global/models.py:1342
+#: Global/models.py:1340 Global/models.py:1354
 msgid "Angeheftet"
 msgstr "Angeheftet"
 
-#: Global/models.py:1331
+#: Global/models.py:1343
 msgid "Einsatzstellen Notiz"
 msgstr "Einsatzstellen Notiz"
 
-#: Global/models.py:1332 ORG/views.py:2176
+#: Global/models.py:1344 ORG/views.py:2228
 msgid "Einsatzstellen Notizen"
 msgstr "Einsatzstellen Notizen"
 
-#: Global/models.py:1343 ORG/templates/homeOrg.html:204
+#: Global/models.py:1355 ORG/templates/homeOrg.html:204
 #: ORG/templates/homeOrg_2.html:730
 msgid "Priorität"
 msgstr "Priorität"
 
-#: Global/models.py:1343
+#: Global/models.py:1355
 msgid "Priorität der Notiz"
 msgstr "Priorität der Notiz"
 
-#: Global/models.py:1346
+#: Global/models.py:1358
 msgid "Sticky Note"
 msgstr "Sticky Note"
 
-#: Global/models.py:1347
+#: Global/models.py:1359
 msgid "Sticky Notes"
 msgstr "Sticky Notes"
 
-#: Global/models.py:1367
+#: Global/models.py:1379
 msgid "Änderungstyp"
 msgstr "Änderungstyp"
 
-#: Global/models.py:1368
+#: Global/models.py:1380
 msgid "Objekt-ID"
 msgstr ""
 
-#: Global/models.py:1372
+#: Global/models.py:1384
 msgid "Angefragt von"
 msgstr "Angefragt von"
 
-#: Global/models.py:1373
+#: Global/models.py:1385
 msgid "Geprüft von"
 msgstr "Geprüft von"
 
-#: Global/models.py:1376
+#: Global/models.py:1388
 msgid "Feldänderungen"
 msgstr "Feldänderungen"
 
-#: Global/models.py:1376
+#: Global/models.py:1388
 msgid "Gespeicherte Feldänderungen als JSON"
 msgstr ""
 
-#: Global/models.py:1377 ORG/templates/review_change_request.html:102
+#: Global/models.py:1389 ORG/templates/review_change_request.html:102
 msgid "Begründung"
 msgstr "Begründung"
 
-#: Global/models.py:1377
+#: Global/models.py:1389
 msgid "Begründung für die Änderung"
 msgstr "Begründung für die Änderung"
 
-#: Global/models.py:1378
+#: Global/models.py:1390
 msgid "Prüfungskommentar"
 msgstr ""
 
-#: Global/models.py:1378
+#: Global/models.py:1390
 msgid "Kommentar des Prüfers"
 msgstr "Kommentar des Prüfers"
 
-#: Global/models.py:1382
+#: Global/models.py:1394
 msgid "Geprüft am"
 msgstr "Geprüft am"
 
-#: Global/models.py:1387
+#: Global/models.py:1399
 msgid "Änderungsantrag"
 msgstr "Änderungsantrag"
 
-#: Global/models.py:1388
+#: Global/models.py:1400
 msgid "Änderungsanträge"
 msgstr "Änderungsanträge"
 
-#: Global/models.py:1480 Global/models.py:1500
-#: Global/templates/post_detail.html:40
+#: Global/models.py:1492 Global/models.py:1512
+#: Global/templates/post_detail.html:39
 msgid "Erstellt von"
 msgstr "Erstellt von"
 
-#: Global/models.py:1485
+#: Global/models.py:1497
 msgid "Bewerber Kommentar"
 msgstr "Bewerber Kommentar"
 
-#: Global/models.py:1486
+#: Global/models.py:1498
 msgid "Bewerber Kommentare"
 msgstr "Bewerber Kommentare"
 
-#: Global/models.py:1502 Global/templates/karte.html:100
+#: Global/models.py:1514 Global/templates/karte.html:101
 msgid "PLZ"
 msgstr "PLZ"
 
-#: Global/models.py:1505
+#: Global/models.py:1517
 msgid "Breitengrad"
 msgstr "Breitengrad"
 
-#: Global/models.py:1506
+#: Global/models.py:1518
 msgid "Längengrad"
 msgstr "Längengrad"
 
-#: Global/models.py:1507 Global/templates/karte.html:133
+#: Global/models.py:1519 Global/templates/karte.html:134
 msgid "Sichtbarkeit"
 msgstr "Sichtbarkeit"
 
-#: Global/models.py:1511
+#: Global/models.py:1523
 msgid "Karten"
 msgstr "Karten"
 
@@ -2418,7 +2401,7 @@ msgstr "Diese Bewerbung enthält noch keine Antworten oder Dateien."
 #: Home/templates/password_change.html:183
 #: Home/templates/password_reset.html:127
 #: ORG/templates/components/task_zwischenschritte_modal.html:23
-#: chat/templates/chat-group.html:197
+#: chat/templates/chat-group.html:198
 msgid "Schließen"
 msgstr "Schließen"
 
@@ -2427,10 +2410,10 @@ msgstr "Schließen"
 #: Global/templates/components/folder_modal.html:49
 #: Global/templates/components/image_card_header.html:78
 #: Global/templates/components/profile_edit_controls.html:36
-#: Global/templates/karte.html:169
+#: Global/templates/karte.html:170
 #: ORG/templates/components/ampel_table.html:124
 #: ORG/templates/edit_object.html:65 ORG/templates/homeOrg.html:219
-#: ORG/templates/homeOrg_2.html:745 chat/templates/chat-group.html:105
+#: ORG/templates/homeOrg_2.html:745 chat/templates/chat-group.html:106
 msgid "Speichern"
 msgstr "Speichern"
 
@@ -2469,7 +2452,7 @@ msgstr "Möchtest du dieses Bild wirklich löschen?"
 #: Global/templates/components/image_card_header.html:111
 #: Global/templates/components/image_interactions.html:87
 #: Global/templates/components/post_card_object.html:29
-#: Global/templates/karte.html:156 Global/templates/post_detail.html:323
+#: Global/templates/karte.html:157 Global/templates/post_detail.html:322
 #: Global/templates/profil.html:142 ORG/templates/add_aufgabe.html:1022
 #: ORG/templates/components/additional_table_actions.html:36
 #: ORG/templates/components/delete_modal.html:19
@@ -2544,7 +2527,7 @@ msgid "Alle Kommentare"
 msgstr "Alle Kommentare"
 
 #: Global/templates/components/bewerber_kommentar_modal.html:206
-#: Global/templates/post_detail.html:126 chat/templates/chat-group.html:124
+#: Global/templates/post_detail.html:125 chat/templates/chat-group.html:125
 msgid "Du"
 msgstr "Du"
 
@@ -2624,7 +2607,7 @@ msgid "Link zu einer externen Seite"
 msgstr "Link zu einer externen Seite"
 
 #: Global/templates/components/document_modal.html:41
-#: Global/templates/components/folder_card.html:92
+#: Global/templates/components/folder_card.html:37
 msgid "Neues Dokument"
 msgstr "Neues Dokument"
 
@@ -2649,26 +2632,35 @@ msgstr "Benutzergruppen, die dieses Dokument bearbeiten/löschen dürfen"
 msgid "Ihr Browser unterstützt das Video-Tag nicht."
 msgstr "Dein Browser unterstützt das Video-Tag nicht."
 
-#: Global/templates/components/folder_card.html:37
+#: Global/templates/components/folder_card.html:48
 msgid "Der muss vor dem Löschen leer sein"
 msgstr "Der Order muss vor dem Löschen leer sein"
 
-#: Global/templates/components/folder_card.html:44
+#: Global/templates/components/folder_card.html:50
+msgid "Ordner löschen"
+msgstr "Ordner löschen"
+
+#: Global/templates/components/folder_card.html:56
+#: Global/templates/components/folder_card.html:58
 msgid "Ordner bearbeiten"
 msgstr "Ordner bearbeiten"
 
-#: Global/templates/components/folder_card.html:55
-#: Global/templates/components/folder_card.html:63
+#: Global/templates/components/folder_card.html:68
+#: Global/templates/components/folder_card.html:76
 msgid "Link zum Ordner kopieren"
 msgstr "Link zum Ordner kopieren"
 
-#: Global/templates/components/folder_card.html:73
+#: Global/templates/components/folder_card.html:84
 msgid "Öffentlichen Link kopieren"
 msgstr "Öffentlichen Link kopieren"
 
-#: Global/templates/components/folder_card.html:74
+#: Global/templates/components/folder_card.html:85
 msgid "14 Tage gültig"
 msgstr "14 Tage gültig"
+
+#: Global/templates/components/folder_card.html:94
+msgid "Ordner ist sichtbar für:"
+msgstr "Ordner ist sichtbar für:"
 
 #: Global/templates/components/folder_modal.html:7
 #: Global/templates/dokumente.html:138
@@ -2706,7 +2698,7 @@ msgstr "Optionen"
 #: Global/templates/components/post_card_object.html:23
 #: Global/templates/einsatzstellen_info.html:80
 #: Global/templates/laender_info.html:45
-#: ORG/templates/application_detail.html:54
+#: ORG/templates/application_detail.html:55
 #: ORG/templates/components/additional_table_actions.html:26
 #: ORG/templates/components/table_actions.html:5
 #: ORG/templates/components/task_table_header.html:34
@@ -2824,7 +2816,7 @@ msgstr "Attribut hinzufügen"
 msgid "Fertig"
 msgstr "Fertig"
 
-#: Global/templates/components/profile_header.html:34
+#: Global/templates/components/profile_header.html:40
 #: Global/templates/settings.html:245
 msgid "Abmelden"
 msgstr "Abmelden"
@@ -2948,6 +2940,10 @@ msgid ""
 "Keine Einsatzstellen gefunden. Bitte wenden Sie sich an den Administrator."
 msgstr "Keine Einsatzstellen gefunden. Bitte wende dich an den Administrator."
 
+#: Global/templates/feedback.html:76 Global/templates/settings.html:241
+msgid "Feedback senden"
+msgstr "Feedback senden"
+
 #: Global/templates/feedback.html:80
 msgid "Oder sende eine E-Mail an"
 msgstr "Oder sende eine E-Mail an"
@@ -2992,7 +2988,7 @@ msgstr "Kopieren fehlgeschlagen. Bitte manuell markieren und kopieren."
 msgid "Standortkarte"
 msgstr "Standortkarte"
 
-#: Global/templates/karte.html:23 Global/templates/karte.html:85
+#: Global/templates/karte.html:23 Global/templates/karte.html:86
 msgid "Standort bearbeiten"
 msgstr "Standort bearbeiten"
 
@@ -3000,33 +2996,33 @@ msgstr "Standort bearbeiten"
 msgid "Standort hinzufügen"
 msgstr "Standort hinzufügen"
 
-#: Global/templates/karte.html:87
+#: Global/templates/karte.html:88
 msgid "Neuen Standort hinzufügen"
 msgstr "Neues Standort hinzufügen"
 
-#: Global/templates/karte.html:144
+#: Global/templates/karte.html:145
 msgid ""
 "Die Koordinaten werden automatisch aktualisiert, wenn Sie die Adresse ändern."
 msgstr ""
 "Die Koordinaten werden automatisch aktualisiert, wenn du die Adresse änderst."
 
-#: Global/templates/karte.html:146
+#: Global/templates/karte.html:147
 msgid "Die Koordinaten werden automatisch aus der Adresse berechnet."
 msgstr "Die Koordinaten werden automatisch aus der Adresse berechnet."
 
-#: Global/templates/karte.html:167
+#: Global/templates/karte.html:168
 msgid "Aktualisieren"
 msgstr "Aktualisieren"
 
-#: Global/templates/karte.html:178
+#: Global/templates/karte.html:179
 msgid "Standort wirklich löschen?"
 msgstr "Standort wirklich löschen?"
 
-#: Global/templates/karte.html:179
+#: Global/templates/karte.html:180
 msgid "Diese Aktion kann nicht rückgängig gemacht werden."
 msgstr "Diese Aktion kann nicht rückgängig gemacht werden!"
 
-#: Global/templates/karte.html:188
+#: Global/templates/karte.html:189
 msgid "Jetzt löschen"
 msgstr "Jetzt löschen"
 
@@ -3100,33 +3096,33 @@ msgstr ""
 msgid "Neuer Beitrag"
 msgstr "Neuer Post"
 
-#: Global/templates/post_add.html:20
+#: Global/templates/post_add.html:13
 msgid "Beitrag bearbeiten"
 msgstr "Post bearbeiten"
 
-#: Global/templates/post_add.html:22
+#: Global/templates/post_add.html:15
 msgid "Neuen Beitrag erstellen"
 msgstr "Neuen Post erstellen"
 
-#: Global/templates/post_add.html:46
+#: Global/templates/post_add.html:37
 msgid "Geben Sie einen aussagekräftigen Titel für Ihren Beitrag ein"
 msgstr "Gib einen aussagekräftigen Titel für deinen Beitrag ein"
 
-#: Global/templates/post_add.html:51 Global/templates/post_detail.html:65
+#: Global/templates/post_add.html:41 Global/templates/post_detail.html:64
 msgid "Inhalt"
 msgstr "Inhalt"
 
-#: Global/templates/post_add.html:57
+#: Global/templates/post_add.html:46
 msgid "Schreiben Sie hier den Inhalt Ihres Beitrags"
 msgstr "Schreib hier den Inhalt deines Beitrags"
 
-#: Global/templates/post_add.html:90
+#: Global/templates/post_add.html:75
 msgid ""
 "Wählen Sie aus, für welche Benutzergruppen dieser Beitrag sichtbar sein soll"
 msgstr ""
 "Wähle aus, für welche Benutzergruppen dieser Beitrag sichtbar sein soll"
 
-#: Global/templates/post_add.html:159
+#: Global/templates/post_add.html:136
 msgid ""
 "Wenn du Antworten bearbeitest, werden die bereits abgegebenen Antworten "
 "gelöscht und die Umfrage wird neu gestartet."
@@ -3134,36 +3130,36 @@ msgstr ""
 "Wenn du Antworten bearbeitest, werden die bereits abgegebenen Antworten "
 "gelöscht und die Umfrage wird neu gestartet."
 
-#: Global/templates/post_add.html:176
+#: Global/templates/post_add.html:154
 msgid "Veröffentlichen"
 msgstr "Veröffentlichen"
 
-#: Global/templates/post_detail.html:141
+#: Global/templates/post_detail.html:140
 msgid "Insgesamt"
 msgstr "Insgesamt"
 
-#: Global/templates/post_detail.html:141
+#: Global/templates/post_detail.html:140
 msgid "Stimmen"
 msgstr "Stimmen"
 
-#: Global/templates/post_detail.html:148
+#: Global/templates/post_detail.html:147
 msgid "Zurückziehen"
 msgstr "Zurückziehen"
 
-#: Global/templates/post_detail.html:153
+#: Global/templates/post_detail.html:152
 msgid "Stimme ändern"
 msgstr "Stimme ändern"
 
-#: Global/templates/post_detail.html:155
+#: Global/templates/post_detail.html:154
 msgid "Abstimmen"
 msgstr "Abstimmen"
 
-#: Global/templates/post_detail.html:174 ORG/pdf_utils.py:262
+#: Global/templates/post_detail.html:173 ORG/pdf_utils.py:262
 #: survey/pdf_utils.py:412
 msgid "Antworten"
 msgstr "Antworten"
 
-#: Global/templates/post_detail.html:219
+#: Global/templates/post_detail.html:218
 msgid "Antwortbild"
 msgstr "Antwortbild"
 
@@ -3179,11 +3175,11 @@ msgstr "Antworten senden"
 msgid "Zurück zur Übersicht"
 msgstr "Zurück zur Übersicht"
 
-#: Global/templates/post_detail.html:309
+#: Global/templates/post_detail.html:308
 msgid "Antwort löschen"
 msgstr "Antwort löschen"
 
-#: Global/templates/post_detail.html:314
+#: Global/templates/post_detail.html:313
 msgid ""
 "Möchtest du diese Antwort wirklich löschen? Diese Aktion kann nicht "
 "rückgängig gemacht werden."
@@ -3726,6 +3722,12 @@ msgstr "Benutzer nicht gefunden."
 msgid "Ein Fehler ist aufgetreten: {}"
 msgstr "Ein Fehler ist aufgetreten: {}"
 
+#: Global/views.py:2035
+msgid ""
+"Post erfolgreich erstellt. In 15min wird eine Benachrichtigung an die "
+"Benutzer:innen gesendet."
+msgstr ""
+
 #: Home/forms.py:20 Home/forms.py:48 Home/templates/index.html:61
 msgid "Benutzername oder E-Mail"
 msgstr "Benutzername oder E-Mail"
@@ -4098,7 +4100,7 @@ msgstr ""
 "Kalendereintrag erfolgreich gespeichert. Mail-Erinnerung wird in "
 "{mail_task_delay_formatted} Minuten gesendet."
 
-#: ORG/models.py:31
+#: ORG/models.py:33
 msgid "Organisationen"
 msgstr "Organisationen"
 
@@ -4429,7 +4431,7 @@ msgid "Aufgaben zuweisen"
 msgstr "Aufgaben zuweisen"
 
 #: ORG/templates/aufgaben_assign.html:22 ORG/templates/baseOrg.html:65
-#: ORG/templates/list_aufgaben.html:112 ORG/views.py:2136
+#: ORG/templates/list_aufgaben.html:112 ORG/views.py:2188
 msgid "Freiwillige"
 msgstr "Freiwillige"
 
@@ -4465,7 +4467,7 @@ msgstr "Alle Profile auswählen"
 msgid "Personen"
 msgstr "Personen"
 
-#: ORG/templates/baseOrg.html:68 ORG/views.py:2161 TEAM/models.py:33
+#: ORG/templates/baseOrg.html:68 ORG/views.py:2213 TEAM/models.py:33
 msgid "Team"
 msgstr "Team"
 
@@ -4526,7 +4528,7 @@ msgstr "Status filtern:"
 #: ORG/templates/homeOrg.html:318 ORG/templates/homeOrg.html:355
 #: ORG/templates/homeOrg.html:379 ORG/templates/homeOrg_2.html:68
 #: ORG/templates/homeOrg_2.html:128 ORG/templates/homeOrg_2.html:605
-#: TEAM/templates/teamHome.html:379
+#: TEAM/templates/teamHome.html:282
 msgid "Alle anzeigen"
 msgstr "Alle anzeigen"
 
@@ -4613,6 +4615,10 @@ msgstr "Verlauf anzeigen"
 #: ORG/templates/components/ampel_legend.html:19
 msgid "Mit Kommentar"
 msgstr "Mit Kommentar"
+
+#: ORG/templates/components/ampel_modal.html:36
+msgid "Nachricht"
+msgstr "Nachricht"
 
 #: ORG/templates/components/ampel_table.html:16
 #: ORG/templates/components/form_field.html:23
@@ -4888,7 +4894,7 @@ msgstr "Links"
 msgid "Fehler beim Kopieren der Links"
 msgstr "Fehler beim Kopieren der Links"
 
-#: ORG/templates/copy_links.html:159 chat/templates/chat-group.html:235
+#: ORG/templates/copy_links.html:159 chat/templates/chat-group.html:236
 msgid "Fehler"
 msgstr "Fehler"
 
@@ -5043,15 +5049,15 @@ msgstr "Alle Aufgaben sind auf dem neuesten Stand"
 msgid "Aufgaben verwalten"
 msgstr "Aufgaben verwalten"
 
-#: ORG/templates/homeOrg_2.html:559 TEAM/templates/teamHome.html:343
+#: ORG/templates/homeOrg_2.html:559 TEAM/templates/teamHome.html:236
 msgid "Letzte 5 Tage"
 msgstr "Letzte 5 Tage"
 
-#: ORG/templates/homeOrg_2.html:585
+#: ORG/templates/homeOrg_2.html:585 TEAM/templates/teamHome.html:262
 msgid "Ungelesen"
 msgstr "Ungelesen"
 
-#: ORG/templates/homeOrg_2.html:600 TEAM/templates/teamHome.html:374
+#: ORG/templates/homeOrg_2.html:600 TEAM/templates/teamHome.html:277
 msgid "Keine Meldungen"
 msgstr "Keine Meldungen"
 
@@ -5426,91 +5432,91 @@ msgstr "Prozent"
 msgid "Wähle ein Feld aus, um die Daten anzuzeigen."
 msgstr "Wähle ein Feld aus, um die Daten anzuzeigen."
 
-#: ORG/views.py:761
+#: ORG/views.py:787
 #, python-brace-format
 msgid "Table not found for model: {}"
 msgstr "Tabelle für Modell nicht gefunden: {}"
 
-#: ORG/views.py:923
+#: ORG/views.py:949
 #, python-brace-format
 msgid "Aktion für {instance} nicht erfolgreich durchgeführt."
 msgstr "Aktion für {instance} nicht erfolgreich durchgeführt."
 
-#: ORG/views.py:928
+#: ORG/views.py:954
 #, python-brace-format
 msgid "Aktionen für {counter} {object_name} erfolgreich durchgeführt."
 msgstr "Aktionen für {counter} {object_name} erfolgreich durchgeführt."
 
-#: ORG/views.py:932
+#: ORG/views.py:958
 msgid "Keine Objekte ausgewählt."
 msgstr "Keine Objekte ausgewählt."
 
-#: ORG/views.py:1178 ORG/views.py:1195
+#: ORG/views.py:1204 ORG/views.py:1221
 msgid "Aufgabe nicht gefunden"
 msgstr "Aufgabe nicht gefunden"
 
-#: ORG/views.py:1188
+#: ORG/views.py:1214
 msgid "E-Mail-Benachrichtigungen deaktiviert"
 msgstr "E-Mail-Benachrichtigungen deaktiviert"
 
-#: ORG/views.py:1191
+#: ORG/views.py:1217
 msgid "Erinnerung wurde bereits heute gesendet"
 msgstr "Erinnerung wurde bereits heute gesendet"
 
-#: ORG/views.py:1440
+#: ORG/views.py:1466
 msgid "Benutzergruppe nicht angegeben"
 msgstr "Benutzergruppe nicht angegeben"
 
-#: ORG/views.py:1457
+#: ORG/views.py:1483
 msgid "Benutzergruppe nicht gefunden"
 msgstr "Benutzergruppe nicht gefunden"
 
-#: ORG/views.py:1462 chat/views.py:319
+#: ORG/views.py:1488 chat/views.py:382
 msgid "Ungültige Anfrage"
 msgstr "Ungültige Anfrage"
 
-#: ORG/views.py:2107
+#: ORG/views.py:2159
 msgid "Allgemein"
 msgstr ""
 
-#: ORG/views.py:2151
+#: ORG/views.py:2203
 msgid "Notfallkontakte eintragen"
 msgstr "Notfallkontakte eintragen"
 
-#: ORG/views.py:2155
+#: ORG/views.py:2207
 msgid "Einsatzlandinformationen einsehen"
 msgstr "Einsatzlandinformationen einsehen"
 
-#: ORG/views.py:2164 TEAM/templates/teamContacts.html:5
+#: ORG/views.py:2216 TEAM/templates/teamContacts.html:5
 msgid "Kontakte"
 msgstr "Kontakte"
 
-#: ORG/views.py:2168
+#: ORG/views.py:2220
 msgid "Ampelmeldung einsehen"
 msgstr "Ampelmeldung einsehen"
 
-#: ORG/views.py:2172 ORG/views.py:2193
+#: ORG/views.py:2224 ORG/views.py:2245
 msgid "Einsatzstelleninformationen"
 msgstr "Einsatzstelleninformationen"
 
-#: ORG/views.py:2199
+#: ORG/views.py:2251
 msgid "Bewerber"
 msgstr "Bewerber:in"
 
-#: ORG/views.py:2202
+#: ORG/views.py:2254
 msgid "Zuteilung ansehen"
 msgstr "Zuteilung ansehen"
 
-#: ORG/views.py:2555
+#: ORG/views.py:2607
 #, python-format
 msgid "Fehler bei der Freischaltung: %(error)s"
 msgstr ""
 
-#: ORG/views.py:2570
+#: ORG/views.py:2622
 msgid "Registrierung wurde abgelehnt."
 msgstr "Registrierung wurde abgelehnt"
 
-#: ORG/views.py:2572
+#: ORG/views.py:2624
 #, python-format
 msgid "Fehler bei der Ablehnung: %(error)s"
 msgstr ""
@@ -5551,15 +5557,11 @@ msgstr ""
 "Hier findest du alle Kontaktdaten der Freiwilligen, die in deinem "
 "Einsatzland tätig sind."
 
-#: TEAM/templates/teamHome.html:169
-msgid "Meine Länder:"
-msgstr "Meine Länder:"
-
-#: chat/forms.py:41 chat/templates/chat-group.html:29
+#: chat/forms.py:41 chat/templates/chat-group.html:30
 msgid "Mitglieder"
 msgstr "Mitglieder"
 
-#: chat/forms.py:43 chat/templates/chat-group.html:100
+#: chat/forms.py:43 chat/templates/chat-group.html:101
 msgid "Gruppenname"
 msgstr "Gruppenname"
 
@@ -5571,57 +5573,61 @@ msgstr "Nachricht schreiben…"
 msgid "Nachricht oder Bild erforderlich."
 msgstr "Nachricht oder Bild erforderlich."
 
-#: chat/templates/chat-direct.html:6 chat/templates/chat-group.html:5
+#: chat/templates/chat-direct.html:7 chat/templates/chat-group.html:6
 #: chat/templates/chat-list.html:5 chat/templates/chat-list.html:14
 msgid "Nachrichten"
 msgstr "Nachrichten"
 
-#: chat/templates/chat-direct.html:43 chat/templates/chat-group.html:45
+#: chat/templates/chat-direct.html:46 chat/templates/chat-direct.html:79
+msgid "Antwort auf Ampelmeldung"
+msgstr "Antwort auf Ampelmeldung"
+
+#: chat/templates/chat-direct.html:56 chat/templates/chat-group.html:46
 msgid "Bild vergrößern"
 msgstr "Bild vergrößern"
 
-#: chat/templates/chat-direct.html:56 chat/templates/chat-group.html:58
+#: chat/templates/chat-direct.html:69 chat/templates/chat-group.html:59
 msgid "Noch keine Nachrichten. Schreib die erste!"
 msgstr "Noch keine Nachrichten. Schreib die erste!"
 
-#: chat/templates/chat-direct.html:66 chat/templates/chat-group.html:68
+#: chat/templates/chat-direct.html:94 chat/templates/chat-group.html:69
 msgid "Bild anhängen"
 msgstr "Bild anhängen"
 
-#: chat/templates/chat-group.html:127
+#: chat/templates/chat-group.html:128
 msgid "Ersteller:in"
 msgstr "Ersteller:in"
 
-#: chat/templates/chat-group.html:138
+#: chat/templates/chat-group.html:139
 msgid "Entfernen"
 msgstr "Entfernen"
 
-#: chat/templates/chat-group.html:150
+#: chat/templates/chat-group.html:151
 msgid "Mitglied hinzufügen"
 msgstr "Mitglied hinzufügen"
 
-#: chat/templates/chat-group.html:153 chat/templates/create-chat-direct.html:46
+#: chat/templates/chat-group.html:154 chat/templates/create-chat-direct.html:46
 #: chat/templates/create-chat-group.html:120
 msgid "Name suchen…"
 msgstr "Name suchen…"
 
-#: chat/templates/chat-group.html:181
+#: chat/templates/chat-group.html:182
 msgid "Gruppe wirklich löschen?"
 msgstr "Gruppe wirklich löschen?"
 
-#: chat/templates/chat-group.html:184
+#: chat/templates/chat-group.html:185
 msgid "Gruppe löschen"
 msgstr "Gruppe löschen"
 
-#: chat/templates/chat-group.html:189
+#: chat/templates/chat-group.html:190
 msgid "Gruppe wirklich verlassen?"
 msgstr "Gruppe wirklich verlassen?"
 
-#: chat/templates/chat-group.html:192
+#: chat/templates/chat-group.html:193
 msgid "Gruppe verlassen"
 msgstr "Gruppe verlassen"
 
-#: chat/templates/chat-group.html:231
+#: chat/templates/chat-group.html:232
 msgid "Gespeichert."
 msgstr "Gespeichert."
 
@@ -5710,56 +5716,56 @@ msgstr "0 Personen ausgewählt"
 msgid "Person(en) ausgewählt"
 msgstr "Person(en) ausgewählt"
 
-#: chat/views.py:135 chat/views.py:178 chat/views.py:311 chat/views.py:372
-#: chat/views.py:390 chat/views.py:408 chat/views.py:451 chat/views.py:545
+#: chat/views.py:164 chat/views.py:217 chat/views.py:374 chat/views.py:435
+#: chat/views.py:453 chat/views.py:471 chat/views.py:527 chat/views.py:621
 msgid "Chat nicht gefunden"
 msgstr "Chat nicht gefunden"
 
-#: chat/views.py:244 chat/views.py:273
+#: chat/views.py:283 chat/views.py:336
 msgid "Fehler beim Erstellen des Chats"
 msgstr "Fehler beim Erstellen des Chats"
 
-#: chat/views.py:314 chat/views.py:376
+#: chat/views.py:298 chat/views.py:377 chat/views.py:439
 msgid "Keine Berechtigung"
 msgstr "Keine Berechtigung"
 
-#: chat/views.py:326
+#: chat/views.py:306
+msgid "Du kannst dir selbst keine Nachricht senden."
+msgstr ""
+
+#: chat/views.py:389
 msgid "Name darf nicht leer sein"
 msgstr "Name darf nicht leer sein"
 
-#: chat/views.py:337 chat/views.py:354
+#: chat/views.py:400 chat/views.py:417
 msgid "Benutzer nicht gefunden"
 msgstr "Benutzer nicht gefunden"
 
-#: chat/views.py:349
+#: chat/views.py:412
 msgid "Du kannst dich nicht selbst entfernen"
 msgstr ""
 
-#: chat/views.py:363
+#: chat/views.py:426
 msgid "Unbekannte Aktion"
 msgstr ""
 
-#: chat/views.py:380
+#: chat/views.py:443
 msgid "Gruppe wurde gelöscht."
 msgstr "Gruppe wurde gelöscht."
 
-#: chat/views.py:394
+#: chat/views.py:457
 msgid ""
 "Als Ersteller:in kannst du die Gruppe nicht verlassen. Lösche sie "
 "stattdessen."
 msgstr ""
 
-#: chat/views.py:424 chat/views.py:467
+#: chat/views.py:491 chat/views.py:543
 msgid "Leere Nachricht"
 msgstr "Leere Nachricht"
 
-#: chat/views.py:543
+#: chat/views.py:619
 msgid "Ungültiger Chat-Typ"
 msgstr "Ungültiger Chat-Typ"
-
-#: mission/templates/bless_box_2_go.html:5
-msgid "Bless Box 2 Go"
-msgstr ""
 
 #: seminar/models.py:20
 msgid "Fragekategorie"
@@ -6908,6 +6914,19 @@ msgstr "Keine abgeschlossenen Antworten für diese Umfrage gefunden."
 #, python-format
 msgid "Error generating PDF export: %(error)s"
 msgstr "Fehler beim Erstellen des PDF-Exports: %(error)s"
+
+#~ msgid "Willkommen auf Volunteer.Solutions!"
+#~ msgstr "Willkommen auf Volunteer.Solutions!"
+
+#~ msgid ""
+#~ "Hast du Fragen, Anregungen oder möchtest einfach Hallo sagen? Wir freuen "
+#~ "uns von dir zu hören!"
+#~ msgstr ""
+#~ "Hast du Fragen, Anregungen oder möchtest einfach Hallo sagen? Wir freuen "
+#~ "uns von dir zu hören!"
+
+#~ msgid "Meine Länder:"
+#~ msgstr "Meine Länder:"
 
 #~ msgid "Registrierung prüfen"
 #~ msgstr "Registrierung prüfen"

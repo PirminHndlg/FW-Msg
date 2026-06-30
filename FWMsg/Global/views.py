@@ -2032,7 +2032,7 @@ def post_add(request, post=None):
             
             # Explicitly save the ManyToManyField after saving the post
             form.save_m2m()
-            messages.success(request, 'Beitrag erfolgreich erstellt. In 15min wird eine Benachrichtigung an die Benutzer:innen gesendet.')
+            messages.success(request, _('Post erfolgreich erstellt. In 15min wird eine Benachrichtigung an die Benutzer:innen gesendet.'))
             
             # Save person_cluster
             person_cluster = form.cleaned_data.get('person_cluster')
