@@ -802,26 +802,39 @@ class AddUserForm(OrgFormMixin, forms.ModelForm):
         
         return email
     
+    
     def save(self, commit=True):
         custom_user = super().save(commit=False)
-        
-        user = get_or_create_new_user(
-            email=self.cleaned_data['email'],
-            firstname=self.cleaned_data['first_name'],
-            lastname=self.cleaned_data['last_name'],
-            org=self.request.user.org,
-            person_cluster=self.cleaned_data['person_cluster'],
-            create_einmalpasswort=True,
-            create_customuser=False
-        )
-        custom_user.user = user
+
+        is_new = not self.instance.pk or not hasattr(self.instance, 'user') or self.instance.user_id is None
+
+        if is_new:
+            # Creating: get or create the Django User, then wire it up
+            user = get_or_create_new_user(
+                email=self.cleaned_data['email'],
+                firstname=self.cleaned_data['first_name'],
+                lastname=self.cleaned_data['last_name'],
+                org=self.request.user.org,
+                person_cluster=self.cleaned_data['person_cluster'],
+                create_einmalpasswort=True,
+                create_customuser=False
+            )
+            custom_user.user = user
+        else:
+            # Editing: update the existing Django User directly
+            user = self.instance.user
+            user.email = self.cleaned_data['email']
+            user.first_name = self.cleaned_data['first_name']
+            user.last_name = self.cleaned_data['last_name']
+            user.save()
+            custom_user.user = user
+
         custom_user.org = self.request.user.org
-        custom_user.save()
-        
+
         if commit:
             custom_user.save()
             self.save_m2m()
-        
+
         return custom_user
 
 
