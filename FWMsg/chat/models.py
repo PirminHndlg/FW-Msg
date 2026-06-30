@@ -7,7 +7,7 @@ from django.utils import timezone
 from Global.models import OrgModel
 from simple_history.models import HistoricalRecords
 from Global.models import get_random_hash
-
+from Global.models import Ampel2
 _CHAT_IMAGE_EXTS = frozenset({".jpg", ".jpeg", ".png", ".gif", ".webp"})
 
 
@@ -123,7 +123,8 @@ class ChatMessageDirect(ChatMessageImageUrlMixin, OrgModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     read = models.BooleanField(default=False)
-
+    answer_to_ampel = models.ForeignKey(Ampel2, on_delete=models.SET_NULL, null=True, blank=True)
+    
     history = HistoricalRecords()
 
     def save(self, *args, **kwargs):

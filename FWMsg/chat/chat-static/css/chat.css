@@ -187,3 +187,34 @@
     max-height: 120px;
     border-radius: 0.5rem;
 }
+
+/* Ampel reply quote (response to Ampelmeldung) */
+.ampel-dot {
+    border: 1px solid #ddd;
+    height: 14px;
+    width: 14px;
+    min-width: 14px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.ampel-reply-quote {
+    padding: 0.35rem 0.5rem;
+    border-left: 3px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.25rem;
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.bubble-own .ampel-reply-quote {
+    background: rgba(255, 255, 255, 0.15);
+    border-left-color: rgba(255, 255, 255, 0.4);
+}
+
+.bubble-own .ampel-reply-quote .text-muted {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.ampel-reply-preview {
+    border-top: 1px solid #e9ecef;
+}

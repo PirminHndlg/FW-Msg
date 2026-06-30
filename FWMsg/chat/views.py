@@ -5,12 +5,21 @@ from pathlib import Path
 from django.contrib import messages as django_messages
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, HttpResponseNotFound, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from django.contrib.auth.models import User
+from Global.models import Ampel2
 from Global.views import check_organization_context
+
+from .ampel_access import (
+    resolve_ampel,
+    resolve_ampel_for_direct_reply,
+    user_can_reply_to_ampel_in_direct_chat,
+    user_can_view_ampel,
+    user_is_ampel_staff,
+)
 
 from .badge_utils import (
     broadcast_chat_message_to_room,
@@ -22,10 +31,19 @@ from .models import ChatDirect, ChatGroup, ChatMessageDirect, ChatMessageGroup
 from .tasks import notify_users_about_new_direct_chat_message, notify_users_about_new_group_chat_message, notify_users_about_new_group_chat
 from django.utils.translation import gettext_lazy as _
 
-def _chat_message_payload(msg, user):
+def _ampel_payload(ampel):
+    if ampel is None:
+        return None
+    return {
+        "status": ampel.status,
+        "comment": ampel.comment or "",
+    }
+
+
+def _chat_message_payload(msg, user, viewer=None):
     """JSON-serializable dict aligned with ChatConsumer.chat_message event shape."""
     image_url = msg.get_image_public_url()
-    return {
+    payload = {
         "id": msg.id,
         "user": str(user),
         "user_id": user.id,
@@ -33,6 +51,17 @@ def _chat_message_payload(msg, user):
         "created_at": msg.created_at.strftime("%d.%m.%Y %H:%M"),
         "image_url": image_url,
     }
+    ampel = getattr(msg, "answer_to_ampel", None)
+    if ampel is not None:
+        payload["ampel_user_id"] = ampel.user_id
+        if viewer is None or user_can_view_ampel(viewer, ampel):
+            payload["ampel"] = _ampel_payload(ampel)
+    return payload
+
+
+def _find_existing_direct_chat(org, current_user, other_user):
+    existing_chat = ChatDirect.objects.filter(org=org, users=current_user).filter(users=other_user)
+    return existing_chat.first()
 
 
 @login_required
@@ -154,17 +183,27 @@ def chat_direct(request, identifier):
     else:
         form = SendDirectMessageForm()
 
-    chat_messages = ChatMessageDirect.objects.filter(chat=chat).order_by('created_at')
+    chat_messages = ChatMessageDirect.objects.filter(chat=chat).select_related(
+        'user', 'answer_to_ampel'
+    ).order_by('created_at')
     for msg in chat_messages.filter(read=False).exclude(user=request.user):
         msg.mark_as_read()
     broadcast_unread_badge_for_user(request.user)
-        
+
+    initial_ampel = None
+    ampel_id = request.GET.get('ampel_id')
+    if ampel_id and user_is_ampel_staff(request.user):
+        ampel = resolve_ampel(request.user.org, ampel_id)
+        if user_can_reply_to_ampel_in_direct_chat(request.user, ampel, chat):
+            initial_ampel = ampel
+
     other_users = chat.users.exclude(pk=request.user.pk)
     context = {
         'chat': chat,
         'chat_messages': chat_messages,
         'form': form,
         'other_users': other_users,
+        'initial_ampel': initial_ampel,
     }
     context = check_organization_context(request, context)
     return render(request, 'chat-direct.html', context)
@@ -251,6 +290,30 @@ def create_chat_direct(request):
     }
     context = check_organization_context(request, context)
     return render(request, 'create-chat-direct.html', context)
+
+
+@login_required
+def get_or_create_chat_for_ampel(request, ampel_id):
+    if not user_is_ampel_staff(request.user):
+        django_messages.error(request, _('Keine Berechtigung'))
+        return redirect('chat_list')
+
+    org = request.user.org
+    ampel = get_object_or_404(Ampel2, pk=ampel_id, org=org)
+    other_user = ampel.user
+
+    if other_user == request.user:
+        django_messages.error(request, _('Du kannst dir selbst keine Nachricht senden.'))
+        return redirect('chat_list')
+
+    chat = _find_existing_direct_chat(org, request.user, other_user)
+    if chat is None:
+        chat = ChatDirect.objects.create(org=org)
+        chat.users.add(request.user, other_user)
+
+    return redirect(
+        f"{reverse('chat_direct', args=[chat.get_identifier()])}?ampel_id={ampel.id}"
+    )
 
 
 @login_required
@@ -409,16 +472,20 @@ def send_message_direct(request, identifier):
 
     image_file = None
     text = ""
+    answer_to_ampel_id = None
     content_type = request.content_type or ""
     if request.FILES.get("image") or "multipart/form-data" in content_type:
         text = request.POST.get("message", "").strip()
         image_file = request.FILES.get("image")
+        answer_to_ampel_id = request.POST.get("answer_to_ampel_id")
     else:
         try:
             data = json.loads(request.body)
             text = data.get("message", "").strip()
+            answer_to_ampel_id = data.get("answer_to_ampel_id")
         except (json.JSONDecodeError, AttributeError, TypeError):
             text = request.POST.get("message", "").strip()
+            answer_to_ampel_id = request.POST.get("answer_to_ampel_id")
 
     if not text and not image_file:
         return JsonResponse({"error": _('Leere Nachricht')}, status=400)
@@ -431,14 +498,23 @@ def send_message_direct(request, identifier):
     }
     if image_file:
         create_kw["image"] = image_file
+    answer_to_ampel = resolve_ampel_for_direct_reply(
+        request.user, answer_to_ampel_id, chat
+    )
+    if answer_to_ampel:
+        create_kw["answer_to_ampel"] = answer_to_ampel
     msg = ChatMessageDirect.objects.create(**create_kw)
 
     notify_users_about_new_direct_chat_message.s(msg.id, request.user.id).apply_async(countdown=10)
     for recipient in chat.users.exclude(pk=request.user.pk):
         broadcast_unread_badge_for_user(recipient)
 
-    payload = _chat_message_payload(msg, request.user)
-    broadcast_chat_message_to_room("direct", chat.get_identifier(), payload)
+    payload = _chat_message_payload(msg, request.user, viewer=request.user)
+    broadcast_chat_message_to_room(
+        "direct",
+        chat.get_identifier(),
+        _chat_message_payload(msg, request.user),
+    )
     return JsonResponse(payload)
 
 
@@ -526,8 +602,8 @@ def ajax_chat_updates(request, chat_type, chat_id):
             chat = ChatDirect.objects.get(identifier=chat_id, org=request.user.org, users=request.user)
             new_messages = ChatMessageDirect.objects.filter(
                 chat=chat, id__gt=last_id
-            ).order_by('id').select_related('user')
-            data = [_chat_message_payload(m, m.user) for m in new_messages]
+            ).order_by('id').select_related('user', 'answer_to_ampel')
+            data = [_chat_message_payload(m, m.user, viewer=request.user) for m in new_messages]
 
             for m in new_messages:
                 m.mark_as_read()
@@ -536,7 +612,7 @@ def ajax_chat_updates(request, chat_type, chat_id):
             new_messages = ChatMessageGroup.objects.filter(
                 chat=chat, id__gt=last_id
             ).order_by('id').select_related('user')
-            data = [_chat_message_payload(m, m.user) for m in new_messages]
+            data = [_chat_message_payload(m, m.user, viewer=request.user) for m in new_messages]
             for m in new_messages:
                 m.mark_as_read_by(request.user)
         else:

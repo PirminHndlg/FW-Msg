@@ -32,7 +32,10 @@
             </div>
 
             <div id="modalRead" class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="markAsRead()"><i class="bi bi-check-circle-fill"></i> {% trans 'Gelesen' %}</button>
+                <a id="modalMessageBtn" href="#" class="btn btn-outline-primary">
+                    <i class="bi bi-chat-dots"></i> {% trans 'Nachricht' %}
+                </a>
+                <button type="button" id="modalReadBtn" class="btn btn-primary" onclick="markAsRead()"><i class="bi bi-check-circle-fill"></i> {% trans 'Gelesen' %}</button>
             </div>
         </div>
     </div>
@@ -68,10 +71,11 @@
         document.getElementById('modalComment').textContent = comment;
         document.getElementById('modalUser').textContent = user;
         ampel_id = id;
+        document.getElementById('modalMessageBtn').href = `/chat/for-ampel/${id}/`;
         if (read.toLowerCase() == 'true') {
-            $('#modalRead').addClass('d-none');
+            $('#modalReadBtn').addClass('d-none');
         } else {
-            $('#modalRead').removeClass('d-none');
+            $('#modalReadBtn').removeClass('d-none');
         }
         modal.show();
     }

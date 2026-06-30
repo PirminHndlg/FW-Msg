@@ -143,6 +143,61 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         return !!(imageInput && imageInput.files && imageInput.files.length > 0);
     }
 
+    function clearAmpelReply() {
+        document.getElementById('ampel-reply-preview')?.remove();
+        const ampelInput = document.getElementById('answer-to-ampel-id');
+        if (ampelInput) ampelInput.value = '';
+    }
+
+    function reloadChatWithoutAmpelId() {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('ampel_id');
+        const qs = url.searchParams.toString();
+        window.location.replace(url.pathname + (qs ? `?${qs}` : '') + url.hash);
+    }
+
+    function finalizeAmpelReplySend() {
+        reloadChatWithoutAmpelId();
+    }
+
+    function sendMessageHttp(payload, onSuccess, onError) {
+        const isMultipart = payload instanceof FormData;
+        const headers = { 'X-CSRFToken': csrf };
+        if (!isMultipart) {
+            headers['Content-Type'] = 'application/json';
+        }
+        return fetch(fallbackSendUrl, {
+            method: 'POST',
+            headers: headers,
+            body: isMultipart ? payload : JSON.stringify(payload),
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.error) {
+                    if (onError) onError(data);
+                    return;
+                }
+                if (onSuccess) onSuccess(data);
+            })
+            .catch(function () {
+                if (onError) onError();
+            });
+    }
+
+    function getAnswerToAmpelId() {
+        const ampelInput = document.getElementById('answer-to-ampel-id');
+        return ampelInput && ampelInput.value ? ampelInput.value : null;
+    }
+
+    function buildSendPayload(text) {
+        const payload = { message: text };
+        const ampelId = getAnswerToAmpelId();
+        if (ampelId) {
+            payload.answer_to_ampel_id = ampelId;
+        }
+        return payload;
+    }
+
     /** User deliberately scrolled up — stop fighting them during lazy image/layout shifts. */
     let userLeftChatBottom = false;
 
@@ -360,8 +415,13 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
                 fd.append('csrfmiddlewaretoken', csrf);
                 fd.append('message', text);
                 fd.append('image', imageInput.files[0]);
+                const ampelId = getAnswerToAmpelId();
+                if (ampelId) {
+                    fd.append('answer_to_ampel_id', ampelId);
+                }
 
                 const savedText = text;
+                const hadAmpelReply = !!ampelId;
                 messageField.value = '';
                 autosizeChatMessageField(messageField);
                 messageField.focus();
@@ -376,6 +436,10 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
                         if (data.error) {
                             messageField.value = savedText;
                             autosizeChatMessageField(messageField);
+                            return;
+                        }
+                        if (hadAmpelReply) {
+                            finalizeAmpelReplySend();
                             return;
                         }
                         clearImageSelection();
@@ -395,31 +459,47 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
             autosizeChatMessageField(messageField);
             messageField.focus();
 
-            if (wsReady) {
+            const hadAmpelReply = !!getAnswerToAmpelId();
+
+            if (hadAmpelReply) {
+                const savedText = text;
+                sendMessageHttp(
+                    buildSendPayload(text),
+                    function () {
+                        finalizeAmpelReplySend();
+                    },
+                    function () {
+                        messageField.value = savedText;
+                        autosizeChatMessageField(messageField);
+                    }
+                );
+            } else if (wsReady) {
                 // Send via WebSocket; the server broadcasts it back to all
                 // clients including the sender, so no local render needed here.
-                ws.send(JSON.stringify({ message: text }));
+                ws.send(JSON.stringify(buildSendPayload(text)));
             } else {
                 // WebSocket not available – fall back to HTTP POST.
-                fetch(fallbackSendUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
-                    body: JSON.stringify({ message: text }),
-                })
-                    .then(function (r) { return r.json(); })
-                    .then(function (data) {
+                sendMessageHttp(
+                    buildSendPayload(text),
+                    function (data) {
                         if (data.id) {
                             appendMessage(data, true);
                             lastId = data.id;
                         }
-                    })
-                    .catch(function () {
-                        // Re-fill input so the user doesn't lose the message.
+                    },
+                    function () {
                         messageField.value = text;
                         autosizeChatMessageField(messageField);
-                    });
+                    }
+                );
             }
         });
+    }
+
+    function ampelStatusClass(status) {
+        if (status === 'G') return 'ampel_gruen';
+        if (status === 'Y') return 'ampel_gelb';
+        return 'ampel_rot';
     }
 
     // ── DOM helpers ───────────────────────────────────────────────────────────
@@ -434,6 +514,17 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         let html = `<div class="bubble ${isOwn ? 'bubble-own' : 'bubble-other'}">`;
         if (!isOwn && chatType === 'group') {
             html += `<small class="text-muted">${escapeHtml(msg.user)}</small><br>`;
+        }
+        if (msg.ampel) {
+            const ampelClass = ampelStatusClass(msg.ampel.status);
+            const preview = escapeHtml((msg.ampel.comment || '').substring(0, 80));
+            html += `<div class="ampel-reply-quote mb-1">
+                <div class="ampel-reply-label small text-muted mb-1">Antwort auf Ampelmeldung</div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="ampel-dot ${ampelClass}"></div>
+                    <span class="small text-muted fst-italic">${preview}</span>
+                </div>
+            </div>`;
         }
         if (msg.image_url) {
             html += `<img src="${escapeHtml(msg.image_url)}" alt="" class="chat-bubble-image" role="button" tabindex="0" aria-label="Bild vergrößern">`;

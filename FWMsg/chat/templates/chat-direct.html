@@ -9,6 +9,7 @@
 
 {% block head %}
   <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+  <link rel="stylesheet" href="{% static 'css/ampel.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -39,6 +40,17 @@
     {% for msg in chat_messages %}
       <div class="d-flex flex-column {% if msg.user == request.user %}align-items-end{% else %}align-items-start{% endif %}" data-msg-id="{{ msg.id }}">
         <div class="bubble {% if msg.user == request.user %}bubble-own{% else %}bubble-other{% endif %}">
+          {% if msg.answer_to_ampel %}
+            {% if request.user.role == 'O' or request.user.role == 'T' or msg.answer_to_ampel.user_id == request.user.id %}
+            <div class="ampel-reply-quote mb-1">
+              <div class="ampel-reply-label small text-muted mb-1">{% trans "Antwort auf Ampelmeldung" %}</div>
+              <div class="d-flex align-items-center gap-2">
+                <div class="ampel-dot {% if msg.answer_to_ampel.status == 'G' %}ampel_gruen{% elif msg.answer_to_ampel.status == 'Y' %}ampel_gelb{% else %}ampel_rot{% endif %}"></div>
+                <span class="small text-muted fst-italic">{{ msg.answer_to_ampel.comment|truncatechars:80 }}</span>
+              </div>
+            </div>
+            {% endif %}
+          {% endif %}
           {% if msg.image and msg.image_identifier %}
             <img src="{{ msg.get_image_public_url }}" class="chat-bubble-image" alt=""
                  role="button" tabindex="0" aria-label="{% trans 'Bild vergrößern' %}">
@@ -61,9 +73,24 @@
 
   <div id="image-preview" class="border-top px-3 pt-2 bg-white" style="display:none;"></div>
 
+  {% if initial_ampel %}
+  <div id="ampel-reply-preview" class="ampel-reply-preview border-top px-3 py-2 bg-light"
+       data-ampel-id="{{ initial_ampel.id }}">
+    <div class="ampel-reply-label small text-muted mb-1">{% trans "Antwort auf Ampelmeldung" %}</div>
+    <div class="d-flex align-items-center gap-2">
+      <div class="ampel-dot {% if initial_ampel.status == 'G' %}ampel_gruen{% elif initial_ampel.status == 'Y' %}ampel_gelb{% else %}ampel_rot{% endif %}"></div>
+      <span class="small text-muted fst-italic">{{ initial_ampel.comment|truncatechars:80 }}</span>
+      <a href="{% url 'chat_direct' chat.get_identifier %}" class="btn-close btn-sm ms-auto" id="clear-ampel-reply"></a>
+    </div>
+  </div>
+  {% endif %}
+
   <div class="chat-input-bar">
     <form id="chat-form" class="d-flex gap-2 align-items-end" enctype="multipart/form-data" without_spinner="true">
       {% csrf_token %}
+      <input type="hidden" id="answer-to-ampel-id"
+             name="answer_to_ampel_id"
+             value="{% if initial_ampel %}{{ initial_ampel.id }}{% endif %}">
       <button type="button" id="image-attach-btn" class="btn btn-outline-secondary rounded-pill px-3" title="{% trans 'Bild anhängen' %}">
         <i class="bi bi-paperclip"></i>
       </button>
@@ -90,5 +117,11 @@
     '{% url "send_message_direct" chat.get_identifier %}',
     '{% url "ajax_chat_updates" "direct" chat.get_identifier %}'
   );
+
+  document.getElementById('clear-ampel-reply')?.addEventListener('click', () => {
+    document.getElementById('ampel-reply-preview')?.remove();
+    const ampelInput = document.getElementById('answer-to-ampel-id');
+    if (ampelInput) ampelInput.value = '';
+  });
 </script>
 {% endblock %}

@@ -3,6 +3,11 @@ import json
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
+from .ampel_access import (
+    _user_org_id,
+    resolve_ampel_for_direct_reply,
+    user_can_view_ampel_by_owner,
+)
 from .badge_utils import broadcast_unread_badge_for_user, get_unread_chat_message_count
 from .models import ChatDirect, ChatGroup, ChatMessageDirect, ChatMessageGroup
 from .tasks import notify_users_about_new_direct_chat_message, notify_users_about_new_group_chat_message
@@ -61,8 +66,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if not message_text:
             return
 
+        answer_to_ampel_id = data.get("answer_to_ampel_id")
+
         # Persist to DB and get back a serialisable dict.
-        msg = await self.save_message(message_text)
+        msg = await self.save_message(message_text, answer_to_ampel_id)
 
         # Broadcast to every client currently connected to this chat room.
         # Each receiver's chat_message() handler will mark the message as read.
@@ -81,18 +88,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.mark_message_read(event["id"])
             await database_sync_to_async(broadcast_unread_badge_for_user)(self.user)
 
-        await self.send(
-            text_data=json.dumps(
-                {
-                    "id":         event["id"],
-                    "message":    event["message"],
-                    "user":       event["user"],
-                    "user_id":    event["user_id"],
-                    "created_at": event["created_at"],
-                    "image_url":  event.get("image_url"),
-                }
-            )
-        )
+        payload = {
+            "id":         event["id"],
+            "message":    event["message"],
+            "user":       event["user"],
+            "user_id":    event["user_id"],
+            "created_at": event["created_at"],
+            "image_url":  event.get("image_url"),
+        }
+        if event.get("ampel") and user_can_view_ampel_by_owner(
+            self.user,
+            event.get("ampel_user_id"),
+            _user_org_id(self.user),
+        ):
+            payload["ampel"] = event["ampel"]
+
+        await self.send(text_data=json.dumps(payload))
 
     # ── database helpers (sync → async) ─────────────────────────────────────
 
@@ -147,15 +158,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return (chat.identifier, chat.pk)
 
     @database_sync_to_async
-    def save_message(self, text):
+    def save_message(self, text, answer_to_ampel_id=None):
         """Save the message to the database and return a serialisable dict."""
         org = self.user.customuser.org
 
+        answer_to_ampel = None
         if self.chat_type == "direct":
             chat = ChatDirect.objects.get(pk=self.chat_pk, org=org)
-            msg = ChatMessageDirect.objects.create(
-                org=org, chat=chat, user=self.user, message=text
-            )
+            if answer_to_ampel_id:
+                answer_to_ampel = resolve_ampel_for_direct_reply(
+                    self.user, answer_to_ampel_id, chat
+                )
+            create_kw = {
+                "org": org,
+                "chat": chat,
+                "user": self.user,
+                "message": text,
+            }
+            if answer_to_ampel:
+                create_kw["answer_to_ampel"] = answer_to_ampel
+            msg = ChatMessageDirect.objects.create(**create_kw)
             notify_users_about_new_direct_chat_message.s(msg.id, self.user.id).apply_async(countdown=10)
         else:
             chat = ChatGroup.objects.get(pk=self.chat_pk, org=org)
@@ -171,7 +193,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         image_url = msg.get_image_public_url()
 
-        return {
+        payload = {
             "id": msg.id,
             "message": msg.message,
             # str(user) uses the project's monkey-patched __str__
@@ -181,6 +203,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "created_at": msg.created_at.strftime("%d.%m.%Y %H:%M"),
             "image_url": image_url,
         }
+        if answer_to_ampel:
+            payload["ampel_user_id"] = answer_to_ampel.user_id
+            payload["ampel"] = {
+                "status": answer_to_ampel.status,
+                "comment": answer_to_ampel.comment or "",
+            }
+        return payload
 
 
 class ChatBadgeConsumer(AsyncWebsocketConsumer):

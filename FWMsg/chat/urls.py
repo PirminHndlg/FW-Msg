@@ -15,6 +15,7 @@ urlpatterns = [
     path('group/<str:identifier>/leave/', views.leave_chat_group, name='leave_chat_group'),
     path('create-group/', views.create_chat_group, name='create_chat_group'),
     path('create-direct/', views.create_chat_direct, name='create_chat_direct'),
+    path('for-ampel/<int:ampel_id>/', views.get_or_create_chat_for_ampel, name='get_or_create_chat_for_ampel'),
     # AJAX endpoints
     path('ajax/poll/', views.ajax_chat_poll, name='ajax_chat_poll'),
     path('ajax/list/', views.ajax_chat_list_updates, name='ajax_chat_list_updates'),
