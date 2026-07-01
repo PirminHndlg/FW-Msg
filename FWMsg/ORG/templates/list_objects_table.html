@@ -135,6 +135,16 @@
                 </small>
             </div>
             {% endif %}
+
+            {% if with_quick_edit %}
+            <!-- Stylish toggle button for quick edit mode -->
+            <div class="form-switch d-flex align-items-center gap-2">
+                <input type="checkbox" id="quickEditCheckbox" class="form-check-input" onchange="toggleQuickEdit()" style="height: 1.5em; width: 2.5em; cursor: pointer;">
+                <label class="form-check-label fw-semibold mb-0" for="quickEditCheckbox" id="toggleQuickEdit" style="cursor: pointer;">
+                    {% trans "Schnell bearbeiten" %} (Beta)
+                </label>
+            </div>
+            {% endif %}
         </div>
     </div>
     
@@ -143,7 +153,7 @@
             {% render_table table %}
             <div class="d-flex justify-content-start m-3 gap-2 flex-wrap">
             {% for checkbox_submit_text in checkbox_submit_texts %}
-                <button type="submit" name="checkbox_submit_text" value="{{ checkbox_submit_text.0 }}" data-helptext="{{ checkbox_submit_text.2 }}" class="btn btn-primary">{{ checkbox_submit_text.1|safe }}</button>
+                <button type="button" name="checkbox_submit_text" value="{{ checkbox_submit_text.0 }}" data-helptext="{{ checkbox_submit_text.2 }}" class="btn btn-primary">{{ checkbox_submit_text.1|safe }}</button>
             {% endfor %}
             </div>
         </form>
@@ -292,6 +302,9 @@
                 currentForm.submit();
             }
         });
+
+        // Call toggleQuickEdit to hide input and show alternative
+        toggleQuickEdit();
     });
     {% endif %}
 
@@ -411,9 +424,7 @@
     // Highlight row if highlight_id is provided
     {% if highlight_id %}
     document.addEventListener('DOMContentLoaded', function() {
-        console.log("{{ highlight_id }}");
         const targetRow = document.querySelector(`tr[data-pk="{{ highlight_id }}"]`);
-        console.log(targetRow); // is null
         if (targetRow) {
             // Add highlight class
             targetRow.classList.add('table-warning');
@@ -432,6 +443,130 @@
             }, 3000);
         }
     });
+    {% endif %}
+
+    {% if with_quick_edit %}
+    function toggleQuickEdit() {
+        const isChecked = document.getElementById('quickEditCheckbox').checked;
+        const quickEditInputs = document.querySelectorAll('.quick-edit-input');
+        quickEditInputs.forEach(input => {
+            // Hide input if quick edit is disabled
+            if (isChecked) {
+                input.classList.remove('d-none');
+            } else {
+                input.classList.add('d-none');
+            }
+        });
+        const quickEditAlternatives = document.querySelectorAll('.quick-edit-alternative');
+        quickEditAlternatives.forEach(alternative => {
+            // Show alternative if quick edit is disabled
+            if (!isChecked) {
+                alternative.classList.remove('d-none');
+            } else {
+                alternative.classList.add('d-none');
+            }
+        });
+    }
+
+    // Quick edit functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const quickEditInputs = document.querySelectorAll('.quick-edit-input');
+        quickEditInputs.forEach(input => {
+            input.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    input.blur();
+                }
+            });
+            input.addEventListener('change', function(event) {
+                const csrfToken = '{{ csrf_token }}';
+                let value = event.target.value.trim();
+
+                if (input.type === 'checkbox') {
+                    value = input.checked;
+                }
+
+                const userAttributeId = input.getAttribute('data-userattr-id');
+                const fieldName = input.getAttribute('data-field-name');
+                const userId = input.getAttribute('data-user-id');
+
+                if (userAttributeId) {
+                    quickEditAttributeFetch(input, csrfToken, userAttributeId, value);
+                } else if (fieldName && userId) {
+                    quickEditFieldFetch(input, csrfToken, userId, fieldName, value);
+                }
+            });
+        });
+    });
+
+    function quickEditAttributeFetch(input, csrfToken, userAttributeId, value) {
+        fetch(`{% url "ajax_quick_edit_attribute" %}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                user_attribute_id: userAttributeId,
+                value: value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let alternative = input.nextElementSibling;
+                // Update the display element with the new value
+                if (input.type === 'checkbox') {
+                    if (input.checked) {
+                        alternative.querySelector('.true').classList.remove('d-none');
+                        alternative.querySelector('.false').classList.add('d-none');
+                    } else {
+                        alternative.querySelector('.true').classList.add('d-none');
+                        alternative.querySelector('.false').classList.remove('d-none');
+                    }
+                } else {
+                    if (value != '') {
+                        alternative.textContent = value;
+                    } else {
+                        alternative.textContent = '—';
+                    }
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function quickEditFieldFetch(input, csrfToken, userId, fieldName, value) {
+        fetch(`{% url "ajax_quick_edit_fields" %}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                field_name: fieldName,
+                field_value: value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const alternative = input.nextElementSibling;
+                if (value) {
+                    const [y, m, d] = value.split('-');
+                    alternative.textContent = `${d}.${m}.${y}`;
+                } else {
+                    alternative.textContent = '—';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
     {% endif %}
 </script>
 {% endblock %}
