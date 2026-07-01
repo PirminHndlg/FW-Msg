@@ -254,6 +254,15 @@ def laenderinfo(request):
                     {'icon': 'person', 'value': format_text_with_link(freiwilliger.einsatzstelle2.mentor)}
                 ]
             })
+        
+        if freiwilliger.einsatzstelle2.start_geplant or freiwilliger.einsatzstelle2.ende_geplant:
+            location_cards.append({
+                'title': _('Geplanter Zeitraum'),
+                'items': [
+                    {'icon': 'calendar-date', 'value': format_text_with_link(freiwilliger.einsatzstelle2.start_geplant) if freiwilliger.einsatzstelle2.start_geplant else None, 'label': _('Start geplant')},
+                    {'icon': 'calendar-date', 'value': format_text_with_link(freiwilliger.einsatzstelle2.ende_geplant) if freiwilliger.einsatzstelle2.ende_geplant else None, 'label': _('Ende geplant')}
+                ]
+            })
 
     # Prepare general cards
     general_cards = []
