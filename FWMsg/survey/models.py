@@ -85,6 +85,10 @@ class Survey(OrgModel):
         default=False,
         verbose_name=_('Responses are anonymous'),
     )
+    responses_are_public = models.BooleanField(
+        default=False,
+        verbose_name=_('Responses are public'),
+    )
     start_date = models.DateField(
         null=True, blank=True, 
         verbose_name=_('Start date'),

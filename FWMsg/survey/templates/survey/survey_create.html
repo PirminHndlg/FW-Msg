@@ -137,6 +137,21 @@
                         </div>
                     </div>
                     
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            {{ form.responses_are_public|add_class:'form-check-input' }}
+                            <label class="form-check-label" for="{{ form.responses_are_public.id_for_label }}">
+                                <strong>{{ form.responses_are_public.label }}</strong>
+                            </label>
+                            {% if form.responses_are_public.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.responses_are_public.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">{% trans "Users can view answers of other users" %}</div>
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'survey:survey_list' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>

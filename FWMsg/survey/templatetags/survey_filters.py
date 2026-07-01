@@ -32,4 +32,12 @@ def is_textarea_widget(field):
 @register.filter
 def has_choices(field):
     """Check if field has choices (for select, radio, checkbox)"""
-    return hasattr(field.field, 'choices') and field.field.choices 
+    return hasattr(field.field, 'choices') and field.field.choices
+
+
+@register.filter
+def get_item(dictionary, key):
+    """Look up a dict value by a variable key"""
+    if dictionary is None:
+        return None
+    return dictionary.get(key) 

@@ -27,7 +27,7 @@ class SurveyForm(forms.ModelForm):
     class Meta:
         model = Survey
         fields = [
-            'title', 'description', 'allow_anonymous', 'responses_are_anonymous',
+            'title', 'description', 'allow_anonymous', 'responses_are_anonymous', 'responses_are_public',
             'start_date', 'end_date', 'max_responses'
         ]
         widgets = {
@@ -44,6 +44,9 @@ class SurveyForm(forms.ModelForm):
                 'class': 'form-check-input'
             }),
             'responses_are_anonymous': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'responses_are_public': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
             'start_date': forms.DateInput(attrs={

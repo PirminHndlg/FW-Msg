@@ -102,6 +102,31 @@
                                         {{ field.errors.0 }}
                                     </div>
                                 {% endif %}
+
+                                {% if survey.responses_are_public %}
+                                    {% with answers=public_answers|get_item:field.html_name %}
+                                        {% if answers %}
+                                        <div class="public-answers mt-3">
+                                            <p class="public-answers-label text-muted mb-2">
+                                                <i class="fas fa-users me-1"></i>
+                                                {% trans "Other responses" %}
+                                            </p>
+                                            {% for answer in answers %}
+                                            <div class="response-card">
+                                                <div class="response-header">
+                                                    {% if answer.respondent %}
+                                                        <span class="fw-semibold">{{ answer.respondent.get_full_name|default:answer.respondent.username }}</span>
+                                                    {% else %}
+                                                        <span class="text-muted fst-italic">{% trans "Anonymous" %}</span>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="response-body">{{ answer.display }}</div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endif %}
                             </div>
                         </div>
                     {% empty %}
@@ -167,6 +192,60 @@
     
     .invalid-feedback {
         margin-top: 0.5rem;
+    }
+
+    .public-answers {
+        border-top: 1px solid #e9ecef;
+        padding-top: 0.75rem;
+    }
+
+    .public-answers-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .response-card {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 0.4rem 0.75rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .response-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .response-header {
+        flex-shrink: 0;
+        font-size: 0.82rem;
+        color: #6c757d;
+        white-space: nowrap;
+    }
+
+    .response-header::after {
+        content: ":";
+    }
+
+    .response-body {
+        font-size: 0.92rem;
+        color: #212529;
+        min-width: 0;
+    }
+
+    @media (max-width: 575.98px) {
+        .response-card {
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+        .response-header::after {
+            content: "";
+        }
     }
 </style>
 {% endblock %}

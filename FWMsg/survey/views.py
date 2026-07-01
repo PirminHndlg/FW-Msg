@@ -104,6 +104,35 @@ def survey_detail(request, survey_key):
     context = check_organization_context(request)
     context['survey'] = survey
     context['form'] = form
+
+    if survey.responses_are_public:
+        public_answers = {}
+        for question in survey.questions.all():
+            field_name = f'question_{question.id}'
+            entries = []
+            answers = (
+                SurveyAnswer.objects
+                .filter(response__survey=survey, response__is_complete=True, question=question)
+                .select_related('response__respondent')
+                .prefetch_related('selected_options')
+            )
+            for answer in answers:
+                if question.question_type in ('checkbox', 'radio', 'select'):
+                    opts = answer.selected_options.all()
+                    if opts.exists():
+                        entries.append({
+                            'respondent': answer.response.respondent,
+                            'display': ', '.join(o.option_text for o in opts),
+                        })
+                else:
+                    if answer.text_answer:
+                        entries.append({
+                            'respondent': answer.response.respondent,
+                            'display': answer.text_answer,
+                        })
+            public_answers[field_name] = entries
+        context['public_answers'] = public_answers
+
     return render(request, 'survey/survey_detail.html', context)
 
 
