@@ -3,6 +3,23 @@
 from django.db import migrations, models
 
 
+def backfill_is_edited(apps, schema_editor):
+    """Backfill NULL is_edited rows before enforcing NOT NULL (PostgreSQL-safe)."""
+    tables = (
+        'chat_chatmessagedirect',
+        'chat_chatmessagegroup',
+        'chat_historicalchatmessagedirect',
+        'chat_historicalchatmessagegroup',
+    )
+    with schema_editor.connection.cursor() as cursor:
+        for table in tables:
+            quoted = schema_editor.quote_name(table)
+            cursor.execute(
+                f'UPDATE {quoted} SET is_edited = %s WHERE is_edited IS NULL',
+                [False],
+            )
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -13,21 +30,42 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='chatmessagedirect',
             name='is_edited',
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(default=False, null=True),
         ),
         migrations.AddField(
             model_name='chatmessagegroup',
             name='is_edited',
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(default=False, null=True),
         ),
         migrations.AddField(
             model_name='historicalchatmessagedirect',
             name='is_edited',
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(default=False, null=True),
         ),
         migrations.AddField(
             model_name='historicalchatmessagegroup',
             name='is_edited',
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(default=False, null=True),
+        ),
+        migrations.RunPython(backfill_is_edited, migrations.RunPython.noop),
+        migrations.AlterField(
+            model_name='chatmessagedirect',
+            name='is_edited',
+            field=models.BooleanField(db_default=False, default=False),
+        ),
+        migrations.AlterField(
+            model_name='chatmessagegroup',
+            name='is_edited',
+            field=models.BooleanField(db_default=False, default=False),
+        ),
+        migrations.AlterField(
+            model_name='historicalchatmessagedirect',
+            name='is_edited',
+            field=models.BooleanField(db_default=False, default=False),
+        ),
+        migrations.AlterField(
+            model_name='historicalchatmessagegroup',
+            name='is_edited',
+            field=models.BooleanField(db_default=False, default=False),
         ),
     ]

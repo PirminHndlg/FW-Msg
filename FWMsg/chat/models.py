@@ -135,7 +135,7 @@ class ChatMessageDirect(ChatMessageImageUrlMixin, OrgModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     read = models.BooleanField(default=False)
-    is_edited = models.BooleanField(default=False)
+    is_edited = models.BooleanField(default=False, db_default=False)
     answer_to_ampel = models.ForeignKey(Ampel2, on_delete=models.SET_NULL, null=True, blank=True)
     
     history = HistoricalRecords()
@@ -165,7 +165,7 @@ class ChatMessageGroup(ChatMessageImageUrlMixin, OrgModel):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    is_edited = models.BooleanField(default=False)
+    is_edited = models.BooleanField(default=False, db_default=False)
     read_by = models.ManyToManyField(User, related_name='chat_message_group_read_by')
     
     history = HistoricalRecords()
