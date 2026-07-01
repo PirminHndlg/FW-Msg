@@ -30,6 +30,12 @@ def _sync_chat_message_image_identifier(instance):
         instance.image_identifier = uuid.uuid4()
 
 
+def _normalize_chat_message_text(text):
+    if not text:
+        return text
+    return text.replace('\r\n', '\n').replace('\r', '\n')
+
+
 class ChatMessageImageUrlMixin:
     """Opaque image URLs (UUID); never expose storage paths to clients."""
 
@@ -136,6 +142,7 @@ class ChatMessageDirect(ChatMessageImageUrlMixin, OrgModel):
 
     def save(self, *args, **kwargs):
         _sync_chat_message_image_identifier(self)
+        self.message = _normalize_chat_message_text(self.message)
         super().save(*args, **kwargs)
 
     def mark_as_read(self):
@@ -165,6 +172,7 @@ class ChatMessageGroup(ChatMessageImageUrlMixin, OrgModel):
 
     def save(self, *args, **kwargs):
         _sync_chat_message_image_identifier(self)
+        self.message = _normalize_chat_message_text(self.message)
         super().save(*args, **kwargs)
 
     def mark_as_read_by(self, user):

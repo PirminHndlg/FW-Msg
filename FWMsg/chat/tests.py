@@ -209,6 +209,13 @@ class ChatMessageDirectModelTest(ChatBaseTest):
         msg.refresh_from_db()
         self.assertFalse(msg.can_be_edited())
 
+    def test_save_normalizes_windows_line_endings(self):
+        chat = make_direct_chat(self.org, self.alice, self.bob)
+        msg = ChatMessageDirect.objects.create(
+            chat=chat, user=self.alice, org=self.org, message="line1\r\nline2"
+        )
+        self.assertEqual(msg.message, "line1\nline2")
+
 
 class ChatMessageGroupModelTest(ChatBaseTest):
 

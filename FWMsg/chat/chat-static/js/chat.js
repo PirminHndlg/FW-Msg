@@ -625,11 +625,27 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
     }
 
     // ── DOM helpers ───────────────────────────────────────────────────────────
+    function getMessageRawText(wrapper) {
+        const tpl = wrapper.querySelector('template.chat-msg-raw-text');
+        if (tpl) return tpl.content.textContent;
+        return wrapper.dataset.msgText || '';
+    }
+
+    function setMessageRawText(wrapper, text) {
+        let tpl = wrapper.querySelector('template.chat-msg-raw-text');
+        if (!tpl) {
+            tpl = document.createElement('template');
+            tpl.className = 'chat-msg-raw-text';
+            wrapper.insertBefore(tpl, wrapper.firstChild);
+        }
+        tpl.textContent = text;
+    }
+
     function updateMessageBubble(messageId, newText) {
         const wrapper = window_.querySelector(`[data-msg-id="${messageId}"]`);
         if (!wrapper) return;
 
-        wrapper.dataset.msgText = newText;
+        setMessageRawText(wrapper, newText);
         const bubble = wrapper.querySelector('.bubble');
         if (!bubble) return;
 
@@ -665,7 +681,12 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         const wrapper = document.createElement('div');
         wrapper.className = 'd-flex flex-column ' + (isOwn ? 'align-items-end' : 'align-items-start');
         if (msg.id) wrapper.dataset.msgId = msg.id;
-        if (isOwn && msg.message) wrapper.dataset.msgText = msg.message;
+        if (isOwn && msg.message) {
+            const rawTpl = document.createElement('template');
+            rawTpl.className = 'chat-msg-raw-text';
+            rawTpl.textContent = msg.message;
+            wrapper.appendChild(rawTpl);
+        }
 
         let html = `<div class="bubble ${isOwn ? 'bubble-own' : 'bubble-other'}">`;
         if (!isOwn && chatType === 'group') {
@@ -711,7 +732,7 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         const messageId = parseInt(editBtn.dataset.msgId, 10);
         const wrapper = window_.querySelector(`[data-msg-id="${messageId}"]`);
         if (!wrapper) return;
-        const rawText = wrapper.dataset.msgText || '';
+        const rawText = getMessageRawText(wrapper);
         startEditMode(messageId, rawText);
     });
 

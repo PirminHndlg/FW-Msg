@@ -161,7 +161,8 @@ def format_text_with_link(text):
 
     text = _URL_RE.sub(_replace, text)
 
-    # Line breaks
+    # Normalize line endings before converting once to <br>.
+    text = re.sub(r'\r\n?', '\n', text)
     text = text.replace('\n', '<br>')
 
     return mark_safe(text)

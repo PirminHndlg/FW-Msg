@@ -38,7 +38,10 @@
 <div class="card rounded-4" style="border: 1px solid #e9ecef; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);">
   <div id="chat-window" class="chat-window">
     {% for msg in chat_messages %}
-      <div class="d-flex flex-column {% if msg.user == request.user %}align-items-end{% else %}align-items-start{% endif %}" data-msg-id="{{ msg.id }}"{% if msg.user == request.user %} data-msg-text="{{ msg.message|escapejs }}"{% endif %}>
+      <div class="d-flex flex-column {% if msg.user == request.user %}align-items-end{% else %}align-items-start{% endif %}" data-msg-id="{{ msg.id }}">
+        {% if msg.user == request.user %}
+        <template class="chat-msg-raw-text">{{ msg.message }}</template>
+        {% endif %}
         <div class="bubble {% if msg.user == request.user %}bubble-own{% else %}bubble-other{% endif %}">
           {% if msg.answer_to_ampel %}
             {% if request.user.role == 'O' or request.user.role == 'T' or msg.answer_to_ampel.user_id == request.user.id %}
@@ -56,7 +59,7 @@
                  role="button" tabindex="0" aria-label="{% trans 'Bild vergrößern' %}">
           {% endif %}
           {% if msg.message %}
-            <p>{{ msg.message|format_text_with_link|linebreaksbr }}</p>
+            <p>{{ msg.message|format_text_with_link }}</p>
           {% endif %}
         </div>
         <div class="bubble-meta {% if msg.user == request.user %}text-end me-1{% else %}ms-1{% endif %}">
