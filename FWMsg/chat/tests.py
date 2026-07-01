@@ -13,6 +13,7 @@ Coverage:
 
 import asyncio
 import json
+from datetime import timedelta
 from unittest.mock import patch, MagicMock
 
 from channels.layers import get_channel_layer
@@ -29,7 +30,13 @@ from Global.models import CustomUser, PersonCluster
 from ORG.models import Organisation
 
 from .forms import ChatDirectForm, ChatGroupForm
-from .models import ChatDirect, ChatGroup, ChatMessageDirect, ChatMessageGroup
+from .models import (
+    CHAT_MESSAGE_EDIT_WINDOW,
+    ChatDirect,
+    ChatGroup,
+    ChatMessageDirect,
+    ChatMessageGroup,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -177,6 +184,31 @@ class ChatMessageDirectModelTest(ChatBaseTest):
         )
         self.assertEqual(str(msg), "test message")
 
+    def test_is_edited_defaults_false(self):
+        chat = make_direct_chat(self.org, self.alice, self.bob)
+        msg = ChatMessageDirect.objects.create(
+            chat=chat, user=self.alice, org=self.org, message="new"
+        )
+        self.assertFalse(msg.is_edited)
+
+    def test_can_be_edited_within_window(self):
+        chat = make_direct_chat(self.org, self.alice, self.bob)
+        msg = ChatMessageDirect.objects.create(
+            chat=chat, user=self.alice, org=self.org, message="fresh"
+        )
+        self.assertTrue(msg.can_be_edited())
+
+    def test_can_be_edited_outside_window(self):
+        chat = make_direct_chat(self.org, self.alice, self.bob)
+        msg = ChatMessageDirect.objects.create(
+            chat=chat, user=self.alice, org=self.org, message="old"
+        )
+        ChatMessageDirect.objects.filter(pk=msg.pk).update(
+            created_at=timezone.now() - CHAT_MESSAGE_EDIT_WINDOW - timedelta(minutes=1)
+        )
+        msg.refresh_from_db()
+        self.assertFalse(msg.can_be_edited())
+
 
 class ChatMessageGroupModelTest(ChatBaseTest):
 
@@ -195,6 +227,13 @@ class ChatMessageGroupModelTest(ChatBaseTest):
             chat=group, user=self.alice, org=self.org, message="greetings"
         )
         self.assertEqual(str(msg), "greetings")
+
+    def test_is_edited_defaults_false(self):
+        group = make_group_chat(self.org, "G", self.alice)
+        msg = ChatMessageGroup.objects.create(
+            chat=group, user=self.alice, org=self.org, message="new"
+        )
+        self.assertFalse(msg.is_edited)
 
 
 # ===========================================================================
@@ -823,6 +862,126 @@ class AjaxChatUpdatesViewTest(ChatBaseTest):
         msg = data["messages"][0]
         for field in ("id", "user", "user_id", "message", "created_at"):
             self.assertIn(field, msg)
+
+
+# ===========================================================================
+# View: edit_message_direct / edit_message_group
+# ===========================================================================
+
+class ChatEditMessageTest(ChatBaseTest):
+
+    def setUp(self):
+        super().setUp()
+        self.chat = make_direct_chat(self.org, self.alice, self.bob)
+        self.ident = self.chat.get_identifier()
+        self.direct_msg = ChatMessageDirect.objects.create(
+            chat=self.chat, user=self.alice, org=self.org, message="Original"
+        )
+        self.direct_edit_url = reverse(
+            "edit_message_direct",
+            args=[self.ident, self.direct_msg.id],
+        )
+
+        self.group = make_group_chat(self.org, "G", self.alice, self.bob)
+        self.gident = self.group.get_identifier()
+        self.group_msg = ChatMessageGroup.objects.create(
+            chat=self.group, user=self.alice, org=self.org, message="Original group"
+        )
+        self.group_edit_url = reverse(
+            "edit_message_group",
+            args=[self.gident, self.group_msg.id],
+        )
+
+    def _post_edit(self, url, message):
+        return self.client.post(
+            url,
+            data=json.dumps({"message": message}),
+            content_type="application/json",
+        )
+
+    def test_edit_direct_message_success(self):
+        self.login(self.alice)
+        response = self._post_edit(self.direct_edit_url, "Updated text")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["ok"])
+        self.assertEqual(data["message"], "Updated text")
+        self.direct_msg.refresh_from_db()
+        self.assertEqual(self.direct_msg.message, "Updated text")
+        self.assertTrue(self.direct_msg.is_edited)
+
+    def test_edit_group_message_success(self):
+        self.login(self.alice)
+        response = self._post_edit(self.group_edit_url, "Updated group text")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["ok"])
+        self.group_msg.refresh_from_db()
+        self.assertEqual(self.group_msg.message, "Updated group text")
+        self.assertTrue(self.group_msg.is_edited)
+
+    def test_edit_direct_wrong_user_returns_403(self):
+        self.login(self.bob)
+        response = self._post_edit(self.direct_edit_url, "Hacked")
+        self.assertEqual(response.status_code, 403)
+        self.direct_msg.refresh_from_db()
+        self.assertEqual(self.direct_msg.message, "Original")
+
+    def test_edit_group_wrong_user_returns_403(self):
+        self.login(self.bob)
+        response = self._post_edit(self.group_edit_url, "Hacked")
+        self.assertEqual(response.status_code, 403)
+        self.group_msg.refresh_from_db()
+        self.assertEqual(self.group_msg.message, "Original group")
+
+    def test_edit_direct_non_member_returns_404(self):
+        self.login(self.carol)
+        response = self._post_edit(self.direct_edit_url, "Sneak")
+        self.assertEqual(response.status_code, 404)
+
+    def test_edit_group_non_member_returns_404(self):
+        self.login(self.carol)
+        response = self._post_edit(self.group_edit_url, "Sneak")
+        self.assertEqual(response.status_code, 404)
+
+    def test_edit_direct_unauthenticated_redirects(self):
+        response = self._post_edit(self.direct_edit_url, "No auth")
+        self.assertEqual(response.status_code, 302)
+
+    def test_edit_direct_empty_message_returns_400(self):
+        self.login(self.alice)
+        response = self._post_edit(self.direct_edit_url, "   ")
+        self.assertEqual(response.status_code, 400)
+
+    def test_edit_group_empty_message_returns_400(self):
+        self.login(self.alice)
+        response = self._post_edit(self.group_edit_url, "")
+        self.assertEqual(response.status_code, 400)
+
+    def test_edit_direct_get_not_allowed(self):
+        self.login(self.alice)
+        response = self.client.get(self.direct_edit_url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_edit_direct_too_old_returns_403(self):
+        ChatMessageDirect.objects.filter(pk=self.direct_msg.pk).update(
+            created_at=timezone.now() - CHAT_MESSAGE_EDIT_WINDOW - timedelta(minutes=1)
+        )
+        self.login(self.alice)
+        response = self._post_edit(self.direct_edit_url, "Too late")
+        self.assertEqual(response.status_code, 403)
+        self.direct_msg.refresh_from_db()
+        self.assertEqual(self.direct_msg.message, "Original")
+
+    def test_edit_group_too_old_returns_403(self):
+        ChatMessageGroup.objects.filter(pk=self.group_msg.pk).update(
+            created_at=timezone.now() - CHAT_MESSAGE_EDIT_WINDOW - timedelta(minutes=1)
+        )
+        self.login(self.alice)
+        response = self._post_edit(self.group_edit_url, "Too late")
+        self.assertEqual(response.status_code, 403)
+        self.group_msg.refresh_from_db()
+        self.assertEqual(self.group_msg.message, "Original group")
 
 
 # ===========================================================================

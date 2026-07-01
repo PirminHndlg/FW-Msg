@@ -13,6 +13,7 @@
  * @param {string} wsUrl            - WebSocket URL  (wss://…/ws/chat/direct/<id>/)
  * @param {string} fallbackSendUrl  - HTTP POST URL used when WS is not open
  * @param {string} fallbackPollUrl  - HTTP GET URL used to catch missed messages
+ * @param {string} editBaseUrl      - HTTP POST URL prefix for editing messages (ends with /)
  */
 
 var _chatImageLightboxInst = null;
@@ -109,7 +110,7 @@ function setupChatImageLightbox(chatWindow) {
     });
 }
 
-function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallbackPollUrl) {
+function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallbackPollUrl, editBaseUrl) {
     const window_ = document.getElementById('chat-window');
     if (!window_) {
         return;
@@ -120,8 +121,112 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
     const imageInput = document.getElementById('image-input');
     const imagePreview = document.getElementById('image-preview');
     const imageAttachBtn = document.getElementById('image-attach-btn');
+    const chatInputBar = document.querySelector('.chat-input-bar');
 
+    let editingMessageId = null;
+    let editModeBar = null;
     let previewObjectUrl = null;
+
+    function showEditModeBar() {
+        if (editModeBar) return;
+        editModeBar = document.createElement('div');
+        editModeBar.id = 'chat-edit-mode-bar';
+        editModeBar.className = 'chat-edit-mode-bar';
+        editModeBar.innerHTML =
+            '<span><i class="bi bi-pencil-square me-1"></i>Nachricht bearbeiten</span>' +
+            '<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" id="chat-edit-cancel-btn">Abbrechen</button>';
+        if (chatInputBar && chatInputBar.parentNode) {
+            chatInputBar.parentNode.insertBefore(editModeBar, chatInputBar);
+        }
+        editModeBar.querySelector('#chat-edit-cancel-btn').addEventListener('click', cancelEditMode);
+    }
+
+    function hideEditModeBar() {
+        if (editModeBar) {
+            editModeBar.remove();
+            editModeBar = null;
+        }
+    }
+
+    function cancelEditMode() {
+        editingMessageId = null;
+        if (messageField) {
+            messageField.value = '';
+            autosizeChatMessageField(messageField);
+        }
+        hideEditModeBar();
+        clearImageSelection();
+    }
+
+    function startEditMode(messageId, rawText) {
+        editingMessageId = messageId;
+        if (messageField) {
+            messageField.value = rawText;
+            autosizeChatMessageField(messageField);
+            messageField.focus();
+        }
+        clearImageSelection();
+        showEditModeBar();
+    }
+
+    function sendEditHttp(messageId, text, onSuccess, onError) {
+        if (!editBaseUrl) {
+            if (onError) onError();
+            return;
+        }
+        return fetch(editBaseUrl + messageId + '/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrf,
+            },
+            body: JSON.stringify({ message: text }),
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data.ok) {
+                    if (onError) onError(data);
+                    return;
+                }
+                if (onSuccess) onSuccess(data);
+            })
+            .catch(function () {
+                if (onError) onError();
+            });
+    }
+
+    function submitEdit(text) {
+        const messageId = editingMessageId;
+        if (!messageId || !text) return;
+
+        const savedText = text;
+
+        function onEditSuccess() {
+            if (messageField) {
+                messageField.value = '';
+                autosizeChatMessageField(messageField);
+            }
+            updateMessageBubble(messageId, savedText);
+            cancelEditMode();
+        }
+
+        function onEditError() {
+            if (messageField) {
+                messageField.value = savedText;
+                autosizeChatMessageField(messageField);
+            }
+        }
+
+        if (wsReady && ws) {
+            ws.send(JSON.stringify({
+                action: 'edit',
+                message_id: messageId,
+                message: savedText,
+            }));
+        } else {
+            sendEditHttp(messageId, savedText, onEditSuccess, onEditError);
+        }
+    }
 
     function revokePreviewUrl() {
         if (previewObjectUrl) {
@@ -335,6 +440,17 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
 
         ws.onmessage = function (e) {
             const msg = JSON.parse(e.data);
+            if (msg.action === 'edited') {
+                updateMessageBubble(msg.id, msg.message);
+                if (editingMessageId === msg.id) {
+                    if (messageField) {
+                        messageField.value = '';
+                        autosizeChatMessageField(messageField);
+                    }
+                    cancelEditMode();
+                }
+                return;
+            }
             if (msg.id > lastId) {
                 appendMessage(msg, msg.user_id === currentUserId);
                 lastId = msg.id;
@@ -409,6 +525,12 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
             const withImage = hasImageSelected();
 
             if (!text && !withImage) return;
+
+            if (editingMessageId !== null) {
+                if (!text) return;
+                submitEdit(text);
+                return;
+            }
 
             if (withImage) {
                 const fd = new FormData();
@@ -503,6 +625,39 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
     }
 
     // ── DOM helpers ───────────────────────────────────────────────────────────
+    function updateMessageBubble(messageId, newText) {
+        const wrapper = window_.querySelector(`[data-msg-id="${messageId}"]`);
+        if (!wrapper) return;
+
+        wrapper.dataset.msgText = newText;
+        const bubble = wrapper.querySelector('.bubble');
+        if (!bubble) return;
+
+        let textEl = bubble.querySelector('p');
+        if (newText) {
+            if (!textEl) {
+                textEl = document.createElement('p');
+                bubble.appendChild(textEl);
+            }
+            textEl.innerHTML = formatMessageBody(newText);
+        } else if (textEl) {
+            textEl.remove();
+        }
+
+        const meta = wrapper.querySelector('.bubble-meta');
+        if (meta && !meta.querySelector('.chat-edited-badge')) {
+            const badge = document.createElement('span');
+            badge.className = 'chat-edited-badge';
+            badge.textContent = '(bearbeitet)';
+            const editBtn = meta.querySelector('.chat-edit-btn');
+            if (editBtn) {
+                meta.insertBefore(badge, editBtn);
+            } else {
+                meta.appendChild(badge);
+            }
+        }
+    }
+
     function appendMessage(msg, isOwn) {
         const placeholder = window_.querySelector('.text-center.text-muted');
         if (placeholder) placeholder.remove();
@@ -510,6 +665,7 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         const wrapper = document.createElement('div');
         wrapper.className = 'd-flex flex-column ' + (isOwn ? 'align-items-end' : 'align-items-start');
         if (msg.id) wrapper.dataset.msgId = msg.id;
+        if (isOwn && msg.message) wrapper.dataset.msgText = msg.message;
 
         let html = `<div class="bubble ${isOwn ? 'bubble-own' : 'bubble-other'}">`;
         if (!isOwn && chatType === 'group') {
@@ -533,13 +689,31 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
             html += `<p>${formatMessageBody(msg.message)}</p>`;
         }
         html += '</div>';
-        html += `<div class="bubble-meta ${isOwn ? 'text-end me-1' : 'ms-1'}">${escapeHtml(msg.created_at)}</div>`;
+        html += `<div class="bubble-meta ${isOwn ? 'text-end me-1' : 'ms-1'}">${escapeHtml(msg.created_at)}`;
+        if (msg.is_edited) {
+            html += '<span class="chat-edited-badge">(bearbeitet)</span>';
+        }
+        if (isOwn && msg.id && msg.can_edit) {
+            html += `<button type="button" class="chat-edit-btn btn btn-link btn-sm p-0 ms-1" data-msg-id="${msg.id}" title="Bearbeiten"><i class="bi bi-pencil-square"></i></button>`;
+        }
+        html += '</div>';
 
         wrapper.innerHTML = html;
         window_.appendChild(wrapper);
         userLeftChatBottom = false;
         scrollToBottom();
     }
+
+    window_.addEventListener('click', function (e) {
+        const editBtn = e.target.closest('.chat-edit-btn');
+        if (!editBtn) return;
+        e.preventDefault();
+        const messageId = parseInt(editBtn.dataset.msgId, 10);
+        const wrapper = window_.querySelector(`[data-msg-id="${messageId}"]`);
+        if (!wrapper) return;
+        const rawText = wrapper.dataset.msgText || '';
+        startEditMode(messageId, rawText);
+    });
 
     function escapeHtml(str) {
         const div = document.createElement('div');

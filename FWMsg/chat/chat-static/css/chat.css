@@ -89,6 +89,36 @@
     margin-top: .2rem;
 }
 
+.chat-edited-badge {
+    font-style: italic;
+    opacity: 0.85;
+}
+
+.chat-edit-btn {
+    font-size: .85rem;
+    line-height: 1;
+    vertical-align: baseline;
+    text-decoration: none;
+    opacity: 0.7;
+}
+
+.chat-edit-btn:hover,
+.chat-edit-btn:focus-visible {
+    opacity: 1;
+    text-decoration: none;
+}
+
+.chat-edit-mode-bar {
+    border-top: 1px solid #e9ecef;
+    padding: 0.5rem 1rem;
+    background: #fff8e6;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
 .chat-input-bar {
     border-top: 1px solid #e9ecef;
     padding: .75rem 1rem;

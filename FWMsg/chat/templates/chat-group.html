@@ -35,7 +35,7 @@
 <div class="card rounded-4" style="border: 1px solid #e9ecef; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);">
   <div id="chat-window" class="chat-window">
     {% for msg in chat_messages %}
-      <div class="d-flex flex-column {% if msg.user == request.user %}align-items-end{% else %}align-items-start{% endif %}" data-msg-id="{{ msg.id }}">
+      <div class="d-flex flex-column {% if msg.user == request.user %}align-items-end{% else %}align-items-start{% endif %}" data-msg-id="{{ msg.id }}"{% if msg.user == request.user %} data-msg-text="{{ msg.message|escapejs }}"{% endif %}>
           <div class="bubble {% if msg.user == request.user %}bubble-own{% else %}bubble-other{% endif %}">
             {% if msg.user != request.user %}
               <small class="text-muted">{{ msg.user.get_full_name|default:msg.user.username }}</small>
@@ -51,6 +51,14 @@
         </div>
         <div class="bubble-meta {% if msg.user == request.user %}text-end me-1{% else %}ms-1{% endif %}">
           {{ msg.created_at|date:"d.m.Y H:i" }}
+          {% if msg.is_edited %}
+            <span class="chat-edited-badge">{% trans "(bearbeitet)" %}</span>
+          {% endif %}
+          {% if msg.user == request.user and msg.can_be_edited %}
+            <button type="button" class="chat-edit-btn btn btn-link btn-sm p-0 ms-1" data-msg-id="{{ msg.id }}" title="{% trans 'Bearbeiten' %}">
+              <i class="bi bi-pencil-square"></i>
+            </button>
+          {% endif %}
         </div>
       </div>
     {% empty %}
@@ -346,7 +354,8 @@
     {{ request.user.id }},
     wsUrl,
     '{% url "send_message_group" chat.get_identifier %}',
-    '{% url "ajax_chat_updates" "group" chat.get_identifier %}'
+    '{% url "ajax_chat_updates" "group" chat.get_identifier %}',
+    '{% url "edit_message_group" chat.get_identifier 0 %}'.replace(/\/0\/$/, '/')
   );
 </script>
 {% endblock %}

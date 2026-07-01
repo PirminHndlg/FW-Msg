@@ -47,3 +47,15 @@ def broadcast_chat_message_to_room(chat_type, identifier, msg_dict):
         room_group,
         {"type": "chat_message", **msg_dict},
     )
+
+
+def broadcast_chat_edit_to_room(chat_type, identifier, message_id, new_text):
+    """Broadcast a message edit to all WebSocket clients in the room."""
+    layer = get_channel_layer()
+    if layer is None:
+        return
+    room_group = f"chat_{chat_type}_{identifier[:80]}"
+    async_to_sync(layer.group_send)(
+        room_group,
+        {"type": "chat_message_edited", "id": message_id, "message": new_text},
+    )

@@ -62,6 +62,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except (json.JSONDecodeError, ValueError):
             return
 
+        if data.get("action") == "edit":
+            await self.handle_edit(data)
+            return
+
         message_text = data.get("message", "").strip()
         if not message_text:
             return
@@ -74,6 +78,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Broadcast to every client currently connected to this chat room.
         # Each receiver's chat_message() handler will mark the message as read.
         await self.channel_layer.group_send(self.room_group, {"type": "chat_message", **msg})
+
+    async def handle_edit(self, data):
+        message_id = data.get("message_id")
+        message_text = data.get("message", "").strip()
+        if not message_id or not message_text:
+            return
+
+        result = await self.edit_message(message_id, message_text)
+        if result is None:
+            return
+
+        await self.channel_layer.group_send(
+            self.room_group,
+            {
+                "type": "chat_message_edited",
+                "id": result["id"],
+                "message": result["message"],
+            },
+        )
 
     # ── receive from channel layer (i.e. broadcast from another consumer) ────
 
@@ -102,8 +125,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
             _user_org_id(self.user),
         ):
             payload["ampel"] = event["ampel"]
+        if event["user_id"] == self.user.id:
+            payload["can_edit"] = event.get("can_edit", True)
 
         await self.send(text_data=json.dumps(payload))
+
+    async def chat_message_edited(self, event):
+        """Forward a message edit to this WebSocket client."""
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "action": "edited",
+                    "id": event["id"],
+                    "message": event["message"],
+                }
+            )
+        )
 
     # ── database helpers (sync → async) ─────────────────────────────────────
 
@@ -158,6 +195,32 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return (chat.identifier, chat.pk)
 
     @database_sync_to_async
+    def edit_message(self, message_id, text):
+        """Update a message if it belongs to this chat and was sent by the current user."""
+        if self.chat_type == "direct":
+            try:
+                msg = ChatMessageDirect.objects.get(
+                    id=message_id, chat_id=self.chat_pk, user=self.user
+                )
+            except ChatMessageDirect.DoesNotExist:
+                return None
+        else:
+            try:
+                msg = ChatMessageGroup.objects.get(
+                    id=message_id, chat_id=self.chat_pk, user=self.user
+                )
+            except ChatMessageGroup.DoesNotExist:
+                return None
+
+        if not msg.can_be_edited():
+            return None
+
+        msg.message = text
+        msg.is_edited = True
+        msg.save(update_fields=["message", "is_edited", "updated_at"])
+        return {"id": msg.id, "message": msg.message}
+
+    @database_sync_to_async
     def save_message(self, text, answer_to_ampel_id=None):
         """Save the message to the database and return a serialisable dict."""
         org = self.user.customuser.org
@@ -202,6 +265,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "user_id": self.user.id,
             "created_at": msg.created_at.strftime("%d.%m.%Y %H:%M"),
             "image_url": image_url,
+            "can_edit": msg.can_be_edited(),
         }
         if answer_to_ampel:
             payload["ampel_user_id"] = answer_to_ampel.user_id

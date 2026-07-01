@@ -22,6 +22,7 @@ from .ampel_access import (
 )
 
 from .badge_utils import (
+    broadcast_chat_edit_to_room,
     broadcast_chat_message_to_room,
     broadcast_unread_badge_for_user,
     get_unread_chat_message_count,
@@ -50,7 +51,10 @@ def _chat_message_payload(msg, user, viewer=None):
         "message": msg.message,
         "created_at": msg.created_at.strftime("%d.%m.%Y %H:%M"),
         "image_url": image_url,
+        "is_edited": msg.is_edited,
     }
+    if viewer is not None and viewer.is_authenticated and msg.user_id == viewer.id:
+        payload["can_edit"] = msg.can_be_edited()
     ampel = getattr(msg, "answer_to_ampel", None)
     if ampel is not None:
         payload["ampel_user_id"] = ampel.user_id
@@ -560,6 +564,86 @@ def send_message_group(request, identifier):
     payload = _chat_message_payload(msg, request.user)
     broadcast_chat_message_to_room("group", chat.get_identifier(), payload)
     return JsonResponse(payload)
+
+
+def _parse_edit_message_body(request):
+    try:
+        data = json.loads(request.body)
+        return data.get("message", "").strip()
+    except (json.JSONDecodeError, AttributeError, TypeError):
+        return request.POST.get("message", "").strip()
+
+
+@login_required
+@require_POST
+def edit_message_direct(request, identifier, message_id):
+    try:
+        chat = ChatDirect.objects.get(
+            identifier=identifier, org=request.user.org, users=request.user
+        )
+    except ChatDirect.DoesNotExist:
+        return JsonResponse({"error": _("Chat nicht gefunden")}, status=404)
+
+    text = _parse_edit_message_body(request)
+    if not text:
+        return JsonResponse({"error": _("Leere Nachricht")}, status=400)
+
+    try:
+        msg = ChatMessageDirect.objects.get(id=message_id, chat=chat)
+    except ChatMessageDirect.DoesNotExist:
+        return JsonResponse({"error": _("Nachricht nicht gefunden")}, status=404)
+
+    if msg.user_id != request.user.id:
+        return JsonResponse({"error": _("Keine Berechtigung")}, status=403)
+
+    if not msg.can_be_edited():
+        return JsonResponse(
+            {"error": _("Nachricht kann nicht mehr bearbeitet werden")},
+            status=403,
+        )
+
+    msg.message = text
+    msg.is_edited = True
+    msg.save(update_fields=["message", "is_edited", "updated_at"])
+
+    broadcast_chat_edit_to_room("direct", chat.get_identifier(), msg.id, msg.message)
+    return JsonResponse({"ok": True, "id": msg.id, "message": msg.message})
+
+
+@login_required
+@require_POST
+def edit_message_group(request, identifier, message_id):
+    try:
+        chat = ChatGroup.objects.get(
+            identifier=identifier, org=request.user.org, users=request.user
+        )
+    except ChatGroup.DoesNotExist:
+        return JsonResponse({"error": _("Chat nicht gefunden")}, status=404)
+
+    text = _parse_edit_message_body(request)
+    if not text:
+        return JsonResponse({"error": _("Leere Nachricht")}, status=400)
+
+    try:
+        msg = ChatMessageGroup.objects.get(id=message_id, chat=chat)
+    except ChatMessageGroup.DoesNotExist:
+        return JsonResponse({"error": _("Nachricht nicht gefunden")}, status=404)
+
+    if msg.user_id != request.user.id:
+        return JsonResponse({"error": _("Keine Berechtigung")}, status=403)
+
+    if not msg.can_be_edited():
+        return JsonResponse(
+            {"error": _("Nachricht kann nicht mehr bearbeitet werden")},
+            status=403,
+        )
+
+    msg.message = text
+    msg.is_edited = True
+    msg.save(update_fields=["message", "is_edited", "updated_at"])
+
+    broadcast_chat_edit_to_room("group", chat.get_identifier(), msg.id, msg.message)
+    return JsonResponse({"ok": True, "id": msg.id, "message": msg.message})
 
 
 @login_required

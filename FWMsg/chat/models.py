@@ -1,4 +1,5 @@
 import uuid
+from datetime import timedelta
 from pathlib import Path
 
 from django.db import models
@@ -9,6 +10,7 @@ from simple_history.models import HistoricalRecords
 from Global.models import get_random_hash
 from Global.models import Ampel2
 _CHAT_IMAGE_EXTS = frozenset({".jpg", ".jpeg", ".png", ".gif", ".webp"})
+CHAT_MESSAGE_EDIT_WINDOW = timedelta(hours=3)
 
 
 def chat_message_image_upload_to(instance, filename):
@@ -44,6 +46,10 @@ class ChatMessageImageUrlMixin:
             "serve_chat_image",
             kwargs={"image_identifier": self.image_identifier},
         )
+
+    def can_be_edited(self):
+        """Return True if the message is still within the edit time window."""
+        return timezone.now() - self.created_at <= CHAT_MESSAGE_EDIT_WINDOW
 
 
 class ChatDirect(OrgModel):
@@ -123,6 +129,7 @@ class ChatMessageDirect(ChatMessageImageUrlMixin, OrgModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     read = models.BooleanField(default=False)
+    is_edited = models.BooleanField(default=False)
     answer_to_ampel = models.ForeignKey(Ampel2, on_delete=models.SET_NULL, null=True, blank=True)
     
     history = HistoricalRecords()
@@ -151,6 +158,7 @@ class ChatMessageGroup(ChatMessageImageUrlMixin, OrgModel):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_edited = models.BooleanField(default=False)
     read_by = models.ManyToManyField(User, related_name='chat_message_group_read_by')
     
     history = HistoricalRecords()

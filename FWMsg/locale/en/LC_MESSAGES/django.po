@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-01 17:15+0200\n"
+"POT-Creation-Date: 2026-07-01 18:22+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: English <en@li.org>\n"
@@ -1236,7 +1236,7 @@ msgstr "Identifier for the user"
 #: Global/templates/components/image_card_header.html:5
 #: Global/templates/components/profile_image.html:7
 #: Global/templates/list_bewerber.html:63 chat/templates/chat-direct.html:27
-#: chat/templates/chat-group.html:119 chat/templates/chat-group.html:312
+#: chat/templates/chat-group.html:127 chat/templates/chat-group.html:320
 #: chat/templates/chat-list.html:50 chat/templates/create-chat-direct.html:74
 #: chat/templates/create-chat-group.html:137
 msgid "Profilbild"
@@ -2412,7 +2412,7 @@ msgstr "This application does not yet contain any answers or files."
 #: Home/templates/password_change.html:183
 #: Home/templates/password_reset.html:127
 #: ORG/templates/components/task_zwischenschritte_modal.html:23
-#: chat/templates/chat-group.html:198
+#: chat/templates/chat-group.html:206
 msgid "Schließen"
 msgstr "Close"
 
@@ -2424,7 +2424,7 @@ msgstr "Close"
 #: Global/templates/karte.html:170
 #: ORG/templates/components/ampel_table.html:124
 #: ORG/templates/edit_object.html:65 ORG/templates/homeOrg.html:219
-#: ORG/templates/homeOrg_2.html:745 chat/templates/chat-group.html:106
+#: ORG/templates/homeOrg_2.html:745 chat/templates/chat-group.html:114
 msgid "Speichern"
 msgstr "Save"
 
@@ -2538,7 +2538,7 @@ msgid "Alle Kommentare"
 msgstr "All comments"
 
 #: Global/templates/components/bewerber_kommentar_modal.html:206
-#: Global/templates/post_detail.html:125 chat/templates/chat-group.html:125
+#: Global/templates/post_detail.html:125 chat/templates/chat-group.html:133
 msgid "Du"
 msgstr "You"
 
@@ -2716,6 +2716,7 @@ msgstr "Options"
 #: ORG/templates/components/task_table_row.html:58
 #: ORG/templates/components/task_table_row.html:105
 #: ORG/templates/components/task_table_row.html:135
+#: chat/templates/chat-direct.html:68 chat/templates/chat-group.html:58
 msgid "Bearbeiten"
 msgstr "Edit"
 
@@ -4881,7 +4882,7 @@ msgstr "Links"
 msgid "Fehler beim Kopieren der Links"
 msgstr "Error copying links"
 
-#: ORG/templates/copy_links.html:159 chat/templates/chat-group.html:236
+#: ORG/templates/copy_links.html:159 chat/templates/chat-group.html:244
 msgid "Fehler"
 msgstr "Error"
 
@@ -5464,7 +5465,7 @@ msgstr "User group not specified"
 msgid "Benutzergruppe nicht gefunden"
 msgstr "User group not found"
 
-#: ORG/views.py:1561 chat/views.py:382
+#: ORG/views.py:1561 chat/views.py:386
 msgid "Ungültige Anfrage"
 msgstr "Invalid request"
 
@@ -5554,7 +5555,7 @@ msgstr ""
 msgid "Mitglieder"
 msgstr "Members"
 
-#: chat/forms.py:43 chat/templates/chat-group.html:101
+#: chat/forms.py:43 chat/templates/chat-group.html:109
 msgid "Gruppenname"
 msgstr "Group name"
 
@@ -5571,7 +5572,7 @@ msgstr "Message or image required."
 msgid "Nachrichten"
 msgstr "Messages"
 
-#: chat/templates/chat-direct.html:46 chat/templates/chat-direct.html:79
+#: chat/templates/chat-direct.html:46 chat/templates/chat-direct.html:87
 msgid "Antwort auf Ampelmeldung"
 msgstr "Reply to status report"
 
@@ -5579,48 +5580,52 @@ msgstr "Reply to status report"
 msgid "Bild vergrößern"
 msgstr "Zoom image"
 
-#: chat/templates/chat-direct.html:69 chat/templates/chat-group.html:59
+#: chat/templates/chat-direct.html:65 chat/templates/chat-group.html:55
+msgid "(bearbeitet)"
+msgstr "(edited)"
+
+#: chat/templates/chat-direct.html:77 chat/templates/chat-group.html:67
 msgid "Noch keine Nachrichten. Schreib die erste!"
 msgstr "No messages yet. Write the first one!"
 
-#: chat/templates/chat-direct.html:94 chat/templates/chat-group.html:69
+#: chat/templates/chat-direct.html:102 chat/templates/chat-group.html:77
 msgid "Bild anhängen"
 msgstr "Attach image"
 
-#: chat/templates/chat-group.html:128
+#: chat/templates/chat-group.html:136
 msgid "Ersteller:in"
 msgstr "Creator"
 
-#: chat/templates/chat-group.html:139
+#: chat/templates/chat-group.html:147
 msgid "Entfernen"
 msgstr "Remove"
 
-#: chat/templates/chat-group.html:151
+#: chat/templates/chat-group.html:159
 msgid "Mitglied hinzufügen"
 msgstr "Add member"
 
-#: chat/templates/chat-group.html:154 chat/templates/create-chat-direct.html:46
+#: chat/templates/chat-group.html:162 chat/templates/create-chat-direct.html:46
 #: chat/templates/create-chat-group.html:120
 msgid "Name suchen…"
 msgstr "Search name…"
 
-#: chat/templates/chat-group.html:182
+#: chat/templates/chat-group.html:190
 msgid "Gruppe wirklich löschen?"
 msgstr "Really delete group?"
 
-#: chat/templates/chat-group.html:185
+#: chat/templates/chat-group.html:193
 msgid "Gruppe löschen"
 msgstr "Delete group"
 
-#: chat/templates/chat-group.html:190
+#: chat/templates/chat-group.html:198
 msgid "Gruppe wirklich verlassen?"
 msgstr "Really leave group?"
 
-#: chat/templates/chat-group.html:193
+#: chat/templates/chat-group.html:201
 msgid "Gruppe verlassen"
 msgstr "Leave group"
 
-#: chat/templates/chat-group.html:232
+#: chat/templates/chat-group.html:240
 msgid "Gespeichert."
 msgstr "Saved."
 
@@ -5709,54 +5714,64 @@ msgstr "0 persons selected"
 msgid "Person(en) ausgewählt"
 msgstr "person(s) selected"
 
-#: chat/views.py:164 chat/views.py:217 chat/views.py:374 chat/views.py:435
-#: chat/views.py:453 chat/views.py:471 chat/views.py:527 chat/views.py:621
+#: chat/views.py:168 chat/views.py:221 chat/views.py:378 chat/views.py:439
+#: chat/views.py:457 chat/views.py:475 chat/views.py:531 chat/views.py:585
+#: chat/views.py:621 chat/views.py:705
 msgid "Chat nicht gefunden"
 msgstr "Chat not found"
 
-#: chat/views.py:283 chat/views.py:336
+#: chat/views.py:287 chat/views.py:340
 msgid "Fehler beim Erstellen des Chats"
 msgstr "Error creating chat"
 
-#: chat/views.py:298 chat/views.py:377 chat/views.py:439
+#: chat/views.py:302 chat/views.py:381 chat/views.py:443 chat/views.py:597
+#: chat/views.py:633
 msgid "Keine Berechtigung"
 msgstr "No permission"
 
-#: chat/views.py:306
+#: chat/views.py:310
 msgid "Du kannst dir selbst keine Nachricht senden."
 msgstr "You cannot send a message to yourself."
 
-#: chat/views.py:389
+#: chat/views.py:393
 msgid "Name darf nicht leer sein"
 msgstr "Name cannot be empty"
 
-#: chat/views.py:400 chat/views.py:417
+#: chat/views.py:404 chat/views.py:421
 msgid "Benutzer nicht gefunden"
 msgstr "User not found"
 
-#: chat/views.py:412
+#: chat/views.py:416
 msgid "Du kannst dich nicht selbst entfernen"
 msgstr "You cannot remove yourself"
 
-#: chat/views.py:426
+#: chat/views.py:430
 msgid "Unbekannte Aktion"
 msgstr "Unknown action"
 
-#: chat/views.py:443
+#: chat/views.py:447
 msgid "Gruppe wurde gelöscht."
 msgstr "Group has been deleted."
 
-#: chat/views.py:457
+#: chat/views.py:461
 msgid ""
 "Als Ersteller:in kannst du die Gruppe nicht verlassen. Lösche sie "
 "stattdessen."
 msgstr "As the creator, you cannot leave the group. Please delete it instead."
 
-#: chat/views.py:491 chat/views.py:543
+#: chat/views.py:495 chat/views.py:547 chat/views.py:589 chat/views.py:625
 msgid "Leere Nachricht"
 msgstr "Empty message"
 
-#: chat/views.py:619
+#: chat/views.py:594 chat/views.py:630
+msgid "Nachricht nicht gefunden"
+msgstr "Message not found"
+
+#: chat/views.py:601 chat/views.py:637
+msgid "Nachricht kann nicht mehr bearbeitet werden"
+msgstr "Message can no longer be edited"
+
+#: chat/views.py:703
 msgid "Ungültiger Chat-Typ"
 msgstr "Invalid chat type"
 
