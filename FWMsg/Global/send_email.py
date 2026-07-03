@@ -576,7 +576,7 @@ def send_post_response_email(response_id):
     action_url = f'{settings.DOMAIN_HOST}{reverse("post_detail", args=[response.original_post.id])}'
     image_url = get_logo_url(org)
     org_color = get_org_color(org)
-    author_name = f"{response.original_post.user.first_name} {response.original_post.user.last_name}" if response.original_post.user.first_name and response.original_post.user.last_name else response.original_post.user.username
+    author_name = f"{response.user.first_name} {response.user.last_name}" if response.user.first_name and response.user.last_name else response.user.username
     has_image = True if response.image else False
     subject = f'Neue Antwort auf den Post: {response.original_post.title}'
         
