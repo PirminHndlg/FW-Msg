@@ -135,6 +135,10 @@ class CustomUser(OrgModel):
 
     history = HistoricalRecords()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_profil_picture_name = self.profil_picture.name if self.profil_picture else None
+
     def delete(self, *args, **kwargs):
         # Delete the associated User first
         if self.user:
@@ -184,10 +188,11 @@ class CustomUser(OrgModel):
                 self.profil_picture = None
                 self.save()
                 return
-        
-            calculate_small_image = calculate_small_image(self.profil_picture, size=(500, 500))
-            if calculate_small_image:
-                self.profil_picture = calculate_small_image
+
+            new_image = calculate_small_image(self.profil_picture, size=(500, 500))
+            if new_image:
+                self.profil_picture.delete(save=False)
+                self.profil_picture = new_image
             else:
                 self.profil_picture.delete()
                 self.profil_picture = None
@@ -308,10 +313,16 @@ def get_or_create_new_user(email, firstname, lastname, org, person_cluster, crea
 @receiver(post_save, sender=CustomUser)
 def post_save_handler_customuser(sender, instance, created, **kwargs):
 
-    if instance.profil_picture and not hasattr(instance, '_processing_profil_picture'):
+    original_name = getattr(instance, '_original_profil_picture_name', None)
+    current_name = instance.profil_picture.name if instance.profil_picture else None
+
+    if (instance.profil_picture
+            and current_name != original_name
+            and not hasattr(instance, '_processing_profil_picture')):
         instance._processing_profil_picture = True
         instance.create_small_image()
         delattr(instance, '_processing_profil_picture')
+        instance._original_profil_picture_name = instance.profil_picture.name if instance.profil_picture else None
     
     from FW.models import Freiwilliger
     from TEAM.models import Team
