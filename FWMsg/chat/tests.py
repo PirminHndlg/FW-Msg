@@ -1068,3 +1068,78 @@ class ChatBadgeWebSocketTest(TransactionTestCase):
             await communicator.disconnect()
 
         asyncio.run(run())
+
+
+# ---------------------------------------------------------------------------
+# Chat email templates
+# ---------------------------------------------------------------------------
+
+class ChatEmailTemplateTests(TestCase):
+    _BASE_KWARGS = {
+        'sender_name': 'Alice Sender',
+        'message_text': 'Hallo!\nWie geht es?',
+        'has_image': False,
+        'group_name': None,
+        'action_url': 'https://example.test/chat/abc/',
+        'unsubscribe_url': 'https://example.test/unsubscribe/1/',
+        'user_name': 'Bob Recipient',
+        'org_name': 'Test Org',
+        'image_url': 'https://example.test/logo.png',
+        'org_color': '#336699',
+    }
+
+    def test_direct_message_email_uses_base_template_and_bubble(self):
+        from Global.send_email import format_chat_new_message_email
+
+        html = format_chat_new_message_email(**self._BASE_KWARGS)
+
+        self.assertIn('Test Org', html)
+        self.assertIn('Hallo Bob Recipient', html)
+        self.assertIn('English version', html)
+        self.assertIn('Hello Bob Recipient', html)
+        self.assertIn('background:#f1f3f5', html)
+        self.assertIn('border-bottom-left-radius:0.25rem', html)
+        self.assertIn('Du hast eine neue Nachricht von Alice Sender erhalten', html)
+        self.assertIn('You received a new message from Alice Sender', html)
+        self.assertIn('Hallo!<br>Wie geht es?', html)
+        self.assertIn('Zur Nachricht', html)
+        self.assertIn('View message', html)
+
+    def test_group_message_email_uses_group_intro(self):
+        from Global.send_email import format_chat_new_message_email
+
+        kwargs = {**self._BASE_KWARGS, 'group_name': 'Team Chat'}
+        html = format_chat_new_message_email(**kwargs)
+
+        self.assertIn('in der Gruppe „Team Chat"', html)
+        self.assertIn('in the group "Team Chat"', html)
+
+    def test_message_email_shows_image_badge_bilingual(self):
+        from Global.send_email import format_chat_new_message_email
+
+        kwargs = {**self._BASE_KWARGS, 'has_image': True, 'message_text': ''}
+        html = format_chat_new_message_email(**kwargs)
+
+        self.assertIn('📷 Bild', html)
+        self.assertIn('📷 Image', html)
+
+    def test_group_invite_email_bilingual(self):
+        from Global.send_email import format_chat_new_group_invite_email
+
+        html = format_chat_new_group_invite_email(
+            sender_name='Alice Sender',
+            group_name='New Team',
+            action_url='https://example.test/group/xyz/',
+            unsubscribe_url='https://example.test/unsubscribe/1/',
+            user_name='Bob Recipient',
+            org_name='Test Org',
+            image_url='https://example.test/logo.png',
+            org_color='#336699',
+        )
+
+        self.assertIn('Test Org', html)
+        self.assertIn('English version', html)
+        self.assertIn('Du wurdest von Alice Sender zu einem neuen Gruppenchat eingeladen', html)
+        self.assertIn('You were invited by Alice Sender to a new group chat', html)
+        self.assertIn('Gruppenchat ansehen', html)
+        self.assertIn('View group chat', html)

@@ -393,6 +393,62 @@ def format_own_signin_denied_email(applicant_name, org_name, image_url, org_colo
     return render_to_string('mail/own_signin_denied.html', context)
 
 
+def user_display_name(user):
+    return f"{user.first_name} {user.last_name}".strip() or user.username
+
+
+def format_chat_new_message_email(
+    *,
+    sender_name,
+    message_text,
+    has_image,
+    group_name,
+    action_url,
+    unsubscribe_url,
+    user_name,
+    org_name,
+    image_url,
+    org_color,
+):
+    context = {
+        'sender_name': sender_name,
+        'message_text': (message_text or '').strip(),
+        'has_image': has_image,
+        'group_name': group_name,
+        'action_url': action_url,
+        'unsubscribe_url': unsubscribe_url,
+        'user_name': user_name,
+        'org_name': org_name,
+        'image_url': image_url,
+        'org_color': org_color,
+    }
+    return render_to_string('mail/chat_new_message.html', context)
+
+
+def format_chat_new_group_invite_email(
+    *,
+    sender_name,
+    group_name,
+    action_url,
+    unsubscribe_url,
+    user_name,
+    org_name,
+    image_url,
+    org_color,
+):
+    context = {
+        'sender_name': sender_name,
+        'group_name': group_name,
+        'action_url': action_url,
+        'unsubscribe_url': unsubscribe_url,
+        'user_name': user_name,
+        'org_name': org_name,
+        'image_url': image_url,
+        'org_color': org_color,
+    }
+    return render_to_string('mail/chat_new_group_invite.html', context)
+
+
 def get_logo_base64(org):
     with open(org.logo.path, "rb") as org_logo:
         base64_image = base64.b64encode(org_logo.read()).decode('utf-8')

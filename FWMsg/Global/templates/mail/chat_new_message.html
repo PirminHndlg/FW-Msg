@@ -1,0 +1,45 @@
+{% extends "mail/base_email.html" %}
+
+{% block german_content %}
+{% if group_name %}
+<p>Du hast eine neue Nachricht in der Gruppe „{{ group_name }}" von {{ sender_name }} erhalten:</p>
+{% else %}
+<p>Du hast eine neue Nachricht von {{ sender_name }} erhalten:</p>
+{% endif %}
+
+<p style="font-size:13px;font-weight:600;color:#555;margin:0 0 8px 0;">{{ sender_name }}</p>
+<div style="background:#f1f3f5;border-radius:1.1rem;border-bottom-left-radius:0.25rem;padding:16px 20px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:15px;">
+    {% if has_image %}
+    <p style="margin:0 0 10px 0;">
+        <span style="display:inline-block;background:#e7f5ff;color:#1864ab;font-size:12px;font-weight:600;padding:5px 12px;border-radius:999px;">📷 Bild</span>
+    </p>
+    {% endif %}
+    {% if message_text %}
+    <div style="margin:0;font-size:15px;line-height:1.6;color:#1a1a1a;">{{ message_text|linebreaksbr }}</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block german_button_text %}Zur Nachricht{% endblock %}
+
+{% block english_content %}
+{% if group_name %}
+<p>You received a new message in the group "{{ group_name }}" from {{ sender_name }}:</p>
+{% else %}
+<p>You received a new message from {{ sender_name }}:</p>
+{% endif %}
+
+<p style="font-size:13px;font-weight:600;color:#555;margin:0 0 8px 0;">{{ sender_name }}</p>
+<div style="background:#f1f3f5;border-radius:1.1rem;border-bottom-left-radius:0.25rem;padding:16px 20px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:15px;">
+    {% if has_image %}
+    <p style="margin:0 0 10px 0;">
+        <span style="display:inline-block;background:#e7f5ff;color:#1864ab;font-size:12px;font-weight:600;padding:5px 12px;border-radius:999px;">📷 Image</span>
+    </p>
+    {% endif %}
+    {% if message_text %}
+    <div style="margin:0;font-size:15px;line-height:1.6;color:#1a1a1a;">{{ message_text|linebreaksbr }}</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block english_button_text %}View message{% endblock %}
