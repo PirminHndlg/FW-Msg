@@ -150,6 +150,8 @@ email_template_chat_message = """<!DOCTYPE html>
 
 @shared_task
 def notify_users_about_new_group_chat(group_chat_id, sender_user_id):
+    # Ignore for now
+    return True
     group_chat = ChatGroup.objects.get(id=group_chat_id)
     sender_user = User.objects.get(id=sender_user_id)
     url = f'{settings.DOMAIN_HOST}{reverse("chat_group", args=[group_chat.get_identifier()])}'
