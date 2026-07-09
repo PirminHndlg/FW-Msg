@@ -2,9 +2,9 @@
 
 {% block german_content %}
 {% if group_name %}
-<p>Du hast eine neue Nachricht in der Gruppe „{{ group_name }}" von {{ sender_name }} erhalten:</p>
+<p>Du hast eine neue Nachricht in der Gruppe „{{ group_name }}" erhalten:</p>
 {% else %}
-<p>Du hast eine neue Nachricht von {{ sender_name }} erhalten:</p>
+<p>Du hast eine neue Nachricht erhalten:</p>
 {% endif %}
 
 <p style="font-size:13px;font-weight:600;color:#555;margin:0 0 8px 0;">{{ sender_name }}</p>
@@ -24,9 +24,9 @@
 
 {% block english_content %}
 {% if group_name %}
-<p>You received a new message in the group "{{ group_name }}" from {{ sender_name }}:</p>
+<p>You received a new message in the group "{{ group_name }}":</p>
 {% else %}
-<p>You received a new message from {{ sender_name }}:</p>
+<p>You received a new message:</p>
 {% endif %}
 
 <p style="font-size:13px;font-weight:600;color:#555;margin:0 0 8px 0;">{{ sender_name }}</p>
