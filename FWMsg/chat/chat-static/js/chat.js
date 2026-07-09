@@ -627,12 +627,16 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
 
     // ── DOM helpers ───────────────────────────────────────────────────────────
     function getMessageRawText(wrapper) {
+        if (wrapper.dataset.msgText !== undefined) {
+            return wrapper.dataset.msgText;
+        }
         const tpl = wrapper.querySelector('template.chat-msg-raw-text');
         if (tpl) return tpl.content.textContent;
-        return wrapper.dataset.msgText || '';
+        return '';
     }
 
     function setMessageRawText(wrapper, text) {
+        wrapper.dataset.msgText = text;
         let tpl = wrapper.querySelector('template.chat-msg-raw-text');
         if (!tpl) {
             tpl = document.createElement('template');
@@ -683,10 +687,7 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         wrapper.className = 'd-flex flex-column ' + (isOwn ? 'align-items-end' : 'align-items-start');
         if (msg.id) wrapper.dataset.msgId = msg.id;
         if (isOwn && msg.message) {
-            const rawTpl = document.createElement('template');
-            rawTpl.className = 'chat-msg-raw-text';
-            rawTpl.textContent = msg.message;
-            wrapper.appendChild(rawTpl);
+            wrapper.dataset.msgText = msg.message;
         }
 
         let html = `<div class="bubble ${isOwn ? 'bubble-own' : 'bubble-other'}">`;
@@ -721,6 +722,12 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         html += '</div>';
 
         wrapper.innerHTML = html;
+        if (isOwn && msg.message) {
+            const rawTpl = document.createElement('template');
+            rawTpl.className = 'chat-msg-raw-text';
+            rawTpl.textContent = msg.message;
+            wrapper.insertBefore(rawTpl, wrapper.firstChild);
+        }
         window_.appendChild(wrapper);
         userLeftChatBottom = false;
         scrollToBottom();
