@@ -513,8 +513,9 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         autosizeChatMessageField(messageField);
 
         messageField.addEventListener('keydown', function (e) {
-            if (e.key !== 'Enter' || e.shiftKey) return;
+            if (e.key !== 'Enter') return;
             if (e.isComposing) return;
+            if (!e.ctrlKey && !e.metaKey) return;
             e.preventDefault();
             form.requestSubmit();
         });
