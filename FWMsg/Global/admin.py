@@ -10,7 +10,7 @@ from .models import (
     Ampel2, Attribute, CustomUser, Einsatzland2, 
     Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, 
     Organisation, Aufgabe2, DokumentColor2, Dokument2, 
-    Ordner2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, PushSubscription, 
+    Ordner2, Notfallkontakt2, Post2, PostResponse, AufgabeZwischenschritte2, PushSubscription, 
     UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, 
     AufgabenCluster, Bilder2, BilderGallery2, BilderComment, BilderReaction, ProfilUser2, Maintenance,
     PostSurveyAnswer, PostSurveyQuestion, EinsatzstelleNotiz, StickyNote, ChangeRequest, MapLocation
@@ -327,6 +327,28 @@ class PostAdmin(admin.ModelAdmin):
     def get_cluster_count(self, obj):
         return obj.person_cluster.count()
     get_cluster_count.short_description = 'Audience Count'
+
+
+@admin.register(PostResponse)
+class PostResponseAdmin(admin.ModelAdmin):
+    list_display = ['original_post', 'user', 'get_text_preview', 'has_image', 'date_created', 'date_updated']
+    search_fields = ['text', 'user__username', 'user__first_name', 'user__last_name', 'original_post__title']
+    list_filter = ['date_created', 'date_updated', 'original_post']
+    readonly_fields = ['date_created', 'date_updated']
+    raw_id_fields = ['original_post', 'user']
+
+    def get_text_preview(self, obj):
+        if not obj.text:
+            return ''
+        if len(obj.text) > 50:
+            return obj.text[:50] + '...'
+        return obj.text
+    get_text_preview.short_description = 'Text'
+
+    def has_image(self, obj):
+        return bool(obj.image)
+    has_image.boolean = True
+    has_image.short_description = 'Bild'
 
 
 @admin.register(Aufgabe2)
