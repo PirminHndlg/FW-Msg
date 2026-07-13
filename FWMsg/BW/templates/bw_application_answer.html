@@ -109,9 +109,9 @@
                             {% if field.help_text %}
                             {% endif %}
                             {% if not question.choices %}
-                            <div class="d-flex justify-content-end">
-                                <small class="text-muted">
-                                    <span id="charCount">0</span>/{{ question.max_length }} Zeichen
+                            <div id="charCountContainer" class="d-flex justify-content-end d-none">
+                                <small class="text-danger">
+                                    <span>maximal {{ question.max_length }} Zeichen erlaubt</span>
                                 </small>
                             </div>
                             {% endif %}
@@ -180,22 +180,34 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const textarea = document.querySelector('textarea[name="answer"]');
-        const charCount = document.getElementById('charCount');
         const form = document.querySelector('form');
         let formChanged = false;
         let pendingNavigation = null;
+        {% if not question.choices and question.max_length %}
+        const maxLength = {{ question.max_length }};
+        const charCountContainer = document.getElementById('charCountContainer');
+
+        function updateCharLimitState() {
+            if (!textarea || !charCountContainer) return;
+            const atLimit = textarea.value.length >= maxLength;
+            charCountContainer.classList.toggle('d-none', !atLimit);
+            textarea.classList.toggle('is-invalid', atLimit);
+        }
+
+        if (textarea) {
+            textarea.addEventListener('input', function() {
+                if (textarea.value.length > maxLength) {
+                    textarea.value = textarea.value.slice(0, maxLength);
+                }
+                updateCharLimitState();
+                formChanged = true;
+            });
+            updateCharLimitState();
+        }
+        {% endif %}
         
         // Initialize modal
         const unsavedChangesModal = new bootstrap.Modal(document.getElementById('unsavedChangesModal'));
-        
-        // Set initial count
-        charCount.textContent = textarea.value.length;
-        
-        // Update count on input
-        textarea.addEventListener('input', function() {
-            charCount.textContent = this.value.length;
-            formChanged = true;
-        });
 
         // Track form changes
         form.addEventListener('change', function() {
