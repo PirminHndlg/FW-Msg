@@ -30,7 +30,7 @@
                                         <span class="badge bg-primary rounded-pill me-2">{{ q.order }}</span>
                                         <span class="text-truncate">{{ q.question }}</span>
                                     </div>
-                                    {% if q.id in answered_questions_ids %}
+                                    {% if q.id in done_questions_ids %}
                                         <span class="badge bg-success rounded-pill ms-2"><i class="bi bi-check-circle"></i></span>
                                     {% endif %}
                                     </div>
@@ -57,7 +57,7 @@
                                     <span class="badge bg-primary rounded-pill me-2">{{ q.order }}</span>
                                     <span class="fw-semibold">{{ q.question }}</span>
                                 </div>
-                                {% if q.id in answered_questions_ids %}
+                                {% if q.id in done_questions_ids %}
                                 <span class="badge bg-success rounded-pill ms-2"><i class="bi bi-check-circle"></i></span>
                                 {% endif %}
                             </div>
@@ -89,24 +89,29 @@
 
                     <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
-                        
-                        {% for field in form %}
+
                         <div class="mb-4">
-                            <label for="{{ field.id_for_label }}" class="form-label fw-medium">
-                                {{ field.label }}
-                                {% if field.field.required %}
+                            <label for="{{ form.answer.id_for_label }}" class="form-label fw-medium">
+                                {{ form.answer.label }}
+                                {% if form.answer.field.required %}
                                 <span class="text-danger">*</span>
                                 {% endif %}
                             </label>
-                            {% if field.errors %}
-                                {% render_field field class="form-control is-invalid" %}
+                            {% if form.answer.errors %}
+                                {% if question.choices %}
+                                    {% render_field form.answer class="form-select form-select-lg is-invalid" %}
+                                {% else %}
+                                    {% render_field form.answer class="form-control form-control-lg is-invalid" %}
+                                {% endif %}
                                 <div class="invalid-feedback">
-                                    {{ field.errors|join:", " }}
+                                    {{ form.answer.errors|join:", " }}
                                 </div>
                             {% else %}
-                                {% render_field field class="form-control" %}
-                            {% endif %}
-                            {% if field.help_text %}
+                                {% if question.choices %}
+                                    {% render_field form.answer class="form-select form-select-lg" %}
+                                {% else %}
+                                    {% render_field form.answer class="form-control form-control-lg" %}
+                                {% endif %}
                             {% endif %}
                             {% if not question.choices %}
                             <div id="charCountContainer" class="d-flex justify-content-end d-none">
@@ -115,8 +120,22 @@
                                 </small>
                             </div>
                             {% endif %}
+                            <div class="form-check mt-3">
+                                {% if form.is_done.errors %}
+                                    {% render_field form.is_done class="form-check-input is-invalid" %}
+                                {% else %}
+                                    {% render_field form.is_done class="form-check-input" %}
+                                {% endif %}
+                                <label class="form-check-label" for="{{ form.is_done.id_for_label }}">
+                                    Frage als erledigt markieren
+                                </label>
+                                {% if form.is_done.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.is_done.errors|join:", " }}
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
-                        {% endfor %}
 
                         <div class="d-flex flex-column flex-sm-row gap-2 mt-4 justify-content-end">
                             <a href="{% url 'bw_home' %}" class="btn btn-outline-secondary rounded-3">

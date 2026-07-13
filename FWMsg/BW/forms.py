@@ -97,12 +97,17 @@ class CreateAccountForm(forms.Form):
 class ApplicationAnswerForm(forms.ModelForm):
     class Meta:
         model = ApplicationAnswer
-        fields = ['answer']
+        fields = ['answer', 'is_done']
         
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         self.question = kwargs.pop('question', None)
         super().__init__(*args, **kwargs)
+
+        self.fields['is_done'].label = 'Frage als erledigt markieren'
+        self.fields['is_done'].widget = forms.CheckboxInput(
+            attrs={'class': 'form-check-input'}
+        )
         
         # If the question has choices, create a select field
         if self.question.choices:

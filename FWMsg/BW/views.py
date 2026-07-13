@@ -30,7 +30,7 @@ def home(request):
     application_text = ApplicationText.objects.filter(org=request.user.org).first()
     
     total_questions = ApplicationQuestion.objects.filter(org=request.user.org).count()
-    answered_questions = ApplicationAnswer.objects.filter(user=request.user).exclude(answer='').count()
+    done_questions = ApplicationAnswer.objects.filter(user=request.user, is_done=True).count()
     
     total_file_questions = ApplicationFileQuestion.objects.filter(org=request.user.org).count()
     answered_file_questions = ApplicationAnswerFile.objects.filter(user=request.user).exclude(file='').count()
@@ -38,14 +38,14 @@ def home(request):
     required_file_questions_qs = ApplicationFileQuestion.objects.filter(org=request.user.org, required=True)
     answered_file_questions_qs = ApplicationAnswerFile.objects.filter(user=request.user, file_question__in=required_file_questions_qs)#.exclude(file='')
     
-    answered_required_questions = answered_file_questions_qs.count() == required_file_questions_qs.count() and answered_questions == total_questions
+    answered_required_questions = answered_file_questions_qs.count() == required_file_questions_qs.count() and done_questions == total_questions
     
     context = {
         'application_text': application_text,
         'total_questions': total_questions,
-        'answered_questions': answered_questions,
-        'answered_questions_percentage': int(answered_questions / total_questions * 100) if total_questions > 0 else 0,
-        'open_questions': total_questions - answered_questions,
+        'done_questions': done_questions,
+        'done_questions_percentage': int(done_questions / total_questions * 100) if total_questions > 0 else 0,
+        'open_questions': total_questions - done_questions,
         
         'total_file_questions': total_file_questions,
         'answered_file_questions': answered_file_questions,
@@ -129,7 +129,7 @@ def bw_application_answer(request, question_id=None):
             return redirect('bw_home')
         
         answer = form.save()
-        if answer.answer == '':
+        if not answer.answer and not answer.is_done:
             answer.delete()
             
         next_question = all_questions.filter(order__gt=question.order).first()
@@ -138,15 +138,16 @@ def bw_application_answer(request, question_id=None):
         else:
             return redirect('bw_application_answer', question_id=question_id)
         
-    answered_questions_ids = ApplicationAnswer.objects.filter(user=request.user).values_list('question_id', flat=True)
-    print(answered_questions_ids)
+    done_questions_ids = ApplicationAnswer.objects.filter(
+        user=request.user, is_done=True
+    ).values_list('question_id', flat=True)
     
     context = {
         'form': form,
         'question': question,
         'all_questions': all_questions,
         'answer': answer,
-        'answered_questions_ids': answered_questions_ids
+        'done_questions_ids': done_questions_ids
     }
     
     return render(request, 'bw_application_answer.html', context)

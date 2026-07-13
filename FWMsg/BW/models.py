@@ -369,6 +369,12 @@ class ApplicationAnswer(OrgModel):
         blank=True,
         help_text="Die Antwort, die der Bewerber:in gegeben hat.",
     )
+    is_done = models.BooleanField(
+        default=False,
+        db_default=False,
+        verbose_name="Erledigt",
+        help_text="Vom Bewerber als erledigt markiert.",
+    )
 
     def __str__(self):
         return self.answer
@@ -479,13 +485,14 @@ class ApplicationAnswerFile(OrgModel):
     )
     
     def save(self, *args, **kwargs):
-        if self.file_question.is_profile_picture:
+        super().save(*args, **kwargs)
+        if self.file_question.is_profile_picture and self.file:
             try:
-                self.user.customuser.profil_picture = self.file
-                self.user.customuser.save()
+                customuser = self.user.customuser
+                customuser.profil_picture = self.file
+                customuser.save(update_fields=['profil_picture'])
             except Exception as e:
                 print(e)
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.org.name
