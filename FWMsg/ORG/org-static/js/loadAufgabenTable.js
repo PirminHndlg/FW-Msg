@@ -164,15 +164,15 @@ function buildTableHeader(aufgaben, person_cluster) {
     
     return `
         <tr class="">
-             <th class="sticky-right p-1 align-bottom z-1000" style="min-width:200px; position: sticky; left: 0; top: 0; box-shadow: 2px 2px 0 0 #dee2e6;">
-                <div class="input-group gap-0 rounded-pill border shadow-sm bg-white align-items-center" style="min-width: 150px;">
+             <th class="sticky-right p-1 align-bottom z-1000" style="position: sticky; left: 0; top: 0; box-shadow: 2px 2px 0 0 #dee2e6;">
+                <div class="input-group gap-0 rounded-pill border shadow-sm bg-white align-items-center" style="min-width: 100px;">
                     <span class="input-group-text bg-transparent border-0 pe-0" style="font-size:1.1em;">
-                        <i class="bi bi-search text-secondary"></i>
+                        <i class="bi bi-search text-secondary d-none d-md-block"></i>
                     </span>
                     <input id="userSearch"
                         type="text"
                         class="form-control border-0 bg-white px-1"
-                        style="min-width:80px; font-size: 1em; box-shadow: none;"
+                        style="min-width:50px; font-size: 1em; box-shadow: none;"
                         placeholder="Suchen..."
                         autocomplete="off"
                         oninput="searchHandler(this.value)"
@@ -304,7 +304,7 @@ function buildTableRow(user, aufgaben, user_aufgaben_assigned, user_aufgaben_eli
     
     return `
         <tr class="border-bottom" data-search-term="${escapeHtml(user.first_name || '')} ${escapeHtml(user.last_name || user.username || '')}">
-            <th class="p-0 ps-2" style="max-width: 30vw; height: 50px; box-shadow: 2px 2px 0 0 #dee2e6;">
+            <th class="p-0 ps-2" style="max-width: 20vw; height: 50px; box-shadow: 2px 2px 0 0 #dee2e6;">
                 <div class="d-flex gap-1 align-items-center justify-content-between">
                     ${escapeHtml(user.first_name || '')} ${escapeHtml(user.last_name || user.username || '')}
                 </div>
