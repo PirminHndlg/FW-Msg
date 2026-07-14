@@ -2,7 +2,6 @@ aiohappyeyeballs==2.6.1
 aiohttp==3.14.1
 aiosignal==1.4.0
 amqp==5.3.1
-appscript==1.4.0
 asgiref==3.11.0
 attrs==25.4.0
 autobahn==25.12.2
@@ -25,9 +24,9 @@ comtypes==1.4.14
 constantly==23.10.4
 cryptography==48.0.1
 cssselect2==0.8.0
-daphne==4.2.1
+daphne==4.2.2
 deptry==0.24.0
-Django==6.0.5
+Django==6.0.6
 django-celery==3.1.17
 django-gdpr-assist==1.4.2
 django-password-validators==1.7.3
