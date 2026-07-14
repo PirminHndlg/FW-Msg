@@ -23,6 +23,7 @@ from FW.models import Freiwilliger
 from TEAM.models import Team
 from BW.models import ApplicationText, ApplicationQuestion, ApplicationFileQuestion, Bewerber
 from Global.models import get_or_create_new_user
+from Global.forms import ActivePersonClusterFormMixin
 
 
 
@@ -91,7 +92,7 @@ class DayMonthField(forms.CharField):
         return value
 
 
-class OrgFormMixin:
+class OrgFormMixin(ActivePersonClusterFormMixin):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
@@ -114,7 +115,7 @@ class AddAttributeForm(OrgFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.request.user.org)
+        self.fields['person_cluster'].queryset = PersonCluster.selectable_for_org(self.request.user.org)
 
 
 def add_customuser_fields(self, view):
@@ -142,7 +143,7 @@ def add_customuser_fields(self, view):
     if self.instance and self.instance.pk:
         self.fields['email'].initial = self.instance.user.email
         
-    person_clusters = PersonCluster.objects.filter(org=self.request.user.org, view=view)
+    person_clusters = PersonCluster.selectable_for_org(self.request.user.org, view=view)
     self.fields['person_cluster'] = forms.ModelChoiceField(
         queryset=person_clusters,
         widget=forms.Select(attrs={'class': 'form-control'}),
@@ -150,10 +151,19 @@ def add_customuser_fields(self, view):
         label='Benutzergruppe'
     )
     if self.instance and self.instance.pk:
-        self.fields['person_cluster'].initial = self.instance.user.person_cluster
-        if self.instance.user.person_cluster.view != view:
+        current_cluster = self.instance.user.person_cluster
+        if current_cluster.active:
+            self.fields['person_cluster'].initial = current_cluster
+        else:
+            self.fields['person_cluster'].required = False
+            self._preserved_related_person_cluster = current_cluster
+
+        if current_cluster.view != view:
             # disable field, show information text
-            self.fields['person_cluster'].queryset = PersonCluster.objects.filter(id=self.instance.user.person_cluster.id)
+            self.fields['person_cluster'].queryset = PersonCluster.selectable_for_org(
+                self.request.user.org,
+                id=current_cluster.id,
+            )
             self.fields['person_cluster'].required = False
             self.fields['person_cluster'].disabled = True
             self.fields['person_cluster'].help_text = 'Die Benutzergruppe kann beim Benutzer selbst geändert werden. (Einstellungen -> Benutzer:innen)'
@@ -266,8 +276,12 @@ def save_customuser_field(self):
         self.instance.user.email = self.cleaned_data['email']
     if self.cleaned_data['geburtsdatum_customuser'] != self.instance.user.customuser.geburtsdatum:
         self.instance.user.customuser.geburtsdatum = self.cleaned_data['geburtsdatum_customuser']
-    if self.cleaned_data['person_cluster'] != self.instance.user.customuser.person_cluster:
-        new_person_cluster = self.cleaned_data['person_cluster']
+    new_person_cluster = self.cleaned_data.get('person_cluster') or getattr(
+        self,
+        '_preserved_related_person_cluster',
+        self.instance.user.customuser.person_cluster,
+    )
+    if new_person_cluster != self.instance.user.customuser.person_cluster:
         old_person_cluster = self.instance.user.customuser.person_cluster
         if new_person_cluster.view == old_person_cluster.view:
             self.instance.user.customuser.person_cluster = new_person_cluster
@@ -613,7 +627,7 @@ class AddAufgabenClusterForm(OrgFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.request.user.org)
+        self.fields['person_cluster'].queryset = PersonCluster.selectable_for_org(self.request.user.org)
 
 
 class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
@@ -640,7 +654,10 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
             required=False
         )
 
-        self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.request.user.org, aufgaben=True)
+        self.fields['person_cluster'].queryset = PersonCluster.selectable_for_org(
+            self.request.user.org,
+            aufgaben=True,
+        )
 
     def is_valid(self):
         return super().is_valid() and self.zwischenschritte.is_valid()
@@ -778,14 +795,15 @@ class AddUserForm(OrgFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.request.user.org)
+        self.fields['person_cluster'].queryset = PersonCluster.selectable_for_org(self.request.user.org)
         # If we're editing an existing instance, populate the user fields
         if self.instance and self.instance.pk and hasattr(self.instance, 'user'):
             self.fields['username'].initial = self.instance.user.username
             self.fields['first_name'].initial = self.instance.user.first_name
             self.fields['last_name'].initial = self.instance.user.last_name
             self.fields['email'].initial = self.instance.user.email
-            self.fields['person_cluster'].initial = self.instance.user.customuser.person_cluster
+            if self.instance.user.customuser.person_cluster.active:
+                self.fields['person_cluster'].initial = self.instance.user.customuser.person_cluster
 
     # custom validation to check if the email is already in use
     def clean_email(self):
@@ -927,7 +945,7 @@ class AddKalenderEventForm(OrgFormMixin, forms.ModelForm):
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.request.user.org)
+        self.fields['person_cluster'].queryset = PersonCluster.selectable_for_org(self.request.user.org)
         self.fields['user'].required = False
         
         # Set initial values for date and time fields if instance exists
@@ -1019,7 +1037,7 @@ class AddApplicationTextForm(OrgFormMixin, forms.ModelForm):
         self.org = kwargs.pop('org', None)
         super().__init__(*args, **kwargs)
         self.fields['welcome'].widget = forms.Textarea(attrs={'rows': 4})
-        self.fields['person_cluster'].queryset = PersonCluster.objects.filter(org=self.org, view='B')
+        self.fields['person_cluster'].queryset = PersonCluster.selectable_for_org(self.org, view='B')
         self.fields['deadline'].widget = forms.DateInput(
             attrs={'type': 'date', 'class': 'form-control'},
             format='%Y-%m-%d'
@@ -1049,9 +1067,8 @@ class AccessibleByTeamMemberForm(OrgFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         
         # Get team members and alumni from the same organization
-        person_cluster = PersonCluster.objects.filter(
-            Q(view='T') | Q(view='E'),
-            org=self.org
+        person_cluster = PersonCluster.selectable_for_org(self.org).filter(
+            Q(view='T') | Q(view='E')
         )
         
         # Use checkboxes for multiple selection

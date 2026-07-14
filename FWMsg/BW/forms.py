@@ -71,12 +71,15 @@ class CreateAccountForm(forms.Form):
     def save(self):
         from Global.models import get_or_create_new_user
         
-        person_cluster = PersonCluster.objects.filter(view='B').first()
-        application_texts = ApplicationText.objects.filter(org=self.org)
-        if application_texts.exists():
-            application_text = application_texts.first()
-            if application_text.person_cluster:
-                person_cluster = application_text.person_cluster
+        person_cluster = PersonCluster.selectable_for_org(self.org, view='B').first()
+        application_text = ApplicationText.objects.filter(
+            org=self.org,
+            person_cluster__active=True,
+        ).first()
+        if application_text and application_text.person_cluster:
+            person_cluster = application_text.person_cluster
+        if person_cluster is None:
+            raise forms.ValidationError(_('Keine aktive Bewerber-Benutzergruppe verfügbar.'))
         
         user = get_or_create_new_user(
             email=self.cleaned_data['email'],

@@ -49,7 +49,10 @@ base_template = 'baseOrg.html'
 
 def get_person_cluster(request):
     person_cluster_id = request.COOKIES.get('selectedPersonCluster')
-    if person_cluster_id and not PersonCluster.objects.filter(id=person_cluster_id, org=request.user.org).exists():
+    if person_cluster_id and not PersonCluster.selectable_for_org(
+        request.user.org,
+        id=person_cluster_id,
+    ).exists():
         person_cluster_id = None
         response = HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
         if 'selectedPersonCluster' in request.COOKIES:
@@ -64,10 +67,17 @@ def get_person_cluster(request):
 def _get_active_person_cluster(request):
     person_cluster_id = request.GET.get('person_cluster') or request.COOKIES.get('selectedPersonClusterBW')
     if person_cluster_id and person_cluster_id != 'None':
-        person_cluster = PersonCluster.objects.filter(id=person_cluster_id, org=request.user.org).first()
+        person_cluster = PersonCluster.selectable_for_org(
+            request.user.org,
+            id=person_cluster_id,
+            view='B',
+        ).first()
         if person_cluster:
             return person_cluster
-    last_person_cluster = PersonCluster.objects.filter(org=request.user.org, view='B').order_by('-id').first()
+    last_person_cluster = PersonCluster.selectable_for_org(
+        request.user.org,
+        view='B',
+    ).order_by('-id').first()
     return last_person_cluster
 
 def _set_active_person_cluster(request, person_cluster):
@@ -129,11 +139,11 @@ def org_context_processor(request):
     if hasattr(request, 'user') and request.user.is_authenticated:
         if request.user.role == 'O':
             return {
-                'person_cluster': PersonCluster.objects.filter(org=request.user.org)
+                'person_cluster': PersonCluster.selectable_for_org(request.user.org)
             }
         elif request.user.role == 'T':
             return {
-                'person_cluster': PersonCluster.objects.filter(org=request.user.org, view='F')
+                'person_cluster': PersonCluster.selectable_for_org(request.user.org, view='F')
             }
     return {}
 
@@ -439,12 +449,10 @@ def add_objects_from_excel(request, model_name):
             return response
 
         personen_cluster_id = request.COOKIES.get('selectedPersonCluster')
-        if PersonCluster.objects.filter(id=personen_cluster_id).exists():
-            personen_cluster = PersonCluster.objects.get(id=personen_cluster_id)
-            if personen_cluster.org != request.user.org:
-                return HttpResponse(b'Nicht erlaubt')
-        else:
-            personen_cluster = None
+        personen_cluster = PersonCluster.selectable_for_org(
+            request.user.org,
+            id=personen_cluster_id,
+        ).first()
 
         for index, row in df.iterrows():
             required_fields = []
@@ -1210,7 +1218,10 @@ def list_aufgaben_table(request, scroll_to=None):
         person_cluster_param = request.COOKIES.get('selectedPersonCluster-aufgaben')
     if person_cluster_param is not None and person_cluster_param != 'None':
         try:
-            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+            person_cluster = PersonCluster.selectable_for_org(
+                request.user.org,
+                id=int(person_cluster_param),
+            ).get()
         except PersonCluster.DoesNotExist:
             person_cluster = None
     else:
@@ -1234,7 +1245,10 @@ def list_aufgaben_table(request, scroll_to=None):
     if not person_cluster or person_cluster.aufgaben:
         context = {
             'current_person_cluster': person_cluster,
-            'all_person_clusters': PersonCluster.objects.filter(org=request.user.org, aufgaben=True).order_by('view'),
+            'all_person_clusters': PersonCluster.selectable_for_org(
+                request.user.org,
+                aufgaben=True,
+            ).order_by('view'),
             'aufgaben_cluster': aufgaben_cluster,
             'filter': filter_object,  # Use the object, not the string
             'scroll_to': scroll_to,
@@ -1374,7 +1388,11 @@ def statistik(request):
         person_cluster_param = request.COOKIES.get('selectedPersonCluster-statistik')
     if person_cluster_param is not None and person_cluster_param != 'None':
         try:
-            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+            person_cluster = PersonCluster.selectable_for_org(
+                request.user.org,
+                id=int(person_cluster_param),
+                view='F',
+            ).get()
         except PersonCluster.DoesNotExist:
             person_cluster = None
     else:
@@ -1414,7 +1432,7 @@ def statistik(request):
         'freiwillige': freiwillige,
         'fields': fields,
         'attributes': attributes,
-        'person_clusters': PersonCluster.objects.filter(org=request.user.org, view='F'),
+        'person_clusters': PersonCluster.selectable_for_org(request.user.org, view='F'),
         'current_person_cluster': person_cluster
     }
     
@@ -1432,7 +1450,11 @@ def ajax_statistik(request):
     
     if person_cluster_param and person_cluster_param != 'None':
         try:
-            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+            person_cluster = PersonCluster.selectable_for_org(
+                request.user.org,
+                id=int(person_cluster_param),
+                view='F',
+            ).get()
             freiwillige = Freiwilliger.objects.filter(org=request.user.org, user__customuser__person_cluster=person_cluster)
         except PersonCluster.DoesNotExist:
             return JsonResponse({'error': 'Person cluster not found'}, status=404)
@@ -1539,10 +1561,10 @@ def get_own_signin_url(request):
                 'error': _('Benutzergruppe nicht angegeben'),
             }, status=400)
 
-        person_cluster = PersonCluster.objects.get(
+        person_cluster = PersonCluster.selectable_for_org(
+            request.user.org,
             pk=person_cluster_id,
-            org=request.user.org,
-        )
+        ).get()
         url = person_cluster.get_own_signin_url()
 
         return JsonResponse({
@@ -1687,7 +1709,7 @@ def application_overview(request):
         'completed_applications': completed_applications,
         'completion_percentage': completion_percentage,
         'application_text_form': application_text_form,
-        'bw_person_clusters': PersonCluster.objects.filter(org=request.user.org, view='B'),
+        'bw_person_clusters': PersonCluster.selectable_for_org(request.user.org, view='B'),
         'current_person_cluster': current_person_cluster,
     }
     response = render(request, 'application_overview.html', context)
@@ -2177,12 +2199,22 @@ def ajax_assign_task_to_all(request):
         if person_cluster_id and person_cluster_id not in ['None', 'undefined', '']:
             try:
                 person_cluster_id_int = int(person_cluster_id)
-                person_cluster = PersonCluster.objects.filter(id=person_cluster_id_int, org=request.user.org)
+                person_cluster = PersonCluster.selectable_for_org(
+                    request.user.org,
+                    id=person_cluster_id_int,
+                )
                 if person_cluster.exists():
                     users = users.filter(customuser__person_cluster=person_cluster.first())
+                else:
+                    return JsonResponse({
+                        'success': False,
+                        'error': _('Benutzergruppe nicht gefunden'),
+                    }, status=400)
             except (ValueError, TypeError):
-                # Invalid person_cluster_id, skip filtering by person cluster
-                pass
+                return JsonResponse({
+                    'success': False,
+                    'error': _('Ungültige Benutzergruppe'),
+                }, status=400)
             
         assigned_count = 0
         error_messages = []
@@ -2457,16 +2489,22 @@ def ajax_load_aufgaben_table_data(request):
                 freiwillige = Freiwilliger.objects.filter(org=team_member.org)
                 
             if person_cluster_param is not None and person_cluster_param != 'None':
-                person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+                person_cluster = PersonCluster.selectable_for_org(
+                    request.user.org,
+                    id=int(person_cluster_param),
+                ).get()
                 users = User.objects.filter(id__in=freiwillige.values_list('user_id', flat=True), customuser__person_cluster=person_cluster, customuser__org=request.user.org).order_by('first_name', 'last_name')
                 aufgaben = Aufgabe2.objects.filter(org=request.user.org, person_cluster=person_cluster)
             else: 
                 users = User.objects.filter(id__in=freiwillige.values_list('user_id', flat=True), customuser__org=request.user.org).order_by('first_name', 'last_name')
-                person_cluster_fw = PersonCluster.objects.filter(view='F')
+                person_cluster_fw = PersonCluster.selectable_for_org(request.user.org, view='F')
                 aufgaben = Aufgabe2.objects.filter(org=request.user.org, person_cluster__in=person_cluster_fw)
         else:
             if person_cluster_param is not None and person_cluster_param != 'None':
-                person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+                person_cluster = PersonCluster.selectable_for_org(
+                    request.user.org,
+                    id=int(person_cluster_param),
+                ).get()
                 users = User.objects.filter(customuser__person_cluster=person_cluster, customuser__org=request.user.org).order_by('first_name', 'last_name')
                 aufgaben = Aufgabe2.objects.filter(org=request.user.org, person_cluster=person_cluster)
             else:

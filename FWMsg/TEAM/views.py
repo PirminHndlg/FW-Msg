@@ -125,7 +125,11 @@ def _get_person_cluster(request):
     person_cluster_filter = request.GET.get('person_cluster_filter')
     person_cluster = None
     if person_cluster_filter and person_cluster_filter != 'None':
-        person_cluster = PersonCluster.objects.filter(id=int(person_cluster_filter), org=request.user.org, view='F')
+        person_cluster = PersonCluster.selectable_for_org(
+            request.user.org,
+            id=int(person_cluster_filter),
+            view='F',
+        )
         if person_cluster.exists():
             person_cluster = person_cluster.first()
     return person_cluster
@@ -145,7 +149,10 @@ def contacts(request):
     if person_cluster:
         freiwillige = freiwillige.filter(user__customuser__person_cluster=person_cluster)
         
-    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, view='F').order_by('-id')
+    all_person_clusters = PersonCluster.selectable_for_org(
+        request.user.org,
+        view='F',
+    ).order_by('-id')
     
     # Collect all user IDs for efficient attribute queries
     user_ids = [fw.user_id for fw in freiwillige]
@@ -247,7 +254,7 @@ def ampelmeldung(request):
         'months': months,
         'current_month': timezone.now().strftime("%b %y"),
         'current_person_cluster': person_cluster,
-        'all_person_clusters': PersonCluster.objects.filter(org=request.user.org, view='F')
+        'all_person_clusters': PersonCluster.selectable_for_org(request.user.org, view='F')
     }
 
     context = check_organization_context(request, context)
@@ -276,7 +283,7 @@ def aufgabenuebersicht(request):
     return render(request, 'teamAufgabenuebersicht.html', {
         'freiwillige': freiwillige,
         'team_member': team_member,
-        'all_person_clusters': PersonCluster.objects.filter(org=team_member.org, view='F'),
+        'all_person_clusters': PersonCluster.selectable_for_org(team_member.org, view='F'),
         'current_person_cluster': person_cluster
     })
     

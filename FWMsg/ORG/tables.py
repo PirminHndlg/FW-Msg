@@ -234,7 +234,13 @@ def get_customuser_filter(request, org, objects):
     filter_options = []
     
     # Build PersonCluster filter (no view restriction, all PersonClusters)
-    pc_filter, selected_cluster = build_person_cluster_filter(request, org, view=None, min_clusters=2)
+    pc_filter, selected_cluster = build_person_cluster_filter(
+        request,
+        org,
+        view=None,
+        min_clusters=2,
+        include_inactive=True,
+    )
     
     if pc_filter:
         filter_options.append(pc_filter)
@@ -336,7 +342,7 @@ class ApplicationFileQuestionTable(BaseOrgTable):
         model = ApplicationFileQuestion
         fields = ('order', 'name', 'description', 'actions')
         
-def build_person_cluster_filter(request, org, view=None, min_clusters=2):
+def build_person_cluster_filter(request, org, view=None, min_clusters=2, include_inactive=False):
     """
     Build PersonCluster filter options that can be used by multiple tables.
     
@@ -345,6 +351,7 @@ def build_person_cluster_filter(request, org, view=None, min_clusters=2):
         org: The organization
         view: Optional view filter (e.g. 'F', 'B', 'T', 'E') - None for all
         min_clusters: Minimum number of clusters required to show filter (default: 2)
+        include_inactive: Include inactive clusters for management tables
     
     Returns:
         tuple: (filter_dict or None, selected_cluster or None)
@@ -366,10 +373,13 @@ def build_person_cluster_filter(request, org, view=None, min_clusters=2):
         return '?' + urlencode(params) if params else '?'
     
     # Get all person clusters for this org
-    if view:
-        all_person_clusters = PersonCluster.objects.filter(org=org, view=view).order_by('name')
+    if include_inactive:
+        all_person_clusters = PersonCluster.objects.filter(org=org)
     else:
-        all_person_clusters = PersonCluster.objects.filter(org=org).order_by('name')
+        all_person_clusters = PersonCluster.selectable_for_org(org)
+    if view:
+        all_person_clusters = all_person_clusters.filter(view=view)
+    all_person_clusters = all_person_clusters.order_by('name')
     
     # Show filter only if there are enough clusters
     if not all_person_clusters.exists() or all_person_clusters.count() < min_clusters:
@@ -416,10 +426,7 @@ def build_person_cluster_filter(request, org, view=None, min_clusters=2):
     selected_cluster = None
     if selected_filter:
         try:
-            if view:
-                selected_cluster = PersonCluster.objects.get(id=int(selected_filter), org=org, view=view)
-            else:
-                selected_cluster = PersonCluster.objects.get(id=int(selected_filter), org=org)
+            selected_cluster = all_person_clusters.get(id=int(selected_filter))
         except Exception:
             pass
     

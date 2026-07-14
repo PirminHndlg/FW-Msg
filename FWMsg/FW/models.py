@@ -36,7 +36,7 @@ class Freiwilliger(OrgModel):
             ehemalige.save()
             
             from Global.models import PersonCluster
-            ehe_person_cluster = PersonCluster.objects.filter(org=org, view='E').order_by('-id')
+            ehe_person_cluster = PersonCluster.selectable_for_org(org, view='E').order_by('-id')
             if ehe_person_cluster.exists():
                 ehe_person_cluster = ehe_person_cluster.first()
                 self.user.customuser.person_cluster = ehe_person_cluster

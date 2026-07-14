@@ -490,7 +490,10 @@ def bilder(request):
     cookie_name = 'selectedPersonCluster-bilder'
     
     current_person_cluster = None
-    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, bilder=True).order_by('name')
+    all_person_clusters = PersonCluster.selectable_for_org(
+        request.user.org,
+        bilder=True,
+    ).order_by('name')
     try:
         person_cluster_param = request.GET.get('person_cluster_filter')
         if person_cluster_param == 'None':
@@ -899,7 +902,10 @@ def download_bild_as_zip(request, id):
 def dokumente(request, ordner_id=None):
     cookie_name = 'selectedPersonCluster-dokumente'
     
-    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, dokumente=True).order_by('name')
+    all_person_clusters = PersonCluster.selectable_for_org(
+        request.user.org,
+        dokumente=True,
+    ).order_by('name')
     current_person_cluster = None
     folder_structure = []
     
@@ -974,7 +980,18 @@ def add_dokument(request):
     beschreibung = request.POST.get('beschreibung')
     link = request.POST.get('link')
     darf_bearbeiten = request.POST.getlist('darf_bearbeiten')
-    darf_bearbeiten = PersonCluster.objects.filter(id__in=darf_bearbeiten)
+    if any(not cluster_id.isdigit() for cluster_id in darf_bearbeiten):
+        messages.error(request, 'Ausgewählte Benutzergruppe ist ungültig.')
+        return redirect('dokumente')
+    darf_bearbeiten = PersonCluster.selectable_for_org(
+        request.user.org,
+        id__in=darf_bearbeiten,
+    )
+    if request.user.role == 'O' and set(request.POST.getlist('darf_bearbeiten')) != {
+        str(cluster_id) for cluster_id in darf_bearbeiten.values_list('pk', flat=True)
+    }:
+        messages.error(request, 'Ausgewählte Benutzergruppe ist nicht aktiv oder nicht verfügbar.')
+        return redirect('dokumente')
     file = request.FILES.get('dokument')
     
     if dokument_id and dokument_id != '':
@@ -985,7 +1002,7 @@ def add_dokument(request):
             return redirect('dokumente')
     else:
         try:
-            ordner = Ordner2.objects.get(id=request.POST.get('ordner'))
+            ordner = Ordner2.objects.get(id=request.POST.get('ordner'), org=request.user.org)
             dokument = Dokument2.objects.create(
                 org=request.user.org,
                 ordner=ordner,
@@ -1004,7 +1021,12 @@ def add_dokument(request):
     if file:
         dokument.dokument = file    
     if request.user.role == 'O':
-        dokument.darf_bearbeiten.set(darf_bearbeiten)
+        inactive_cluster_ids = list(
+            dokument.darf_bearbeiten.filter(active=False).values_list('pk', flat=True)
+        )
+        dokument.darf_bearbeiten.set(
+            list(darf_bearbeiten) + inactive_cluster_ids
+        )
     dokument.update_identifier()
     dokument.save()
 
@@ -1020,6 +1042,9 @@ def add_ordner(request):
         ordner_name = request.POST.get('ordner_name')
         person_cluster_ids = request.POST.getlist('ordner_person_cluster')
         color_id = request.POST.get('color')
+        if any(not cluster_id.isdigit() for cluster_id in person_cluster_ids):
+            messages.error(request, 'Ausgewählte Benutzergruppe ist ungültig.')
+            return redirect('dokumente')
         
         # Validate required fields
         if not ordner_name:
@@ -1031,7 +1056,15 @@ def add_ordner(request):
             
         try:
             if person_cluster_ids:
-                person_clusters = PersonCluster.objects.filter(id__in=person_cluster_ids)
+                person_clusters = PersonCluster.selectable_for_org(
+                    request.user.org,
+                    id__in=person_cluster_ids,
+                )
+                if set(person_cluster_ids) != {
+                    str(cluster_id) for cluster_id in person_clusters.values_list('pk', flat=True)
+                }:
+                    messages.error(request, 'Ausgewählte Benutzergruppe ist nicht aktiv oder nicht verfügbar.')
+                    return redirect('dokumente')
             
             color = None
             if color_id:
@@ -1050,7 +1083,10 @@ def add_ordner(request):
                 return redirect('dokumente')
             
             ordner.ordner_name = ordner_name
-            ordner.typ.set(person_clusters or [])
+            inactive_cluster_ids = list(
+                ordner.typ.filter(active=False).values_list('pk', flat=True)
+            )
+            ordner.typ.set(list(person_clusters or []) + inactive_cluster_ids)
             ordner.color = color
             ordner.save()    
             
@@ -1710,7 +1746,11 @@ def list_ampel(request):
         person_cluster_param = request.COOKIES.get('selectedPersonCluster-ampel')
     if person_cluster_param is not None and person_cluster_param != 'None':
         try:
-            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org, ampel=True)
+            person_cluster = PersonCluster.selectable_for_org(
+                request.user.org,
+                id=int(person_cluster_param),
+                ampel=True,
+            ).get()
         except PersonCluster.DoesNotExist:
             person_cluster = None
     else:
@@ -1726,13 +1766,17 @@ def list_ampel(request):
     # Base queryset for freiwillige
     if request.user.view == 'O':
         user_qs = User.objects.filter(customuser__person_cluster__isnull=False, customuser__org=request.user.org, customuser__person_cluster__ampel=True).order_by('first_name', 'last_name')
-        all_person_cluster = PersonCluster.objects.filter(org=request.user.org, ampel=True)
+        all_person_cluster = PersonCluster.selectable_for_org(request.user.org, ampel=True)
     elif request.user.view == 'T':
         from TEAM.views import _get_Freiwillige
         # TODO: this displays all freiwillige, not only the ones that have an ampel enabled
         freiwillige = _get_Freiwillige(request)
         user_qs = User.objects.filter(id__in=freiwillige.values_list('user_id', flat=True))
-        all_person_cluster = PersonCluster.objects.filter(org=request.user.org, view='F', ampel=True)
+        all_person_cluster = PersonCluster.selectable_for_org(
+            request.user.org,
+            view='F',
+            ampel=True,
+        )
     else:
         user_qs = User.objects.none()
         raise ValueError('Invalid view')
@@ -1929,7 +1973,10 @@ def download_aufgabe_attachment(request, aufgabe_id):
 def posts_overview(request):
     cookie_name = 'selectedPersonCluster-posts'
     
-    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, posts=True).order_by('name')
+    all_person_clusters = PersonCluster.selectable_for_org(
+        request.user.org,
+        posts=True,
+    ).order_by('name')
     current_person_cluster = None
     if request.user.role == 'O':
         try:
@@ -2890,7 +2937,11 @@ def karte(request):
         filter_person_clusters = request.GET.get('person_cluster_filter')
         if filter_person_clusters and filter_person_clusters != 'None':
             try:
-                filter_person_cluster = PersonCluster.objects.get(id=int(filter_person_clusters), org=request.user.org)
+                filter_person_cluster = PersonCluster.selectable_for_org(
+                    request.user.org,
+                    id=int(filter_person_clusters),
+                    map=True,
+                ).get()
                 map_locations = MapLocation.objects.filter(org=request.user.org, user__customuser__person_cluster=filter_person_cluster)
             except Exception as e:
                 messages.warning(request, f'Fehler beim Filtern der Benutzergruppen: {str(e)}')
@@ -2911,7 +2962,11 @@ def karte(request):
         filter_person_cluster = request.GET.get('person_cluster_filter')
         if filter_person_cluster and filter_person_cluster != 'None':
             try:
-                filter_person_cluster = PersonCluster.objects.get(id=int(filter_person_cluster), org=request.user.org)
+                filter_person_cluster = PersonCluster.selectable_for_org(
+                    request.user.org,
+                    id=int(filter_person_cluster),
+                    map=True,
+                ).get()
                 if filter_person_cluster == request.user.customuser.person_cluster:
                     map_locations = map_locations.filter(user__customuser__person_cluster=filter_person_cluster)
             except Exception as e:
@@ -2922,7 +2977,10 @@ def karte(request):
         'locations': map_locations,
         'user_location': user_location,
         'is_editing': user_location is not None,
-        'person_clusters': PersonCluster.objects.filter(org=request.user.org, map=True).order_by('name'),
+        'person_clusters': PersonCluster.selectable_for_org(
+            request.user.org,
+            map=True,
+        ).order_by('name'),
         'current_person_cluster': filter_person_cluster,
     }
     context = check_organization_context(request, context)

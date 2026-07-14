@@ -444,7 +444,10 @@ def own_signin_success(request):
 
 def own_signin(request, token):
     try:
-        person_cluster = PersonCluster.objects.get(own_signin_token=token)
+        person_cluster = PersonCluster.objects.get(
+            own_signin_token=token,
+            active=True,
+        )
         org = person_cluster.org
         
         if request.method == 'POST':

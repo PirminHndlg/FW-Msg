@@ -54,7 +54,10 @@ def home(request):
         if not person_cluster_param or person_cluster_param == 'None':
             current_person_cluster = None
         elif person_cluster_param:
-            current_person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+            current_person_cluster = PersonCluster.selectable_for_org(
+                request.user.org,
+                id=int(person_cluster_param),
+            ).get()
         else:
             current_person_cluster = request.user.person_cluster
     except PersonCluster.DoesNotExist:

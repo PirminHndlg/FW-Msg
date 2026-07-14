@@ -353,7 +353,7 @@ def create_chat_group(request):
     person_clusters = None
     cluster_members = {}
     if getattr(request.user, 'role', None) == 'O':
-        person_clusters = PersonCluster.objects.filter(org=org, active=True).exclude(view="B")
+        person_clusters = PersonCluster.selectable_for_org(org).exclude(view="B")
         for cluster in person_clusters:
             pks = list(
                 available_users.filter(customuser__person_cluster=cluster)

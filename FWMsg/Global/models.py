@@ -99,6 +99,11 @@ class PersonCluster(OrgModel):
         
     def __str__(self):
         return self.name
+
+    @classmethod
+    def selectable_for_org(cls, org, **filters):
+        """Return active PersonClusters that may be shown or submitted."""
+        return cls.objects.filter(org=org, active=True, **filters)
     
     def get_users(self):
         return User.objects.filter(customuser__person_cluster=self)

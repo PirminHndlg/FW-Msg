@@ -251,7 +251,7 @@ class Bewerber(OrgModel):
             # Add the user to the person cluster with view 'F' with the highest id (last created)
             from Global.models import PersonCluster
             # Get the first person cluster with view 'F' ordered by id reverse
-            fw_cluster = PersonCluster.objects.filter(org=org, view='F').order_by('-id')
+            fw_cluster = PersonCluster.selectable_for_org(org, view='F').order_by('-id')
             if fw_cluster.exists():
                 fw_cluster = fw_cluster.first()
                 self.user.customuser.person_cluster = fw_cluster

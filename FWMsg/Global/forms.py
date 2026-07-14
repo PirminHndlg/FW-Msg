@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib import messages
+from django.core.exceptions import FieldDoesNotExist
 
 from FWMsg.middleware import get_current_request
 from .models import Ampel2, BewerberKommentar, Feedback, PersonCluster, Post2, Notfallkontakt2, PostResponse, PostSurveyQuestion, PostSurveyAnswer, EinsatzstelleNotiz, MapLocation
@@ -7,6 +8,64 @@ from django.utils.translation import gettext_lazy as _
 from Global.send_email import send_new_post_email
 from django.forms.widgets import HiddenInput
 import uuid
+from typing import Any
+
+
+class ActivePersonClusterFormMixin:
+    """Hide inactive cluster choices while retaining existing relationships."""
+
+    fields: Any
+    instance: Any
+    initial: Any
+    _meta: Any
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._inactive_person_cluster_m2m = {}
+        self._inactive_person_cluster_fk = {}
+
+        for field_name, field in self.fields.items():
+            if not isinstance(field, forms.ModelChoiceField):
+                continue
+            if field.queryset.model is not PersonCluster:
+                continue
+
+            field.queryset = field.queryset.filter(active=True)
+            if not getattr(self.instance, 'pk', None):
+                continue
+
+            try:
+                model_field = self._meta.model._meta.get_field(field_name)
+            except (AttributeError, FieldDoesNotExist):
+                continue
+
+            if model_field.many_to_many:
+                inactive_ids = list(
+                    getattr(self.instance, field_name)
+                    .filter(active=False)
+                    .values_list('pk', flat=True)
+                )
+                if inactive_ids:
+                    self._inactive_person_cluster_m2m[field_name] = inactive_ids
+            elif model_field.many_to_one:
+                current_cluster = getattr(self.instance, field_name, None)
+                if current_cluster and not current_cluster.active:
+                    self._inactive_person_cluster_fk[field_name] = current_cluster
+                    field.required = False
+                    self.initial.pop(field_name, None)
+
+    def clean(self):
+        cleaned_data = super().clean()  # pyright: ignore[reportAttributeAccessIssue]
+        for field_name, current_cluster in self._inactive_person_cluster_fk.items():
+            if not cleaned_data.get(field_name):
+                cleaned_data[field_name] = current_cluster
+        return cleaned_data
+
+    def _save_m2m(self):
+        super()._save_m2m()  # pyright: ignore[reportAttributeAccessIssue]
+        for field_name, inactive_ids in self._inactive_person_cluster_m2m.items():
+            getattr(self.instance, field_name).add(*inactive_ids)
+
 
 class FeedbackForm(forms.ModelForm):
     class Meta:
@@ -69,7 +128,7 @@ class AddAmpelmeldungForm(forms.ModelForm):
         )
         return obj, True
 
-class AddPostForm(forms.ModelForm):
+class AddPostForm(ActivePersonClusterFormMixin, forms.ModelForm):
     has_survey = forms.BooleanField(required=False, label=_('Umfrage hinzufügen'), 
                                   help_text=_('Aktivieren, um eine einfache Umfrage zum Beitrag hinzuzufügen'))
     image = forms.ImageField(required=False, label=_('Bild'), help_text=_('Bild des Posts'))
@@ -118,15 +177,16 @@ class AddPostForm(forms.ModelForm):
             
             # Filter queryset based on user role
             if request.user.role == 'O':
-                self.fields['person_cluster'].queryset = PersonCluster.objects.filter(
-                    org=request.user.org
+                self.fields['person_cluster'].queryset = PersonCluster.selectable_for_org(
+                    request.user.org
                 ).order_by('name')
                 self.fields['person_cluster'].required = False
             else:
                 # For non-admin users, just show their own person_cluster
                 person_cluster_id = request.user.person_cluster.id
-                self.fields['person_cluster'].queryset = PersonCluster.objects.filter(
-                    id=person_cluster_id
+                self.fields['person_cluster'].queryset = PersonCluster.selectable_for_org(
+                    request.user.org,
+                    id=person_cluster_id,
                 )
                 # Pre-select their cluster
                 if not self.instance.pk:  # Only for new instances
