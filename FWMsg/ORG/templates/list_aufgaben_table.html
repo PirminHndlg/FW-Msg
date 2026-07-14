@@ -121,8 +121,10 @@
       <!-- Filter buttons (always visible) -->
       <div class="card-header bg-transparent border-bottom-0">
         <div class="d-flex gap-1 mb-2 justify-content-center align-items-center mt-2">
-          <strong>{% trans "Benutzergruppe" %}</strong>
-          <a href="{% url 'list_object' 'personcluster' %}" class="rounded-4"><i class="bi bi-pencil text-primary"></i></a>
+          <a href="{% url 'list_object' 'personcluster' %}" class="text-decoration-none text-body">
+            <strong>{% trans "Benutzergruppe" %}</strong>
+            <i class="d-none d-md-inline bi bi-pencil text-primary"></i>
+          </a>
           <div class="gap-1 flex-wrap justify-content-center align-items-center d-none d-md-flex">
             <a class="btn btn-sm rounded-4 btn-outline-primary {% if not current_person_cluster %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f=None&person_cluster_filter=None">
               {% trans "Alle" %}
@@ -146,8 +148,10 @@
         </div>
         {% if aufgaben_cluster %}
         <div class="d-flex gap-1 mb-2 justify-content-center align-items-center mt-2">
-          <strong>{% trans "Filter" %}</strong>
-          <a href="{% url 'list_object' 'aufg-filter' %}" class="rounded-4"><i class="bi bi-pencil text-primary"></i></a>
+          <a href="{% url 'list_object' 'aufg-filter' %}" class="text-decoration-none text-body">
+            <strong>{% trans "Filter" %}</strong>
+            <i class="d-none d-md-inline bi bi-pencil text-primary"></i>
+          </a>
           <div class="gap-1 flex-wrap justify-content-center align-items-center d-none d-md-flex">
             <!-- Filter buttons that work immediately -->
             <a class="btn btn-sm rounded-4 btn-outline-primary {% if not filter %}active{% endif %}" href="{% url 'list_aufgaben_table' %}?f=None&person_cluster_filter={{ current_person_cluster.id }}">

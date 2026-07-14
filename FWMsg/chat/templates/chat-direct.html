@@ -15,7 +15,7 @@
 {% block content %}
 <div class="d-flex align-items-center gap-3 mb-3">
   <a href="{% url 'chat_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
-    <i class="bi bi-arrow-left me-1"></i>{% trans "Zurück" %}
+    <i class="bi bi-arrow-left"></i><span class="ms-1 d-none d-md-inline">{% trans "Zurück" %}</span>
   </a>
   <div class="d-flex align-items-center gap-2">
     <div>

@@ -12,7 +12,7 @@
 {% block content %}
 <div class="d-flex align-items-center gap-3 mb-3">
   <a href="{% url 'chat_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
-    <i class="bi bi-arrow-left me-1"></i>{% trans "Zurück" %}
+    <i class="bi bi-arrow-left"></i><span class="ms-1 d-none d-md-inline">{% trans "Zurück" %}</span>
   </a>
   <div class="d-flex align-items-center gap-2 flex-grow-1">
     <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width:38px;height:38px;">
@@ -27,7 +27,7 @@
       data-bs-toggle="modal"
       data-bs-target="#membersModal"
     >
-      <i class="bi bi-info-circle me-1"></i>{{ chat.users.count }} {% trans "Mitglieder" %}
+      <i class="bi bi-people me-1"></i>{{ chat.users.count }}
     </button>
   </div>
 </div>

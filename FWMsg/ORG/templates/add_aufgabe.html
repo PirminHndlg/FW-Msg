@@ -299,62 +299,15 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
-/* Buttons */
-.btn-primary {
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    border: none;
-    border-radius: 6px;
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,123,255,0.2);
-}
 
-.btn-primary:hover {
-    background: linear-gradient(135deg, #0056b3, #004085);
-    box-shadow: 0 4px 8px rgba(0,123,255,0.3);
-}
-
-.btn-secondary {
-    background: linear-gradient(135deg, #6c757d, #5a6268);
-    border: none;
-    border-radius: 6px;
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-outline-primary {
-    border: 2px solid #007bff;
-    color: #007bff;
-    background: transparent;
-    border-radius: 6px;
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-outline-primary:hover {
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    border-color: #007bff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,123,255,0.2);
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    border: none;
-    border-radius: 6px;
-    padding: 0.75rem 2rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(40,167,69,0.2);
-}
-
-.btn-success:hover {
-    background: linear-gradient(135deg, #20c997, #1e7e34);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(40,167,69,0.3);
+/* Keep form actions consistent with the project's Bootstrap buttons. */
+.form-actions .btn {
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    border-width: 1px;
+    border-radius: 1rem;
+    box-shadow: none;
+    transform: none;
 }
 
 /* Responsive Adjustments */
@@ -600,93 +553,68 @@ div.is-invalid {
                         {% trans "Definiere, wie die Aufgabe bearbeitet werden soll - mit Datei-Upload und/oder Bestätigung." %}
                     </div>
 
-                    <!-- File Upload Required -->
-                    <div class="mb-3 row mx-3 align-items-center">
-                        <label for="{{ form.mitupload.id_for_label }}" class="col-form-label col-md-3">
-                            <i class="bi bi-file-earmark-text me-1"></i>
-                            {{ form.mitupload.label }}
-                        </label>
-                        <div class="col-md-9">
-                            <div class="form-check">
+                    <div class="card m-2">
+                        <div class="card-body">
+                            <!-- File Upload Required -->
+                            <div class="form-check mb-3">
                                 {{ form.mitupload|add_class:"form-check-input" }}
                                 <label class="form-check-label" for="{{ form.mitupload.id_for_label }}">
-                                    {% if form.mitupload.help_text %}
-                                        {{ form.mitupload.help_text }}
-                                    {% endif %}
+                                    <i class="bi bi-file-earmark-text me-1"></i>
+                                    {{ form.mitupload.label }}
                                 </label>
+                                {% if form.mitupload.help_text %}
+                                    <div class="form-text">{{ form.mitupload.help_text }}</div>
+                                {% endif %}
+                                {% if form.mitupload.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.mitupload.errors }}</div>
+                                {% endif %}
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Requires Submission -->
-                    <div class="mb-3 row mx-3 align-items-center">
-                        <label for="{{ form.requires_submission.id_for_label }}" class="col-form-label col-md-3">
-                            <i class="bi bi-check-circle me-1"></i>
-                            {{ form.requires_submission.label }}
-                        </label>
-                        <div class="col-md-9">
-                            <div class="form-check">
+                            <!-- Requires Submission -->
+                            <div class="form-check mb-3">
                                 {{ form.requires_submission|add_class:"form-check-input" }}
                                 <label class="form-check-label" for="{{ form.requires_submission.id_for_label }}">
-                                    {% if form.requires_submission.help_text %}
-                                        {{ form.requires_submission.help_text }}
-                                    {% endif %}
-                                    <br>
-                                    {% comment %} <span class="d-inline-flex align-items-center">
-                                        <i class="bi bi-circle text-secondary me-1" title="{% trans 'offen' %}"></i>
-                                        <span class="mx-1 text-muted" style="font-size:1.1em;">&#8594;</span>
-                                        <i class="bi bi-hourglass-split text-warning me-1" title="{% trans 'pending' %}"></i>
-                                        <span class="mx-1 text-muted" style="font-size:1.1em;">&#8594;</span>
-                                        <i class="bi bi-check-circle text-success" title="{% trans 'erledigt' %}"></i>
-                                    </span>
-                                    oder 
-                                    <span class="d-inline-flex align-items-center">
-                                        <i class="bi bi-circle text-secondary me-1" title="{% trans 'offen' %}"></i>
-                                        <span class="mx-1 text-muted" style="font-size:1.1em;">&#8594;</span>
-                                        <i class="bi bi-check-circle text-success" title="{% trans 'erledigt' %}"></i>
-                                    </span> {% endcomment %}
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    {{ form.requires_submission.label }}
                                 </label>
+                                {% if form.requires_submission.help_text %}
+                                    <div class="form-text">{{ form.requires_submission.help_text }}</div>
+                                {% endif %}
+                                {% if form.requires_submission.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.requires_submission.errors }}</div>
+                                {% endif %}
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- With Email Notification -->
-                    <div class="mb-3 row mx-3 align-items-center">
-                        <label for="{{ form.with_email_notification.id_for_label }}" class="col-form-label col-md-3">
-                            <i class="bi bi-envelope me-1"></i>
-                            {{ form.with_email_notification.label }}
-                        </label>
-                        <div class="col-md-9">
-                            <div class="form-check">
+                            <!-- With Email Notification -->
+                            <div class="form-check mb-3">
                                 {{ form.with_email_notification|add_class:"form-check-input" }}
                                 <label class="form-check-label" for="{{ form.with_email_notification.id_for_label }}">
-                                    {% if form.with_email_notification.help_text %}
-                                        {{ form.with_email_notification.help_text }}
-                                    {% endif %}
+                                    <i class="bi bi-envelope me-1"></i>
+                                    {{ form.with_email_notification.label }}
                                 </label>
+                                {% if form.with_email_notification.help_text %}
+                                    <div class="form-text">{{ form.with_email_notification.help_text }}</div>
+                                {% endif %}
+                                {% if form.with_email_notification.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.with_email_notification.errors }}</div>
+                                {% endif %}
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Visible by Team with Same Land -->
-                    <div class="mb-3 row mx-3 align-items-center">
-                        <label for="{{ form.visible_by_team.id_for_label }}" class="col-form-label col-md-3">
-                            <i class="bi bi-people me-1"></i>
-                            {{ form.visible_by_team.label }}
-                        </label>
-                        <div class="col-md-9">
+                            <!-- Visible by Team with Same Land -->
                             <div class="form-check">
                                 {{ form.visible_by_team|add_class:"form-check-input" }}
                                 <label class="form-check-label" for="{{ form.visible_by_team.id_for_label }}">
-                                    {% if form.visible_by_team.help_text %}
-                                        {{ form.visible_by_team.help_text }}
-                                    {% endif %}
+                                    <i class="bi bi-people me-1"></i>
+                                    {{ form.visible_by_team.label }}
                                 </label>
+                                {% if form.visible_by_team.help_text %}
+                                    <div class="form-text">{{ form.visible_by_team.help_text }}</div>
+                                {% endif %}
+                                {% if form.visible_by_team.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.visible_by_team.errors }}</div>
+                                {% endif %}
                             </div>
                         </div>
-                        {% if form.visible_by_team.errors %}
-                            <div class="invalid-feedback d-block">{{ form.visible_by_team.errors }}</div>
-                        {% endif %}
                     </div>
                 </div>
 
@@ -989,44 +917,46 @@ div.is-invalid {
         <!-- Form Actions -->
         <div class="form-actions sticky-bottom border">
             <p class="d-none small text-danger text-center cursor-pointer" onclick="document.querySelector('.is-invalid').scrollIntoView({ behavior: 'smooth', block: 'center' }); document.getElementById('isInvalidCounter').textContent = document.querySelectorAll('.is-invalid').length;"><i class="bi bi-exclamation-triangle me-2"></i><a id="isInvalidCounter"></a> Fehler gefunden</p>
-            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 gap-sm-0">
+            <div class="d-flex justify-content-between align-items-center gap-2">
                 <!-- Cancel button -->
-                <div class="order-2 order-sm-1">
+                <div class="d-flex gap-2">
                     <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'list_aufgaben_table' %}{% endif %}" 
-                       class="btn btn-secondary w-100 w-sm-auto">
-                        <i class="bi bi-arrow-left"></i> 
-                        <span class="d-none d-sm-inline">{% trans "Abbrechen" %}</span>
+                       class="btn btn-secondary">
+                        <i class="bi bi-x-lg"></i> 
+                        <span class="d-none d-md-inline ms-2">{% trans "Abbrechen" %}</span>
                     </a>
-                </div>
-                
-                <!-- Navigation and action buttons -->
-                <div class="order-1 order-sm-2 d-flex flex-wrap gap-2 justify-content-end">
-                    <button type="button" class="btn btn-outline-primary flex-grow-1 flex-sm-grow-0" id="prevStep" style="display: none;">
-                        <i class="bi bi-chevron-left"></i> 
-                        <span class="d-none d-sm-inline">{% trans "Zurück" %}</span>
-                    </button>
-                    <button type="button" class="btn btn-primary flex-grow-1 flex-sm-grow-0" id="nextStep">
-                        <span class="d-none d-sm-inline">{% trans "Weiter" %}</span>
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
                     {% if form.instance.id %}
-                        <button type="button" class="btn btn-danger delete-btn flex-grow-1 flex-sm-grow-0" id="deleteBtn" style="display: none;"
+                        <button type="button" class="btn btn-danger rounded-4 delete-btn" id="deleteBtn" style="display: none;"
                             data-bs-toggle="modal"
                             data-bs-target="#deleteModal"
                             data-model="aufgabe"
                             data-id="{{ form.instance.pk }}"
                             data-name="{{ form.instance }}">
-                            <i class="bi bi-trash"></i> 
-                            <span class="d-none d-sm-inline">{% trans "Löschen" %}</span>
+                            <i class="bi bi-trash"></i>
+                            <span class="d-none d-md-inline ms-2">{% trans "Löschen" %}</span>
                         </button>
-                        <button type="submit" class="btn btn-success flex-grow-1 flex-sm-grow-0" id="submitBtn" style="display: none;">
-                            <i class="bi bi-check2"></i> 
-                            <span class="d-none d-sm-inline">{% trans "Änderungen speichern" %}</span>
+                    {% endif %}
+                </div>
+                
+                <!-- Navigation and action buttons -->
+                <div class="d-flex gap-2 justify-content-end">
+                    <button type="button" class="btn btn-outline-primary rounded-4" id="prevStep" style="display: none;">
+                        <i class="bi bi-chevron-left"></i>
+                        <span class="d-none d-md-inline ms-2">{% trans "Zurück" %}</span>
+                    </button>
+                    <button type="button" class="btn btn-primary rounded-4" id="nextStep">
+                        <span>{% trans "Weiter" %}</span>
+                        <i class="bi bi-chevron-right ms-2"></i>
+                    </button>
+                    {% if form.instance.id %}
+                        <button type="submit" class="btn btn-primary rounded-4" id="submitBtn" style="display: none;">
+                            <i class="bi bi-check2"></i>
+                            <span class="d-none d-md-inline ms-2">{% trans "Speichern" %}</span>
                         </button>
                     {% else %}
-                        <button type="submit" class="btn btn-success flex-grow-1 flex-sm-grow-0" id="submitBtn" style="display: none;">
-                            <i class="bi bi-check2"></i> 
-                            <span class="d-none d-sm-inline">{% trans "Aufgabe erstellen" %}</span>
+                        <button type="submit" class="btn btn-primary rounded-4" id="submitBtn" style="display: none;">
+                            <i class="bi bi-check2 me-2"></i>
+                            <span>{% trans "Speichern" %}</span>
                         </button>
                     {% endif %}
                 </div>

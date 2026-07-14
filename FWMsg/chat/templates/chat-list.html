@@ -16,10 +16,10 @@
   </h1>
   <div class="d-flex gap-2">
     <a href="{% url 'create_chat_direct' %}" class="btn btn-outline-primary btn-sm rounded-pill">
-      <i class="bi bi-person-plus me-1"></i>{% trans "Neue Direktnachricht" %}
+      <i class="bi bi-person-plus"></i><span class="ms-1 d-none d-md-inline">{% trans "Neue Direktnachricht" %}</span>
     </a>
     <a href="{% url 'create_chat_group' %}" class="btn btn-primary btn-sm rounded-pill">
-      <i class="bi bi-people me-1"></i>{% trans "Neue Gruppe" %}
+      <i class="bi bi-people"></i><span class="ms-1 d-none d-md-inline">{% trans "Neue Gruppe" %}</span>
     </a>
   </div>
 </div>

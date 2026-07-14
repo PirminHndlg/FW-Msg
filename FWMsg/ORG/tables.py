@@ -40,7 +40,7 @@ class BaseOrgTable(tables.Table):
                 'style': 'width: 120px;',
             }, 
             'td': {
-                'style': 'position: sticky; right: 0; background-color: white; z-index: 1;',
+                'style': 'position: sticky; right: 0; background-color: white;',
             }
         }
     )
@@ -675,7 +675,7 @@ def _create_dynamic_table_class(
         orderable=False,
         attrs={
             'th': {'style': 'width: 120px;'},
-            'td': {'style': 'position: sticky; right: 0; background-color: white; z-index: 1;'}
+            'td': {'style': 'position: sticky; right: 0; background-color: white;'}
         }
     )
     final_column_sequence.append('actions')
