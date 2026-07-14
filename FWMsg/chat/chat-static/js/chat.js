@@ -451,6 +451,10 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
                 }
                 return;
             }
+            if (msg.action === 'read') {
+                updateReadIndicator(msg.id, msg.is_read);
+                return;
+            }
             if (msg.id > lastId) {
                 appendMessage(msg, msg.user_id === currentUserId);
                 lastId = msg.id;
@@ -679,6 +683,22 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         }
     }
 
+    function readIndicatorHtml(isRead) {
+        if (chatType !== 'direct') return '';
+        const icon = isRead ? 'bi-eye' : 'bi-envelope';
+        const title = isRead ? 'Gelesen' : 'Gesendet';
+        return `<span class="chat-read-indicator ms-1" title="${title}"><i class="bi ${icon}"></i></span>`;
+    }
+
+    function updateReadIndicator(messageId, isRead) {
+        const wrapper = window_.querySelector(`[data-msg-id="${messageId}"]`);
+        if (!wrapper || !wrapper.classList.contains('align-items-end')) return;
+        const meta = wrapper.querySelector('.bubble-meta');
+        if (!meta) return;
+        meta.querySelector('.chat-read-indicator')?.remove();
+        meta.insertAdjacentHTML('beforeend', readIndicatorHtml(isRead));
+    }
+
     function appendMessage(msg, isOwn) {
         const placeholder = window_.querySelector('.text-center.text-muted');
         if (placeholder) placeholder.remove();
@@ -715,6 +735,9 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         html += `<div class="bubble-meta ${isOwn ? 'text-end me-1' : 'ms-1'}">${escapeHtml(msg.created_at)}`;
         if (msg.is_edited) {
             html += '<span class="chat-edited-badge">(bearbeitet)</span>';
+        }
+        if (isOwn && chatType === 'direct') {
+            html += readIndicatorHtml(!!msg.is_read);
         }
         if (isOwn && msg.id && msg.can_edit) {
             html += `<button type="button" class="chat-edit-btn btn btn-link btn-sm p-0 ms-1" data-msg-id="${msg.id}" title="Bearbeiten"><i class="bi bi-pencil-square"></i></button>`;

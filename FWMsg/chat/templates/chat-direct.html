@@ -67,6 +67,11 @@
           {% if msg.is_edited %}
             <span class="chat-edited-badge">{% trans "(bearbeitet)" %}</span>
           {% endif %}
+          {% if msg.user == request.user %}
+            <span class="chat-read-indicator ms-1" title="{% if msg.read %}{% trans 'Gelesen' %}{% else %}{% trans 'Gesendet' %}{% endif %}">
+              <i class="bi {% if msg.read %}bi-eye{% else %}bi-envelope{% endif %}"></i>
+            </span>
+          {% endif %}
           {% if msg.user == request.user and msg.can_be_edited %}
             <button type="button" class="chat-edit-btn btn btn-link btn-sm p-0 ms-1" data-msg-id="{{ msg.id }}" title="{% trans 'Bearbeiten' %}">
               <i class="bi bi-pencil-square"></i>

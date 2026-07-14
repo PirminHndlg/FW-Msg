@@ -8,7 +8,7 @@ Coverage:
             create_chat_direct (incl. duplicate detection), create_chat_group,
             send_message_direct, send_message_group,
             ajax_chat_poll, ajax_chat_list_updates, ajax_chat_updates
-  - WebSocket: ChatBadgeConsumer (unread badge push)
+  - WebSocket: ChatBadgeConsumer (unread badge push), ChatConsumer (direct read receipts)
 """
 
 import asyncio
@@ -37,6 +37,7 @@ from .models import (
     ChatMessageDirect,
     ChatMessageGroup,
 )
+from .views import _chat_message_payload
 
 
 # ---------------------------------------------------------------------------
@@ -91,6 +92,18 @@ def patch_tasks(func):
 # ---------------------------------------------------------------------------
 
 class ChatBaseTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._register_email_patcher = patch("ORG.tasks.send_register_email_task.s")
+        cls._mock_register_email = cls._register_email_patcher.start()
+        cls._mock_register_email.return_value.apply_async = MagicMock()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._register_email_patcher.stop()
+        super().tearDownClass()
+
     def setUp(self):
         self.org = make_org()
         self.cluster = make_cluster(self.org)
@@ -640,6 +653,63 @@ class SendMessageDirectViewTest(ChatBaseTest):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 405)
 
+    @override_settings(
+        CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+    )
+    @patch_tasks
+    def test_response_includes_is_read_false_for_sender(self, *mocks):
+        self.login(self.alice)
+        response = self.client.post(
+            self.url,
+            data=json.dumps({"message": "Read me"}),
+            content_type="application/json",
+        )
+        data = response.json()
+        self.assertIn("is_read", data)
+        self.assertFalse(data["is_read"])
+
+
+# ===========================================================================
+# Payload: direct read indicators
+# ===========================================================================
+
+
+class ChatMessagePayloadReadIndicatorTest(ChatBaseTest):
+
+    def setUp(self):
+        super().setUp()
+        self.chat = make_direct_chat(self.org, self.alice, self.bob)
+        self.group = make_group_chat(self.org, "G", self.alice, self.bob)
+
+    def test_direct_sender_payload_includes_is_read(self):
+        msg = ChatMessageDirect.objects.create(
+            chat=self.chat, user=self.alice, org=self.org, message="hi"
+        )
+        payload = _chat_message_payload(msg, self.alice, viewer=self.alice)
+        self.assertIn("is_read", payload)
+        self.assertFalse(payload["is_read"])
+
+    def test_direct_sender_payload_reflects_read_true(self):
+        msg = ChatMessageDirect.objects.create(
+            chat=self.chat, user=self.alice, org=self.org, message="hi", read=True
+        )
+        payload = _chat_message_payload(msg, self.alice, viewer=self.alice)
+        self.assertTrue(payload["is_read"])
+
+    def test_direct_recipient_payload_omits_is_read(self):
+        msg = ChatMessageDirect.objects.create(
+            chat=self.chat, user=self.bob, org=self.org, message="hi"
+        )
+        payload = _chat_message_payload(msg, self.bob, viewer=self.alice)
+        self.assertNotIn("is_read", payload)
+
+    def test_group_sender_payload_omits_is_read(self):
+        msg = ChatMessageGroup.objects.create(
+            chat=self.group, user=self.alice, org=self.org, message="hi"
+        )
+        payload = _chat_message_payload(msg, self.alice, viewer=self.alice)
+        self.assertNotIn("is_read", payload)
+
 
 # ===========================================================================
 # View: send_message_group (AJAX)
@@ -1000,6 +1070,18 @@ class ChatEditMessageTest(ChatBaseTest):
     CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 )
 class ChatBadgeWebSocketTest(TransactionTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._register_email_patcher = patch("ORG.tasks.send_register_email_task.s")
+        cls._mock_register_email = cls._register_email_patcher.start()
+        cls._mock_register_email.return_value.apply_async = MagicMock()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._register_email_patcher.stop()
+        super().tearDownClass()
+
     def setUp(self):
         self.org = make_org()
         self.cluster = make_cluster(self.org)
@@ -1068,6 +1150,81 @@ class ChatBadgeWebSocketTest(TransactionTestCase):
             await communicator.disconnect()
 
         asyncio.run(run())
+
+
+@override_settings(
+    CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+)
+class ChatDirectWebSocketReadReceiptTest(TransactionTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._register_email_patcher = patch("ORG.tasks.send_register_email_task.s")
+        cls._mock_register_email = cls._register_email_patcher.start()
+        cls._mock_register_email.return_value.apply_async = MagicMock()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._register_email_patcher.stop()
+        super().tearDownClass()
+
+    def setUp(self):
+        self.org = make_org()
+        self.cluster = make_cluster(self.org)
+        self.alice = make_user(self.org, "alice_read_ws", self.cluster)
+        self.bob = make_user(self.org, "bob_read_ws", self.cluster)
+        self.chat = make_direct_chat(self.org, self.alice, self.bob)
+        self.ident = self.chat.get_identifier()
+        self.client = Client()
+
+    def _chat_ws_headers(self, user):
+        client = Client()
+        client.force_login(user)
+        c = client.cookies.get(settings.SESSION_COOKIE_NAME)
+        self.assertIsNotNone(c)
+        cookie = f"{settings.SESSION_COOKIE_NAME}={c.value}".encode()
+        return [(b"cookie", cookie)]
+
+    @patch("chat.consumers.notify_users_about_new_direct_chat_message")
+    def test_recipient_read_notifies_sender(self, _mock_notify):
+        ws_url = f"/ws/chat/direct/{self.ident}/"
+        alice_headers = self._chat_ws_headers(self.alice)
+        bob_headers = self._chat_ws_headers(self.bob)
+
+        async def run():
+            alice_comm = WebsocketCommunicator(
+                application, ws_url, headers=alice_headers
+            )
+            bob_comm = WebsocketCommunicator(
+                application, ws_url, headers=bob_headers
+            )
+            self.assertTrue((await alice_comm.connect())[0])
+            self.assertTrue((await bob_comm.connect())[0])
+
+            await alice_comm.send_json_to({"message": "Hello Bob"})
+
+            alice_messages = []
+            for _ in range(2):
+                alice_messages.append(await alice_comm.receive_json_from())
+
+            own_msg = next(m for m in alice_messages if m.get("message") == "Hello Bob")
+            read_evt = next(m for m in alice_messages if m.get("action") == "read")
+
+            self.assertFalse(own_msg["is_read"])
+            self.assertEqual(read_evt["id"], own_msg["id"])
+            self.assertTrue(read_evt["is_read"])
+
+            bob_msg = await bob_comm.receive_json_from()
+            self.assertEqual(bob_msg["id"], own_msg["id"])
+            self.assertNotIn("is_read", bob_msg)
+
+            await alice_comm.disconnect()
+            await bob_comm.disconnect()
+            return own_msg["id"]
+
+        msg_id = asyncio.run(run())
+        msg = ChatMessageDirect.objects.get(pk=msg_id)
+        self.assertTrue(msg.read)
 
 
 # ---------------------------------------------------------------------------

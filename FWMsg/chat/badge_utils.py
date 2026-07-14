@@ -59,3 +59,25 @@ def broadcast_chat_edit_to_room(chat_type, identifier, message_id, new_text):
         room_group,
         {"type": "chat_message_edited", "id": message_id, "message": new_text},
     )
+
+
+def broadcast_chat_read_to_room(chat_type, identifier, message_id, is_read):
+    """Broadcast a read-receipt update to all WebSocket clients in the room."""
+    layer = get_channel_layer()
+    if layer is None:
+        return
+    room_group = f"chat_{chat_type}_{identifier[:80]}"
+    async_to_sync(layer.group_send)(
+        room_group,
+        {
+            "type": "chat_message_read",
+            "id": message_id,
+            "is_read": is_read,
+        },
+    )
+
+
+def broadcast_direct_message_read_if_needed(msg, chat):
+    """Notify the room when a direct message becomes read."""
+    if msg.read:
+        broadcast_chat_read_to_room("direct", chat.get_identifier(), msg.id, True)

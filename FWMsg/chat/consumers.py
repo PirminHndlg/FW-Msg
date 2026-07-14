@@ -8,7 +8,11 @@ from .ampel_access import (
     resolve_ampel_for_direct_reply,
     user_can_view_ampel_by_owner,
 )
-from .badge_utils import broadcast_unread_badge_for_user, get_unread_chat_message_count
+from .badge_utils import (
+    broadcast_chat_read_to_room,
+    broadcast_unread_badge_for_user,
+    get_unread_chat_message_count,
+)
 from .models import ChatDirect, ChatGroup, ChatMessageDirect, ChatMessageGroup
 from .tasks import notify_users_about_new_direct_chat_message, notify_users_about_new_group_chat_message
 
@@ -108,8 +112,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         """
         is_receiver = event["user_id"] != self.user.id
         if is_receiver:
-            await self.mark_message_read(event["id"])
+            became_read = await self.mark_message_read(event["id"])
             await database_sync_to_async(broadcast_unread_badge_for_user)(self.user)
+            if became_read and self.chat_type == "direct":
+                await database_sync_to_async(broadcast_chat_read_to_room)(
+                    "direct", self.identifier, event["id"], True
+                )
 
         payload = {
             "id":         event["id"],
@@ -127,8 +135,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
             payload["ampel"] = event["ampel"]
         if event["user_id"] == self.user.id:
             payload["can_edit"] = event.get("can_edit", True)
+            if self.chat_type == "direct":
+                payload["is_read"] = event.get("is_read", False)
 
         await self.send(text_data=json.dumps(payload))
+
+    async def chat_message_read(self, event):
+        """Forward a read-receipt update to this WebSocket client."""
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "action": "read",
+                    "id": event["id"],
+                    "is_read": event["is_read"],
+                }
+            )
+        )
 
     async def chat_message_edited(self, event):
         """Forward a message edit to this WebSocket client."""
@@ -148,19 +170,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def mark_message_read(self, message_id):
         """Mark a single message as read for the current user (receiver).
 
-        Scoped to ``self.chat_pk`` so we never touch rows from other chats,
-        even if a bogus ``message_id`` appeared in an event.
+        Returns True if a direct message transitioned from unread to read.
         """
         if self.chat_type == "direct":
-            ChatMessageDirect.objects.filter(
-                id=message_id, chat_id=self.chat_pk
+            updated = ChatMessageDirect.objects.filter(
+                id=message_id, chat_id=self.chat_pk, read=False
             ).update(read=True)
-        else:
-            try:
-                msg = ChatMessageGroup.objects.get(id=message_id, chat_id=self.chat_pk)
-                msg.read_by.add(self.user)
-            except ChatMessageGroup.DoesNotExist:
-                pass
+            return updated > 0
+        try:
+            msg = ChatMessageGroup.objects.get(id=message_id, chat_id=self.chat_pk)
+            msg.read_by.add(self.user)
+        except ChatMessageGroup.DoesNotExist:
+            pass
+        return False
 
     @database_sync_to_async
     def resolve_chat_membership(self):
@@ -267,6 +289,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "image_url": image_url,
             "can_edit": msg.can_be_edited(),
         }
+        if self.chat_type == "direct":
+            payload["is_read"] = False
         if answer_to_ampel:
             payload["ampel_user_id"] = answer_to_ampel.user_id
             payload["ampel"] = {

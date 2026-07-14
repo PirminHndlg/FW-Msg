@@ -24,6 +24,7 @@ from .ampel_access import (
 from .badge_utils import (
     broadcast_chat_edit_to_room,
     broadcast_chat_message_to_room,
+    broadcast_direct_message_read_if_needed,
     broadcast_unread_badge_for_user,
     get_unread_chat_message_count,
 )
@@ -55,6 +56,8 @@ def _chat_message_payload(msg, user, viewer=None):
     }
     if viewer is not None and viewer.is_authenticated and msg.user_id == viewer.id:
         payload["can_edit"] = msg.can_be_edited()
+        if isinstance(msg, ChatMessageDirect):
+            payload["is_read"] = msg.read
     ampel = getattr(msg, "answer_to_ampel", None)
     if ampel is not None:
         payload["ampel_user_id"] = ampel.user_id
@@ -192,6 +195,7 @@ def chat_direct(request, identifier):
     ).order_by('created_at')
     for msg in chat_messages.filter(read=False).exclude(user=request.user):
         msg.mark_as_read()
+        broadcast_direct_message_read_if_needed(msg, chat)
     broadcast_unread_badge_for_user(request.user)
 
     initial_ampel = None
@@ -517,7 +521,7 @@ def send_message_direct(request, identifier):
     broadcast_chat_message_to_room(
         "direct",
         chat.get_identifier(),
-        _chat_message_payload(msg, request.user),
+        _chat_message_payload(msg, request.user, viewer=request.user),
     )
     return JsonResponse(payload)
 
@@ -691,6 +695,7 @@ def ajax_chat_updates(request, chat_type, chat_id):
 
             for m in new_messages:
                 m.mark_as_read()
+                broadcast_direct_message_read_if_needed(m, chat)
         elif chat_type == 'group':
             chat = ChatGroup.objects.get(identifier=chat_id, org=request.user.org, users=request.user)
             new_messages = ChatMessageGroup.objects.filter(
