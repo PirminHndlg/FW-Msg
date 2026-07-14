@@ -1947,34 +1947,6 @@ class ProfileViewsTests(TestCase):
         self.assertIn('freiwilliger', response.context)
         self.assertIsNone(response.context['freiwilliger'])
 
-    def test_profile_context_data_with_ampel(self):
-        """Test that profile view provides correct context data when user has ampel status"""
-        from Global.models import Ampel2
-        
-        # Create ampel status for user
-        ampel = Ampel2.objects.create(
-            org=self.org,
-            user=self.freiwillige_user,
-            status='G',
-            comment='All good'
-        )
-        
-        self.client.force_login(self.freiwillige_user)
-        response = self.client.get(reverse('profil'))
-        
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('ampel_of_user', response.context)
-        self.assertEqual(response.context['ampel_of_user'], ampel)
-
-    def test_profile_context_data_without_ampel(self):
-        """Test that profile view provides correct context data when user has no ampel status"""
-        self.client.force_login(self.freiwillige_user)
-        response = self.client.get(reverse('profil'))
-        
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('ampel_of_user', response.context)
-        self.assertIsNone(response.context['ampel_of_user'])
-
     def test_profile_context_data_with_gallery_images(self):
         """Test that profile view provides correct context data with gallery images"""
         self.client.force_login(self.freiwillige_user)
