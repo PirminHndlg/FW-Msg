@@ -3048,7 +3048,7 @@ def list_users(request):
             'ehemalige',
         )
         .prefetch_related('ehemalige__land')
-        .order_by('last_name', 'first_name')
+        .order_by('first_name', 'last_name')
     )
     context = {
         'users': users,
