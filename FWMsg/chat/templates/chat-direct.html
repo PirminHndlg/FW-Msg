@@ -14,7 +14,7 @@
 
 {% block content %}
 <div class="d-flex align-items-center gap-3 mb-3">
-  <a href="{% url 'chat_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+  <a href="{% url 'chat_list' %}" class="btn btn-outline-secondary rounded-pill">
     <i class="bi bi-arrow-left"></i><span class="ms-1 d-none d-md-inline">{% trans "Zurück" %}</span>
   </a>
   <div class="d-flex align-items-center gap-2">
@@ -73,7 +73,7 @@
             </span>
           {% endif %}
           {% if msg.user == request.user and msg.can_be_edited %}
-            <button type="button" class="chat-edit-btn btn btn-link btn-sm p-0 ms-1" data-msg-id="{{ msg.id }}" title="{% trans 'Bearbeiten' %}">
+            <button type="button" class="chat-edit-btn btn btn-link p-0 ms-1" data-msg-id="{{ msg.id }}" title="{% trans 'Bearbeiten' %}">
               <i class="bi bi-pencil-square"></i>
             </button>
           {% endif %}
@@ -96,7 +96,7 @@
     <div class="d-flex align-items-center gap-2">
       <div class="ampel-dot {% if initial_ampel.status == 'G' %}ampel_gruen{% elif initial_ampel.status == 'Y' %}ampel_gelb{% else %}ampel_rot{% endif %}"></div>
       <span class="small text-muted fst-italic">{{ initial_ampel.comment|truncatechars:80 }}</span>
-      <a href="{% url 'chat_direct' chat.get_identifier %}" class="btn-close btn-sm ms-auto" id="clear-ampel-reply"></a>
+      <a href="{% url 'chat_direct' chat.get_identifier %}" class="btn-close ms-auto" id="clear-ampel-reply"></a>
     </div>
   </div>
   {% endif %}

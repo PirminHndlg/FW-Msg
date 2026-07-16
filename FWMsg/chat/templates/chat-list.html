@@ -15,10 +15,10 @@
     <span class="badge bg-primary rounded-pill px-2 py-1" style="font-size: 0.65em; line-height: 1; vertical-align: middle;" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Diese Funktion ist noch in der Entwicklung.' %}">{% trans "Beta" %}</span>
   </h1>
   <div class="d-flex gap-2">
-    <a href="{% url 'create_chat_direct' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+    <a href="{% url 'create_chat_direct' %}" class="btn btn-outline-primary rounded-pill">
       <i class="bi bi-person-plus"></i><span class="ms-1 d-none d-md-inline">{% trans "Neue Direktnachricht" %}</span>
     </a>
-    <a href="{% url 'create_chat_group' %}" class="btn btn-primary btn-sm rounded-pill">
+    <a href="{% url 'create_chat_group' %}" class="btn btn-primary rounded-pill">
       <i class="bi bi-people"></i><span class="ms-1 d-none d-md-inline">{% trans "Neue Gruppe" %}</span>
     </a>
   </div>
@@ -70,10 +70,10 @@
       <div class="p-5 text-center text-muted">
         <i class="bi bi-chat-dots display-5 d-block mb-3 opacity-50"></i>
         <p class="mb-3">{% trans "Noch keine Chats vorhanden." %}</p>
-        <a href="{% url 'create_chat_direct' %}" class="btn btn-outline-primary btn-sm rounded-pill me-2">
+        <a href="{% url 'create_chat_direct' %}" class="btn btn-outline-primary rounded-pill me-2">
           <i class="bi bi-person-plus me-1"></i>{% trans "Direktnachricht starten" %}
         </a>
-        <a href="{% url 'create_chat_group' %}" class="btn btn-outline-success btn-sm rounded-pill">
+        <a href="{% url 'create_chat_group' %}" class="btn btn-outline-success rounded-pill">
           <i class="bi bi-people me-1"></i>{% trans "Gruppe erstellen" %}
         </a>
       </div>
@@ -89,7 +89,7 @@
     </p>
     
     <div class="d-flex justify-content-center">
-      <a href="{% url 'push_settings' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+      <a href="{% url 'push_settings' %}" class="btn btn-outline-primary rounded-pill">
         <i class="bi bi-bell-fill me-1"></i>{% trans "Push-Benachrichtigungen aktivieren" %}
       </a>
     </div>
