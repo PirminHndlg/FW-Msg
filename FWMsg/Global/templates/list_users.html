@@ -1,0 +1,139 @@
+{% extends extends_base|default:'baseFw.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Nutzerliste" %}{% endblock %}
+
+{% block head %}
+<style>
+  .user-list-card {
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow .15s;
+  }
+  .user-list-card:hover {
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, .1);
+    color: inherit;
+  }
+  .user-list-avatar {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  .user-list-flag {
+    width: 28px;
+    height: 21px;
+    border-radius: 3px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, .08);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card rounded-4 mb-3">
+  <div class="card-header rounded-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <h3 class="mb-0">{% trans "Nutzerliste" %}</h3>
+      <span class="badge bg-light text-dark">
+        {{ users|length }} {% trans "Personen" %}
+      </span>
+    </div>
+
+    {% if user.role == 'O' and person_clusters %}
+    <div class="d-flex gap-1 justify-content-center align-items-center mt-2">
+      <strong>{% trans "Benutzergruppe" %}</strong>
+      <div class="gap-1 flex-wrap justify-content-center align-items-center d-none d-md-flex">
+        <a class="btn btn-sm rounded-4 {% if not current_person_cluster %}btn-primary{% else %}btn-outline-primary{% endif %} {% if not current_person_cluster %}active{% endif %}" href="{% url 'list_users' %}?person_cluster_filter=None">
+          {% trans 'Alle' %}
+        </a>
+        {% for person_cluster in person_clusters %}
+          <a class="btn btn-sm rounded-4 {% if current_person_cluster == person_cluster %}btn-primary{% else %}btn-outline-primary{% endif %} {% if current_person_cluster == person_cluster %}active{% endif %}" href="{% url 'list_users' %}?person_cluster_filter={{ person_cluster.id }}">
+            {{ person_cluster.name }}
+          </a>
+        {% endfor %}
+      </div>
+      <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center d-md-none">
+        <select class="form-select form-select-sm rounded-4" onchange="window.location.href = this.value;">
+          <option value="{% url 'list_users' %}?person_cluster_filter=None">{% trans 'Alle' %}</option>
+          {% for person_cluster in person_clusters %}
+            <option value="{% url 'list_users' %}?person_cluster_filter={{ person_cluster.id }}" {% if current_person_cluster == person_cluster %}selected{% endif %}>
+              {{ person_cluster.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    {% if users %}
+    <div class="row g-4">
+      {% for u in users %}
+      <div class="col-lg-3 col-md-4 col-6">
+        <a href="{% url 'profil' u.customuser.get_identifier %}"
+           class="card rounded-4 h-100 user-list-card">
+          <div class="card-body d-flex flex-column align-items-center text-center">
+            <img
+              src="{% url 'serve_profil_picture' u.customuser.get_identifier %}"
+              alt="{% trans 'Profilbild' %}"
+              class="user-list-avatar mb-3"
+            >
+            <h5 class="fw-semibold mb-1 text-break">
+              {% if u.first_name or u.last_name %}
+                {{ u.first_name }} {{ u.last_name }}
+              {% else %}
+                {{ u.username }}
+              {% endif %}
+            </h5>
+            {% if request.user.customuser.person_cluster.view == 'O' and u.customuser.person_cluster %}
+            <small class="text-muted mb-3">{{ u.customuser.person_cluster.name }}</small>
+            {% endif %}
+
+            <div class="d-flex align-items-center justify-content-center gap-1 flex-wrap mt-auto" style="min-height: 1.5rem;">
+              {% if u.freiwilliger %}
+                {% if u.freiwilliger.einsatzland2 %}
+                  <span
+                    class="fi fi-{{ u.freiwilliger.einsatzland2.code|lower }} user-list-flag"
+                    title="{{ u.freiwilliger.einsatzland2.name }}"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                  ></span>
+                {% else %}
+                  <i class="bi bi-globe text-muted" title="{% trans 'Kein Land hinterlegt' %}"></i>
+                {% endif %}
+              {% elif u.ehemalige %}
+                {% for land in u.ehemalige.land.all %}
+                  <span
+                    class="fi fi-{{ land.code|lower }} user-list-flag"
+                    title="{{ land.name }}"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                  ></span>
+                {% empty %}
+                  <i class="bi bi-globe text-muted" title="{% trans 'Kein Land hinterlegt' %}"></i>
+                {% endfor %}
+              {% endif %}
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-4">
+      <i class="bi bi-people text-muted mb-2" style="font-size: 2rem;"></i>
+      <p class="text-muted mb-0">{% trans "Keine Nutzer:innen gefunden." %}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+  new bootstrap.Tooltip(el);
+});
+</script>
+{% endblock %}

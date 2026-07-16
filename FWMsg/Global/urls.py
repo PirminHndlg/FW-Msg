@@ -96,6 +96,8 @@ urlpatterns = [
     
     path('karte/', views.karte, name='karte'),
     path('karte/delete/', views.delete_karte, name='delete_karte'),
+
+    path('list_users/', views.list_users, name='list_users'),
 ]
 
 # Add these new URL patterns

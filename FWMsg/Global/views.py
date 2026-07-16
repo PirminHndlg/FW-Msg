@@ -2999,3 +2999,69 @@ def delete_karte(request):
         else:
             messages.warning(request, 'Kein Standort zum Löschen gefunden')
     return redirect('karte')
+
+
+@login_required
+@required_role('OTEF')
+def list_users(request):
+    cookie_name = 'selectedPersonCluster-list_users'
+    all_person_clusters = PersonCluster.selectable_for_org(
+        request.user.org,
+        view__in=['F', 'E'],
+    ).order_by('name')
+    current_person_cluster = None
+
+    if request.user.role == 'O':
+        try:
+            person_cluster_param = request.GET.get('person_cluster_filter')
+            if person_cluster_param == 'None':
+                current_person_cluster = None
+            elif person_cluster_param:
+                current_person_cluster = all_person_clusters.get(id=int(person_cluster_param))
+            else:
+                person_cluster_cookie = request.COOKIES.get(cookie_name)
+                if person_cluster_cookie is not None and person_cluster_cookie != 'None':
+                    current_person_cluster = all_person_clusters.get(id=int(person_cluster_cookie))
+        except (PersonCluster.DoesNotExist, ValueError, TypeError):
+            current_person_cluster = None
+
+        users = User.objects.filter(
+            customuser__org=request.user.org,
+            customuser__person_cluster__view__in=['F', 'E'],
+        )
+        if current_person_cluster:
+            users = users.filter(customuser__person_cluster=current_person_cluster)
+    else:
+        users = User.objects.filter(
+            customuser__org=request.user.org,
+            customuser__person_cluster=request.user.customuser.person_cluster,
+            customuser__person_cluster__view__in=['F', 'E'],
+        )
+
+    users = (
+        users
+        .select_related(
+            'customuser',
+            'customuser__person_cluster',
+            'freiwilliger',
+            'freiwilliger__einsatzland2',
+            'ehemalige',
+        )
+        .prefetch_related('ehemalige__land')
+        .order_by('last_name', 'first_name')
+    )
+    context = {
+        'users': users,
+        'person_clusters': all_person_clusters,
+        'current_person_cluster': current_person_cluster,
+    }
+    context = check_organization_context(request, context)
+    response = render(request, 'list_users.html', context)
+
+    if request.user.role == 'O':
+        if current_person_cluster:
+            response.set_cookie(cookie_name, current_person_cluster.id)
+        elif cookie_name in request.COOKIES:
+            response.delete_cookie(cookie_name)
+
+    return response

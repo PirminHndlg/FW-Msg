@@ -115,6 +115,9 @@
             </li>
           {% endif %}
           <li class="nav-item">
+            <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'list_users' %}"><i class="bi bi-people me-1"></i>{% trans 'Alle Freiwillige' %}</a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'chat_list' %}"><i class="bi bi-chat-dots me-1"></i>{% trans 'Chat' %} <span class="badge bg-primary rounded-pill d-none badge-unread">0</span></a>
           </li>
           <li class="nav-item">
@@ -207,6 +210,11 @@
               <!-- Information & Contacts Section -->
               <li class="nav-item mt-3">
                 <small class="text-muted px-0 py-1" style="color: var(--text_color_on_org_color); opacity: 0.7; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{% trans 'Information & Contacts' %}</small>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'list_users' %}">
+                  <i class="bi bi-people me-1"></i>{% trans 'Alle Freiwillige' %}
+                </a>
               </li>
               <li class="nav-item">
                 <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'chat_list' %}">
