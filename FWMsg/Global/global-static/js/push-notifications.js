@@ -72,6 +72,19 @@ async function subscribeToPushNotifications(publicKey) {
           
         const subscription = await setUpPushPermission()
 
+        if (!subscription) {
+            return {
+                success: false,
+                message: 'Push-Abonnement konnte nicht erstellt werden.'
+            };
+        }
+
+        // PushSubscription is not a plain object in all browsers; use toJSON()
+        // (if available) so the server receives { endpoint, keys }.
+        const payload = (typeof subscription.toJSON === 'function')
+            ? subscription.toJSON()
+            : subscription;
+
         // Send the subscription to the server
         const response = await fetch('/push/save-subscription/', {
             method: 'POST',
@@ -79,7 +92,7 @@ async function subscribeToPushNotifications(publicKey) {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCsrfToken()
             },
-            body: JSON.stringify(subscription)
+            body: JSON.stringify(payload)
         });
         
         const data = await response.json();
