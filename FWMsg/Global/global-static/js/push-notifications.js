@@ -24,6 +24,10 @@ function urlBase64ToUint8Array(base64String) {
     return outputArray;
 }
 
+// Used by the page to show a more helpful error when push subscription
+// retrieval fails on certain browsers/ROMs.
+window.__pushSubscriptionError = null;
+
 
 // Request permission and subscribe to push notifications
 async function subscribeToPushNotifications(publicKey) {
@@ -37,9 +41,10 @@ async function subscribeToPushNotifications(publicKey) {
 
     try {
         // Register the service worker - using /service-worker.js in the root
+        let swRegistration = null;
         if ("serviceWorker" in navigator) {
             try {
-                const swRegistration = await navigator.serviceWorker.register("/service-worker.js");
+                swRegistration = await navigator.serviceWorker.register("/service-worker.js");
             } catch (error) {
                 console.error(`Service worker registration failed: ${error}`);
                 throw new Error(`Service worker registration failed: ${error.message}`);
@@ -62,7 +67,11 @@ async function subscribeToPushNotifications(publicKey) {
 
         // Get existing subscription
         const setUpPushPermission = async () => {
-            const registration = await navigator.serviceWorker.ready
+            const registration = swRegistration || await navigator.serviceWorker.ready
+            
+            if (!registration?.pushManager?.subscribe) {
+                throw new Error('PushManager.subscribe is not available on this browser build.');
+            }
             const subscription = await registration.pushManager.subscribe({
               userVisibleOnly: true,
               applicationServerKey: applicationServerKey,
@@ -120,15 +129,28 @@ async function checkPushSubscription() {
         return null;
     }
 
+    window.__pushSubscriptionError = null;
+
     try {
-        const registration = await navigator.serviceWorker.getRegistration();
-        if (!registration) {
+        // getRegistration() behavior can differ per browser; try common scopes first,
+        // then fall back to getRegistrations().
+        let registration =
+            await navigator.serviceWorker.getRegistration() ||
+            await navigator.serviceWorker.getRegistration('/');
+
+        if (!registration && navigator.serviceWorker.getRegistrations) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            registration = registrations && registrations.length ? registrations[0] : null;
+        }
+
+        if (!registration?.pushManager?.getSubscription) {
             return null;
         }
-        
-        const subscription = await registration.pushManager.getSubscription();
-        return subscription;
+
+        return await registration.pushManager.getSubscription();
     } catch (error) {
+        window.__pushSubscriptionError =
+            error?.message ? error.message : String(error);
         console.error('Error checking push subscription:', error);
         return null;
     }

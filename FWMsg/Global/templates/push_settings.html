@@ -389,11 +389,16 @@
         enableBtn.textContent = '{% trans "Push-Benachrichtigungen erneuern" %}'
       } else {
         const permission = Notification.permission
+        const pushError = window.__pushSubscriptionError
     
         if (permission === 'denied') {
           statusIndicator.className = 'push-status-indicator disabled'
           statusText.innerHTML = '{% trans "Push-Benachrichtigungen sind blockiert. Bitte erlaube die Benachrichtigungen in deinen" %} <a href="https://support.google.com/chrome/answer/3220216" target="_blank">{% trans "Browser-Einstellungen" %}</a>.'
           statusContainer.className = 'alert alert-danger d-flex align-items-center mb-4'
+        } else if (pushError) {
+          statusIndicator.className = 'push-status-indicator disabled'
+          statusText.textContent = '{% trans "Push-Abonnement konnte nicht gelesen werden. Dein Browser unterstützt Web Push evtl. nicht vollständig." %}' + ` (${pushError})`
+          statusContainer.className = 'alert alert-warning d-flex align-items-center mb-4'
         } else {
           statusIndicator.className = 'push-status-indicator disabled'
           statusText.textContent = '{% trans "Push-Benachrichtigungen sind nicht aktiviert." %}'
