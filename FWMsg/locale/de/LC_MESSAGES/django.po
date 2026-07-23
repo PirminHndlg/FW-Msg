@@ -38,10 +38,8 @@ msgid "Passwörter stimmen nicht überein."
 msgstr "Passwörter stimmen nicht überein."
 
 #: BW/forms.py:82
-#, fuzzy
-#| msgid "Keine weiteren Personen verfügbar."
 msgid "Keine aktive Bewerber-Benutzergruppe verfügbar."
-msgstr "Keine weiteren Personen verfügbar."
+msgstr ""
 
 #: BW/models.py:274 Global/models.py:1588
 #: Global/templates/bewerber_detail.html:30
@@ -163,10 +161,8 @@ msgid "Karte"
 msgstr "Karte"
 
 #: Ehemalige/templates/baseEhemalige.html:100
-#, fuzzy
-#| msgid "Ehemalige"
 msgid "Übersicht Ehemalige"
-msgstr "Ehemalige"
+msgstr ""
 
 #: Ehemalige/templates/baseEhemalige.html:105 survey/models.py:108
 #: survey/models.py:153 survey/models.py:213
@@ -417,10 +413,8 @@ msgid "Beiträge"
 msgstr "Posts"
 
 #: FW/templates/baseFw.html:119
-#, fuzzy
-#| msgid "Freiwillige"
 msgid "Alle Freiwillige"
-msgstr "Freiwillige"
+msgstr "Alle Freiwillige"
 
 #: FW/templates/baseFw.html:122 FW/templates/baseFw.html:222
 #: FW/templates/baseFw.html:331
@@ -446,10 +440,8 @@ msgid "Information & Contacts"
 msgstr "Informationen & Kontakte"
 
 #: FW/templates/baseFw.html:217
-#, fuzzy
-#| msgid "Freiwillige"
 msgid "Übersicht Freiwillige"
-msgstr "Freiwillige"
+msgstr "Übersicht Freiwillige"
 
 #: FW/templates/baseFw.html:240
 msgid "Account & Settings"
@@ -1312,10 +1304,8 @@ msgid "Kalender-Token"
 msgstr "Kalender-Token"
 
 #: Global/models.py:140
-#, fuzzy
-#| msgid "Letzte Erinnerung"
 msgid "Letzte Ampel-Erinnerung"
-msgstr "Letzte Erinnerung"
+msgstr "Letzte Ampel-Erinnerung"
 
 #: Global/models.py:141
 msgid "Datum der letzten versendeten Ampel-Erinnerung"
@@ -1685,10 +1675,8 @@ msgid ""
 msgstr ""
 
 #: Global/models.py:910
-#, fuzzy
-#| msgid "English"
 msgid "Englisch"
-msgstr "Englisch"
+msgstr ""
 
 #: Global/models.py:916 Global/templates/settings.html:178
 msgid "Sprache"
@@ -1708,46 +1696,36 @@ msgid ""
 msgstr ""
 
 #: Global/models.py:928
-#, fuzzy
-#| msgid "Erinnerung"
 msgid "Erinnerungen ab"
-msgstr "Erinnerung"
+msgstr ""
 
 #: Global/models.py:929
 msgid "Ab diesem Datum werden Erinnerungen gesendet. Leer = kein Startdatum."
 msgstr ""
 
 #: Global/models.py:934
-#, fuzzy
-#| msgid "Erinnerung"
 msgid "Erinnerungen bis"
-msgstr "Erinnerung"
+msgstr ""
 
 #: Global/models.py:935
 msgid "Bis zu diesem Datum werden Erinnerungen gesendet. Leer = kein Enddatum."
 msgstr ""
 
 #: Global/models.py:939
-#, fuzzy
-#| msgid "Nachrichten"
 msgid "Nachrichtentext"
-msgstr "Nachrichten"
+msgstr ""
 
 #: Global/models.py:940
 msgid "Text für E-Mail- und Push-Erinnerungen an Ampelmeldungen"
 msgstr ""
 
 #: Global/models.py:944
-#, fuzzy
-#| msgid "Erinnerung"
 msgid "Ampel-Erinnerung"
-msgstr "Erinnerung"
+msgstr ""
 
 #: Global/models.py:945
-#, fuzzy
-#| msgid "Erinnerung"
 msgid "Ampel-Erinnerungen"
-msgstr "Erinnerung"
+msgstr ""
 
 #: Global/models.py:971
 msgid "Kategoriename"
@@ -3217,16 +3195,12 @@ msgid "Personen"
 msgstr "Personen"
 
 #: Global/templates/list_users.html:103 Global/templates/list_users.html:114
-#, fuzzy
-#| msgid "Keine Arztpraxen hinterlegt"
 msgid "Kein Land hinterlegt"
-msgstr "Keine Arztpraxen hinterlegt"
+msgstr "Kein Land hinterlegt"
 
 #: Global/templates/list_users.html:126
-#, fuzzy
-#| msgid "Keine Bewerber:innen gefunden"
 msgid "Keine Nutzer:innen gefunden."
-msgstr "Keine Bewerber:innen gefunden"
+msgstr "Keine Nutzer:innen gefunden"
 
 #: Global/templates/post_add.html:6 Global/templates/posts_overview.html:13
 #: Global/templates/profil.html:63
@@ -4599,10 +4573,8 @@ msgid "Team"
 msgstr "Team"
 
 #: ORG/templates/baseOrg.html:82
-#, fuzzy
-#| msgid "Überrascht"
 msgid "Übersicht"
-msgstr "Überrascht"
+msgstr "Übersicht"
 
 #: ORG/templates/baseOrg.html:97
 msgid "Aufgabenliste"
@@ -5223,16 +5195,12 @@ msgid "Ampelübersicht"
 msgstr "Ampelübersicht"
 
 #: ORG/templates/list_ampel.html:44
-#, fuzzy
-#| msgid "Mail-Erinnerung gesendet an"
 msgid "Ampel-Erinnerungen aktiv"
-msgstr "Mail-Erinnerung gesendet an"
+msgstr "Ampel-Erinnerungen aktiv"
 
 #: ORG/templates/list_ampel.html:44
-#, fuzzy
-#| msgid "Erinnerung senden"
 msgid "Ampel-Erinnerungen inaktiv"
-msgstr "Erinnerung senden"
+msgstr "Ampel-Erinnerungen inaktiv"
 
 #: ORG/templates/list_ampel.html:80
 msgid "Ampel diesen Monat"
@@ -5629,10 +5597,8 @@ msgid "Ungültige Anfrage"
 msgstr "Ungültige Anfrage"
 
 #: ORG/views.py:2217
-#, fuzzy
-#| msgid "Ungültige Personengruppe."
 msgid "Ungültige Benutzergruppe"
-msgstr "Ungültige Personengruppe."
+msgstr "Ungültige Benutzergruppe."
 
 #: ORG/views.py:2265
 msgid "Allgemein"
@@ -5750,10 +5716,8 @@ msgid "(bearbeitet)"
 msgstr "(bearbeitet)"
 
 #: chat/templates/chat-direct.html:71
-#, fuzzy
-#| msgid "gesendet"
 msgid "Gesendet"
-msgstr "gesendet"
+msgstr "Gesendet"
 
 #: chat/templates/chat-direct.html:85 chat/templates/chat-group.html:70
 msgid "Noch keine Nachrichten. Schreib die erste!"
