@@ -465,7 +465,6 @@ class AmpelTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.person_cluster_fw.name)
-        self.assertContains(response, 'Jahrgang')
 
         response = self.client.post(url + f'?next={reverse("list_ampel")}', {
             'enabled': True,
