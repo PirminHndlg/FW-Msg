@@ -20,6 +20,13 @@
                     <span class="badge rounded-pill px-3 py-2 mt-1" style="background: rgba(255,255,255,0.25); color: {{ org.text_color_on_org_color }}; font-size: .8rem; letter-spacing: .04em;">
                         <i class="bi bi-person-plus me-1"></i>Konto erstellen
                     </span>
+
+                    <hr class="my-3 mx-auto opacity-50" style="border-color: {{ org.text_color_on_org_color }}; width: 60%;">
+                    
+                    <a href="{% url 'login' %}" class="btn btn-outline-light rounded-3 text-decoration-none">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Anmelden
+                    </a>
+                    <p class="text-center mt-2 mb-0" style="color: {{ org.text_color_on_org_color }};">Bereits ein Konto?</p>
                 </div>
                 <div class="card-body p-4">
                     <div class="alert alert-info rounded-3 mb-4">
