@@ -1,0 +1,27 @@
+{% extends "mail/base_email.html" %}
+{% load base_filter %}
+
+{# Single-language mail: hide the bilingual English section #}
+{% block show_english %}{% endblock %}
+
+{% block greeting %}{% if language == 'en' %}Hello {{ user_name }},{% else %}Hallo {{ user_name }},{% endif %}{% endblock %}
+
+{% block german_content %}
+<p>{{ message_text|format_text_with_link|linebreaksbr }}</p>
+{% endblock %}
+
+{% block german_button_text %}{% if language == 'en' %}Submit status check-in{% else %}Zur Ampelmeldung{% endif %}{% endblock %}
+
+{% block footer_content %}
+{% if language == 'en' %}
+<p style="margin: 5px 0;">This is an automatically generated email from Volunteer.Solutions</p>
+{% if unsubscribe_url %}
+<p style="margin: 5px 0;">To stop receiving emails, <a href="{{ unsubscribe_url }}" style="color: {{ org_color }}; text-decoration: none;">click here</a></p>
+{% endif %}
+{% else %}
+<p style="margin: 5px 0;">Dies ist eine automatisch generierte E-Mail von Volunteer.Solutions</p>
+{% if unsubscribe_url %}
+<p style="margin: 5px 0;">Um keine weiteren E-Mails zu erhalten, <a href="{{ unsubscribe_url }}" style="color: {{ org_color }}; text-decoration: none;">klicke hier</a></p>
+{% endif %}
+{% endif %}
+{% endblock %}

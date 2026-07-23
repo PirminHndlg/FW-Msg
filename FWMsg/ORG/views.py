@@ -27,7 +27,7 @@ from Ehemalige.models import Ehemalige
 from Global.models import (
     Attribute, AufgabenCluster, Aufgabe2, KalenderEvent, Maintenance, PersonCluster, StickyNote, UserAttribute, 
     UserAufgaben, Post2, Bilder2, CustomUser,
-    BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2,
+    BilderGallery2, Ampel2, AmpelConfiguration, ProfilUser2, Notfallkontakt2,
     Einsatzland2, Einsatzstelle2,
     AufgabeZwischenschritte2, UserAufgabenZwischenschritte,
     EinsatzstelleNotiz, ChangeRequest
@@ -160,6 +160,7 @@ allowed_models_to_edit = {
     'team': Team,
     'user': CustomUser,
     'personcluster': PersonCluster,
+    'ampelconfiguration': AmpelConfiguration,
     'aufg-filter': AufgabenCluster,
     'kalender': KalenderEvent,
     'bewerbung-text': ApplicationText,

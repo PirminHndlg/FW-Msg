@@ -7,7 +7,7 @@ from django.urls import path, reverse
 from django.contrib import messages
 from django.utils.html import format_html
 from .models import (
-    Ampel2, Attribute, CustomUser, Einsatzland2, 
+    Ampel2, AmpelConfiguration, Attribute, CustomUser, Einsatzland2, 
     Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, 
     Organisation, Aufgabe2, DokumentColor2, Dokument2, 
     Ordner2, Notfallkontakt2, Post2, PostResponse, AufgabeZwischenschritte2, PushSubscription, 
@@ -458,9 +458,10 @@ class UserAufgabenZwischenschritteAdmin(admin.ModelAdmin):
 
 @admin.register(Ampel2)
 class AmpelAdmin(admin.ModelAdmin):
-    list_display = ['user', 'get_user_full_name', 'status', 'get_comment_preview', 'date']
+    list_display = ['user', 'get_user_full_name', 'status', 'get_comment_preview', 'date', 'read']
     search_fields = ['user__username', 'user__first_name', 'user__last_name', 'comment']
-    list_filter = ['status', 'date']
+    list_filter = ['status', 'date', 'read']
+    fields = ['org', 'user', 'status', 'comment', 'date', 'read', 'submission_key']
     
     def get_user_full_name(self, obj):
         return f"{obj.user.first_name} {obj.user.last_name}"
@@ -471,6 +472,13 @@ class AmpelAdmin(admin.ModelAdmin):
             return obj.comment[:50] + "..."
         return obj.comment or ""
     get_comment_preview.short_description = 'Comment'
+
+
+@admin.register(AmpelConfiguration)
+class AmpelConfigurationAdmin(admin.ModelAdmin):
+    list_display = ['person_cluster', 'enabled', 'language', 'reminder_interval_days', 'reminder_start_date', 'reminder_end_date', 'org']
+    search_fields = ['person_cluster__name', 'message_text']
+    list_filter = ['enabled', 'language', 'reminder_interval_days']
 
 
 @admin.register(UserAufgaben)

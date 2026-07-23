@@ -133,6 +133,13 @@ class CustomUser(OrgModel):
     einmalpasswort_expires = models.DateTimeField(blank=True, null=True, verbose_name=_('Einmalpasswort abläuft am'))
     token = models.CharField(max_length=512, blank=True, null=True, verbose_name=_('Token'), help_text=_('Wird automatisch erzeugt, wenn leer'))
     calendar_token = models.CharField(max_length=512, blank=True, null=True, verbose_name=_('Kalender-Token'), help_text=_('Wird automatisch erzeugt, wenn leer'))
+
+    last_ampel_reminder = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name=_('Letzte Ampel-Erinnerung'),
+        help_text=_('Datum der letzten versendeten Ampel-Erinnerung'),
+    )
     
     # Online status tracking
     last_seen = models.DateTimeField(blank=True, null=True, verbose_name=_('Zuletzt online'))
@@ -868,7 +875,7 @@ class Ampel2(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer:in'), help_text=_('Benutzer:in, für den dieser Status gilt'))
     status = models.CharField(max_length=1, choices=CHOICES, verbose_name=_('Status'), help_text=_('Aktueller Status (Grün = alles in Ordnung, Gelb = Aufmerksamkeit nötig, Rot = unmittelbare Hilfe erforderlich)'))
     comment = models.TextField(blank=True, null=True, verbose_name=_('Kommentar'), help_text=_('Kommentar zur Erläuterung des Status'))
-    date = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
+    date = models.DateTimeField(default=timezone.now, verbose_name=_('Erstellt am'))
     read = models.BooleanField(default=False, verbose_name=_('Gelesen'), help_text=_('Zeigt an, ob die Ampel als gelesen markiert ist'))
     submission_key = models.UUIDField(null=True, blank=True)
 
@@ -878,6 +885,115 @@ class Ampel2(OrgModel):
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.status
+
+
+AMPEL_REMINDER_DEFAULT_TEXT = (
+    'Bitte gib zeitnah deine Ampelmeldung ab. '
+    'So wissen wir, wie es dir geht und können dich bei Bedarf unterstützen.'
+)
+
+
+class AmpelConfiguration(OrgModel):
+    person_cluster = models.OneToOneField(
+        PersonCluster,
+        on_delete=models.CASCADE,
+        related_name='ampel_configuration',
+        verbose_name=_('Benutzergruppe'),
+    )
+    enabled = models.BooleanField(
+        default=False,
+        verbose_name=_('Erinnerungen aktiv'),
+        help_text=_('Wenn aktiviert, werden Ampel-Erinnerungen im konfigurierten Zeitraum gesendet.'),
+    )
+    LANGUAGE_CHOICES = [
+        ('de', _('Deutsch')),
+        ('en', _('Englisch')),
+    ]
+    language = models.CharField(
+        max_length=2,
+        choices=LANGUAGE_CHOICES,
+        default='de',
+        verbose_name=_('Sprache'),
+        help_text=_('Sprache der Erinnerungs-E-Mail (nur diese Sprache wird angezeigt).'),
+    )
+    reminder_interval_days = models.IntegerField(
+        default=7,
+        validators=[validators.MinValueValidator(0)],
+        verbose_name=_('Erinnerungsintervall (Tage)'),
+        help_text=_('Anzahl der Tage zwischen Ampel-Erinnerungen. 0 = Erinnerungen deaktiviert.'),
+    )
+    reminder_start_date = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name=_('Erinnerungen ab'),
+        help_text=_('Ab diesem Datum werden Erinnerungen gesendet. Leer = erste Ampelmeldung der Gruppe.'),
+    )
+    reminder_end_date = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name=_('Erinnerungen bis'),
+        help_text=_('Bis zu diesem Datum werden Erinnerungen gesendet. Leer = Start + 1 Jahr.'),
+    )
+    message_text = models.TextField(
+        default=AMPEL_REMINDER_DEFAULT_TEXT,
+        verbose_name=_('Nachrichtentext'),
+        help_text=_('Text für E-Mail- und Push-Erinnerungen an Ampelmeldungen'),
+    )
+
+    class Meta:
+        verbose_name = _('Ampel-Konfiguration')
+        verbose_name_plural = _('Ampel-Konfigurationen')
+
+    def __str__(self):
+        return f'{self.person_cluster.name} – Ampel-Erinnerung'
+
+    def _first_ampel_date(self):
+        first_ampel = Ampel2.objects.filter(
+            user__customuser__person_cluster=self.person_cluster
+        ).order_by('date').first()
+        if not first_ampel:
+            return None
+        ampel_dt = first_ampel.date
+        if timezone.is_aware(ampel_dt):
+            return timezone.localtime(ampel_dt).date()
+        if hasattr(ampel_dt, 'date'):
+            return ampel_dt.date()
+        return ampel_dt
+
+    def get_effective_reminder_dates(self):
+        """
+        Resolve start/end for reminders and matrix.
+        Missing dates: use first Ampelmeldung of the PersonCluster; end defaults to start + 1 year.
+        If nothing is set and no Ampelmeldung exists, both are None (no date restriction).
+        """
+        start = self.reminder_start_date
+        end = self.reminder_end_date
+        if start and end:
+            return start, end
+
+        first_date = self._first_ampel_date()
+        if not start:
+            start = first_date
+        if not end and start:
+            try:
+                end = start.replace(year=start.year + 1)
+            except ValueError:
+                end = start.replace(year=start.year + 1, day=28)
+        return start, end
+
+    def is_within_reminder_period(self, today=None):
+        """True if today is within effective start/end dates (both unset = always)."""
+        today = today or timezone.now().date()
+        start, end = self.get_effective_reminder_dates()
+        if start and today < start:
+            return False
+        if end and today > end:
+            return False
+        return True
+
+    def reminders_are_active(self, today=None):
+        """True when enabled and today is within the effective reminder period."""
+        return self.enabled and self.is_within_reminder_period(today=today)
 
 
 class AufgabenCluster(OrgModel):

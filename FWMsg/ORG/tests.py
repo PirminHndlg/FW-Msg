@@ -2,12 +2,12 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, timedelta
 from FW.models import Freiwilliger
 from .models import Organisation
 from Global.models import (
     Aufgabe2, Bilder2, BilderGallery2, UserAufgaben, PersonCluster, CustomUser,
-    UserAttribute, Attribute
+    UserAttribute, Attribute, Ampel2, AmpelConfiguration
 )
 from BW.models import Bewerber
 from ORG.forms import AddBewerberApplicationPdfForm
@@ -436,6 +436,156 @@ class AmpelTests(TestCase):
         response = self.client.get(reverse('list_ampel') + '?person_cluster_filter=' + str(no_ampel_cluster.id))
         self.assertEqual(response.status_code, 200)
         self.assertIn('ampel_matrix', response.context)
+
+    def test_list_ampel_edit_pencils_for_all_clusters(self):
+        """O users get AmpelConfiguration for every ampel cluster and pencil in each btn-group"""
+        response = self.client.get(reverse('list_ampel') + '?person_cluster_filter=None')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            AmpelConfiguration.objects.filter(person_cluster=self.person_cluster_fw).exists()
+        )
+        self.assertTrue(
+            AmpelConfiguration.objects.filter(person_cluster=self.person_cluster_org).exists()
+        )
+        fw_config = AmpelConfiguration.objects.get(person_cluster=self.person_cluster_fw)
+        org_config = AmpelConfiguration.objects.get(person_cluster=self.person_cluster_org)
+        self.assertContains(response, reverse('edit_object', args=['ampelconfiguration', fw_config.id]))
+        self.assertContains(response, reverse('edit_object', args=['ampelconfiguration', org_config.id]))
+        self.assertContains(response, 'btn-group')
+        self.assertContains(response, 'bi-bell')
+
+    def test_edit_ampel_configuration(self):
+        """AmpelConfiguration can be edited via edit_object"""
+        config = AmpelConfiguration.objects.create(
+            org=self.org,
+            person_cluster=self.person_cluster_fw,
+            reminder_interval_days=7,
+        )
+        url = reverse('edit_object', args=['ampelconfiguration', config.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.post(url + f'?next={reverse("list_ampel")}', {
+            'enabled': True,
+            'language': 'en',
+            'reminder_interval_days': 14,
+            'reminder_start_date': '2026-01-01',
+            'reminder_end_date': '2026-12-31',
+            'message_text': 'Bitte Ampel abgeben.',
+        })
+        self.assertEqual(response.status_code, 302)
+        config.refresh_from_db()
+        self.assertTrue(config.enabled)
+        self.assertEqual(config.language, 'en')
+        self.assertEqual(config.reminder_interval_days, 14)
+        self.assertEqual(config.message_text, 'Bitte Ampel abgeben.')
+        self.assertEqual(str(config.reminder_start_date), '2026-01-01')
+        self.assertEqual(str(config.reminder_end_date), '2026-12-31')
+
+
+class AmpelReminderLogicTests(TestCase):
+    def setUp(self):
+        self.org = Organisation.objects.create(name='Test Org', email='test@test.com')
+        self.person_cluster = PersonCluster.objects.create(
+            org=self.org, name='FW', view='F', ampel=True, active=True
+        )
+        self.user = get_user_model().objects.create_user(
+            username='fw', password='pass', email='fw@test.com', first_name='F', last_name='W'
+        )
+        self.custom_user = CustomUser.objects.create(
+            org=self.org, user=self.user, person_cluster=self.person_cluster
+        )
+        self.config = AmpelConfiguration.objects.create(
+            org=self.org,
+            person_cluster=self.person_cluster,
+            enabled=True,
+            reminder_interval_days=7,
+            message_text='Bitte Ampel abgeben.',
+        )
+        self.today = timezone.now().date()
+
+    def test_needs_reminder_when_never_submitted(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.assertTrue(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_no_reminder_when_recent_ampel(self):
+        from Global.send_email import user_needs_ampel_reminder
+        Ampel2.objects.create(org=self.org, user=self.user, status='G', comment='')
+        self.assertFalse(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_needs_reminder_when_ampel_old_enough(self):
+        from Global.send_email import user_needs_ampel_reminder
+        ampel = Ampel2.objects.create(org=self.org, user=self.user, status='G', comment='')
+        Ampel2.objects.filter(pk=ampel.pk).update(
+            date=timezone.now() - timedelta(days=10)
+        )
+        self.assertTrue(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_no_reminder_when_recently_reminded(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.custom_user.last_ampel_reminder = self.today - timedelta(days=2)
+        self.custom_user.save()
+        self.assertFalse(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_interval_zero_disables(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.config.reminder_interval_days = 0
+        self.config.save()
+        self.assertFalse(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_enabled_false_disables(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.config.enabled = False
+        self.config.save()
+        self.assertFalse(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+        self.assertFalse(self.config.reminders_are_active(today=self.today))
+
+    def test_reminders_are_active_bell_state(self):
+        self.assertTrue(self.config.reminders_are_active(today=self.today))
+        self.config.enabled = False
+        self.assertFalse(self.config.reminders_are_active(today=self.today))
+        self.config.enabled = True
+        self.config.reminder_end_date = self.today - timedelta(days=1)
+        self.assertFalse(self.config.reminders_are_active(today=self.today))
+
+    def test_no_reminder_before_start_date(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.config.reminder_start_date = self.today + timedelta(days=1)
+        self.config.save()
+        self.assertFalse(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_no_reminder_after_end_date(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.config.reminder_end_date = self.today - timedelta(days=1)
+        self.config.save()
+        self.assertFalse(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_reminder_within_date_range(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.config.reminder_start_date = self.today - timedelta(days=1)
+        self.config.reminder_end_date = self.today + timedelta(days=1)
+        self.config.save()
+        self.assertTrue(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_effective_dates_from_first_ampel_plus_one_year(self):
+        first_day = self.today - timedelta(days=30)
+        ampel = Ampel2.objects.create(org=self.org, user=self.user, status='G', comment='')
+        Ampel2.objects.filter(pk=ampel.pk).update(
+            date=timezone.make_aware(datetime.combine(first_day, datetime.min.time()))
+        )
+        start, end = self.config.get_effective_reminder_dates()
+        self.assertEqual(start, first_day)
+        self.assertEqual(end, first_day.replace(year=first_day.year + 1))
+
+    def test_effective_dates_explicit_override(self):
+        Ampel2.objects.create(org=self.org, user=self.user, status='G', comment='')
+        self.config.reminder_start_date = self.today
+        self.config.reminder_end_date = self.today + timedelta(days=10)
+        self.config.save()
+        start, end = self.config.get_effective_reminder_dates()
+        self.assertEqual(start, self.today)
+        self.assertEqual(end, self.today + timedelta(days=10))
+
         
 class StatistikTests(TestCase):
     def setUp(self):

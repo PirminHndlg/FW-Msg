@@ -307,6 +307,95 @@ def format_ampel_email(user_name, ampel_user_name, ampel_user_email, status, com
     }
     return render_to_string('mail/ampel_notification.html', context)
 
+
+def format_ampel_reminder_email(user_name, message_text, action_url, unsubscribe_url, org_name, image_url, org_color, language='de'):
+    """Format email reminder for volunteers to submit an ampel status (single language)."""
+    context = {
+        'user_name': user_name,
+        'message_text': message_text,
+        'action_url': action_url,
+        'unsubscribe_url': unsubscribe_url,
+        'org_name': org_name,
+        'image_url': image_url,
+        'org_color': org_color,
+        'language': language or 'de',
+    }
+    return render_to_string('mail/ampel_reminder.html', context)
+
+
+def send_ampel_reminder(user, config):
+    """Send ampel reminder email/push to a volunteer and stamp last_ampel_reminder."""
+    org = config.org
+    customuser = user.customuser
+    action_url = f'{settings.DOMAIN_HOST}{reverse("ampel")}'
+    unsubscribe_url = customuser.get_unsubscribe_url()
+    user_name = f'{user.first_name} {user.last_name}'.strip() or user.username
+    language = getattr(config, 'language', 'de') or 'de'
+    subject = 'Reminder: Status check-in' if language == 'en' else 'Erinnerung: Ampelmeldung'
+    push_content = config.message_text
+
+    email_content = format_ampel_reminder_email(
+        user_name=user_name,
+        message_text=config.message_text,
+        action_url=action_url,
+        unsubscribe_url=unsubscribe_url,
+        org_name=org.name,
+        image_url=get_logo_url(org),
+        org_color=get_org_color(org),
+        language=language,
+    )
+
+    send_push_notification_to_user(user, subject, push_content, url=action_url)
+
+    if customuser.mail_notifications:
+        send_email_with_archive(
+            subject=subject,
+            message=email_content,
+            from_email=settings.SERVER_EMAIL,
+            recipient_list=[user.email],
+            html_message=email_content,
+            reply_to_list=[org.email] if org.email else None,
+        )
+
+    customuser.last_ampel_reminder = timezone.now().date()
+    customuser.save(update_fields=['last_ampel_reminder'])
+    return True
+
+
+def user_needs_ampel_reminder(user, config, today=None):
+    """
+    Return True if the user should receive an ampel reminder for this config.
+    Due when: days since last Ampel2 >= interval AND (never reminded OR days since
+    last_ampel_reminder >= interval). Never submitted counts as overdue.
+    Interval 0 disables reminders. Outside optional start/end dates: no reminder.
+    """
+    if not config or not config.enabled or config.reminder_interval_days <= 0:
+        return False
+
+    today = today or timezone.now().date()
+    if not config.is_within_reminder_period(today):
+        return False
+
+    interval = config.reminder_interval_days
+
+    from Global.models import Ampel2
+    last_ampel = Ampel2.objects.filter(user=user).order_by('-date').first()
+    if last_ampel:
+        last_ampel_date = last_ampel.date
+        if timezone.is_aware(last_ampel_date):
+            last_ampel_date = timezone.localtime(last_ampel_date).date()
+        else:
+            last_ampel_date = last_ampel_date.date() if hasattr(last_ampel_date, 'date') else last_ampel_date
+        if (today - last_ampel_date).days < interval:
+            return False
+
+    last_reminder = getattr(user.customuser, 'last_ampel_reminder', None)
+    if last_reminder is not None and (today - last_reminder).days < interval:
+        return False
+
+    return True
+
+
 def format_image_uploaded_email(bild_titel, bild_beschreibung, uploader_name, image_count, action_url, unsubscribe_url, user_name, org_name, image_url, org_color):
     """Format email for newly uploaded image notification to organization"""
     context = {

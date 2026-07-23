@@ -15,7 +15,7 @@ from Ehemalige.models import Ehemalige
 from Global.models import (
     Attribute, Aufgabe2, AufgabenCluster, KalenderEvent,
     UserAufgaben, Post2, Bilder2, CustomUser,
-    BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2, UserAttribute, 
+    BilderGallery2, Ampel2, AmpelConfiguration, ProfilUser2, Notfallkontakt2, UserAttribute, 
     PersonCluster, Einsatzland2, Einsatzstelle2,
     AufgabeZwischenschritte2
 )
@@ -906,7 +906,16 @@ class AddPersonClusterForm(OrgFormMixin, forms.ModelForm):
         model = PersonCluster
         fields = '__all__'
         exclude = ['org']
-        
+
+
+class AddAmpelConfigurationForm(OrgFormMixin, forms.ModelForm):
+    class Meta:
+        model = AmpelConfiguration
+        fields = ['enabled', 'language', 'reminder_interval_days', 'reminder_start_date', 'reminder_end_date', 'message_text']
+        widgets = {
+            'reminder_start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'reminder_end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
 
 class AddKalenderEventForm(OrgFormMixin, forms.ModelForm):
     person_cluster = forms.ModelMultipleChoiceField(
@@ -1143,6 +1152,7 @@ model_to_form_mapping = {
     CustomUser: AddUserForm,
     Attribute: AddAttributeForm,
     PersonCluster: AddPersonClusterForm,
+    AmpelConfiguration: AddAmpelConfigurationForm,
     AufgabenCluster: AddAufgabenClusterForm,
     KalenderEvent: AddKalenderEventForm,
     Bewerber: AddBewerberApplicationPdfForm,

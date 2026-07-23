@@ -75,7 +75,8 @@ from django.core.paginator import Paginator
 # Local application imports
 from FW.forms import BilderForm, BilderGalleryForm, ProfilUserForm
 from .models import (
-    Ampel2, 
+    Ampel2,
+    AmpelConfiguration,
     Aufgabe2,
     BewerberKommentar,
     Bilder2, 
@@ -1529,9 +1530,13 @@ def ampel(request):
     context = check_organization_context(request, context)
     return render(request, 'ampel.html', context=context)
 
-def _get_ampel_matrix(request, users, ampel_this_month=None):
-        # Get date range for ampel entries
-    date_range = _get_ampel_date_range(request.user.org)
+def _get_ampel_matrix(request, users, ampel_this_month=None, person_cluster=None):
+        # Get date range for ampel entries (scoped to filtered users / PersonCluster)
+    date_range = _get_ampel_date_range(
+        request.user.org,
+        users=users,
+        person_cluster=person_cluster,
+    )
     start_date, end_date = date_range['start_date'], date_range['end_date']
     
     current_month = timezone.now().month
@@ -1571,59 +1576,95 @@ def _get_ampel_matrix(request, users, ampel_this_month=None):
     return grouped_matrix, months
 
 
-def _get_ampel_date_range(org):
+def _user_ids_from_users(users):
+    if users is None:
+        return None
+    if hasattr(users, 'values_list'):
+        return list(users.values_list('id', flat=True))
+    return [u.id for u in users]
+
+
+def _get_ampel_date_range(org, users=None, person_cluster=None):
     """
-    Helper function to determine the date range for ampel entries.
-    
-    Args:
-        org: Organization instance
-        
-    Returns:
-        dict: Contains 'start_date' and 'end_date' keys with date values
+    Determine the date range for ampel matrix columns.
+
+    When a PersonCluster is filtered, prefer AmpelConfiguration effective dates
+    (explicit or first Ampelmeldung … + 1 year). Otherwise use Freiwillige/Ampel
+    dates scoped to the given users.
     """
-    # Get organization's freiwillige users for efficient querying
-    freiwillige_users = Freiwilliger.objects.filter(org=org).values_list('user', flat=True)
-    
-    # Get date range from freiwillige start/end dates
-    freiwillige_dates = _get_freiwillige_date_range(org)
-    
-    # Get date range from ampel entries
-    ampel_dates = _get_ampel_entry_date_range(freiwillige_users)
-    
-    # Combine and determine final date range
+    user_ids = _user_ids_from_users(users)
+
+    if person_cluster is not None:
+        config = getattr(person_cluster, 'ampel_configuration_cached', None)
+        if config is None:
+            config = AmpelConfiguration.objects.filter(person_cluster=person_cluster).first()
+        if config:
+            start_date, end_date = config.get_effective_reminder_dates()
+            if start_date and end_date:
+                return {
+                    'start_date': start_date,
+                    'end_date': end_date,
+                }
+
+    if user_ids is not None:
+        freiwillige_dates = _get_freiwillige_date_range(org, user_ids=user_ids)
+        ampel_dates = _get_ampel_entry_date_range(user_ids)
+    else:
+        freiwillige_users = Freiwilliger.objects.filter(org=org).values_list('user', flat=True)
+        freiwillige_dates = _get_freiwillige_date_range(org)
+        ampel_dates = _get_ampel_entry_date_range(freiwillige_users)
+
     start_date = _get_earliest_date([
         freiwillige_dates['start_date'],
         ampel_dates['start_date']
     ])
-    
+
     end_date = _get_latest_date([
         freiwillige_dates['end_date'],
         ampel_dates['end_date']
     ])
-    
-    # Fallback to last 12 months if no valid dates found
+
+    # Fill missing end/start from first Ampelmeldung + 1 year
+    if not start_date or not end_date:
+        first_ampel_date = ampel_dates['start_date']
+        if not first_ampel_date and user_ids is not None:
+            first_ampel_date = _get_ampel_entry_date_range(user_ids)['start_date']
+        if first_ampel_date:
+            if not start_date:
+                start_date = first_ampel_date
+            if not end_date:
+                try:
+                    end_date = start_date.replace(year=start_date.year + 1)
+                except ValueError:
+                    end_date = start_date.replace(year=start_date.year + 1, day=28)
+
+    # Last resort: last 12 months
     if not start_date or not end_date:
         end_date = timezone.now().date()
         start_date = end_date - relativedelta(months=12)
-        
+
     return {
         'start_date': start_date,
         'end_date': end_date
     }
 
 
-def _get_freiwillige_date_range(org):
+def _get_freiwillige_date_range(org, user_ids=None):
     """Get the date range from freiwillige start and end dates."""
-    start_dates = Freiwilliger.objects.filter(org=org).aggregate(
+    qs = Freiwilliger.objects.filter(org=org)
+    if user_ids is not None:
+        qs = qs.filter(user_id__in=user_ids)
+
+    start_dates = qs.aggregate(
         real_start=Min('start_real'),
         planned_start=Min('start_geplant')
     )
-    
-    end_dates = Freiwilliger.objects.filter(org=org).aggregate(
+
+    end_dates = qs.aggregate(
         real_end=Max('ende_real'),
         planned_end=Max('ende_geplant')
     )
-    
+
     return {
         'start_date': start_dates['real_start'] or start_dates['planned_start'],
         'end_date': end_dates['real_end'] or end_dates['planned_end']
@@ -1633,13 +1674,20 @@ def _get_freiwillige_date_range(org):
 def _get_ampel_entry_date_range(freiwillige_users):
     """Get the date range from ampel entries for given users."""
     ampel_entries = Ampel2.objects.filter(user__in=freiwillige_users).order_by('date')
-    
+
     first_entry = ampel_entries.first()
     last_entry = ampel_entries.last()
-    
+
+    def _as_date(dt):
+        if dt is None:
+            return None
+        if timezone.is_aware(dt):
+            return timezone.localtime(dt).date()
+        return dt.date() if hasattr(dt, 'date') else dt
+
     return {
-        'start_date': first_entry.date.date() if first_entry else None,
-        'end_date': last_entry.date.date() if last_entry else None
+        'start_date': _as_date(first_entry.date) if first_entry else None,
+        'end_date': _as_date(last_entry.date) if last_entry else None
     }
 
 
@@ -1783,7 +1831,24 @@ def list_ampel(request):
     
     if person_cluster:
         user_qs = user_qs.filter(customuser__person_cluster=person_cluster)
-    ampel_matrix, months = _get_ampel_matrix(request, user_qs, filter_this_month)
+
+    all_person_cluster = list(all_person_cluster)
+    if request.user.view == 'O':
+        for pc in all_person_cluster:
+            config, _created = AmpelConfiguration.objects.get_or_create(
+                person_cluster=pc,
+                defaults={'org': request.user.org},
+            )
+            pc.ampel_configuration_cached = config
+            if person_cluster and person_cluster.id == pc.id:
+                person_cluster.ampel_configuration_cached = config
+
+    ampel_matrix, months = _get_ampel_matrix(
+        request,
+        user_qs,
+        filter_this_month,
+        person_cluster=person_cluster,
+    )
     
     context = {
         'months': months,
