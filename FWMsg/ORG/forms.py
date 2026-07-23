@@ -911,7 +911,7 @@ class AddPersonClusterForm(OrgFormMixin, forms.ModelForm):
 class AddAmpelConfigurationForm(OrgFormMixin, forms.ModelForm):
     class Meta:
         model = AmpelConfiguration
-        fields = ['enabled', 'language', 'reminder_interval_days', 'reminder_start_date', 'reminder_end_date', 'message_text']
+        fields = ['enabled', 'reminder_interval_days', 'reminder_start_date', 'reminder_end_date', 'message_text', 'language']
         widgets = {
             'reminder_start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'reminder_end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),

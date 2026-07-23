@@ -15,6 +15,9 @@
                     {% else %}
                         {% trans "Neues Objekt in " %} {{ verbose_name }} {% trans " erstellen" %}
                     {% endif %}
+                    {% if object == "ampelconfiguration" and form.instance.person_cluster_id %}
+                       ({{ form.instance.person_cluster.name }})
+                    {% endif %}
                 </h4>
             </div>
             <div class="card-body">

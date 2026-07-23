@@ -902,7 +902,7 @@ class AmpelConfiguration(OrgModel):
     )
     enabled = models.BooleanField(
         default=False,
-        verbose_name=_('Erinnerungen aktiv'),
+        verbose_name=_('Aktiv'),
         help_text=_('Wenn aktiviert, werden Ampel-Erinnerungen im konfigurierten Zeitraum gesendet.'),
     )
     LANGUAGE_CHOICES = [
@@ -917,9 +917,9 @@ class AmpelConfiguration(OrgModel):
         help_text=_('Sprache der Erinnerungs-E-Mail (nur diese Sprache wird angezeigt).'),
     )
     reminder_interval_days = models.IntegerField(
-        default=7,
+        default=14,
         validators=[validators.MinValueValidator(0)],
-        verbose_name=_('Erinnerungsintervall (Tage)'),
+        verbose_name=_('Intervall (Tage)'),
         help_text=_('Anzahl der Tage zwischen Ampel-Erinnerungen. 0 = Erinnerungen deaktiviert.'),
     )
     reminder_start_date = models.DateField(
@@ -941,8 +941,8 @@ class AmpelConfiguration(OrgModel):
     )
 
     class Meta:
-        verbose_name = _('Ampel-Konfiguration')
-        verbose_name_plural = _('Ampel-Konfigurationen')
+        verbose_name = _('Ampel-Erinnerung')
+        verbose_name_plural = _('Ampel-Erinnerungen')
 
     def __str__(self):
         return f'{self.person_cluster.name} – Ampel-Erinnerung'
