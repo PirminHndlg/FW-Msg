@@ -2,7 +2,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import timedelta
 from FW.models import Freiwilliger
 from .models import Organisation
 from Global.models import (
@@ -568,24 +568,13 @@ class AmpelReminderLogicTests(TestCase):
         self.config.save()
         self.assertTrue(user_needs_ampel_reminder(self.user, self.config, today=self.today))
 
-    def test_effective_dates_from_first_ampel_plus_one_year(self):
-        first_day = self.today - timedelta(days=30)
-        ampel = Ampel2.objects.create(org=self.org, user=self.user, status='G', comment='')
-        Ampel2.objects.filter(pk=ampel.pk).update(
-            date=timezone.make_aware(datetime.combine(first_day, datetime.min.time()))
-        )
-        start, end = self.config.get_effective_reminder_dates()
-        self.assertEqual(start, first_day)
-        self.assertEqual(end, first_day.replace(year=first_day.year + 1))
-
-    def test_effective_dates_explicit_override(self):
-        Ampel2.objects.create(org=self.org, user=self.user, status='G', comment='')
-        self.config.reminder_start_date = self.today
-        self.config.reminder_end_date = self.today + timedelta(days=10)
+    def test_empty_dates_do_not_restrict(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.config.reminder_start_date = None
+        self.config.reminder_end_date = None
         self.config.save()
-        start, end = self.config.get_effective_reminder_dates()
-        self.assertEqual(start, self.today)
-        self.assertEqual(end, self.today + timedelta(days=10))
+        self.assertTrue(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+        self.assertTrue(self.config.is_within_reminder_period(today=self.today))
 
         
 class StatistikTests(TestCase):

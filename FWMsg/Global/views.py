@@ -1588,9 +1588,8 @@ def _get_ampel_date_range(org, users=None, person_cluster=None):
     """
     Determine the date range for ampel matrix columns.
 
-    When a PersonCluster is filtered, prefer AmpelConfiguration effective dates
-    (explicit or first Ampelmeldung … + 1 year). Otherwise use Freiwillige/Ampel
-    dates scoped to the given users.
+    When a PersonCluster is filtered and AmpelConfiguration has both start and end
+    set, use those. Otherwise use Freiwillige/Ampel dates scoped to the given users.
     """
     user_ids = _user_ids_from_users(users)
 
@@ -1598,13 +1597,11 @@ def _get_ampel_date_range(org, users=None, person_cluster=None):
         config = getattr(person_cluster, 'ampel_configuration_cached', None)
         if config is None:
             config = AmpelConfiguration.objects.filter(person_cluster=person_cluster).first()
-        if config:
-            start_date, end_date = config.get_effective_reminder_dates()
-            if start_date and end_date:
-                return {
-                    'start_date': start_date,
-                    'end_date': end_date,
-                }
+        if config and config.reminder_start_date and config.reminder_end_date:
+            return {
+                'start_date': config.reminder_start_date,
+                'end_date': config.reminder_end_date,
+            }
 
     if user_ids is not None:
         freiwillige_dates = _get_freiwillige_date_range(org, user_ids=user_ids)
@@ -1624,21 +1621,7 @@ def _get_ampel_date_range(org, users=None, person_cluster=None):
         ampel_dates['end_date']
     ])
 
-    # Fill missing end/start from first Ampelmeldung + 1 year
-    if not start_date or not end_date:
-        first_ampel_date = ampel_dates['start_date']
-        if not first_ampel_date and user_ids is not None:
-            first_ampel_date = _get_ampel_entry_date_range(user_ids)['start_date']
-        if first_ampel_date:
-            if not start_date:
-                start_date = first_ampel_date
-            if not end_date:
-                try:
-                    end_date = start_date.replace(year=start_date.year + 1)
-                except ValueError:
-                    end_date = start_date.replace(year=start_date.year + 1, day=28)
-
-    # Last resort: last 12 months
+    # Fallback to last 12 months if no valid dates found
     if not start_date or not end_date:
         end_date = timezone.now().date()
         start_date = end_date - relativedelta(months=12)

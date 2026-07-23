@@ -926,13 +926,13 @@ class AmpelConfiguration(OrgModel):
         blank=True,
         null=True,
         verbose_name=_('Erinnerungen ab'),
-        help_text=_('Ab diesem Datum werden Erinnerungen gesendet. Leer = erste Ampelmeldung der Gruppe.'),
+        help_text=_('Ab diesem Datum werden Erinnerungen gesendet. Leer = kein Startdatum.'),
     )
     reminder_end_date = models.DateField(
         blank=True,
         null=True,
         verbose_name=_('Erinnerungen bis'),
-        help_text=_('Bis zu diesem Datum werden Erinnerungen gesendet. Leer = Start + 1 Jahr.'),
+        help_text=_('Bis zu diesem Datum werden Erinnerungen gesendet. Leer = kein Enddatum.'),
     )
     message_text = models.TextField(
         default=AMPEL_REMINDER_DEFAULT_TEXT,
@@ -947,52 +947,17 @@ class AmpelConfiguration(OrgModel):
     def __str__(self):
         return f'{self.person_cluster.name} – Ampel-Erinnerung'
 
-    def _first_ampel_date(self):
-        first_ampel = Ampel2.objects.filter(
-            user__customuser__person_cluster=self.person_cluster
-        ).order_by('date').first()
-        if not first_ampel:
-            return None
-        ampel_dt = first_ampel.date
-        if timezone.is_aware(ampel_dt):
-            return timezone.localtime(ampel_dt).date()
-        if hasattr(ampel_dt, 'date'):
-            return ampel_dt.date()
-        return ampel_dt
-
-    def get_effective_reminder_dates(self):
-        """
-        Resolve start/end for reminders and matrix.
-        Missing dates: use first Ampelmeldung of the PersonCluster; end defaults to start + 1 year.
-        If nothing is set and no Ampelmeldung exists, both are None (no date restriction).
-        """
-        start = self.reminder_start_date
-        end = self.reminder_end_date
-        if start and end:
-            return start, end
-
-        first_date = self._first_ampel_date()
-        if not start:
-            start = first_date
-        if not end and start:
-            try:
-                end = start.replace(year=start.year + 1)
-            except ValueError:
-                end = start.replace(year=start.year + 1, day=28)
-        return start, end
-
     def is_within_reminder_period(self, today=None):
-        """True if today is within effective start/end dates (both unset = always)."""
+        """True if today is within optional start/end dates (unset = no restriction)."""
         today = today or timezone.now().date()
-        start, end = self.get_effective_reminder_dates()
-        if start and today < start:
+        if self.reminder_start_date and today < self.reminder_start_date:
             return False
-        if end and today > end:
+        if self.reminder_end_date and today > self.reminder_end_date:
             return False
         return True
 
     def reminders_are_active(self, today=None):
-        """True when enabled and today is within the effective reminder period."""
+        """True when enabled and today is within the reminder period."""
         return self.enabled and self.is_within_reminder_period(today=today)
 
 
