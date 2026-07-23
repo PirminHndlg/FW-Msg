@@ -716,12 +716,13 @@ def get_freiwilliger_table_class(org, request=None):
         freiwilliger = record['freiwilliger']
         if hasattr(freiwilliger.user, 'customuser'):
             return format_html(
-                '<a href="{}" title="Zum Profil"><i class="bi bi-person-fill me-1"></i>{}</a> '
-                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
-                '<i class="bi bi-envelope-arrow-up"></i></a>',
-                reverse('profil', args=[freiwilliger.user.customuser.get_identifier()]),
-                f"{freiwilliger.user.first_name} {freiwilliger.user.last_name}",
+                '<div class="d-flex gap-2">'
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden"><i class="bi bi-envelope-arrow-up"></i></a>'
+                '<a href="{}" title="Zum Profil">{}</a> '
+                '</div>',
                 freiwilliger.user.email,
+                reverse('profil', args=[freiwilliger.user.customuser.get_identifier()]),
+                freiwilliger.user.first_name,
             )
         else:
             return format_html(
@@ -763,9 +764,14 @@ def get_freiwilliger_table_class(org, request=None):
     # Define base columns
     base_columns = {
         'user': tables.Column(
-            verbose_name=_('Benutzer'),
+            verbose_name=_('Vorname'),
             accessor='user_sort',
             order_by='user_sort'
+        ),
+        'last_name': tables.Column(
+            verbose_name=_('Nachname'),
+            accessor='freiwilliger.user.last_name',
+            order_by='freiwilliger.user.last_name'
         ),
         'einsatzland2': tables.Column(
             verbose_name=_('Einsatzland'),
@@ -809,7 +815,7 @@ def get_freiwilliger_table_class(org, request=None):
     }
     
     column_sequence = [
-        'user', 'einsatzland2', 'einsatzstelle2', 'geburtsdatum',
+        'user', 'last_name', 'einsatzland2', 'einsatzstelle2', 'geburtsdatum',
         'start_geplant', 'start_real', 'ende_geplant', 'ende_real'
     ]
     
@@ -929,14 +935,24 @@ def get_bewerber_table_class(org, request=None):
     # Define render methods
     def render_user(self, value, record):
         bewerber = record['bewerber']
-        return format_html(
-            '<a href="{}" title="Zum Profil"><i class="bi bi-person-fill me-1"></i>{}</a> '
-            '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
-            '<i class="bi bi-envelope-arrow-up"></i></a>',
-            reverse('profil', args=[bewerber.user.customuser.get_identifier()]),
-            f"{bewerber.user.first_name} {bewerber.user.last_name}",
-            bewerber.user.email,
-        )
+        if hasattr(bewerber.user, 'customuser'):
+            return format_html(
+                '<div class="d-flex gap-2">'
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden"><i class="bi bi-envelope-arrow-up"></i></a>'
+                '<a href="{}" title="Zum Profil">{}</a> '
+                '</div>',
+                bewerber.user.email,
+                reverse('profil', args=[bewerber.user.customuser.get_identifier()]),
+                bewerber.user.first_name,
+            )
+        else:
+            return format_html(
+                '<i class="bi bi-person-fill me-1"></i>{} '
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
+                '<i class="bi bi-envelope-arrow-up"></i></a>',
+                f"{bewerber.user.first_name} {bewerber.user.last_name}",
+                bewerber.user.email,
+            )
     
     def render_application_pdf(self, value, record):
         bewerber = record['bewerber']
@@ -987,9 +1003,14 @@ def get_bewerber_table_class(org, request=None):
     # Define base columns
     base_columns = {
         'user': tables.Column(
-            verbose_name=_('Benutzer'),
+            verbose_name=_('Vorname'),
             accessor='user_sort',
             order_by='user_sort'
+        ),
+        'last_name': tables.Column(
+            verbose_name=_('Nachname'),
+            accessor='bewerber.user.last_name',
+            order_by='bewerber.user.last_name'
         ),
         'geburtsdatum_customuser': tables.DateColumn(
             verbose_name=_('Geburtsdatum'),
@@ -1033,7 +1054,7 @@ def get_bewerber_table_class(org, request=None):
         ),
     }
     
-    column_sequence = ['user', 'geburtsdatum_customuser', 'application_pdf', 'has_seminar', 'interview_persons', 'zuteilung', 'zuteilung_freigegeben', 'reaktion_auf_zuteilung', 'endbewertung']
+    column_sequence = ['user', 'last_name', 'geburtsdatum_customuser', 'application_pdf', 'has_seminar', 'interview_persons', 'zuteilung', 'zuteilung_freigegeben', 'reaktion_auf_zuteilung', 'endbewertung']
     
     render_methods = {
         'render_user': render_user,
@@ -1107,14 +1128,24 @@ def get_team_table_class(org, request=None):
     # Define render methods
     def render_user(self, value, record):
         team = record['team']
-        return format_html(
-            '<a href="{}" title="Zum Profil"><i class="bi bi-person-fill me-1"></i>{}</a> '
-            '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
-            '<i class="bi bi-envelope-arrow-up"></i></a>',
-            reverse('profil', args=[team.user.customuser.get_identifier()]),
-            f"{team.user.first_name} {team.user.last_name}",
-            team.user.email,
-        )
+        if hasattr(team.user, 'customuser'):
+            return format_html(
+                '<div class="d-flex gap-2">'
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden"><i class="bi bi-envelope-arrow-up"></i></a>'
+                '<a href="{}" title="Zum Profil">{}</a> '
+                '</div>',
+                team.user.email,
+                reverse('profil', args=[team.user.customuser.get_identifier()]),
+                team.user.first_name,
+            )
+        else:
+            return format_html(
+                '<i class="bi bi-person-fill me-1"></i>{} '
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
+                '<i class="bi bi-envelope-arrow-up"></i></a>',
+                f"{team.user.first_name} {team.user.last_name}",
+                team.user.email,
+            )
     
     def render_land(self, value, record):
         team = record['team']
@@ -1144,9 +1175,14 @@ def get_team_table_class(org, request=None):
     # Define base columns
     base_columns = {
         'user': tables.Column(
-            verbose_name=_('Benutzer'),
+            verbose_name=_('Vorname'),
             accessor='user_sort',
             order_by='user_sort'
+        ),
+        'last_name': tables.Column(
+            verbose_name=_('Nachname'),
+            accessor='team.user.last_name',
+            order_by='team.user.last_name'
         ),
         'land': tables.Column(
             verbose_name=_('Länderzuständigkeit'),
@@ -1160,7 +1196,7 @@ def get_team_table_class(org, request=None):
         ),
     }
     
-    column_sequence = ['user', 'land', 'aufgabenuebersicht']
+    column_sequence = ['user', 'last_name', 'land', 'aufgabenuebersicht']
     
     render_methods = {
         'render_user': render_user,
@@ -1208,14 +1244,24 @@ def get_ehemalige_table_class(org, request=None):
     # Define render methods
     def render_user(self, value, record):
         ehemalige = record['ehemalige']
-        return format_html(
-            '<a href="{}" title="Zum Profil"><i class="bi bi-person-fill me-1"></i>{}</a> '
-            '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
-            '<i class="bi bi-envelope-arrow-up"></i></a>',
-            reverse('profil', args=[ehemalige.user.customuser.get_identifier()]),
-            f"{ehemalige.user.first_name} {ehemalige.user.last_name}",
-            ehemalige.user.email,
-        )
+        if hasattr(ehemalige.user, 'customuser'):
+            return format_html(
+                '<div class="d-flex gap-2">'
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden"><i class="bi bi-envelope-arrow-up"></i></a>'
+                '<a href="{}" title="Zum Profil">{}</a> '
+                '</div>',
+                ehemalige.user.email,
+                reverse('profil', args=[ehemalige.user.customuser.get_identifier()]),
+                ehemalige.user.first_name,
+            )
+        else:
+            return format_html(
+                '<i class="bi bi-person-fill me-1"></i>{} '
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
+                '<i class="bi bi-envelope-arrow-up"></i></a>',
+                f"{ehemalige.user.first_name} {ehemalige.user.last_name}",
+                ehemalige.user.email,
+            )
     
     def render_land(self, value, record):
         ehemalige = record['ehemalige']
@@ -1241,9 +1287,14 @@ def get_ehemalige_table_class(org, request=None):
     # Define base columns
     base_columns = {
         'user': tables.Column(
-            verbose_name=_('Benutzer'),
+            verbose_name=_('Vorname'),
             accessor='user_sort',
             order_by='user_sort'
+        ),
+        'last_name': tables.Column(
+            verbose_name=_('Nachname'),
+            accessor='ehemalige.user.last_name',
+            order_by='ehemalige.user.last_name'
         ),
         'land': tables.Column(
             verbose_name=_('Länder'),
@@ -1257,7 +1308,7 @@ def get_ehemalige_table_class(org, request=None):
         ),
     }
     
-    column_sequence = ['user', 'land', 'geburtsdatum_customuser']
+    column_sequence = ['user', 'last_name', 'land', 'geburtsdatum_customuser']
     
     render_methods = {
         'render_user': render_user,
