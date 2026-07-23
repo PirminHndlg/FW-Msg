@@ -5178,7 +5178,7 @@ msgstr "Error sending reminder"
 
 #: ORG/templates/list_ampel.html:16
 msgid "Ampelübersicht"
-msgstr "Traffic light overview"
+msgstr "Status overview"
 
 #: ORG/templates/list_ampel.html:44
 msgid "Ampel-Erinnerungen aktiv"
@@ -5190,7 +5190,7 @@ msgstr "Reminder inactive"
 
 #: ORG/templates/list_ampel.html:80
 msgid "Ampel diesen Monat"
-msgstr "Traffic Light of the Month"
+msgstr "Status of the Month"
 
 #: ORG/templates/list_aufgaben.html:16
 msgid "Fällige Aufgaben"
