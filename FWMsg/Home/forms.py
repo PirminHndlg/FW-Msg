@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -9,8 +9,34 @@ from .models import OwnSigninUser
 
 User = get_user_model()
 
-# class PasswordResetForm(forms.Form):
-#     email = forms.EmailField(label='Email')
+# Shared help text (must stay in sync with locale msgid). Avoids English-only
+# help text from django_password_validators via SetPasswordForm defaults.
+PASSWORD_REQUIREMENTS_HELP_TEXT = _(
+    'Ihr Passwort muss folgende Anforderungen erfüllen:<br>'
+    '• Mindestens 8 Zeichen lang<br>'
+    '• Mindestens ein Großbuchstabe (A-Z)<br>'
+    '• Mindestens ein Kleinbuchstabe (a-z)<br>'
+    '• Mindestens eine Zahl (0-9)<br>'
+    '• Mindestens ein Sonderzeichen (~!?@#$%^&*()_-+={}":;\'[])<br>'
+    '• Nicht zu ähnlich zu Ihren persönlichen Daten'
+)
+
+
+class CustomSetPasswordForm(SetPasswordForm):
+    """SetPasswordForm with project-translated password requirements help text."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['new_password1'].help_text = PASSWORD_REQUIREMENTS_HELP_TEXT
+        self.fields['new_password1'].widget.attrs.update({
+            'class': 'form-control rounded-3',
+            'autocomplete': 'new-password',
+        })
+        self.fields['new_password2'].widget.attrs.update({
+            'class': 'form-control rounded-3',
+            'autocomplete': 'new-password',
+        })
+
 
 class EmailAuthenticationForm(AuthenticationForm):
     """
@@ -55,7 +81,7 @@ class FirstLoginForm(forms.Form):
     password = forms.CharField(
         label=_('Neues Passwort'),
         widget=forms.PasswordInput(attrs={'class': 'form-control rounded-3', 'placeholder': _('Neues Passwort'), 'autocomplete': 'new-password'}),
-        help_text=_('Ihr Passwort muss folgende Anforderungen erfüllen:<br>• Mindestens 8 Zeichen lang<br>• Mindestens ein Großbuchstabe (A-Z)<br>• Mindestens ein Kleinbuchstabe (a-z)<br>• Mindestens eine Zahl (0-9)<br>• Mindestens ein Sonderzeichen (!@#$%^&* etc.)<br>• Nicht zu ähnlich zu Ihren persönlichen Daten')
+        help_text=PASSWORD_REQUIREMENTS_HELP_TEXT,
     )
     password_repeat = forms.CharField(
         label=_('Neues Passwort wiederholen'),

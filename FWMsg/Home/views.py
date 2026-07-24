@@ -3,11 +3,10 @@ from django.forms import ValidationError
 from django.http import FileResponse, HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
 from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.contrib.auth.models import User
-from .forms import EmailAuthenticationForm, FirstLoginForm, OwnSigninForm
+from .forms import EmailAuthenticationForm, FirstLoginForm, OwnSigninForm, CustomSetPasswordForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth import get_user_model
 import re
@@ -312,7 +311,7 @@ def password_reset(request):
 @login_required
 def password_change(request):
     if request.method == 'POST':
-        form = SetPasswordForm(request.user, request.POST)
+        form = CustomSetPasswordForm(request.user, request.POST)
         user = request.user
         if form.is_valid():
             user.set_password(form.cleaned_data['new_password1'])
@@ -324,10 +323,8 @@ def password_change(request):
             
             return redirect('index_home')
     else:
-        form = SetPasswordForm(request.user)
-        
-    form.fields['new_password1'].widget.attrs['class'] = 'form-control rounded-3'
-    form.fields['new_password2'].widget.attrs['class'] = 'form-control rounded-3'
+        form = CustomSetPasswordForm(request.user)
+
     return render(request, 'password_change.html', {'form': form})
 
 
