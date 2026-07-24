@@ -104,14 +104,7 @@
             <div class="card-body p-0">
               {% include 'components/image_card_header.html' with hide_title=True show_date_with_time=True %}
 
-              <!-- Title and Description -->
-              <div class="mb-3 mt-3">
-                <h4 class="mb-2">{{ bild.titel }}</h4>
-                {% if bild.beschreibung %}
-                  <p class="text-muted">{{ bild.beschreibung }}</p>
-                {% endif %}
-              </div>
-
+              {% include 'components/image_title_description.html' %}
 
               <div class="d-none d-lg-block">
                 {% include 'components/image_interactions.html' with without_reactions_modal=True open_comments=True %}

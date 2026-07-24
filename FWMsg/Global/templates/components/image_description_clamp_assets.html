@@ -1,0 +1,23 @@
+{% load i18n %}
+
+<style>
+  .image-description-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .image-description-clamp.is-expanded {
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+</style>
+<script>
+  function toggleImageDescriptionClamp(link) {
+    const description = link.previousElementSibling;
+    if (!description || !description.classList.contains('image-description-clamp')) return;
+    const expanded = description.classList.toggle('is-expanded');
+    link.textContent = expanded ? '{% trans "weniger" %}' : '{% trans "mehr" %}';
+  }
+</script>

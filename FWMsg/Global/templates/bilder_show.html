@@ -5,43 +5,31 @@
   {% for bild_gallery in gallery_images %}
     {% for bild, bilder_gallery in bild_gallery.items %}
       <div class="{% if small %}col-lg-6 col-md-12{% else %}col-lg-4 col-md-6{% endif %}">
-        <div class="card rounded-4 h-100">
-          <div class="card-header rounded-4">
-            {% include 'components/image_card_header.html' %}
-          </div>
+        <div class="card shadow-sm rounded-4 h-100">
+          <div class="card-body">
+            {% include 'components/image_card_header.html' with hide_title=True %}
 
-          <div class="card-body p-0">
+            {% include 'components/image_title_description.html' with truncate_description=True %}
+
             {% include 'components/image_carousel.html' %}
-            {% include 'components/image_description.html' %}
+
+            <div class="pt-2">
+              {% include 'components/image_interactions.html' %}
+            </div>
           </div>
         </div>
       </div>
     {% endfor %}
   {% endfor %}
 
-  <script>
-    function toggleDescription(link) {
-      const container = link.closest('p')
-      const preview = container.querySelector('.description-preview')
-      const full = container.querySelector('.description-full')
-    
-      if (preview.style.display !== 'none') {
-        preview.style.display = 'none'
-        full.style.display = 'inline'
-        link.textContent = '{% trans "weniger" %}'
-      } else {
-        preview.style.display = 'inline'
-        full.style.display = 'none'
-        link.textContent = '{% trans "mehr" %}'
-      }
-    }
-  </script>
 {% else %}
   <div class="text-center py-4">
     <i class="bi bi-images text-muted mb-2" style="font-size: 2rem;"></i>
     <p class="text-muted mb-0">{% trans "Keine Bilder vorhanden" %}</p>
   </div>
 {% endif %}
+
+{% include 'components/image_description_clamp_assets.html' %}
 
 <script src="{% static 'js/image-interactions.js' %}"></script>
 <script>

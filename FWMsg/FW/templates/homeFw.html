@@ -107,16 +107,15 @@
                     </div>
                     {% elif item.type == 'image' %}
                         <div class="col">
-                            <div class="card rounded-4 h-100">
-                                <div class="card-header">
+                            <div class="card shadow-sm rounded-4 h-100">
+                                <div class="card-body">
                                     {% with bild=item.bild bilder_gallery=item.bild.bildergallery2_set.all %}
-                                        {% include 'components/image_card_header.html' %}
-                                    {% endwith %}
-                                </div>
-                                <div class="card-body p-0">
-                                    {% with bild=item.bild bilder_gallery=item.bild.bildergallery2_set.all %}
+                                        {% include 'components/image_card_header.html' with hide_title=True %}
+                                        {% include 'components/image_title_description.html' with truncate_description=True %}
                                         {% include 'components/image_carousel.html' %}
-                                        {% include 'components/image_description.html' %}
+                                        <div class="pt-2">
+                                            {% include 'components/image_interactions.html' %}
+                                        </div>
                                     {% endwith %}
                                 </div>
                             </div>
@@ -128,5 +127,6 @@
     </div>
     
     <script src="{% static 'js/image-interactions.js' %}"></script>
+    {% include 'components/image_description_clamp_assets.html' %}
     {% endif %}
 {% endblock %}
