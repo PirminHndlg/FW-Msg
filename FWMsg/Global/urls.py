@@ -1,9 +1,10 @@
 from . import views
-from django.urls import path 
+from django.urls import path, include
 from . import views_push
 from . import views_change_requests
 
 urlpatterns = [
+    path('i18n/', include('django.conf.urls.i18n')),  # Language switcher URL
     path('logos/<int:org_id>', views.serve_logo, name='serve_image'),
     path('bilder/', views.bilder, name='bilder'),
     path('serve_bilder/<int:image_id>', views.serve_bilder, name='serve_bilder'),

@@ -230,6 +230,9 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
+# Persist language preference for 1 month (also stored in session by set_language)
+LANGUAGE_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
+
 LOCALE_PATHS = [
     BASE_DIR / "locale",
 ]
