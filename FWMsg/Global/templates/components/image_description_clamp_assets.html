@@ -7,6 +7,9 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  .image-description-clamp.clamp-3 {
+    -webkit-line-clamp: 3;
+  }
   .image-description-clamp.is-expanded {
     display: block;
     -webkit-line-clamp: unset;
@@ -20,4 +23,22 @@
     const expanded = description.classList.toggle('is-expanded');
     link.textContent = expanded ? '{% trans "weniger" %}' : '{% trans "mehr" %}';
   }
+
+  function updateImageDescriptionClampToggles() {
+    document.querySelectorAll('.image-description-clamp').forEach((description) => {
+      const link = description.nextElementSibling;
+      if (!link || !link.classList.contains('show-more')) return;
+      if (description.classList.contains('is-expanded')) {
+        link.hidden = false;
+        return;
+      }
+      link.hidden = description.scrollHeight <= description.clientHeight + 1;
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    updateImageDescriptionClampToggles();
+    requestAnimationFrame(updateImageDescriptionClampToggles);
+  });
+  window.addEventListener('resize', updateImageDescriptionClampToggles);
 </script>

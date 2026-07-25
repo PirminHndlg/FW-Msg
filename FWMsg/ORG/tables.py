@@ -90,6 +90,19 @@ class BaseOrgTable(tables.Table):
         url = reverse('profil', args=[record.user.customuser.get_identifier()])
         return format_html('<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', url, value)
 
+    def render_clamped_text(self, value, lines=3):
+        """Render text clamped to N lines with a mehr/weniger toggle."""
+        if not value:
+            return ''
+        return format_html(
+            '<p class="mb-0 image-description-clamp clamp-{}">{}</p>'
+            '<a href="#" class="show-more small" hidden '
+            'onclick="event.preventDefault(); toggleImageDescriptionClamp(this);">{}</a>',
+            lines,
+            value,
+            _('mehr'),
+        )
+
 
 class EinsatzlandTable(BaseOrgTable):
     name = tables.Column(verbose_name=_('Name'))
@@ -156,14 +169,17 @@ class AufgabeTable(BaseOrgTable):
     name = tables.Column(verbose_name=_('Name'))
     beschreibung = tables.Column(
         verbose_name=_('Beschreibung'),
-        attrs={'td': {'style': 'max-width: 300px; word-wrap: break-word;'}}
+        #attrs={'td': {'style': 'max-width: 300px; word-wrap: break-word;'}}
     )
     person_cluster = tables.ManyToManyColumn(
         verbose_name=_('Für Benutzergruppen'),
         transform=lambda obj: obj.name if hasattr(obj, 'name') else str(obj)
     )
     mitupload = tables.BooleanColumn(verbose_name=_('Datei-Upload notwendig'))
-    
+
+    def render_beschreibung(self, value):
+        return self.render_clamped_text(value)
+
     class Meta(BaseOrgTable.Meta):
         model = Aufgabe2
         fields = ('name', 'beschreibung', 'mitupload', 'requires_submission', 'faellig_tag', 'faellig_monat', 'faellig_tage_nach_start', 'faellig_tage_vor_ende', 'wiederholung', 'wiederholung_interval_wochen', 'wiederholung_ende', 'repeat_push_days', 'person_cluster', 'actions')
@@ -289,10 +305,21 @@ class AufgabenClusterTable(BaseOrgTable):
 
 class KalenderEventTable(BaseOrgTable):
     title = tables.Column(verbose_name=_('Titel'))
-    
+    description = tables.Column(
+        verbose_name=_('Beschreibung'),
+        attrs={'td': {'style': 'max-width: 300px; word-wrap: break-word;'}}
+    )
+    user = tables.Column(verbose_name=_('Teilnehmer:innen'), orderable=False)
+
+    def render_description(self, value):
+        return self.render_clamped_text(value)
+
+    def render_user(self, value, record):
+        return record.user.count()
+
     class Meta(BaseOrgTable.Meta):
         model = KalenderEvent
-        fields = ('title', 'start', 'end', 'description', 'user', 'actions')
+        fields = ('title', 'start', 'end', 'description', 'location', 'user', 'actions')
 
 
 class ApplicationTextTable(BaseOrgTable):

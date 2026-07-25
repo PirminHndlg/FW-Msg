@@ -6,7 +6,7 @@
   {% if bild.beschreibung %}
     {% if truncate_description %}
       <p class="text-muted mb-0 image-description-clamp">{{ bild.beschreibung }}</p>
-      <a href="#" class="show-more small" onclick="event.preventDefault(); toggleImageDescriptionClamp(this);">{% trans "mehr" %}</a>
+      <a href="#" class="show-more small" hidden onclick="event.preventDefault(); toggleImageDescriptionClamp(this);">{% trans "mehr" %}</a>
     {% else %}
       <p class="text-muted mb-0">{{ bild.beschreibung }}</p>
     {% endif %}
