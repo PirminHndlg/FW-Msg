@@ -10,7 +10,7 @@
       <div class="emoji-buttons d-flex flex-grow-1 gap-1 flex-wrap" data-bild-id="{{ bild.id|default:'' }}">
         {% with my_reaction=bild|get_my_reaction:request.user %}
           {% for reaction in bild.get_reaction_summary %}
-            <button type="button" onclick="interactionButtonPressed(this)" class="emoji-reaction-btn p-2 {% if my_reaction and my_reaction.emoji == reaction.emoji %}active{% endif %}" data-interaction-url="{% url 'toggle_reaction_to_bild' bild.id reaction.emoji %}">
+            <button type="button" onclick="interactionButtonPressed(this)" class="emoji-reaction-btn p-1 {% if my_reaction and my_reaction.emoji == reaction.emoji %}active{% endif %}" data-interaction-url="{% url 'toggle_reaction_to_bild' bild.id reaction.emoji %}">
               <span class="emoji-icon">{{ reaction.emoji }}</span>
               <span class="reaction-count">{{ reaction.count }}</span>
             </button>
@@ -138,8 +138,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 6px 12px;
+  gap: 2px;
   border: 1.5px solid #e0e0e0;
   border-radius: 20px;
   background: #ffffff;
