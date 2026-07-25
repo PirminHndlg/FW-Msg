@@ -200,7 +200,7 @@ def home(request):
         pending=False
     ).order_by('faellig')
 
-    posts = get_posts(request.user.org, limit=4)
+    posts = get_posts(request.user.org, limit=5)
 
     # Get all pinned notes across all Einsatzstellen
     pinned_notizen = EinsatzstelleNotiz.objects.filter(
@@ -266,7 +266,7 @@ def home_2(request):
         pending=False
     ).order_by('faellig')
 
-    posts = get_posts(request.user.org, limit=4)
+    posts = get_posts(request.user.org, limit=5)
 
     # Get all pinned notes across all Einsatzstellen
     pinned_notizen = EinsatzstelleNotiz.objects.filter(
