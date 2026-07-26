@@ -2780,12 +2780,23 @@ def bw_application_file_answer_download(request, file_answer_uuid):
         return redirect('index_home')
     
     if file_answer.file and os.path.exists(file_answer.file.path):
-        response = FileResponse(file_answer.file)
-        response['Content-Disposition'] = f'attachment; filename="{file_answer.file.name}"'
-        return response
+        file_field = file_answer.file
+    elif (
+        file_answer.file_question.is_profile_picture
+        and hasattr(file_answer.user, 'customuser')
+        and file_answer.user.customuser.profil_picture
+        and os.path.exists(file_answer.user.customuser.profil_picture.path)
+    ):
+        # Profile pictures were previously stored only on CustomUser after
+        # resizing deleted the shared application file; fall back to that.
+        file_field = file_answer.user.customuser.profil_picture
     else:
         messages.error(request, 'Datei nicht gefunden')
         return redirect('index_home')
+
+    response = FileResponse(file_field)
+    response['Content-Disposition'] = f'attachment; filename="{os.path.basename(file_field.name)}"'
+    return response
 
 
 # ============================================================================

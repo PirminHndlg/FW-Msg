@@ -488,11 +488,32 @@ class ApplicationAnswerFile(OrgModel):
         super().save(*args, **kwargs)
         if self.file_question.is_profile_picture and self.file:
             try:
+                from django.core.files.base import ContentFile
+                import os
+
                 customuser = self.user.customuser
-                customuser.profil_picture = self.file
-                customuser.save(update_fields=['profil_picture'])
+                # Copy file content so create_small_image does not delete the
+                # application answer file when resizing the profile picture.
+                with self.file.open('rb') as f:
+                    content = f.read()
+                filename = os.path.basename(self.file.name)
+                if customuser.profil_picture:
+                    customuser.profil_picture.delete(save=False)
+                customuser.profil_picture.save(filename, ContentFile(content), save=True)
             except Exception as e:
                 print(e)
+
+    def delete(self, *args, **kwargs):
+        if self.file_question.is_profile_picture:
+            try:
+                customuser = self.user.customuser
+                if customuser.profil_picture:
+                    customuser.profil_picture.delete(save=False)
+                    customuser.profil_picture = None
+                    customuser.save(update_fields=['profil_picture'])
+            except Exception as e:
+                print(e)
+        super().delete(*args, **kwargs)
 
     def __str__(self):
         return self.org.name

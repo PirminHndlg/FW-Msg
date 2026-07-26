@@ -231,6 +231,11 @@ def bw_application_file_answer(request, file_question_id):
 @required_role('BO')
 @application_or_seminar_is_open
 def bw_application_file_answer_delete(request, file_answer_id):
+    bewerber = Bewerber.objects.get(user=request.user)
+    if bewerber.abgeschlossen == True:
+        messages.error(request, 'Du hast bereits Deine Bewerbung abgeschlossen und kannst keine Dateien mehr löschen.')
+        return redirect('bw_home')
+
     file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, user=request.user)
     file_answer.delete()
     messages.success(request, 'Datei wurde erfolgreich gelöscht')
