@@ -254,7 +254,7 @@ def get_customuser_filter(request, org, objects):
         request,
         org,
         view=None,
-        min_clusters=2,
+        min_clusters=1,
         include_inactive=True,
     )
     
@@ -1137,7 +1137,7 @@ def get_team_table_class(org, request=None):
     person_clusters = None
     
     # Build PersonCluster filter for Team (view='T')
-    pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='T', min_clusters=2)
+    pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='T', min_clusters=1)
     
     if pc_filter:
         filter_options.append(pc_filter)
@@ -1253,7 +1253,7 @@ def get_ehemalige_table_class(org, request=None):
     person_clusters = None
     
     # Build PersonCluster filter for Ehemalige (view='E')
-    pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='E', min_clusters=2)
+    pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='E', min_clusters=1)
     
     if pc_filter:
         filter_options.append(pc_filter)
