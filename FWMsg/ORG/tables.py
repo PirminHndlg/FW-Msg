@@ -722,7 +722,7 @@ def get_freiwilliger_table_class(org, request=None):
     filter_options = []
     
     # Build PersonCluster filter for Freiwillige (view='F')
-    pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='F', min_clusters=2)
+    pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='F', min_clusters=1)
     
     if pc_filter:
         filter_options.append(pc_filter)
@@ -894,7 +894,7 @@ def get_bewerber_table_class(org, request=None):
             return '?' + urlencode(params) if params else '?'
         
         # Build PersonCluster filter for Bewerber (view='B')
-        pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='B', min_clusters=2)
+        pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='B', min_clusters=1)
         
         if pc_filter:
             filter_options.append(pc_filter)
