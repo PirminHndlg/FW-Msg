@@ -283,7 +283,7 @@ def home_2(request):
     # Get recent ampel entries
     recent_ampel_entries = Ampel2.objects.filter(
         org=request.user.org,
-        date__gte=timezone.now() - timezone.timedelta(days=5)
+        date__gte=timezone.now() - timezone.timedelta(days=7)
     ).select_related('user').order_by('-date')[:10]
 
     # Get pending change requests

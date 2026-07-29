@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-23 22:27+0200\n"
+"POT-Creation-Date: 2026-07-29 13:55+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: German <de@li.org>\n"
@@ -33,7 +33,7 @@ msgstr ""
 msgid "Das Passwort erneut eingeben."
 msgstr "Das Passwort erneut eingeben."
 
-#: BW/forms.py:52 BW/forms.py:53 Home/forms.py:72
+#: BW/forms.py:52 BW/forms.py:53 Home/forms.py:98
 msgid "Passwörter stimmen nicht überein."
 msgstr "Passwörter stimmen nicht überein."
 
@@ -75,11 +75,11 @@ msgstr "Bewerbungstext"
 msgid "Bewerbungstexte"
 msgstr "Bewerbungstexte"
 
-#: BW/models.py:473 BW/models.py:501
+#: BW/models.py:473 BW/models.py:522
 msgid "Bewerbungsdatei"
 msgstr "Bewerbungsdatei"
 
-#: BW/models.py:474 BW/models.py:502
+#: BW/models.py:474 BW/models.py:523
 msgid "Bewerbungsdateien"
 msgstr "Bewerbungsdateien"
 
@@ -89,7 +89,7 @@ msgstr "Bewerbungsdateien"
 msgid "Benutzer:in"
 msgstr "Benutzer:in"
 
-#: Ehemalige/models.py:9 ORG/tables.py:1300
+#: Ehemalige/models.py:9 ORG/tables.py:1327
 msgid "Länder"
 msgstr "Länder"
 
@@ -118,9 +118,9 @@ msgstr "Posts"
 
 #: Ehemalige/templates/baseEhemalige.html:66 FW/templates/baseFw.html:185
 #: FW/templates/baseFw.html:303 Global/models.py:1234
-#: Global/templates/bild.html:67 Global/templates/bilder.html:9
-#: Global/templates/bilder.html:23 Global/templates/profil.html:37
-#: ORG/templates/baseOrg.html:116 ORG/views.py:2276
+#: Global/templates/bilder.html:9 Global/templates/bilder.html:23
+#: Global/templates/profil.html:37 ORG/templates/baseOrg.html:116
+#: ORG/views.py:2276
 msgid "Bilder"
 msgstr "Bilder"
 
@@ -205,7 +205,7 @@ msgid "Alle Bilder"
 msgstr "Alle Bilder"
 
 #: Ehemalige/templates/ehemaligeHome.html:165
-#: Global/templates/bilder_show.html:42 Global/templates/profil.html:51
+#: Global/templates/bilder_show.html:28 Global/templates/profil.html:51
 #: ORG/templates/homeOrg.html:365 ORG/templates/homeOrg_2.html:687
 #: ORG/templates/homeOrg_2.html:699 TEAM/templates/teamHome.html:352
 msgid "Keine Bilder vorhanden"
@@ -225,7 +225,7 @@ msgstr "Meine Aufgaben"
 #: Global/templates/karte.html:45 Global/templates/karte.html:60
 #: Global/templates/list_users.html:48 Global/templates/list_users.html:58
 #: Global/templates/posts_overview.html:21
-#: Global/templates/posts_overview.html:31 ORG/tables.py:408 ORG/tables.py:892
+#: Global/templates/posts_overview.html:31 ORG/tables.py:435 ORG/tables.py:919
 #: ORG/templates/components/task_filter.html:9 ORG/templates/homeOrg_2.html:104
 #: ORG/templates/homeOrg_2.html:169 ORG/templates/homeOrg_2.html:327
 #: ORG/templates/list_ampel.html:34 ORG/templates/list_ampel.html:57
@@ -292,8 +292,9 @@ msgid "Anmerkungen"
 msgstr "Anmerkungen"
 
 #: FW/templates/ampel.html:51 FW/templates/components/task_detail_form.html:145
-#: Global/templates/image_detail.html:81 ORG/templates/add_aufgabe.html:946
-#: ORG/templates/edit_object.html:53 ORG/templates/own_signin_requests.html:15
+#: Global/templates/bild.html:72 Global/templates/image_detail.html:81
+#: ORG/templates/add_aufgabe.html:946 ORG/templates/edit_object.html:53
+#: ORG/templates/own_signin_requests.html:15
 #: ORG/templates/review_change_request.html:31
 #: chat/templates/chat-direct.html:18 chat/templates/chat-group.html:15
 #: chat/templates/create-chat-direct.html:19
@@ -306,7 +307,7 @@ msgid "Abschicken"
 msgstr "Abschicken"
 
 #: FW/templates/aufgabe.html:9 Global/models.py:1004 Global/models.py:1012
-#: Global/models.py:1050 ORG/tables.py:193
+#: Global/models.py:1050 ORG/tables.py:209
 #: ORG/templates/components/task_zwischenschritte_modal.html:13
 #: ORG/templates/list_aufgaben.html:46 ORG/templates/list_aufgaben.html:113
 #: ORG/templates/list_aufgaben.html:172
@@ -360,11 +361,11 @@ msgstr "Notfallkontakte"
 #: FW/templates/base.html:210 FW/templates/base.html:222 Global/models.py:909
 #: Global/templates/components/language_selector.html:10
 #: Global/templates/components/language_selector.html:25
-#: Global/templates/settings.html:187 Home/templates/first_login.html:133
+#: Global/templates/settings.html:187 Home/templates/first_login.html:130
 #: Home/templates/index.html:108 Home/templates/own_signin.html:145
 #: Home/templates/own_signin_success.html:111
-#: Home/templates/password_change.html:137
-#: Home/templates/password_reset.html:87
+#: Home/templates/password_change.html:126
+#: Home/templates/password_reset.html:90
 msgid "Deutsch"
 msgstr "Deutsch"
 
@@ -372,17 +373,18 @@ msgstr "Deutsch"
 #: FW/templates/base.html:212 FW/templates/base.html:227
 #: Global/templates/components/language_selector.html:10
 #: Global/templates/components/language_selector.html:25
-#: Global/templates/settings.html:190 Home/templates/first_login.html:133
+#: Global/templates/settings.html:190 Home/templates/first_login.html:130
 #: Home/templates/index.html:108 Home/templates/own_signin.html:145
 #: Home/templates/own_signin_success.html:111
-#: Home/templates/password_change.html:139
-#: Home/templates/password_reset.html:87
+#: Home/templates/password_change.html:126
+#: Home/templates/password_reset.html:90
 msgid "English"
 msgstr "Englisch"
 
 #: FW/templates/base.html:144 FW/templates/base.html:272
 #: FW/templates/baseFw.html:400 Global/models.py:83
-#: Global/templates/bild.html:73 ORG/views.py:2280
+#: Global/templates/bild.html:67 Global/templates/bild.html:77
+#: ORG/views.py:2280
 msgid "Bilder hochladen"
 msgstr "Bilder hochladen"
 
@@ -468,7 +470,7 @@ msgstr "Konto & Einstellungen"
 #: ORG/templates/edit_object.html:89 ORG/templates/homeOrg.html:218
 #: ORG/templates/homeOrg_2.html:744 ORG/templates/list_aufgaben_table.html:224
 #: ORG/templates/list_aufgaben_table.html:257
-#: ORG/templates/list_objects_table.html:211
+#: ORG/templates/list_objects_table.html:213
 #: TEAM/templates/teamAufgabenuebersicht.html:96
 #: chat/templates/create-chat-group.html:166
 msgid "Abbrechen"
@@ -709,8 +711,8 @@ msgstr "Jetzt erledigen"
 #: Global/models.py:483 Global/models.py:984 Global/models.py:1014
 #: Global/models.py:1225 Global/templates/components/document_modal.html:30
 #: Global/templates/components/image_card_header.html:74
-#: Global/templates/kalender_event.html:107 ORG/tables.py:158 ORG/tables.py:336
-#: ORG/templates/components/task_table_header.html:20
+#: Global/templates/kalender_event.html:107 ORG/tables.py:171 ORG/tables.py:309
+#: ORG/tables.py:363 ORG/templates/components/task_table_header.html:20
 #: ORG/templates/components/zwischenschritt_form.html:60
 #: ORG/templates/list_aufgaben.html:48 ORG/templates/list_aufgaben.html:115
 #: ORG/templates/list_aufgaben.html:173
@@ -737,7 +739,7 @@ msgstr "Datei hochladen"
 
 #: FW/templates/components/task_detail_form.html:56
 #: FW/templates/components/task_detail_form.html:59
-#: Global/templates/bild.html:119 Global/templates/bild.html:122
+#: Global/templates/bild.html:123 Global/templates/bild.html:126
 #: Global/templates/components/fullscreen_drop_zone.html:57
 msgid "Datei hierher ziehen oder klicken zum Auswählen"
 msgstr "Datei hierher ziehen oder klicken zum Auswählen"
@@ -762,7 +764,7 @@ msgstr "Flexibel"
 
 #: FW/templates/components/task_detail_form.html:106 Global/models.py:876
 #: Global/models.py:1478 Global/templates/list_bewerber.html:43
-#: ORG/tables.py:196 ORG/templates/components/ampel_table.html:92
+#: ORG/tables.py:212 ORG/templates/components/ampel_table.html:92
 #: survey/templates/survey/admin_survey_list.html:41
 #: survey/templates/survey/survey_list.html:67
 msgid "Status"
@@ -845,7 +847,7 @@ msgid "Länderinfo"
 msgstr "Länderinfo"
 
 #: FW/templates/laenderinfo.html:62
-#: Global/templates/components/profile_details.html:19 ORG/tables.py:798
+#: Global/templates/components/profile_details.html:19 ORG/tables.py:825
 msgid "Start real"
 msgstr "Start real"
 
@@ -854,7 +856,7 @@ msgid "Geplanter Start"
 msgstr "Geplanter Start"
 
 #: FW/templates/laenderinfo.html:68
-#: Global/templates/components/profile_details.html:25 ORG/tables.py:810
+#: Global/templates/components/profile_details.html:25 ORG/tables.py:837
 msgid "Ende real"
 msgstr "Ende real"
 
@@ -895,37 +897,37 @@ msgid "Reisehinweise"
 msgstr "Reisehinweise"
 
 #: FW/views.py:210 Global/models.py:769 Global/templates/laender_info.html:91
-#: Global/templates/laender_info.html:170 ORG/tables.py:96
+#: Global/templates/laender_info.html:170 ORG/tables.py:109
 msgid "Notfallnummern"
 msgstr "Notfallnummern"
 
 #: FW/views.py:220 Global/models.py:790
 #: Global/templates/einsatzstellen_info.html:177
-#: Global/templates/einsatzstellen_info.html:261 ORG/tables.py:114
+#: Global/templates/einsatzstellen_info.html:261 ORG/tables.py:127
 msgid "Botschaft"
 msgstr "Botschaft"
 
 #: FW/views.py:228 Global/models.py:791
 #: Global/templates/einsatzstellen_info.html:193
-#: Global/templates/einsatzstellen_info.html:268 ORG/tables.py:115
+#: Global/templates/einsatzstellen_info.html:268 ORG/tables.py:128
 msgid "Konsulat"
 msgstr "Konsulat"
 
 #: FW/views.py:239 Global/models.py:788
 #: Global/templates/einsatzstellen_info.html:145
-#: Global/templates/einsatzstellen_info.html:247 ORG/tables.py:112
+#: Global/templates/einsatzstellen_info.html:247 ORG/tables.py:125
 msgid "Arbeitsvorgesetzte:r"
 msgstr "Arbeitsvorgesetzte:r"
 
 #: FW/views.py:247 Global/models.py:787
 #: Global/templates/einsatzstellen_info.html:129
-#: Global/templates/einsatzstellen_info.html:240 ORG/tables.py:111
+#: Global/templates/einsatzstellen_info.html:240 ORG/tables.py:124
 msgid "Partnerorganisation"
 msgstr "Partnerorganisation"
 
 #: FW/views.py:255 Global/models.py:789
 #: Global/templates/einsatzstellen_info.html:161
-#: Global/templates/einsatzstellen_info.html:254 ORG/tables.py:113
+#: Global/templates/einsatzstellen_info.html:254 ORG/tables.py:126
 msgid "Mentor:in"
 msgstr "Mentor:in"
 
@@ -934,24 +936,24 @@ msgid "Geplanter Zeitraum"
 msgstr "Geplanter Zeitraum"
 
 #: FW/views.py:265 Global/models.py:794
-#: Global/templates/components/profile_details.html:21 ORG/tables.py:109
-#: ORG/tables.py:792
+#: Global/templates/components/profile_details.html:21 ORG/tables.py:122
+#: ORG/tables.py:819
 msgid "Start geplant"
 msgstr "Start geplant"
 
 #: FW/views.py:266 Global/models.py:795
-#: Global/templates/components/profile_details.html:27 ORG/tables.py:110
-#: ORG/tables.py:804
+#: Global/templates/components/profile_details.html:27 ORG/tables.py:123
+#: ORG/tables.py:831
 msgid "Ende geplant"
 msgstr "Ende geplant"
 
 #: FW/views.py:275 Global/models.py:770 Global/templates/laender_info.html:107
-#: Global/templates/laender_info.html:177 ORG/tables.py:97
+#: Global/templates/laender_info.html:177 ORG/tables.py:110
 msgid "Arztpraxen"
 msgstr "Arztpraxen"
 
 #: FW/views.py:283 Global/models.py:771 Global/templates/laender_info.html:123
-#: Global/templates/laender_info.html:184 ORG/tables.py:98
+#: Global/templates/laender_info.html:184 ORG/tables.py:111
 msgid "Apotheken"
 msgstr "Apotheken"
 
@@ -959,7 +961,7 @@ msgstr "Apotheken"
 #: Global/templates/einsatzstellen_info.html:209
 #: Global/templates/einsatzstellen_info.html:275
 #: Global/templates/laender_info.html:139
-#: Global/templates/laender_info.html:191 ORG/tables.py:99 ORG/tables.py:116
+#: Global/templates/laender_info.html:191 ORG/tables.py:112 ORG/tables.py:129
 msgid "Weitere Informationen"
 msgstr "Weitere Informationen"
 
@@ -1144,7 +1146,7 @@ msgstr "Organisation"
 #: Global/models.py:901 Global/templates/bilder.html:31
 #: Global/templates/dokumente.html:144 Global/templates/karte.html:32
 #: Global/templates/list_users.html:45 Global/templates/posts_overview.html:18
-#: Home/models.py:10 ORG/tables.py:403 ORG/templates/list_ampel.html:30
+#: Home/models.py:10 ORG/tables.py:430 ORG/templates/list_ampel.html:30
 #: ORG/templates/list_aufgaben_table.html:125
 #: TEAM/templates/teamAufgabenuebersicht.html:52
 msgid "Benutzergruppe"
@@ -1271,7 +1273,7 @@ msgid "Profilbild"
 msgstr "Profilbild"
 
 #: Global/models.py:127 Global/templates/components/profile_details.html:34
-#: ORG/tables.py:787 ORG/tables.py:1016 ORG/tables.py:1305
+#: ORG/tables.py:814 ORG/tables.py:1043 ORG/tables.py:1332
 msgid "Geburtsdatum"
 msgstr "Geburtsdatum"
 
@@ -1283,7 +1285,7 @@ msgstr "E-Mail-Benachrichtigungen"
 msgid "Mail-Benachrichtigung Abmelde-Key"
 msgstr "E-Mail-Benachrichtigungen Abmeldeschlüssel"
 
-#: Global/models.py:132 Home/forms.py:52 Home/forms.py:53
+#: Global/models.py:132 Home/forms.py:78 Home/forms.py:79
 msgid "Einmalpasswort"
 msgstr "Einmalpasswort"
 
@@ -1332,6 +1334,7 @@ msgid "Anonym einreichen"
 msgstr "Anonym einreichen"
 
 #: Global/models.py:387 Global/templates/kalender_event.html:65
+#: ORG/tables.py:312
 msgid "Teilnehmer:innen"
 msgstr "Teilnehmer:innen"
 
@@ -1342,7 +1345,7 @@ msgstr ""
 #: Global/models.py:388 Global/models.py:482
 #: Global/templates/components/document_modal.html:25
 #: Global/templates/components/image_card_header.html:70
-#: Global/templates/post_add.html:32 ORG/tables.py:291
+#: Global/templates/post_add.html:32 ORG/tables.py:307
 msgid "Titel"
 msgstr "Titel"
 
@@ -1480,7 +1483,7 @@ msgid "Farbcodes"
 msgstr "Farbcodes"
 
 #: Global/models.py:766 Global/models.py:776 Global/models.py:785
-#: ORG/tables.py:108 ORG/tables.py:777
+#: ORG/tables.py:121 ORG/tables.py:804
 msgid "Einsatzland"
 msgstr "Einsatzland"
 
@@ -1498,7 +1501,7 @@ msgid "Einsatzländer"
 msgstr "Einsatzländer"
 
 #: Global/models.py:784 Global/models.py:803 Global/models.py:1433
-#: ORG/tables.py:782
+#: ORG/tables.py:809
 msgid "Einsatzstelle"
 msgstr "Einsatzstellen"
 
@@ -1522,7 +1525,7 @@ msgid "Einsatzstellen"
 msgstr "Einsatzstellen"
 
 #: Global/models.py:825
-#: Global/templates/components/profile_edit_controls.html:20 ORG/tables.py:137
+#: Global/templates/components/profile_edit_controls.html:20 ORG/tables.py:150
 msgid "Bezeichnung"
 msgstr "Bezeichnung"
 
@@ -1530,7 +1533,7 @@ msgstr "Bezeichnung"
 msgid "Name des benutzerdefinierten Datenfelds"
 msgstr ""
 
-#: Global/models.py:826 ORG/tables.py:140
+#: Global/models.py:826 ORG/tables.py:153
 msgid "Datentyp"
 msgstr "Datentyp"
 
@@ -1538,7 +1541,7 @@ msgstr "Datentyp"
 msgid "Art der Daten, die in diesem Feld gespeichert werden"
 msgstr ""
 
-#: Global/models.py:827 ORG/tables.py:148
+#: Global/models.py:827 ORG/tables.py:161
 msgid "Auswahloptionen"
 msgstr "Auswahloptionen"
 
@@ -1549,8 +1552,8 @@ msgid ""
 msgstr ""
 
 #: Global/models.py:828 Global/models.py:972 Global/models.py:994
-#: Global/models.py:1155 Global/templates/post_add.html:59 ORG/tables.py:144
-#: ORG/tables.py:162 ORG/tables.py:280
+#: Global/models.py:1155 Global/templates/post_add.html:59 ORG/tables.py:157
+#: ORG/tables.py:175 ORG/tables.py:296
 msgid "Für Benutzergruppen"
 msgstr "Für Benutzergruppen"
 
@@ -1588,8 +1591,8 @@ msgstr "Eigenes Feld Benutzer:in"
 msgid "Eigene Felder Benutzer:innen"
 msgstr "Eigene Felder Benutzer:innen"
 
-#: Global/models.py:853 Home/models.py:7 ORG/tables.py:173 ORG/tables.py:772
-#: ORG/tables.py:1011 ORG/tables.py:1183 ORG/tables.py:1295
+#: Global/models.py:853 Home/models.py:7 ORG/tables.py:189 ORG/tables.py:799
+#: ORG/tables.py:1038 ORG/tables.py:1210 ORG/tables.py:1322
 msgid "Vorname"
 msgstr "Vorname"
 
@@ -1597,8 +1600,8 @@ msgstr "Vorname"
 msgid "Vorname des Notfallkontakts"
 msgstr "Vorname des Notfallkontakts"
 
-#: Global/models.py:854 Home/models.py:8 ORG/tables.py:174 ORG/tables.py:767
-#: ORG/tables.py:1006 ORG/tables.py:1178 ORG/tables.py:1290
+#: Global/models.py:854 Home/models.py:8 ORG/tables.py:190 ORG/tables.py:794
+#: ORG/tables.py:1033 ORG/tables.py:1205 ORG/tables.py:1317
 msgid "Nachname"
 msgstr "Nachname"
 
@@ -1622,7 +1625,7 @@ msgstr "Telefon (Mobil)"
 msgid "Mobiltelefonnummer"
 msgstr ""
 
-#: Global/models.py:857 Home/models.py:9 ORG/tables.py:179
+#: Global/models.py:857 Home/models.py:9 ORG/tables.py:195
 msgid "E-Mail"
 msgstr "E-Mail"
 
@@ -1757,8 +1760,8 @@ msgid "Aufgabenkategorien"
 msgstr "Aufgabenkategorien"
 
 #: Global/models.py:983 Global/models.py:1013
-#: Global/templates/list_bewerber.html:40 ORG/tables.py:95 ORG/tables.py:107
-#: ORG/tables.py:156 ORG/tables.py:256 ORG/tables.py:278 ORG/tables.py:332
+#: Global/templates/list_bewerber.html:40 ORG/tables.py:108 ORG/tables.py:120
+#: ORG/tables.py:169 ORG/tables.py:272 ORG/tables.py:294 ORG/tables.py:359
 #: ORG/templates/components/zwischenschritt_form.html:54
 msgid "Name"
 msgstr "Name"
@@ -2011,7 +2014,7 @@ msgstr "Freiwilliger Aufgaben Zwischenschritte"
 
 #: Global/models.py:1148 Global/models.py:1183 Global/models.py:1223
 #: Global/models.py:1295 Global/models.py:1322 Global/models.py:1385
-#: Global/models.py:1434 Global/models.py:1448 ORG/tables.py:192
+#: Global/models.py:1434 Global/models.py:1448 ORG/tables.py:208
 msgid "Benutzer"
 msgstr "Benutzer"
 
@@ -2084,7 +2087,7 @@ msgstr "Post Antwort"
 msgid "Post Antworten"
 msgstr "Post Antworten"
 
-#: Global/models.py:1199 Global/models.py:1210 ORG/tables.py:319
+#: Global/models.py:1199 Global/models.py:1210 ORG/tables.py:346
 #: seminar/models.py:53
 msgid "Frage"
 msgstr "Frage"
@@ -2415,7 +2418,7 @@ msgstr "Rot"
 msgid "Kommentar:"
 msgstr "Kommentar:"
 
-#: Global/templates/bewerber_detail.html:104 ORG/tables.py:1051
+#: Global/templates/bewerber_detail.html:104 ORG/tables.py:1078
 msgid "Endbewertung"
 msgstr "Endbewertung"
 
@@ -2458,7 +2461,7 @@ msgstr "Wünsche"
 msgid "Nicht gewünscht"
 msgstr "Nicht gewünscht"
 
-#: Global/templates/bewerber_detail.html:213 ORG/tables.py:1036
+#: Global/templates/bewerber_detail.html:213 ORG/tables.py:1063
 msgid "Zuteilung"
 msgstr "Zuteilung"
 
@@ -2491,14 +2494,13 @@ msgid "Diese Bewerbung enthält noch keine Antworten oder Dateien."
 msgstr "Diese Bewerbung enthält noch keine Antworten oder Dateien."
 
 #: Global/templates/bewerber_detail.html:358
-#: Home/templates/password_change.html:183
-#: Home/templates/password_reset.html:127
+#: Home/templates/password_change.html:166
 #: ORG/templates/components/task_zwischenschritte_modal.html:23
 #: chat/templates/chat-group.html:209
 msgid "Schließen"
 msgstr "Schließen"
 
-#: Global/templates/bild.html:145
+#: Global/templates/bild.html:149
 #: Global/templates/components/document_modal.html:74
 #: Global/templates/components/folder_modal.html:49
 #: Global/templates/components/image_card_header.html:78
@@ -2511,7 +2513,7 @@ msgstr "Schließen"
 msgid "Speichern"
 msgstr "Speichern"
 
-#: Global/templates/bild.html:190 Global/views.py:588
+#: Global/templates/bild.html:194 Global/views.py:588
 msgid "Bitte wählen Sie mindestens ein Bild aus"
 msgstr "Bitte wähle mindestens ein Bild aus"
 
@@ -2568,24 +2570,12 @@ msgstr "Möchtest du wirklich alle Bilder dieser Galerie löschen?"
 msgid "Alle löschen"
 msgstr "Alle löschen"
 
-#: Global/templates/bilder_show.html:31 Home/templates/dokumente_public.html:62
-msgid "weniger"
-msgstr "weniger"
-
-#: Global/templates/bilder_show.html:35
-#: Global/templates/components/document_description.html:6
-#: Global/templates/components/image_description.html:8
-#: Home/templates/dokumente_public.html:66
-#: Home/templates/dokumente_public.html:198
-msgid "mehr"
-msgstr "mehr"
-
 #: Global/templates/components/bewerber_kommentar_modal.html:11
 #: Global/templates/components/bewerber_kommentar_modal.html:20
 #: Global/templates/components/bewerber_kommentar_modal.html:110
 #: Global/templates/components/bewerber_kommentar_modal.html:118
 #: Global/templates/components/image_interactions.html:125
-#: Global/templates/image_detail.html:147
+#: Global/templates/image_detail.html:140
 msgid "Lädt..."
 msgstr "Lädt..."
 
@@ -2687,6 +2677,15 @@ msgstr "Fehler beim Löschen des Kommentars."
 #: Home/templates/dokumente_public.html:215
 msgid "Download"
 msgstr "Herunterladen"
+
+#: Global/templates/components/document_description.html:6
+#: Global/templates/components/image_description.html:8
+#: Global/templates/components/image_description_clamp_assets.html:24
+#: Global/templates/components/image_title_description.html:9
+#: Home/templates/dokumente_public.html:66
+#: Home/templates/dokumente_public.html:198 ORG/tables.py:103
+msgid "mehr"
+msgstr "mehr"
 
 #: Global/templates/components/document_modal.html:8
 msgid "Neues Dokument hinzufügen"
@@ -2816,7 +2815,7 @@ msgstr "Dieses Bild wirklich löschen?"
 #: Global/templates/components/post_delete_modal.html:20
 #: ORG/templates/components/delete_modal.html:12
 #: ORG/templates/edit_object.html:85 ORG/templates/list_aufgaben_table.html:253
-#: ORG/templates/list_objects_table.html:206
+#: ORG/templates/list_objects_table.html:208
 msgid "Diese Aktion kann nicht rückgängig gemacht werden!"
 msgstr "Diese Aktion kann nicht rückgängig gemacht werden!"
 
@@ -2845,6 +2844,11 @@ msgstr "Nächstes"
 msgid "Slide"
 msgstr "Folie"
 
+#: Global/templates/components/image_description_clamp_assets.html:24
+#: Home/templates/dokumente_public.html:62
+msgid "weniger"
+msgstr "weniger"
+
 #: Global/templates/components/image_interactions.html:23
 msgid "Alle Reaktionen anzeigen"
 msgstr "Alle Reaktionen anzeigen"
@@ -2858,12 +2862,12 @@ msgid "Kommentar wirklich löschen?"
 msgstr "Kommentar wirklich löschen?"
 
 #: Global/templates/components/image_interactions.html:118
-#: Global/templates/image_detail.html:141
+#: Global/templates/image_detail.html:134
 msgid "Reaktionen"
 msgstr "Reaktionen"
 
 #: Global/templates/components/image_interactions.html:127
-#: Global/templates/image_detail.html:150
+#: Global/templates/image_detail.html:143
 msgid "Reaktionen werden geladen..."
 msgstr "Reaktionen werden geladen..."
 
@@ -2893,7 +2897,7 @@ msgid "Änderungen melden"
 msgstr "Änderungen melden"
 
 #: Global/templates/components/profile_details.html:15
-#: Home/templates/password_reset.html:65 Home/templates/password_reset.html:66
+#: Home/templates/password_reset.html:69 Home/templates/password_reset.html:70
 #: survey/models.py:143 survey/templates/survey/add_question.html:146
 #: survey/templates/survey/partials/question_form.html:16
 msgid "Email"
@@ -3161,7 +3165,7 @@ msgstr "Übersicht aller für dich freigegebenen Bewerbungen"
 msgid "Bewertung"
 msgstr "Bewertung"
 
-#: Global/templates/list_bewerber.html:52 ORG/tables.py:36 ORG/tables.py:674
+#: Global/templates/list_bewerber.html:52 ORG/tables.py:36 ORG/tables.py:701
 msgid "Aktionen"
 msgstr "Aktionen"
 
@@ -3678,8 +3682,8 @@ msgid "Konto-Einstellungen"
 msgstr "Konto-Einstellungen"
 
 #: Global/templates/settings.html:63 Home/templates/password_change.html:9
-#: Home/templates/password_change.html:41
-#: Home/templates/password_change.html:107
+#: Home/templates/password_change.html:50
+#: Home/templates/password_change.html:111
 msgid "Passwort ändern"
 msgstr "Passwort ändern"
 
@@ -3841,49 +3845,50 @@ msgid ""
 "Benutzer:innen gesendet."
 msgstr ""
 
-#: Home/forms.py:20 Home/forms.py:48 Home/templates/index.html:61
-msgid "Benutzername oder E-Mail"
-msgstr "Benutzername oder E-Mail"
-
-#: Home/forms.py:24 Home/templates/index.html:71
-msgid "Passwort"
-msgstr "Passwort"
-
-#: Home/forms.py:49
-msgid "Benutzername"
-msgstr "Benutzername"
-
-#: Home/forms.py:56 Home/forms.py:57
-msgid "Neues Passwort"
-msgstr "Neues Passwort"
-
-#: Home/forms.py:58
+#: Home/forms.py:15
+#, python-brace-format
 msgid ""
 "Ihr Passwort muss folgende Anforderungen erfüllen:<br>• Mindestens 8 Zeichen "
 "lang<br>• Mindestens ein Großbuchstabe (A-Z)<br>• Mindestens ein "
 "Kleinbuchstabe (a-z)<br>• Mindestens eine Zahl (0-9)<br>• Mindestens ein "
-"Sonderzeichen (!@#$%^&* etc.)<br>• Nicht zu ähnlich zu Ihren persönlichen "
-"Daten"
+"Sonderzeichen (~!?@#$%^&*()_-+={}\":;'[])<br>• Nicht zu ähnlich zu Ihren "
+"persönlichen Daten"
 msgstr ""
-"Dein Passwort muss folgende Anforderungen erfüllen:<br>• Mindestens 8 "
-"Zeichen lang<br>• Mindestens ein Großbuchstabe (A-Z)<br>• Mindestens ein "
+"Ihr Passwort muss folgende Anforderungen erfüllen:<br>• Mindestens 8 Zeichen "
+"lang<br>• Mindestens ein Großbuchstabe (A-Z)<br>• Mindestens ein "
 "Kleinbuchstabe (a-z)<br>• Mindestens eine Zahl (0-9)<br>• Mindestens ein "
-"Sonderzeichen (!@#$%^&* etc.)<br>• Nicht zu ähnlich zu deinen persönlichen "
-"Daten"
+"Sonderzeichen (~!?@#$%^&*()_-+={}\":;'[])<br>• Nicht zu ähnlich zu Ihren "
+"persönlichen Daten"
 
-#: Home/forms.py:61 Home/forms.py:62
+#: Home/forms.py:46 Home/forms.py:74 Home/templates/index.html:61
+msgid "Benutzername oder E-Mail"
+msgstr "Benutzername oder E-Mail"
+
+#: Home/forms.py:50 Home/templates/index.html:71
+msgid "Passwort"
+msgstr "Passwort"
+
+#: Home/forms.py:75
+msgid "Benutzername"
+msgstr "Benutzername"
+
+#: Home/forms.py:82 Home/forms.py:83
+msgid "Neues Passwort"
+msgstr "Neues Passwort"
+
+#: Home/forms.py:87 Home/forms.py:88
 msgid "Neues Passwort wiederholen"
 msgstr "Neues Passwort wiederholen"
 
-#: Home/forms.py:119
+#: Home/forms.py:145
 msgid "Land auswählen"
 msgstr "Land auswählen"
 
-#: Home/forms.py:127 Home/own_signin_service.py:26
+#: Home/forms.py:153 Home/own_signin_service.py:26
 msgid "Ein Benutzer mit dieser E-Mail-Adresse existiert bereits."
 msgstr "Ein Benutzer mit dieser E-Mail-Adresse existiert bereits."
 
-#: Home/forms.py:133
+#: Home/forms.py:159
 msgid "Für diese E-Mail-Adresse liegt bereits eine Registrierungsanfrage vor."
 msgstr ""
 
@@ -3985,33 +3990,33 @@ msgstr "Minuten gültig"
 msgid "Dieser Link läuft bald ab"
 msgstr "Dieser Link läuft bald ab"
 
-#: Home/templates/first_login.html:49 Home/templates/own_signin.html:66
+#: Home/templates/first_login.html:57 Home/templates/own_signin.html:66
 #: Home/templates/own_signin_success.html:96
-#: Home/templates/password_reset.html:42
+#: Home/templates/password_reset.html:46
 msgid "Zurück zur Startseite"
 msgstr "Zurück zur Startseite"
 
-#: Home/templates/first_login.html:52 Home/templates/index.html:43
+#: Home/templates/first_login.html:60 Home/templates/index.html:43
 msgid "Willkommen"
 msgstr "Willkommen"
 
-#: Home/templates/first_login.html:53
+#: Home/templates/first_login.html:61
 msgid "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
 msgstr "Bitte melde dich mit deinem Benutzernamen und dem Einmalpasswort an"
 
-#: Home/templates/first_login.html:107 Home/templates/password_change.html:81
+#: Home/templates/first_login.html:105 Home/templates/password_change.html:87
 msgid "Passwortanforderungen"
 msgstr "Passwortanforderungen"
 
-#: Home/templates/first_login.html:116 Home/templates/index.html:82
+#: Home/templates/first_login.html:114 Home/templates/index.html:82
 msgid "Anmelden"
 msgstr "Anmelden"
 
-#: Home/templates/first_login.html:143 Home/templates/index.html:115
+#: Home/templates/first_login.html:139 Home/templates/index.html:115
 #: Home/templates/own_signin.html:154
 #: Home/templates/own_signin_success.html:120
-#: Home/templates/password_change.html:150
-#: Home/templates/password_reset.html:97
+#: Home/templates/password_change.html:135
+#: Home/templates/password_reset.html:99
 msgid "Datenschutz"
 msgstr "Datenschutz"
 
@@ -4065,15 +4070,15 @@ msgid ""
 "aktiviert wurde."
 msgstr ""
 
-#: Home/templates/password_change.html:43
+#: Home/templates/password_change.html:52
 msgid "Bitte geben Sie Ihr aktuelles Passwort und das neue Passwort ein"
 msgstr "Bitte gib dein aktuelles Passwort und das neue Passwort ein"
 
-#: Home/templates/password_change.html:93
+#: Home/templates/password_change.html:97
 msgid "Sicherheitstipp"
 msgstr "Sicherheitstipp"
 
-#: Home/templates/password_change.html:95
+#: Home/templates/password_change.html:99
 msgid ""
 "Wir empfehlen die Verwendung von zufälligen, einzigartigen Passwörtern und "
 "eines Passwort-Managers."
@@ -4081,18 +4086,16 @@ msgstr ""
 "Wir empfehlen die Verwendung von zufälligen, einzigartigen Passwörtern und "
 "eines Passwort-Managers."
 
-#: Home/templates/password_change.html:97
-#: Home/templates/password_change.html:162
-#: Home/templates/password_reset.html:108
+#: Home/templates/password_change.html:101
+#: Home/templates/password_change.html:145
 msgid "Was ist ein Passwort-Manager?"
 msgstr "Was ist ein Passwort-Manager?"
 
-#: Home/templates/password_change.html:104
+#: Home/templates/password_change.html:108
 msgid "Später ändern"
 msgstr "Später ändern"
 
-#: Home/templates/password_change.html:166
-#: Home/templates/password_reset.html:112
+#: Home/templates/password_change.html:149
 msgid ""
 "Ein Passwort-Manager ist ein Programm, das dir dabei hilft, sichere "
 "Passwörter zu erstellen und zu speichern. Du musst dir dann nicht mehr alle "
@@ -4102,37 +4105,31 @@ msgstr ""
 "Passwörter zu erstellen und zu speichern. Du musst dir dann nicht mehr alle "
 "Passwörter merken!"
 
-#: Home/templates/password_change.html:167
-#: Home/templates/password_reset.html:113
+#: Home/templates/password_change.html:150
 msgid "Was bringt dir das?"
 msgstr "Was bringt dir das?"
 
-#: Home/templates/password_change.html:169
-#: Home/templates/password_reset.html:115
+#: Home/templates/password_change.html:152
 msgid "Erstellt automatisch sichere Passwörter für dich"
 msgstr "Erstellt automatisch sichere Passwörter für dich"
 
-#: Home/templates/password_change.html:170
-#: Home/templates/password_reset.html:116
+#: Home/templates/password_change.html:153
 msgid "Speichert alle deine Passwörter sicher"
 msgstr "Speichert alle deine Passwörter sicher"
 
-#: Home/templates/password_change.html:171
-#: Home/templates/password_reset.html:117
+#: Home/templates/password_change.html:154
 msgid "Füllt automatisch deine Logins aus"
 msgstr "Füllt automatisch deine Logins aus"
 
-#: Home/templates/password_change.html:172
-#: Home/templates/password_reset.html:118
+#: Home/templates/password_change.html:155
 msgid "Schützt dich vor Betrügern"
 msgstr "Schützt dich vor Betrügern"
 
-#: Home/templates/password_change.html:173
-#: Home/templates/password_reset.html:119
+#: Home/templates/password_change.html:156
 msgid "Funktioniert auf allen deinen Geräten"
 msgstr "Funktioniert auf allen deinen Geräten"
 
-#: Home/templates/password_change.html:175
+#: Home/templates/password_change.html:158
 msgid "Beliebte Passwort-Manager sind:"
 msgstr "Beliebte Passwort-Manager sind:"
 
@@ -4140,67 +4137,59 @@ msgstr "Beliebte Passwort-Manager sind:"
 msgid "Password Reset"
 msgstr "Passwort zurücksetzen"
 
-#: Home/templates/password_reset.html:47 Home/templates/password_reset.html:70
+#: Home/templates/password_reset.html:50 Home/templates/password_reset.html:74
 msgid "Passwort zurücksetzen"
 msgstr "Passwort zurücksetzen"
 
-#: Home/templates/password_reset.html:48
+#: Home/templates/password_reset.html:52
 msgid ""
 "Du erhältst per E-Mail ein Einmalpasswort, um ein neues Passwort zu setzen. "
 "Das Einmalpasswort ist nur 24 Stunden gültig."
 msgstr ""
 
-#: Home/templates/password_reset.html:122
-msgid "Beliebte Passwort-Manager sind"
-msgstr "Beliebte Passwort-Manager sind"
-
-#: Home/templates/password_reset.html:123
-msgid "1Password, LastPass und andere. Die meisten sind sogar kostenlos!"
-msgstr "1Password, LastPass und andere. Die meisten sind sogar kostenlos!"
-
-#: Home/views.py:54
+#: Home/views.py:53
 msgid "Ungültige Personengruppe."
 msgstr "Ungültige Personengruppe."
 
-#: Home/views.py:60
+#: Home/views.py:59
 msgid "Dein Account ist nicht aktiv."
 msgstr "Dein Account ist nicht aktiv."
 
-#: Home/views.py:91 Home/views.py:105
+#: Home/views.py:90 Home/views.py:104
 msgid "Bitte verifizieren Sie zuerst Ihre E-Mail-Adresse."
 msgstr "Bitte verifiziere zuerst deine E-Mail-Adresse."
 
-#: Home/views.py:131
+#: Home/views.py:130
 msgid "Ungültiger Benutzername oder Passwort."
 msgstr "Ungültiger Benutzername oder Passwort."
 
-#: Home/views.py:250
+#: Home/views.py:249
 msgid "Benutzername oder E-Mail-Adresse nicht gefunden."
 msgstr "Benutzername oder E-Mail-Adresse nicht gefunden."
 
-#: Home/views.py:254
+#: Home/views.py:253
 msgid ""
 "Interner Fehler: Benutzer nicht gefunden. Kontaktiere den Administrator."
 msgstr ""
 "Interner Fehler: Benutzer nicht gefunden. Kontaktiere den Administrator."
 
-#: Home/views.py:258
+#: Home/views.py:257
 msgid "Einmalpasswort bereits verwendet."
 msgstr "Einmalpasswort bereits verwendet."
 
-#: Home/views.py:262
+#: Home/views.py:261
 msgid "Einmalpasswort abgelaufen. Bitte erneut anfordern."
 msgstr "Einmalpasswort abgelaufen. Bitte erneut anfordern."
 
-#: Home/views.py:266
+#: Home/views.py:265
 msgid "Ungültiges Einmalpasswort."
 msgstr "Ungültiges Einmalpasswort."
 
-#: Home/views.py:281
+#: Home/views.py:280
 msgid "Fehler beim Login. Bitte versuchen Sie es erneut."
 msgstr "Fehler beim Login. Bitte versuch es erneut."
 
-#: Home/views.py:320
+#: Home/views.py:319
 msgid "Ihr Passwort wurde erfolgreich geändert."
 msgstr "Dein Passwort wurde erfolgreich geändert."
 
@@ -4242,93 +4231,93 @@ msgstr "Keine Antworten aufgezeichnet."
 msgid "Erstellt am {date}"
 msgstr "Erstellt am {date}"
 
-#: ORG/tables.py:124
+#: ORG/tables.py:137
 msgid "Notizen"
 msgstr "Notizen"
 
-#: ORG/tables.py:165
+#: ORG/tables.py:178
 msgid "Datei-Upload notwendig"
 msgstr "Datei-Upload notwendig"
 
-#: ORG/tables.py:176
+#: ORG/tables.py:192
 msgid "Telefon"
 msgstr "Telefon"
 
-#: ORG/tables.py:200 ORG/templates/components/task_table_row.html:52
+#: ORG/tables.py:216 ORG/templates/components/task_table_row.html:52
 #: ORG/templates/list_aufgaben.html:174
 msgid "Erledigt am"
 msgstr "Erledigt am"
 
-#: ORG/tables.py:217
+#: ORG/tables.py:233
 msgid "Registrierungsmail senden"
 msgstr "Registrierungsmail senden"
 
-#: ORG/tables.py:265
+#: ORG/tables.py:281
 msgid "URL zum eigenen Registrieren kopieren"
 msgstr "Link zum eigenen Registrieren kopieren"
 
-#: ORG/tables.py:300
+#: ORG/tables.py:327
 msgid "Begrüßung"
 msgstr "Begrüßung"
 
-#: ORG/tables.py:304
+#: ORG/tables.py:331
 msgid "Fußzeile"
 msgstr "Fußzeile"
 
-#: ORG/tables.py:308
+#: ORG/tables.py:335
 msgid "Abgabefrist"
 msgstr "Abgabefrist"
 
-#: ORG/tables.py:322 ORG/tables.py:339
+#: ORG/tables.py:349 ORG/tables.py:366
 msgid "Position"
 msgstr "Position"
 
-#: ORG/tables.py:323
+#: ORG/tables.py:350
 msgid "Max. Länge"
 msgstr "Max. Länge"
 
-#: ORG/tables.py:658
+#: ORG/tables.py:685
 msgid "Ausgewählt"
 msgstr "Ausgewählt"
 
-#: ORG/tables.py:887 ORG/tables.py:1031 ORG/templates/baseOrg.html:171
+#: ORG/tables.py:914 ORG/tables.py:1058 ORG/templates/baseOrg.html:171
 #: seminar/models.py:166
 msgid "Seminar"
 msgstr "Seminar"
 
-#: ORG/tables.py:898
+#: ORG/tables.py:925
 msgid "Seminar zugewiesen"
 msgstr "Seminar zugewiesen"
 
-#: ORG/tables.py:904
+#: ORG/tables.py:931
 msgid "Seminar nicht zugewiesen"
 msgstr "Seminar nicht zugewiesen"
 
-#: ORG/tables.py:963 seminar/templates/components/seminar_display_info.html:67
+#: ORG/tables.py:990 seminar/templates/components/seminar_display_info.html:67
 msgid "PDF herunterladen"
 msgstr "PDF herunterladen"
 
-#: ORG/tables.py:1021
+#: ORG/tables.py:1048
 msgid "PDF der Bewerbung"
 msgstr "PDF der Bewerbung"
 
-#: ORG/tables.py:1026
+#: ORG/tables.py:1053
 msgid "Interviewpersonen/Ehemalige"
 msgstr "Interviewpersonen/Ehemalige"
 
-#: ORG/tables.py:1041
+#: ORG/tables.py:1068
 msgid "Zuteilung freigegeben"
 msgstr "Zuteilung freigegeben"
 
-#: ORG/tables.py:1046
+#: ORG/tables.py:1073
 msgid "Reaktion auf Zuteilung"
 msgstr "Reaktion auf Zuteilung"
 
-#: ORG/tables.py:1188
+#: ORG/tables.py:1215
 msgid "Länderzuständigkeit"
 msgstr "Länderzuständigkeit"
 
-#: ORG/tables.py:1193 ORG/templates/baseOrg.html:94
+#: ORG/tables.py:1220 ORG/templates/baseOrg.html:94
 #: ORG/templates/list_aufgaben_table.html:109
 #: TEAM/templates/teamAufgabenuebersicht.html:5
 #: TEAM/templates/teamAufgabenuebersicht.html:46
@@ -4983,7 +4972,7 @@ msgstr "Link wurde in die Zwischenablage kopiert."
 msgid "Link kopiert:"
 msgstr "Link kopiert:"
 
-#: ORG/templates/copy_links.html:123 ORG/templates/list_objects_table.html:384
+#: ORG/templates/copy_links.html:123 ORG/templates/list_objects_table.html:386
 msgid "Fehler beim Kopieren des Links"
 msgstr "Fehler beim Kopieren des Links"
 
@@ -5155,8 +5144,8 @@ msgid "Aufgaben verwalten"
 msgstr "Aufgaben verwalten"
 
 #: ORG/templates/homeOrg_2.html:559 TEAM/templates/teamHome.html:236
-msgid "Letzte 5 Tage"
-msgstr "Letzte 5 Tage"
+msgid "Letzte 7 Tage"
+msgstr "Letzte 7 Tage"
 
 #: ORG/templates/homeOrg_2.html:585 TEAM/templates/teamHome.html:262
 msgid "Ungelesen"
@@ -5352,17 +5341,17 @@ msgid "Zeige"
 msgstr "Zeige"
 
 #: ORG/templates/list_objects.html:427
-#: ORG/templates/list_objects_table.html:336
+#: ORG/templates/list_objects_table.html:338
 msgid "Erfolgreich gesendet!"
 msgstr "Erfolgreich gesendet!"
 
 #: ORG/templates/list_objects.html:436
-#: ORG/templates/list_objects_table.html:339
+#: ORG/templates/list_objects_table.html:341
 msgid "Fehler beim Senden der Registrierungsmail:"
 msgstr "Fehler beim Senden der Registrierungsmail:"
 
 #: ORG/templates/list_objects.html:441
-#: ORG/templates/list_objects_table.html:344
+#: ORG/templates/list_objects_table.html:346
 msgid "Error sending registration mail"
 msgstr "Fehler beim Senden der Registrierungsmail"
 
@@ -5406,35 +5395,35 @@ msgstr "Suche"
 msgid "Schnell bearbeiten"
 msgstr "Schnell bearbeiten"
 
-#: ORG/templates/list_objects_table.html:180
+#: ORG/templates/list_objects_table.html:182
 msgid "Aktion bestätigen"
 msgstr "Aktion bestätigen"
 
-#: ORG/templates/list_objects_table.html:185
+#: ORG/templates/list_objects_table.html:187
 msgid "Möchten Sie diese Aktion wirklich durchführen?"
 msgstr "Möchtest du diese Aktion wirklich durchführen?"
 
-#: ORG/templates/list_objects_table.html:188
+#: ORG/templates/list_objects_table.html:190
 msgid "Aktion:"
 msgstr "Aktion"
 
-#: ORG/templates/list_objects_table.html:193
+#: ORG/templates/list_objects_table.html:195
 msgid "Erklärung:"
 msgstr "Erklärung:"
 
-#: ORG/templates/list_objects_table.html:197
+#: ORG/templates/list_objects_table.html:199
 msgid "Ausgewählte Objekte:"
 msgstr "Ausgewählte Objekte:"
 
-#: ORG/templates/list_objects_table.html:214
+#: ORG/templates/list_objects_table.html:216
 msgid "Bestätigen"
 msgstr "Bestätigen"
 
-#: ORG/templates/list_objects_table.html:387
+#: ORG/templates/list_objects_table.html:389
 msgid "Fehler beim Abrufen des Registrierungslinks:"
 msgstr "Fehler beim Abrufen des Registrierungslinks:"
 
-#: ORG/templates/list_objects_table.html:392
+#: ORG/templates/list_objects_table.html:394
 msgid "Fehler beim Abrufen des Registrierungslinks"
 msgstr "Fehler beim Abrufen des Registrierungslinks"
 
@@ -7071,6 +7060,12 @@ msgstr "Keine abgeschlossenen Antworten für diese Umfrage gefunden."
 #, python-format
 msgid "Error generating PDF export: %(error)s"
 msgstr "Fehler beim Erstellen des PDF-Exports: %(error)s"
+
+#~ msgid "Beliebte Passwort-Manager sind"
+#~ msgstr "Beliebte Passwort-Manager sind"
+
+#~ msgid "1Password, LastPass und andere. Die meisten sind sogar kostenlos!"
+#~ msgstr "1Password, LastPass und andere. Die meisten sind sogar kostenlos!"
 
 #~ msgid "Änderungen speichern"
 #~ msgstr "Änderungen speichern"
