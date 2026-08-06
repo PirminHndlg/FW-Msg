@@ -253,6 +253,14 @@
 {% block extra_js %}
 <script>
 $(document).ready(function() {
+    // Prevent accidental form submit when pressing Enter inside regular input fields.
+    // Textareas keep their normal Enter behavior for line breaks.
+    $('#surveyForm').on('keydown', 'input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="file"])', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+        }
+    });
+
     // Form validation
     $('#surveyForm').on('submit', function(e) {
         let isValid = true;
