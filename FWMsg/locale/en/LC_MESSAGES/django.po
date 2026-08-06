@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-29 13:55+0200\n"
+"POT-Creation-Date: 2026-08-06 11:57+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: English <en@li.org>\n"
@@ -179,39 +179,39 @@ msgid "Dashboard"
 msgstr "Dashboard"
 
 #: Ehemalige/templates/ehemaligeHome.html:111 ORG/templates/homeOrg.html:378
-#: ORG/templates/homeOrg_2.html:621 TEAM/templates/teamHome.html:298
+#: ORG/templates/homeOrg_2.html:623 TEAM/templates/teamHome.html:298
 msgid "Neueste Posts"
 msgstr "Latest Posts"
 
 #: Ehemalige/templates/ehemaligeHome.html:123 FW/templates/homeFw.html:52
-#: ORG/templates/homeOrg_2.html:649 TEAM/templates/teamHome.html:310
+#: ORG/templates/homeOrg_2.html:651 TEAM/templates/teamHome.html:310
 msgid "Alle Posts"
 msgstr "All Posts"
 
-#: Ehemalige/templates/ehemaligeHome.html:129 ORG/templates/homeOrg_2.html:655
+#: Ehemalige/templates/ehemaligeHome.html:129 ORG/templates/homeOrg_2.html:657
 #: TEAM/templates/teamHome.html:316
 msgid "Keine Posts vorhanden"
 msgstr "No posts available"
 
 #: Ehemalige/templates/ehemaligeHome.html:146 ORG/templates/homeOrg.html:354
-#: ORG/templates/homeOrg_2.html:672 TEAM/templates/teamHome.html:333
+#: ORG/templates/homeOrg_2.html:674 TEAM/templates/teamHome.html:333
 msgid "Neueste Bilder"
 msgstr "Latest Images"
 
 #: Ehemalige/templates/ehemaligeHome.html:159 FW/templates/homeFw.html:53
-#: ORG/templates/homeOrg_2.html:693 TEAM/templates/teamHome.html:346
+#: ORG/templates/homeOrg_2.html:695 TEAM/templates/teamHome.html:346
 msgid "Alle Bilder"
 msgstr "All Images"
 
 #: Ehemalige/templates/ehemaligeHome.html:165
 #: Global/templates/bilder_show.html:28 Global/templates/profil.html:51
-#: ORG/templates/homeOrg.html:365 ORG/templates/homeOrg_2.html:687
-#: ORG/templates/homeOrg_2.html:699 TEAM/templates/teamHome.html:352
+#: ORG/templates/homeOrg.html:365 ORG/templates/homeOrg_2.html:689
+#: ORG/templates/homeOrg_2.html:701 TEAM/templates/teamHome.html:352
 msgid "Keine Bilder vorhanden"
 msgstr "No images available"
 
 #: Ehemalige/templates/ehemaligeHome.html:193 ORG/templates/homeOrg.html:259
-#: ORG/templates/homeOrg_2.html:289 TEAM/templates/teamHome.html:180
+#: ORG/templates/homeOrg_2.html:291 TEAM/templates/teamHome.html:180
 msgid "Meine Aufgaben"
 msgstr "My Tasks"
 
@@ -225,8 +225,8 @@ msgstr "My Tasks"
 #: Global/templates/list_users.html:48 Global/templates/list_users.html:58
 #: Global/templates/posts_overview.html:21
 #: Global/templates/posts_overview.html:31 ORG/tables.py:435 ORG/tables.py:919
-#: ORG/templates/components/task_filter.html:9 ORG/templates/homeOrg_2.html:104
-#: ORG/templates/homeOrg_2.html:169 ORG/templates/homeOrg_2.html:327
+#: ORG/templates/components/task_filter.html:9 ORG/templates/homeOrg_2.html:106
+#: ORG/templates/homeOrg_2.html:171 ORG/templates/homeOrg_2.html:329
 #: ORG/templates/list_ampel.html:34 ORG/templates/list_ampel.html:57
 #: ORG/templates/list_ampel.html:67 ORG/templates/list_ampel.html:83
 #: ORG/templates/list_ampel.html:94 ORG/templates/list_aufgaben_table.html:130
@@ -241,12 +241,12 @@ msgstr "My Tasks"
 msgid "Alle"
 msgstr "All"
 
-#: Ehemalige/templates/ehemaligeHome.html:211 ORG/templates/homeOrg_2.html:327
+#: Ehemalige/templates/ehemaligeHome.html:211 ORG/templates/homeOrg_2.html:329
 #: TEAM/templates/teamHome.html:198
 msgid "anzeigen"
 msgstr "View"
 
-#: Ehemalige/templates/ehemaligeHome.html:218 ORG/templates/homeOrg_2.html:334
+#: Ehemalige/templates/ehemaligeHome.html:218 ORG/templates/homeOrg_2.html:336
 #: TEAM/templates/teamHome.html:205
 msgid "Keine offenen Aufgaben"
 msgstr "No open tasks"
@@ -466,7 +466,7 @@ msgstr "Account & Settings"
 #: ORG/templates/components/delete_modal.html:18
 #: ORG/templates/components/task_country_modal.html:27
 #: ORG/templates/edit_object.html:89 ORG/templates/homeOrg.html:218
-#: ORG/templates/homeOrg_2.html:744 ORG/templates/list_aufgaben_table.html:224
+#: ORG/templates/homeOrg_2.html:746 ORG/templates/list_aufgaben_table.html:224
 #: ORG/templates/list_aufgaben_table.html:257
 #: ORG/templates/list_objects_table.html:213
 #: TEAM/templates/teamAufgabenuebersicht.html:96
@@ -498,7 +498,7 @@ msgstr "Please select a color"
 #: FW/templates/components/ampel_status.html:5
 #: ORG/templates/components/task_item.html:51
 #: ORG/templates/components/task_table_row.html:143
-#: ORG/templates/homeOrg_2.html:496
+#: ORG/templates/homeOrg_2.html:498
 msgid "Zuletzt"
 msgstr "Last"
 
@@ -614,7 +614,7 @@ msgstr "Open"
 #: FW/templates/components/task_progress.html:35 Global/models.py:1053
 #: ORG/templates/components/task_legend.html:8
 #: ORG/templates/components/task_table_row.html:100
-#: ORG/templates/homeOrg_2.html:373
+#: ORG/templates/homeOrg_2.html:375
 msgid "Pending"
 msgstr "Pending"
 
@@ -671,7 +671,7 @@ msgstr "File uploaded"
 #: FW/templates/components/task_card.html:67
 #: FW/templates/components/task_detail_form.html:90
 #: ORG/templates/components/task_legend.html:11
-#: ORG/templates/homeOrg_2.html:389
+#: ORG/templates/homeOrg_2.html:391
 msgid "Überfällig"
 msgstr "Overdue"
 
@@ -747,7 +747,7 @@ msgid "Hochgeladen"
 msgstr "Uploaded"
 
 #: FW/templates/components/task_detail_form.html:79
-#: ORG/templates/homeOrg_2.html:415 ORG/templates/homeOrg_2.html:484
+#: ORG/templates/homeOrg_2.html:417 ORG/templates/homeOrg_2.html:486
 #: ORG/templates/list_aufgaben.html:47 ORG/templates/list_aufgaben.html:114
 msgid "Fällig"
 msgstr "Due"
@@ -1105,7 +1105,7 @@ msgid "Mindestens ein Text oder Bild ist erforderlich"
 msgstr "At least one text or image is required."
 
 #: Global/forms.py:357 Global/models.py:1435 Global/models.py:1449
-#: ORG/templates/homeOrg.html:199 ORG/templates/homeOrg_2.html:726
+#: ORG/templates/homeOrg.html:199 ORG/templates/homeOrg_2.html:728
 msgid "Notiz"
 msgstr "Note"
 
@@ -1653,7 +1653,7 @@ msgid "Kommentar zur Erläuterung des Status"
 msgstr "Comment to explain the status"
 
 #: Global/models.py:879 ORG/templates/components/ampel_modal.html:38
-#: ORG/templates/homeOrg_2.html:583 TEAM/templates/teamHome.html:260
+#: ORG/templates/homeOrg_2.html:585 TEAM/templates/teamHome.html:260
 #: chat/templates/chat-direct.html:71
 msgid "Gelesen"
 msgstr "Read"
@@ -1663,7 +1663,7 @@ msgid "Zeigt an, ob die Ampel als gelesen markiert ist"
 msgstr "Indicates whether the status indicator has been marked as read"
 
 #: Global/models.py:884 ORG/templates/baseOrg.html:101
-#: ORG/templates/homeOrg_2.html:556 ORG/templates/list_ampel.html:7
+#: ORG/templates/homeOrg_2.html:558 ORG/templates/list_ampel.html:7
 #: TEAM/templates/teamHome.html:233
 msgid "Ampelmeldungen"
 msgstr "Status report"
@@ -2272,7 +2272,7 @@ msgid "Einsatzstellen Notizen"
 msgstr "Assignment location notes"
 
 #: Global/models.py:1452 ORG/templates/homeOrg.html:204
-#: ORG/templates/homeOrg_2.html:730
+#: ORG/templates/homeOrg_2.html:732
 msgid "Priorität"
 msgstr "Priority"
 
@@ -2516,11 +2516,11 @@ msgstr "Close"
 #: ORG/templates/add_aufgabe.html:960
 #: ORG/templates/components/ampel_table.html:124
 #: ORG/templates/edit_object.html:68 ORG/templates/homeOrg.html:219
-#: ORG/templates/homeOrg_2.html:745 chat/templates/chat-group.html:117
+#: ORG/templates/homeOrg_2.html:747 chat/templates/chat-group.html:117
 msgid "Speichern"
 msgstr "Save"
 
-#: Global/templates/bild.html:194 Global/views.py:588
+#: Global/templates/bild.html:194 Global/views.py:596
 msgid "Bitte wählen Sie mindestens ein Bild aus"
 msgstr "Please select at least one image."
 
@@ -2877,6 +2877,14 @@ msgstr "Reactions"
 #: Global/templates/image_detail.html:143
 msgid "Reaktionen werden geladen..."
 msgstr "Loading reactions..."
+
+#: Global/templates/components/losung.html:12 Global/templates/losungen.html:4
+msgid "Die Losungen"
+msgstr "Moravian Daily Texts"
+
+#: Global/templates/components/losung.html:49
+msgid "Weitere Informationen finden Sie hier"
+msgstr "Find more information here"
 
 #: Global/templates/components/post_card_object.html:11
 msgid "Enthält eine Umfrage"
@@ -3802,36 +3810,36 @@ msgstr "Request deletion"
 msgid "Fehler beim Speichern der Einstellungen."
 msgstr "Error saving settings."
 
-#: Global/views.py:582
+#: Global/views.py:590
 msgid "Bilder konnten nicht hochgeladen werden"
 msgstr "Images could not be uploaded."
 
-#: Global/views.py:584
+#: Global/views.py:592
 msgid "Bilder erfolgreich hochgeladen"
 msgstr "Images uploaded successfully."
 
-#: Global/views.py:590
+#: Global/views.py:598
 msgid "Bitte korrigieren Sie die Fehler im Formular."
 msgstr "Please correct the errors on the form."
 
-#: Global/views.py:1754
+#: Global/views.py:1762
 msgid "Nicht erlaubt"
 msgstr "Not Allowed"
 
-#: Global/views.py:1767
+#: Global/views.py:1775
 msgid "Ampel-Eintrag erfolgreich hinzugefügt."
 msgstr "Traffic light entry successfully added."
 
-#: Global/views.py:1769
+#: Global/views.py:1777
 msgid "Benutzer nicht gefunden."
 msgstr "User not found"
 
-#: Global/views.py:1771
+#: Global/views.py:1779
 #, python-brace-format
 msgid "Ein Fehler ist aufgetreten: {}"
 msgstr "An error occurred: {}"
 
-#: Global/views.py:2130
+#: Global/views.py:2138
 msgid ""
 "Post erfolgreich erstellt. In 15min wird eine Benachrichtigung an die "
 "Benutzer:innen gesendet."
@@ -3848,7 +3856,11 @@ msgid ""
 "Sonderzeichen (~!?@#$%^&*()_-+={}\":;'[])<br>• Nicht zu ähnlich zu Ihren "
 "persönlichen Daten"
 msgstr ""
-"Your password must meet the following requirements:<br>• At least 8 characters long<br>• At least one uppercase letter (A-Z)<br>• At least one lowercase letter (a-z)<br>• At least one number (0-9)<br>• At least one special character (~!?@#$%^&*()_-+={}\":;'[])<br>• Not too similar to your personal data"
+"Your password must meet the following requirements:<br>• At least 8 "
+"characters long<br>• At least one uppercase letter (A-Z)<br>• At least one "
+"lowercase letter (a-z)<br>• At least one number (0-9)<br>• At least one "
+"special character (~!?@#$%^&*()_-+={}\":;'[])<br>• Not too similar to your "
+"personal data"
 
 #: Home/forms.py:46 Home/forms.py:74 Home/templates/index.html:61
 msgid "Benutzername oder E-Mail"
@@ -4561,7 +4573,7 @@ msgid "Kalenderliste"
 msgstr "Calendar list"
 
 #: ORG/templates/baseOrg.html:143 ORG/templates/change_requests.html:5
-#: ORG/templates/change_requests.html:24 ORG/templates/homeOrg_2.html:63
+#: ORG/templates/change_requests.html:24 ORG/templates/homeOrg_2.html:65
 msgid "Änderungsvorschläge"
 msgstr "Change requests"
 
@@ -4603,8 +4615,8 @@ msgstr "Filter by status:"
 #: ORG/templates/change_request_history.html:143 ORG/templates/homeOrg.html:260
 #: ORG/templates/homeOrg.html:285 ORG/templates/homeOrg.html:299
 #: ORG/templates/homeOrg.html:318 ORG/templates/homeOrg.html:355
-#: ORG/templates/homeOrg.html:379 ORG/templates/homeOrg_2.html:68
-#: ORG/templates/homeOrg_2.html:128 ORG/templates/homeOrg_2.html:605
+#: ORG/templates/homeOrg.html:379 ORG/templates/homeOrg_2.html:70
+#: ORG/templates/homeOrg_2.html:130 ORG/templates/homeOrg_2.html:607
 #: TEAM/templates/teamHome.html:282
 msgid "Alle anzeigen"
 msgstr "Show All"
@@ -4763,7 +4775,7 @@ msgid "Geänderte Felder:"
 msgstr "Changed fields:"
 
 #: ORG/templates/components/change_request_item.html:62
-#: ORG/templates/homeOrg_2.html:94
+#: ORG/templates/homeOrg_2.html:96
 msgid "Prüfen"
 msgstr "Check"
 
@@ -4838,7 +4850,7 @@ msgstr "Not yet downloaded"
 #: ORG/templates/components/task_table_row.html:120
 #: ORG/templates/components/task_table_row.html:157
 #: ORG/templates/components/task_zwischenschritte_modal.html:116
-#: ORG/templates/homeOrg_2.html:450 ORG/templates/homeOrg_2.html:504
+#: ORG/templates/homeOrg_2.html:452 ORG/templates/homeOrg_2.html:506
 msgid "Als erledigt markieren"
 msgstr "Mark as completed"
 
@@ -4846,11 +4858,11 @@ msgstr "Mark as completed"
 msgid "Erinnerung heute bereits gesendet"
 msgstr "Reminder already sent today"
 
-#: ORG/templates/components/task_item.html:51 ORG/templates/homeOrg_2.html:496
+#: ORG/templates/components/task_item.html:51 ORG/templates/homeOrg_2.html:498
 msgid "Erinnerung senden"
 msgstr "Send reminder"
 
-#: ORG/templates/components/task_item.html:52 ORG/templates/homeOrg_2.html:1026
+#: ORG/templates/components/task_item.html:52 ORG/templates/homeOrg_2.html:1028
 #: ORG/templates/list_aufgaben_table.html:642
 msgid "Erinnerung gesendet"
 msgstr "Reminder sent"
@@ -5005,11 +5017,11 @@ msgstr "Create New Sticky Note"
 msgid "Angeheftete Notizen"
 msgstr "Pinned Notes"
 
-#: ORG/templates/homeOrg.html:47 ORG/templates/homeOrg_2.html:736
+#: ORG/templates/homeOrg.html:47 ORG/templates/homeOrg_2.html:738
 msgid "Hoch"
 msgstr "High"
 
-#: ORG/templates/homeOrg.html:47 ORG/templates/homeOrg_2.html:739
+#: ORG/templates/homeOrg.html:47 ORG/templates/homeOrg_2.html:741
 msgid "Sehr Hoch"
 msgstr "Very High"
 
@@ -5033,7 +5045,7 @@ msgstr "New dashboard coming soon!"
 msgid "Neues Dashboard testen"
 msgstr "Test new dashboard"
 
-#: ORG/templates/homeOrg.html:192 ORG/templates/homeOrg_2.html:719
+#: ORG/templates/homeOrg.html:192 ORG/templates/homeOrg_2.html:721
 msgid "Neue Notiz erstellen"
 msgstr "Create New Note"
 
@@ -5041,7 +5053,7 @@ msgstr "Create New Note"
 msgid "Keine Aufgaben"
 msgstr "No Tasks"
 
-#: ORG/templates/homeOrg.html:293 ORG/templates/homeOrg_2.html:460
+#: ORG/templates/homeOrg.html:293 ORG/templates/homeOrg_2.html:462
 msgid "Keine pending Aufgaben"
 msgstr "No Pending Tasks!"
 
@@ -5069,7 +5081,7 @@ msgstr "Sticky notes for quick notes"
 msgid "Neue Notiz"
 msgstr "New note"
 
-#: ORG/templates/homeOrg_2.html:64
+#: ORG/templates/homeOrg_2.html:66
 msgid ""
 "Ein Änderungsvorschlag für eine Einsatzstelle oder ein Einsatzland wurde "
 "eingereicht. Diese Änderungen kann genehmigt oder abgelehnt werden."
@@ -5077,16 +5089,16 @@ msgstr ""
 "A proposed change to a deployment location or country has been submitted. "
 "These changes may be approved or rejected."
 
-#: ORG/templates/homeOrg_2.html:104
+#: ORG/templates/homeOrg_2.html:106
 msgid "Vorschläge anzeigen"
 msgstr "Show suggestions"
 
-#: ORG/templates/homeOrg_2.html:123 ORG/templates/own_signin_requests.html:5
+#: ORG/templates/homeOrg_2.html:125 ORG/templates/own_signin_requests.html:5
 #: ORG/templates/own_signin_requests.html:11
 msgid "Registrierungsanfragen"
 msgstr "Registration requests"
 
-#: ORG/templates/homeOrg_2.html:124
+#: ORG/templates/homeOrg_2.html:126
 msgid ""
 "Neue Registrierungsanfragen über den eigenen Anmeldelink. Diese können "
 "freigeschaltet oder abgelehnt werden."
@@ -5094,71 +5106,71 @@ msgstr ""
 "New registration requests via the personal sign-up link. These can be "
 "approved or rejected."
 
-#: ORG/templates/homeOrg_2.html:169
+#: ORG/templates/homeOrg_2.html:171
 msgid "Anfragen anzeigen"
 msgstr "Show requests"
 
-#: ORG/templates/homeOrg_2.html:348
+#: ORG/templates/homeOrg_2.html:350
 msgid "Aufgabenmanagement"
 msgstr "Task management"
 
-#: ORG/templates/homeOrg_2.html:421
+#: ORG/templates/homeOrg_2.html:423
 msgid "Eingereicht"
 msgstr "Submitted"
 
-#: ORG/templates/homeOrg_2.html:435
+#: ORG/templates/homeOrg_2.html:437
 msgid "Heruntergeladen von:"
 msgstr "Downloaded by:"
 
-#: ORG/templates/homeOrg_2.html:440
+#: ORG/templates/homeOrg_2.html:442
 msgid "Noch nicht heruntergeladen."
 msgstr "Not yet downloaded."
 
-#: ORG/templates/homeOrg_2.html:514
+#: ORG/templates/homeOrg_2.html:516
 msgid "Keine überfälligen Aufgaben"
 msgstr "No overdue tasks"
 
-#: ORG/templates/homeOrg_2.html:523
+#: ORG/templates/homeOrg_2.html:525
 msgid "Alle Aufgaben sind auf dem neuesten Stand"
 msgstr "All tasks are up to date."
 
-#: ORG/templates/homeOrg_2.html:529
+#: ORG/templates/homeOrg_2.html:531
 msgid "Aufgaben verwalten"
 msgstr "Manage tasks"
 
-#: ORG/templates/homeOrg_2.html:559 TEAM/templates/teamHome.html:236
+#: ORG/templates/homeOrg_2.html:561 TEAM/templates/teamHome.html:236
 msgid "Letzte 7 Tage"
 msgstr "Last 7 days"
 
-#: ORG/templates/homeOrg_2.html:585 TEAM/templates/teamHome.html:262
+#: ORG/templates/homeOrg_2.html:587 TEAM/templates/teamHome.html:262
 msgid "Ungelesen"
 msgstr "Unread"
 
-#: ORG/templates/homeOrg_2.html:600 TEAM/templates/teamHome.html:277
+#: ORG/templates/homeOrg_2.html:602 TEAM/templates/teamHome.html:277
 msgid "Keine Meldungen"
 msgstr "No reports"
 
-#: ORG/templates/homeOrg_2.html:733
+#: ORG/templates/homeOrg_2.html:735
 msgid "Normal"
 msgstr "Normal"
 
-#: ORG/templates/homeOrg_2.html:972
+#: ORG/templates/homeOrg_2.html:974
 msgid "Aufgabe als erledigt markiert"
 msgstr "Task marked as completed"
 
-#: ORG/templates/homeOrg_2.html:977
+#: ORG/templates/homeOrg_2.html:979
 msgid "Fehler beim Markieren der Aufgabe"
 msgstr "Error marking task"
 
-#: ORG/templates/homeOrg_2.html:985 ORG/templates/homeOrg_2.html:1045
+#: ORG/templates/homeOrg_2.html:987 ORG/templates/homeOrg_2.html:1047
 msgid "Netzwerkfehler"
 msgstr "Network error"
 
-#: ORG/templates/homeOrg_2.html:1022
+#: ORG/templates/homeOrg_2.html:1024
 msgid "Erinnerung erfolgreich gesendet"
 msgstr "Reminder sent successfully"
 
-#: ORG/templates/homeOrg_2.html:1038 ORG/templates/list_aufgaben_table.html:645
+#: ORG/templates/homeOrg_2.html:1040 ORG/templates/list_aufgaben_table.html:645
 msgid "Fehler beim Senden der Erinnerung"
 msgstr "Error sending reminder"
 

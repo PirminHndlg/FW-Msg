@@ -11,29 +11,29 @@
   <link rel="stylesheet" href="{% static 'css/list_ampel.css' %}" />
   <style>
     .dashboard-section {
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
     }
-    
+
     .section-header {
       border-bottom: 2px solid #f8f9fa;
       padding-bottom: 0.75rem;
       margin-bottom: 1.5rem;
     }
-    
+
     .section-title {
       font-size: 1.25rem;
       font-weight: 600;
       color: #495057;
       margin: 0;
     }
-    
+
     .priority-high { border-left: 4px solid #dc3545; }
     .priority-medium { border-left: 4px solid #ffc107; }
     .priority-low { border-left: 4px solid #28a745; }
-    
+
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
     .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
-    
+
     @media (max-width: 768px) {
       .grid-2, .grid-3 { grid-template-columns: 1fr; }
     }
@@ -52,6 +52,8 @@
   </button>
 </div>
 
+{% include "components/losung.html" %}
+
 <!-- Pending Change Requests Section -->
 {% if pending_change_requests %}
 <div class="dashboard-section">
@@ -68,7 +70,7 @@
         <i class="bi bi-eye me-2"></i>{% trans "Alle anzeigen" %}
       </a>
     </div>
-    
+
     <div class="card-body">
       <div class="row g-3">
         {% for request in pending_change_requests|slice:":3" %}
@@ -188,7 +190,7 @@
       {% trans "Angeheftete Notizen" %}
     </h2>
   </div> {% endcomment %}
-  
+
   <div class="card rounded-4 pin-wall">
     <div class="card-body p-4 bg-light">
     <div class="row g-3">
@@ -274,7 +276,7 @@
       {% trans "Aufgabenübersicht" %}
     </h2>
   </div> {% endcomment %}
-  
+
   <div class="grid-2 gap-3">
     <!-- My Tasks -->
     {% if request.user.customuser.person_cluster.aufgaben %}
@@ -356,13 +358,13 @@
           <!-- Custom Tab Navigation -->
           <div class="row mb-3 g-3" id="taskTabs" role="tablist">
             <div class="col-6">
-              <button class="task-tab-card text-center p-3 bg-warning bg-opacity-10 rounded w-100 border-0 active" 
-                      id="pending-tab" 
-                      data-bs-toggle="tab" 
-                      data-bs-target="#pending-pane" 
-                      type="button" 
-                      role="tab" 
-                      aria-controls="pending-pane" 
+              <button class="task-tab-card text-center p-3 bg-warning bg-opacity-10 rounded w-100 border-0 active"
+                      id="pending-tab"
+                      data-bs-toggle="tab"
+                      data-bs-target="#pending-pane"
+                      type="button"
+                      role="tab"
+                      aria-controls="pending-pane"
                       aria-selected="true">
                 <div class="h4 mb-1 text-warning">{{ pending_tasks.count }}</div>
                 <small class="text-muted">
@@ -372,13 +374,13 @@
               </button>
             </div>
             <div class="col-6">
-              <button class="task-tab-card text-center p-3 bg-danger bg-opacity-10 rounded w-100 border-0" 
-                      id="overdue-tab" 
-                      data-bs-toggle="tab" 
-                      data-bs-target="#overdue-pane" 
-                      type="button" 
-                      role="tab" 
-                      aria-controls="overdue-pane" 
+              <button class="task-tab-card text-center p-3 bg-danger bg-opacity-10 rounded w-100 border-0"
+                      id="overdue-tab"
+                      data-bs-toggle="tab"
+                      data-bs-target="#overdue-pane"
+                      type="button"
+                      role="tab"
+                      aria-controls="overdue-pane"
                       aria-selected="false">
                 <div class="h4 mb-1 text-danger">{{ open_tasks.count }}</div>
                 <small class="text-muted">
@@ -391,9 +393,9 @@
 
           <!-- Tab Content -->
           <div class="tab-content" id="taskTabsContent">
-            <div class="tab-pane fade show active" 
-                 id="pending-pane" 
-                 role="tabpanel" 
+            <div class="tab-pane fade show active"
+                 id="pending-pane"
+                 role="tabpanel"
                  aria-labelledby="pending-tab">
               <div class="">
                 {% for task in pending_tasks %}
@@ -439,7 +441,7 @@
                             <i class="bi bi-download"></i>
                           </a>
                         {% endif %}
-                        <button class="btn btn-sm btn-success" 
+                        <button class="btn btn-sm btn-success"
                                 onclick="markTaskAsDone(this, {{ task.id }})"
                                 tooltip="true"
                                 data-bs-toggle="tooltip"
@@ -460,9 +462,9 @@
               </div>
             </div>
 
-            <div class="tab-pane fade" 
-                 id="overdue-pane" 
-                 role="tabpanel" 
+            <div class="tab-pane fade"
+                 id="overdue-pane"
+                 role="tabpanel"
                  aria-labelledby="overdue-tab">
               <div class="">
                 {% for task in open_tasks %}
@@ -485,7 +487,7 @@
                         {% endif %}
                       </div>
                       <div class="d-flex gap-1">
-                        <button class="btn btn-sm btn-outline-primary" 
+                        <button class="btn btn-sm btn-outline-primary"
                                 onclick="sendTaskReminder({{ task.id }})"
                                 tooltip="true"
                                 data-bs-toggle="tooltip"
@@ -493,7 +495,7 @@
                                 title="{% trans 'Erinnerung senden' %} {% if task.last_reminder %} ({% trans 'Zuletzt' %} {{ task.last_reminder|date:'d.m.' }}){% endif %}">
                           <i class="bi bi-envelope"></i>
                         </button>
-                        <button class="btn btn-sm btn-success" 
+                        <button class="btn btn-sm btn-success"
                                 onclick="markTaskAsDone(this, {{ task.id }}, true)"
                                 tooltip="true"
                                 data-bs-toggle="tooltip"
@@ -539,7 +541,7 @@
       {% trans "Status & Inhalte" %}
     </h2>
   </div> {% endcomment %}
-  
+
   <div class="row g-3">
     <!-- Recent Ampel Entries -->
     <div class="col-12 col-md-6 col-lg-3">
@@ -726,10 +728,10 @@
             <div class="btn-group btn-group-sm w-100" role="group">
               <input type="radio" class="btn-check" name="priority" id="priority0" value="0" checked>
               <label class="btn btn-outline-secondary" for="priority0">{% trans "Normal" %}</label>
-              
+
               <input type="radio" class="btn-check" name="priority" id="priority1" value="1">
               <label class="btn btn-outline-warning" for="priority1">{% trans "Hoch" %}</label>
-              
+
               <input type="radio" class="btn-check" name="priority" id="priority2" value="2">
               <label class="btn btn-outline-danger" for="priority2">{% trans "Sehr Hoch" %}</label>
             </div>
@@ -762,7 +764,7 @@
     border-radius: 50%;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   }
-  
+
   .pin::after {
     content: '';
     position: absolute;
@@ -914,7 +916,7 @@
         if (taskItem) {
           taskItem.style.transition = 'opacity 0.3s ease';
           taskItem.style.opacity = '0';
-          
+
           setTimeout(() => {
             taskItem.remove();
             let headerBadge, tabBadge, tabTitle;
@@ -929,7 +931,7 @@
               tabBadge = document.querySelector('#overdue-tab .badge.bg-danger');
               tabTitle = document.querySelector('#overdue-tab .h4');
             }
-            
+
             if (headerBadge) {
               const currentCount = parseInt(headerBadge.textContent) || 0;
               if (currentCount > 1) {
@@ -938,7 +940,7 @@
                 headerBadge.textContent = '0';
               }
             }
-            
+
             if (tabBadge) {
               const currentCount = parseInt(tabBadge.textContent) || 0;
               if (currentCount > 1) {
@@ -947,7 +949,7 @@
                 tabBadge.textContent = '0';
               }
             }
-            
+
             if (tabTitle) {
               const currentCount = parseInt(tabTitle.textContent) || 0;
               if (currentCount > 1) {
@@ -956,13 +958,13 @@
                 tabTitle.textContent = '0';
               }
             }
-            
+
             // Check if no more pending tasks
             const pendingPane = document.getElementById('pending-pane');
             const remainingTasks = pendingPane ? pendingPane.querySelectorAll('.task-item') : [];
           }, 300);
         }
-        
+
         // Show success message
         showToast('{% trans "Aufgabe als erledigt markiert" %}', 'success');
       } else {
@@ -985,13 +987,13 @@
   function sendTaskReminder(taskId) {
     const button = event.target.closest('button');
     const originalContent = button.innerHTML;
-    
+
     // remove tooltip
     button.removeAttribute('data-bs-original-title');
     button.removeAttribute('data-bs-toggle');
     button.removeAttribute('data-bs-placement');
     button.removeAttribute('tooltip');
-    
+
     const tooltip = bootstrap.Tooltip.getInstance(button);
     if (tooltip) {
         tooltip.hide();
@@ -1012,7 +1014,7 @@
       // Restore button state
       button.innerHTML = originalContent;
       button.disabled = false;
-      
+
       if (data.success) {
         showToast('{% trans "Erinnerung erfolgreich gesendet" %}', 'success');
         button.classList.add('btn-outline-success');
@@ -1051,10 +1053,10 @@
       ${message}
       <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-    
+
     // Add to document
     document.body.appendChild(toast);
-    
+
     // Auto remove after 5 seconds
     setTimeout(() => {
       if (toast.parentNode) {

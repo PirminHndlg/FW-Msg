@@ -1,0 +1,10 @@
+{% extends extends_base|default:'baseFw.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Die Losungen" %}{% endblock %}
+
+{% block content %}
+<div class="w-100 mx-auto" style="max-width: 960px;">
+  {% include "components/losung.html" %}
+</div>
+{% endblock %}

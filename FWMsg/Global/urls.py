@@ -72,6 +72,7 @@ urlpatterns = [
     path('kalender_abbonement/<str:token>/', views.kalender_abbonement, name='kalender_abbonement'),
 
     path('datenschutz/', views.datenschutz, name='datenschutz'),
+    path('losungen/', views.losungen, name='losungen'),
     
     # Einsatzstellen Notizen
     path('einsatzstellen_notiz/', views.einsatzstellen_notiz, name='einsatzstellen_notiz'),

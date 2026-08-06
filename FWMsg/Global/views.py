@@ -267,6 +267,14 @@ def datenschutz(request):
     return render(request, 'datenschutz.html')
 
 
+def losungen(request):
+    """Display today's Losung."""
+    context = check_organization_context(request, {})
+    return render(request, 'losungen.html', context=context)
+
+
+
+
 def serve_logo(request, org_id):
     """
     Serve organization logo images.
