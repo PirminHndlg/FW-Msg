@@ -52,8 +52,6 @@
   </button>
 </div>
 
-{% include "components/losung.html" %}
-
 <!-- Pending Change Requests Section -->
 {% if pending_change_requests %}
 <div class="dashboard-section">
@@ -179,8 +177,6 @@
 </div>
 {% endif %}
 
-{% include 'components/seminar_display_info.html' %}
-
 <!-- Sticky Notes & Pinned Items Section -->
 {% if pinned_notizen or sticky_notes %}
 <div class="dashboard-section">
@@ -267,6 +263,10 @@
   </div>
 </div>
 {% endif %}
+
+{% include 'components/seminar_display_info.html' %}
+
+{% include "components/losung.html" %}
 
 <!-- Tasks Overview Section -->
 <div class="dashboard-section">

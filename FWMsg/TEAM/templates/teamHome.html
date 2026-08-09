@@ -13,20 +13,20 @@
     .dashboard-section {
       margin-bottom: 2rem;
     }
-    
+
     .section-header {
       border-bottom: 2px solid #f8f9fa;
       padding-bottom: 0.75rem;
       margin-bottom: 1.5rem;
     }
-    
+
     .section-title {
       font-size: 1.25rem;
       font-weight: 600;
       color: #495057;
       margin: 0;
     }
-    
+
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -37,7 +37,7 @@
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 1.5rem;
     }
-    
+
     @media (max-width: 768px) {
       .grid-2,
       .grid-3 {
@@ -89,10 +89,10 @@
         <div>
           <strong>Länder-Zuordnung erforderlich</strong><br>
           <small>
-            Melde dich bei 
+            Melde dich bei
             <a href="mailto:{{ request.user.org.email }}" class="alert-link">
               <i class="bi bi-envelope me-1"></i>{{ request.user.org.email }}
-            </a> 
+            </a>
             um Zugriff auf deine Einsatzländer zu erhalten.
           </small>
         </div>
@@ -101,6 +101,8 @@
   {% endif %}
 
 {% include 'components/seminar_display_info.html' %}
+
+{% include "components/losung.html" %}
 
 <!-- Quick Stats Section -->
 <div class="dashboard-section">

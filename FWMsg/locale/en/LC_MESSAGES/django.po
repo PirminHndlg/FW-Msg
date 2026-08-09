@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-06 11:57+0200\n"
+"POT-Creation-Date: 2026-08-09 13:29+0200\n"
 "PO-Revision-Date: 2025-06-22 19:40+0200\n"
 "Last-Translator: Pirmin Hinderling <admin@Volunteer.solutions>\n"
 "Language-Team: English <en@li.org>\n"
@@ -127,7 +127,7 @@ msgstr "Images"
 #: FW/templates/aufgaben.html:21 FW/templates/base.html:139
 #: FW/templates/base.html:261 FW/templates/baseFw.html:159
 #: FW/templates/baseFw.html:280 FW/templates/baseFw.html:389
-#: FW/templates/homeFw.html:22 Global/models.py:1005
+#: FW/templates/homeFw.html:24 Global/models.py:1005
 #: ORG/templates/aufgaben_assign.html:82 ORG/templates/baseOrg.html:90
 #: ORG/templates/list_aufgaben.html:5 ORG/templates/list_aufgaben_table.html:5
 #: ORG/views.py:2297 TEAM/templates/baseTeam.html:54
@@ -178,44 +178,44 @@ msgstr "Survey"
 msgid "Dashboard"
 msgstr "Dashboard"
 
-#: Ehemalige/templates/ehemaligeHome.html:111 ORG/templates/homeOrg.html:378
-#: ORG/templates/homeOrg_2.html:623 TEAM/templates/teamHome.html:298
+#: Ehemalige/templates/ehemaligeHome.html:113 ORG/templates/homeOrg.html:378
+#: ORG/templates/homeOrg_2.html:623 TEAM/templates/teamHome.html:300
 msgid "Neueste Posts"
 msgstr "Latest Posts"
 
-#: Ehemalige/templates/ehemaligeHome.html:123 FW/templates/homeFw.html:52
-#: ORG/templates/homeOrg_2.html:651 TEAM/templates/teamHome.html:310
+#: Ehemalige/templates/ehemaligeHome.html:125 FW/templates/homeFw.html:54
+#: ORG/templates/homeOrg_2.html:651 TEAM/templates/teamHome.html:312
 msgid "Alle Posts"
 msgstr "All Posts"
 
-#: Ehemalige/templates/ehemaligeHome.html:129 ORG/templates/homeOrg_2.html:657
-#: TEAM/templates/teamHome.html:316
+#: Ehemalige/templates/ehemaligeHome.html:131 ORG/templates/homeOrg_2.html:657
+#: TEAM/templates/teamHome.html:318
 msgid "Keine Posts vorhanden"
 msgstr "No posts available"
 
-#: Ehemalige/templates/ehemaligeHome.html:146 ORG/templates/homeOrg.html:354
-#: ORG/templates/homeOrg_2.html:674 TEAM/templates/teamHome.html:333
+#: Ehemalige/templates/ehemaligeHome.html:148 ORG/templates/homeOrg.html:354
+#: ORG/templates/homeOrg_2.html:674 TEAM/templates/teamHome.html:335
 msgid "Neueste Bilder"
 msgstr "Latest Images"
 
-#: Ehemalige/templates/ehemaligeHome.html:159 FW/templates/homeFw.html:53
-#: ORG/templates/homeOrg_2.html:695 TEAM/templates/teamHome.html:346
+#: Ehemalige/templates/ehemaligeHome.html:161 FW/templates/homeFw.html:55
+#: ORG/templates/homeOrg_2.html:695 TEAM/templates/teamHome.html:348
 msgid "Alle Bilder"
 msgstr "All Images"
 
-#: Ehemalige/templates/ehemaligeHome.html:165
+#: Ehemalige/templates/ehemaligeHome.html:167
 #: Global/templates/bilder_show.html:28 Global/templates/profil.html:51
 #: ORG/templates/homeOrg.html:365 ORG/templates/homeOrg_2.html:689
-#: ORG/templates/homeOrg_2.html:701 TEAM/templates/teamHome.html:352
+#: ORG/templates/homeOrg_2.html:701 TEAM/templates/teamHome.html:354
 msgid "Keine Bilder vorhanden"
 msgstr "No images available"
 
-#: Ehemalige/templates/ehemaligeHome.html:193 ORG/templates/homeOrg.html:259
-#: ORG/templates/homeOrg_2.html:291 TEAM/templates/teamHome.html:180
+#: Ehemalige/templates/ehemaligeHome.html:195 ORG/templates/homeOrg.html:259
+#: ORG/templates/homeOrg_2.html:291 TEAM/templates/teamHome.html:182
 msgid "Meine Aufgaben"
 msgstr "My Tasks"
 
-#: Ehemalige/templates/ehemaligeHome.html:211 FW/templates/homeFw.html:61
+#: Ehemalige/templates/ehemaligeHome.html:213 FW/templates/homeFw.html:63
 #: Global/templates/bilder.html:34 Global/templates/bilder.html:44
 #: Global/templates/bilder.html:59 Global/templates/dokumente.html:147
 #: Global/templates/dokumente.html:157
@@ -225,8 +225,8 @@ msgstr "My Tasks"
 #: Global/templates/list_users.html:48 Global/templates/list_users.html:58
 #: Global/templates/posts_overview.html:21
 #: Global/templates/posts_overview.html:31 ORG/tables.py:435 ORG/tables.py:919
-#: ORG/templates/components/task_filter.html:9 ORG/templates/homeOrg_2.html:106
-#: ORG/templates/homeOrg_2.html:171 ORG/templates/homeOrg_2.html:329
+#: ORG/templates/components/task_filter.html:9 ORG/templates/homeOrg_2.html:104
+#: ORG/templates/homeOrg_2.html:169 ORG/templates/homeOrg_2.html:329
 #: ORG/templates/list_ampel.html:34 ORG/templates/list_ampel.html:57
 #: ORG/templates/list_ampel.html:67 ORG/templates/list_ampel.html:83
 #: ORG/templates/list_ampel.html:94 ORG/templates/list_aufgaben_table.html:130
@@ -237,17 +237,17 @@ msgstr "My Tasks"
 #: TEAM/templates/teamAufgabenuebersicht.html:55
 #: TEAM/templates/teamAufgabenuebersicht.html:65
 #: TEAM/templates/teamContacts.html:33 TEAM/templates/teamContacts.html:43
-#: TEAM/templates/teamHome.html:198
+#: TEAM/templates/teamHome.html:200
 msgid "Alle"
 msgstr "All"
 
-#: Ehemalige/templates/ehemaligeHome.html:211 ORG/templates/homeOrg_2.html:329
-#: TEAM/templates/teamHome.html:198
+#: Ehemalige/templates/ehemaligeHome.html:213 ORG/templates/homeOrg_2.html:329
+#: TEAM/templates/teamHome.html:200
 msgid "anzeigen"
 msgstr "View"
 
-#: Ehemalige/templates/ehemaligeHome.html:218 ORG/templates/homeOrg_2.html:336
-#: TEAM/templates/teamHome.html:205
+#: Ehemalige/templates/ehemaligeHome.html:220 ORG/templates/homeOrg_2.html:336
+#: TEAM/templates/teamHome.html:207
 msgid "Keine offenen Aufgaben"
 msgstr "No open tasks"
 
@@ -808,34 +808,34 @@ msgstr "Report problem"
 msgid "FW Msg"
 msgstr "FW Msg"
 
-#: FW/templates/homeFw.html:32
+#: FW/templates/homeFw.html:34
 msgid "Alle Aufgaben sind erledigt!"
 msgstr "All tasks are done"
 
-#: FW/templates/homeFw.html:38
+#: FW/templates/homeFw.html:40
 msgid "Alle Aufgaben anzeigen"
 msgstr "Show all tasks"
 
-#: FW/templates/homeFw.html:50
+#: FW/templates/homeFw.html:52
 msgid "Neuigkeiten"
 msgstr "News"
 
-#: FW/templates/homeFw.html:58 Global/templates/bilder.html:56
+#: FW/templates/homeFw.html:60 Global/templates/bilder.html:56
 #: Global/templates/karte.html:57 ORG/templates/components/task_filter.html:6
 #: ORG/templates/list_aufgaben_table.html:152
 msgid "Filter"
 msgstr "Filter"
 
-#: FW/templates/homeFw.html:65 Global/templates/bilder.html:63
+#: FW/templates/homeFw.html:67 Global/templates/bilder.html:63
 #: Global/templates/karte.html:65
 msgid "Nur"
 msgstr "Only"
 
-#: FW/templates/homeFw.html:82
+#: FW/templates/homeFw.html:84
 msgid "Ampelmeldung gelesen"
 msgstr "Status report read"
 
-#: FW/templates/homeFw.html:85
+#: FW/templates/homeFw.html:87
 msgid "Deine letzte Ampelmeldung wurde gelesen"
 msgstr "Your latest status report has been read."
 
@@ -955,6 +955,7 @@ msgid "Apotheken"
 msgstr "Pharmacies"
 
 #: FW/views.py:291 Global/models.py:772 Global/models.py:792
+#: Global/templates/components/losung.html:49
 #: Global/templates/einsatzstellen_info.html:209
 #: Global/templates/einsatzstellen_info.html:275
 #: Global/templates/laender_info.html:139
@@ -1653,7 +1654,7 @@ msgid "Kommentar zur Erläuterung des Status"
 msgstr "Comment to explain the status"
 
 #: Global/models.py:879 ORG/templates/components/ampel_modal.html:38
-#: ORG/templates/homeOrg_2.html:585 TEAM/templates/teamHome.html:260
+#: ORG/templates/homeOrg_2.html:585 TEAM/templates/teamHome.html:262
 #: chat/templates/chat-direct.html:71
 msgid "Gelesen"
 msgstr "Read"
@@ -1664,7 +1665,7 @@ msgstr "Indicates whether the status indicator has been marked as read"
 
 #: Global/models.py:884 ORG/templates/baseOrg.html:101
 #: ORG/templates/homeOrg_2.html:558 ORG/templates/list_ampel.html:7
-#: TEAM/templates/teamHome.html:233
+#: TEAM/templates/teamHome.html:235
 msgid "Ampelmeldungen"
 msgstr "Status report"
 
@@ -2881,10 +2882,6 @@ msgstr "Loading reactions..."
 #: Global/templates/components/losung.html:12 Global/templates/losungen.html:4
 msgid "Die Losungen"
 msgstr "Moravian Daily Texts"
-
-#: Global/templates/components/losung.html:49
-msgid "Weitere Informationen finden Sie hier"
-msgstr "Find more information here"
 
 #: Global/templates/components/post_card_object.html:11
 msgid "Enthält eine Umfrage"
@@ -4573,7 +4570,7 @@ msgid "Kalenderliste"
 msgstr "Calendar list"
 
 #: ORG/templates/baseOrg.html:143 ORG/templates/change_requests.html:5
-#: ORG/templates/change_requests.html:24 ORG/templates/homeOrg_2.html:65
+#: ORG/templates/change_requests.html:24 ORG/templates/homeOrg_2.html:63
 msgid "Änderungsvorschläge"
 msgstr "Change requests"
 
@@ -4615,9 +4612,9 @@ msgstr "Filter by status:"
 #: ORG/templates/change_request_history.html:143 ORG/templates/homeOrg.html:260
 #: ORG/templates/homeOrg.html:285 ORG/templates/homeOrg.html:299
 #: ORG/templates/homeOrg.html:318 ORG/templates/homeOrg.html:355
-#: ORG/templates/homeOrg.html:379 ORG/templates/homeOrg_2.html:70
-#: ORG/templates/homeOrg_2.html:130 ORG/templates/homeOrg_2.html:607
-#: TEAM/templates/teamHome.html:282
+#: ORG/templates/homeOrg.html:379 ORG/templates/homeOrg_2.html:68
+#: ORG/templates/homeOrg_2.html:128 ORG/templates/homeOrg_2.html:607
+#: TEAM/templates/teamHome.html:284
 msgid "Alle anzeigen"
 msgstr "Show All"
 
@@ -4775,7 +4772,7 @@ msgid "Geänderte Felder:"
 msgstr "Changed fields:"
 
 #: ORG/templates/components/change_request_item.html:62
-#: ORG/templates/homeOrg_2.html:96
+#: ORG/templates/homeOrg_2.html:94
 msgid "Prüfen"
 msgstr "Check"
 
@@ -5081,7 +5078,7 @@ msgstr "Sticky notes for quick notes"
 msgid "Neue Notiz"
 msgstr "New note"
 
-#: ORG/templates/homeOrg_2.html:66
+#: ORG/templates/homeOrg_2.html:64
 msgid ""
 "Ein Änderungsvorschlag für eine Einsatzstelle oder ein Einsatzland wurde "
 "eingereicht. Diese Änderungen kann genehmigt oder abgelehnt werden."
@@ -5089,16 +5086,16 @@ msgstr ""
 "A proposed change to a deployment location or country has been submitted. "
 "These changes may be approved or rejected."
 
-#: ORG/templates/homeOrg_2.html:106
+#: ORG/templates/homeOrg_2.html:104
 msgid "Vorschläge anzeigen"
 msgstr "Show suggestions"
 
-#: ORG/templates/homeOrg_2.html:125 ORG/templates/own_signin_requests.html:5
+#: ORG/templates/homeOrg_2.html:123 ORG/templates/own_signin_requests.html:5
 #: ORG/templates/own_signin_requests.html:11
 msgid "Registrierungsanfragen"
 msgstr "Registration requests"
 
-#: ORG/templates/homeOrg_2.html:126
+#: ORG/templates/homeOrg_2.html:124
 msgid ""
 "Neue Registrierungsanfragen über den eigenen Anmeldelink. Diese können "
 "freigeschaltet oder abgelehnt werden."
@@ -5106,7 +5103,7 @@ msgstr ""
 "New registration requests via the personal sign-up link. These can be "
 "approved or rejected."
 
-#: ORG/templates/homeOrg_2.html:171
+#: ORG/templates/homeOrg_2.html:169
 msgid "Anfragen anzeigen"
 msgstr "Show requests"
 
@@ -5138,15 +5135,15 @@ msgstr "All tasks are up to date."
 msgid "Aufgaben verwalten"
 msgstr "Manage tasks"
 
-#: ORG/templates/homeOrg_2.html:561 TEAM/templates/teamHome.html:236
+#: ORG/templates/homeOrg_2.html:561 TEAM/templates/teamHome.html:238
 msgid "Letzte 7 Tage"
 msgstr "Last 7 days"
 
-#: ORG/templates/homeOrg_2.html:587 TEAM/templates/teamHome.html:262
+#: ORG/templates/homeOrg_2.html:587 TEAM/templates/teamHome.html:264
 msgid "Ungelesen"
 msgstr "Unread"
 
-#: ORG/templates/homeOrg_2.html:602 TEAM/templates/teamHome.html:277
+#: ORG/templates/homeOrg_2.html:602 TEAM/templates/teamHome.html:279
 msgid "Keine Meldungen"
 msgstr "No reports"
 
@@ -7049,6 +7046,9 @@ msgstr "No completed responses found for this survey."
 #, python-format
 msgid "Error generating PDF export: %(error)s"
 msgstr "Error generating PDF export: %(error)s"
+
+#~ msgid "Weitere Informationen finden Sie hier"
+#~ msgstr "Find more information here"
 
 #~ msgid "Beliebte Passwort-Manager sind"
 #~ msgstr "Popular password managers are"

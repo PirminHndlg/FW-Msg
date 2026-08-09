@@ -12,32 +12,32 @@
     .dashboard-section {
       margin-bottom: 2rem;
     }
-    
+
     .section-header {
       border-bottom: 2px solid #f8f9fa;
       padding-bottom: 0.75rem;
       margin-bottom: 1.5rem;
     }
-    
+
     .section-title {
       font-size: 1.25rem;
       font-weight: 600;
       color: #495057;
       margin: 0;
     }
-    
+
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1.5rem;
     }
-    
+
     .grid-3 {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 1.5rem;
     }
-    
+
     @media (max-width: 768px) {
       .grid-2,
       .grid-3 {
@@ -87,6 +87,8 @@
 
 {% include 'components/seminar_display_info.html' %}
 
+{% include "components/losung.html" %}
+
 <!-- Content Section -->
 {% if posts or gallery_images %}
 <div class="dashboard-section">
@@ -96,7 +98,7 @@
       {% trans "Neueste Inhalte" %}
     </h2>
   </div> {% endcomment %}
-  
+
   <div class="row g-3">
     <!-- Recent Posts -->
     {% if user.customuser.person_cluster.posts %}
@@ -181,7 +183,7 @@
       {% trans "Meine Aufgaben" %}
     </h2>
   </div> {% endcomment %}
-  
+
   <div class="card h-100 rounded-4">
     <div class="card-header bg-white border-bottom-0 rounded-top-4">
       <div class="d-flex justify-content-between align-items-center">
