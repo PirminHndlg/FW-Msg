@@ -1,6 +1,6 @@
-import csv
 from datetime import date, datetime
 from typing import cast, TypedDict
+from xml.etree import ElementTree
 
 from django.conf import settings
 from django.core.cache import cache
@@ -23,28 +23,28 @@ class Losung(TypedDict):
 
 
 def get_losungen_2026() -> list[Losung]:
-    """Load the 2026 Losungen from the original CSV file."""
+    """Load the 2026 Losungen from the XML file."""
     cached_losungen = cache.get(LOSUNGEN_CACHE_KEY)
     if cached_losungen is not None:
         return cast(list[Losung], cached_losungen)
 
-    csv_path = settings.BASE_DIR / 'Global' / 'data' / 'Losung_2026_CSV' / 'losungen_2026.csv'
+    xml_path = settings.BASE_DIR / 'Global' / 'data' / 'Losung_2026' / 'losungen_2026.xml'
+    root = ElementTree.parse(xml_path).getroot()
     losungen: list[Losung] = []
 
-    with open(csv_path, newline='', encoding='cp1252') as csv_file:
-        reader = csv.DictReader(csv_file, delimiter=';')
-        for row in reader:
-            losung_date = datetime.strptime(row['Datum'], '%d.%m.%Y').date()
-            losungen.append({
-                'date': losung_date,
-                'datum': row['Datum'],
-                'wtag': row['Wtag'],
-                'sonntag': row['Sonntag'],
-                'losungsvers': row['Losungsvers'],
-                'losungstext': row['Losungstext'],
-                'lehrtextvers': row['Lehrtextvers'],
-                'lehrtext': row['Lehrtext'],
-            })
+    for item in root.findall('Losungen'):
+        datum = item.findtext('Datum', default='')
+        losung_date = datetime.strptime(datum, '%Y-%m-%dT%H:%M:%S.%f').date()
+        losungen.append({
+            'date': losung_date,
+            'datum': losung_date.strftime('%d.%m.%Y'),
+            'wtag': item.findtext('Wtag', default=''),
+            'sonntag': item.findtext('Sonntag', default=''),
+            'losungsvers': item.findtext('Losungsvers', default=''),
+            'losungstext': item.findtext('Losungstext', default=''),
+            'lehrtextvers': item.findtext('Lehrtextvers', default=''),
+            'lehrtext': item.findtext('Lehrtext', default=''),
+        })
 
     cache.set(LOSUNGEN_CACHE_KEY, losungen, LOSUNGEN_CACHE_TIMEOUT)
     return losungen
