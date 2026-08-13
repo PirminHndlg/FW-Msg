@@ -1,4 +1,5 @@
 from datetime import date, datetime
+import logging
 from typing import cast, TypedDict
 from xml.etree import ElementTree
 
@@ -6,6 +7,8 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 
+
+logger = logging.getLogger(__name__)
 
 LOSUNGEN_CACHE_KEY = 'losungen_2026'
 LOSUNGEN_CACHE_TIMEOUT = 60 * 60 * 24
@@ -29,12 +32,27 @@ def get_losungen_2026() -> list[Losung]:
         return cast(list[Losung], cached_losungen)
 
     xml_path = settings.BASE_DIR / 'Global' / 'data' / 'Losung_2026' / 'losungen_2026.xml'
-    root = ElementTree.parse(xml_path).getroot()
     losungen: list[Losung] = []
+
+    try:
+        root = ElementTree.parse(xml_path).getroot()
+    except FileNotFoundError:
+        logger.warning('Losungen XML file not found: %s', xml_path)
+        cache.set(LOSUNGEN_CACHE_KEY, losungen, LOSUNGEN_CACHE_TIMEOUT)
+        return losungen
+    except ElementTree.ParseError:
+        logger.exception('Losungen XML file could not be parsed: %s', xml_path)
+        cache.set(LOSUNGEN_CACHE_KEY, losungen, LOSUNGEN_CACHE_TIMEOUT)
+        return losungen
 
     for item in root.findall('Losungen'):
         datum = item.findtext('Datum', default='')
-        losung_date = datetime.strptime(datum, '%Y-%m-%dT%H:%M:%S.%f').date()
+        try:
+            losung_date = datetime.strptime(datum, '%Y-%m-%dT%H:%M:%S.%f').date()
+        except ValueError:
+            logger.warning('Skipping Losung with invalid date: %s', datum)
+            continue
+
         losungen.append({
             'date': losung_date,
             'datum': losung_date.strftime('%d.%m.%Y'),
