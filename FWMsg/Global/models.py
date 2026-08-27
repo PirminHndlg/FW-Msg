@@ -5,6 +5,7 @@ from django.dispatch import receiver
 from django.core import validators
 import random
 import string
+import shutil
 from simple_history.models import HistoricalRecords
 import os.path
 from django.db.models.signals import post_save, post_delete, pre_delete
@@ -38,13 +39,13 @@ def get_random_hash(unique_value, length=16):
         import secrets
         import hashlib
         import time
-        
+
         unique_value = f"{unique_value}_{time.time()}_{secrets.token_hex(length)}"
-        
+
         # Create a SHA-256 hash of this value
         hash_obj = hashlib.sha512(unique_value.encode())
         return hash_obj.hexdigest()
-    
+
 
 class OrgManager(models.Manager):
     def get_queryset(self):
@@ -83,10 +84,10 @@ class PersonCluster(OrgModel):
     bilder = models.BooleanField(default=False, verbose_name=_('Bilder hochladen'), help_text=_('Aktivieren, um Bilder für diese Gruppe hochladen zu können'))
     posts = models.BooleanField(default=False, verbose_name=_('Posts verfassen'), help_text=_('Aktivieren, um Posts für diese Gruppe verfassen zu können'))
     map = models.BooleanField(default=False, verbose_name=_('Karte sichtbar'), help_text=_('Aktivieren, um die Standortkarte für diese Gruppe sichtbar zu machen'))
-    
+
     view = models.CharField(max_length=1, choices=view_choices, default='F', verbose_name=_('Standardansicht'), help_text=_('Bestimmt die Standardansicht für Mitglieder dieser Gruppe'))
     active = models.BooleanField(default=True, verbose_name=_('Aktiv'), help_text=_('Wenn deaktiviert, können sich Benutzer in dieser Gruppe nicht mehr anmelden und die Benutzergruppe wird nicht mehr angezeigt'))
-    
+
     own_signin_token = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('Anmeldetoken zum eigenen Registrieren'), help_text=_('Wenn leer, kann sich kein Benutzer in dieser Gruppe selbst registrieren'))
 
     history = HistoricalRecords()
@@ -94,9 +95,9 @@ class PersonCluster(OrgModel):
     class Meta:
         verbose_name = _('Benutzergruppe')
         verbose_name_plural = _('Benutzergruppen')
-        
+
         ordering = ['view']
-        
+
     def __str__(self):
         return self.name
 
@@ -104,20 +105,20 @@ class PersonCluster(OrgModel):
     def selectable_for_org(cls, org, **filters):
         """Return active PersonClusters that may be shown or submitted."""
         return cls.objects.filter(org=org, active=True, **filters)
-    
+
     def get_users(self):
         return User.objects.filter(customuser__person_cluster=self)
-    
+
     def get_own_signin_url(self):
         if not self.own_signin_token:
             self.create_own_signin_token()
             self.save()
         return f"{settings.DOMAIN_HOST}{reverse('own_signin', kwargs={'token': self.own_signin_token})}"
-    
+
     def create_own_signin_token(self):
         self.own_signin_token = get_random_hash(str(self.pk), 128)
         self.save()
-    
+
 
 class CustomUser(OrgModel):
     identifier = models.CharField(max_length=255, blank=True, null=True, verbose_name=_('Identifikator'), help_text=_('Identifikator für den Benutzer'), unique=True)
@@ -140,7 +141,7 @@ class CustomUser(OrgModel):
         verbose_name=_('Letzte Ampel-Erinnerung'),
         help_text=_('Datum der letzten versendeten Ampel-Erinnerung'),
     )
-    
+
     # Online status tracking
     last_seen = models.DateTimeField(blank=True, null=True, verbose_name=_('Zuletzt online'))
     is_online = models.BooleanField(default=False, verbose_name=_('Ist online'))
@@ -177,13 +178,13 @@ class CustomUser(OrgModel):
             if not self.mail_notifications_unsubscribe_auth_key:
                 self.mail_notifications_unsubscribe_auth_key = get_random_hash(str(self.id), 128)
                 self.save()
-            
+
             # Use Django's reverse function instead of hardcoding the path
             relative_url = reverse('unsubscribe_mail_notifications', kwargs={
                 'user_id': self.user.id,
                 'auth_key': self.mail_notifications_unsubscribe_auth_key
             })
-            
+
             # Add the base domain to the relative URL
             base_url = settings.DOMAIN_HOST
             return base_url + relative_url
@@ -209,12 +210,12 @@ class CustomUser(OrgModel):
                 self.profil_picture.delete()
                 self.profil_picture = None
             self.save()
-            
+
     def create_token(self):
         now = timezone.now()
         self.token = get_random_hash(str(self.id), 128) + ':' + str(now.timestamp())
         self.save()
-        
+
     def create_calendar_token(self):
         self.calendar_token = get_random_hash(str(self.id), 128)
         self.save()
@@ -230,14 +231,14 @@ class CustomUser(OrgModel):
         if not self.calendar_token:
             self.create_calendar_token()
         return self.calendar_token
-    
+
     def update_last_seen(self):
         """Update the last seen timestamp and online status."""
         from django.utils import timezone
         self.last_seen = timezone.now()
         self.is_online = True
         self.save(update_fields=['last_seen', 'is_online'])
-    
+
     def is_currently_online(self):
         """Check if user is currently online (active within last 5 minutes)."""
         if not self.last_seen:
@@ -245,7 +246,7 @@ class CustomUser(OrgModel):
         from django.utils import timezone
         from datetime import timedelta
         return timezone.now() - self.last_seen < timedelta(minutes=5)
-    
+
     def get_online_status_display(self):
         """Get a human-readable online status."""
         if self.is_currently_online():
@@ -254,7 +255,7 @@ class CustomUser(OrgModel):
             from django.utils import timezone
             from datetime import timedelta
             time_diff = timezone.now() - self.last_seen
-            
+
             if time_diff.days > 0:
                 return f"Vor {time_diff.days} Tag{'en' if time_diff.days > 1 else ''}"
             elif time_diff.seconds > 3600:
@@ -267,13 +268,13 @@ class CustomUser(OrgModel):
                 return "Gerade eben"
         else:
             return "Nie online gewesen"
-        
+
     def update_identifier(self):
         self.identifier = get_random_hash(str(self.user.id), 64)
         while CustomUser.objects.filter(identifier=self.identifier, org=self.org).exists():
             self.identifier = get_random_hash(str(self.user.id), 64)
         self.save()
-        
+
     def get_identifier(self):
         if not self.identifier:
             self.update_identifier()
@@ -281,17 +282,17 @@ class CustomUser(OrgModel):
 
     def __str__(self):
         return self.user.username
-    
+
     class Meta:
         verbose_name = _('Benutzer:in')
         verbose_name_plural = _('Benutzer:innen')
-        
+
 def get_or_create_new_user(email, firstname, lastname, org, person_cluster, create_einmalpasswort=False, create_customuser=True):
     username = firstname.lower().replace(' ', '_')
-    
+
     while User.objects.filter(username=username).exclude(email=email).exists():
         username = username + str(random.randint(1, 9))
-        
+
     user, created = User.objects.get_or_create(
         email=email,
         defaults={
@@ -300,28 +301,28 @@ def get_or_create_new_user(email, firstname, lastname, org, person_cluster, crea
         'last_name': lastname
         }
     )
-    
+
     if create_customuser:
         post_save.disconnect(post_save_handler_customuser, sender=CustomUser)
         customuser, created = CustomUser.objects.get_or_create(
             user=user,
             org=org
         )
-        
+
         if created:
             customuser.person_cluster = person_cluster
             customuser.save()
-    
+
         if create_einmalpasswort:
             einmalpasswort = random.randint(10000000, 99999999)
             customuser.einmalpasswort = einmalpasswort
             customuser.einmalpasswort_expires = timezone.now() + timedelta(days=1)
             customuser.save()
-            
+
         post_save.connect(post_save_handler_customuser, sender=CustomUser)
     return user
 
-    
+
 @receiver(post_save, sender=CustomUser)
 def post_save_handler_customuser(sender, instance, created, **kwargs):
 
@@ -335,12 +336,12 @@ def post_save_handler_customuser(sender, instance, created, **kwargs):
         instance.create_small_image()
         delattr(instance, '_processing_profil_picture')
         instance._original_profil_picture_name = instance.profil_picture.name if instance.profil_picture else None
-    
+
     from FW.models import Freiwilliger
     from TEAM.models import Team
     from BW.models import Bewerber
     from Ehemalige.models import Ehemalige
-    
+
     if instance.person_cluster:
         if instance.person_cluster.view == 'F' and not hasattr(instance.user, 'freiwilliger'):
             Freiwilliger.objects.get_or_create(user=instance.user, org=instance.org)
@@ -350,7 +351,7 @@ def post_save_handler_customuser(sender, instance, created, **kwargs):
             Bewerber.objects.get_or_create(user=instance.user, org=instance.org)
         elif instance.person_cluster.view == 'E' and not hasattr(instance.user, 'ehemaliger'):
             Ehemalige.objects.get_or_create(user=instance.user, org=instance.org)
-        
+
 
 # Add property to User model to access org
 User.add_to_class('org', property(lambda self: self.customuser.org if hasattr(self, 'customuser') else None))
@@ -378,7 +379,7 @@ def post_save_handler(sender, instance, created, **kwargs):
     if instance.anonymous and instance.user:
         instance.user = None
         instance.save()
-    
+
     if created:
         from ORG.tasks import send_feedback_email_task
         send_feedback_email_task.s(instance.id).apply_async(countdown=10)
@@ -400,8 +401,8 @@ class KalenderEvent(OrgModel):
 
     def __str__(self):
         return self.title
-    
-    
+
+
 class Ordner2(OrgModel):
     ordner_name = models.CharField(max_length=255, verbose_name=_('Ordnername'), help_text=_('Name des Ordners'))
     typ = models.ManyToManyField(PersonCluster, verbose_name=_('Sichtbar für'), help_text=_('Benutzergruppen, die diesen Ordner sehen können'))
@@ -411,7 +412,7 @@ class Ordner2(OrgModel):
 
     def __str__(self):
         return self.ordner_name
-    
+
     def register_token(self):
         return signing.dumps({'ordner_id': self.id})
 
@@ -421,21 +422,66 @@ def create_folder(sender, instance, **kwargs):
     # Sanitize folder and org names
     safe_ordner_name = instance.ordner_name.replace('/', '').replace('\\', '').replace('..', '')
     safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
-    
+
     path = os.path.join(safe_ordner_name)
     os.makedirs(os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, path), exist_ok=True)
 
 
 @receiver(post_delete, sender=Ordner2)
 def remove_folder(sender, instance, **kwargs):
-    # Sanitize folder and org names
-    safe_ordner_name = instance.ordner_name.replace('/', '').replace('\\', '').replace('..', '')
-    safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
-    
-    path = os.path.join(safe_ordner_name)
-    path = os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, path)
-    if os.path.isdir(path):
-        os.rmdir(path)
+    safe_ordner_name = (
+        instance.ordner_name
+        .replace('/', '')
+        .replace('\\', '')
+        .replace('..', '')
+    )
+    safe_org_name = (
+        instance.org.name
+        .replace('/', '')
+        .replace('\\', '')
+        .replace('..', '')
+    )
+
+    folder_path = os.path.abspath(os.path.join(
+        settings.MEDIA_ROOT,
+        'dokument',
+        safe_org_name,
+        safe_ordner_name,
+    ))
+
+    if not os.path.isdir(folder_path):
+        return
+
+    try:
+        if not os.listdir(folder_path):
+            os.rmdir(folder_path)
+            return
+
+        trash_path = os.path.join(settings.MEDIA_ROOT, 'trash')
+        os.makedirs(trash_path, exist_ok=True)
+
+        trash_name = f'{safe_org_name}_{safe_ordner_name}'
+        destination = os.path.join(trash_path, trash_name)
+
+        while os.path.exists(destination):
+            destination = os.path.join(
+                trash_path,
+                f'{trash_name}_{uuid.uuid4().hex[:8]}',
+            )
+
+        shutil.move(folder_path, destination)
+
+        logger.warning(
+            'Moved non-empty deleted document folder to trash: %s -> %s',
+            folder_path,
+            destination,
+        )
+    except OSError:
+        logger.exception(
+            'Could not remove or move deleted document folder: %s',
+            folder_path,
+        )
+
 
 
 def upload_to_folder(instance, filename):
@@ -444,12 +490,12 @@ def upload_to_folder(instance, filename):
     filename = os.path.basename(filename)
     # Remove any remaining path separators
     filename = filename.replace('/', '').replace('\\', '')
-    
+
     order = instance.ordner
     # Sanitize folder name as well
     safe_ordner_name = order.ordner_name.replace('/', '').replace('\\', '').replace('..', '')
     safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
-    
+
     path = os.path.join(safe_ordner_name, filename)
     return os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, path)
 
@@ -459,13 +505,13 @@ def upload_to_preview_image(instance, filename):
     # Sanitize filename
     filename = os.path.basename(filename)
     filename = filename.replace('/', '').replace('\\', '')
-    
+
     filename = filename.split('/')[-1]
     filename = filename.split('.')[0]
-    
+
     # Sanitize org name
     safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
-    
+
     folder = os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, 'preview_image')
     os.makedirs(folder, exist_ok=True)
     return os.path.join(folder, filename + '.jpg')
@@ -488,13 +534,13 @@ class Dokument2(models.Model):
 
     def __str__(self):
         return self.titel or self.dokument.name or self.link
-    
+
     def update_identifier(self):
         self.identifier = get_random_hash(str(self.id), 64)
         while Dokument2.objects.filter(identifier=self.identifier, org=self.org).exists():
             self.identifier = get_random_hash(str(self.id), 64)
         self.save()
-        
+
     def get_identifier(self):
         if not self.identifier:
             self.update_identifier()
@@ -510,20 +556,20 @@ class Dokument2(models.Model):
             return mime_type or 'unknown'
         else:
             return 'unknown'
-        
+
     def get_document_suffix(self):
         if self.dokument:
             return self.dokument.name.split('.')[-1]
         else:
             return 'unknown'
-        
+
     def get_preview_image(self):
         if self.preview_image and os.path.exists(self.preview_image.path):
             return self.preview_image.path
         else:
             return self.get_preview_converted()
-            
-    
+
+
     def get_preview_converted(self):
         import subprocess
         import hashlib
@@ -536,7 +582,7 @@ class Dokument2(models.Model):
                     return img_path
                 else:
                     return None
-            
+
         def excel_to_image(excel_path, img_path):
             from openpyxl import load_workbook
             from PIL import Image, ImageDraw, ImageFont
@@ -593,19 +639,19 @@ class Dokument2(models.Model):
             # Save the image
             img.save(img_path)
             return img_path
-            
+
         def get_hashed_filename(filename):
             """Create a shorter, hashed filename while preserving extension"""
             name, ext = os.path.splitext(filename)
             hash_object = hashlib.md5(name.encode())
             hashed_name = hash_object.hexdigest()[:8]  # Use first 8 chars of hash
             return f"{hashed_name}{ext}"
-        
+
         if not self.dokument:
             return None
-            
+
         mimetype = self.get_document_type()
-        
+
         # Create hashed filename for preview image
         hashed_name = get_hashed_filename(self.dokument.name)
         preview_image_path = upload_to_preview_image(self, hashed_name + '.jpg')
@@ -639,7 +685,7 @@ class Dokument2(models.Model):
             except Exception as e:
                 print(f"Error creating Excel preview: {e}")
                 return None
-            
+
         if os.path.exists(preview_image_path):
             if not self.preview_image:
                 self.preview_image = preview_image_path
@@ -647,7 +693,7 @@ class Dokument2(models.Model):
             return preview_image_path
         else:
             return None
-        
+
 @receiver(post_save, sender=Dokument2)
 def create_preview_image(sender, instance, **kwargs):
     # Skip if we're already processing the preview image.
@@ -796,10 +842,10 @@ class Einsatzstelle2(OrgModel):
     botschaft = models.TextField(verbose_name=_('Botschaft'), null=True, blank=True)
     konsulat = models.TextField(verbose_name=_('Konsulat'), null=True, blank=True)
     informationen = models.TextField(verbose_name=_('Weitere Informationen'), null=True, blank=True)
-    
+
     start_geplant = models.CharField(max_length=6, blank=True, null=True, verbose_name=_('Start geplant'), help_text=_('Das Datum wann der Einsatzstart geplant ist (Format: DD.MM. (z.B. 15.03.))'))
     ende_geplant = models.CharField(max_length=6, blank=True, null=True, verbose_name=_('Ende geplant'), help_text=_('Das Datum wann das Einsatzende geplant ist (Format: DD.MM. (z.B. 15.03.))'))
-    
+
     max_freiwillige = models.IntegerField(blank=True, null=True, default=1, verbose_name=_('Maximale Anzahl Freiwillige'))
 
 
@@ -811,7 +857,7 @@ class Einsatzstelle2(OrgModel):
 
     def __str__(self):
         return f"{self.name} ({self.land.name})"
-    
+
 
     def get_notiz_count(self):
         return EinsatzstelleNotiz.objects.filter(einsatzstelle=self).count()
@@ -1012,7 +1058,7 @@ class Aufgabe2(OrgModel):
 
     def __str__(self):
         return self.name
-    
+
 
 class AufgabeZwischenschritte2(OrgModel):
     aufgabe = models.ForeignKey(Aufgabe2, on_delete=models.CASCADE, verbose_name=_('Aufgabe'))
@@ -1025,11 +1071,11 @@ class AufgabeZwischenschritte2(OrgModel):
 
     def __str__(self):
         return self.name
-    
+
     def save(self, *args, **kwargs):
         # First save the instance so it has an ID
         super(AufgabeZwischenschritte2, self).save(*args, **kwargs)
-        
+
         # Now we can safely filter related objects
         user_aufgaben = UserAufgaben.objects.filter(aufgabe=self.aufgabe)
         for user_aufgabe in user_aufgaben:
@@ -1041,7 +1087,7 @@ class AufgabeZwischenschritte2(OrgModel):
             if created:
                 fw_aufg_zw.erledigt = user_aufgabe.erledigt
                 fw_aufg_zw.save()
-    
+
 
 class UserAufgaben(OrgModel):
     WIEDERHOLUNG_CHOICES = [
@@ -1081,7 +1127,7 @@ class UserAufgaben(OrgModel):
                         new_date = current_date
                     else:
                         new_date = max(current_date, self.faellig)
-                    
+
                     self.faellig = new_date + timedelta(days=self.aufgabe.wiederholung_interval_wochen * 7)
                     self.erledigt = False
                     self.pending = False
@@ -1124,7 +1170,7 @@ class UserAufgaben(OrgModel):
             elif self.aufgabe.faellig_monat:
                 self.faellig = faellig_date
 
-        
+
         super(UserAufgaben, self).save(*args, **kwargs)
 
 
@@ -1151,7 +1197,7 @@ class UserAufgabenZwischenschritte(OrgModel):
         verbose_name_plural = _('Freiwilliger Aufgaben Zwischenschritte')
 
 class Post2(OrgModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer'), help_text=_('Benutzer, der den Post erstellt hat'))    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer'), help_text=_('Benutzer, der den Post erstellt hat'))
     title = models.CharField(max_length=50, verbose_name=_('Post-Titel'), help_text=_('Titel des Posts'))
     text = models.TextField(verbose_name=_('Text'), help_text=_('Text des Posts'), null=True, blank=True)
     image = models.ImageField(upload_to='posts/', blank=True, null=True, verbose_name=_('Bild'), help_text=_('Bild des Posts'))
@@ -1162,10 +1208,10 @@ class Post2(OrgModel):
     already_sent_to = models.ManyToManyField(User, verbose_name=_('Bereits gesendet an'), help_text=_('Benutzer, die diesen Post bereits erhalten haben'), blank=True, related_name='already_sent_to')
 
     history = HistoricalRecords()
-    
+
     def get_response_count(self):
         return PostResponse.objects.filter(original_post=self).count()
-    
+
     def get_all_responses(self):
         return PostResponse.objects.filter(original_post=self)
 
@@ -1182,8 +1228,8 @@ def send_new_post_email_task_receiver(sender, instance, created, **kwargs):
     if created:
         from Global.tasks import send_new_post_email_task
         send_new_post_email_task.s(instance.id).apply_async(countdown=15*60)
-        
-        
+
+
 class PostResponse(OrgModel):
     original_post = models.ForeignKey(Post2, on_delete=models.CASCADE, verbose_name=_('Originaler Post'), help_text=_('Originaler Post, auf den dieser Post antwortet'))
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer'), help_text=_('Benutzer, der die Antwort erstellt hat'))
@@ -1191,11 +1237,11 @@ class PostResponse(OrgModel):
     image = models.ImageField(upload_to='posts/', blank=True, null=True, verbose_name=_('Bild'), help_text=_('Bild der Antwort'))
     date_created = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
     date_updated = models.DateTimeField(auto_now=True, verbose_name=_('Aktualisiert am'))
-    
+
     class Meta:
         verbose_name = _('Post Antwort')
         verbose_name_plural = _('Post Antworten')
-        
+
     def __str__(self):
         return self.user.get_full_name() + ' - ' + self.original_post.title + ' - ' + self.text[:50] + '...'
 
@@ -1203,11 +1249,11 @@ class PostResponse(OrgModel):
 class PostSurveyQuestion(OrgModel):
     post = models.OneToOneField(Post2, on_delete=models.CASCADE, related_name='survey_question', verbose_name=_('Post'))
     question_text = models.CharField(max_length=200, verbose_name=_('Frage'), help_text=_('Text der Umfragefrage'))
-    
+
     class Meta:
         verbose_name = _('Umfragefrage')
         verbose_name_plural = _('Umfragefragen')
-        
+
     def __str__(self):
         return self.question_text
 
@@ -1216,11 +1262,11 @@ class PostSurveyAnswer(OrgModel):
     question = models.ForeignKey(PostSurveyQuestion, on_delete=models.CASCADE, related_name='survey_answers', verbose_name=_('Frage'))
     answer_text = models.CharField(max_length=100, verbose_name=_('Antwort'), help_text=_('Text der Antwortmöglichkeit'))
     votes = models.ManyToManyField(User, verbose_name=_('Benutzer, die an der Umfrage teilgenommen haben'), blank=True)
-    
+
     class Meta:
         verbose_name = _('Umfrageantwort')
         verbose_name_plural = _('Umfrageantworten')
-        
+
     def __str__(self):
         return self.answer_text
 
@@ -1241,7 +1287,7 @@ class Bilder2(OrgModel):
 
     def __str__(self):
         return self.titel
-    
+
     def get_size(self):
         """Get the size of the image."""
         size = 0
@@ -1271,29 +1317,29 @@ class Bilder2(OrgModel):
             })
         reactions.sort(key=lambda x: x['count'], reverse=True)
         return reactions
-    
+
     def get_my_reaction(self, user):
         """Get the specified user's reaction for this image."""
         from Global.models import BilderReaction
         return BilderReaction.objects.filter(bilder=self, user=user).first()
-    
+
     def get_all_reactions_with_users(self):
         """Get all reactions for this image grouped by emoji with user details."""
         from Global.models import BilderReaction
         reactions_by_emoji = {}
-        
+
         for reaction in BilderReaction.objects.filter(bilder=self).select_related('user').order_by('emoji', 'date_created'):
             emoji = reaction.emoji
             if emoji not in reactions_by_emoji:
                 reactions_by_emoji[emoji] = []
-            
+
             reactions_by_emoji[emoji].append({
                 'user_id': reaction.user.id,
                 'user_identifier': reaction.user.customuser.get_identifier(),
                 'user_name': reaction.user.get_full_name() or reaction.user.username,
                 'date_created': reaction.date_created
             })
-        
+
         return reactions_by_emoji
 
 class BilderComment(OrgModel):
@@ -1323,7 +1369,7 @@ class BilderReaction(OrgModel):
         ('😢', _('Traurig')),
         ('😡', _('Wütend')),
     ]
-    
+
     bilder = models.ForeignKey(Bilder2, on_delete=models.CASCADE, related_name='reactions', verbose_name=_('Bild'))
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer'))
     emoji = models.CharField(max_length=10, choices=EMOJI_CHOICES, verbose_name=_('Emoji'))
@@ -1354,18 +1400,18 @@ class BilderGallery2(OrgModel):
 
     def __str__(self):
         return self.image.name
-    
+
     def save(self, *args, **kwargs):
         if not verify_image(self.image):
             raise ValueError("Ungültiges Bild")
         elif self.image and not self.small_image:
             self.small_image = calculate_small_image(self.image)
-            
+
         if self.image:
             self.image = remove_meta_data(self.image)
             if self.small_image and False:
                 self.small_image = remove_meta_data(self.small_image)
-            
+
         super().save(*args, **kwargs)
 
 
@@ -1377,7 +1423,7 @@ def delete_bilder_files(sender, instance, **kwargs):
         if instance.image:
             if os.path.isfile(instance.image.path):
                 os.remove(instance.image.path)
-        
+
         # Delete small image file if it exists
         if instance.small_image:
             if os.path.isfile(instance.small_image.path):
@@ -1424,12 +1470,12 @@ class PushSubscription(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True, help_text=_("Optional name for this device/browser"))
     created_at = models.DateTimeField(auto_now_add=True, help_text=_("When this subscription was created"))
     last_used = models.DateTimeField(null=True, blank=True, help_text=_("When this subscription was last used successfully"))
-    
+
     class Meta:
         verbose_name = _('Push-Abonnement')
         verbose_name_plural = _('Push-Abonnements')
         unique_together = ('user', 'endpoint')
-    
+
     def __str__(self):
         device_name = self.name or "Unbenanntes Gerät"
         return f"{self.user.username} - {device_name}"
@@ -1441,26 +1487,26 @@ class EinsatzstelleNotiz(OrgModel):
     notiz = models.TextField(verbose_name=_('Notiz'), null=True, blank=True, help_text=_('Notiz der Einsatzstelle'))
     date = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
     pinned = models.BooleanField(default=False, verbose_name=_('Angeheftet'))
-    
+
     class Meta:
         verbose_name = _('Einsatzstellen Notiz')
         verbose_name_plural = _('Einsatzstellen Notizen')
 
     def __str__(self):
         return f"{self.einsatzstelle.name} - {self.notiz[:10]}"
-    
-    
+
+
 class StickyNote(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer'))
     notiz = models.CharField(max_length=1000, verbose_name=_('Notiz'), null=True, blank=True, help_text=_('Notiz'))
     date = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
     pinned = models.BooleanField(default=False, verbose_name=_('Angeheftet'))
     priority = models.IntegerField(default=0, verbose_name=_('Priorität'), help_text=_('Priorität der Notiz'))
-    
+
     class Meta:
         verbose_name = _('Sticky Note')
         verbose_name_plural = _('Sticky Notes')
-    
+
     def __str__(self):
         return f"{self.notiz[:10]}"
 
@@ -1470,43 +1516,43 @@ class ChangeRequest(OrgModel):
         ('einsatzland', 'Einsatzland'),
         ('einsatzstelle', 'Einsatzstelle'),
     ]
-    
+
     STATUS_CHOICES = [
         ('pending', 'Ausstehend'),
         ('approved', 'Genehmigt'),
         ('rejected', 'Abgelehnt'),
         ('cancelled', 'Storniert'),
     ]
-    
+
     # Core fields
     change_type = models.CharField(max_length=20, choices=CHANGE_TYPE_CHOICES, verbose_name=_('Änderungstyp'))
     object_id = models.PositiveIntegerField(verbose_name=_('Objekt-ID'))  # ID of Einsatzland2 or Einsatzstelle2
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name=_('Status'))
-    
+
     # Users involved
     requested_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='change_requests_made', verbose_name=_('Angefragt von'))
     reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='change_requests_reviewed', verbose_name=_('Geprüft von'))
-    
+
     # Change data
     field_changes = models.JSONField(verbose_name=_('Feldänderungen'), help_text=_('Gespeicherte Feldänderungen als JSON'))
     reason = models.TextField(blank=True, verbose_name=_('Begründung'), help_text=_('Begründung für die Änderung'))
     review_comment = models.TextField(blank=True, verbose_name=_('Prüfungskommentar'), help_text=_('Kommentar des Prüfers'))
-    
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
     reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name=_('Geprüft am'))
-    
+
     history = HistoricalRecords()
-    
+
     class Meta:
         verbose_name = _('Änderungsantrag')
         verbose_name_plural = _('Änderungsanträge')
         ordering = ['-created_at']
-    
+
     def __str__(self):
         obj_name = self.get_object_name()
         return f'{self.get_change_type_display()}: {obj_name} - {self.get_status_display()}'
-    
+
     def get_object(self):
         """Get the actual object being changed"""
         try:
@@ -1517,7 +1563,7 @@ class ChangeRequest(OrgModel):
         except Exception as e:
             logger.error(f"Error getting object for ChangeRequest {self.id}: {e}")
         return None
-    
+
     def get_object_name(self):
         """Get the name of the object being changed"""
         try:
@@ -1526,12 +1572,12 @@ class ChangeRequest(OrgModel):
         except Exception as e:
             logger.error(f"Error getting object name for ChangeRequest {self.id}: {e}")
             return '[Gelöschtes Objekt]'
-    
+
     def apply_changes(self):
         """Apply the approved changes to the actual object"""
         if self.status != 'approved':
             raise ValueError('Nur genehmigte Änderungsanträge können angewendet werden')
-        
+
         try:
             # Get object without org filtering for proper security check
             if self.change_type == 'einsatzland':
@@ -1540,14 +1586,14 @@ class ChangeRequest(OrgModel):
                 obj = Einsatzstelle2.objects.filter(id=self.object_id).first()
             else:
                 obj = None
-                
+
             if not obj:
                 raise ValueError(f'Objekt mit ID {self.object_id} wurde nicht gefunden')
-            
+
             # Verify object belongs to same org for security
             if obj.org != self.org:
                 raise ValueError('Sicherheitsfehler: Objekt gehört zu einer anderen Organisation')
-            
+
             for field, new_value in self.field_changes.items():
                 # Verify field exists on model
                 if not hasattr(obj, field):
@@ -1559,7 +1605,7 @@ class ChangeRequest(OrgModel):
         except Exception as e:
             logger.error(f"Error applying changes for ChangeRequest {self.id}: {e}")
             raise
-    
+
     def get_field_changes_display(self):
         """Get a human-readable display of field changes"""
         changes = []
@@ -1586,24 +1632,24 @@ class ChangeRequest(OrgModel):
         except Exception as e:
             logger.error(f"Error getting field changes display for ChangeRequest {self.id}: {e}")
         return changes
-    
+
 
 class BewerberKommentar(OrgModel):
     from BW.models import Bewerber
-    
+
     bewerber = models.ForeignKey(Bewerber, on_delete=models.CASCADE, verbose_name=_('Bewerber:in'))
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, verbose_name=_('Erstellt von'))
     comment = models.TextField(verbose_name=_('Kommentar'))
     date_created = models.DateTimeField(auto_now_add=True, null=True, verbose_name=_('Erstellt am'))
-    
+
     class Meta:
         verbose_name = _('Bewerber Kommentar')
         verbose_name_plural = _('Bewerber Kommentare')
         ordering = ['-date_created']
-    
+
     def __str__(self):
         return f'{self.user.get_full_name() if self.user else "Unknown"}: {self.comment[:50]}...'
-    
+
 
 class MapLocation(OrgModel):
     VISIBILITY_CHOICES = [
@@ -1611,7 +1657,7 @@ class MapLocation(OrgModel):
         ('F', 'Nur für andere Freiwillige/Ehemalige in meinem Jahrgang'),
         ('O', 'Nur für Organisation')
     ]
-    
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, verbose_name=_('Erstellt von'))
     date_created = models.DateTimeField(auto_now_add=True, null=True, verbose_name=_('Erstellt am'))
     zip_code = models.CharField(max_length=10, verbose_name=_('PLZ'), null=True, blank=True)
@@ -1620,11 +1666,11 @@ class MapLocation(OrgModel):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name=_('Breitengrad'), null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name=_('Längengrad'), null=True, blank=True)
     visibility = models.CharField(max_length=1, choices=VISIBILITY_CHOICES, default='F', verbose_name=_('Sichtbarkeit'))
-    
+
     class Meta:
         verbose_name = _('Karte')
         verbose_name_plural = _('Karten')
         ordering = ['-date_created']
-        
+
     def __str__(self):
         return f'{self.city}, {self.country}'
