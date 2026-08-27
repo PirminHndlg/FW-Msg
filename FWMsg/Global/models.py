@@ -482,7 +482,7 @@ class Dokument2(models.Model):
     titel = models.CharField(max_length=255, null=True, blank=True, verbose_name=_('Titel'), help_text=_('Titel der Datei'))
     beschreibung = models.TextField(null=True, blank=True, verbose_name=_('Beschreibung'), help_text=_('Beschreibung der Datei'))
     darf_bearbeiten = models.ManyToManyField(PersonCluster, verbose_name=_('Darf bearbeiten'), help_text=_('Benutzergruppen, die diese Datei bearbeiten können'))
-    preview_image = models.ImageField(upload_to=upload_to_preview_image, null=True, blank=True)
+    preview_image = models.ImageField(upload_to=upload_to_preview_image, max_length=255, null=True, blank=True)
 
     history = HistoricalRecords()
 
@@ -650,10 +650,16 @@ class Dokument2(models.Model):
         
 @receiver(post_save, sender=Dokument2)
 def create_preview_image(sender, instance, **kwargs):
-    # Skip if we're already processing the preview image
+    # Skip if we're already processing the preview image.
     if hasattr(instance, '_creating_preview'):
         return
-    
+
+    # Image documents are already their own preview. Saving the original file
+    # path into preview_image is unnecessary and may exceed the field length.
+    document_type = instance.get_document_type()
+    if document_type.startswith('image/'):
+        return
+
     img_path = instance.get_preview_converted()
     if img_path:
         try:
