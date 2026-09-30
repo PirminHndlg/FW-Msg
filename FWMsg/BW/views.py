@@ -26,27 +26,27 @@ base_template = 'baseBw.html'
 @required_role('B')
 @application_or_seminar_is_open
 def home(request):
-    
+
     application_text = ApplicationText.objects.filter(org=request.user.org).first()
-    
+
     total_questions = ApplicationQuestion.objects.filter(org=request.user.org).count()
     done_questions = ApplicationAnswer.objects.filter(user=request.user, is_done=True).count()
-    
+
     total_file_questions = ApplicationFileQuestion.objects.filter(org=request.user.org).count()
     answered_file_questions = ApplicationAnswerFile.objects.filter(user=request.user).exclude(file='').count()
-    
+
     required_file_questions_qs = ApplicationFileQuestion.objects.filter(org=request.user.org, required=True)
     answered_file_questions_qs = ApplicationAnswerFile.objects.filter(user=request.user, file_question__in=required_file_questions_qs)#.exclude(file='')
-    
+
     answered_required_questions = answered_file_questions_qs.count() == required_file_questions_qs.count() and done_questions == total_questions
-    
+
     context = {
         'application_text': application_text,
         'total_questions': total_questions,
         'done_questions': done_questions,
         'done_questions_percentage': int(done_questions / total_questions * 100) if total_questions > 0 else 0,
         'open_questions': total_questions - done_questions,
-        
+
         'total_file_questions': total_file_questions,
         'answered_file_questions': answered_file_questions,
         'answered_file_questions_percentage': int(answered_file_questions / total_file_questions * 100) if total_file_questions > 0 else 0,
@@ -54,7 +54,7 @@ def home(request):
         'now': datetime.now().date(),
         'answered_required_questions': answered_required_questions
     }
-    
+
     return render(request, 'homeBw.html', context)
 
 def create_account(request, org_uuid):
@@ -62,9 +62,9 @@ def create_account(request, org_uuid):
         org = Organisation.objects.get(uuid=org_uuid)
     except Organisation.DoesNotExist:
         return redirect('bw_home')
-    
+
     form = CreateAccountForm(request.POST or None, org=org)
-    
+
     if request.method == 'POST' and form.is_valid():
         try:
             user, bewerber = form.save()
@@ -73,20 +73,20 @@ def create_account(request, org_uuid):
                 unique_value = f"{user.id}_{time.time()}_{secrets.token_hex(16)}"
                 hash_obj = hashlib.sha256(unique_value.encode())
                 verification_token = hash_obj.hexdigest()
-                
+
                 bewerber.verification_token = verification_token
                 bewerber.save()
-                
+
                 user.is_active = False
                 user.save()
-                
+
                 send_account_created_email.s(bewerber.id).apply_async(countdown=2)
                 return redirect('account_created')
             else:
                 form.add_error('email', 'User already exists')
         except IntegrityError:
             form.add_error('email', 'User already exists')
-    
+
     context = {
         'form': form,
         'org': org,
@@ -117,31 +117,31 @@ def bw_application_answer(request, question_id=None):
         question = all_questions.get(id=question_id)
     except ApplicationQuestion.DoesNotExist:
         question = all_questions.first()
-    
+
     answer = ApplicationAnswer.objects.filter(user=request.user, question=question).first()
     form = ApplicationAnswerForm(request.POST or None, user=request.user, question=question, instance=answer)
-    
+
     if request.method == 'POST' and form.is_valid():
         bewerber = Bewerber.objects.get(user=request.user)
-        
+
         if bewerber.abgeschlossen == True:
             messages.error(request, 'Du hast bereits Deine Bewerbung abgeschlossen und kannst keine Antworten mehr ändern.')
             return redirect('bw_home')
-        
+
         answer = form.save()
         if not answer.answer and not answer.is_done:
             answer.delete()
-            
+
         next_question = all_questions.filter(order__gt=question.order).first()
         if next_question:
             return redirect('bw_application_answer', question_id=next_question.id)
         else:
             return redirect('bw_application_answer', question_id=question_id)
-        
+
     done_questions_ids = ApplicationAnswer.objects.filter(
         user=request.user, is_done=True
     ).values_list('question_id', flat=True)
-    
+
     context = {
         'form': form,
         'question': question,
@@ -149,7 +149,7 @@ def bw_application_answer(request, question_id=None):
         'answer': answer,
         'done_questions_ids': done_questions_ids
     }
-    
+
     return render(request, 'bw_application_answer.html', context)
 
 @login_required
@@ -158,7 +158,7 @@ def bw_application_answer(request, question_id=None):
 def bw_application_answers_list(request):
     answers = ApplicationAnswer.objects.filter(org=request.user.org, user=request.user).order_by('question__order')
     file_answers = ApplicationAnswerFile.objects.filter(org=request.user.org, user=request.user).order_by('file_question__order')
-    
+
     context = {
         'answers': answers,
         'file_answers': file_answers
@@ -177,7 +177,7 @@ def bw_application_complete(request):
             return redirect('bw_home')
     except ApplicationText.DoesNotExist:
         pass
-    
+
     bewerber = Bewerber.objects.get(user=request.user)
     bewerber.abgeschlossen = True
     bewerber.abgeschlossen_am = datetime.now()
@@ -191,15 +191,15 @@ def bw_application_complete(request):
 def bw_application_files_list(request):
     file_questions = ApplicationFileQuestion.objects.filter(org=request.user.org).order_by('order')
     file_answers = ApplicationAnswerFile.objects.filter(user=request.user, file_question__in=file_questions)
-    
+
     # Create a dictionary with question IDs as keys and answers as values
     answers_dict = {answer.file_question.id: answer for answer in file_answers}
-    
+
     context = {
         'file_questions': file_questions,
         'file_answers': answers_dict
     }
-    
+
     return render(request, 'bw_application_files_list.html', context)
 
 @login_required
@@ -212,19 +212,19 @@ def bw_application_file_answer(request, file_question_id):
         form = ApplicationFileAnswerForm(request.POST or None, request.FILES or None, user=request.user, file_question=file_question, instance=answer)
     else:
         form = ApplicationFileAnswerForm(request.POST or None, user=request.user, file_question=file_question, instance=answer)
-        
+
     if request.method == 'POST':
         bewerber = Bewerber.objects.get(user=request.user)
         if bewerber.abgeschlossen == True:
             messages.error(request, 'Du hast bereits Deine Bewerbung abgeschlossen und kannst keine Dateien mehr hochladen.')
             return redirect('bw_home')
-        
+
         if form.is_valid() and len(request.FILES) == 1:
             form.save()
             return redirect('bw_application_files_list')
         elif form.is_valid() and len(request.FILES) == 0:
             return redirect('bw_application_files_list')
-    
+
     return render(request, 'bw_application_file_answer.html', {'form': form, 'file_question': file_question, 'answer': answer})
 
 @login_required
@@ -236,9 +236,12 @@ def bw_application_file_answer_delete(request, file_answer_id):
         messages.error(request, 'Du hast bereits Deine Bewerbung abgeschlossen und kannst keine Dateien mehr löschen.')
         return redirect('bw_home')
 
-    file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, user=request.user)
-    file_answer.delete()
-    messages.success(request, 'Datei wurde erfolgreich gelöscht')
+    try:
+        file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, user=request.user)
+        file_answer.delete()
+        messages.success(request, 'Datei wurde erfolgreich gelöscht')
+    except:
+        messages.error(request, 'Fehler beim Löschen der Datei')
     return redirect('bw_application_files_list')
 
 
@@ -251,20 +254,20 @@ def delete_account(request):
         # Store user info before deletion
         user_id = request.user.id
         bewerber = Bewerber.objects.get(user=request.user)
-        
+
         # First logout the user
         logout(request)
-        
+
         # Then delete the bewerber and user
         bewerber.delete()
         User.objects.filter(id=user_id).delete()
-        
+
         messages.success(request, 'Ihr Konto wurde erfolgreich gelöscht')
     except Bewerber.DoesNotExist:
         messages.error(request, 'Ihr Konto wurde nicht gefunden')
     except Exception as e:
         messages.error(request, f'Fehler beim Löschen des Kontos: {str(e)}')
-    
+
     return redirect('bw_home')
 
 @login_required
@@ -281,7 +284,7 @@ def my_assignment(request):
         if bewerber.zuteilung_freigegeben == False or bewerber.zuteilung is None:
             messages.error(request, 'Deine Zuteilung ist noch nicht freigegeben oder noch nicht zugewiesen.')
             return redirect('bw_home')
-        
+
         form = MyAssignmentForm(request.POST or None, instance=bewerber)
         if request.method == 'POST' and form.is_valid():
             form.save()
@@ -289,7 +292,7 @@ def my_assignment(request):
                 send_reaktion_auf_zuteilung_email.s(bewerber.id).apply_async(countdown=2)
             messages.success(request, 'Deine Reaktion auf die Zuteilung wurde erfolgreich gespeichert.')
             return redirect('my_assignment')
-        
+
         return render(request, 'my_assignment.html', {'form': form, 'bewerber': bewerber})
     except Exception as e:
         messages.error(request, f'Fehler beim Laden der Zuteilung: {str(e)}')
