@@ -4,7 +4,7 @@ aiosignal==1.4.0
 amqp==5.3.1
 asgiref==3.11.0
 attrs==25.4.0
-autobahn==25.12.2
+autobahn==26.7.1
 Automat==25.4.16
 billiard==4.2.4
 brotli==1.2.0
@@ -26,7 +26,7 @@ cryptography==50.0.0
 cssselect2==0.8.0
 daphne==4.2.2
 deptry==0.24.0
-Django==6.0.7
+Django==6.0.8
 django-celery==3.1.17
 django-gdpr-assist==1.4.2
 django-password-validators==1.7.3
@@ -36,14 +36,14 @@ django-tables2==2.8.0
 django-widget-tweaks==1.5.1
 django-yaa-settings==1.1.0
 django_celery_results==2.6.0
-djangorestframework==3.16.1
+djangorestframework==3.17.2
 docx2pdf==0.1.8
 emoji==2.15.0
 et_xmlfile==2.0.0
 fonttools==4.61.1
 frozenlist==1.8.0
 geographiclib==2.1
-geopy==2.4.1
+geopy==2.5.0
 git-filter-repo==2.47.0
 html2text==2025.4.15
 http_ece==1.2.1
@@ -102,7 +102,7 @@ tzdata==2025.3
 tzlocal==5.3.1
 ujson==5.13.0
 update==0.0.1
-urllib3==2.7.0
+urllib3==2.8.0
 vine==5.1.0
 wcwidth==0.2.14
 weasyprint==68.0
