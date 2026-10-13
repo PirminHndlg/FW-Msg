@@ -1,11 +1,12 @@
 {% load i18n %}
+{% load profil_filter %}
 
 <div class="text-center">
     <div class="d-flex flex-column align-items-center">
         <div class="position-relative">
-            <img src="{% url 'serve_profil_picture' displayed_user.customuser.get_identifier %}" 
-                 alt="{% trans 'Profilbild' %}" 
-                 class="img-fluid rounded-circle mb-3" 
+            <img src="{% url 'serve_profil_picture' displayed_user.customuser.get_identifier %}"
+                 alt="{% trans 'Profilbild' %}"
+                 class="img-fluid rounded-circle mb-3"
                  style="width: 200px; max-width: 100%;">
             {% if this_user and displayed_user == request.user %}
             <div class="position-absolute bottom-0 end-0 mb-3 me-2">
@@ -26,30 +27,18 @@
             </script>
             {% endif %}
         </div>
-        {% if freiwilliger %}
-            {% if freiwilliger.einsatzland2 %}
-            <a {% if this_user %}href="{% url 'laenderinfo' %}"{% endif %} class="text-decoration-none d-flex flex-column align-items-center">
-                <span class="fi fi-{{ freiwilliger.einsatzland2.code|lower }} mb-2 border" style="font-size: 3rem;"></span>
-                <span class="small text-muted">{{ freiwilliger.einsatzland2.name|default:"" }}</span>
-                <span class="small text-muted">{{ freiwilliger.einsatzstelle2.name|default:"" }}</span>
-            </a>
+        {% with laender=displayed_user|get_laender %}
+            {% if laender %}
+            <div class="text-decoration-none d-flex flex-column align-items-center">
+                <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
+                    {% for land_code in laender %}
+                        <span class="fi fi-{{ land_code|lower }} mb-2 border" style="font-size: 3rem;"></span>
+                    {% endfor %}
+                </div>
+            </div>
             {% else %}
                 <i class="bi bi-globe mb-2" style="font-size: 3rem; color: var(--bs-primary);"></i>
             {% endif %}
-        {% endif %}
-        {% if displayed_user.ehemalige and displayed_user.ehemalige.land.exists %}
-            <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
-            {% for land in displayed_user.ehemalige.land.all %}
-                <span class="fi fi-{{ land.code|lower }} mb-2 border" style="font-size: 3rem;"></span>
-            {% endfor %}
-            </div>
-        {% endif %}
-        {% if displayed_user.team and displayed_user.team.land.exists %}
-            <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
-            {% for land in displayed_user.team.land.all %}
-                <span class="fi fi-{{ land.code|lower }} mb-2 border" style="font-size: 3rem;"></span>
-            {% endfor %}
-            </div>
-        {% endif %}
+        {% endwith %}
     </div>
-</div> 
+</div>

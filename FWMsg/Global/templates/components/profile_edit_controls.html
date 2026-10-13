@@ -1,14 +1,14 @@
 {% load i18n %}
 {% load widget_tweaks %}
 
-{# Bootstrap Modal for adding/editing profile attributes #}
-<div class="modal fade" id="profileAttributeModal" tabindex="-1" aria-labelledby="profileAttributeModalLabel" aria-hidden="true">
+{# Bootstrap Modal for adding/editing additional profile information #}
+<div class="modal fade" id="profileAttributeModal" tabindex="-1" aria-labelledby="profileInformationModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="profileAttributeModalLabel">
+                <h5 class="modal-title" id="profileInformationModalLabel">
                     <i class="bi bi-plus-circle me-2"></i>
-                    {% trans "Attribut hinzufügen" %}
+                    {% trans "Weitere Profilangabe hinzufügen" %}
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -17,11 +17,11 @@
                     {% csrf_token %}
                     <div class="row g-3">
                         <div class="col-12">
-                            <label for="{{ profil_user_form.attribut.id_for_label }}" class="form-label">{% trans "Bezeichnung" %}</label>
+                            <label for="{{ profil_user_form.attribut.id_for_label }}" class="form-label">{% trans "Titel" %}</label>
                             {{ profil_user_form.attribut }}
                         </div>
                         <div class="col-12">
-                            <label for="{{ profil_user_form.value.id_for_label }}" class="form-label">{% trans "Wert" %}</label>
+                            <label for="{{ profil_user_form.value.id_for_label }}" class="form-label">{% trans "Information" %}</label>
                             {{ profil_user_form.value }}
                         </div>
                     </div>
@@ -43,10 +43,12 @@
 
 {# Control buttons #}
 <div class="d-flex align-items-center">
-    <button id="editAttributesBtn" class="btn p-1">
-        <a id="fertigText" class="d-none text-decoration-none text-white">{% trans "Fertig" %}</a>
-        <i class="bi bi-pencil"></i>
-    </button>
+    {% if profil_users %}
+        <button id="editAttributesBtn" class="btn p-1">
+            <a id="fertigText" class="d-none text-decoration-none text-white">{% trans "Fertig" %}</a>
+            <i class="bi bi-pencil"></i>
+        </button>
+    {% endif %}
     <button id="addAttributeBtn" class="btn p-1" data-bs-toggle="modal" data-bs-target="#profileAttributeModal">
         <i class="bi bi-plus-circle"></i>
     </button>
@@ -98,12 +100,12 @@ const ProfileControls = {
 
     toggleEditMode() {
         const isEditing = this.elements.editBtn.classList.contains('active');
-        
+
         // Toggle edit button state
         this.elements.editBtn.classList.toggle('active');
         this.elements.editBtn.classList.toggle('btn-secondary');
         this.elements.editBtn.classList.toggle('btn-primary');
-        
+
         // Toggle visibility of remove buttons
         Array.from(this.elements.removeButtons).forEach(btn => {
             btn.classList.toggle('d-none');
@@ -130,4 +132,4 @@ const ProfileControls = {
 
 // Initialize controls when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => ProfileControls.init());
-</script> 
+</script>
