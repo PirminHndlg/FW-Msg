@@ -1,0 +1,66 @@
+{% extends extends_base|default:'baseFw.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/ampel-history.css' %}">
+{% endblock %}
+
+{% block headline %}
+    {% trans "Ampelverlauf" %}
+{% endblock %}
+
+{% block content %}
+
+<div class="card rounded-4 ampel-history-card">
+    <div class="card-header rounded-4 d-flex justify-content-between align-items-center gap-3">
+        <div>
+            <h3 class="card-title mb-1">{% trans "Meine Ampelmeldungen" %}</h3>
+        </div>
+        <a href="{% url 'ampel' %}" class="btn btn-primary btn-sm flex-shrink-0">
+            <i class="bi bi-plus-circle me-1"></i>
+            <span class="d-none d-sm-inline">{% trans "Neue Meldung" %}</span>
+        </a>
+    </div>
+
+    <div class="card-body">
+        {% if ampel_meldungen %}
+            <div class="ampel-timeline">
+                {% for meldung in ampel_meldungen %}
+                    <article class="ampel-entry">
+                        <time class="ampel-date" datetime="{{ meldung.date|date:'c' }}">
+                            <span class="ampel-date-day">{{ meldung.date|date:'d.m.Y' }}</span>
+                            {{ meldung.date|date:'H:i' }} Uhr
+                        </time>
+
+                        {% if meldung.status == 'G' %}
+                            <div class="ampel-marker ampel-marker-success" aria-label="{% trans 'Status' %}"></div>
+                        {% elif meldung.status == 'Y' %}
+                            <div class="ampel-marker ampel-marker-warning" aria-label="{% trans 'Status' %}"></div>
+                        {% else %}
+                            <div class="ampel-marker ampel-marker-danger" aria-label="{% trans 'Status' %}"></div>
+                        {% endif %}
+
+                        <div class="ampel-entry-card ampel-entry-card-{% if meldung.status == 'G' %}success{% elif meldung.status == 'Y' %}warning{% else %}danger{% endif %}">
+
+                            {% if meldung.comment %}
+                                <p class="ampel-comment mb-0 text-body-secondary">{{ meldung.comment }}</p>
+                            {% else %}
+                                <p class="small text-muted fst-italic mb-0">{% trans "Keine Anmerkung" %}</p>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <p class="text-muted mb-3">{% trans "Du hast bisher noch keine Ampelmeldung abgegeben." %}</p>
+                <a href="{% url 'ampel' %}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    {% trans "Erste Meldung abgeben" %}
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

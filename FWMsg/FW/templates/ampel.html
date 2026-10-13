@@ -20,12 +20,16 @@
         </div>
     {% endif %}
     <div class="card rounded-4 mb-4">
-        <div class="card-header rounded-4">
+        <div class="card-header rounded-4 d-flex align-items-center justify-content-between gap-3">
             <h3 class="card-title mb-0">{% trans "Ampelmeldung" %}</h3>
+            <a href="{% url 'ampel_history' %}" class="btn btn-sm btn-outline-primary flex-shrink-0">
+                <i class="bi bi-clock-history me-1"></i>
+                <span class="d-none d-sm-inline">{% trans "Verlauf" %}</span>
+            </a>
         </div>
         <div class="card-body">
             <p class="text-center mb-3">{% trans "Bitte wähle eine Farbe aus, die deinen aktuellen Status am besten beschreibt" %}:</p>
-            
+
             {# Traffic Light Selector Component #}
             {% include "components/ampel_selector.html" %}
 
@@ -47,9 +51,6 @@
 
                 {# Action Buttons: full-width on small, inline on md+ #}
                 <div class="order-1 order-md-2 d-grid gap-2 d-flex flex-column-reverse flex-md-row">
-                    <button type="button" class="btn btn-secondary w-100 w-md-auto me-0" onclick="window.location.href = '{% url 'fw_home' %}'">
-                        <span class="d-flex align-items-center justify-content-center"><i class="bi bi-arrow-left me-2"></i>{% trans "Zurück" %}</span>
-                    </button>
                     <button id="ampelSubmit" type="submit" class="btn btn-primary w-100 w-md-auto">
                         <span class="label d-flex align-items-center justify-content-center"><i class="bi bi-send me-2"></i>{% trans "Abschicken" %}</span>
                     </button>

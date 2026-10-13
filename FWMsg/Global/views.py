@@ -1528,6 +1528,23 @@ def ampel(request):
     context = check_organization_context(request, context)
     return render(request, 'ampel.html', context=context)
 
+
+@login_required
+@required_person_cluster('ampel')
+def ampel_history(request):
+    """Display the current user's previous traffic-light reports."""
+    ampel_meldungen = Ampel2.objects.filter(
+        user=request.user,
+        org=request.user.org,
+    ).order_by('-date')
+
+    context = {
+        'ampel_meldungen': ampel_meldungen,
+    }
+    context = check_organization_context(request, context)
+    return render(request, 'ampel_history.html', context=context)
+
+
 def _get_ampel_matrix(request, users, ampel_this_month=None, person_cluster=None):
         # Get date range for ampel entries (scoped to filtered users / PersonCluster)
     date_range = _get_ampel_date_range(

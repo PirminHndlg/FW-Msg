@@ -49,6 +49,7 @@ urlpatterns = [
     path('profil_picture/<str:user_identifier>/', views.serve_profil_picture, name='serve_profil_picture'),
 
     path('ampel/', views.ampel, name='ampel'),
+    path('ampel/history/', views.ampel_history, name='ampel_history'),
     path('list-ampel/', views.list_ampel, name='list_ampel'),
     
     path('aufgaben/', views.aufgaben, name='aufgaben'),
