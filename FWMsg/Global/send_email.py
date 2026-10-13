@@ -28,7 +28,7 @@ def save_email_to_sent_folder(subject, message, from_email, recipient_list, html
         imap_use_ssl = settings.IMAP_USE_SSL
         email_user = settings.EMAIL_HOST_USER
         email_password = settings.EMAIL_HOST_PASSWORD
-        
+
         # Create email message
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
@@ -37,34 +37,34 @@ def save_email_to_sent_folder(subject, message, from_email, recipient_list, html
         if reply_to:
             msg['Reply-To'] = ', '.join(reply_to)
         msg['Date'] = formatdate(localtime=True)
-        
+
         if message:
             text_part = MIMEText(message, 'plain', 'utf-8')
             msg.attach(text_part)
-        
+
         if html_message:
             html_part = MIMEText(html_message, 'html', 'utf-8')
             msg.attach(html_part)
-        
+
         # Connect to IMAP server
         if imap_use_ssl:
             imap = imaplib.IMAP4_SSL(str(imap_host), imap_port)
         else:
             imap = imaplib.IMAP4(str(imap_host), imap_port)
-        
+
         # Login
         imap.login(str(email_user), str(email_password))
-        
+
         # Append message to Sent folder
         sent_folder = 'Volunteer.Solutions'
         imap.append(sent_folder, '\\Seen', imaplib.Time2Internaldate(time.time()), msg.as_string().encode('utf-8'))
-        
+
         # Logout
         imap.logout()
-        
+
         print(f"Email archived to {sent_folder}")
         return True
-        
+
     except Exception as e:
         print(f"Failed to archive email to IMAP Sent folder: {e}")
         logger.error(f"Failed to archive email to IMAP Sent folder: {e}")
@@ -122,7 +122,7 @@ def send_email_with_archive(subject, message, from_email, recipient_list, html_m
             html_message=html_message,
             reply_to_list=reply_to_list
         )
-        
+
         # If email was sent successfully and archiving is enabled, save to Sent folder
         if result and save_to_sent:
             save_email_to_sent_folder(
@@ -133,9 +133,9 @@ def send_email_with_archive(subject, message, from_email, recipient_list, html_m
                 html_message=html_message,
                 reply_to=reply_to_list
                 )
-        
+
         return result
-        
+
     except Exception as e:
         print(f"Email sending failed: {e}")
         return False
@@ -185,7 +185,7 @@ def format_aufgabe_erledigt_email(aufgabe_name, aufgabe_deadline, org_color, org
     # Convert boolean values to Yes/No text in German
     requires_confirmation_text = "Ja" if requires_confirmation else "Nein"
     has_file_upload_text = "Ja" if has_file_upload else "Nein"
-    
+
     context = {
         'aufgabe_name': aufgabe_name,
         'aufgabe_beschreibung': aufgabe_beschreibung,
@@ -239,11 +239,11 @@ def format_new_post_email(post_title, post_text, author_name, post_date, has_ima
     """Format email for new post notifications"""
     # Format the post date
     formatted_date = post_date.astimezone(timezone.get_current_timezone()).strftime('%d.%m.%Y %H:%M') if post_date else ''
-    
+
     # Truncate post text if it's too long for email
     max_length = 300
     truncated_text = post_text if len(post_text) <= max_length else post_text[:max_length] + '...'
-    
+
     context = {
         'post_title': post_title,
         'post_text': truncated_text,
@@ -291,7 +291,7 @@ def format_ampel_email(user_name, ampel_user_name, ampel_user_email, status, com
     """Format email for ampel status notifications to organization"""
     # Format the ampel date
     formatted_date = ampel_date.astimezone(timezone.get_current_timezone()).strftime('%d.%m.%Y %H:%M') if ampel_date else ''
-    
+
     context = {
         'user_name': user_name,
         'ampel_user_name': ampel_user_name,
@@ -569,13 +569,18 @@ def send_aufgaben_email(aufgabe, org):
         action_url=action_url,
         aufgabe_beschreibung=aufg_beschreibung,
         unsubscribe_url=unsubscribe_url
-    )   
+    )
 
     subject = f'Erinnerung: {aufgabe.aufgabe.name}'
 
     faellig_text = ''
     if aufgabe.faellig:
-        faellig_text = f'am {aufgabe.faellig.strftime("%d.%m.%Y")} '
+        # Compare dates using Django's configured timezone.
+        if aufgabe.faellig == timezone.localdate():
+            faellig_text = 'heute '
+            subject = f'Heute faellig: {aufgabe.aufgabe.name}'
+        else:
+            faellig_text = f'am {aufgabe.faellig.strftime("%d.%m.%Y")} '
 
     push_content = f'Die Aufgabe "{aufgabe.aufgabe.name}" ist {faellig_text}fällig.'
 
@@ -613,69 +618,69 @@ def send_new_aufgaben_email(aufgaben, org):
     )
 
     subject = f'Neue Aufgaben: {aufgaben[0].aufgabe.name}... und mehr'
-        
+
     if aufgaben[0].user.customuser.mail_notifications and send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [aufgaben[0].user.email], html_message=email_content, reply_to_list=[org.email]):
         for aufgabe in aufgaben:
             aufgabe.last_reminder = timezone.now()
             aufgabe.currently_sending = False
             aufgabe.save()
         return True
-    
+
     push_content = f'Neue Aufgaben: {aufgaben[0].aufgabe.name}... und mehr'
     send_push_notification_to_user(aufgaben[0].user, subject, push_content, url=action_url)
-    
+
     for aufgabe in aufgaben:
         aufgabe.currently_sending = False
         aufgabe.save()
-    
+
     return False
 
 def send_new_post_email(post_id):
     from Global.models import Post2
-    
+
     try:
         post = Post2.objects.get(id=post_id)
     except Post2.DoesNotExist:
         logger.error(f"Post with id {post_id} not found")
         return False
-    
+
     org = post.org
-    
+
     # Generate action URL for the post
     action_url = f'{settings.DOMAIN_HOST}{reverse("post_detail", args=[post.pk])}'
-    
+
     # Get organization logo
     image_url = get_logo_url(org)
     org_color = get_org_color(org)
-    
+
     # Get author information
     author_name = f"{post.user.first_name} {post.user.last_name}" if post.user.first_name and post.user.last_name else post.user.username
-    
+
     # Email subject
     subject = f'Neuer Post: {post.title}'
-    
+
     # Track successful sends
     successful_sends = 0
-    
+
     for person_cluster in post.person_cluster.all():
         for user in person_cluster.get_users():
             # Skip if user already received this post
             if user in post.already_sent_to.all():
                 continue
-                
+
             # Skip if user doesn't want email notifications
             if hasattr(user, 'customuser') and not user.customuser.mail_notifications:
                 continue
-                
+
             # Get user's unsubscribe URL
             unsubscribe_url = user.customuser.get_unsubscribe_url() if hasattr(user, 'customuser') else None
-            
+
             # Add user to already_sent_to list
             post.already_sent_to.add(user)
-            
+
             # Format user name
             user_name = f"{user.first_name} {user.last_name}" if user.first_name and user.last_name else user.username
-            
+
             # Generate email content
             email_content = format_new_post_email(
                 post_title=post.title,
@@ -691,49 +696,49 @@ def send_new_post_email(post_id):
                 image_url=image_url,
                 org_color=org_color
             )
-            
+
             # Send email using Django's send_mail
             if user.customuser.mail_notifications and send_email_with_archive(subject, '', settings.SERVER_EMAIL, [user.email], html_message=email_content):
                 successful_sends += 1
-                
+
             # Send push notification as well
             push_content = f'Neuer Post von {author_name}: {post.title}'
             if post.has_survey:
                 push_content += ' (enthält Umfrage)'
-                
+
             send_push_notification_to_user(user, subject, push_content, url=action_url)
-    
+
     post.save()
     return successful_sends
 
 
 def send_post_response_email(response_id):
     from Global.models import PostResponse
-    
+
     try:
         response = PostResponse.objects.get(id=response_id)
     except PostResponse.DoesNotExist:
         logger.error(f"PostResponse with id {response_id} not found")
         return False
-    
+
     org = response.org
-    
+
     action_url = f'{settings.DOMAIN_HOST}{reverse("post_detail", args=[response.original_post.id])}'
     image_url = get_logo_url(org)
     org_color = get_org_color(org)
     author_name = f"{response.user.first_name} {response.user.last_name}" if response.user.first_name and response.user.last_name else response.user.username
     has_image = True if response.image else False
     subject = f'Neue Antwort auf den Post: {response.original_post.title}'
-        
+
     for person_cluster in response.original_post.person_cluster.all():
         for user in person_cluster.get_users():
             # Skip if user doesn't want email notifications
             if hasattr(user, 'customuser') and not user.customuser.mail_notifications:
                 continue
-                
+
             unsubscribe_url = user.customuser.get_unsubscribe_url() if hasattr(user, 'customuser') else None
             user_name = f"{user.first_name} {user.last_name}" if user.first_name and user.last_name else user.username
-            
+
             email_content = format_post_response_email(
                 post_title=response.original_post.title,
                 response_text=response.text,
@@ -746,14 +751,14 @@ def send_post_response_email(response_id):
                 image_url=image_url,
                 org_color=org_color
             )
-            
+
             if user.customuser.mail_notifications:
                 send_email_with_archive(subject, '', settings.SERVER_EMAIL, [user.email], html_message=email_content)
-                
+
             push_content = f'Neue Antwort auf den Post: {response.original_post.title}'
             if response.original_post.has_survey:
                 push_content += ' (enthält Umfrage)'
 
             send_push_notification_to_user(user, subject, push_content, url=action_url)
-    
+
     return True

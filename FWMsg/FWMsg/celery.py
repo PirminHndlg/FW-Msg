@@ -99,14 +99,23 @@ def get_faellige_aufgaben(before_date=False):
             tasks_to_remind.append(task)
             
     
-    if before_date:        
+    if before_date:
+        # Include all open tasks due today, regardless of whether a reminder
+        # has already been sent.
+        today_tasks = UserAufgaben.objects.filter(
+            erledigt=False,
+            pending=False,
+            faellig=current_time.date(),
+        )
+        tasks_to_remind.extend(today_tasks)
+
         overdue_tasks_2 = UserAufgaben.objects.filter(
             erledigt=False,
             pending=False,
             last_reminder__isnull=False,
             faellig__gte=current_time
         )
-        
+
         for task in overdue_tasks_2:
             if task.aufgabe.repeat_push_days:
                 if (task.faellig - current_time.date()).days < task.aufgabe.repeat_push_days and (current_time.date() - task.last_reminder).days > task.aufgabe.repeat_push_days:
