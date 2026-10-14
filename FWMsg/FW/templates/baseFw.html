@@ -23,37 +23,37 @@
         {% comment %} --background-color: #f8f9fa; {% endcomment %}
         --text_color_on_org_color: white;
       }
-      
+
       /* Larger icons for medium screens only */
       @media (min-width: 768px) and (max-width: 991.98px) {
         .icon-md-lg {
           font-size: 1.5rem !important;
         }
       }
-      
+
       .overflow-y-auto {
         overflow-y: auto;
       }
-      
+
       .overflow-x-hidden {
         overflow-x: hidden;
       }
-      
+
       .flex-grow-1 {
         flex-grow: 1;
       }
-      
+
       .min-height-0 {
         min-height: 0;
       }
-      
+
       /* Active page highlighting */
       .nav-link.active {
         background-color: rgba(255, 255, 255, 0.2) !important;
         border-radius: 0.375rem;
         font-weight: 500;
       }
-      
+
       .nav-link.active i {
         opacity: 1;
       }
@@ -147,7 +147,7 @@
                   <i class="bi bi-house me-1"></i>{% trans 'Home' %}
                 </a>
               </li>
-              
+
               <!-- Content & Activities Section -->
               <li class="nav-item mt-3">
                 <small class="text-muted px-0 py-1" style="color: var(--text_color_on_org_color); opacity: 0.7; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{% trans 'Content & Activities' %}</small>
@@ -173,7 +173,7 @@
                   </a>
                 </li>
               {% endif %}
-              
+
               <!-- Media & Documents Section -->
               <li class="nav-item mt-3">
                 <small class="text-muted px-0 py-1" style="color: var(--text_color_on_org_color); opacity: 0.7; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{% trans 'Media & Documents' %}</small>
@@ -206,7 +206,7 @@
                   </a>
                 </li>
               {% endif %}
-              
+
               <!-- Information & Contacts Section -->
               <li class="nav-item mt-3">
                 <small class="text-muted px-0 py-1" style="color: var(--text_color_on_org_color); opacity: 0.7; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{% trans 'Information & Contacts' %}</small>
@@ -233,7 +233,7 @@
                   </a>
                 </li>
               {% endif %}
-              
+
               <!-- Account & Settings Section -->
               <li class="nav-item mt-3">
                 <small class="text-muted px-0 py-1" style="color: var(--text_color_on_org_color); opacity: 0.7; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{% trans 'Account & Settings' %}</small>
@@ -272,7 +272,7 @@
                   <i class="bi bi-house icon-md-lg"></i>
                 </a>
               </li>
-              
+
               <!-- Content & Activities -->
               {% if user.person_cluster.aufgaben %}
                 <li class="nav-item">
@@ -295,7 +295,7 @@
                   </a>
                 </li>
               {% endif %}
-              
+
               <!-- Media & Documents -->
               {% if user.person_cluster.bilder %}
                 <li class="nav-item">
@@ -343,7 +343,7 @@
                   </a>
                 </li>
               {% endif %}
-              
+
               <!-- Account & Settings -->
               <li class="nav-item">
                 <a class="nav-link px-0 py-2 d-flex justify-content-center" style="color: var(--text_color_on_org_color);" href="{% url 'profil' %}" title="{% trans 'Profil' %}">
@@ -360,7 +360,7 @@
         </nav>
 
         <!-- Main content -->
-        <main class="col-lg-10 col-md-11 col-sm-12 pt-3 pb-5 pb-lg-3 mb-4 mb-lg-0 h-100" style="background-color: var(--background-color); margin-bottom: 70px; min-height: 100vh;">
+        <main class="col-lg-10 col-md-11 col-sm-12 pt-3 pb-5 pb-lg-3 mb-4 mb-lg-0 h-100" style="margin-bottom: 70px; min-height: 100vh;">
           {% include 'error_message.html' %}
           {% block content %}
 
