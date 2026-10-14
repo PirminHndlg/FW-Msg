@@ -120,10 +120,10 @@ function updateInputFiles(input, files) {
                              {% if field.value %}
                             <i class="bi bi-file-earmark-check display-4 text-success"></i>
                             <p class="mb-0 text-muted">{{ field.value|cut:"uploads/" }}</p>
-                            <p class="mb-0 text-muted">{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</p>
+                            <p class="mb-0 text-muted"><span class="no-touch">{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</span><span class="touch-only">{% trans "Tippen, um eine Datei auszuwählen" %}</span></p>
                             {% else %}
                             <i class="bi bi-cloud-upload display-4 text-primary"></i>
-                            <p class="mb-0 text-muted">{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</p>
+                            <p class="mb-0 text-muted"><span class="no-touch">{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</span><span class="touch-only">{% trans "Tippen, um eine Datei auszuwählen" %}</span></p>
                             {% endif %}
                         </div>
                     </div>

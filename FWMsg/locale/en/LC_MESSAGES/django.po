@@ -7357,3 +7357,19 @@ msgstr "Error generating PDF export: %(error)s"
 
 #~ msgid "Aufgaben Übersicht"
 #~ msgstr "Task overview"
+
+#: FW/templates/components/calendar.html
+msgid "Monat"
+msgstr "Month"
+
+#: FW/templates/components/calendar.html
+msgid "Liste"
+msgstr "List"
+
+#: FW/templates/components/calendar.html
+msgid "Keine Termine in diesem Monat"
+msgstr "No events this month"
+
+#: Global/templates/bild.html FW/templates/components/task_detail_form.html
+msgid "Tippen, um eine Datei auszuwählen"
+msgstr "Tap to select a file"

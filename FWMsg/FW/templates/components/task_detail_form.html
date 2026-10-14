@@ -53,10 +53,10 @@
                  {% if task.file %}
                 <i class="bi bi-file-earmark-check display-4 text-success mb-2"></i>
                 <p class="mb-1 fw-semibold text-break">{{ task.file.name|cut:"uploads/" }}</p>
-                <p class="mb-0 text-muted small"><i class="bi bi-arrow-repeat me-1"></i>{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</p>
+                <p class="mb-0 text-muted small"><i class="bi bi-arrow-repeat me-1"></i><span class="no-touch">{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</span><span class="touch-only">{% trans "Tippen, um eine Datei auszuwählen" %}</span></p>
                 {% else %}
                 <i class="bi bi-cloud-upload display-4 text-primary mb-2"></i>
-                <p class="mb-0 text-muted"><i class="bi bi-plus-circle me-1"></i>{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</p>
+                <p class="mb-0 text-muted"><i class="bi bi-plus-circle me-1"></i><span class="no-touch">{% trans "Datei hierher ziehen oder klicken zum Auswählen" %}</span><span class="touch-only">{% trans "Tippen, um eine Datei auszuwählen" %}</span></p>
                 {% endif %}
             </div>
         </div>

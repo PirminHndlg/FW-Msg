@@ -184,11 +184,20 @@
 }
 
 /* Responsive Design */
+/* Kommentar-Umschalter: Icon-Button mit ausreichend großer Tippfläche */
+.comments-toggle {
+  min-width: 36px;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media (max-width: 576px) {
   .emoji-reaction-btn {
     padding: 5px 10px;
     font-size: 14px;
-    min-height: 32px;
+    min-height: 36px;
     gap: 3px;
   }
   
@@ -212,7 +221,7 @@
 @media (max-width: 400px) {
   .emoji-reaction-btn {
     padding: 4px 8px;
-    min-height: 30px;
+    min-height: 36px;
   }
   
   .emoji-icon {

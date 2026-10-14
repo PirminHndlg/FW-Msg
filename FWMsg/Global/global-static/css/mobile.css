@@ -1,0 +1,122 @@
+/* Mobile-Optimierungen für alle Bereiche (eingebunden über header.html).
+   Alles ist auf kleine Bildschirme bzw. Touch-Geräte beschränkt, damit die
+   Desktop-Darstellung unverändert bleibt. */
+
+/* ---------------------------------------------------------------------------
+   Touch-Geräte: ausreichend große Tippflächen
+   --------------------------------------------------------------------------- */
+@media (pointer: coarse) {
+    /* .btn-sm ist sonst nur ~30px hoch – zu klein zum zuverlässigen Antippen */
+    .btn-sm {
+        --bs-btn-padding-y: 0.4rem;
+        --bs-btn-padding-x: 0.65rem;
+    }
+
+    /* Checkboxen und Radios sind standardmäßig 1em (~16px) groß */
+    .form-check-input:not([role="switch"]) {
+        width: 1.25em;
+        height: 1.25em;
+        margin-top: 0.125em;
+    }
+    .form-check-input[role="switch"],
+    .form-switch .form-check-input {
+        width: 2.5em;
+        height: 1.4em;
+    }
+    .form-check-label {
+        padding-top: 0.1em;
+    }
+
+    /* Karussell-Punkte: Bootstrap nutzt transparente Ränder als Trefferfläche (10px) */
+    .carousel-indicators [data-bs-target] {
+        border-top-width: 16px;
+        border-bottom-width: 16px;
+    }
+
+    /* Schließen-Buttons in Modals/Alerts: größere Trefferfläche */
+    .btn-close {
+        padding: 0.5rem;
+    }
+
+    /* Hover-Effekte, die auf Touch-Geräten "hängen bleiben", neutralisieren */
+    .hover-shadow:hover {
+        box-shadow: none;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   Kleine Bildschirme
+   --------------------------------------------------------------------------- */
+@media (max-width: 767.98px) {
+    /* Eingabefelder mit weniger als 16px Schrift lassen iOS beim Antippen
+       hineinzoomen – das betrifft vor allem .form-select-sm/.form-control-sm */
+    .form-control,
+    .form-control-sm,
+    .form-select,
+    .form-select-sm,
+    .input-group-sm > .form-control,
+    .input-group-sm > .form-select {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    /* Lange Wörter, E-Mail-Adressen und URLs dürfen die Seite nicht verbreitern */
+    main,
+    .card-body,
+    .modal-body {
+        overflow-wrap: break-word;
+    }
+
+    /* Bilder nie breiter als der Container (Höhe bewusst nicht anfassen,
+       sonst werden runde Avatare mit fester Höhe verzerrt) */
+    .card-body img,
+    .modal-body img {
+        max-width: 100%;
+    }
+
+    /* Etwas weniger Innenabstand, damit verschachtelte Karten nicht zu schmal werden */
+    .card-body {
+        --bs-card-spacer-x: 0.875rem;
+        --bs-card-spacer-y: 0.875rem;
+    }
+    .card .card .card-body {
+        --bs-card-spacer-x: 0.75rem;
+    }
+
+    /* Modals nutzen die volle Breite und lassen Buttons umbrechen */
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    .modal-footer {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .modal-footer > * {
+        margin: 0;
+    }
+
+    /* Sehr hohe Textfelder (z. B. Beitragsinhalt mit 15 Zeilen) nicht über den ganzen Bildschirm */
+    .post-content-input {
+        height: 12rem;
+    }
+
+    /* Überschriften in Kartenköpfen etwas kleiner, damit Buttons daneben Platz haben */
+    .card-header h3,
+    .card-header .h3 {
+        font-size: 1.35rem;
+    }
+}
+
+/* Upload-Felder: auf Touch-Geräten gibt es kein Drag & Drop */
+.touch-only {
+    display: none;
+}
+@media (pointer: coarse) {
+    .touch-only {
+        display: inline;
+    }
+    .no-touch {
+        display: none !important;
+    }
+}
