@@ -7357,3 +7357,14 @@ msgstr "Error generating PDF export: %(error)s"
 
 #~ msgid "Aufgaben Übersicht"
 #~ msgstr "Task overview"
+
+#: Global/templates/kalender_event.html
+#, python-format
+msgid "%(counter)s weitere Person anzeigen"
+msgid_plural "%(counter)s weitere anzeigen"
+msgstr[0] "Show %(counter)s more person"
+msgstr[1] "Show %(counter)s more"
+
+#: Global/templates/kalender_event.html
+msgid "Weniger anzeigen"
+msgstr "Show less"
