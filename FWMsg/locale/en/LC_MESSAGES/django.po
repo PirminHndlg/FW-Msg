@@ -7368,3 +7368,19 @@ msgstr[1] "Show %(counter)s more"
 #: Global/templates/kalender_event.html
 msgid "Weniger anzeigen"
 msgstr "Show less"
+
+#: Global/models.py ORG/templates/components/ampel_table.html
+msgid "Manuell eingetragen"
+msgstr "Entered manually"
+
+#: Global/models.py
+msgid "Von der Organisation eingetragen"
+msgstr "Entered by the organization"
+
+#: FW/templates/homeFw.html
+msgid "Ampelmeldung eingetragen"
+msgstr "Status report entered"
+
+#: FW/templates/homeFw.html
+msgid "Von deiner Organisation"
+msgstr "By your organization"

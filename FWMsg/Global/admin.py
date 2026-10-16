@@ -458,10 +458,10 @@ class UserAufgabenZwischenschritteAdmin(admin.ModelAdmin):
 
 @admin.register(Ampel2)
 class AmpelAdmin(admin.ModelAdmin):
-    list_display = ['user', 'get_user_full_name', 'status', 'get_comment_preview', 'date', 'read']
+    list_display = ['user', 'get_user_full_name', 'status', 'get_comment_preview', 'date', 'read', 'create_manuell']
     search_fields = ['user__username', 'user__first_name', 'user__last_name', 'comment']
-    list_filter = ['status', 'date', 'read']
-    fields = ['org', 'user', 'status', 'comment', 'date', 'read', 'submission_key']
+    list_filter = ['status', 'date', 'read', 'create_manuell']
+    fields = ['org', 'user', 'status', 'comment', 'date', 'read', 'create_manuell', 'submission_key']
     
     def get_user_full_name(self, obj):
         return f"{obj.user.first_name} {obj.user.last_name}"

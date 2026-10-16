@@ -50,11 +50,14 @@
                 <td class="text-center {% if month == current_month %}table-active{% endif %}">
                     <div class="ampel-dot-container">
                         {% for entry in months_data|get_item:month %}
-                        <span class="ampel-dot ampel-{{ entry.status }} d-flex align-items-center justify-content-center"
-                            onclick="showAmpelComment({{ entry.id }}, '{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ user }}', '{{entry.read}}')"
+                        <span class="ampel-dot ampel-{{ entry.status }} d-flex align-items-center justify-content-center{% if entry.manuell %} ampel-dot-manuell{% endif %}"
+                            {% if entry.manuell %}title="{% trans 'Manuell eingetragen' %}"{% endif %}
+                            onclick="showAmpelComment({{ entry.id }}, '{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ user }}', '{{entry.read}}', '{{ entry.manuell }}')"
                             {% comment %} data-bs-toggle="tooltip" data-bs-html="true"
                             title="<strong>{{ entry.date }}</strong><br>{{ entry.comment|default:'' }}"{% endcomment %}>
-                            {% if entry.comment %}
+                            {% if entry.manuell %}
+                            <i class="bi bi-building {% if entry.status == 'R' %}text-white{% else %}text-muted{% endif %}" style="font-size: 0.6em;"></i>
+                            {% elif entry.comment %}
                             <i class="bi bi-three-dots {% if entry.status == 'R' %}text-white{% else %}text-muted{% endif %}" style="font-size: 0.7em;"></i>
                             {% endif %}
                         </span>
@@ -162,6 +165,12 @@
 </script>
 
 <style>
+    /* Von der Organisation manuell eingetragene Meldungen: gestrichelter Rand + Gebäude-Icon */
+    .ampel-dot-manuell {
+        outline: 2px dashed var(--bs-secondary);
+        outline-offset: 2px;
+    }
+
     .sticky-top {
         position: sticky;
         top: 0;

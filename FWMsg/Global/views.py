@@ -1748,7 +1748,8 @@ def _create_ampel_matrix(freiwillige, months, ampel_entries):
                 'status': entry.status,
                 'comment': entry.comment,
                 'date': entry.date.strftime("%d.%m.%y %H:%M"),
-                'read': entry.read
+                'read': entry.read,
+                'manuell': entry.create_manuell,
             })
 
     return matrix
@@ -1777,7 +1778,8 @@ def list_ampel(request):
                 user=user,
                 status=status,
                 comment=comment,
-                date=entry_datetime
+                date=entry_datetime,
+                create_manuell=True,
             )
             messages.success(request, _('Ampel-Eintrag erfolgreich hinzugefügt.'))
         except User.DoesNotExist:

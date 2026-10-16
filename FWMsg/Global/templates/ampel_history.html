@@ -42,6 +42,11 @@
                         {% endif %}
 
                         <div class="ampel-entry-card ampel-entry-card-{% if meldung.status == 'G' %}success{% elif meldung.status == 'Y' %}warning{% else %}danger{% endif %}">
+                            {% if meldung.create_manuell %}
+                                <p class="small text-muted mb-1">
+                                    <i class="bi bi-building me-1"></i>{% trans "Manuell eingetragen" %}
+                                </p>
+                            {% endif %}
 
                             {% if meldung.comment %}
                                 <p class="ampel-comment mb-0 text-body-secondary">{{ meldung.comment }}</p>

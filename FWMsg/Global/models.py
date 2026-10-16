@@ -929,6 +929,7 @@ class Ampel2(OrgModel):
     comment = models.TextField(blank=True, null=True, verbose_name=_('Kommentar'), help_text=_('Kommentar zur Erläuterung des Status'))
     date = models.DateTimeField(default=timezone.now, verbose_name=_('Erstellt am'))
     read = models.BooleanField(default=False, verbose_name=_('Gelesen'), help_text=_('Zeigt an, ob die Ampel als gelesen markiert ist'))
+    create_manuell = models.BooleanField(default=False, verbose_name=_('Manuell eingetragen'), help_text=_('Von der Organisation eingetragen'))
     submission_key = models.UUIDField(null=True, blank=True)
 
     class Meta:
@@ -937,6 +938,15 @@ class Ampel2(OrgModel):
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.status
+
+    def save(self, *args, **kwargs):
+        # Manuell von der Organisation eingetragene Meldungen gelten immer als gelesen
+        if self.create_manuell:
+            self.read = True
+            update_fields = kwargs.get('update_fields')
+            if update_fields is not None and 'read' not in update_fields:
+                kwargs['update_fields'] = [*update_fields, 'read']
+        super().save(*args, **kwargs)
 
 
 AMPEL_REMINDER_DEFAULT_TEXT = (

@@ -23,6 +23,9 @@
                             <span id="modalDate" class="text-muted small"></span>
                         </div>
                     </div>
+                    <div id="modalManuell" class="small text-muted mt-2 d-none">
+                        <i class="bi bi-building me-1"></i>{% trans 'Manuell eingetragen' %}
+                    </div>
                 </div>
             </div>
             <div class="modal-body">
@@ -64,7 +67,7 @@
         });
     }
 
-    function showAmpelComment(id, date, status, comment, user, read=false) {
+    function showAmpelComment(id, date, status, comment, user, read=false, manuell='False') {
         const modal = new bootstrap.Modal(document.getElementById('ampelCommentModal'));
         document.getElementById('modalDate').textContent = date;
         document.getElementById('modalStatus').className = `ampel-dot ampel-${status}`;
@@ -72,6 +75,7 @@
         document.getElementById('modalUser').textContent = user;
         ampel_id = id;
         document.getElementById('modalMessageBtn').href = `/chat/for-ampel/${id}/`;
+        $('#modalManuell').toggleClass('d-none', String(manuell).toLowerCase() !== 'true');
         if (read.toLowerCase() == 'true') {
             $('#modalReadBtn').addClass('d-none');
         } else {
