@@ -21,17 +21,49 @@
 </a>
 
 <style>
+  /* Winkel des umlaufenden Rahmens – als registrierte Property animierbar */
+  @property --impulse-cta-angle {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+  }
+
   .impulse-story-cta {
+    position: relative; isolation: isolate;
     display: inline-flex; align-items: center; gap: .75rem;
     padding: .35rem 1rem .35rem .35rem; border-radius: 999px;
-    background: var(--bs-body-bg); color: var(--bs-body-color); text-decoration: none;
-    box-shadow: 0 .25rem .9rem rgba(0, 0, 0, .08), inset 0 0 0 1px rgba(0, 0, 0, .05);
+    background: transparent; color: var(--bs-body-color); text-decoration: none;
+    box-shadow: 0 .25rem .9rem rgba(0, 0, 0, .08);
     transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .impulse-story-cta::before,
+  .impulse-story-cta::after {
+    content: ""; position: absolute; border-radius: inherit; pointer-events: none;
+    animation: impulse-cta-border 3s linear infinite;
+  }
+  /* Weißer Innenraum (padding-box) + umlaufender Farbverlauf als 2px-Rahmen (border-box) */
+  .impulse-story-cta::before {
+    inset: 0; z-index: -1; border: 2px solid transparent;
+    background:
+      linear-gradient(var(--bs-body-bg), var(--bs-body-bg)) padding-box,
+      conic-gradient(from var(--impulse-cta-angle), var(--bs-primary), #4f7fe0, #f0b52a, #e36bae, var(--bs-primary)) border-box;
+  }
+  /* Weiches Leuchten in denselben Farben hinter dem Button */
+  .impulse-story-cta::after {
+    inset: 3px; z-index: -2; filter: blur(10px); opacity: .45;
+    background: conic-gradient(from var(--impulse-cta-angle), var(--bs-primary), #4f7fe0, #f0b52a, #e36bae, var(--bs-primary));
+    transition: opacity .2s ease, filter .2s ease;
   }
   .impulse-story-cta:hover, .impulse-story-cta:focus-visible {
     color: var(--bs-body-color); transform: translateY(-2px);
-    box-shadow: 0 .6rem 1.4rem rgba(0, 0, 0, .12), inset 0 0 0 1px rgba(0, 0, 0, .05);
+    box-shadow: 0 .6rem 1.4rem rgba(0, 0, 0, .12);
   }
+  .impulse-story-cta:hover::before, .impulse-story-cta:hover::after,
+  .impulse-story-cta:focus-visible::before, .impulse-story-cta:focus-visible::after {
+    animation-duration: 1.2s;
+  }
+  .impulse-story-cta:hover::after, .impulse-story-cta:focus-visible::after { opacity: .75; filter: blur(14px); }
+  @keyframes impulse-cta-border { to { --impulse-cta-angle: 360deg; } }
   .impulse-story-cta-ring {
     position: relative; width: 3rem; height: 3rem; border-radius: 50%; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
@@ -63,13 +95,18 @@
   .impulse-story-cta-arrow { color: var(--bs-secondary-color); transition: transform .2s ease; }
   .impulse-story-cta:hover .impulse-story-cta-arrow { transform: translateX(3px); }
 
-  /* Heute schon angesehen: ruhiger grauer Ring, kein "Neu" */
+  /* Heute schon angesehen: ruhiger grauer Ring, kein "Neu", Rahmen langsamer und ohne Leuchten */
   .impulse-story-cta.is-seen .impulse-story-cta-ring::before { background: #ced4da; animation: none; }
   .impulse-story-cta.is-seen .impulse-story-cta-new { display: none; }
+  .impulse-story-cta.is-seen::before { animation-duration: 8s; }
+  .impulse-story-cta.is-seen::after { opacity: 0; }
+  .impulse-story-cta.is-seen:hover::after { opacity: .5; }
 
   @keyframes impulse-story-spin { to { transform: rotate(1turn); } }
   @media (prefers-reduced-motion: reduce) {
-    .impulse-story-cta-ring::before { animation: none; }
+    .impulse-story-cta-ring::before,
+    .impulse-story-cta::before,
+    .impulse-story-cta::after { animation: none; }
   }
 </style>
 

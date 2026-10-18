@@ -37,38 +37,55 @@
     @media (max-width: 768px) {
       .grid-2, .grid-3 { grid-template-columns: 1fr; }
     }
+
+    /* Kopfbereich: Desktop alles in einer Zeile, mobil Titel + Notiz oben, Impulse darunter */
+    .dashboard-header {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: .75rem;
+    }
+    @media (max-width: 767.98px) {
+      .dashboard-header { grid-template-columns: 1fr auto; row-gap: 1rem; }
+      .dashboard-header-story { grid-column: 1 / -1; grid-row: 2; }
+      .dashboard-header-story .impulse-story-cta { display: flex; width: 100%; }
+      .dashboard-header-story .impulse-story-cta-new { margin-left: auto; }
+      .dashboard-header-story .impulse-story-cta.is-seen .impulse-story-cta-arrow { margin-left: auto; }
+      .dashboard-header-note { width: 2.75rem; height: 2.75rem; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 1.15rem; }
+      .section-title { font-size: 1.1rem; }
+    }
   </style>
 {% endblock %}
 
 {% block content %}
 <!-- Header Section -->
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-  <div>
-    <h1 class="h2 mb-1">{% trans "Dashboard" %}</h1>
-  </div>
-  <div class="d-flex flex-wrap align-items-center gap-2">
+{# Mobil: Titel + runder Notiz-Button in einer Zeile, Impulse-Button darunter über die volle Breite #}
+<div class="dashboard-header mb-4">
+  <h1 class="h2 mb-0 dashboard-header-title">{% trans "Dashboard" %}</h1>
+  <div class="dashboard-header-story">
     {% include "components/impulse_story_button.html" %}
-    <button type="button" class="btn btn-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#stickyNoteModal" title="{% trans 'Sticky Notes für schnelle Notizen' %}">
-      <i class="bi bi-sticky me-1"></i>{% trans "Neue Notiz" %}
-      <i class="bi bi-question-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Sticky Notes für schnelle Notizen' %}"></i>
-    </button>
   </div>
+  <button type="button" class="btn btn-primary rounded-pill dashboard-header-note" data-bs-toggle="modal" data-bs-target="#stickyNoteModal"
+          title="{% trans 'Sticky Notes für schnelle Notizen' %}" aria-label="{% trans 'Neue Notiz' %}">
+    <i class="bi bi-sticky"></i><span class="d-none d-md-inline ms-1">{% trans "Neue Notiz" %}</span>
+    <i class="bi bi-question-circle text-muted ms-1 d-none d-md-inline" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Sticky Notes für schnelle Notizen' %}"></i>
+  </button>
 </div>
 
 <!-- Pending Change Requests Section -->
 {% if pending_change_requests %}
 <div class="dashboard-section">
   <div class="card rounded-4">
-    <div class="card-header bg-white border-bottom-0 d-flex align-items-center justify-content-between rounded-top-4">
-      <a href="{% url 'change_requests' %}" class="text-decoration-none text-body">
+    <div class="card-header bg-white border-bottom-0 d-flex align-items-center justify-content-between gap-2 rounded-top-4">
+      <a href="{% url 'change_requests' %}" class="text-decoration-none text-body" style="min-width: 0;">
       <h2 class="section-title mb-0">
         <i class="bi bi-pencil-square me-2 text-warning"></i>
         {% trans "Änderungsvorschläge" %}
         <i class="bi bi-question-circle me-2" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Ein Änderungsvorschlag für eine Einsatzstelle oder ein Einsatzland wurde eingereicht. Diese Änderungen kann genehmigt oder abgelehnt werden.' %}"></i>
       </h2>
       </a>
-      <a href="{% url 'change_requests' %}" class="btn btn-sm btn-warning rounded-3">
-        <i class="bi bi-eye me-2"></i>{% trans "Alle anzeigen" %}
+      <a href="{% url 'change_requests' %}" class="btn btn-sm btn-warning rounded-3 flex-shrink-0 text-nowrap" aria-label="{% trans 'Alle anzeigen' %}">
+        <i class="bi bi-eye"></i><span class="d-none d-sm-inline ms-2">{% trans "Alle anzeigen" %}</span>
       </a>
     </div>
 
@@ -119,16 +136,16 @@
 {% if pending_own_signin_users %}
 <div class="dashboard-section">
   <div class="card rounded-4">
-    <div class="card-header bg-white border-bottom-0 d-flex align-items-center justify-content-between rounded-top-4">
-      <a href="{% url 'own_signin_requests' %}" class="text-decoration-none text-body">
+    <div class="card-header bg-white border-bottom-0 d-flex align-items-center justify-content-between gap-2 rounded-top-4">
+      <a href="{% url 'own_signin_requests' %}" class="text-decoration-none text-body" style="min-width: 0;">
       <h2 class="section-title mb-0">
         <i class="bi bi-person-plus me-2 text-primary"></i>
         {% trans "Registrierungsanfragen" %}
         <i class="bi bi-question-circle me-2" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Neue Registrierungsanfragen über den eigenen Anmeldelink. Diese können freigeschaltet oder abgelehnt werden.' %}"></i>
       </h2>
       </a>
-      <a href="{% url 'own_signin_requests' %}" class="btn btn-sm btn-primary rounded-3">
-        <i class="bi bi-eye me-2"></i>{% trans "Alle anzeigen" %}
+      <a href="{% url 'own_signin_requests' %}" class="btn btn-sm btn-primary rounded-3 flex-shrink-0 text-nowrap" aria-label="{% trans 'Alle anzeigen' %}">
+        <i class="bi bi-eye"></i><span class="d-none d-sm-inline ms-2">{% trans "Alle anzeigen" %}</span>
       </a>
     </div>
 
