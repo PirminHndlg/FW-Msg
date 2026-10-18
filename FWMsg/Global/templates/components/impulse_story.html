@@ -47,20 +47,31 @@
     {# ---------- Deep Talk ---------- #}
     <article class="impulse-story-slide impulse-story-talk" data-story-title="{% trans 'Deep Talk' %}">
       <div class="impulse-story-deco" aria-hidden="true"></div>
-      <div class="impulse-story-kicker"><i class="bi bi-chat-heart"></i>{% trans "Deep Talk" %} · {% trans "Frage des Tages" %}</div>
+      <div class="impulse-story-top">
+        <div class="impulse-story-kicker"><i class="bi bi-chat-heart"></i>{% trans "Deep Talk" %}<span class="d-none d-sm-inline">· {% trans "Frage des Tages" %}</span></div>
+        <div class="impulse-story-actions">
+          {% if request.user.role == 'O' %}
+            <a href="{% url 'deeptalk_fragen' %}" class="impulse-story-icon-btn" title="{% trans 'Fragen verwalten' %}" aria-label="{% trans 'Fragen verwalten' %}">
+              <i class="bi bi-gear"></i>
+            </a>
+          {% endif %}
+          <a href="{% url 'deeptalk' %}" class="impulse-story-icon-btn" title="{% trans 'Frühere Fragen' %}" aria-label="{% trans 'Frühere Fragen' %}">
+            <i class="bi bi-clock-history"></i>
+          </a>
+        </div>
+      </div>
       <div class="impulse-story-main text-center">
         {% if story_frage %}
           <i class="bi bi-quote impulse-story-quote" aria-hidden="true"></i>
           <p class="impulse-story-big impulse-story-question mb-0">{{ story_frage.text }}</p>
-          <div class="mt-3 impulse-story-muted"><i class="bi bi-people me-1"></i>{% trans "Allein, zu zweit oder in der Gruppe" %}</div>
         {% else %}
           <i class="bi bi-chat-square-dots impulse-story-quote" aria-hidden="true"></i>
           <p class="impulse-story-big mb-0">{% trans "Noch keine Deep-Talk-Fragen hinterlegt." %}</p>
         {% endif %}
       </div>
-      <div class="text-center">
+      <div class="text-center position-relative">
         {% if story_frage %}
-          <a href="{% url 'deeptalk' %}" class="btn btn-light rounded-pill px-4">{% trans "Frühere Fragen" %}</a>
+          <div class="impulse-story-muted"><i class="bi bi-people me-1"></i>{% trans "Allein, zu zweit oder in der Gruppe" %}</div>
         {% elif request.user.role == 'O' %}
           <a href="{% url 'deeptalk_fragen' %}" class="btn btn-light rounded-pill px-4"><i class="bi bi-plus-circle me-1"></i>{% trans "Fragen hinzufügen" %}</a>
         {% endif %}
@@ -140,6 +151,14 @@
     font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; opacity: .85;
     display: flex; align-items: center; gap: .5rem; position: relative;
   }
+  .impulse-story-top { display: flex; justify-content: space-between; align-items: center; gap: .75rem; position: relative; }
+  .impulse-story-actions { display: flex; gap: .5rem; flex-shrink: 0; }
+  .impulse-story-icon-btn {
+    width: 2.5rem; height: 2.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: rgba(255, 255, 255, .18); color: inherit; font-size: 1.1rem; text-decoration: none;
+    transition: background .15s, transform .15s;
+  }
+  .impulse-story-icon-btn:hover, .impulse-story-icon-btn:focus-visible { background: rgba(255, 255, 255, .3); color: inherit; transform: scale(1.06); }
   .impulse-story-main { flex: 1; display: flex; flex-direction: column; justify-content: center; position: relative; padding: 1.5rem 0; }
   .impulse-story-big { font-size: 1.75rem; line-height: 1.35; font-weight: 600; overflow-wrap: break-word; }
   .impulse-story-question { font-size: 2.1rem; }
