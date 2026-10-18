@@ -36,11 +36,9 @@ function editOrdner(ordner_id, ordner_name, typ_id=null, color_id=null) {
         }
     }
 
-    if (color_id) {
-        document.getElementById('color').value = color_id;
-    } else {
-        document.getElementById('color').value = '';
-    }
+    // Farbkreis auswählen (Radio-Buttons name="color"); unbekannte/leere Farbe = "Ohne Farbe"
+    const colorRadio = document.getElementById('color_' + color_id) || document.getElementById('color_none');
+    colorRadio.checked = true;
     new bootstrap.Modal(document.getElementById('ordnerModal')).show();
 }
 

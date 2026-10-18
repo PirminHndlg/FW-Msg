@@ -736,6 +736,22 @@ class DokumentColor2(models.Model):
     def __str__(self):
         return self.name
 
+    def luminance(self):
+        """Wahrgenommene Helligkeit (0 = schwarz, 1 = weiß) aus dem Hex-Farbcode.
+
+        Ungültige Farbcodes liefern 2, damit sie beim Sortieren am Ende landen.
+        """
+        code = (self.color or '').strip().lstrip('#')
+        if len(code) == 3:
+            code = ''.join(ch * 2 for ch in code)
+        try:
+            r, g, b = (int(code[i:i + 2], 16) / 255 for i in (0, 2, 4))
+        except ValueError:
+            return 2
+        if len(code) != 6:
+            return 2
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
 def verify_image(image):
     from PIL import Image
     try:

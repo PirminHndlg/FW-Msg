@@ -956,7 +956,8 @@ def dokumente(request, ordner_id=None):
             'dokumente': Dokument2.objects.filter(org=request.user.org, ordner=ordner).order_by('-date_created')
         })
 
-    colors = DokumentColor2.objects.all()
+    # Im Ordner-Modal von dunkel nach hell sortiert anzeigen
+    colors = sorted(DokumentColor2.objects.all(), key=lambda color: color.luminance())
 
     context = {
         'ordners': ordners,
