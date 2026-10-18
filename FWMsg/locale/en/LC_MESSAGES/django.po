@@ -7766,3 +7766,7 @@ msgstr "Use the arrow keys to browse"
 #: Deep Talk
 msgid "Losung · Deep Talk · Segen"
 msgstr "Losung · Deep Talk · Blessing"
+
+#: Deep Talk
+msgid "Tagesimpuls"
+msgstr "Daily impulse"
