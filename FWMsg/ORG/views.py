@@ -2735,3 +2735,76 @@ def deny_own_signin_user(request, pk):
     except Exception as e:
         messages.error(request, _('Fehler bei der Ablehnung: %(error)s') % {'error': str(e)})
     return _redirect_after_own_signin_action(request)
+
+@login_required
+@required_role('O')
+def deeptalk_fragen(request):
+    """Deep-Talk-Fragen verwalten: mehrere auf einmal hinzufügen, (de)aktivieren, löschen."""
+    from django.db.models import Max
+    from Global.deeptalk import (
+        MAX_INPUT_CHARS, MAX_QUESTION_LENGTH, MAX_QUESTIONS_PER_IMPORT, normalize_for_compare, parse_questions,
+    )
+    from Global.models import DeepTalkFrage, DeepTalkTag
+
+    org = request.user.org
+    org_fragen = DeepTalkFrage.objects.filter(org=org)
+    raw_text = ''
+    preview = None
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action in ('preview', 'save'):
+            raw_text = request.POST.get('fragen', '')
+            # Immer serverseitig neu parsen – der Vorschau wird nicht vertraut
+            existing = set(org_fragen.values_list('text_normalized', flat=True))
+            result = parse_questions(raw_text, existing_normalized=existing)
+
+            if action == 'save':
+                if not result.questions:
+                    messages.warning(request, _('Es wurden keine neuen Fragen erkannt.'))
+                else:
+                    # bulk_create ruft save() nicht auf -> Vergleichstext hier setzen
+                    new_fragen = [
+                        DeepTalkFrage(org=org, text=text, text_normalized=normalize_for_compare(text), created_by=request.user)
+                        for text in result.questions
+                    ]
+                    # ignore_conflicts: falls parallel dieselbe Frage gespeichert wurde
+                    DeepTalkFrage.objects.bulk_create(new_fragen, ignore_conflicts=True)
+                    messages.success(request, _('%(count)s Fragen hinzugefügt.') % {'count': len(new_fragen)})
+                    if result.skipped_count:
+                        messages.info(request, _('%(count)s Einträge wurden übersprungen (doppelt, zu kurz oder zu lang).') % {'count': result.skipped_count})
+                return redirect('deeptalk_fragen')
+
+            preview = result
+
+        elif action in ('toggle', 'delete'):
+            frage = org_fragen.filter(id=request.POST.get('frage_id')).first() if (request.POST.get('frage_id') or '').isdigit() else None
+            if frage is None:
+                messages.error(request, _('Frage nicht gefunden.'))
+            elif action == 'toggle':
+                frage.active = not frage.active
+                frage.save(update_fields=['active'])
+                messages.success(request, _('Frage aktiviert.') if frage.active else _('Frage deaktiviert.'))
+            else:
+                frage.delete()
+                messages.success(request, _('Frage gelöscht.'))
+            return redirect('deeptalk_fragen')
+
+    fragen = org_fragen.annotate(shown=Count('tage'), last_shown=Max('tage__datum')).order_by('-date_created', '-id')
+    today_entry = DeepTalkTag.objects.filter(org=org, datum=timezone.localdate()).first()
+    active_count = sum(1 for frage in fragen if frage.active)
+    never_shown_active = sum(1 for frage in fragen if frage.active and not frage.shown)
+
+    context = {
+        'fragen': fragen,
+        'raw_text': raw_text,
+        'preview': preview,
+        'today_frage_id': today_entry.frage_id if today_entry else None,
+        'active_count': active_count,
+        'never_shown_active': never_shown_active,
+        'max_input_chars': MAX_INPUT_CHARS,
+        'max_question_length': MAX_QUESTION_LENGTH,
+        'max_questions_per_import': MAX_QUESTIONS_PER_IMPORT,
+    }
+    return render(request, 'deeptalk_fragen.html', context)

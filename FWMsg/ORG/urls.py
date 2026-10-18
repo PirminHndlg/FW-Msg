@@ -59,6 +59,7 @@ urlpatterns = [
     
     path("copy-links", views.copy_links, name="copy_links"),
     
+    path("deeptalk-fragen/", views.deeptalk_fragen, name="deeptalk_fragen"),
     # Change request management
     path('change-requests/', views.change_requests, name='change_requests'),
     path('change-requests/<int:request_id>/review/', views.review_change_request, name='review_change_request'),

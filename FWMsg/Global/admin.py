@@ -7,7 +7,7 @@ from django.urls import path, reverse
 from django.contrib import messages
 from django.utils.html import format_html
 from .models import (
-    Ampel2, AmpelConfiguration, Attribute, CustomUser, Einsatzland2, 
+    Ampel2, AmpelConfiguration, DeepTalkFrage, DeepTalkTag, Attribute, CustomUser, Einsatzland2, 
     Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, 
     Organisation, Aufgabe2, DokumentColor2, Dokument2, 
     Ordner2, Notfallkontakt2, Post2, PostResponse, AufgabeZwischenschritte2, PushSubscription, 
@@ -889,3 +889,17 @@ class MapLocationAdmin(admin.ModelAdmin):
     search_fields = ['city', 'country', 'zip_code', 'user__username', 'user__first_name', 'user__last_name']
     list_filter = ['visibility', 'country', 'date_created']
     readonly_fields = ['date_created']
+
+@admin.register(DeepTalkFrage)
+class DeepTalkFrageAdmin(admin.ModelAdmin):
+    list_display = ['text', 'org', 'active', 'date_created']
+    list_filter = ['active', 'org']
+    search_fields = ['text']
+    readonly_fields = ['text_normalized', 'date_created']
+
+
+@admin.register(DeepTalkTag)
+class DeepTalkTagAdmin(admin.ModelAdmin):
+    list_display = ['datum', 'org', 'frage']
+    list_filter = ['org']
+    date_hierarchy = 'datum'
