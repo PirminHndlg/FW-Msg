@@ -49,7 +49,7 @@
   }
   /* Weiches Leuchten in denselben Farben hinter dem Button */
   .impulse-story-cta::after {
-    inset: -3px; z-index: -2; filter: blur(9px); opacity: .55;
+    inset: -2px; z-index: -2; filter: blur(9px); opacity: .55;
     background: conic-gradient(from var(--impulse-cta-angle), var(--bs-primary), #4f7fe0, #f0b52a, #e36bae, var(--bs-primary));
     transition: opacity .2s ease, filter .2s ease, inset .2s ease;
   }
@@ -61,7 +61,7 @@
   .impulse-story-cta:focus-visible::before, .impulse-story-cta:focus-visible::after {
     animation-duration: 1.2s;
   }
-  .impulse-story-cta:hover::after, .impulse-story-cta:focus-visible::after { inset: -5px; opacity: .85; filter: blur(14px); }
+  .impulse-story-cta:hover::after, .impulse-story-cta:focus-visible::after { inset: -3px; opacity: .85; filter: blur(6px); }
   /* Globale Link-Unterstreichung beim Hover hier nicht anzeigen */
   /* Spezifischer als die globale Regel a:link:hover (style.css) */
   a.impulse-story-cta:link:hover, a.impulse-story-cta:visited:hover, a.impulse-story-cta:hover { text-decoration: none; }
