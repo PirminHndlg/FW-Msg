@@ -117,14 +117,16 @@
   }
   .impulse-story-progress button span {
     display: block; height: 4px; border-radius: 4px; background: rgba(0, 0, 0, .12); overflow: hidden;
+    transition: background .25s ease;
   }
   .impulse-story-progress button span::after {
     content: ""; display: block; height: 100%; width: 0; background: var(--bs-body-color); border-radius: inherit;
     transition: width .35s ease;
   }
-  .impulse-story-progress button.done span::after,
-  .impulse-story-progress button.current span::after { width: 100%; }
-  .impulse-story-progress button.current span::after { opacity: .85; }
+  /* Wie bei Social-Media-Stories (ohne Timer): angesehene Impulse gefüllt,
+     der aktuelle bleibt leer und ist nur durch eine dunklere Spur markiert */
+  .impulse-story-progress button.done span::after { width: 100%; }
+  .impulse-story-progress button.current span { background: rgba(0, 0, 0, .28); }
 
   /* Folien */
   .impulse-story-stage { position: relative; touch-action: pan-y; }
