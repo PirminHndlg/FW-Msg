@@ -50,7 +50,7 @@
   }
   /* Weiches Leuchten in denselben Farben hinter dem Button */
   .impulse-story-cta::after {
-    inset: 3px; z-index: -2; filter: blur(10px); opacity: .45;
+    inset: 3px; z-index: -2; filter: blur(10px); opacity: .35;
     background: conic-gradient(from var(--impulse-cta-angle), var(--bs-primary), #4f7fe0, #f0b52a, #e36bae, var(--bs-primary));
     transition: opacity .2s ease, filter .2s ease;
   }
@@ -95,12 +95,13 @@
   .impulse-story-cta-arrow { color: var(--bs-secondary-color); transition: transform .2s ease; }
   .impulse-story-cta:hover .impulse-story-cta-arrow { transform: translateX(3px); }
 
-  /* Heute schon angesehen: ruhiger grauer Ring, kein "Neu", Rahmen langsamer und ohne Leuchten */
+  /* Heute schon angesehen: ruhiger grauer Ring, kein "Neu", Rahmen langsamer, Leuchten etwas schwächer */
   .impulse-story-cta.is-seen .impulse-story-cta-ring::before { background: #ced4da; animation: none; }
   .impulse-story-cta.is-seen .impulse-story-cta-new { display: none; }
   .impulse-story-cta.is-seen::before { animation-duration: 8s; }
-  .impulse-story-cta.is-seen::after { opacity: 0; }
-  .impulse-story-cta.is-seen:hover::after { opacity: .5; }
+  .impulse-story-cta.is-seen::after { opacity: .25; }
+  .impulse-story-cta.is-seen:hover::after,
+  .impulse-story-cta.is-seen:focus-visible::after { opacity: .75; }
 
   @keyframes impulse-story-spin { to { transform: rotate(1turn); } }
   @media (prefers-reduced-motion: reduce) {
@@ -114,7 +115,7 @@
   (function () {
     try {
       if (localStorage.getItem('impulseStorySeen') === new Date().toDateString()) {
-        document.getElementById('impulseStoryCta').classList.add('is-seen');
+          document.getElementById('impulseStoryCta').classList.add('is-seen');
       }
     } catch (e) {}
   })();
