@@ -7770,3 +7770,11 @@ msgstr "Losung · Deep Talk · Blessing"
 #: Deep Talk
 msgid "Tagesimpuls"
 msgstr "Daily impulse"
+
+#: Deep Talk
+msgid "Links oder rechts tippen"
+msgstr "Tap left or right"
+
+#: Deep Talk
+msgid "Links oder rechts klicken oder Pfeiltasten"
+msgstr "Click left or right or use the arrow keys"

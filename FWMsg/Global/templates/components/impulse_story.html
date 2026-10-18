@@ -32,10 +32,11 @@
         <div class="impulse-story-deco" aria-hidden="true"></div>
         <div class="impulse-story-kicker"><i class="bi bi-book"></i>{% trans "Die Losung" %}</div>
         <div class="impulse-story-main">
-          <p class="impulse-story-big impulse-story-serif mb-3">„{{ story_losung.losungstext }}“</p>
+          {# Losung und Lehrtext sind gleichwertig – gleiche Größe und Gestaltung #}
+          <p class="impulse-story-verse impulse-story-serif mb-2">„{{ story_losung.losungstext }}“</p>
           <div class="impulse-story-muted mb-4">{{ story_losung.losungsvers }}</div>
-          <p class="impulse-story-serif mb-1">„{{ story_losung.lehrtext }}“</p>
-          <div class="impulse-story-muted small">{{ story_losung.lehrtextvers }}</div>
+          <p class="impulse-story-verse impulse-story-serif mb-2">„{{ story_losung.lehrtext }}“</p>
+          <div class="impulse-story-muted">{{ story_losung.lehrtextvers }}</div>
         </div>
         <div class="impulse-story-footer small">
           <span>{{ story_losung.wtag }}{% if story_losung.sonntag %} · {{ story_losung.sonntag }}{% endif %}</span>
@@ -48,7 +49,7 @@
     <article class="impulse-story-slide impulse-story-talk" data-story-title="{% trans 'Deep Talk' %}">
       <div class="impulse-story-deco" aria-hidden="true"></div>
       <div class="impulse-story-top">
-        <div class="impulse-story-kicker"><i class="bi bi-chat-heart"></i>{% trans "Deep Talk" %}<span class="d-none d-sm-inline">· {% trans "Frage des Tages" %}</span></div>
+        <div class="impulse-story-kicker"><i class="bi bi-chat-heart"></i><span>{% trans "Deep Talk" %}<span class="d-none d-sm-inline"> · {% trans "Frage des Tages" %}</span></span></div>
         <div class="impulse-story-actions">
           {% if request.user.role == 'O' %}
             <a href="{% url 'deeptalk_fragen' %}" class="impulse-story-icon-btn" title="{% trans 'Fragen verwalten' %}" aria-label="{% trans 'Fragen verwalten' %}">
@@ -100,8 +101,8 @@
   <div class="impulse-story-nav">
     <button type="button" class="impulse-story-btn" data-story-prev aria-label="{% trans 'Vorheriger Impuls' %}"><i class="bi bi-chevron-left"></i></button>
     <div class="small text-muted text-center">
-      <span class="impulse-story-hint-touch">{% trans "Wischen oder Pfeile antippen" %}</span>
-      <span class="impulse-story-hint-keys">{% trans "Mit den Pfeiltasten blättern" %}</span>
+      <span class="impulse-story-hint-touch">{% trans "Links oder rechts tippen" %}</span>
+      <span class="impulse-story-hint-keys">{% trans "Links oder rechts klicken oder Pfeiltasten" %}</span>
     </div>
     <button type="button" class="impulse-story-btn" data-story-next aria-label="{% trans 'Nächster Impuls' %}"><i class="bi bi-chevron-right"></i></button>
   </div>
@@ -129,7 +130,7 @@
   .impulse-story-progress button.current span { background: rgba(0, 0, 0, .28); }
 
   /* Folien */
-  .impulse-story-stage { position: relative; touch-action: pan-y; }
+  .impulse-story-stage { position: relative; touch-action: pan-y; cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .impulse-story-slide {
     border-radius: 1.75rem; min-height: 540px; padding: 2rem 1.75rem; color: #fff;
     display: none; flex-direction: column; position: relative; overflow: hidden;
@@ -152,6 +153,8 @@
   .impulse-story-kicker {
     font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; opacity: .85;
     display: flex; align-items: center; gap: .5rem; position: relative;
+    /* Gleiche Höhe wie die Icon-Buttons, damit alle Folien-Überschriften auf einer Linie liegen */
+    min-height: 2.5rem;
   }
   .impulse-story-top { display: flex; justify-content: space-between; align-items: center; gap: .75rem; position: relative; }
   .impulse-story-actions { display: flex; gap: .5rem; flex-shrink: 0; }
@@ -164,6 +167,7 @@
   .impulse-story-main { flex: 1; display: flex; flex-direction: column; justify-content: center; position: relative; padding: 1.5rem 0; }
   .impulse-story-big { font-size: 1.75rem; line-height: 1.35; font-weight: 600; overflow-wrap: break-word; }
   .impulse-story-question { font-size: 2.1rem; }
+  .impulse-story-verse { font-size: 1.35rem; line-height: 1.5; overflow-wrap: break-word; }
   .impulse-story-serif { font-family: Georgia, "Times New Roman", serif; }
   .impulse-story-serif.impulse-story-big { font-weight: 400; }
   .impulse-story-muted { opacity: .75; }
@@ -196,6 +200,7 @@
     .impulse-story-slide { min-height: 470px; padding: 1.75rem 1.5rem; border-radius: 1.5rem; }
     .impulse-story-big { font-size: 1.45rem; }
     .impulse-story-question { font-size: 1.75rem; }
+    .impulse-story-verse { font-size: 1.15rem; }
   }
   @media (prefers-reduced-motion: reduce) {
     .impulse-story-slide.active { animation: none; }
@@ -256,7 +261,7 @@
     });
 
     // Wischen
-    let startX = null, startY = null;
+    let startX = null, startY = null, swipedAt = 0;
     const stage = root.querySelector('.impulse-story-stage');
     stage.addEventListener('touchstart', (e) => {
       startX = e.changedTouches[0].clientX;
@@ -266,9 +271,24 @@
       if (startX === null) return;
       const dx = e.changedTouches[0].clientX - startX;
       const dy = e.changedTouches[0].clientY - startY;
-      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) show(current + (dx < 0 ? 1 : -1));
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+        show(current + (dx < 0 ? 1 : -1));
+        swipedAt = Date.now();
+      }
       startX = null;
     }, { passive: true });
+
+    // Antippen: linkes Drittel = zurück, sonst weiter (wie bei Social-Media-Stories)
+    stage.addEventListener('click', (e) => {
+      if (Date.now() - swipedAt < 400) return;                       // Klick direkt nach dem Wischen
+      if (e.target.closest('a, button, audio, input, textarea, select, label')) return;
+      const selection = window.getSelection();
+      if (selection && String(selection).trim()) return;              // Text wird markiert
+      const slide = e.target.closest('.impulse-story-slide');
+      if (!slide) return;
+      const rect = slide.getBoundingClientRect();
+      show(current + (e.clientX - rect.left < rect.width / 3 ? -1 : 1));
+    });
 
     show(0);
 
