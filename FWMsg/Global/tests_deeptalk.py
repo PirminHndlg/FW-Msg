@@ -255,3 +255,18 @@ class DeepTalkViewTests(TestCase):
         response = self.client.get(reverse('deeptalk_fragen'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Eine Frage?')
+
+    def test_org_dashboard_links_to_story(self):
+        self.client.force_login(self.org_user)
+        response = self.client.get(reverse('org_home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="impulseStoryCta"')
+        self.assertContains(response, f'href="{reverse("impulse")}"')
+
+    def test_story_shows_all_slides(self):
+        DeepTalkFrage.objects.create(org=self.org, text='Was gibt dir Kraft?')
+        self.client.force_login(self.fw_user)
+        response = self.client.get(reverse('impulse'))
+        self.assertContains(response, 'impulse-story-talk')
+        self.assertContains(response, 'impulse-story-segen')
+        self.assertContains(response, 'Was gibt dir Kraft?')

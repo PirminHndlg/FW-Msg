@@ -7687,3 +7687,31 @@ msgstr "A spoken blessing for your day."
 msgid "Dein Browser unterstützt keine Audiowiedergabe."
 msgstr "Your browser does not support audio playback."
 
+#: Deep Talk
+msgid "Story"
+msgstr "Story"
+
+#: Deep Talk
+msgid "Allein, zu zweit oder in der Gruppe"
+msgstr "Alone, in pairs or as a group"
+
+#: Deep Talk
+msgid "Vorheriger Impuls"
+msgstr "Previous impulse"
+
+#: Deep Talk
+msgid "Nächster Impuls"
+msgstr "Next impulse"
+
+#: Deep Talk
+msgid "Wischen oder Pfeile antippen"
+msgstr "Swipe or tap the arrows"
+
+#: Deep Talk
+msgid "Mit den Pfeiltasten blättern"
+msgstr "Use the arrow keys to browse"
+
+#: Deep Talk
+msgid "Losung · Deep Talk · Segen"
+msgstr "Losung · Deep Talk · Blessing"
+
