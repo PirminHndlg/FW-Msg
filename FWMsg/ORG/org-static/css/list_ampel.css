@@ -114,3 +114,10 @@
 .jahrgang-section .collapse {
     transition: all 0.2s ease-in-out;
 }
+
+/* Von der Organisation manuell eingetragene Meldungen: gestrichelter Rand + Gebäude-Icon
+   (genutzt in der Ampelübersicht und auf dem Dashboard) */
+.ampel-dot-manuell {
+    outline: 2px dashed var(--bs-secondary);
+    outline-offset: 2px;
+}
