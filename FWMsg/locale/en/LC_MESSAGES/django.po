@@ -7436,3 +7436,333 @@ msgstr "Invalid users"
 #: ORG/templates/list_aufgaben_table.html ORG/views.py
 msgid "Keine Benutzer:innen ausgewählt"
 msgstr "No users selected"
+
+#: Deep Talk
+msgid "Deep Talk"
+msgstr "Deep Talk"
+
+#: Deep Talk
+msgid "Frage des Tages"
+msgstr "Question of the day"
+
+#: Deep Talk
+msgid "Noch keine Deep-Talk-Fragen hinterlegt."
+msgstr "No Deep Talk questions yet."
+
+#: Deep Talk
+msgid "Fragen hinzufügen"
+msgstr "Add questions"
+
+#: Deep Talk
+msgid "Nimm dir Zeit – allein, zu zweit oder in der Gruppe."
+msgstr "Take your time – alone, in pairs or as a group."
+
+#: Deep Talk
+msgid "Frühere Fragen"
+msgstr "Previous questions"
+
+#: Deep Talk
+msgid "Für heute ist keine Losung verfügbar."
+msgstr "No Losung available for today."
+
+#: Deep Talk
+msgid "Impulse"
+msgstr "Daily impulses"
+
+#: Deep Talk
+msgid "Impulse für deinen Tag"
+msgstr "Impulses for your day"
+
+#: Deep Talk
+msgid "Jeden Tag neue Gedanken – zum Lesen, Nachdenken und Ins-Gespräch-Kommen."
+msgstr "New thoughts every day – to read, reflect on and talk about."
+
+#: Deep Talk
+msgid "Fragen verwalten"
+msgstr "Manage questions"
+
+#: Deep Talk
+msgid "Alle Impulse"
+msgstr "All impulses"
+
+#: Deep Talk
+msgid "Deep-Talk-Fragen"
+msgstr "Deep Talk questions"
+
+#: Deep Talk
+msgid "Diese Frage wirklich löschen?"
+msgstr "Really delete this question?"
+
+#: Deep Talk
+msgid "gesamt"
+msgstr "total"
+
+#: Deep Talk
+msgid "aktiv"
+msgstr "active"
+
+#: Deep Talk
+msgid "Erst wenn alle aktiven Fragen gezeigt wurden, wiederholen sie sich."
+msgstr "Questions only repeat once all active questions have been shown."
+
+#: Deep Talk
+msgid "noch nicht gezeigt"
+msgstr "not shown yet"
+
+#: Deep Talk
+msgid "Ansicht für Nutzer:innen"
+msgstr "User view"
+
+#: Deep Talk
+msgid "Eine oder mehrere Fragen einfügen – eine Frage pro Zeile."
+msgstr "Paste one or more questions – one question per line."
+
+#: Deep Talk
+msgid "Was hat dich diese Woche überrascht?"
+msgstr "What surprised you this week?"
+
+#: Deep Talk
+msgid "Wofür bist du gerade dankbar?"
+msgstr "What are you grateful for right now?"
+
+#: Deep Talk
+msgid "Welcher Moment hat dich zuletzt zum Lachen gebracht?"
+msgstr "What moment made you laugh recently?"
+
+#: Deep Talk
+msgid "Welche Formate werden erkannt?"
+msgstr "Which formats are recognized?"
+
+#: Deep Talk
+msgid "Eine Frage pro Zeile – Leerzeilen dazwischen sind egal"
+msgstr "One question per line – blank lines in between are fine"
+
+#: Deep Talk
+msgid "Aufzählungen und Nummerierungen werden entfernt"
+msgstr "Bullets and numbering are removed"
+
+#: Deep Talk
+msgid "Über mehrere Zeilen umbrochene Fragen werden zusammengefügt"
+msgstr "Questions wrapped over several lines are joined"
+
+#: Deep Talk
+msgid "Mehrere Fragen in einer Zeile werden getrennt"
+msgstr "Several questions in one line are split"
+
+#: Deep Talk
+msgid "Anführungszeichen um eine Frage werden entfernt"
+msgstr "Quotes around a question are removed"
+
+#: Deep Talk
+msgid "Doppelte und bereits vorhandene Fragen werden übersprungen"
+msgstr "Duplicate and existing questions are skipped"
+
+#: Deep Talk
+msgid "Vorschau"
+msgstr "Preview"
+
+#: Deep Talk
+msgid "Direkt speichern"
+msgstr "Save directly"
+
+#: Deep Talk
+msgid "In der Eingabe wurden keine neuen Fragen gefunden."
+msgstr "No new questions were found in the input."
+
+#: Deep Talk
+msgid "Doppelt oder schon vorhanden"
+msgstr "Duplicate or already exists"
+
+#: Deep Talk
+msgid "Zu kurz"
+msgstr "Too short"
+
+#: Deep Talk
+msgid "Alle Fragen"
+msgstr "All questions"
+
+#: Deep Talk
+msgid "Fragen durchsuchen …"
+msgstr "Search questions …"
+
+#: Deep Talk
+msgid "Fragen durchsuchen"
+msgstr "Search questions"
+
+#: Deep Talk
+msgid "Inaktiv"
+msgstr "Inactive"
+
+#: Deep Talk
+msgid "zuletzt"
+msgstr "last"
+
+#: Deep Talk
+msgid "Deaktivieren"
+msgstr "Deactivate"
+
+#: Deep Talk
+msgid "Aktivieren"
+msgstr "Activate"
+
+#: Deep Talk
+msgid "Keine passenden Fragen."
+msgstr "No matching questions."
+
+#: Deep Talk
+msgid "Noch keine Fragen vorhanden. Füge oben die ersten Fragen hinzu."
+msgstr "No questions yet. Add the first ones above."
+
+#: Deep Talk
+msgid "Es wurden keine neuen Fragen erkannt."
+msgstr "No new questions were recognized."
+
+#: Deep Talk
+#, python-format
+msgid "%(count)s Fragen hinzugefügt."
+msgstr "%(count)s questions added."
+
+#: Deep Talk
+#, python-format
+msgid "%(count)s Einträge wurden übersprungen (doppelt, zu kurz oder zu lang)."
+msgstr "%(count)s entries were skipped (duplicate, too short or too long)."
+
+#: Deep Talk
+msgid "Frage nicht gefunden."
+msgstr "Question not found."
+
+#: Deep Talk
+msgid "Frage aktiviert."
+msgstr "Question activated."
+
+#: Deep Talk
+msgid "Frage deaktiviert."
+msgstr "Question deactivated."
+
+#: Deep Talk
+msgid "Frage gelöscht."
+msgstr "Question deleted."
+
+#: Deep Talk
+msgid "Text der Deep-Talk-Frage"
+msgstr "Text of the Deep Talk question"
+
+#: Deep Talk
+msgid "Vergleichstext"
+msgstr "Comparison text"
+
+#: Deep Talk
+msgid "Normalisierter Text zur Erkennung von Duplikaten"
+msgstr "Normalized text for detecting duplicates"
+
+#: Deep Talk
+msgid "Nur aktive Fragen werden als Frage des Tages ausgewählt"
+msgstr "Only active questions are chosen as question of the day"
+
+#: Deep Talk
+msgid "Deep-Talk-Frage"
+msgstr "Deep Talk question"
+
+#: Deep Talk
+msgid "Deep-Talk-Frage des Tages"
+msgstr "Deep Talk question of the day"
+
+#: Deep Talk
+msgid "Deep-Talk-Fragen der Tage"
+msgstr "Deep Talk questions of the day"
+
+#: Deep Talk
+#, python-format
+msgid "Max. %(max_questions_per_import)s Fragen pro Import, jede Frage max. %(max_question_length)s Zeichen."
+msgstr "Max. %(max_questions_per_import)s questions per import, each at most %(max_question_length)s characters."
+
+#: Deep Talk
+#, python-format
+msgid "Die Eingabe war zu lang und wurde nach %(max_input_chars)s Zeichen abgeschnitten."
+msgstr "The input was too long and was cut off after %(max_input_chars)s characters."
+
+#: Deep Talk
+#, python-format
+msgid "Es werden höchstens %(max_questions_per_import)s Fragen auf einmal übernommen. Füge den Rest in einem zweiten Schritt hinzu."
+msgstr "At most %(max_questions_per_import)s questions are imported at once. Add the rest in a second step."
+
+#: Deep Talk
+#, python-format
+msgid "Länger als %(max_question_length)s Zeichen"
+msgstr "Longer than %(max_question_length)s characters"
+
+#: Deep Talk
+#, python-format
+msgid "%(counter)s neue Frage erkannt"
+msgid_plural "%(counter)s neue Fragen erkannt"
+msgstr[0] "%(counter)s new question recognized"
+msgstr[1] "%(counter)s new questions recognized"
+
+#: Deep Talk
+#, python-format
+msgid "%(counter)s Frage speichern"
+msgid_plural "%(counter)s Fragen speichern"
+msgstr[0] "Save %(counter)s question"
+msgstr[1] "Save %(counter)s questions"
+
+#: Deep Talk
+#, python-format
+msgid "%(counter)s Eintrag wird übersprungen"
+msgid_plural "%(counter)s Einträge werden übersprungen"
+msgstr[0] "%(counter)s entry is skipped"
+msgstr[1] "%(counter)s entries are skipped"
+
+#: Deep Talk
+#, python-format
+msgid "%(counter)s× gezeigt"
+msgid_plural "%(counter)s× gezeigt"
+msgstr[0] "shown %(counter)s×"
+msgstr[1] "shown %(counter)s×"
+
+#: Digitaler Segen
+msgid "Digitaler Segen"
+msgstr "Digital blessing"
+
+#: Digitaler Segen
+msgid "Bald verfügbar"
+msgstr "Coming soon"
+
+#: Digitaler Segen
+msgid "Hier kannst du bald jeden Tag einen gesprochenen Segen anhören."
+msgstr "Soon you can listen to a spoken blessing here every day."
+
+#: Digitaler Segen
+msgid "Ein gesprochener Segen für deinen Tag."
+msgstr "A spoken blessing for your day."
+
+#: Digitaler Segen
+msgid "Dein Browser unterstützt keine Audiowiedergabe."
+msgstr "Your browser does not support audio playback."
+
+#: Deep Talk
+msgid "Story"
+msgstr "Story"
+
+#: Deep Talk
+msgid "Allein, zu zweit oder in der Gruppe"
+msgstr "Alone, in pairs or as a group"
+
+#: Deep Talk
+msgid "Vorheriger Impuls"
+msgstr "Previous impulse"
+
+#: Deep Talk
+msgid "Nächster Impuls"
+msgstr "Next impulse"
+
+#: Deep Talk
+msgid "Wischen oder Pfeile antippen"
+msgstr "Swipe or tap the arrows"
+
+#: Deep Talk
+msgid "Mit den Pfeiltasten blättern"
+msgstr "Use the arrow keys to browse"
+
+#: Deep Talk
+msgid "Losung · Deep Talk · Segen"
+msgstr "Losung · Deep Talk · Blessing"

@@ -273,6 +273,24 @@ def losungen(request):
     return render(request, 'losungen.html', context=context)
 
 
+@login_required
+def impulse(request):
+    """Hub für tägliche Impulse (Losungen, Deep-Talk-Frage)."""
+    context = check_organization_context(request, {})
+    return render(request, 'impulse.html', context=context)
+
+
+@login_required
+def deeptalk(request):
+    """Deep-Talk-Frage des Tages mit Rückblick auf frühere Fragen."""
+    from Global.deeptalk import get_recent_questions
+
+    context = check_organization_context(request, {
+        'recent_days': get_recent_questions(request.user.org, days=14),
+    })
+    return render(request, 'deeptalk.html', context=context)
+
+
 
 
 def serve_logo(request, org_id):

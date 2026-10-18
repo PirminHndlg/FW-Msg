@@ -74,6 +74,8 @@ urlpatterns = [
 
     path('datenschutz/', views.datenschutz, name='datenschutz'),
     path('losungen/', views.losungen, name='losungen'),
+    path('impulse/', views.impulse, name='impulse'),
+    path('impulse/deeptalk/', views.deeptalk, name='deeptalk'),
     
     # Einsatzstellen Notizen
     path('einsatzstellen_notiz/', views.einsatzstellen_notiz, name='einsatzstellen_notiz'),

@@ -1700,3 +1700,46 @@ class MapLocation(OrgModel):
 
     def __str__(self):
         return f'{self.city}, {self.country}'
+
+
+class DeepTalkFrage(OrgModel):
+    """Eine Deep-Talk-Frage als täglicher Impuls (siehe Global/deeptalk.py)."""
+    text = models.TextField(max_length=500, verbose_name=_('Frage'), help_text=_('Text der Deep-Talk-Frage'))
+    text_normalized = models.CharField(max_length=500, editable=False, verbose_name=_('Vergleichstext'), help_text=_('Normalisierter Text zur Erkennung von Duplikaten'))
+    active = models.BooleanField(default=True, verbose_name=_('Aktiv'), help_text=_('Nur aktive Fragen werden als Frage des Tages ausgewählt'))
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('Erstellt von'))
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
+
+    class Meta:
+        verbose_name = _('Deep-Talk-Frage')
+        verbose_name_plural = _('Deep-Talk-Fragen')
+        ordering = ['-date_created', '-id']
+        constraints = [
+            models.UniqueConstraint(fields=['org', 'text_normalized'], name='unique_deeptalk_frage_per_org'),
+        ]
+
+    def __str__(self):
+        return self.text[:80]
+
+    def save(self, *args, **kwargs):
+        from Global.deeptalk import normalize_for_compare
+        self.text = (self.text or '').strip()
+        self.text_normalized = normalize_for_compare(self.text)
+        super().save(*args, **kwargs)
+
+
+class DeepTalkTag(OrgModel):
+    """Festgelegte Deep-Talk-Frage eines Tages – genau eine pro Organisation und Datum."""
+    datum = models.DateField(verbose_name=_('Datum'))
+    frage = models.ForeignKey(DeepTalkFrage, on_delete=models.CASCADE, related_name='tage', verbose_name=_('Frage'))
+
+    class Meta:
+        verbose_name = _('Deep-Talk-Frage des Tages')
+        verbose_name_plural = _('Deep-Talk-Fragen der Tage')
+        ordering = ['-datum']
+        constraints = [
+            models.UniqueConstraint(fields=['org', 'datum'], name='unique_deeptalk_tag_per_org'),
+        ]
+
+    def __str__(self):
+        return f'{self.datum}: {self.frage}'
