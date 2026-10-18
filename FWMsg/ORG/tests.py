@@ -1467,6 +1467,76 @@ class AjaxTaskOperationsTests(TestCase):
         self.assertIsNone(user_aufgabe.erledigt_am)
 
 
+    # --- Zuweisung zurücksetzen -------------------------------------------
+
+    def _reset_task(self, payload):
+        return self.client.post(
+            reverse('ajax_reset_task_assignment'),
+            data=json.dumps(payload),
+            content_type='application/json'
+        )
+
+    def test_ajax_reset_task_assignment_only_visible_users(self):
+        """Only assignments of the sent (visible) users for this task are deleted"""
+        UserAufgaben.objects.create(org=self.org, user=self.user, aufgabe=self.aufgabe)
+        UserAufgaben.objects.create(org=self.org, user=self.user2, aufgabe=self.aufgabe)
+        other_task = UserAufgaben.objects.create(org=self.org, user=self.user, aufgabe=self.aufgabe2)
+
+        response = self._reset_task({'aufgabe_id': self.aufgabe.id, 'user_ids': [self.user.id]})
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertTrue(data['success'])
+        self.assertEqual(data['deleted_count'], 1)
+        self.assertFalse(UserAufgaben.objects.filter(user=self.user, aufgabe=self.aufgabe).exists())
+        self.assertTrue(UserAufgaben.objects.filter(user=self.user2, aufgabe=self.aufgabe).exists())
+        self.assertTrue(UserAufgaben.objects.filter(id=other_task.id).exists())
+
+    def test_ajax_reset_task_assignment_respects_person_cluster_filter(self):
+        """Users outside the selected person cluster are not affected, even if their id is sent"""
+        other_cluster = PersonCluster.objects.create(org=self.org, name='Andere Gruppe', view='F', aufgaben=True)
+        self.custom_user2.person_cluster = other_cluster
+        self.custom_user2.save()
+        UserAufgaben.objects.create(org=self.org, user=self.user, aufgabe=self.aufgabe)
+        UserAufgaben.objects.create(org=self.org, user=self.user2, aufgabe=self.aufgabe)
+
+        response = self._reset_task({
+            'aufgabe_id': self.aufgabe.id,
+            'person_cluster_id': str(self.person_cluster_fw.id),
+            'user_ids': [self.user.id, self.user2.id],
+        })
+
+        self.assertEqual(json.loads(response.content)['deleted_count'], 1)
+        self.assertTrue(UserAufgaben.objects.filter(user=self.user2, aufgabe=self.aufgabe).exists())
+
+    def test_ajax_reset_task_assignment_other_org_task(self):
+        """Tasks of another organization cannot be reset"""
+        other_org = Organisation.objects.create(name='Andere Org', email='other@test.com')
+        other_aufgabe = Aufgabe2.objects.create(org=other_org, name='Fremd')
+
+        response = self._reset_task({'aufgabe_id': other_aufgabe.id, 'user_ids': [self.user.id]})
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_ajax_reset_task_assignment_requires_user_ids(self):
+        """Without visible users nothing is deleted"""
+        UserAufgaben.objects.create(org=self.org, user=self.user, aufgabe=self.aufgabe)
+
+        response = self._reset_task({'aufgabe_id': self.aufgabe.id, 'user_ids': []})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(UserAufgaben.objects.filter(user=self.user, aufgabe=self.aufgabe).exists())
+
+    def test_ajax_reset_task_assignment_requires_org_role(self):
+        """Volunteers cannot reset assignments"""
+        UserAufgaben.objects.create(org=self.org, user=self.user, aufgabe=self.aufgabe)
+        self.client.login(username='testuser', password='testpass123')
+
+        self._reset_task({'aufgabe_id': self.aufgabe.id, 'user_ids': [self.user.id]})
+
+        self.assertTrue(UserAufgaben.objects.filter(user=self.user, aufgabe=self.aufgabe).exists())
+
+
 class TaskTemplateStateTests(TestCase):
     """Test the new template-based state switching approach"""
     

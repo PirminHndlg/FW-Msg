@@ -31,6 +31,7 @@ urlpatterns = [
     path('ajax/assign-tasks-by-country/', views.ajax_assign_tasks_by_country, name='ajax_assign_tasks_by_country'),
     path('ajax/assign-task/', views.ajax_assign_task, name='ajax_assign_task'),
     path('ajax/assign-task-to-all/', views.ajax_assign_task_to_all, name='ajax_assign_task_to_all'),
+    path('ajax/reset-task-assignment/', views.ajax_reset_task_assignment, name='ajax_reset_task_assignment'),
     path('ajax/load-aufgaben-table-data/', views.ajax_load_aufgaben_table_data, name='ajax_load_aufgaben_table_data'),
 
     # Generic dependent selects

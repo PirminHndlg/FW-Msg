@@ -265,6 +265,73 @@
         </div>
       </div>
 
+      <!-- Zuweisung zurücksetzen: Bestätigung -->
+      <div class="modal fade" id="resetTaskModal" tabindex="-1" aria-labelledby="resetTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content rounded-4">
+            <div class="modal-header border-0 pb-0">
+              <h5 class="modal-title d-flex align-items-center gap-2" id="resetTaskModalLabel">
+                <i class="bi bi-exclamation-triangle-fill text-danger"></i>{% trans 'Zuweisung zurücksetzen' %}
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              {# Was ist betroffen? #}
+              <div class="rounded-3 bg-body-tertiary p-3 mb-3">
+                <div class="small text-muted">{% trans 'Aufgabe' %}</div>
+                <div class="fw-semibold mb-2" id="resetTaskName"></div>
+                <div class="d-flex flex-wrap gap-2">
+                  <span class="badge text-bg-danger fs-6 fw-normal">
+                    <i class="bi bi-people me-1"></i><span id="resetTaskCount">0</span> {% trans 'Zuweisungen' %}
+                  </span>
+                  <span class="badge text-bg-warning fs-6 fw-normal" id="resetTaskFileBadge">
+                    <i class="bi bi-file-earmark-arrow-up me-1"></i><span id="resetTaskFileCount">0</span> {% trans 'mit hochgeladener Datei' %}
+                  </span>
+                </div>
+                <div id="resetTaskSearchHint" class="small text-muted mt-2 d-none">
+                  <i class="bi bi-search me-1"></i>{% trans 'Suche aktiv: nur die angezeigten Personen sind betroffen.' %}
+                </div>
+              </div>
+
+              {# Was geht verloren? #}
+              <p class="fw-semibold mb-2">{% trans 'Für diese Personen geht verloren:' %}</p>
+              <ul class="list-unstyled mb-3 reset-task-loss-list">
+                <li class="text-danger fw-semibold" id="resetTaskFilesItem">
+                  <i class="bi bi-file-earmark-x"></i>{% trans 'Hochgeladene Dateien' %}
+                </li>
+                <li><i class="bi bi-check2-circle"></i>{% trans 'Status (offen, pending, erledigt) und Erledigt-Datum' %}</li>
+                <li><i class="bi bi-calendar-event"></i>{% trans 'Fälligkeitsdatum' %}</li>
+                <li><i class="bi bi-list-check"></i>{% trans 'Zwischenschritte und deren Fortschritt' %}</li>
+                <li><i class="bi bi-bell"></i>{% trans 'Erinnerungsverlauf' %}</li>
+              </ul>
+
+              <div class="alert alert-danger mb-0 py-2 small">
+                {% trans 'Das kann nicht rückgängig gemacht werden.' %}
+              </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Abbrechen' %}</button>
+              <button type="button" class="btn btn-danger" id="resetTaskConfirmBtn" onclick="confirmResetTask()">
+                <i class="bi bi-trash me-1"></i>{% trans 'Zuweisungen löschen' %}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style>
+        .reset-task-loss-list li {
+          display: flex;
+          align-items: flex-start;
+          gap: .5rem;
+          padding: .25rem 0;
+        }
+        .reset-task-loss-list .bi {
+          flex-shrink: 0;
+          width: 1.1rem;
+        }
+      </style>
+
       {% include 'components/task_zwischenschritte_modal.html' %}
     </div>
 
@@ -714,6 +781,74 @@
                 alert('An error occurred while assigning tasks to all users.');
             });
         }
+    }
+
+    // Zuweisungen einer Aufgabe für alle aktuell sichtbaren Personen zurücksetzen
+    let resetTaskState = null;
+
+    function getVisibleUserRows() {
+        return [...document.querySelectorAll('tbody tr[data-user-id]')].filter(row => row.style.display !== 'none');
+    }
+
+    function showResetTaskModal(aufgabeId, personClusterId) {
+        const rows = getVisibleUserRows();
+        const assignedCount = rows.filter(row => row.querySelector(`td[data-aufgabe-id="${aufgabeId}"]`)).length;
+        resetTaskState = {
+            aufgabeId: aufgabeId,
+            personClusterId: personClusterId,
+            userIds: rows.map(row => row.dataset.userId),
+        };
+
+        const affectedCells = rows
+            .map(row => row.querySelector(`td[data-aufgabe-id="${aufgabeId}"]`))
+            .filter(Boolean);
+        const fileCount = affectedCells.filter(cell => cell.dataset.hasFile === '1').length;
+
+        document.getElementById('resetTaskName').textContent = (window.AUFGABEN_NAMES || {})[String(aufgabeId)] || '';
+        document.getElementById('resetTaskCount').textContent = assignedCount;
+        document.getElementById('resetTaskFileCount').textContent = fileCount;
+        // Datei-Hinweise nur bei Aufgaben mit Upload anzeigen
+        const mitUpload = Boolean((window.AUFGABEN_MITUPLOAD || {})[String(aufgabeId)]);
+        document.getElementById('resetTaskFilesItem').classList.toggle('d-none', !mitUpload);
+        document.getElementById('resetTaskFileBadge').classList.toggle('d-none', !mitUpload || fileCount === 0);
+        const searchInput = document.getElementById('userSearch');
+        document.getElementById('resetTaskSearchHint').classList.toggle('d-none', !(searchInput && searchInput.value.trim()));
+        document.getElementById('resetTaskConfirmBtn').disabled = assignedCount === 0;
+
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('resetTaskModal')).show();
+    }
+
+    function confirmResetTask() {
+        if (!resetTaskState) return;
+        const button = document.getElementById('resetTaskConfirmBtn');
+        button.disabled = true;
+
+        fetch("{% url 'ajax_reset_task_assignment' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({
+                aufgabe_id: resetTaskState.aufgabeId,
+                person_cluster_id: resetTaskState.personClusterId,
+                user_ids: resetTaskState.userIds,
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                button.disabled = false;
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            button.disabled = false;
+            alert('An error occurred while resetting the task assignment.');
+        });
     }
 
     // Assign tasks by country

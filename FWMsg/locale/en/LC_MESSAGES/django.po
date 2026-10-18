@@ -7384,3 +7384,55 @@ msgstr "Status report entered"
 #: FW/templates/homeFw.html
 msgid "Von deiner Organisation"
 msgstr "By your organization"
+
+#: Global/templates/components/folder_modal.html
+msgid "Ohne"
+msgstr "None"
+
+#: ORG/templates/list_aufgaben_table.html ORG/views.py
+msgid "Zuweisung zurücksetzen"
+msgstr "Reset assignment"
+
+#: ORG/templates/list_aufgaben_table.html ORG/views.py
+msgid "Zuweisungen"
+msgstr "assignments"
+
+#: ORG/templates/list_aufgaben_table.html ORG/views.py
+msgid "mit hochgeladener Datei"
+msgstr "with uploaded file"
+
+#: ORG/templates/list_aufgaben_table.html ORG/views.py
+msgid "Suche aktiv: nur die angezeigten Personen sind betroffen."
+msgstr "Search active: only the people shown are affected."
+
+#: ORG/templates/list_aufgaben_table.html ORG/views.py
+msgid "Für diese Personen geht verloren:"
+msgstr "The following will be lost for these people:"
+
+#: ORG/templates/list_aufgaben_table.html ORG/views.py
+msgid "Status (offen, pending, erledigt) und Erledigt-Datum"
+msgstr "Status (open, pending, done) and completion date"
+
+#: ORG/templates/list_aufgaben_table.html ORG/views.py
+msgid "Zwischenschritte und deren Fortschritt"
+msgstr "Intermediate steps and their progress"
+
+#: ORG/templates/list_aufgaben_table.html ORG/views.py
+msgid "Erinnerungsverlauf"
+msgstr "Reminder history"
+
+#: ORG/templates/list_aufgaben_table.html ORG/views.py
+msgid "Das kann nicht rückgängig gemacht werden."
+msgstr "This cannot be undone."
+
+#: ORG/templates/list_aufgaben_table.html ORG/views.py
+msgid "Zuweisungen löschen"
+msgstr "Delete assignments"
+
+#: ORG/templates/list_aufgaben_table.html ORG/views.py
+msgid "Ungültige Benutzer:innen"
+msgstr "Invalid users"
+
+#: ORG/templates/list_aufgaben_table.html ORG/views.py
+msgid "Keine Benutzer:innen ausgewählt"
+msgstr "No users selected"

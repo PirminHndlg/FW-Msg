@@ -2252,7 +2252,69 @@ def ajax_assign_task_to_all(request):
             'assigned_count': assigned_count,
             'errors': error_messages if error_messages else None
         })
-        
+
+    except Exception as e:
+        return _handle_ajax_error(e)
+
+
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def ajax_reset_task_assignment(request):
+    """Delete all UserAufgaben of one task for the users currently visible in the table.
+
+    The client sends the ids of the visible rows (after person-cluster filter and
+    search). They are only used to narrow down the users the table would show for
+    the given person cluster, so no assignments outside the org or filter can be deleted.
+    """
+    data, error_response = _parse_ajax_request(request)
+    if error_response:
+        return error_response
+
+    try:
+        aufgabe, error_response = _get_aufgabe_with_org_check(data.get('aufgabe_id'), request.user.org)
+        if error_response:
+            return error_response
+
+        try:
+            user_ids = [int(user_id) for user_id in data.get('user_ids') or []]
+        except (ValueError, TypeError):
+            return JsonResponse({'success': False, 'error': _('Ungültige Benutzer:innen')}, status=400)
+        if not user_ids:
+            return JsonResponse({'success': False, 'error': _('Keine Benutzer:innen ausgewählt')}, status=400)
+
+        # Same user selection as ajax_load_aufgaben_table_data for the org role
+        person_cluster_id = data.get('person_cluster_id')
+        if person_cluster_id and person_cluster_id not in ['None', 'null', 'undefined', '']:
+            try:
+                person_cluster = PersonCluster.selectable_for_org(
+                    request.user.org,
+                    id=int(person_cluster_id),
+                ).get()
+            except (ValueError, TypeError, PersonCluster.DoesNotExist):
+                return JsonResponse({'success': False, 'error': _('Benutzergruppe nicht gefunden')}, status=400)
+            users = User.objects.filter(customuser__org=request.user.org, customuser__person_cluster=person_cluster)
+        else:
+            users = User.objects.filter(
+                customuser__org=request.user.org,
+                customuser__person_cluster__isnull=False,
+                customuser__person_cluster__aufgaben=True,
+            )
+
+        user_aufgaben = UserAufgaben.objects.filter(
+            org=request.user.org,
+            aufgabe=aufgabe,
+            user__in=users.filter(id__in=user_ids),
+        )
+        deleted_count = user_aufgaben.count()
+        user_aufgaben.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{deleted_count} assignments removed',
+            'deleted_count': deleted_count,
+        })
+
     except Exception as e:
         return _handle_ajax_error(e)
 
