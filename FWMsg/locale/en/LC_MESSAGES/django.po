@@ -7807,3 +7807,19 @@ msgstr "No deployment country set yet."
 #: survey
 msgid "Max Mustermann"
 msgstr "Jane Doe"
+
+#: Global/templates/post_detail.html
+msgid "bearbeitet"
+msgstr "edited"
+
+#: Global/templates/post_detail.html
+msgid "Noch keine Antworten."
+msgstr "No replies yet."
+
+#: Global/templates/post_detail.html
+msgid "Andere benachrichtigen"
+msgstr "Notify others"
+
+#: Global/templates/post_detail.html
+msgid "Senden"
+msgstr "Send"
