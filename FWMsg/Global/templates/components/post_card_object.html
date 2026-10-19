@@ -1,73 +1,78 @@
 {% load i18n %}
 
-    <div class="card h-100 shadow-sm rounded-4">
-      <div class="card-header rounded-4">
-        <div class="d-flex justify-content-between align-items-center">
-          <a href="{% url 'post_detail' post.id %}" class="text-decoration-none text-dark">
-            <div class="d-flex align-items-center">
-              <span class="post-icon rounded-circle d-flex align-items-center justify-content-center me-3"><i class="bi bi-journal-text"></i></span>
-              <h5 class="card-title mb-0 fw-semibold">{{ post.title }}</h5>
-              {% if post.has_survey %}
-                <span class="badge bg-primary ms-2" data-bs-toggle="tooltip" data-bs-title="{% trans 'Enthält eine Umfrage' %}"><i class="bi bi-bar-chart-fill"></i></span>
-              {% endif %}
-              {% if post.image %}
-                <span class="badge bg-primary ms-2" data-bs-toggle="tooltip" data-bs-title="{% trans 'Enthält ein Bild' %}"><i class="bi bi-image"></i></span>
-              {% endif %}
-            </div>
-          </a>
-          {% if request.user == post.user or request.user.role == 'A' %}
-            <div class="dropdown">
-              <button class="btn btn-sm btn-light rounded-circle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button>
-              <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
-                <li>
-                  <a class="dropdown-item" href="{% url 'post_edit' post.id %}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans 'Bearbeiten' %}</a>
-                </li>
-                <li>
-                  <hr class="dropdown-divider" />
-                </li>
-                <li>
-                  <button class="dropdown-item text-danger" type="button" data-bs-toggle="modal" data-bs-target="#deletePostModal{{ post.id }}"><i class="bi bi-trash me-2"></i>{% trans 'Löschen' %}</button>
-                </li>
-              </ul>
-            </div>
-          {% endif %}
-        </div>
-      </div>
-      <div class="card-body p-3">
-        {% if post.text %}
-        <a href="{% url 'post_detail' post.id %}" class="text-decoration-none text-dark">
-          <div class="rounded-3 p-3 border-start border-primary border-3 mb-3">
-            <p class="card-text mb-0" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">{{ post.text }}</p>
-          </div>
+{# Kompakte Beitragskarte: Verfasser oben, Titel + 3 Zeilen Text, Fußzeile mit Hinweisen. Die ganze Karte ist antippbar. #}
+<article class="card h-100 rounded-4 post-card">
+  <div class="card-body p-3 d-flex flex-column">
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <a href="{% url 'profil' post.user.customuser.get_identifier %}" class="post-card-raise flex-shrink-0">
+        <img src="{% url 'serve_profil_picture' post.user.customuser.get_identifier %}"
+             alt="{{ post.user.get_full_name|default:post.user.username }}"
+             class="post-avatar post-avatar-sm" />
+      </a>
+      <div class="flex-grow-1 lh-sm" style="min-width: 0;">
+        <a href="{% url 'profil' post.user.customuser.get_identifier %}" class="post-card-raise text-body text-decoration-none fw-semibold small d-block text-truncate">
+          {{ post.user.get_full_name|default:post.user.username }}
         </a>
-        {% endif %}
-
-        <div class="d-flex justify-content-between align-items-center">
-          <a href="{% url 'profil' post.user.customuser.get_identifier %}" class="text-dark d-flex align-items-center">
-            <img src="{% url 'serve_profil_picture' post.user.customuser.get_identifier %}" alt="{{ post.user.first_name }} {{ post.user.last_name }}" class="rounded-circle me-2" style="height: 32px; object-fit: cover;" />
-            <div>
-              <small class="text-muted mb-0">{% trans 'Von' %}</small>
-              <p class="mb-0 fw-medium">{{ post.user.first_name|default:'' }} {{ post.user.last_name|default:post.user.username }}</p>
-            </div>
-          </a>
-          <div class="text-end">
-            <small class="text-muted mb-0">{% trans 'Erstellt am' %}</small>
-            <p class="mb-0 fw-medium">{{ post.date|date:'d.m.Y' }}</p>
-          </div>
-        </div>
+        <small class="text-muted">{{ post.date|date:'d.m.Y' }}</small>
       </div>
+      {% if request.user == post.user or request.user.role == 'A' %}
+        <div class="dropdown post-card-raise">
+          <button class="btn btn-sm btn-light rounded-circle post-menu-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% trans 'Optionen' %}">
+            <i class="bi bi-three-dots-vertical"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+            <li>
+              <a class="dropdown-item" href="{% url 'post_edit' post.id %}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans 'Bearbeiten' %}</a>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+              <button class="dropdown-item text-danger" type="button" data-bs-toggle="modal" data-bs-target="#deletePostModal{{ post.id }}"><i class="bi bi-trash me-2"></i>{% trans 'Löschen' %}</button>
+            </li>
+          </ul>
+        </div>
+      {% endif %}
     </div>
 
-    <!-- Include the delete modal for this post -->
-    {% include 'components/post_delete_modal.html' with post=post %}
+    <h5 class="fw-semibold mb-1 post-card-title">
+      <a href="{% url 'post_detail' post.id %}" class="stretched-link text-body text-decoration-none">{{ post.title }}</a>
+    </h5>
+    {% if post.text %}
+      <p class="text-body-secondary mb-0 post-card-text">{{ post.text }}</p>
+    {% endif %}
 
-    <style>
-        .empty-icon {
-          width: 80px;
-          height: 80px;
-        }
-        
-        .survey-preview {
-          font-size: 0.9rem;
-        }
-      </style>
+    {% with response_count=post.get_response_count %}
+      {% if response_count or post.has_survey or post.image %}
+        <div class="d-flex flex-wrap gap-3 mt-auto pt-3 small text-muted">
+          {% if response_count %}
+            <span><i class="bi bi-chat-left-text me-1"></i>{{ response_count }}</span>
+          {% endif %}
+          {% if post.has_survey %}
+            <span><i class="bi bi-bar-chart-fill me-1"></i>{% trans 'Umfrage' %}</span>
+          {% endif %}
+          {% if post.image %}
+            <span><i class="bi bi-image me-1"></i>{% trans 'Bild' %}</span>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
+</article>
+
+{% include 'components/post_delete_modal.html' with post=post %}
+
+<style>
+  /* Links und Menü liegen über dem stretched-link des Titels */
+  .post-card-raise { position: relative; z-index: 2; }
+  .post-avatar { border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .post-avatar-sm { width: 2.25rem; height: 2.25rem; }
+  .post-menu-btn { width: 2rem; height: 2rem; padding: 0; }
+  .post-card-title { overflow-wrap: anywhere; }
+  .post-card-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+</style>

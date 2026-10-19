@@ -8,290 +8,174 @@
 {% endblock %}
 
 {% block content %}
-  <div class="row justify-content-center">
-    <div class="col-12 col-lg-10">
-      <div class="card rounded-4 shadow-sm">
-        <div class="card-header bg-light rounded-4 py-3">
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
-              <span class="post-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"><i class="bi bi-journal-text text-white"></i></span>
-              <h3 class="card-title mb-0 fw-semibold">{{ post.title }}</h3>
-            </div>
-            <div>
-              {% if request.user == post.user or request.user.role == 'A' %}
-                <a href="{% url 'post_edit' post.id %}" class="btn btn-outline-primary rounded-3"><i class="bi bi-pencil"></i></a>
-                <button type="button" class="btn btn-outline-danger rounded-3" data-bs-toggle="modal" data-bs-target="#deletePostModal{{ post.id }}"><i class="bi bi-trash"></i></button>
-              {% endif %}
-            </div>
-          </div>
+  <div class="post-detail mx-auto">
+    {# Obere Leiste: zurück + Aktionen #}
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <a href="{% url 'posts_overview' %}" class="btn btn-sm btn-outline-secondary rounded-3">
+        <i class="bi bi-arrow-left me-1"></i>{% trans 'Beiträge' %}
+      </a>
+      {% if request.user == post.user or request.user.role == 'A' %}
+        <div class="d-flex gap-2">
+          <a href="{% url 'post_edit' post.id %}" class="btn btn-sm btn-outline-primary rounded-3" title="{% trans 'Bearbeiten' %}" aria-label="{% trans 'Bearbeiten' %}"><i class="bi bi-pencil"></i></a>
+          <button type="button" class="btn btn-sm btn-outline-danger rounded-3" data-bs-toggle="modal" data-bs-target="#deletePostModal{{ post.id }}" title="{% trans 'Löschen' %}" aria-label="{% trans 'Löschen' %}"><i class="bi bi-trash"></i></button>
         </div>
-        <div class="card-body p-4">
-          <div class="row mb-4">
-            <div class="col-md-6">
-              <div class="author-card p-3 rounded-3 bg-light border-start border-primary border-3 h-100">
-                <a href="{% url 'profil' post.user.customuser.get_identifier %}" class="text-decoration-none text-dark">
-                  <div class="d-flex align-items-center">
-                    <img src="{% url 'serve_profil_picture' post.user.customuser.get_identifier %}"
-                        alt="{{ post.user.first_name }} {{ post.user.last_name }}"
-                        class="rounded-circle me-3 shadow-sm"
-                        style="height: 48px; object-fit: cover;"/>
-                    <div>
-                      <small class="text-muted">{% trans 'Erstellt von' %}</small>
-                      <div class="fw-medium">{{ post.user.first_name }} {{ post.user.last_name }}</div>
-                    </div>
-                  </div>
-                </a>
-              </div>
-            </div>
-            <div class="col-md-6 mt-3 mt-md-0">
-              <div class="date-card p-3 rounded-3 bg-light border-start border-primary border-3 h-100">
-                <div class="d-flex align-items-center">
-                  <span class="date-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"><i class="bi bi-calendar-date text-white"></i></span>
-                  <div>
-                    <small class="text-muted">{% trans 'Erstellt am' %}</small>
-                    <div class="fw-medium">{{ post.date|date:'d.m.Y H:i' }}</div>
-                    {% if post.date_updated and post.date_updated != post.date %}
-                      <small class="text-muted">{% trans 'Aktualisiert am' %} {{ post.date_updated|date:'d.m.Y H:i' }}</small>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {% if post.text %}
-          <div class="mb-4">
-            <h5 class="form-label fw-semibold text-primary">{% trans 'Inhalt' %}</h5>
-            <div class="p-4 bg-light rounded-3 border-start border-primary border-3">
-              <div class="post-content">{{ post.text|format_text_with_link|safe }}</div>
-            </div>
-          </div>
-          {% endif %}
-
-          {% if post.image %}
-            <div class="mb-4">
-              <h5 class="form-label fw-semibold text-primary">{% trans 'Bild' %}</h5>
-              <img src="{% url 'serve_post_image' post.id %}" alt="{{ post.title }}" class="img-fluid rounded-3" style="max-height: 500px; object-fit: cover;">
-            </div>
-          {% endif %}
-
-          {% if post.has_survey and post.survey_question %}
-            <div class="mt-5 mb-4">
-              <div class="mb-3">
-                <h5 class="form-label fw-semibold text-primary d-flex align-items-center">
-                  <span class="survey-icon bg-primary-subtle rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
-                    <i class="bi bi-bar-chart-fill text-primary"></i>
-                  </span>
-                  {% trans 'Umfrage' %}
-                </h5>
-
-                <div class="card border-primary-subtle rounded-3 shadow-sm">
-                  <div class="card-header bg-primary-subtle py-3">
-                    <h5 class="card-title mb-0 fw-semibold text-primary">{{ post.survey_question.question_text }}</h5>
-                  </div>
-                  <div class="card-body p-4">
-                    <!-- Survey Vote Form - Always editable -->
-                    <form method="post" action="{% url 'post_vote' post.id %}" class="survey-vote-form">
-                      {% csrf_token %}
-                      <div class="survey-options d-flex flex-column gap-3">
-                        {% for answer in post.survey_question.survey_answers.all %}
-                          <div class="p-3 border rounded-3 {% if answer == has_voted %}border-success border-2 bg-success bg-opacity-10{% endif %}" style="transition: all 0.2s;">
-                            <div class="form-check mb-2 d-flex align-items-start gap-2">
-                              <input class="form-check-input" 
-                                      type="radio" 
-                                      name="answer_id" 
-                                      id="answer_{{ answer.id }}" 
-                                      value="{{ answer.id }}" 
-                                      {% if answer == has_voted %}checked{% endif %}
-                                      {% if not has_voted %}required{% endif %} />
-                              <label class="form-check-label fw-semibold d-flex align-items-center gap-2 flex-wrap" for="answer_{{ answer.id }}" style="cursor: pointer;">
-                                <span {% if answer == has_voted %}class="text-success"{% endif %}>
-                                  {{ answer.answer_text }}
-                                </span>
-                                <span class="badge bg-primary rounded-pill">{{ answer.votes.count }}</span>
-                              </label>
-                            </div>
-
-                            {% if answer.votes.count > 0 %}
-                              <div class="ms-0 ms-sm-4 mt-2 border rounded-3 p-2 bg-light" style="max-height: 120px; overflow-y: auto; overflow-x: hidden;">
-                                <div class="d-flex flex-wrap gap-2">
-                                  {% for user in answer.votes.all %}
-                                    <img src="{% url 'serve_profil_picture' user.customuser.get_identifier %}" 
-                                          alt="{{ user.get_full_name }}"
-                                          class="rounded-circle shadow-sm"
-                                          style="height: 36px; object-fit: cover; cursor: pointer;"
-                                          data-bs-toggle="tooltip"
-                                          data-bs-placement="top"
-                                          title="{% if user == request.user %}{% trans 'Du' %}{% else %}{{ user.get_full_name }}{% endif %}">
-                                  {% endfor %}
-                                </div>
-                              </div>
-                            {% endif %}
-                          </div>
-                        {% endfor %}
-                      </div>
-                      
-                      <div class="row align-items-center mt-4 pt-3 border-top gy-3">
-                        <div class="col-12 col-sm text-muted d-flex align-items-center gap-2">
-                          <span class="d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-circle" style="width:36px;height:36px;">
-                            <i class="bi bi-people-fill"></i>
-                          </span>
-                          <div>
-                            <strong>{% trans 'Insgesamt' %}:</strong> {{ total_votes }} {% trans 'Stimmen' %}
-                          </div>
-                        </div>
-                        <div class="col-12 col-md-auto">
-                          <div class="d-flex flex-column flex-md-row gap-2">
-                            {% if has_voted %}
-                              <button type="submit" name="withdraw" value="true" class="btn btn-outline-danger w-100">
-                                <i class="bi bi-x-circle me-1"></i>{% trans 'Zurückziehen' %}
-                              </button>
-                            {% endif %}
-                            <button type="submit" class="btn btn-primary w-100">
-                              {% if has_voted %}
-                                <i class="bi bi-arrow-repeat me-1"></i>{% trans 'Stimme ändern' %}
-                              {% else %}
-                                <i class="bi bi-check2-circle me-1"></i>{% trans 'Abstimmen' %}
-                              {% endif %}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </div>
-          {% endif %}
-
-          {% if responses %}
-            <div class="mt-5">
-              <h5 class="form-label fw-semibold text-primary d-flex align-items-center mb-4">
-                <span class="response-icon bg-primary-subtle rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
-                  <i class="bi bi-chat-left-text-fill text-primary"></i>
-                </span>
-                {% trans 'Antworten' %} ({{ post.get_response_count }})
-              </h5>
-              
-              {% for response in responses %}
-                <div class="card rounded-4 mb-3">
-                  <div class="card-body p-4">
-                    <!-- Author Info -->
-                    <div class="d-flex align-items-start mb-3">
-                      <a href="{% url 'profil' response.user.customuser.get_identifier %}" class="text-decoration-none">
-                        <img src="{% url 'serve_profil_picture' response.user.customuser.get_identifier %}" 
-                              alt="{{ response.user.get_full_name }}" 
-                              class="rounded-circle me-3 shadow-sm" 
-                              style="height: 48px; object-fit: cover;"/>
-                      </a>
-                      <div class="flex-grow-1">
-                        <div class="d-flex justify-content-between align-items-start">
-                          <div>
-                            <a href="{% url 'profil' response.user.customuser.get_identifier %}" class="text-decoration-none">
-                              <h6 class="mb-0 fw-semibold text-dark">{{ response.user.get_full_name }}</h6>
-                            </a>
-                            <small class="text-muted">
-                              <i class="bi bi-clock me-1"></i>
-                              {{ response.date_created|date:'d.m.Y H:i' }}
-                            </small>
-                          </div>
-                          {% if request.user == response.user or request.user.role == 'A' %}
-                            <button type="button" class="btn btn-sm btn-outline-danger rounded-3" data-bs-toggle="modal" data-bs-target="#deleteResponseModal{{ response.id }}">
-                              <i class="bi bi-trash"></i>
-                            </button>
-                          {% endif %}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <!-- Response Text -->
-                    {% if response.text %}
-                    <div class="response-content p-3 bg-light rounded-3 mb-3">
-                      {{ response.text|format_text_with_link|safe }}
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Response Image -->
-                    {% if response.image %}
-                      <div class="mt-3">
-                        <img src="{% url 'serve_post_response_image' response.id %}" 
-                              alt="{% trans 'Antwortbild' %}" 
-                              class="img-fluid rounded-3 border shadow-sm" 
-                              style="max-height: 400px; object-fit: cover;">
-                      </div>
-                    {% endif %}
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
-            <hr class="my-4">
-          {% endif %}
-
-          <!-- Inline Response Form -->
-          <div>
-            <div class="card rounded-4">
-              <div class="card-body p-4">
-                
-                <form method="post"
-                      action="{% url 'post_response' post.id %}"
-                      enctype="multipart/form-data"
-                      id="post-response-form-{{ post.id }}">
-                  {% csrf_token %}
-                  
-                  <div class="mb-3">
-                    <label class="form-label" for="{{ response_form.text.id_for_label }}">
-                      {% trans 'Antwort' %}
-                    </label>
-                    {{ response_form.text|add_class:"form-control rounded-3 border-2"|attr:"rows:4"|attr:"placeholder:Schreibe deine Antwort..." }}
-                    {% if response_form.text.errors %}
-                      <div class="invalid-feedback d-block">{{ response_form.text.errors }}</div>
-                    {% endif %}
-
-                    <div class="mt-2 d-flex gap-2">
-                      <label class="form-label" for="{{ response_form.with_notification.id_for_label }}">
-                        {{ response_form.with_notification.label|safe }}
-                      </label>
-                      {{ response_form.with_notification|add_class:"form-check-input" }}
-                    </div>
-                  </div>
-                  
-                  <div class="row gy-2 align-items-start">
-                    <div class="col-12 col-md-8">
-                      <div class="d-flex flex-column flex-sm-row align-items-stretch gap-2">
-                        <button type="button"
-                                class="btn btn-outline-secondary rounded-3 w-100 w-sm-auto"
-                                onclick="document.getElementById('{{ response_form.image.id_for_label }}').click()">
-                          <i class="bi bi-image me-1"></i>{% trans 'Bild hinzufügen' %}
-                        </button>
-                        {{ response_form.image|add_class:"d-none" }}
-                      </div>
-                      <div id="image-preview-{{ post.id }}" class="mt-2"></div>
-                      {% if response_form.image.errors %}
-                        <div class="invalid-feedback d-block">{{ response_form.image.errors }}</div>
-                      {% endif %}
-                    </div>
-                    <div class="col-12 col-md-4 d-grid">
-                      <button type="submit"
-                              class="btn btn-primary rounded-3 d-flex justify-content-center align-items-center gap-2 w-100"
-                              id="post-response-submit-{{ post.id }}">
-                        <i class="bi bi-send"></i>{% trans 'Antwort senden' %}
-                      </button>
-                    </div>
-                  </div>
-
-                </form>
-              </div>
-            </div>
-          </div>
-
-          <div class="d-flex gap-2 mt-4">
-            <a href="{% url 'posts_overview' %}" class="btn btn-outline-secondary rounded-3 px-4">
-              <i class="bi bi-arrow-left me-1"></i>{% trans 'Zurück zur Übersicht' %}
-            </a>
-          </div>
-        </div>
-      </div>
+      {% endif %}
     </div>
+
+    {# Beitrag #}
+    <article class="card rounded-4 mb-3">
+      <div class="card-body p-3 p-md-4">
+        <a href="{% url 'profil' post.user.customuser.get_identifier %}" class="d-flex align-items-center gap-2 text-body text-decoration-none mb-3">
+          <img src="{% url 'serve_profil_picture' post.user.customuser.get_identifier %}"
+               alt="{{ post.user.get_full_name|default:post.user.username }}"
+               class="post-avatar post-avatar-md" />
+          <div class="lh-sm" style="min-width: 0;">
+            <div class="fw-semibold text-truncate">{{ post.user.get_full_name|default:post.user.username }}</div>
+            <small class="text-muted">
+              {{ post.date|date:'d.m.Y, H:i' }}
+              {% if post.date_updated and post.date_updated != post.date %}
+                · <span title="{% trans 'Aktualisiert am' %} {{ post.date_updated|date:'d.m.Y H:i' }}">{% trans 'bearbeitet' %}</span>
+              {% endif %}
+            </small>
+          </div>
+        </a>
+
+        <h1 class="h4 fw-bold mb-2 post-title">{{ post.title }}</h1>
+
+        {% if post.text %}
+          <div class="post-content">{{ post.text|format_text_with_link|safe }}</div>
+        {% endif %}
+
+        {% if post.image %}
+          <a href="{% url 'serve_post_image' post.id %}" target="_blank" rel="noopener" class="d-block mt-3">
+            <img src="{% url 'serve_post_image' post.id %}" alt="{{ post.title }}" class="post-image">
+          </a>
+        {% endif %}
+
+        {# Umfrage: Antworten als Balken mit Prozent, Stimmen und Avataren #}
+        {% if post.has_survey and post.survey_question %}
+          <div class="post-poll mt-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <i class="bi bi-bar-chart-fill text-primary"></i>
+              <h2 class="h6 fw-semibold mb-0">{{ post.survey_question.question_text }}</h2>
+            </div>
+            <form method="post" action="{% url 'post_vote' post.id %}">
+              {% csrf_token %}
+              <div class="d-flex flex-column gap-2">
+                {% for answer in post.survey_question.survey_answers.all %}
+                  {% with votes=answer.votes.count %}
+                    <label class="post-poll-option {% if answer == has_voted %}is-mine{% endif %}" for="answer_{{ answer.id }}">
+                      <span class="post-poll-fill" style="width: {% if total_votes %}{% widthratio votes total_votes 100 %}{% else %}0{% endif %}%;"></span>
+                      <span class="post-poll-row">
+                        <input class="form-check-input mt-0 flex-shrink-0" type="radio" name="answer_id" id="answer_{{ answer.id }}" value="{{ answer.id }}"
+                               {% if answer == has_voted %}checked{% endif %} {% if not has_voted %}required{% endif %} />
+                        <span class="flex-grow-1 fw-medium" style="overflow-wrap: anywhere;">{{ answer.answer_text }}</span>
+                        <span class="small text-muted text-nowrap">{% if total_votes %}{% widthratio votes total_votes 100 %}% · {% endif %}{{ votes }}</span>
+                      </span>
+                      {% if votes %}
+                        <span class="post-poll-voters">
+                          {% for user in answer.votes.all|slice:":8" %}
+                            <img src="{% url 'serve_profil_picture' user.customuser.get_identifier %}"
+                                 alt="{{ user.get_full_name }}" class="post-avatar"
+                                 data-bs-toggle="tooltip" title="{% if user == request.user %}{% trans 'Du' %}{% else %}{{ user.get_full_name }}{% endif %}">
+                          {% endfor %}
+                          {% if votes > 8 %}<span class="post-poll-more">+{{ votes|add:"-8" }}</span>{% endif %}
+                        </span>
+                      {% endif %}
+                    </label>
+                  {% endwith %}
+                {% endfor %}
+              </div>
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3">
+                <small class="text-muted"><i class="bi bi-people-fill me-1"></i>{{ total_votes }} {% trans 'Stimmen' %}</small>
+                <div class="d-flex gap-2">
+                  {% if has_voted %}
+                    <button type="submit" name="withdraw" value="true" class="btn btn-sm btn-outline-danger rounded-3">
+                      {% trans 'Zurückziehen' %}
+                    </button>
+                  {% endif %}
+                  <button type="submit" class="btn btn-sm btn-primary rounded-3">
+                    {% if has_voted %}{% trans 'Stimme ändern' %}{% else %}{% trans 'Abstimmen' %}{% endif %}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        {% endif %}
+      </div>
+    </article>
+
+    {# Antworten im Kommentar-Stil #}
+    <section class="card rounded-4 mb-3">
+      <div class="card-body p-3 p-md-4">
+        <h2 class="h6 fw-semibold mb-3">
+          <i class="bi bi-chat-left-text me-1 text-primary"></i>{% trans 'Antworten' %}
+          {% if responses %}<span class="text-muted fw-normal">({{ post.get_response_count }})</span>{% endif %}
+        </h2>
+
+        {% for response in responses %}
+          <div class="d-flex gap-2 mb-3">
+            <a href="{% url 'profil' response.user.customuser.get_identifier %}" class="flex-shrink-0">
+              <img src="{% url 'serve_profil_picture' response.user.customuser.get_identifier %}"
+                   alt="{{ response.user.get_full_name }}" class="post-avatar post-avatar-sm" />
+            </a>
+            <div class="flex-grow-1" style="min-width: 0;">
+              <div class="post-comment">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                  <a href="{% url 'profil' response.user.customuser.get_identifier %}" class="fw-semibold small text-body text-decoration-none text-truncate">{{ response.user.get_full_name|default:response.user.username }}</a>
+                  {% if request.user == response.user or request.user.role == 'A' %}
+                    <button type="button" class="btn btn-link btn-sm text-danger p-0 lh-1 flex-shrink-0" data-bs-toggle="modal" data-bs-target="#deleteResponseModal{{ response.id }}" title="{% trans 'Löschen' %}" aria-label="{% trans 'Antwort löschen' %}">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  {% endif %}
+                </div>
+                {% if response.text %}
+                  <div class="post-comment-text">{{ response.text|format_text_with_link|safe }}</div>
+                {% endif %}
+                {% if response.image %}
+                  <a href="{% url 'serve_post_response_image' response.id %}" target="_blank" rel="noopener" class="d-block mt-2">
+                    <img src="{% url 'serve_post_response_image' response.id %}" alt="{% trans 'Antwortbild' %}" class="post-image post-image-sm">
+                  </a>
+                {% endif %}
+              </div>
+              <small class="text-muted ms-2">{{ response.date_created|date:'d.m.Y, H:i' }}</small>
+            </div>
+          </div>
+        {% empty %}
+          <p class="text-muted small mb-3">{% trans 'Noch keine Antworten.' %}</p>
+        {% endfor %}
+
+        {# Antwort schreiben #}
+        <form method="post" action="{% url 'post_response' post.id %}" enctype="multipart/form-data"
+              id="post-response-form-{{ post.id }}" class="post-reply">
+          {% csrf_token %}
+          <label class="visually-hidden" for="{{ response_form.text.id_for_label }}">{% trans 'Antwort' %}</label>
+          {{ response_form.text|add_class:"form-control post-reply-input"|attr:"rows:2"|attr:"placeholder:Schreibe deine Antwort..." }}
+          {% if response_form.text.errors %}
+            <div class="invalid-feedback d-block">{{ response_form.text.errors }}</div>
+          {% endif %}
+          <div id="image-preview-{{ post.id }}" class="mt-2"></div>
+          {% if response_form.image.errors %}
+            <div class="invalid-feedback d-block">{{ response_form.image.errors }}</div>
+          {% endif %}
+          {{ response_form.image|add_class:"d-none" }}
+
+          <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-3"
+                    onclick="document.getElementById('{{ response_form.image.id_for_label }}').click()">
+              <i class="bi bi-image me-1"></i>{% trans 'Bild' %}
+            </button>
+            <div class="form-check form-switch mb-0 small">
+              {{ response_form.with_notification|add_class:"form-check-input" }}
+              <label class="form-check-label" for="{{ response_form.with_notification.id_for_label }}">{% trans 'Andere benachrichtigen' %}</label>
+            </div>
+            <button type="submit" class="btn btn-sm btn-primary rounded-3 ms-auto" id="post-response-submit-{{ post.id }}">
+              <i class="bi bi-send me-1"></i>{% trans 'Senden' %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
   </div>
 
   {% include 'components/post_delete_modal.html' with post=post %}
@@ -363,36 +247,36 @@
   </script>
 
   <style>
-    .post-icon,
-    .date-icon,
-    .survey-icon,
-    .response-icon {
-      width: 36px;
-      height: 36px;
-      min-width: 36px;
+    .post-detail { max-width: 760px; }
+    .post-avatar { border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+    .post-avatar-sm { width: 2rem; height: 2rem; }
+    .post-avatar-md { width: 2.75rem; height: 2.75rem; }
+    .post-title { overflow-wrap: anywhere; }
+    .post-content { line-height: 1.6; overflow-wrap: anywhere; }
+    .post-content a, .post-comment-text a { word-break: break-all; }
+    .post-image { display: block; width: 100%; max-height: 520px; object-fit: cover; border-radius: .9rem; }
+    .post-image-sm { max-height: 280px; width: auto; max-width: 100%; }
+
+    /* Umfrage */
+    .post-poll-option {
+      position: relative; display: block; overflow: hidden; cursor: pointer;
+      border: 1px solid var(--bs-border-color); border-radius: .75rem; padding: .55rem .75rem;
     }
-    
-    .author-card,
-    .date-card {
-      min-height: 80px;
+    .post-poll-option.is-mine { border-color: var(--bs-primary); }
+    .post-poll-fill {
+      position: absolute; inset: 0 auto 0 0; background: rgba(var(--bs-primary-rgb), .1);
+      transition: width .3s ease;
     }
-    
-    .survey-options .form-check-input:checked {
-      background-color: var(--bs-info);
-      border-color: var(--bs-info);
-    }
-    
-    .progress {
-      background-color: rgba(var(--bs-info-rgb), 0.1);
-    }
-    
-    .response-content {
-      line-height: 1.6;
-    }
-    
-    .form-control:focus {
-      border-color: var(--bs-primary);
-      box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
-    }
+    .post-poll-row, .post-poll-voters { position: relative; display: flex; align-items: center; gap: .6rem; }
+    .post-poll-voters { margin-top: .4rem; padding-left: 1.6rem; gap: 0; }
+    .post-poll-voters .post-avatar { width: 1.5rem; height: 1.5rem; border: 2px solid var(--bs-body-bg); margin-left: -.35rem; }
+    .post-poll-voters .post-avatar:first-child { margin-left: 0; }
+    .post-poll-more { font-size: .75rem; color: var(--bs-secondary-color); margin-left: .35rem; }
+
+    /* Antworten */
+    .post-comment { background: var(--bs-tertiary-bg); border-radius: .25rem 1rem 1rem 1rem; padding: .5rem .75rem; }
+    .post-comment-text { overflow-wrap: anywhere; line-height: 1.5; }
+    .post-reply { border-top: 1px solid var(--bs-border-color); padding-top: .75rem; }
+    .post-reply-input { border-radius: .9rem; resize: vertical; }
   </style>
 {% endblock %}
