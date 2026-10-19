@@ -57,6 +57,49 @@
       .nav-link.active i {
         opacity: 1;
       }
+
+      /* Mobiles Burger-Menü: Kacheln in zwei Spalten */
+      .navbar .navbar-toggler {
+        border-color: rgba(255, 255, 255, .35);
+        border-radius: .75rem;
+        padding: .3rem .55rem;
+      }
+      .navbar .navbar-toggler:focus { box-shadow: 0 0 0 2px rgba(255, 255, 255, .45); }
+      .mobile-nav-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .5rem;
+      }
+      .mobile-nav-tile {
+        display: flex; align-items: center; gap: .65rem;
+        padding: .6rem .7rem; border-radius: .9rem;
+        background: rgba(255, 255, 255, .12);
+        color: var(--text_color_on_org_color); text-decoration: none;
+        transition: background .15s ease, transform .15s ease;
+        min-height: 3.25rem;
+      }
+      a.mobile-nav-tile:link:hover, .mobile-nav-tile:hover, .mobile-nav-tile:focus-visible {
+        background: rgba(255, 255, 255, .22); color: var(--text_color_on_org_color); text-decoration: none;
+      }
+      .mobile-nav-tile:active { transform: scale(.97); }
+      .mobile-nav-tile.active { background: rgba(255, 255, 255, .3); font-weight: 600; }
+      .mobile-nav-icon {
+        position: relative; flex-shrink: 0;
+        width: 2.1rem; height: 2.1rem; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(255, 255, 255, .18); font-size: 1rem;
+      }
+      .mobile-nav-label { font-size: .9rem; line-height: 1.2; overflow-wrap: anywhere; }
+      .mobile-nav-badge {
+        position: absolute; top: -.35rem; right: -.45rem; font-size: .65rem;
+        box-shadow: 0 0 0 2px var(--bs-primary);
+      }
+      .mobile-nav-footer {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-top: .75rem; padding: .6rem .7rem; border-radius: .9rem;
+        border: 1px solid rgba(255, 255, 255, .2);
+        color: var(--text_color_on_org_color);
+      }
     </style>
 
     {% block head %}
@@ -78,56 +121,66 @@
         </a>
 
         <!-- Hamburger Menu Button -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNavContent" aria-controls="mobileNavContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+        <button class="navbar-toggler position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNavContent" aria-controls="mobileNavContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span><span class="badge rounded-pill bg-danger d-none badge-unread navbar-toggler-badge">0</span></button>
       </div>
     </nav>
 
     <!-- Mobile Navigation Collapse Content -->
     <div class="collapse bg-primary d-md-none" id="mobileNavContent">
-      <div class="container-fluid py-3 d-flex justify-content-between align-items-start">
-        <ul class="nav flex-column text-on-org-color mt-0">
+      <div class="container-fluid pt-1 pb-3">
+        <div class="mobile-nav-grid">
           {% if user.person_cluster.posts %}
-            <li class="nav-item">
-              <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'posts_overview' %}"><i class="bi bi-journal-text me-1"></i>{% trans 'Beiträge' %}</a>
-            </li>
+          <a class="mobile-nav-tile" href="{% url 'posts_overview' %}">
+            <span class="mobile-nav-icon"><i class="bi bi-journal-text"></i></span>
+            <span class="mobile-nav-label">{% trans 'Beiträge' %}</span>
+          </a>
           {% endif %}
           {% if user.person_cluster.map %}
-            <li class="nav-item">
-              <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'karte' %}" title="{% trans 'Karte' %}"><i class="bi bi-map me-1"></i>{% trans 'Karte' %}</a>
-            </li>
-        {% endif %}
+          <a class="mobile-nav-tile" href="{% url 'karte' %}">
+            <span class="mobile-nav-icon"><i class="bi bi-map"></i></span>
+            <span class="mobile-nav-label">{% trans 'Karte' %}</span>
+          </a>
+          {% endif %}
           {% if user.person_cluster.ampel %}
-            <li class="nav-item">
-              <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'ampel' %}"><i class="bi bi-circle-fill me-1"></i>{% trans 'Ampelmeldung' %}</a>
-            </li>
+          <a class="mobile-nav-tile" href="{% url 'ampel' %}">
+            <span class="mobile-nav-icon"><i class="bi bi-circle-fill"></i></span>
+            <span class="mobile-nav-label">{% trans 'Ampelmeldung' %}</span>
+          </a>
           {% endif %}
-          <li class="nav-item">
-            <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'impulse' %}"><i class="bi bi-lightbulb me-1"></i>{% trans 'Impulse' %}</a>
-          </li>
           {% if user.person_cluster.calendar %}
-            <li class="nav-item">
-              <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'kalender' %}"><i class="bi bi-calendar-date me-1"></i>{% trans 'Kalender' %}</a>
-            </li>
+          <a class="mobile-nav-tile" href="{% url 'kalender' %}">
+            <span class="mobile-nav-icon"><i class="bi bi-calendar-date"></i></span>
+            <span class="mobile-nav-label">{% trans 'Kalender' %}</span>
+          </a>
           {% endif %}
-          <li class="nav-item">
-            <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'laenderinfo' %}"><i class="bi bi-people me-1"></i>{% trans 'Mein Einsatzland' %}</a>
-          </li>
+          <a class="mobile-nav-tile" href="{% url 'laenderinfo' %}">
+            <span class="mobile-nav-icon"><i class="bi bi-globe-europe-africa"></i></span>
+            <span class="mobile-nav-label">{% trans 'Mein Einsatzland' %}</span>
+          </a>
           {% if user.person_cluster.notfallkontakt %}
-            <li class="nav-item">
-              <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'notfallkontakte' %}"><i class="bi bi-person-rolodex me-1"></i>{% trans 'Notfallkontakte' %}</a>
-            </li>
+          <a class="mobile-nav-tile" href="{% url 'notfallkontakte' %}">
+            <span class="mobile-nav-icon"><i class="bi bi-person-rolodex"></i></span>
+            <span class="mobile-nav-label">{% trans 'Notfallkontakte' %}</span>
+          </a>
           {% endif %}
-          <li class="nav-item">
-            <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'list_users' %}"><i class="bi bi-people me-1"></i>{% trans 'Alle Freiwillige' %}</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'chat_list' %}"><i class="bi bi-chat-dots me-1"></i>{% trans 'Chat' %} <span class="badge bg-primary rounded-pill d-none badge-unread">0</span></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'settings' %}"><i class="bi bi-gear me-1"></i>{% trans 'Einstellungen' %}</a>
-          </li>
-        </ul>
-        {% include 'components/language_selector.html' %}
+          <a class="mobile-nav-tile" href="{% url 'list_users' %}">
+            <span class="mobile-nav-icon"><i class="bi bi-people"></i></span>
+            <span class="mobile-nav-label">{% trans 'Alle Freiwillige' %}</span>
+          </a>
+          <a class="mobile-nav-tile" href="{% url 'chat_list' %}">
+            <span class="mobile-nav-icon"><i class="bi bi-chat-dots"></i><span class="badge rounded-pill bg-danger d-none badge-unread mobile-nav-badge">0</span></span>
+            <span class="mobile-nav-label">{% trans 'Chat' %}</span>
+          </a>
+          <a class="mobile-nav-tile" href="{% url 'settings' %}">
+            <span class="mobile-nav-icon"><i class="bi bi-gear"></i></span>
+            <span class="mobile-nav-label">{% trans 'Einstellungen' %}</span>
+          </a>
+        </div>
+
+        <div class="mobile-nav-footer">
+          <span class="small opacity-75">{% trans 'Sprache' %}</span>
+          {% include 'components/language_selector.html' with label=True %}
+        </div>
       </div>
     </div>
 
@@ -176,11 +229,6 @@
                   </a>
                 </li>
               {% endif %}
-              <li class="nav-item">
-                <a class="nav-link px-0 py-1" style="color: var(--text_color_on_org_color);" href="{% url 'impulse' %}">
-                  <i class="bi bi-lightbulb me-1"></i>{% trans 'Impulse' %}
-                </a>
-              </li>
 
               <!-- Media & Documents Section -->
               <li class="nav-item mt-3">
@@ -303,11 +351,6 @@
                   </a>
                 </li>
               {% endif %}
-              <li class="nav-item">
-                <a class="nav-link px-0 py-2 d-flex justify-content-center" style="color: var(--text_color_on_org_color);" href="{% url 'impulse' %}" title="{% trans 'Impulse' %}">
-                  <i class="bi bi-lightbulb icon-md-lg"></i>
-                </a>
-              </li>
 
               <!-- Media & Documents -->
               {% if user.person_cluster.bilder %}
