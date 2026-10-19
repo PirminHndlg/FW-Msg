@@ -7795,3 +7795,7 @@ msgstr "No events this month"
 msgid "Tippen, um eine Datei auszuwählen"
 msgstr "Tap to select a file"
 
+
+#: FW/templates/baseFw.html
+msgid "Hauptnavigation"
+msgstr "Main navigation"

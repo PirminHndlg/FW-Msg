@@ -58,6 +58,48 @@
         opacity: 1;
       }
 
+      /* Untere Navigation (Handy): fünf gleich breite Spalten, aktive Seite als Pille hinter dem Icon */
+      .bottom-nav {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        padding: .3rem .25rem calc(.3rem + env(safe-area-inset-bottom));
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, .12);
+        z-index: 1030;
+      }
+      .bottom-nav-dropup { position: relative; display: flex; }
+      .bottom-nav-item {
+        flex: 1;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .15rem;
+        padding: .2rem 0;
+        color: var(--text_color_on_org_color); text-decoration: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      a.bottom-nav-item:link:hover, .bottom-nav-item:hover, .bottom-nav-item:focus-visible {
+        color: var(--text_color_on_org_color); text-decoration: none;
+      }
+      .bottom-nav-icon {
+        display: flex; align-items: center; justify-content: center;
+        width: 3.25rem; height: 1.85rem; border-radius: 999px;
+        font-size: 1.2rem; transition: background .2s ease;
+      }
+      .bottom-nav-label {
+        font-size: .72rem; line-height: 1.1;
+        max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        opacity: .85;
+      }
+      /* Globale .nav-link.active-Regel gilt hier nicht: nur Pille + volle Deckkraft */
+      .bottom-nav-item.active { background: none !important; font-weight: inherit; }
+      .bottom-nav-item.active .bottom-nav-icon,
+      .bottom-nav-item[aria-expanded="true"] .bottom-nav-icon { background: rgba(255, 255, 255, .22); }
+      .bottom-nav-item.active .bottom-nav-label { opacity: 1; }
+      .bottom-nav-item:active .bottom-nav-icon { background: rgba(255, 255, 255, .3); }
+      .bottom-nav .dropdown-menu-center {
+        left: 50% !important; transform: translateX(-50%) !important;
+        bottom: calc(100% + .5rem) !important; top: auto !important;
+        border-radius: .9rem; padding: .4rem;
+      }
+      .bottom-nav .dropdown-item { border-radius: .6rem; padding: .55rem .75rem; }
+
       /* Mobiles Burger-Menü: Kacheln in zwei Spalten */
       .navbar .navbar-toggler {
         border-color: rgba(255, 255, 255, .35);
@@ -426,60 +468,34 @@
     </div>
 
     <!-- Bottom Navbar for small devices -->
-    <nav class="navbar navbar-dark bg-primary d-md-none fixed-bottom p-0">
-      <div class="container-fluid">
-        <ul class="navbar-nav nav-justified w-100 d-flex flex-row">
-          <li class="nav-item">
-            <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'fw_home' %}">
-              <i class="bi bi-house"></i>
-              <div>
-                {% trans 'Home' %}
-              </div>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'aufgaben' %}">
-              <i class="bi bi-list-check"></i>
-              <div>
-                {% trans 'Aufgaben' %}
-              </div>
-            </a>
-          </li>
-          <li class="nav-item text-center">
-            <a class="nav-link" style="color: var(--text_color_on_org_color);" href="#" id="dropdownAdd" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-plus-circle text-on-org-color"></i>
-              <div>Add</div>
-            </a>
-            <ul class="dropdown-menu position-absolute" aria-labelledby="dropdownAdd" style="top: auto; bottom: 80%; left: 50%; transform: translateX(-50%);">
-              <li>
-                <a class="dropdown-item" href="{% url 'bild' %}">{% trans 'Bilder hochladen' %}</a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="{% url 'ampel' %}">{% trans 'Ampelmeldung' %}</a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="{% url 'feedback' %}">{% trans 'Feedback' %}</a>
-              </li>
-            </ul>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'dokumente' %}">
-              <i class="bi bi-file-earmark-text"></i>
-              <div>
-                {% trans 'Dokumente' %}
-              </div>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" style="color: var(--text_color_on_org_color);" href="{% url 'profil' %}">
-              <i class="bi bi-person"></i>
-              <div>
-                {% trans 'Profil' %}
-              </div>
-            </a>
-          </li>
+    <nav class="bottom-nav bg-primary d-md-none fixed-bottom" aria-label="{% trans 'Hauptnavigation' %}">
+      <a class="bottom-nav-item" href="{% url 'fw_home' %}">
+        <span class="bottom-nav-icon"><i class="bi bi-house"></i></span>
+        <span class="bottom-nav-label">{% trans 'Home' %}</span>
+      </a>
+      <a class="bottom-nav-item" href="{% url 'aufgaben' %}">
+        <span class="bottom-nav-icon"><i class="bi bi-list-check"></i></span>
+        <span class="bottom-nav-label">{% trans 'Aufgaben' %}</span>
+      </a>
+      <div class="dropup bottom-nav-dropup">
+        <a class="bottom-nav-item" href="#" id="dropdownAdd" role="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+          <span class="bottom-nav-icon"><i class="bi bi-plus-circle"></i></span>
+          <span class="bottom-nav-label">{% trans 'Neu' %}</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-center shadow" aria-labelledby="dropdownAdd">
+          <li><a class="dropdown-item" href="{% url 'bild' %}"><i class="bi bi-image me-2"></i>{% trans 'Bilder hochladen' %}</a></li>
+          <li><a class="dropdown-item" href="{% url 'ampel' %}"><i class="bi bi-circle-fill me-2"></i>{% trans 'Ampelmeldung' %}</a></li>
+          <li><a class="dropdown-item" href="{% url 'feedback' %}"><i class="bi bi-chat-square-text me-2"></i>{% trans 'Feedback' %}</a></li>
         </ul>
       </div>
+      <a class="bottom-nav-item" href="{% url 'dokumente' %}">
+        <span class="bottom-nav-icon"><i class="bi bi-file-earmark-text"></i></span>
+        <span class="bottom-nav-label">{% trans 'Dokumente' %}</span>
+      </a>
+      <a class="bottom-nav-item" href="{% url 'profil' %}">
+        <span class="bottom-nav-icon"><i class="bi bi-person"></i></span>
+        <span class="bottom-nav-label">{% trans 'Profil' %}</span>
+      </a>
     </nav>
 
     <script src="{% static 'js/base.js' %}"></script>
