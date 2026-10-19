@@ -7,7 +7,7 @@
             <img src="{% url 'serve_profil_picture' displayed_user.customuser.get_identifier %}"
                  alt="{% trans 'Profilbild' %}"
                  class="rounded-circle mb-3"
-                 style="width: min(200px, 50vw); aspect-ratio: 1 / 1; object-fit: cover;">
+                 style="width: min(200px, 50vw); object-fit: cover;">
             {% if this_user and displayed_user == request.user %}
             <div class="position-absolute bottom-0 end-0 mb-3 me-2">
                 <form method="post" enctype="multipart/form-data" action="{% url 'update_profil_picture' %}" id="profilePictureForm">
