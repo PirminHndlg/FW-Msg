@@ -7799,3 +7799,7 @@ msgstr "Tap to select a file"
 #: FW/templates/baseFw.html
 msgid "Hauptnavigation"
 msgstr "Main navigation"
+
+#: FW/templates/laenderinfo.html
+msgid "Noch kein Einsatzland hinterlegt."
+msgstr "No deployment country set yet."
