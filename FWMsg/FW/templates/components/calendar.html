@@ -168,19 +168,31 @@
             
             // Initialize calendar after events are loaded
             const calendarEl = document.getElementById('calendar');
+            // Auf schmalen Bildschirmen ist die Monatsansicht zu eng für Terminnamen:
+            // dort standardmäßig eine Liste zeigen, die Monatsansicht bleibt umschaltbar.
+            const isSmallScreen = window.matchMedia('(max-width: 575.98px)').matches;
+            const isTouch = window.matchMedia('(pointer: coarse)').matches;
+            const configuredView = '{{ initial_view|default:"dayGridMonth" }}';
             const calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: '{{ initial_view|default:"dayGridMonth" }}',
+                initialView: isSmallScreen && configuredView === 'dayGridMonth' ? 'listMonth' : configuredView,
                 events: calendarEvents,
                 height: 'auto',
                 locale: language,
                 buttonText: {
-                    today: '{% trans "Heute" %}'
+                    today: '{% trans "Heute" %}',
+                    month: '{% trans "Monat" %}',
+                    list: '{% trans "Liste" %}'
                 },
-                headerToolbar: { 
+                headerToolbar: isSmallScreen ? {
+                    left: 'prev,next',
+                    center: 'title',
+                    right: 'listMonth,dayGridMonth'
+                } : {
                     left: 'prev,next',
                     center: 'title',
                     right: 'today'
                 },
+                noEventsContent: '{% trans "Keine Termine in diesem Monat" %}',
                 dayMaxEvents: true,
                 eventTimeFormat: {
                     hour: '2-digit',
@@ -213,8 +225,8 @@
                         tooltipContent += '\n📝 ' + info.event.extendedProps.description;
                     }
                     
-                    // add bs tooltip
-                    new bootstrap.Tooltip(info.el, {
+                    // Hover-Tooltips nur mit Maus; auf Touch-Geräten bleiben sie sonst hängen
+                    if (!isTouch) new bootstrap.Tooltip(info.el, {
                         title: tooltipContent,
                         placement: 'top',
                         trigger: 'hover',
@@ -309,6 +321,35 @@
     
     .calendar-container {
         padding: 0 16px;
+    }
+
+    @media (max-width: 575.98px) {
+        .calendar-container {
+            padding: 0;
+        }
+        .fc .fc-toolbar {
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+        .fc .fc-toolbar-title {
+            font-size: 1.15rem;
+        }
+        .fc .fc-button {
+            min-height: 40px;
+        }
+        .fc .fc-list-event td {
+            padding-top: .65rem;
+            padding-bottom: .65rem;
+        }
+        .fc .fc-daygrid-event {
+            font-size: .7rem;
+        }
+    }
+
+    /* Tagesüberschriften der Listenansicht sind keine echten Links */
+    .fc .fc-list-day-cushion a {
+        text-decoration: none;
+        color: inherit;
     }
     
     /* Remove link behavior from date numbers */

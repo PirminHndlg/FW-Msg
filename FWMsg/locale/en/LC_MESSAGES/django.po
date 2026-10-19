@@ -7778,3 +7778,20 @@ msgstr "Tap left or right"
 #: Deep Talk
 msgid "Links oder rechts klicken oder Pfeiltasten"
 msgstr "Click left or right or use the arrow keys"
+
+#: FW/templates/components/calendar.html
+msgid "Monat"
+msgstr "Month"
+
+#: FW/templates/components/calendar.html
+msgid "Liste"
+msgstr "List"
+
+#: FW/templates/components/calendar.html
+msgid "Keine Termine in diesem Monat"
+msgstr "No events this month"
+
+#: Global/templates/bild.html FW/templates/components/task_detail_form.html
+msgid "Tippen, um eine Datei auszuwählen"
+msgstr "Tap to select a file"
+

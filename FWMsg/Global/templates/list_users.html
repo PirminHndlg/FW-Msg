@@ -21,6 +21,15 @@
     object-fit: cover;
     border-radius: 50%;
   }
+  .user-list-name {
+    /* Lange Namen an Silbengrenzen statt mitten im Wort umbrechen */
+    hyphens: auto;
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 575.98px) {
+    .user-list-avatar { width: 56px; height: 56px; }
+    .user-list-name { font-size: 1rem; }
+  }
   .user-list-flag {
     width: 28px;
     height: 21px;
@@ -41,8 +50,8 @@
     </div>
 
     {% if user.role == 'O' and person_clusters %}
-    <div class="d-flex gap-1 justify-content-center align-items-center mt-2">
-      <strong>{% trans "Benutzergruppe" %}</strong>
+    <div class="d-flex gap-2 justify-content-center align-items-center mt-2">
+      <strong class="flex-shrink-0">{% trans "Benutzergruppe" %}</strong>
       <div class="gap-1 flex-wrap justify-content-center align-items-center d-none d-md-flex">
         <a class="btn btn-sm rounded-4 {% if not current_person_cluster %}btn-primary{% else %}btn-outline-primary{% endif %} {% if not current_person_cluster %}active{% endif %}" href="{% url 'list_users' %}?person_cluster_filter=None">
           {% trans 'Alle' %}
@@ -68,7 +77,7 @@
   </div>
   <div class="card-body">
     {% if users %}
-    <div class="row g-4">
+    <div class="row g-2 g-sm-4">
       {% for u in users %}
       <div class="col-lg-3 col-md-4 col-6">
         <a href="{% url 'profil' u.customuser.get_identifier %}"
@@ -79,7 +88,7 @@
               alt="{% trans 'Profilbild' %}"
               class="user-list-avatar mb-3"
             >
-            <h5 class="fw-semibold mb-1 text-break">
+            <h5 class="fw-semibold mb-1 user-list-name">
               {% if u.first_name or u.last_name %}
                 {{ u.first_name }} {{ u.last_name }}
               {% else %}
