@@ -8,16 +8,14 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-10 mx-auto">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div style="min-width: 0;">
                         <h1 class="display-6 mb-2">{% trans "Survey Results" %}</h1>
                         <p class="lead mb-0">{{ survey.title }}</p>
                     </div>
-                    <div class="text-end">
-                        <a href="{% url 'survey:survey_manage' survey.pk %}" class="btn btn-light">
-                            <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Survey" %}
-                        </a>
-                    </div>
+                    <a href="{% url 'survey:survey_manage' survey.pk %}" class="btn btn-light flex-shrink-0" title="{% trans 'Back to Survey' %}" aria-label="{% trans 'Back to Survey' %}">
+                        <i class="fas fa-arrow-left"></i><span class="d-none d-md-inline ms-2">{% trans "Back to Survey" %}</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -27,21 +25,21 @@
 
 {% block content %}
 <!-- Overall Stats -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="stats-card">
+<div class="row g-2 g-md-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stats-card h-100">
             <div class="stats-number">{{ total_responses }}</div>
             <div class="stats-label">{% trans "Total Responses" %}</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stats-card">
+    <div class="col-6 col-md-3">
+        <div class="stats-card h-100">
             <div class="stats-number">{{ survey.questions.count }}</div>
             <div class="stats-label">{% trans "Questions" %}</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stats-card">
+    <div class="col-6 col-md-3">
+        <div class="stats-card h-100">
             <div class="stats-number">
                 {% if total_responses > 0 %}
                     {{ responses.first.submitted_at|date:"d.m.Y" }}
@@ -52,8 +50,8 @@
             <div class="stats-label">{% trans "First Response" %}</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stats-card">
+    <div class="col-6 col-md-3">
+        <div class="stats-card h-100">
             <div class="stats-number">
                 {% if total_responses > 0 %}
                     {{ responses.last.submitted_at|date:"d.m.Y" }}
@@ -145,21 +143,22 @@
                             {% if question_data.answers %}
                                 <div class="d-flex flex-column gap-1">
                                     {% for answer in question_data.answers %}
-                                        <div class="d-flex align-items-center gap-2 py-1">
+                                        {# Handy: Name über der Antwort, ab sm nebeneinander #}
+                                        <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-1 gap-sm-2 py-1">
                                             {% if not survey.responses_are_anonymous %}
-                                                {% if answer.1 %}
-                                                    <i class="fas fa-user"></i>
-                                                    <span class="text-secondary small fw-medium me-1">{{ answer.1 }}</span>
-                                                {% else %}
-                                                    <i class="fas fa-user-secret"></i>
-                                                    <span class="text-secondary small fw-medium me-1">{% trans "Anonymous" %}</span>
-                                                {% endif %}
-                                                <i class="bi bi-dash-lg" style="font-size: 0.75rem;"></i>
+                                                <span class="text-secondary small fw-medium flex-shrink-0">
+                                                    {% if answer.1 %}
+                                                        <i class="fas fa-user me-1"></i>{{ answer.1 }}
+                                                    {% else %}
+                                                        <i class="fas fa-user-secret me-1"></i>{% trans "Anonymous" %}
+                                                    {% endif %}
+                                                </span>
+                                                <i class="bi bi-dash-lg d-none d-sm-inline" style="font-size: 0.75rem;"></i>
                                             {% endif %}
-                                            <span class="small">{{ answer.0 }}</span>
+                                            <span class="small" style="overflow-wrap: anywhere;">{{ answer.0 }}</span>
                                         </div>
 
-                                        {% if not loop.last %}
+                                        {% if not forloop.last %}
                                             <hr class="my-1 border-secondary border-1">
                                         {% endif %}
                                     {% endfor %}
@@ -188,7 +187,7 @@
                                 <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
                                     <i class="fas fa-file-export me-2"></i>{% trans "Export" %}
                                 </button>
-                                <ul class="dropdown-menu">
+                                <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
                                         <a class="dropdown-item" href="{% url 'survey:export_survey_all_responses_pdf' survey.id %}">
                                             <i class="fas fa-file-pdf me-2"></i>{% trans "All Responses as PDF" %}
@@ -217,8 +216,8 @@
                                     <th>{% trans "Participant" %}</th>
                                     {% endif %}
                                     <th>{% trans "Submitted" %}</th>
-                                    <th>{% trans "Answers" %}</th>
-                                    <th>{% trans "Actions" %}</th>
+                                    <th class="d-none d-sm-table-cell">{% trans "Answers" %}</th>
+                                    <th class="text-end">{% trans "Actions" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -240,10 +239,10 @@
                                                 {{ response.submitted_at|date:"d.m.Y" }}
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        <td class="d-none d-sm-table-cell">
                                             <span class="badge bg-info">{{ response.answers.count }}</span>
                                         </td>
-                                        <td>
+                                        <td class="text-end">
                                             <a href="{% url 'survey:export_response_pdf' response.id %}" 
                                                class="btn btn-sm btn-outline-success" 
                                                title="{% trans 'Export as PDF' %}">

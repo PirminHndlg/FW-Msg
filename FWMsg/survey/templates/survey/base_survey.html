@@ -75,10 +75,28 @@
         }
         
         .btn {
+            --bs-btn-padding-y: 0.65rem;
+            --bs-btn-padding-x: 1.25rem;
             border-radius: 8px;
-            padding: 0.75rem 1.5rem;
             font-weight: 500;
             transition: all 0.3s ease;
+        }
+        .btn-sm {
+            --bs-btn-padding-y: 0.3rem;
+            --bs-btn-padding-x: 0.65rem;
+        }
+        .btn-lg {
+            --bs-btn-padding-y: 0.85rem;
+            --bs-btn-padding-x: 1.5rem;
+        }
+
+        /* Button-Leiste unter Formularen: Desktop nebeneinander,
+           mobil untereinander mit der Hauptaktion oben */
+        .survey-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
         }
         
         .btn-primary {
@@ -129,6 +147,9 @@
             font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            hyphens: auto;
+            overflow-wrap: normal;
+            line-height: 1.25;
         }
         
         /* Survey-specific components with organization colors */
@@ -191,18 +212,88 @@
             font-weight: bold;
         }
         
+        /* Navigationsleiste: eine Zeile, langer Org-Name wird gekürzt */
+        @media (max-width: 991.98px) {
+            .survey-navbar .navbar-brand {
+                flex: 1 1 0;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+        .survey-navbar .survey-home-btn {
+            color: var(--text_color_on_org_color);
+            border: 1px solid rgba(255, 255, 255, .35);
+            border-radius: .6rem;
+        }
+
         @media (max-width: 768px) {
             .survey-header {
-                padding: 1rem 0;
+                padding: 1.25rem 0;
                 margin-bottom: 1rem;
             }
-            
+            /* display-4/display-6 sind auf dem Handy viel zu groß */
+            .survey-header h1,
+            .survey-header .display-4,
+            .survey-header .display-6 {
+                font-size: 1.6rem;
+                line-height: 1.25;
+                hyphens: auto;
+                overflow-wrap: break-word;
+            }
+            .survey-header .lead {
+                font-size: 1rem;
+            }
+            .survey-header .fa-3x,
+            .survey-header .fa-4x {
+                font-size: 2.25rem;
+            }
+
+            .survey-card {
+                margin-bottom: 1rem;
+            }
+            .survey-card .card-header {
+                padding: 1rem;
+            }
             .survey-card .card-body {
                 padding: 1rem;
             }
             
+            .question-header {
+                padding: 0.75rem 1rem;
+            }
             .question-body {
                 padding: 1rem;
+            }
+
+            .btn {
+                --bs-btn-padding-y: 0.55rem;
+                --bs-btn-padding-x: 1rem;
+            }
+
+            .stats-card {
+                padding: 1rem 0.5rem;
+                margin-bottom: 0;
+            }
+            .stats-number {
+                font-size: 1.6rem;
+            }
+            .stats-label {
+                font-size: 0.72rem;
+                letter-spacing: 0.02em;
+            }
+
+            .survey-actions {
+                flex-direction: column-reverse;
+                align-items: stretch;
+            }
+            .survey-actions > .btn {
+                width: 100%;
+            }
+
+            footer h5 {
+                font-size: 1rem;
             }
         }
     </style>
@@ -211,9 +302,9 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--color-primary);">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'survey:survey_list' %}" style="color: var(--text_color_on_org_color);">
+    <nav class="navbar navbar-expand-lg navbar-dark survey-navbar" style="background-color: var(--color-primary);">
+        <div class="container gap-2">
+            <a class="navbar-brand me-auto" href="{% url 'survey:survey_list' %}" style="color: var(--text_color_on_org_color);">
                 <i class="fas fa-poll-h me-2"></i>
                 {% if org %}
                     {{ org.name }} - {% trans "Survey" %}
@@ -222,12 +313,11 @@
                 {% endif %}
             </a>
 
-            <a class="navbar-brand" href="{% url 'index_home' %}" style="color: var(--text_color_on_org_color);">
-                <i class="fas fa-home me-2"></i>
-                {% trans "Home" %}
+            <a class="btn btn-sm survey-home-btn flex-shrink-0" href="{% url 'index_home' %}" title="{% trans 'Home' %}" aria-label="{% trans 'Home' %}">
+                <i class="fas fa-home"></i><span class="d-none d-md-inline ms-2">{% trans "Home" %}</span>
             </a>
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler flex-shrink-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="{% trans 'Navigation' %}">
                 <span class="navbar-toggler-icon"></span>
             </button>
             

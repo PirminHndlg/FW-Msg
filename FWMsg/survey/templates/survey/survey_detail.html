@@ -74,6 +74,20 @@
                                             </div>
                                         {% endfor %}
                                     </div>
+                                {% elif field|is_rating_field %}
+                                    <!-- Rating 1-5: eine Zeile mit gleich breiten Buttons -->
+                                    <div class="rating-scale" role="radiogroup" aria-label="{{ field.label }}">
+                                        {% for choice in field %}
+                                            <input type="radio" class="btn-check" name="{{ field.html_name }}" id="{{ choice.id_for_label }}"
+                                                   value="{{ choice.data.value }}" {% if choice.data.selected %}checked{% endif %}
+                                                   {% if field.field.required %}required{% endif %} autocomplete="off">
+                                            <label class="btn btn-outline-primary rating-scale-btn" for="{{ choice.id_for_label }}">{{ choice.choice_label }}</label>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="d-flex justify-content-between small text-muted mt-1 px-1">
+                                        <span>{% trans "Poor" %}</span>
+                                        <span>{% trans "Excellent" %}</span>
+                                    </div>
                                 {% elif field|is_radio_widget %}
                                     <!-- Radio fields -->
                                     <div class="form-check-container">
@@ -159,12 +173,42 @@
         gap: 0.75rem;
     }
     
+    /* Auswahlfeld als Kachel: Eingabe und Text nebeneinander (Bootstrap braucht sonst
+       links Platz für das per negativem Rand verschobene Eingabefeld) */
     .form-check {
-        padding: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        min-height: 3rem;
+        padding: 0.65rem 0.85rem;
+        margin: 0;
         border: 1px solid #e9ecef;
-        border-radius: 6px;
+        border-radius: 8px;
         background-color: #fff;
         transition: all 0.2s ease;
+    }
+    .form-check .form-check-input {
+        float: none;
+        flex-shrink: 0;
+        margin: 0;
+        width: 1.25em;
+        height: 1.25em;
+    }
+    .form-check:has(.form-check-input:checked) {
+        border-color: var(--color-primary);
+        background-color: rgba(var(--bs-primary-rgb), 0.06);
+    }
+
+    .rating-scale {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 0.5rem;
+    }
+    .rating-scale-btn {
+        --bs-btn-padding-x: 0;
+        --bs-btn-padding-y: 0.6rem;
+        font-weight: 600;
+        font-size: 1.05rem;
     }
     
     .form-check:hover,
@@ -185,9 +229,9 @@
     }
     
     .form-check-label {
-        margin-left: 0.5rem;
         cursor: pointer;
         font-weight: 500;
+        overflow-wrap: anywhere;
     }
     
     .invalid-feedback {

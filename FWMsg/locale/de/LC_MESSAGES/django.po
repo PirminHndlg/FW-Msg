@@ -6795,7 +6795,7 @@ msgstr "Nicht Anonym"
 
 #: survey/templates/survey/survey_manage.html:106
 msgid "Survey URL"
-msgstr "Lind der Umfrage"
+msgstr "Link der Umfrage"
 
 #: survey/templates/survey/survey_manage.html:115
 msgid "Copy"
@@ -7210,3 +7210,23 @@ msgstr "Fehler beim Erstellen des PDF-Exports: %(error)s"
 
 #~ msgid "Add"
 #~ msgstr "Hinzufügen"
+
+#: survey/templates/survey/survey_detail.html
+msgid "Poor"
+msgstr "Schlecht"
+
+#: survey/templates/survey/survey_detail.html
+msgid "Excellent"
+msgstr "Sehr gut"
+
+#: survey/templates/survey/survey_detail.html
+msgid "Navigation"
+msgstr "Navigation"
+
+#: survey/templates/survey/survey_manage.html
+msgid "Show more"
+msgstr "Mehr anzeigen"
+
+#: survey/templates/survey/survey_manage.html
+msgid "Show less"
+msgstr "Weniger anzeigen"

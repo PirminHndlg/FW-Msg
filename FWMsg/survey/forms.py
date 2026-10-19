@@ -163,7 +163,8 @@ class SurveyParticipationForm(forms.Form):
                 choices = [(i, str(i)) for i in range(1, 6)]
                 self.fields[field_name] = forms.ChoiceField(
                     choices=choices,
-                    widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
+                    # data-rating: das Template zeigt 1–5 als waagrechte Button-Reihe
+                    widget=forms.RadioSelect(attrs={'class': 'form-check-input', 'data-rating': 'true'}),
                     **field_kwargs
                 )
             

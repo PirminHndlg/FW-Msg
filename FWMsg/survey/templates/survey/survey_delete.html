@@ -72,7 +72,7 @@
                 
                 <form method="post">
                     {% csrf_token %}
-                    <div class="d-flex justify-content-between">
+                    <div class="survey-actions">
                         <a href="{% url 'survey:survey_manage' survey.pk %}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>
                             {% trans "Cancel" %}

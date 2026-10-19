@@ -8,22 +8,28 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-10 mx-auto">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div style="min-width: 0;">
                         <h1 class="display-6 mb-2">{{ survey.title }}</h1>
                         {% if survey.description %}
-                            <p class="lead mb-0">{{ survey.description }}</p>
+                            {# Lange Beschreibungen auf 3 Zeilen kürzen, "Mehr anzeigen" nur bei Bedarf #}
+                            <div class="survey-description is-clamped" id="surveyDescription">
+                                <p class="lead mb-0">{{ survey.description|linebreaksbr }}</p>
+                            </div>
+                            <button type="button" class="survey-description-toggle d-none" id="surveyDescriptionToggle"
+                                    aria-controls="surveyDescription" aria-expanded="false">
+                                <span class="when-collapsed">{% trans "Show more" %}<i class="fas fa-chevron-down ms-1"></i></span>
+                                <span class="when-expanded">{% trans "Show less" %}<i class="fas fa-chevron-up ms-1"></i></span>
+                            </button>
                         {% endif %}
                     </div>
-                    <div class="text-end">
-                        <div class="btn-group">
-                            <a class="btn btn-secondary" href="{% url 'survey:survey_update' survey.pk %}">
-                                <i class="fas fa-edit me-2"></i>
-                            </a>
-                            <a class="btn btn-danger" href="{% url 'survey:survey_delete' survey.pk %}">
-                                <i class="fas fa-trash me-2"></i>
-                            </a>
-                        </div>
+                    <div class="d-flex gap-2 flex-shrink-0">
+                        <a class="btn btn-light" href="{% url 'survey:survey_update' survey.pk %}" title="{% trans 'Edit' %}" aria-label="{% trans 'Edit' %}">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a class="btn btn-danger" href="{% url 'survey:survey_delete' survey.pk %}" title="{% trans 'Delete' %}" aria-label="{% trans 'Delete' %}">
+                            <i class="fas fa-trash"></i>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -34,14 +40,14 @@
 
 {% block content %}
 <!-- Survey Stats -->
-<div class="row mb-4 justify-content-center">
-    <div class="col-6 col-md-4 col-lg-2 mb-3 mb-lg-0">
+<div class="row g-2 g-md-3 mb-4 justify-content-center">
+    <div class="col-6 col-md-4 col-lg-2">
         <div class="stats-card h-100 d-flex flex-column align-items-center justify-content-center">
             <div class="stats-number">{{ questions.count }}</div>
             <div class="stats-label">{% trans "Questions" %}</div>
         </div>
     </div>
-    <div class="col-6 col-md-4 col-lg-2 mb-3 mb-lg-0">
+    <div class="col-6 col-md-4 col-lg-2">
         <div class="stats-card h-100 d-flex flex-column align-items-center justify-content-center">
             <a href="{% url 'survey:survey_results' survey.pk %}" class="text-decoration-none">
             <div class="stats-number">{{ response_count }}</div>
@@ -49,7 +55,7 @@
             </a>
         </div>
     </div>
-    <div class="col-6 col-md-4 col-lg-2 mb-3 mb-lg-0">
+    <div class="col-6 col-md-4 col-lg-2">
         <div class="stats-card h-100 d-flex flex-column align-items-center justify-content-center">
             {% if survey.is_active %}
                 <div class="stats-number text-success">
@@ -64,7 +70,7 @@
             {% endif %}
         </div>
     </div>
-    <div class="col-6 col-md-6 col-lg-2 mb-3 mb-lg-0">
+    <div class="col-6 col-md-6 col-lg-2">
         <div class="stats-card h-100 d-flex flex-column align-items-center justify-content-center">
             {% if survey.allow_anonymous %}
                 <div class="stats-number text-info">
@@ -79,7 +85,7 @@
             {% endif %}
         </div>
     </div>
-    <div class="col-6 col-md-6 col-lg-2 mb-3 mb-lg-0">
+    <div class="col-12 col-md-6 col-lg-2">
         <div class="stats-card h-100 d-flex flex-column align-items-center justify-content-center">
             {% if survey.responses_are_anonymous %}
                 <div class="stats-number text-dark">
@@ -107,14 +113,14 @@
                 </h5>
             </div>
             <div class="card-body">
-                <div class="input-group">
+                <div class="survey-url-group">
                     <input type="text" class="form-control" 
                            value="{{ request.scheme }}://{{ request.get_host }}{% url 'survey:survey_detail' survey.survey_key %}"
                            readonly id="survey-url">
                     <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('survey-url')">
                         <i class="fas fa-copy me-1"></i>{% trans "Copy" %}
                     </button>
-                    <a href="{% url 'survey:survey_detail' survey.survey_key %}" target="_blank" class="btn btn-primary">
+                    <a href="{% url 'survey:survey_detail' survey.survey_key %}" target="_blank" rel="noopener" class="btn btn-primary">
                         <i class="fas fa-external-link-alt me-1"></i>{% trans "Open" %}
                     </a>
                 </div>
@@ -127,18 +133,50 @@
 <div class="row">
     <div class="col-12">
         <div class="survey-card card">
-            <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card-header d-flex justify-content-between align-items-center gap-2">
                 <h5 class="mb-0">
                     <i class="fas fa-question-circle me-2"></i>
                     {% trans "Questions" %}
                 </h5>
-                <a href="{% url 'survey:add_question' survey.pk %}" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>{% trans "Add Question" %}
+                <a href="{% url 'survey:add_question' survey.pk %}" class="btn btn-primary flex-shrink-0" aria-label="{% trans 'Add Question' %}">
+                    <i class="fas fa-plus"></i><span class="d-none d-sm-inline ms-2">{% trans "Add Question" %}</span>
                 </a>
             </div>
             <div class="card-body">
                 {% if questions %}
-                    <div class="table-responsive">
+                    {# Handy: kompakte Liste statt breiter Tabelle #}
+                    <ul class="list-group list-group-flush d-md-none survey-question-list">
+                        {% for question in questions %}
+                            <li class="list-group-item px-0 d-flex gap-2 align-items-start">
+                                <span class="badge bg-secondary flex-shrink-0 mt-1">{{ question.order }}</span>
+                                <div class="flex-grow-1" style="min-width: 0;">
+                                    <div class="fw-semibold" style="overflow-wrap: anywhere;">{{ question.question_text }}</div>
+                                    {% if question.help_text %}
+                                        <small class="text-muted d-block">{{ question.help_text }}</small>
+                                    {% endif %}
+                                    <div class="d-flex flex-wrap gap-1 mt-1 small">
+                                        <span class="badge bg-info">{{ question.get_question_type_display }}</span>
+                                        {% if question.is_required %}
+                                            <span class="badge bg-warning text-dark">{% trans "Required" %}</span>
+                                        {% endif %}
+                                        {% if question.options.exists %}
+                                            <span class="text-muted">{{ question.options.count }} option{{ question.options.count|pluralize }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-1 flex-shrink-0">
+                                    <a href="{% url 'survey:edit_question' survey.pk question.pk %}" class="btn btn-sm btn-outline-primary" title="{% trans 'Edit' %}" aria-label="{% trans 'Edit' %}">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'survey:delete_question' survey.pk question.pk %}" class="btn btn-sm btn-outline-danger" title="{% trans 'Delete' %}" aria-label="{% trans 'Delete' %}">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+                    <div class="table-responsive d-none d-md-block">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
@@ -216,7 +254,7 @@
 <div class="row mt-4">
     <div class="col-12">
         <div class="survey-card card">
-            <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <h5 class="mb-0">
                     <i class="fas fa-users me-2"></i>
                     {% trans "Recent Responses" %}
@@ -271,8 +309,81 @@
 {% endif %}
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    .survey-description {
+        overflow-wrap: anywhere;
+    }
+    .survey-description.is-clamped .lead {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .survey-description-toggle {
+        margin-top: 0.35rem;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--text_color_on_org_color);
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        opacity: 0.9;
+    }
+    .survey-description-toggle:hover { opacity: 1; }
+    .survey-description-toggle[aria-expanded="true"] .when-collapsed,
+    .survey-description-toggle[aria-expanded="false"] .when-expanded {
+        display: none;
+    }
+
+    .survey-url-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .survey-url-group .form-control {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+    .survey-url-group .btn {
+        flex-shrink: 0;
+    }
+    @media (max-width: 575.98px) {
+        .survey-url-group {
+            flex-wrap: wrap;
+        }
+        .survey-url-group .form-control {
+            flex-basis: 100%;
+        }
+        .survey-url-group .btn {
+            flex: 1 1 0;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
+(function () {
+    const box = document.getElementById('surveyDescription');
+    const toggle = document.getElementById('surveyDescriptionToggle');
+    if (!box || !toggle) return;
+    const text = box.querySelector('.lead');
+
+    // Button nur zeigen, wenn der Text wirklich mehr als 3 Zeilen hat
+    function updateToggle() {
+        if (!box.classList.contains('is-clamped')) return;
+        toggle.classList.toggle('d-none', text.scrollHeight <= text.clientHeight + 1);
+    }
+    toggle.addEventListener('click', function () {
+        const expanded = box.classList.toggle('is-clamped') === false;
+        toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    });
+    updateToggle();
+    window.addEventListener('resize', updateToggle);
+})();
+
 function copyToClipboard(elementId) {
     const element = document.getElementById(elementId);
     element.select();

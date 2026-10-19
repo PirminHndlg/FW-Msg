@@ -20,6 +20,11 @@ def is_radio_widget(field):
     return isinstance(field.field.widget, (widgets.RadioSelect,))
 
 @register.filter
+def is_rating_field(field):
+    """Rating question (1-5), rendered as a horizontal button row"""
+    return bool(field.field.widget.attrs.get('data-rating'))
+
+@register.filter
 def is_select_widget(field):
     """Check if field uses select widget"""
     return isinstance(field.field.widget, (widgets.Select,))
