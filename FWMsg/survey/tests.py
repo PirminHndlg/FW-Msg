@@ -300,6 +300,43 @@ class SurveyPublicViewsTests(SurveyViewsTestCase):
         answer = SurveyAnswer.objects.get(question=rating)
         self.assertEqual(answer.text_answer, '4')
 
+    def _name_question(self):
+        return SurveyQuestion.objects.create(
+            survey=self.survey1,
+            org=self.org1,
+            question_text='Your name?',
+            question_type='name',
+            order=11,
+        )
+
+    def test_name_question_prefilled_for_logged_in_user(self):
+        """Name questions are prefilled with the full name of a logged-in user"""
+        name_question = self._name_question()
+        self.client.login(username='user1', password='testpass123')
+        response = self.client.get(reverse('survey:survey_detail',
+                                           kwargs={'survey_key': self.survey1.survey_key}))
+        form = response.context['form']
+        self.assertEqual(form.fields[f'question_{name_question.id}'].initial, 'User One')
+        self.assertContains(response, 'value="User One"')
+        self.assertContains(response, 'autocomplete="name"')
+
+    def test_name_question_empty_for_anonymous_and_saved(self):
+        """Anonymous visitors enter their name manually; the answer is stored as text"""
+        name_question = self._name_question()
+        response = self.client.get(reverse('survey:survey_detail',
+                                           kwargs={'survey_key': self.survey1.survey_key}))
+        self.assertIsNone(response.context['form'].fields[f'question_{name_question.id}'].initial)
+
+        response = self.client.post(reverse('survey:survey_detail',
+                                            kwargs={'survey_key': self.survey1.survey_key}),
+                                    data={
+                                        f'question_{self.question1.id}': 'John Doe',
+                                        f'question_{self.question2.id}': str(self.option1.id),
+                                        f'question_{name_question.id}': 'Maria Muster',
+                                    })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(SurveyAnswer.objects.get(question=name_question).text_answer, 'Maria Muster')
+
     def test_survey_submission_authenticated(self):
         """Test survey submission by authenticated user"""
         self.client.login(username='user1', password='testpass123')

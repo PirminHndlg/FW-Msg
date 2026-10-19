@@ -7230,3 +7230,19 @@ msgstr "Mehr anzeigen"
 #: survey/templates/survey/survey_manage.html
 msgid "Show less"
 msgstr "Weniger anzeigen"
+
+#: survey
+msgid "Name field"
+msgstr "Namensfeld"
+
+#: survey
+msgid "Taken from your profile – you can change it."
+msgstr "Aus deinem Profil übernommen – du kannst ihn ändern."
+
+#: survey
+msgid "Max Mustermann"
+msgstr "Max Mustermann"
+
+#: survey
+msgid "Filled in automatically for logged-in users, otherwise entered manually."
+msgstr "Wird bei angemeldeten Personen automatisch ausgefüllt, sonst manuell eingetragen."

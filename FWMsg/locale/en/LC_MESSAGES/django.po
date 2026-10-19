@@ -7803,3 +7803,7 @@ msgstr "Main navigation"
 #: FW/templates/laenderinfo.html
 msgid "Noch kein Einsatzland hinterlegt."
 msgstr "No deployment country set yet."
+
+#: survey
+msgid "Max Mustermann"
+msgstr "Jane Doe"

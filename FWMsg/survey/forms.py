@@ -116,10 +116,14 @@ class SurveyQuestionOptionForm(forms.ModelForm):
 class SurveyParticipationForm(forms.Form):
     """Dynamic form for survey participation"""
     
-    def __init__(self, survey, *args, **kwargs):
+    def __init__(self, survey, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.survey = survey
         self.org = survey.org
+        # Name des angemeldeten Benutzers für Fragen vom Typ "name"
+        user_name = ''
+        if user is not None and user.is_authenticated:
+            user_name = user.get_full_name().strip() or user.get_username()
         
         for question in survey.questions.all():
             field_name = f'question_{question.id}'
@@ -135,6 +139,18 @@ class SurveyParticipationForm(forms.Form):
                     **field_kwargs
                 )
             
+            elif question.question_type == 'name':
+                attrs = {'class': 'form-control', 'autocomplete': 'name'}
+                if user_name:
+                    # Vorausgefüllt, aber änderbar (z. B. Rufname)
+                    attrs['data-prefilled'] = 'true'
+                self.fields[field_name] = forms.CharField(
+                    max_length=200,
+                    initial=user_name or None,
+                    widget=forms.TextInput(attrs=attrs),
+                    **field_kwargs
+                )
+
             elif question.question_type == 'textarea':
                 self.fields[field_name] = forms.CharField(
                     widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),

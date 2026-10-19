@@ -84,7 +84,7 @@ def survey_detail(request, survey_key):
         user = None
     
     if request.method == 'POST':
-        form = SurveyParticipationForm(survey, request.POST)
+        form = SurveyParticipationForm(survey, request.POST, user=request.user)
         if form.is_valid():
             # Ensure session exists for anonymous users
             if not user and not request.session.session_key:
@@ -99,7 +99,7 @@ def survey_detail(request, survey_key):
             
             return redirect('survey:survey_thank_you', survey_key=survey_key)
     else:
-        form = SurveyParticipationForm(survey)
+        form = SurveyParticipationForm(survey, user=request.user)
     
     context = check_organization_context(request)
     context['survey'] = survey

@@ -25,6 +25,11 @@ def is_rating_field(field):
     return bool(field.field.widget.attrs.get('data-rating'))
 
 @register.filter
+def is_prefilled_field(field):
+    """Field prefilled from the user profile (e.g. name question)"""
+    return bool(field.field.widget.attrs.get('data-prefilled'))
+
+@register.filter
 def is_select_widget(field):
     """Check if field uses select widget"""
     return isinstance(field.field.widget, (widgets.Select,))

@@ -109,6 +109,11 @@
                                 {% else %}
                                     <!-- Regular input fields -->
                                     {{ field|add_class:'form-control' }}
+                                    {% if field|is_prefilled_field %}
+                                        <div class="form-text">
+                                            <i class="fas fa-user-check me-1"></i>{% trans "Taken from your profile – you can change it." %}
+                                        </div>
+                                    {% endif %}
                                 {% endif %}
                                 
                                 {% if field.errors %}

@@ -136,6 +136,7 @@ class SurveyQuestion(OrderedModelMixin, OrgModel):
     """Survey question model"""
     QUESTION_TYPES = [
         ('text', _('Short Text')),
+        ('name', _('Name field')),
         ('textarea', _('Long Text')),
         ('select', _('Dropdown')),
         ('radio', _('Radio Buttons')),
