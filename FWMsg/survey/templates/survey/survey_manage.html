@@ -12,7 +12,15 @@
                     <div style="min-width: 0;">
                         <h1 class="display-6 mb-2">{{ survey.title }}</h1>
                         {% if survey.description %}
-                            <p class="lead mb-0">{{ survey.description }}</p>
+                            {# Lange Beschreibungen auf 3 Zeilen kürzen, "Mehr anzeigen" nur bei Bedarf #}
+                            <div class="survey-description is-clamped" id="surveyDescription">
+                                <p class="lead mb-0">{{ survey.description|linebreaksbr }}</p>
+                            </div>
+                            <button type="button" class="survey-description-toggle d-none" id="surveyDescriptionToggle"
+                                    aria-controls="surveyDescription" aria-expanded="false">
+                                <span class="when-collapsed">{% trans "Show more" %}<i class="fas fa-chevron-down ms-1"></i></span>
+                                <span class="when-expanded">{% trans "Show less" %}<i class="fas fa-chevron-up ms-1"></i></span>
+                            </button>
                         {% endif %}
                     </div>
                     <div class="d-flex gap-2 flex-shrink-0">
@@ -303,6 +311,33 @@
 
 {% block extra_css %}
 <style>
+    .survey-description {
+        overflow-wrap: anywhere;
+    }
+    .survey-description.is-clamped .lead {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .survey-description-toggle {
+        margin-top: 0.35rem;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--text_color_on_org_color);
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        opacity: 0.9;
+    }
+    .survey-description-toggle:hover { opacity: 1; }
+    .survey-description-toggle[aria-expanded="true"] .when-collapsed,
+    .survey-description-toggle[aria-expanded="false"] .when-expanded {
+        display: none;
+    }
+
     .survey-url-group {
         display: flex;
         gap: 0.5rem;
@@ -330,6 +365,25 @@
 
 {% block extra_js %}
 <script>
+(function () {
+    const box = document.getElementById('surveyDescription');
+    const toggle = document.getElementById('surveyDescriptionToggle');
+    if (!box || !toggle) return;
+    const text = box.querySelector('.lead');
+
+    // Button nur zeigen, wenn der Text wirklich mehr als 3 Zeilen hat
+    function updateToggle() {
+        if (!box.classList.contains('is-clamped')) return;
+        toggle.classList.toggle('d-none', text.scrollHeight <= text.clientHeight + 1);
+    }
+    toggle.addEventListener('click', function () {
+        const expanded = box.classList.toggle('is-clamped') === false;
+        toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    });
+    updateToggle();
+    window.addEventListener('resize', updateToggle);
+})();
+
 function copyToClipboard(elementId) {
     const element = document.getElementById(elementId);
     element.select();

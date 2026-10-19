@@ -7222,3 +7222,11 @@ msgstr "Sehr gut"
 #: survey/templates/survey/survey_detail.html
 msgid "Navigation"
 msgstr "Navigation"
+
+#: survey/templates/survey/survey_manage.html
+msgid "Show more"
+msgstr "Mehr anzeigen"
+
+#: survey/templates/survey/survey_manage.html
+msgid "Show less"
+msgstr "Weniger anzeigen"
