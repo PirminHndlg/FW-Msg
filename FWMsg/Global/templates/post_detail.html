@@ -11,13 +11,13 @@
   <div class="post-detail mx-auto">
     {# Obere Leiste: zurück + Aktionen #}
     <div class="d-flex justify-content-between align-items-center mb-2">
-      <a href="{% url 'posts_overview' %}" class="btn btn-sm btn-light rounded-pill">
+      <a href="{% url 'posts_overview' %}" class="btn btn-sm btn-outline-secondary rounded-3">
         <i class="bi bi-arrow-left me-1"></i>{% trans 'Beiträge' %}
       </a>
       {% if request.user == post.user or request.user.role == 'A' %}
         <div class="d-flex gap-2">
-          <a href="{% url 'post_edit' post.id %}" class="btn btn-sm btn-light rounded-circle post-icon-btn" title="{% trans 'Bearbeiten' %}" aria-label="{% trans 'Bearbeiten' %}"><i class="bi bi-pencil"></i></a>
-          <button type="button" class="btn btn-sm btn-light text-danger rounded-circle post-icon-btn" data-bs-toggle="modal" data-bs-target="#deletePostModal{{ post.id }}" title="{% trans 'Löschen' %}" aria-label="{% trans 'Löschen' %}"><i class="bi bi-trash"></i></button>
+          <a href="{% url 'post_edit' post.id %}" class="btn btn-sm btn-outline-primary rounded-3" title="{% trans 'Bearbeiten' %}" aria-label="{% trans 'Bearbeiten' %}"><i class="bi bi-pencil"></i></a>
+          <button type="button" class="btn btn-sm btn-outline-danger rounded-3" data-bs-toggle="modal" data-bs-target="#deletePostModal{{ post.id }}" title="{% trans 'Löschen' %}" aria-label="{% trans 'Löschen' %}"><i class="bi bi-trash"></i></button>
         </div>
       {% endif %}
     </div>
@@ -90,11 +90,11 @@
                 <small class="text-muted"><i class="bi bi-people-fill me-1"></i>{{ total_votes }} {% trans 'Stimmen' %}</small>
                 <div class="d-flex gap-2">
                   {% if has_voted %}
-                    <button type="submit" name="withdraw" value="true" class="btn btn-sm btn-outline-danger rounded-pill">
+                    <button type="submit" name="withdraw" value="true" class="btn btn-sm btn-outline-danger rounded-3">
                       {% trans 'Zurückziehen' %}
                     </button>
                   {% endif %}
-                  <button type="submit" class="btn btn-sm btn-primary rounded-pill">
+                  <button type="submit" class="btn btn-sm btn-primary rounded-3">
                     {% if has_voted %}{% trans 'Stimme ändern' %}{% else %}{% trans 'Abstimmen' %}{% endif %}
                   </button>
                 </div>
@@ -161,7 +161,7 @@
           {{ response_form.image|add_class:"d-none" }}
 
           <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
-            <button type="button" class="btn btn-sm btn-light rounded-pill"
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-3"
                     onclick="document.getElementById('{{ response_form.image.id_for_label }}').click()">
               <i class="bi bi-image me-1"></i>{% trans 'Bild' %}
             </button>
@@ -169,7 +169,7 @@
               {{ response_form.with_notification|add_class:"form-check-input" }}
               <label class="form-check-label" for="{{ response_form.with_notification.id_for_label }}">{% trans 'Andere benachrichtigen' %}</label>
             </div>
-            <button type="submit" class="btn btn-sm btn-primary rounded-pill ms-auto px-3" id="post-response-submit-{{ post.id }}">
+            <button type="submit" class="btn btn-sm btn-primary rounded-3 ms-auto" id="post-response-submit-{{ post.id }}">
               <i class="bi bi-send me-1"></i>{% trans 'Senden' %}
             </button>
           </div>
@@ -248,7 +248,6 @@
 
   <style>
     .post-detail { max-width: 760px; }
-    .post-icon-btn { width: 2.25rem; height: 2.25rem; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
     .post-avatar { border-radius: 50%; object-fit: cover; flex-shrink: 0; }
     .post-avatar-sm { width: 2rem; height: 2rem; }
     .post-avatar-md { width: 2.75rem; height: 2.75rem; }
