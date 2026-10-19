@@ -23,6 +23,13 @@
         width: 2.5em;
         height: 1.4em;
     }
+    /* Platz links an die breiteren Schalter anpassen, sonst klebt der Text am Schalter */
+    .form-switch {
+        padding-left: 3.25em;
+    }
+    .form-switch .form-check-input {
+        margin-left: -3.25em;
+    }
     .form-check-label {
         padding-top: 0.1em;
     }

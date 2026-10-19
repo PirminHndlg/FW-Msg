@@ -52,7 +52,7 @@
                         </div>
                         <div class="col-4">
                             <a href="{% url 'survey:survey_results' survey.pk %}" class="text-decoration-none text-body">
-                            <div class="stats-number">{{ survey.response_count }}</div></a>
+                                <div class="stats-number">{{ survey.response_count }}</div>
                                 <div class="stats-label">{% trans "Responses" %}</div>
                             </a>
                         </div>
@@ -68,7 +68,7 @@
                         </div>
                     </div>
                     
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                         <small class="text-muted">
                             <i class="fas fa-calendar me-1"></i>
                             {% if survey.start_date and survey.end_date %}

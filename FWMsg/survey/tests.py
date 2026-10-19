@@ -275,6 +275,31 @@ class SurveyPublicViewsTests(SurveyViewsTestCase):
         answers = SurveyAnswer.objects.filter(response=survey_response)
         self.assertEqual(answers.count(), 2)
     
+    def test_rating_question_renders_as_button_row_and_submits(self):
+        """Rating questions are shown as a 1-5 button row and the chosen value is saved"""
+        rating = SurveyQuestion.objects.create(
+            survey=self.survey1,
+            org=self.org1,
+            question_text='Overall rating?',
+            question_type='rating',
+            order=10,
+        )
+        response = self.client.get(reverse('survey:survey_detail',
+                                           kwargs={'survey_key': self.survey1.survey_key}))
+        self.assertContains(response, 'class="rating-scale"')
+        self.assertContains(response, f'name="question_{rating.id}"', count=5)
+
+        response = self.client.post(reverse('survey:survey_detail',
+                                            kwargs={'survey_key': self.survey1.survey_key}),
+                                    data={
+                                        f'question_{self.question1.id}': 'John Doe',
+                                        f'question_{self.question2.id}': str(self.option1.id),
+                                        f'question_{rating.id}': '4',
+                                    })
+        self.assertEqual(response.status_code, 302)
+        answer = SurveyAnswer.objects.get(question=rating)
+        self.assertEqual(answer.text_answer, '4')
+
     def test_survey_submission_authenticated(self):
         """Test survey submission by authenticated user"""
         self.client.login(username='user1', password='testpass123')
