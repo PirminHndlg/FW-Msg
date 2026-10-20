@@ -586,10 +586,14 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
         else:
             save_customuser_field(self)
             
-        if self.cleaned_data.get('profil_picture'):
-            self.instance.user.customuser.profil_picture = self.cleaned_data['profil_picture']
-            self.instance.user.customuser.create_small_image()
-            self.instance.user.customuser.save()
+        # Only for a new upload, and only once: save_form (ORG/views.py) calls save() twice and
+        # the second pass would read the already consumed upload, fail verify_image and delete
+        # the picture. Resizing is done by post_save_handler_customuser.
+        if 'profil_picture' in self.changed_data and not getattr(self, '_profil_picture_saved', False):
+            customuser = self.instance.user.customuser
+            customuser.profil_picture = self.cleaned_data['profil_picture']
+            customuser.save()
+            self._profil_picture_saved = True
 
         # Handle PDF files - merge if multiple files uploaded
         pdf_files = self.cleaned_data.get('pdf_files')

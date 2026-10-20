@@ -2583,6 +2583,64 @@ class BewerberPdfUploadTests(TestCase):
         self.assertGreater(results['success'], 15, 
                           f"Expected at least 15 successful uploads, got {results['success']} successes and {results['errors']} errors")
 
+class BewerberProfilPictureUploadTests(TestCase):
+    """Profilbild-Upload über add/edit von Bewerber:innen (save_form ruft form.save() zweimal auf)"""
+
+    def setUp(self):
+        import tempfile
+        from django.test import override_settings
+        media_override = override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+        media_override.enable()
+        self.addCleanup(media_override.disable)
+
+        self.org = Organisation.objects.create(name='Test Org', email='test@test.com')
+        org_cluster = PersonCluster.objects.create(org=self.org, name='Org', view='O')
+        self.bewerber_cluster = PersonCluster.objects.create(org=self.org, name='Bewerber', view='B')
+        admin = get_user_model().objects.create_user(username='admin', password='adminpass123')
+        CustomUser.objects.create(org=self.org, user=admin, person_cluster=org_cluster)
+        self.client.login(username='admin', password='adminpass123')
+        self.data = {
+            'first_name': 'Bea',
+            'last_name': 'Werber',
+            'email': 'bea@test.com',
+            'person_cluster': self.bewerber_cluster.id,
+        }
+
+    def _image(self):
+        buffer = BytesIO()
+        Image.new('RGB', (800, 600), 'red').save(buffer, 'JPEG')
+        return SimpleUploadedFile('bild.jpg', buffer.getvalue(), content_type='image/jpeg')
+
+    def _profil_picture(self, bewerber):
+        bewerber.user.customuser.refresh_from_db()
+        return bewerber.user.customuser.profil_picture
+
+    def test_create_with_profil_picture(self):
+        response = self.client.post(
+            reverse('add_object', args=['bewerber']), {**self.data, 'profil_picture': self._image()}
+        )
+        self.assertEqual(response.status_code, 302)
+        picture = self._profil_picture(Bewerber.objects.get(org=self.org))
+        self.assertTrue(picture)
+        self.assertTrue(picture.storage.exists(picture.name))
+
+    def test_edit_replaces_and_keeps_profil_picture(self):
+        self.client.post(reverse('add_object', args=['bewerber']), self.data)
+        bewerber = Bewerber.objects.get(org=self.org)
+        self.assertFalse(self._profil_picture(bewerber))
+
+        edit_url = reverse('edit_object', args=['bewerber', bewerber.id])
+        response = self.client.post(edit_url, {**self.data, 'profil_picture': self._image()})
+        self.assertEqual(response.status_code, 302)
+        picture = self._profil_picture(bewerber)
+        self.assertTrue(picture)
+        self.assertTrue(picture.storage.exists(picture.name))
+
+        # Speichern ohne neuen Upload behält das Bild
+        self.client.post(edit_url, self.data)
+        self.assertEqual(self._profil_picture(bewerber).name, picture.name)
+
+
 class GetCascadeInfoTestCase(TestCase):
     """Test suite for get_cascade_info view function"""
     
