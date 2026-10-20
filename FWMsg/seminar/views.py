@@ -1,5 +1,6 @@
 from django.shortcuts import redirect, render, get_object_or_404
 import json
+import re
 from datetime import datetime
 from django.contrib.auth.decorators import login_required
 from django.db.models.functions import Round
@@ -24,10 +25,60 @@ def required_verschwiegenheit(view_func):
         return view_func(request, *args, **kwargs)
     return wrapper
 
+# Names of the cookies / form fields written by evaluate.html and evaluate.js
+SEMINAR_KEY_PATTERNS = {
+    # Cookie with all ratings of a Bewerber:in in one Einheit as JSON {frage_id: antwort}
+    'bewertungen': re.compile(r'^f(?P<freiwilliger>\d+)r(?P<einheit>\d+)u(?P<bewerter>\d+)$'),
+    # Form field with the rating of one question
+    'bewertung': re.compile(r'^f(?P<freiwilliger>\d+)q(?P<frage>\d+)r(?P<einheit>\d+)u(?P<bewerter>\d+)$'),
+    # Comment (cookie or form field), optionally per category; n1 = show name at presentation
+    'comment': re.compile(
+        r'^comment(?P<freiwilliger>\d+)r(?P<einheit>\d+)u(?P<bewerter>\d+)(?:c(?P<category>\d+))?n(?P<name>\d)$'
+    ),
+}
+
+
+def parse_seminar_key(key):
+    """Extract the data from a seminar cookie or form field name.
+
+    Returns (type, data) with type 'bewertungen', 'bewertung' or 'comment' and data
+    containing freiwilliger, einheit, bewerter and depending on the type frage,
+    category (only if set) and name. Other names (e.g. "firstVisit") return (None, None).
+    """
+    for key_type, pattern in SEMINAR_KEY_PATTERNS.items():
+        match = pattern.match(key.strip())
+        if match:
+            data = {k: v for k, v in match.groupdict().items() if v is not None}
+            if 'name' in data:
+                data['name'] = data['name'] == '1'
+            return key_type, data
+    return None, None
+
+
+def count_unsaved_cookie_entries(request):
+    """Count ratings and comments of the current user that are still only stored in
+    cookies (same cookie format as read by refresh, the cookies are not touched)."""
+    user_id = str(request.user.id)
+    count = 0
+    for cookie_name, cookie in request.COOKIES.items():
+        key_type, data = parse_seminar_key(cookie_name)
+        if not data or data['bewerter'] != user_id:
+            continue
+        if key_type == 'bewertungen':
+            try:
+                count += len(json.loads(cookie))
+            except (ValueError, TypeError):
+                continue
+        elif key_type == 'comment':
+            count += 1
+    return count
+
+
 # Create your views here.
 @login_required
 def home(request):
-    return render(request, 'seminar_index.html')
+    unsaved_count = count_unsaved_cookie_entries(request) if request.user.role in ['O', 'T', 'E'] else 0
+    return render(request, 'seminar_index.html', {'unsaved_count': unsaved_count})
 
 @login_required
 @required_verschwiegenheit
@@ -49,19 +100,17 @@ def refresh(request):
     edited = []
 
     for cookie_name in request.COOKIES:
-        if cookie_name.startswith('f'):
-            data = {}
+        key_type, data = parse_seminar_key(cookie_name)
+        if not data or data['bewerter'] != str(request.user.id):
+            continue
 
-            data['freiwilliger'] = cookie_name.split('f')[1].split('r')[0]
-            data['einheit'] = cookie_name.split('r')[1].split('u')[0]
-            data['bewerter'] = cookie_name.split('u')[1]
-
-            if data['bewerter'] != str(request.user.id):
-                continue
-
+        if key_type == 'bewertungen':
             cookie = request.COOKIES[cookie_name]
 
-            json_data = json.loads(cookie)
+            try:
+                json_data = json.loads(cookie)
+            except ValueError:
+                continue
 
             for key, value in json_data.items():
                 data['frage'] = key
@@ -76,32 +125,7 @@ def refresh(request):
 
             response.delete_cookie(cookie_name)
 
-        if cookie_name.startswith('comment'):
-            data = {}
-
-            comment = cookie_name.split('comment')[1]
-            data['freiwilliger'] = comment.split('r')[0]
-
-            comment = comment.split('r')[1]
-            data['einheit'] = comment.split('u')[0]
-            comment = comment.split('u')[1]
-
-            if 'c' in comment:
-                user = comment.split('c')[0]
-            else:
-                user = comment.split('n')[0]
-
-            if user != str(request.user.id):
-                continue
-
-            data['bewerter'] = user
-
-            if 'c' in comment:
-                comment = comment.split('c')[1]
-                data['category'] = comment.split('n')[0]
-
-            data['name'] = comment.split('n')[1] == '1'
-
+        elif key_type == 'comment':
             cookie = request.COOKIES[cookie_name]
             data['text'] = cookie
 
@@ -326,37 +350,15 @@ def evaluate_post(request):
         k = k.strip()
         v = v.strip()
 
-        data = {}
+        key_type, data = parse_seminar_key(k)
+        if not data or data['bewerter'] != str(request.user.id):
+            continue
+        if only and only != data['freiwilliger']:
+            continue
 
-        if k.startswith('comment'):
+        if key_type == 'comment':
             if len(v) < 1:
                 continue
-
-            comment = k.split('comment')[1]
-            data['freiwilliger'] = comment.split('r')[0]
-
-            if only and only != data['freiwilliger']:
-                continue
-
-            comment = comment.split('r')[1]
-            data['einheit'] = comment.split('u')[0]
-            comment = comment.split('u')[1]
-
-            if 'c' in comment:
-                user = comment.split('c')[0]
-            else:
-                user = comment.split('n')[0]
-
-            if user != str(request.user.id):
-                continue
-
-            data['bewerter'] = user
-
-            if 'c' in comment:
-                comment = comment.split('c')[1]
-                data['category'] = comment.split('n')[0]
-
-            data['name'] = comment.split('n')[1] == '1'
 
             data['text'] = v
 
@@ -369,23 +371,7 @@ def evaluate_post(request):
 
             continue
 
-        elif k.startswith('f'):
-            buf = k.strip().split('f')[1]
-            data['freiwilliger'] = buf.split('q')[0]
-
-            if only and only != data['freiwilliger']:
-                continue
-
-            buf = buf.split('q')[1]
-            data['frage'] = buf.split('r')[0]
-            buf = buf.split('r')[1]
-            data['einheit'] = buf.split('u')[0]
-            buf = buf.split('u')[1]
-            data['bewerter'] = buf
-
-            if data['bewerter'] != str(request.user.id):
-                continue
-
+        elif key_type == 'bewertung':
             data['antwort'] = v
 
             insert_response = insert_bewertung(data)

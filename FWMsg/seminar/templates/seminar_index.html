@@ -44,9 +44,16 @@
                     </div>
 
                     <div class="mb-3">
-                            <a href="{% url 'refresh' %}" class="btn btn-outline-secondary">
+                            <a href="{% url 'refresh' %}" class="btn {% if unsaved_count %}btn-warning{% else %}btn-outline-secondary{% endif %}">
                                 <i class="bi bi-arrow-repeat me-2"></i>Refresh
+                                {% if unsaved_count %}<span class="badge text-bg-light ms-1">{{ unsaved_count }}</span>{% endif %}
                             </a>
+                            {% if unsaved_count %}
+                                <div class="small text-body-secondary mt-2">
+                                    <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                                    {{ unsaved_count }} {% if unsaved_count == 1 %}Eintrag ist{% else %}Einträge sind{% endif %} noch nicht gespeichert und {% if unsaved_count == 1 %}wird{% else %}werden{% endif %} mit Refresh hinzugefügt.
+                                </div>
+                            {% endif %}
                         </div>
                     {% else %}
                     <div class="mb-4">
