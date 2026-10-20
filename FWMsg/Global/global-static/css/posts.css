@@ -14,7 +14,7 @@ img.post-avatar {
     max-width: calc(var(--post-avatar-size, 2.25rem) * 1.6);
     height: var(--post-avatar-size, 2.25rem);
     object-fit: contain;
-    border-radius: .5rem;
+    border-radius: 50%;
 }
 img.post-avatar-xs { --post-avatar-size: 1.5rem; border-radius: .35rem; }
 .post-avatar-sm { --post-avatar-size: 2.25rem; }
