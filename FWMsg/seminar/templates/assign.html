@@ -25,19 +25,33 @@
         
         .remove-btn { position: absolute; top: -.5rem; right: -.5rem; width: 1.5rem; height: 1.5rem; padding: 0; border-radius: 50%; opacity: 0; transition: opacity .3s; }
         .assigned-volunteer:hover .remove-btn { opacity: 1; }
+        .wish-info { color: var(--bs-secondary-color); cursor: help; }
+        .wish-info:hover, .wish-info:focus { color: var(--bs-primary); }
+        .wish-tooltip .tooltip-inner { text-align: left; max-width: 18rem; }
+        .wish-tooltip .text-danger { color: #ff8a93 !important; }
         
-        .evaluation-badge { position: absolute; top: .25rem; right: .25rem; width: 1.25rem; height: 1.25rem; border-radius: 50%; border: 2px solid white; }
+        .evaluation-badge { position: absolute; top: .25rem; left: .25rem; width: 1.25rem; height: 1.25rem; border-radius: 50%; border: 2px solid white; }
         .evaluation-G { background-color: var(--bs-success); }
         .evaluation-B { background-color: var(--bs-warning); }
         .evaluation-N { background-color: var(--bs-danger); }
         
         .country-section { border-left: 4px solid var(--bs-primary); box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); }
+        .country-toggle { color: inherit; }
+        .country-toggle .bi-chevron-down { transition: transform .2s; }
+        .country-section.collapsed { border-left-color: var(--bs-secondary-bg); }
+        .country-section.collapsed .country-header { margin-bottom: 0 !important; }
+        .country-section.collapsed .country-body { display: none; }
+        .country-section.collapsed .country-toggle { color: var(--bs-secondary-color); }
+        .country-section.collapsed .country-toggle .bi-chevron-down { transform: rotate(-90deg); }
+        .country-quicklink.collapsed { opacity: .5; }
         .position-section { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: .375rem; transition: border-color .3s; }
         .position-section.border-success { border-left: 4px solid var(--bs-success) !important; }
         .position-section.border-danger { border-left: 4px solid var(--bs-danger) !important; }
         
         .volunteer-avatar { width: var(--avatar-size); height: var(--avatar-size); border-radius: 50%; object-fit: cover; border: 2px solid #e9ecef; }
         .wish-list { font-size: .8125rem; color: var(--bs-secondary); line-height: 1.4; }
+        .volunteer-divider { display: flex; align-items: center; gap: .5rem; margin: .75rem 0; font-size: .8rem; color: var(--bs-secondary-color); }
+        .volunteer-divider::before, .volunteer-divider::after { content: ""; flex: 1; border-top: 2px solid var(--bs-border-color); }
         .volunteers-list { max-height: 90vh; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--bs-secondary) transparent; }
         .volunteers-list::-webkit-scrollbar { width: .375rem; }
         .volunteers-list::-webkit-scrollbar-track { background: transparent; }
@@ -111,25 +125,34 @@
             <!-- Countries and Positions -->
             <div class="col-lg-8">
                 <div class="card card-compact shadow-sm rounded-4">
-                    <div class="card-header bg-white border-bottom-0">
+                    <div class="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center gap-2">
                         <h5 class="mb-0">
                             <i class="bi bi-geo-alt me-2 text-primary"></i>
                             Einsatzländer und Stellen
                         </h5>
+                        <button type="button" id="expand-all-countries" class="btn btn-sm btn-outline-secondary d-none" onclick="expandAllCountries()">
+                            <i class="bi bi-arrows-expand me-1"></i>Alle ausklappen
+                        </button>
                     </div>
                     <div class="card-body">
                         {% for land in laender %}
                             <div class="country-section p-3 mb-4 bg-white rounded-4" id="{{ land.land.id }}">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 class="mb-0">
-                                        <span class="fi fi-{{ land.land.code|lower }} me-2"></span>
-                                        {{ land.land.name }}
-                                    </h5>
+                                <div class="country-header d-flex justify-content-between align-items-center mb-3">
+                                    {# Ein-/Ausklappen, bleibt für die Browser-Sitzung gespeichert #}
+                                    <button type="button" class="country-toggle btn btn-link p-0 text-decoration-none d-flex align-items-center"
+                                            onclick="toggleCountry('{{ land.land.id }}')"
+                                            aria-expanded="true" aria-controls="country-body-{{ land.land.id }}">
+                                        <i class="bi bi-chevron-down me-2"></i>
+                                        <span class="h5 mb-0">
+                                            <span class="fi fi-{{ land.land.code|lower }} me-2"></span>{{ land.land.name }}
+                                        </span>
+                                    </button>
                                     <span class="badge bg-info position-counter">
                                         {{ land.stellen|get_current_fw_of_stellen }}/{{ land.land|get_max_fw_of_land }}
                                     </span>
                                 </div>
-                                
+
+                                <div class="country-body" id="country-body-{{ land.land.id }}">
                                 {% for stelle in land.stellen %}
                                     <div class="position-section mb-4 p-3 rounded" data-position-id="{{ stelle.0.id }}">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -168,9 +191,19 @@
                                                                  onerror="this.src='{% static 'img/default_img.png' %}'">
                                                             <div class="small fw-bold">{{ freiwilliger.user.first_name }}</div>
                                                             <div class="small text-muted">{{ freiwilliger.user.last_name }}</div>
-                                                            {% if freiwilliger.note %}
-                                                                <div class="small text-primary">{{ freiwilliger.note|myround:1 }}</div>
-                                                            {% endif %}
+                                                            <div class="small text-primary d-flex justify-content-center align-items-center gap-1">
+                                                                {% if freiwilliger.note %}{{ freiwilliger.note|myround:1 }}{% endif %}
+                                                                {# Hover/Fokus: Wünsche wie in der Freiwilligen-Liste #}
+                                                                <i class="bi bi-info-circle wish-info"
+                                                                   tabindex="0"
+                                                                   role="button"
+                                                                   aria-label="Wünsche anzeigen"
+                                                                   data-bs-toggle="tooltip"
+                                                                   data-bs-html="true"
+                                                                   data-bs-placement="top"
+                                                                   data-bs-custom-class="wish-tooltip"
+                                                                   data-bs-title="{% filter force_escape %}<div class='fw-semibold mb-1'>Wünsche</div>{% include 'components/assign_wish_list.html' %}{% endfilter %}"></i>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -207,6 +240,7 @@
                                         </div>
                                     </div>
                                 {% endfor %}
+                                </div>
                             </div>
                         {% endfor %}
 
@@ -221,7 +255,8 @@
 
                             <!-- Laender quick access-->
                             {% for land in laender %}
-                                <a href="#{{ land.land.id }}" class="border rounded p-1" data-einsatzland="{{ land.land.id }}">
+                                <a href="#{{ land.land.id }}" class="country-quicklink border rounded p-1" data-einsatzland="{{ land.land.id }}"
+                                   onclick="setCountryCollapsed('{{ land.land.id }}', false)">
                                     <span class="fi fi-{{ land.land.code|lower }} me-2"></span>{{ land.land.code }}
                                 </a>
                             {% endfor %}
@@ -288,21 +323,8 @@
                                                             <div class="small text-primary">Note: {{ freiwilliger.note|myround:1 }}</div>
                                                         {% endif %}
                                                         <div class="wish-list">
-                                                            <div class="small" data-einsatzland-first="{{ freiwilliger.first_wish_einsatzland.id }}">
-                                                                1) {% if freiwilliger.first_wish_einsatzstelle %}{{ freiwilliger.first_wish_einsatzstelle }}{% elif freiwilliger.first_wish_einsatzland %}{{ freiwilliger.first_wish_einsatzland }}{% else %}{{ freiwilliger.first_wish|default:'' }}{% endif %}
-                                                            </div>
-                                                            <div class="small" data-einsatzland-second="{{ freiwilliger.second_wish_einsatzland.id }}">
-                                                                2) {% if freiwilliger.second_wish_einsatzstelle %}{{ freiwilliger.second_wish_einsatzstelle }}{% elif freiwilliger.second_wish_einsatzland %}{{ freiwilliger.second_wish_einsatzland }}{% else %}{{ freiwilliger.second_wish|default:'' }}{% endif %}
-                                                            </div>
-                                                            <div class="small" data-einsatzland-third="{{ freiwilliger.third_wish_einsatzland.id }}">
-                                                                3) {% if freiwilliger.third_wish_einsatzstelle %}{{ freiwilliger.third_wish_einsatzstelle }}{% elif freiwilliger.third_wish_einsatzland %}{{ freiwilliger.third_wish_einsatzland }}{% else %}{{ freiwilliger.third_wish|default:'' }}{% endif %}
-                                                            </div>
-                                                            {% if freiwilliger.no_wish %}
-                                                                <div class="small text-danger">
-                                                                    Nicht: {{ freiwilliger.no_wish }}
-                                                                </div>
-                                                            {% endif %}
-                                                        </div>
+{% include 'components/assign_wish_list.html' %}
+</div>
                                                     </div>
                                                     <div class="ms-2">
                                                         <a href="{% url 'evaluate_all' %}?fid={{ freiwilliger.id }}" 
@@ -358,21 +380,8 @@
                                                    <div class="small text-primary">Note: {{ freiwilliger.note|myround:1 }}</div>
                                                {% endif %}
                                                <div class="wish-list">
-                                                   <div class="small" data-einsatzland-first="{{ freiwilliger.first_wish_einsatzland.id }}">
-                                                       1) {% if freiwilliger.first_wish_einsatzstelle %}{{ freiwilliger.first_wish_einsatzstelle }}{% elif freiwilliger.first_wish_einsatzland %}{{ freiwilliger.first_wish_einsatzland }}{% else %}{{ freiwilliger.first_wish|default:'' }}{% endif %}
-                                                   </div>
-                                                   <div class="small" data-einsatzland-second="{{ freiwilliger.second_wish_einsatzland.id }}">
-                                                       2) {% if freiwilliger.second_wish_einsatzstelle %}{{ freiwilliger.second_wish_einsatzstelle }}{% elif freiwilliger.second_wish_einsatzland %}{{ freiwilliger.second_wish_einsatzland }}{% else %}{{ freiwilliger.second_wish|default:'' }}{% endif %}
-                                                   </div>
-                                                   <div class="small" data-einsatzland-third="{{ freiwilliger.third_wish_einsatzland.id }}">
-                                                       3) {% if freiwilliger.third_wish_einsatzstelle %}{{ freiwilliger.third_wish_einsatzstelle }}{% elif freiwilliger.third_wish_einsatzland %}{{ freiwilliger.third_wish_einsatzland }}{% else %}{{ freiwilliger.third_wish|default:'' }}{% endif %}
-                                                   </div>
-                                                   {% if freiwilliger.no_wish %}
-                                                       <div class="small text-danger">
-                                                           Nicht: {{ freiwilliger.no_wish }}
-                                                       </div>
-                                                   {% endif %}
-                                               </div>
+{% include 'components/assign_wish_list.html' %}
+</div>
                                            </div>
                                            <div class="small text-muted">
                                                {{ freiwilliger.zuteilung.name }}
@@ -413,8 +422,72 @@
         let selectedVolunteer = null;
         let selectedPosition = null;
 
+        // Eingeklappte Länder: bleiben für die Browser-Sitzung (alle Reloads) gespeichert
+        const COLLAPSED_COUNTRIES_KEY = 'seminarAssign.collapsedCountries';
+
+        function getCollapsedCountries() {
+            try {
+                return JSON.parse(sessionStorage.getItem(COLLAPSED_COUNTRIES_KEY)) || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveCollapsedCountries(ids) {
+            try {
+                sessionStorage.setItem(COLLAPSED_COUNTRIES_KEY, JSON.stringify(ids));
+            } catch (e) {
+                // ohne sessionStorage gilt der Zustand nur bis zum nächsten Reload
+            }
+        }
+
+        function setCountryCollapsed(countryId, collapsed) {
+            countryId = String(countryId);
+            const section = document.getElementById(countryId);
+            if (!section) {
+                return;
+            }
+            section.classList.toggle('collapsed', collapsed);
+            section.querySelector('.country-toggle').setAttribute('aria-expanded', String(!collapsed));
+            document.querySelectorAll(`.country-quicklink[data-einsatzland="${countryId}"]`).forEach(link => {
+                link.classList.toggle('collapsed', collapsed);
+            });
+
+            const ids = getCollapsedCountries().filter(id => id !== countryId);
+            if (collapsed) {
+                ids.push(countryId);
+            }
+            saveCollapsedCountries(ids);
+            updateExpandAllButton();
+        }
+
+        function toggleCountry(countryId) {
+            const section = document.getElementById(String(countryId));
+            setCountryCollapsed(countryId, !section.classList.contains('collapsed'));
+        }
+
+        function expandAllCountries() {
+            document.querySelectorAll('.country-section.collapsed').forEach(section => {
+                setCountryCollapsed(section.id, false);
+            });
+        }
+
+        function updateExpandAllButton() {
+            const anyCollapsed = document.querySelector('.country-section.collapsed') !== null;
+            document.getElementById('expand-all-countries').classList.toggle('d-none', !anyCollapsed);
+        }
+
+        getCollapsedCountries().forEach(countryId => setCountryCollapsed(countryId, true));
+
         if (scrollTo) {
-            document.querySelector(`[data-position-id="${scrollTo}"]`).scrollIntoView({ behavior: 'smooth' });
+            const target = document.querySelector(`[data-position-id="${scrollTo}"]`);
+            if (target) {
+                const section = target.closest('.country-section');
+                if (section && section.classList.contains('collapsed')) {
+                    setCountryCollapsed(section.id, false);
+                }
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
         }
 
         function selectVolunteer(volunteerId) {
@@ -453,10 +526,8 @@
                 document.querySelectorAll('.position-slot').forEach(slot => {
                     slot.classList.remove('drop-target');
                 });
-                // Reset volunteer filtering
-                document.querySelectorAll('.volunteer-card').forEach(card => {
-                    card.style.display = '';
-                });
+                // Reset volunteer order
+                resetVolunteerOrder();
                 return;
             }
             // Remove previous selection
@@ -474,7 +545,7 @@
                 const countrySection = positionSection.closest('.country-section');
                 const landId = countrySection ? countrySection.id : null;
                 
-                // Filter volunteers who have this position or country in their wishes
+                // Volunteers who have this position or country in their wishes first
                 filterVolunteersByPosition(positionId, landId);
             }
             
@@ -484,35 +555,73 @@
             }
         }
 
+        function volunteerMatchesPosition(card, positionId, landId) {
+            const data = card.dataset;
+
+            // Volunteer has this position or country in any wish
+            const hasPosition =
+                data.firstWishStelle == positionId ||
+                data.secondWishStelle == positionId ||
+                data.thirdWishStelle == positionId;
+
+            const hasCountry = landId && (
+                data.firstWishLand == landId ||
+                data.secondWishLand == landId ||
+                data.thirdWishLand == landId
+            );
+
+            return hasPosition || hasCountry;
+        }
+
+        // Sorts each volunteer list: matching volunteers on top, then a divider, then all others.
+        // Nobody is hidden; the order within both groups stays as rendered.
         function filterVolunteersByPosition(positionId, landId) {
-            const volunteerCards = document.querySelectorAll('.volunteer-card');
-            
-            volunteerCards.forEach(card => {
-                const firstWishStelle = card.dataset.firstWishStelle;
-                const secondWishStelle = card.dataset.secondWishStelle;
-                const thirdWishStelle = card.dataset.thirdWishStelle;
-                const firstWishLand = card.dataset.firstWishLand;
-                const secondWishLand = card.dataset.secondWishLand;
-                const thirdWishLand = card.dataset.thirdWishLand;
-                
-                // Check if volunteer has this position or country in any wish
-                const hasPosition = 
-                    firstWishStelle == positionId || 
-                    secondWishStelle == positionId || 
-                    thirdWishStelle == positionId;
-                
-                const hasCountry = landId && (
-                    firstWishLand == landId || 
-                    secondWishLand == landId || 
-                    thirdWishLand == landId
-                );
-                
-                // Show only matching volunteers
-                if (hasPosition || hasCountry) {
-                    card.style.display = '';
-                } else {
-                    card.style.display = 'none';
+            resetVolunteerOrder();
+
+            document.querySelectorAll('.volunteers-list').forEach(list => {
+                const cards = Array.from(list.querySelectorAll(':scope > .volunteer-card'));
+                if (!cards.length) {
+                    return;
                 }
+
+                const matching = cards.filter(card => volunteerMatchesPosition(card, positionId, landId));
+                const others = cards.filter(card => !matching.includes(card));
+
+                const ordered = matching.slice();
+                if (others.length) {
+                    const divider = document.createElement('div');
+                    divider.className = 'volunteer-divider';
+                    divider.textContent = matching.length ? 'Weitere Freiwillige' : 'Keine passenden Wünsche';
+                    ordered.push(divider, ...others);
+                }
+
+                // Insert at the position of the cards, so other content of the list stays in place
+                const anchor = cards[cards.length - 1].nextSibling;
+                ordered.forEach(element => list.insertBefore(element, anchor));
+
+                list.scrollTop = 0;
+            });
+        }
+
+        // Restores the rendered order of all volunteer lists and removes the divider
+        function resetVolunteerOrder() {
+            document.querySelectorAll('.volunteers-list').forEach(list => {
+                list.querySelectorAll(':scope > .volunteer-divider').forEach(divider => divider.remove());
+
+                const cards = Array.from(list.querySelectorAll(':scope > .volunteer-card'));
+                if (!cards.length) {
+                    return;
+                }
+                cards.forEach((card, index) => {
+                    if (card.dataset.originalIndex === undefined) {
+                        card.dataset.originalIndex = index;
+                    }
+                });
+
+                const anchor = cards[cards.length - 1].nextSibling;
+                cards
+                    .sort((a, b) => a.dataset.originalIndex - b.dataset.originalIndex)
+                    .forEach(card => list.insertBefore(card, anchor));
             });
         }
 
@@ -564,8 +673,8 @@
                 selectedPosition = null;
                 document.querySelectorAll('.volunteer-card').forEach(card => {
                     card.classList.remove('selected');
-                    card.style.display = ''; // Reset filtering
                 });
+                resetVolunteerOrder();
                 document.querySelectorAll('.position-slot').forEach(slot => {
                     slot.classList.remove('drop-target');
                 });
