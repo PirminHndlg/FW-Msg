@@ -20,6 +20,27 @@ from FW.models import Freiwilliger
 from FWMsg.celery import send_email_aufgaben_daily
 from simple_history.admin import SimpleHistoryAdmin
 
+class OnlineStatusFilter(admin.SimpleListFilter):
+    """Online = active within the last 5 minutes, same as CustomUser.is_currently_online()
+    (the is_online flag is only reset occasionally by OfflineStatusMiddleware)."""
+    title = 'Online'
+    parameter_name = 'online'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'Online'),
+            ('no', 'Offline'),
+        )
+
+    def queryset(self, request, queryset):
+        threshold = timezone.now() - timedelta(minutes=5)
+        if self.value() == 'yes':
+            return queryset.filter(last_seen__gt=threshold)
+        if self.value() == 'no':
+            return queryset.exclude(last_seen__gt=threshold)
+        return queryset
+
+
 # Register your models here.
 @admin.register(CustomUser)
 class CustomUserAdmin(SimpleHistoryAdmin):
@@ -33,7 +54,7 @@ class CustomUserAdmin(SimpleHistoryAdmin):
         'get_last_login',
         'get_online_status_display',
     )
-    list_filter = ('person_cluster', 'mail_notifications', ('einmalpasswort', admin.EmptyFieldListFilter))
+    list_filter = (OnlineStatusFilter, 'person_cluster', 'mail_notifications', ('einmalpasswort', admin.EmptyFieldListFilter))
     readonly_fields = ('mail_notifications_unsubscribe_auth_key',)
 
     @admin.display(ordering='last_seen', description='Online Status')
