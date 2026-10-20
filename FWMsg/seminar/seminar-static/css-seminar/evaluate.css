@@ -213,3 +213,18 @@ ul {
     margin: 0;
     padding-left: 20px;
 }
+/* Speicherstatus der lokalen Eingaben (seminar_store.js) */
+.sync_status {
+    margin: 0.5rem auto 0;
+    max-width: 30rem;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.sync_status_pending {
+    color: #8a6100;
+}
+
+.sync_status_saved {
+    color: #2e7d32;
+}

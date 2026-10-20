@@ -18,6 +18,7 @@
 
     <script src="{% static 'js/global.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/seminar_store.js' %}"></script>
     
     <style>
         .navbar-brand img {
@@ -179,6 +180,17 @@
 
 {% block content %}
 {% endblock %}
+
+{% if user.role == 'O' or user.role == 'T' or user.role == 'E' %}
+<script>
+    // Lokal gespeicherte Bewertungen (früher Cookies) übernehmen; gesendet wird mit Refresh
+    const seminar_sync_url = "{% url 'seminar_sync' %}";
+    const seminar_user_id = "{{ user.id }}";
+    document.addEventListener('DOMContentLoaded', function () {
+        SeminarStore.start();
+    });
+</script>
+{% endif %}
 
 <script>
     // Add active class to current page navigation link

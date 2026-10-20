@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{% static 'css-seminar/evaluate.css' %}">
 
     <script src="{% static 'js/global.js' %}"></script>
+    <script src="{% static 'js/seminar_store.js' %}"></script>
     <script src="{% static 'js/evaluate.js' %}"></script>
 
     <link rel="icon" type="image/png" href="/icon/favicon-48x48.png" sizes="48x48"/>
@@ -78,6 +79,7 @@
 </ul>
 
 <form id="form" action="{% url 'evaluate-post' %}" method="post">
+    {% csrf_token %}
 
     {% if freiwillige %}
         {% for freiwilliger in freiwillige %}
@@ -161,7 +163,7 @@
                                                             <label>
                                                                 <input type="checkbox" name=""
                                                                        {% if comment|get_item:'name' or not comment %}checked{% endif %}
-                                                                       onchange="this.parentElement.parentElement.querySelector('textarea').name = this.parentElement.parentElement.querySelector('textarea').name.slice(0, -1) + (this.checked ? '1' : '0');">
+                                                                       onchange="onCommentNameChange(this)">
                                                                 Namen bei Präsentation anzeigen
                                                             </label>
                                                         {% endwith %}
@@ -191,7 +193,7 @@
                                 <label>
                                     <input type="checkbox" name=""
                                            {% if comment|get_item:'ohne'|get_item:'name' or not comment|get_item:'ohne' %}checked{% endif %}
-                                           onchange="this.parentElement.parentElement.querySelector('textarea').name = this.parentElement.parentElement.querySelector('textarea').name.slice(0, -1) + (this.checked ? '1' : '0');">
+                                           onchange="onCommentNameChange(this)">
                                     Namen bei Präsentation anzeigen
                                 </label>
                             {% endwith %}
@@ -224,6 +226,7 @@
 
         <a>Die Antworten können später noch bearbeitet werden</a>
         <br>
+        <p id="sync_status" class="sync_status" aria-live="polite"></p>
     </div>
 
 </form>
@@ -240,6 +243,9 @@
 
     let user = "{{ user }}"
     let einheit = "{{ einheit.id }}"
+
+    const seminar_sync_url = "{% url 'seminar_sync' %}"
+    const seminar_user_id = "{{ user }}"
 
 
 </script>

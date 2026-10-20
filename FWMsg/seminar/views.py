@@ -1,10 +1,12 @@
 from django.shortcuts import redirect, render, get_object_or_404
 import json
+import logging
 import re
 from datetime import datetime
 from django.contrib.auth.decorators import login_required
 from django.db.models.functions import Round
-from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse, JsonResponse
+from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.contrib import messages
 from django.utils import timezone
@@ -16,6 +18,8 @@ from BW.models import Bewerber
 from .forms import WishForm, BewerterForm
 from django.db.models import Avg, Case, When, IntegerField
 from django.contrib.auth.models import User
+
+logger = logging.getLogger(__name__)
 
 def required_verschwiegenheit(view_func):
     def wrapper(request, *args, **kwargs):
@@ -55,30 +59,54 @@ def parse_seminar_key(key):
     return None, None
 
 
-def count_unsaved_cookie_entries(request):
-    """Count ratings and comments of the current user that are still only stored in
-    cookies (same cookie format as read by refresh, the cookies are not touched)."""
-    user_id = str(request.user.id)
-    count = 0
-    for cookie_name, cookie in request.COOKIES.items():
-        key_type, data = parse_seminar_key(cookie_name)
-        if not data or data['bewerter'] != user_id:
-            continue
-        if key_type == 'bewertungen':
-            try:
-                count += len(json.loads(cookie))
-            except (ValueError, TypeError):
-                continue
-        elif key_type == 'comment':
-            count += 1
-    return count
+def save_seminar_entry(request, name, value):
+    """Save one stored entry (cookie or localStorage, see parse_seminar_key) of the current user.
+
+    Returns (inserted, edited), or None if the entry was not saved and must be kept
+    (other user, unknown name or a failed insert).
+    """
+    key_type, data = parse_seminar_key(name)
+    if not data or data['bewerter'] != str(request.user.id):
+        return None
+
+    if key_type == 'bewertungen':
+        try:
+            answers = json.loads(value)
+        except (TypeError, ValueError):
+            return 0, 0  # unreadable, nothing to keep
+        if not isinstance(answers, dict):
+            return 0, 0
+        inserted = edited = 0
+        for frage, antwort in answers.items():
+            result = insert_bewertung({**data, 'frage': frage, 'antwort': antwort})
+            if result == 0:
+                return None
+            inserted += result == 1
+            edited += result == 2
+        return inserted, edited
+
+    if key_type == 'comment':
+        text = value or ''
+        if not text.strip():
+            # Empty text: only clear an existing comment, do not create empty ones
+            exists = Kommentar.objects.filter(
+                bewerber_id=data['freiwilliger'], einheit_id=data['einheit'], bewerter=request.user,
+                kategorie_id=data.get('category'),
+            ).exists()
+            if not exists:
+                return 0, 0
+        result = insert_comment(request, {**data, 'text': text})
+        if result == 0:
+            return None
+        return int(result == 1), int(result == 2)
+
+    return None
 
 
 # Create your views here.
 @login_required
 def home(request):
-    unsaved_count = count_unsaved_cookie_entries(request) if request.user.role in ['O', 'T', 'E'] else 0
-    return render(request, 'seminar_index.html', {'unsaved_count': unsaved_count})
+    return render(request, 'seminar_index.html')
 
 @login_required
 @required_verschwiegenheit
@@ -96,52 +124,54 @@ def start(request):
 @required_role('OTE')
 def refresh(request):
     response = redirect('seminar_home')
-    inserted = []
-    edited = []
+    inserted = 0
+    edited = 0
 
-    for cookie_name in request.COOKIES:
-        key_type, data = parse_seminar_key(cookie_name)
-        if not data or data['bewerter'] != str(request.user.id):
+    for cookie_name, cookie in request.COOKIES.items():
+        result = save_seminar_entry(request, cookie_name, cookie)
+        if result is None:
             continue
+        inserted += result[0]
+        edited += result[1]
+        response.delete_cookie(cookie_name)
 
-        if key_type == 'bewertungen':
-            cookie = request.COOKIES[cookie_name]
-
-            try:
-                json_data = json.loads(cookie)
-            except ValueError:
-                continue
-
-            for key, value in json_data.items():
-                data['frage'] = key
-                data['antwort'] = value
-
-                insert_response = insert_bewertung(data)
-
-                if insert_response == 1:
-                    inserted.append(cookie_name)
-                elif insert_response == 2:
-                    edited.append(cookie_name)
-
-            response.delete_cookie(cookie_name)
-
-        elif key_type == 'comment':
-            cookie = request.COOKIES[cookie_name]
-            data['text'] = cookie
-
-            insert_response = insert_comment(request, data)
-
-            if insert_response == 1:
-                inserted.append(cookie)
-            elif insert_response == 2:
-                edited.append(cookie)
-
-            response.delete_cookie(cookie_name)
-
-    messages.success(request,
-                     f'Erfolgreich bewertet, {len(inserted)} Bewertungen hinzugefügt, {len(edited)} bearbeitet')
+    messages.success(request, f'Erfolgreich bewertet, {inserted} Bewertungen hinzugefügt, {edited} bearbeitet')
 
     return response
+
+
+@login_required
+@required_verschwiegenheit
+@required_role('OTE')
+@require_POST
+def sync(request):
+    """Save the entries stored in the browser (localStorage, see seminar_store.js).
+
+    Body: {"entries": {name: value}, "manual": bool}. Returns the saved entries so the
+    browser only removes what has arrived; entries that were not saved stay in the browser.
+    """
+    try:
+        payload = json.loads(request.body)
+        entries = payload.get('entries', {})
+        if not isinstance(entries, dict):
+            raise ValueError
+    except (ValueError, AttributeError):
+        return JsonResponse({'error': 'invalid'}, status=400)
+
+    saved = {}
+    inserted = edited = 0
+    for name, value in entries.items():
+        result = save_seminar_entry(request, name, value)
+        if result is None:
+            continue
+        saved[name] = value
+        inserted += result[0]
+        edited += result[1]
+
+    if payload.get('manual'):
+        messages.success(request, f'Erfolgreich bewertet, {inserted} Bewertungen hinzugefügt, {edited} bearbeitet')
+
+    return JsonResponse({'saved': saved, 'inserted': inserted, 'edited': edited})
 
 
 @required_role('OTE')
@@ -285,8 +315,8 @@ def insert_bewertung(data):
 
         return 1
 
-    except Exception as e:
-        messages.error(request, 'Fehler beim Einfügen der Bewertung')
+    except Exception:
+        logger.exception('Fehler beim Einfügen der Bewertung')
     return 0
 
 

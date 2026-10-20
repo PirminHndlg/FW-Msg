@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -36,46 +38,8 @@ class ParseSeminarKeyTests(TestCase):
             self.assertEqual(parse_seminar_key(key), (None, None), key)
 
 
-class UnsavedCookieHintTests(TestCase):
-    """Hinweis auf der Seminar-Startseite, wenn Bewertungen/Kommentare nur in Cookies liegen"""
-
-    def setUp(self):
-        self.org = Organisation.objects.create(name='Test Org', email='test@test.com')
-        cluster = PersonCluster.objects.create(org=self.org, name='Team', view='T')
-        self.user = User.objects.create_user(username='team', password='pass12345')
-        CustomUser.objects.create(org=self.org, user=self.user, person_cluster=cluster)
-        self.client.login(username='team', password='pass12345')
-
-    def _get_home(self, cookie_header=''):
-        # Roh wie vom Browser gesetzt (evaluate.js schreibt JSON unverändert in den Cookie);
-        # der Header ersetzt die Client-Cookies, daher die Session mitschicken
-        session = f'{settings.SESSION_COOKIE_NAME}={self.client.cookies[settings.SESSION_COOKIE_NAME].value}'
-        return self.client.get(reverse('seminar_home'), HTTP_COOKIE='; '.join(filter(None, [session, cookie_header])))
-
-    def test_no_unsaved_entries(self):
-        response = self._get_home()
-        self.assertEqual(response.context['unsaved_count'], 0)
-        self.assertNotContains(response, 'noch nicht gespeichert')
-
-    def test_counts_ratings_and_comments_of_current_user(self):
-        uid = self.user.id
-        cookies = '; '.join([
-            f'f12r3u{uid}={{"7":"3","8":"4"}}',      # 2 Bewertungen
-            f'comment12r3u{uid}c5n1=Gute Idee',      # Kommentar mit Kategorie
-            f'comment12r3u{uid}n0=Allgemein',        # Kommentar ohne Kategorie
-            f'f12r3u{uid + 1}={{"7":"1"}}',          # andere:r Bewerter:in
-        ])
-        response = self._get_home(cookies)
-        self.assertEqual(response.context['unsaved_count'], 4)
-        self.assertContains(response, '4 Einträge sind noch nicht gespeichert')
-
-    def test_ignores_malformed_cookies(self):
-        response = self._get_home('foo=bar; fbroken=1; commentx=1')
-        self.assertEqual(response.context['unsaved_count'], 0)
-
-
-class RefreshCookieTests(TestCase):
-    """refresh speichert die Bewertungs-/Kommentar-Cookies und ignoriert fremde Cookies"""
+class SeminarSaveTests(TestCase):
+    """Speichern über refresh (Cookies), sync (localStorage) und evaluate_post (Formular)"""
 
     def setUp(self):
         from BW.models import Bewerber
@@ -137,3 +101,63 @@ class RefreshCookieTests(TestCase):
         kommentar = Kommentar.objects.get(bewerber=self.bewerber, einheit=self.einheit, bewerter=self.user)
         self.assertIsNone(kommentar.kategorie)
         self.assertFalse(kommentar.show_name_at_presentation)
+
+    def _sync(self, entries, manual=False):
+        return self.client.post(
+            reverse('seminar_sync'),
+            data=json.dumps({'entries': entries, 'manual': manual}),
+            content_type='application/json',
+        )
+
+    def test_sync_saves_entries_and_returns_them(self):
+        from seminar.models import Bewertung, Kommentar
+
+        b, e, u = self.bewerber.id, self.einheit.id, self.user.id
+        entries = {
+            f'f{b}r{e}u{u}': json.dumps({str(self.frage.id): '2'}),
+            f'comment{b}r{e}u{u}n1': 'Kommentar mit ; und = und Ümläuten',
+        }
+        response = self._sync(entries)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['saved'], entries)
+        self.assertEqual(response.json()['inserted'], 2)
+        self.assertEqual(Bewertung.objects.get(bewerber=self.bewerber).bewertung, 2)
+        self.assertEqual(
+            Kommentar.objects.get(bewerber=self.bewerber, kategorie__isnull=True).text,
+            'Kommentar mit ; und = und Ümläuten',
+        )
+
+        # Erneutes Senden (z.B. Antwort ging verloren) ist unkritisch
+        response = self._sync({f'f{b}r{e}u{u}': json.dumps({str(self.frage.id): '5'})})
+        self.assertEqual(response.json()['edited'], 1)
+        self.assertEqual(Bewertung.objects.get(bewerber=self.bewerber).bewertung, 5)
+
+    def test_sync_keeps_entries_it_cannot_save(self):
+        b, e, u = self.bewerber.id, self.einheit.id, self.user.id
+        response = self._sync({
+            f'f{b}r{e}u{u + 1}': json.dumps({str(self.frage.id): '1'}),  # andere:r Bewerter:in
+            f'f{b}r{e}u{u}': json.dumps({'999999': '1'}),                 # unbekannte Frage
+            'firstVisit': '1',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['saved'], {})
+
+    def test_sync_ignores_empty_new_comment(self):
+        from seminar.models import Kommentar
+
+        b, e, u = self.bewerber.id, self.einheit.id, self.user.id
+        response = self._sync({f'comment{b}r{e}u{u}n1': ''})
+        self.assertIn(f'comment{b}r{e}u{u}n1', response.json()['saved'])
+        self.assertFalse(Kommentar.objects.exists())
+
+    def test_sync_manual_adds_message(self):
+        response = self._sync({}, manual=True)
+        self.assertEqual(response.status_code, 200)
+        home = self.client.get(reverse('seminar_home'))
+        self.assertContains(home, 'Erfolgreich bewertet, 0 Bewertungen hinzugefügt, 0 bearbeitet')
+
+    def test_sync_rejects_get_and_invalid_body(self):
+        self.assertEqual(self.client.get(reverse('seminar_sync')).status_code, 405)
+        response = self.client.post(reverse('seminar_sync'), data='kein json', content_type='application/json')
+        self.assertEqual(response.status_code, 400)
