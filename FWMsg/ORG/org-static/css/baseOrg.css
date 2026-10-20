@@ -52,6 +52,28 @@ body {
     margin: 0;
 }
 
+/* Unterpunkte (Benutzergruppen) unter einer Personenliste: Text bündig mit dem
+   Hauptpunkt, Führungslinie unter dessen Icon */
+.dropdown-item.nav-subitem {
+    position: relative;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    padding-left: calc(1rem + 16px + 0.5rem);
+}
+
+.dropdown-item.nav-subitem::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(1rem + 7px);
+    border-left: 2px solid var(--bs-border-color);
+}
+
+.dropdown-item.nav-subitem:hover::before {
+    border-left-color: var(--bs-primary);
+}
+
 /* Navigation Icons */
 .nav-link i {
     font-size: 1rem;
@@ -72,6 +94,10 @@ body {
     
     .dropdown-item {
         padding: 0.6rem 1rem;
+    }
+
+    .dropdown-item.nav-subitem {
+        padding: 0.45rem 1rem 0.45rem calc(1rem + 16px + 0.5rem);
     }
 }
 

@@ -61,18 +61,15 @@
                     <i class="bi bi-people me-1"></i>{% trans "Personen" %}
                   </a>
                   <div class="dropdown-menu dropdown-menu-wide" aria-labelledby="peopleDropdown">
-                    <a href="{% url 'list_object' 'freiwilliger' %}" class="dropdown-item">
-                      <i class="bi bi-heart me-2"></i>{% trans "Freiwillige" %}
-                    </a>
-                    <a href="{% url 'list_object' 'team' %}" class="dropdown-item">
-                      <i class="bi bi-briefcase me-2"></i>{% trans "Team" %}
-                    </a>
-                    <a href="{% url 'list_object' 'ehemalige' %}" class="dropdown-item">
-                      <i class="bi bi-mortarboard me-2"></i>{% trans "Ehemalige" %}
-                    </a>
-                    <a href="{% url 'list_object' 'bewerber' %}" class="dropdown-item">
-                      <i class="bi bi-inbox me-2"></i>{% trans "Bewerber:innen" %}
-                    </a>
+                    {# Je Personenliste ein Eintrag, bei mehreren Benutzergruppen mit Unterpunkten #}
+                    {% trans "Freiwillige" as label %}
+                    {% include 'components/nav_person_cluster_links.html' with model_name='freiwilliger' view='F' icon='bi-heart' %}
+                    {% trans "Team" as label %}
+                    {% include 'components/nav_person_cluster_links.html' with model_name='team' view='T' icon='bi-briefcase' %}
+                    {% trans "Ehemalige" as label %}
+                    {% include 'components/nav_person_cluster_links.html' with model_name='ehemalige' view='E' icon='bi-mortarboard' %}
+                    {% trans "Bewerber:innen" as label %}
+                    {% include 'components/nav_person_cluster_links.html' with model_name='bewerber' view='B' icon='bi-inbox' %}
                     <div class="dropdown-divider"></div>
                     <a href="{% url 'list_object' 'notfallkontakt' %}" class="dropdown-item">
                       <i class="bi bi-exclamation-triangle me-2"></i>{% trans "Notfallkontakte" %}

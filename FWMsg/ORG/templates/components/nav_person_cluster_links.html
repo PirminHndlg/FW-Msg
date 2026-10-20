@@ -1,0 +1,25 @@
+{% load i18n base_org_filter %}
+{# Nav-Eintrag einer Personenliste (aktive Benutzergruppen der View): #}
+{#  - eine Gruppe:     nur der Hauptpunkt, direkt auf diese Gruppe gefiltert #}
+{#  - mehrere Gruppen: Hauptpunkt = alle, darunter je Gruppe ein eingerückter Unterpunkt #}
+{# Parameter: model_name, view, label, icon #}
+{% person_clusters_for_view request.user view as person_clusters %}
+{% if person_clusters|length == 1 %}
+  <a href="{% url 'list_object' model_name %}?person_cluster_filter={{ person_clusters.0.id }}" class="dropdown-item">
+    <i class="bi {{ icon }} me-2"></i>{{ label }}
+  </a>
+{% elif person_clusters %}
+  {# "alle" explizit setzen, sonst greift die zuletzt gewählte Gruppe aus dem Cookie #}
+  <a href="{% url 'list_object' model_name %}?person_cluster_filter=alle" class="dropdown-item">
+    <i class="bi {{ icon }} me-2"></i>{{ label }}
+  </a>
+  {% for person_cluster in person_clusters %}
+    <a href="{% url 'list_object' model_name %}?person_cluster_filter={{ person_cluster.id }}" class="dropdown-item nav-subitem small text-body-secondary">
+      {{ person_cluster.name }}
+    </a>
+  {% endfor %}
+{% else %}
+  <a href="{% url 'list_object' model_name %}" class="dropdown-item">
+    <i class="bi {{ icon }} me-2"></i>{{ label }}
+  </a>
+{% endif %}
