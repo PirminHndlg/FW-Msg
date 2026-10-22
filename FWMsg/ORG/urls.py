@@ -15,15 +15,11 @@ urlpatterns = [
     path('list/<str:model_name>/checkbox/', views.list_object_checkbox, name='list_object_checkbox'),
     path('delete/<str:model_name>/<int:id>', views.delete_object, name='delete_object'),
     
-    path('delete-zwischenschritt/', views.delete_zwischenschritt, name='delete_zwischenschritt'),
     path('ampel-mark-as-read/', views.ampel_mark_as_read, name='ampel_mark_as_read'),
     path('list-aufgaben-table/', views.list_aufgaben_table, name='list_aufgaben_table'),
     path('list-aufgaben-table/<int:scroll_to>', views.list_aufgaben_table, name='list_aufgaben_table_scroll'),
     path('mark-task-as-done/', views.mark_task_as_done, name='mark_task_as_done'),
     path('send-task-reminder/', views.send_task_reminder, name='send_task_reminder'),
-    path('get-aufgaben-zwischenschritte/', views.get_aufgaben_zwischenschritte, name='get_aufgaben_zwischenschritte'),
-    path('toggle-zwischenschritt-status/', views.toggle_zwischenschritt_status, name='toggle_zwischenschritt_status'),
-    path('get-zwischenschritt-form/', views.get_zwischenschritt_form, name='get_zwischenschritt_form'),
     
     # AJAX endpoints for task operations
     path('ajax/update-task-status/', views.ajax_update_task_status, name='ajax_update_task_status'),

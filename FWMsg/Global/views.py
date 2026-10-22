@@ -88,7 +88,6 @@ from .models import (
     ProfilUser2,
     UserAttribute,
     UserAufgaben,
-    UserAufgabenZwischenschritte,
     KalenderEvent,
     CustomUser,
     Dokument2,

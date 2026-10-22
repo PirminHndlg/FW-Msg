@@ -1086,35 +1086,6 @@ class Aufgabe2(OrgModel):
         return self.name
 
 
-class AufgabeZwischenschritte2(OrgModel):
-    aufgabe = models.ForeignKey(Aufgabe2, on_delete=models.CASCADE, verbose_name=_('Aufgabe'))
-    name = models.CharField(max_length=50, verbose_name=_('Name'), help_text=_('Name des Zwischenschritts'))
-    beschreibung = models.TextField(null=True, blank=True, verbose_name=_('Beschreibung'), help_text=_('Beschreibung des Zwischenschritts'))
-
-    class Meta:
-        verbose_name = _('Aufgabe Zwischenschritt')
-        verbose_name_plural = _('Aufgabe Zwischenschritte')
-
-    def __str__(self):
-        return self.name
-
-    def save(self, *args, **kwargs):
-        # First save the instance so it has an ID
-        super(AufgabeZwischenschritte2, self).save(*args, **kwargs)
-
-        # Now we can safely filter related objects
-        user_aufgaben = UserAufgaben.objects.filter(aufgabe=self.aufgabe)
-        for user_aufgabe in user_aufgaben:
-            fw_aufg_zw, created = UserAufgabenZwischenschritte.objects.get_or_create(
-                user_aufgabe=user_aufgabe,
-                aufgabe_zwischenschritt=self,
-                org=user_aufgabe.org
-            )
-            if created:
-                fw_aufg_zw.erledigt = user_aufgabe.erledigt
-                fw_aufg_zw.save()
-
-
 class UserAufgaben(OrgModel):
     WIEDERHOLUNG_CHOICES = [
         ('T', 'Täglich'),
@@ -1212,15 +1183,6 @@ class UserAufgaben(OrgModel):
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.aufgabe.name
 
-
-class UserAufgabenZwischenschritte(OrgModel):
-    user_aufgabe = models.ForeignKey(UserAufgaben, on_delete=models.CASCADE, verbose_name=_('User Aufgabe'))
-    aufgabe_zwischenschritt = models.ForeignKey(AufgabeZwischenschritte2, on_delete=models.CASCADE, verbose_name=_('Aufgabe Zwischenschritt'))
-    erledigt = models.BooleanField(default=False, verbose_name=_('Erledigt'))
-
-    class Meta:
-        verbose_name = _('Freiwilliger Aufgaben Zwischenschritt')
-        verbose_name_plural = _('Freiwilliger Aufgaben Zwischenschritte')
 
 class Post2(OrgModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('Benutzer'), help_text=_('Benutzer, der den Post erstellt hat'))

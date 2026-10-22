@@ -5,7 +5,6 @@ from django import forms
 from django.contrib import messages
 from django.db import models
 from django.contrib.auth.models import User
-from django.forms import inlineformset_factory
 from django.utils import timezone
 from django.conf import settings
 from django.db.models import Q
@@ -17,7 +16,6 @@ from Global.models import (
     UserAufgaben, Post2, Bilder2, CustomUser,
     BilderGallery2, Ampel2, AmpelConfiguration, ProfilUser2, Notfallkontakt2, UserAttribute, 
     PersonCluster, Einsatzland2, Einsatzstelle2,
-    AufgabeZwischenschritte2
 )
 from FW.models import Freiwilliger
 from TEAM.models import Team
@@ -642,15 +640,6 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Remove request from kwargs before passing to formset
-        formset_kwargs = kwargs.copy()
-        formset_kwargs.pop('request', None)
-        self.zwischenschritte = AufgabeZwischenschritteFormSet(*args, **formset_kwargs)
-        # Count only forms with content, not empty extra forms
-        try:
-            self.zwischenschritte_count = sum(1 for form in self.zwischenschritte.forms if form.instance.pk or (form.is_bound and any(form.cleaned_data.values())))
-        except:
-            self.zwischenschritte_count = 0
 
         self.fields['wiederholung_ende'] = forms.DateField(
             widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -663,28 +652,6 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
             aufgaben=True,
         )
 
-    def is_valid(self):
-        return super().is_valid() and self.zwischenschritte.is_valid()
-
-    def save(self, commit=True):
-        instance = super().save(commit=commit)
-        if commit:
-            self.zwischenschritte.instance = instance
-            self.zwischenschritte.org = self.request.user.org
-            self.zwischenschritte.save()
-        return instance
-
-# Create the formset for AufgabeZwischenschritte
-AufgabeZwischenschritteFormSet = inlineformset_factory(
-    Aufgabe2,
-    AufgabeZwischenschritte2,
-    fields=['name', 'beschreibung'],
-    extra=4,
-    can_delete=True,
-    widgets={
-        'beschreibung': forms.Textarea(attrs={'rows': 4}),
-    }
-)
 
 
 class AddFreiwilligerAufgabenForm(OrgFormMixin, forms.ModelForm):

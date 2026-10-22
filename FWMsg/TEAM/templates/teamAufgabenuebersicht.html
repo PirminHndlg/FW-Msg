@@ -105,33 +105,12 @@
 
 </div>
 
-{# ── Zwischenschritte Modal (read-only) ─────────────────────────── #}
-<div class="modal fade" id="zwischenschritteModal" tabindex="-1"
-     aria-labelledby="zsModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="zsModalLabel">{% trans "Zwischenschritte" %}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="zsModalContent">
-        <div class="d-flex justify-content-center p-4">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">{% trans "Laden..." %}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
 (function () {
   // ── Django URLs ───────────────────────────────────────────────────
   const URLS = {
     data:             '{% url "ajax_load_aufgaben_table_data" %}',
     download:         '{% url "download_aufgabe" 999999 %}'.replace('/999999', '/{id}'),
-    zwischenschritte: '{% url "get_aufgaben_zwischenschritte" %}',
   };
 
   // ── Loading screen ────────────────────────────────────────────────
@@ -353,8 +332,6 @@
 
   function buildCell(uaObj, today) {
     const ua = uaObj.user_aufgabe;
-    const zsInfo = uaObj.zwischenschritte_done_open;
-    const zsDone = uaObj.zwischenschritte_done;
     const cellId = safeId(ua.id);   // integer-validated — used in onclick, href, element id
 
     // Background colour
@@ -388,22 +365,11 @@
 
     } else if (ua.pending) {
       // ── Pending ───────────────────────────────────────────────────
-      const zsBadgeExtra = zsDone
-        ? 'border border-2 border-success'
-        : '';
-      const zsBtn = zsInfo ? `
-        <button type="button"
-                class="btn btn-sm btn-outline-secondary ms-1"
-                data-bs-toggle="modal" data-bs-target="#zwischenschritteModal"
-                onclick="loadZS(${cellId})"
-                title="Zwischenschritte">
-          <i class="bi bi-list-check"></i> ${escHtml(zsInfo)}
-        </button>` : '';
       inner = `
         ${dlBtn}
-        <span class="badge bg-warning text-dark ${zsBadgeExtra}">
+        <span class="badge bg-warning text-dark">
           <i class="bi bi-arrow-counterclockwise me-1"></i>Pending
-        </span>${zsBtn}`;
+        </span>`;
 
     } else {
       // ── Upcoming / Overdue ────────────────────────────────────────
@@ -433,55 +399,6 @@
     });
   };
 
-  // ── Zwischenschritte (read-only) ──────────────────────────────────
-  const zsLoaded = {};
-
-  window.loadZS = function (taskId) {
-    const safeTaskId = safeId(taskId);  // re-validate the integer passed from onclick
-    const body = document.getElementById('zsModalContent');
-    if (zsLoaded[safeTaskId]) {
-      body.innerHTML = zsLoaded[safeTaskId];
-      return;
-    }
-    body.innerHTML = `
-      <div class="d-flex justify-content-center p-4">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">{% trans "Laden..." %}</span>
-        </div>
-      </div>`;
-    fetch(`${URLS.zwischenschritte}?taskId=${encodeURIComponent(safeTaskId)}`)
-      .then(r => r.json())
-      .then(data => {
-        let html = `<p class="fw-semibold">${escHtml(data.task_name)} — ${escHtml(data.user_name)}</p>`;
-        if (!data.zwischenschritte.length) {
-          html += '<p class="text-muted">{% trans "Keine Zwischenschritte definiert." %}</p>';
-        } else {
-          html += '<ul class="list-group list-group-flush">';
-          data.zwischenschritte.forEach(zs => {
-            // zs.erledigt is a boolean — used only to pick between two hardcoded class strings
-            const iconCls = zs.erledigt
-              ? 'bi-check-circle-fill text-success'
-              : 'bi-circle text-muted';
-            html += `
-              <li class="list-group-item d-flex align-items-start gap-2">
-                <i class="bi ${iconCls} mt-1 flex-shrink-0"></i>
-                <div>
-                  <div class="fw-semibold small">${escHtml(zs.name)}</div>
-                  ${zs.beschreibung
-                    ? `<div class="text-muted small">${escHtml(zs.beschreibung)}</div>`
-                    : ''}
-                </div>
-              </li>`;
-          });
-          html += '</ul>';
-        }
-        zsLoaded[safeTaskId] = html;
-        body.innerHTML = html;
-      })
-      .catch(() => {
-        body.innerHTML = '<div class="alert alert-danger">{% trans "Fehler beim Laden." %}</div>';
-      });
-  };
 })();
 </script>
 {% endblock %}

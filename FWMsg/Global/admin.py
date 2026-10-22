@@ -10,8 +10,8 @@ from .models import (
     Ampel2, AmpelConfiguration, DeepTalkFrage, DeepTalkTag, Attribute, CustomUser, Einsatzland2, 
     Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, 
     Organisation, Aufgabe2, DokumentColor2, Dokument2, 
-    Ordner2, Notfallkontakt2, Post2, PostResponse, AufgabeZwischenschritte2, PushSubscription, 
-    UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, 
+    Ordner2, Notfallkontakt2, Post2, PostResponse, PushSubscription, 
+    UserAttribute, UserAufgaben, 
     AufgabenCluster, Bilder2, BilderGallery2, BilderComment, BilderReaction, ProfilUser2, Maintenance,
     PostSurveyAnswer, PostSurveyQuestion, EinsatzstelleNotiz, StickyNote, ChangeRequest, MapLocation
 )
@@ -438,43 +438,6 @@ class AufgabeAdmin(admin.ModelAdmin):
             aufgabe.faellig_art = after_cluster
             aufgabe.save()
         self.message_user(request, f"Task type set to 'Nach Einsatz' for {queryset.count()} tasks")
-
-
-@admin.register(AufgabeZwischenschritte2)
-class AufgabeZwischenschritteAdmin(admin.ModelAdmin):
-    list_display = ['name', 'aufgabe', 'get_description_preview']
-    search_fields = ['name', 'aufgabe__name', 'beschreibung']
-    list_filter = ['aufgabe']
-    
-    def get_description_preview(self, obj):
-        if obj.beschreibung and len(obj.beschreibung) > 50:
-            return obj.beschreibung[:50] + "..."
-        return obj.beschreibung or ""
-    get_description_preview.short_description = 'Description'
-
-
-@admin.register(UserAufgabenZwischenschritte)
-class UserAufgabenZwischenschritteAdmin(admin.ModelAdmin):
-    list_display = ['get_user_name', 'get_aufgabe_name', 'get_zwischenschritt_name', 'erledigt']
-    search_fields = ['user_aufgabe__user__first_name', 'user_aufgabe__user__last_name', 
-                    'aufgabe_zwischenschritt__name', 'user_aufgabe__aufgabe__name']
-    list_filter = ['erledigt', 'aufgabe_zwischenschritt', 'user_aufgabe__aufgabe']
-    
-    def get_user_name(self, obj):
-        user = obj.user_aufgabe.user
-        return f"{user.first_name} {user.last_name}"
-    get_user_name.short_description = 'User'
-    get_user_name.admin_order_field = 'user_aufgabe__user__first_name'
-    
-    def get_aufgabe_name(self, obj):
-        return obj.user_aufgabe.aufgabe.name
-    get_aufgabe_name.short_description = 'Task'
-    get_aufgabe_name.admin_order_field = 'user_aufgabe__aufgabe__name'
-    
-    def get_zwischenschritt_name(self, obj):
-        return obj.aufgabe_zwischenschritt.name
-    get_zwischenschritt_name.short_description = 'Step'
-    get_zwischenschritt_name.admin_order_field = 'aufgabe_zwischenschritt__name'
 
 
 @admin.register(Ampel2)

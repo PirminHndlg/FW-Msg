@@ -17,8 +17,6 @@
       addAufgabe: "{% url 'add_aufgabe' %}",
       listAufgabenTable: "{% url 'list_aufgaben_table' %}",
       downloadAufgabe: "{% url 'download_aufgabe' 999999 %}".replace('/999999', '/{id}'),
-      getAufgabenZwischenschritte: "{% url 'get_aufgaben_zwischenschritte' %}",
-      toggleZwischenschrittStatus: "{% url 'toggle_zwischenschritt_status' %}",
     };
   </script>
   
@@ -301,7 +299,6 @@
                 </li>
                 <li><i class="bi bi-check2-circle"></i>{% trans 'Status (offen, pending, erledigt) und Erledigt-Datum' %}</li>
                 <li><i class="bi bi-calendar-event"></i>{% trans 'Fälligkeitsdatum' %}</li>
-                <li><i class="bi bi-list-check"></i>{% trans 'Zwischenschritte und deren Fortschritt' %}</li>
                 <li><i class="bi bi-bell"></i>{% trans 'Erinnerungsverlauf' %}</li>
               </ul>
 
@@ -331,8 +328,6 @@
           width: 1.1rem;
         }
       </style>
-
-      {% include 'components/task_zwischenschritte_modal.html' %}
     </div>
 
     <script>

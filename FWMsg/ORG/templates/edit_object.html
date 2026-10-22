@@ -30,23 +30,6 @@
         </div>
 
 
-        {% if object == "aufgabe" %}
-            <div class="card mb-4 rounded-4">
-                <div class="accordion" id="zwischenschritteAccordion">
-                    <div class="card-header rounded-4 border-0">
-                            <button class="btn btn-none w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#zwischenschritteCollapse" aria-expanded="false" aria-controls="zwischenschritteCollapse">
-                                <h4 class="mb-0">{% trans "Zwischenschritte (optional)" %} ({{ form.zwischenschritte_count }})</h4>
-                            </button>
-                        <div id="zwischenschritteCollapse" class="accordion-collapse collapse" aria-labelledby="zwischenschritteHeading" data-bs-parent="#zwischenschritteAccordion">
-                            <div class="accordion-body">
-                                {% include "components/zwischenschritt_form.html" with formset=zwischenschritt_formset %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
-
         <div class="d-flex justify-content-between mt-4">
             <div>
                 <a href="{{ back_url }}" class="btn btn-secondary">
@@ -96,7 +79,6 @@
     </form>
 </div>
 
-{% include "components/delete_modal.html" %}
 {% include "components/cascade_modal.html" %}
 
 <script>

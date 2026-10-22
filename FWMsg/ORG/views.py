@@ -17,8 +17,6 @@ from django.utils import timezone
 from django.db.models import QuerySet, Subquery, OuterRef
 from django.db.models import Count, Q
 from django.contrib.admin.views.decorators import staff_member_required
-from django.template.loader import render_to_string
-from django.db.models.query import Prefetch
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils.translation import gettext as _
 
@@ -29,7 +27,6 @@ from Global.models import (
     UserAufgaben, Post2, Bilder2, CustomUser,
     BilderGallery2, Ampel2, AmpelConfiguration, ProfilUser2, Notfallkontakt2,
     Einsatzland2, Einsatzstelle2,
-    AufgabeZwischenschritte2, UserAufgabenZwischenschritte,
     EinsatzstelleNotiz, ChangeRequest
 )
 from TEAM.models import Team
@@ -365,17 +362,6 @@ def save_form(request, form):
     # Save many-to-many relationships
     form.save_m2m()
     
-    # Handle nested zwischenschritte forms if they exist
-    if hasattr(form, 'zwischenschritte'):
-        for zwischenschritt_form in form.zwischenschritte.forms:
-            # Only save non-deleted forms with data
-            if (zwischenschritt_form.cleaned_data and 
-                not zwischenschritt_form.cleaned_data.get('DELETE', False)):
-                # Add organization to each zwischenschritt
-                zwischenschritt = zwischenschritt_form.save(commit=False)
-                zwischenschritt.org = request.user.org
-                zwischenschritt.save()
-    
     # Final save to ensure everything is committed
     return form.save(commit=True)
 
@@ -431,8 +417,6 @@ def add_aufgabe(request, id=None):
                 messages.error(request, 'Fehler beim Erstellen der Aufgabe. Bitte überprüfe die Eingaben.')
             print("Form errors:", form.errors)
             print("Non-field errors:", form.non_field_errors())
-            if hasattr(form, 'zwischenschritte'):
-                print("Zwischenschritte errors:", form.zwischenschritte.errors)
             return render(request, 'add_aufgabe.html', {'form': form})
     
     form = ORGforms.AddAufgabeForm(instance=instance, request=request)
@@ -478,70 +462,6 @@ def add_objects_from_excel(request, model_name):
 
         return redirect('list_object', model_name=model_name)
     return render(request, 'add_objects_from_excel.html')
-
-
-@login_required
-@required_role('O')
-def delete_zwischenschritt(request):
-    zwischenschritt_id = request.POST.get('zwischenschritt_id')
-    zwischenschritt = AufgabeZwischenschritte2.objects.get(id=zwischenschritt_id)
-    zwischenschritt.delete()
-    return redirect('edit_object', model_name='aufgabe', id=zwischenschritt.aufgabe.id)
-
-
-@login_required
-@required_role('O')
-def toggle_zwischenschritt_status(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-    
-    try:
-        data = json.loads(request.body)
-        task_id = data.get('taskId')
-        zwischenschritt_id = data.get('zwischenschrittId')
-        new_status = data.get('status')
-        
-        # Get the FreiwilligerAufgabenZwischenschritte instance
-        user_aufgabe = UserAufgaben.objects.get(id=task_id)
-        zwischenschritt = get_object_or_404(
-            UserAufgabenZwischenschritte,
-            id=zwischenschritt_id,
-            user_aufgabe=user_aufgabe
-        )
-        
-        # Update the status
-        zwischenschritt.erledigt = new_status
-        zwischenschritt.save()
-
-        user_aufgabe = UserAufgaben.objects.get(id=task_id)
-        zwischenschritte = UserAufgabenZwischenschritte.objects.filter(user_aufgabe=user_aufgabe)
-        zwischenschritte_count = zwischenschritte.count()
-        zwischenschritte_done_count = zwischenschritte.filter(erledigt=True).count()
-        json_response = {
-            'zwischenschritte_done_open': f'Pending {zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
-            'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
-            'success': True
-        }
-        
-        return JsonResponse(json_response)
-        
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    except Exception as e:
-        print(e)
-        return JsonResponse({'error': str(e)}, status=500)
-
-@login_required
-@required_role('O')
-def get_zwischenschritt_form(request):
-    if request.method != 'GET':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-
-    try:
-        form_html = render_to_string('components/zwischenschritt_form.html')
-        return JsonResponse({'html': form_html})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required
@@ -1309,33 +1229,6 @@ def send_task_reminder(request):
         return JsonResponse({'success': False, 'error': _('Aufgabe nicht gefunden')}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-@login_required
-@required_role('O')
-def get_aufgaben_zwischenschritte(request):
-    taskId = request.GET.get('taskId')
-    if not UserAufgaben.objects.filter(pk=taskId, org=request.user.org).exists():
-        return JsonResponse({'error': 'Nicht erlaubt'}, status=403)
-    
-    aufgabe = UserAufgaben.objects.get(pk=taskId)
-    zwischenschritte = UserAufgabenZwischenschritte.objects.filter(user_aufgabe=aufgabe)
-    
-    zwischenschritte_data = []
-    for zs in zwischenschritte:
-        zwischenschritte_data.append({
-            'id': zs.id,
-            'name': zs.aufgabe_zwischenschritt.name,
-            'beschreibung': zs.aufgabe_zwischenschritt.beschreibung,
-            'erledigt': zs.erledigt
-        })
-    
-    return JsonResponse({
-        'task_name': aufgabe.aufgabe.name,
-        'user_name': f"{aufgabe.user.first_name} {aufgabe.user.last_name}",
-        'zwischenschritte': zwischenschritte_data
-    })
-
-
 
 @login_required
 @required_role('OT')
@@ -2602,14 +2495,7 @@ def ajax_load_aufgaben_table_data(request):
             org=request.user.org,
             user__in=users,
             aufgabe__in=aufgaben
-        ).select_related('user', 'aufgabe', 'user__customuser').prefetch_related(
-            Prefetch(
-                'useraufgabenzwischenschritte_set',
-                queryset=UserAufgabenZwischenschritte.objects.all(),
-                to_attr='prefetched_zwischenschritte'
-            ),
-            'file_downloaded_of'
-        )
+        ).select_related('user', 'aufgabe', 'user__customuser').prefetch_related('file_downloaded_of')
 
         # Prefetch person_cluster relationships for aufgaben to avoid N+1 queries
         aufgaben = aufgaben.prefetch_related('person_cluster')
@@ -2658,10 +2544,6 @@ def ajax_load_aufgaben_table_data(request):
                 
                 if ua:
                     # User has this aufgabe assigned
-                    zwischenschritte = ua.prefetched_zwischenschritte
-                    zwischenschritte_count = len(zwischenschritte)
-                    zwischenschritte_done_count = sum(1 for z in zwischenschritte if z.erledigt)
-                    
                     # Only get file downloaded by names if file exists (lazy load optimization)
                     file_downloaded_of_names = None
                     if ua.file:
@@ -2684,8 +2566,6 @@ def ajax_load_aufgaben_table_data(request):
                             'currently_sending': getattr(ua, 'currently_sending', False),
                             'last_reminder': ua.last_reminder.isoformat() if hasattr(ua, 'last_reminder') and ua.last_reminder else None,
                         },
-                        'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
-                        'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
                     }
                 elif aufgabe_id in eligible_aufgaben:
                     # User is eligible but aufgabe not assigned
