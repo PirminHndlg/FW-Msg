@@ -9,32 +9,32 @@
     <title>Freiwillige Zuteilung</title>
 
     {% include 'header.html' %}
-    
+
     <style>
         :root { --avatar-size: 60px; }
-        
+
         .card-compact { border: 1px solid #e9ecef; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); }
-        
+
         .volunteer-card { cursor: pointer; transition: all .3s; border: 1px solid #e9ecef; }
         .volunteer-card:hover { transform: translateY(-2px); box-shadow: 0 .25rem .5rem rgba(0,0,0,.1); }
         .volunteer-card.selected { border-color: var(--bs-primary); background-color: var(--bs-primary-bg-subtle); box-shadow: 0 .25rem .5rem rgba(13,110,253,.15); }
-        
+
         .position-slot { min-height: 120px; border: 2px dashed #dee2e6; border-radius: .375rem; transition: all .3s; cursor: pointer; }
         .position-slot:hover { border-color: var(--bs-primary); background-color: #f8f9fa; }
         .position-slot.drop-target { border-color: var(--bs-success); border-style: solid; background-color: var(--bs-success-bg-subtle); }
-        
+
         .remove-btn { position: absolute; top: -.5rem; right: -.5rem; width: 1.5rem; height: 1.5rem; padding: 0; border-radius: 50%; opacity: 0; transition: opacity .3s; }
         .assigned-volunteer:hover .remove-btn { opacity: 1; }
         .wish-info { color: var(--bs-secondary-color); cursor: help; }
         .wish-info:hover, .wish-info:focus { color: var(--bs-primary); }
         .wish-tooltip .tooltip-inner { text-align: left; max-width: 18rem; }
         .wish-tooltip .text-danger { color: #ff8a93 !important; }
-        
+
         .evaluation-badge { position: absolute; top: .25rem; left: .25rem; width: 1.25rem; height: 1.25rem; border-radius: 50%; border: 2px solid white; }
         .evaluation-G { background-color: var(--bs-success); }
         .evaluation-B { background-color: var(--bs-warning); }
         .evaluation-N { background-color: var(--bs-danger); }
-        
+
         .country-section { border-left: 4px solid var(--bs-primary); box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); }
         .country-toggle { color: inherit; }
         .country-toggle .bi-chevron-down { transition: transform .2s; }
@@ -47,7 +47,7 @@
         .position-section { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: .375rem; transition: border-color .3s; }
         .position-section.border-success { border-left: 4px solid var(--bs-success) !important; }
         .position-section.border-danger { border-left: 4px solid var(--bs-danger) !important; }
-        
+
         .volunteer-avatar { width: var(--avatar-size); height: var(--avatar-size); border-radius: 50%; object-fit: cover; border: 2px solid #e9ecef; }
         .wish-list { font-size: .8125rem; color: var(--bs-secondary); line-height: 1.4; }
         .volunteer-divider { display: flex; align-items: center; gap: .5rem; margin: .75rem 0; font-size: .8rem; color: var(--bs-secondary-color); }
@@ -56,14 +56,14 @@
         .volunteers-list::-webkit-scrollbar { width: .375rem; }
         .volunteers-list::-webkit-scrollbar-track { background: transparent; }
         .volunteers-list::-webkit-scrollbar-thumb { background-color: var(--bs-secondary); border-radius: .375rem; }
-        
+
         @media (max-width: 991.98px) {
             :root { --avatar-size: 50px; }
             .position-slot { min-height: 100px; }
             .sticky-top { position: relative !important; top: 0 !important; }
             .volunteers-list { max-height: 50vh; }
         }
-        
+
         @media (max-width: 575.98px) {
             :root { --avatar-size: 45px; }
         }
@@ -157,7 +157,7 @@
                                     <div class="position-section mb-4 p-3 rounded" data-position-id="{{ stelle.0.id }}">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h6 class="mb-0">{{ stelle.0.name }}</h6>
-                                            <span class="badge 
+                                            <span class="badge
                                                 {% if stelle.0.max_freiwillige == stelle.1|length %}
                                                     bg-success
                                                 {% elif stelle.0.max_freiwillige|default:0 < stelle.1|length %}
@@ -169,24 +169,24 @@
                                                 {{ stelle.1|length }}/{{ stelle.0.max_freiwillige|default:0 }}
                                             </span>
                                         </div>
-                                        
+
                                         <div class="row g-2">
                                             <!-- Assigned volunteers -->
                                             {% for freiwilliger in stelle.1 %}
                                                 <div class="col-md-4 col-lg-3">
                                                     <div class="assigned-volunteer card rounded-4 border-success shadow-sm">
                                                         <div class="card-body p-2 text-center">
-                                                            <a class="btn btn-sm btn-danger remove-btn" 
+                                                            <a class="btn btn-sm btn-danger remove-btn"
                                                                 href="{% url 'assign' %}?fw={{ freiwilliger.id }}&land=None">
                                                                 <i class="bi bi-x"></i>
                                                             </a>
-                                                            
+
                                                             {% if freiwilliger.endbewertung %}
                                                                 <div class="evaluation-badge evaluation-{{ freiwilliger.endbewertung }}"></div>
                                                             {% endif %}
-                                                            
-                                                            <img src="{% url 'serve_profil_picture' freiwilliger.user.customuser.get_identifier %}" 
-                                                                 class="volunteer-avatar mb-2" 
+
+                                                            <img src="{% url 'serve_profil_picture' freiwilliger.user.customuser.get_identifier %}"
+                                                                 class="volunteer-avatar mb-2"
                                                                  alt="{{ freiwilliger.user.first_name }}"
                                                                  onerror="this.src='{% static 'img/default_img.png' %}'">
                                                             <div class="small fw-bold">{{ freiwilliger.user.first_name }}</div>
@@ -208,7 +208,7 @@
                                                     </div>
                                                 </div>
                                             {% endfor %}
-                                            
+
                                             <!-- Empty slots -->
                                             {% for i in stelle.0.max_freiwillige|default:0|range_filter:"0,0" %}
                                                 {% if forloop.counter0 >= stelle.1|length %}
@@ -248,8 +248,8 @@
                         <div class="sticky-bottom p-3 bg-white rounded-4 border border-3 border-primary shadow-sm p-3 m-0">
                             <div class="d-flex flex-wrap gap-1 align-items-center">
                             <!-- Info button hover with bs tile-->
-                            <i class="bi bi-question-circle text-muted mx-3" 
-                                    data-bs-toggle="tooltip" 
+                            <i class="bi bi-question-circle text-muted mx-3"
+                                    data-bs-toggle="tooltip"
                                     data-bs-title="Schnellzugriff zu den Einsatzländern">
                             </i>
 
@@ -289,13 +289,13 @@
                                 </a>
                             </li>
                         </ul>
-                        
+
                         <div class="tab-content">
                             <!-- Unassigned volunteers -->
                             <div class="tab-pane fade show active" id="unassigned">
                                 <div class="p-3 volunteers-list">
                                     {% for freiwilliger in freiwillige_ohne_zuteilung %}
-                                        <div class="volunteer-card card mb-2 rounded-4" 
+                                        <div class="volunteer-card card mb-2 rounded-4"
                                              data-volunteer-id="{{ freiwilliger.id }}"
                                              data-first-wish-land="{{ freiwilliger.first_wish_einsatzland.id|default:'' }}"
                                              data-first-wish-stelle="{{ freiwilliger.first_wish_einsatzstelle.id|default:'' }}"
@@ -309,8 +309,8 @@
                                             <div class="card-body p-2">
                                                 <div class="d-flex align-items-center">
                                                     <div class="position-relative me-3">
-                                                        <img src="{% url 'serve_profil_picture' freiwilliger.user.customuser.get_identifier %}" 
-                                                             class="volunteer-avatar" 
+                                                        <img src="{% url 'serve_profil_picture' freiwilliger.user.customuser.get_identifier %}"
+                                                             class="volunteer-avatar"
                                                              alt="{{ freiwilliger.user.first_name }}"
                                                              onerror="this.src='{% static 'img/default_img.png' %}'">
                                                         {% if freiwilliger.endbewertung %}
@@ -318,7 +318,7 @@
                                                         {% endif %}
                                                     </div>
                                                     <div class="flex-grow-1">
-                                                        <div class="fw-bold">{{ freiwilliger.user.first_name }} {{ freiwilliger.user.last_name.0 }}.</div>
+                                                        <div class="fw-bold">{{ freiwilliger.user.first_name }} {{ freiwilliger.user.last_name }}.</div>
                                                         {% if freiwilliger.note %}
                                                             <div class="small text-primary">Note: {{ freiwilliger.note|myround:1 }}</div>
                                                         {% endif %}
@@ -327,8 +327,8 @@
 </div>
                                                     </div>
                                                     <div class="ms-2">
-                                                        <a href="{% url 'evaluate_all' %}?fid={{ freiwilliger.id }}" 
-                                                           target="_blank" 
+                                                        <a href="{% url 'evaluate_all' %}?fid={{ freiwilliger.id }}"
+                                                           target="_blank"
                                                            class="btn btn-sm btn-outline-info"
                                                            onclick="event.stopPropagation()">
                                                             <i class="bi bi-info-circle"></i>
@@ -338,7 +338,7 @@
                                             </div>
                                         </div>
                                     {% endfor %}
-                                    
+
                                     {% if not freiwillige_ohne_zuteilung %}
                                         <div class="text-center text-muted py-4">
                                             <i class="bi bi-check-circle fs-1"></i>
@@ -347,12 +347,12 @@
                                     {% endif %}
                                 </div>
                             </div>
-                            
+
                             <!-- Assigned volunteers -->
                             <div class="tab-pane fade" id="assigned">
                                 <div class="p-3 volunteers-list">
                                     {% for freiwilliger in freiwillige_mit_zuteilung %}
-                                    <div class="volunteer-card card mb-2 rounded-4" 
+                                    <div class="volunteer-card card mb-2 rounded-4"
                                     data-volunteer-id="{{ freiwilliger.id }}"
                                     data-first-wish-land="{{ freiwilliger.first_wish_einsatzland.id|default:'' }}"
                                     data-first-wish-stelle="{{ freiwilliger.first_wish_einsatzstelle.id|default:'' }}"
@@ -366,8 +366,8 @@
                                    <div class="card-body p-2">
                                        <div class="d-flex align-items-center">
                                            <div class="position-relative me-3">
-                                               <img src="{% url 'serve_profil_picture' freiwilliger.user.customuser.get_identifier %}" 
-                                                    class="volunteer-avatar" 
+                                               <img src="{% url 'serve_profil_picture' freiwilliger.user.customuser.get_identifier %}"
+                                                    class="volunteer-avatar"
                                                     alt="{{ freiwilliger.user.first_name }}"
                                                     onerror="this.src='{% static 'img/default_img.png' %}'">
                                                {% if freiwilliger.endbewertung %}
@@ -387,8 +387,8 @@
                                                {{ freiwilliger.zuteilung.name }}
                                            </div>
                                            <div class="ms-2">
-                                               <a href="{% url 'evaluate_all' %}?fid={{ freiwilliger.id }}" 
-                                                  target="_blank" 
+                                               <a href="{% url 'evaluate_all' %}?fid={{ freiwilliger.id }}"
+                                                  target="_blank"
                                                   class="btn btn-sm btn-outline-info"
                                                   onclick="event.stopPropagation()">
                                                    <i class="bi bi-info-circle"></i>
@@ -398,7 +398,7 @@
                                    </div>
                                </div>
                                     {% endfor %}
-                                    
+
                                     {% if not freiwillige_mit_zuteilung %}
                                         <div class="text-center text-muted py-4">
                                             <i class="bi bi-person-x fs-1"></i>
@@ -416,7 +416,7 @@
 
     <!-- Bootstrap JS -->
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-    
+
     <script>
         let scrollTo = {{ scroll_to|default:0 }};
         let selectedVolunteer = null;
@@ -504,15 +504,15 @@
             document.querySelectorAll('.volunteer-card').forEach(card => {
                 card.classList.remove('selected');
             });
-            
+
             // Select new volunteer
             const volunteerCard = document.querySelector(`[data-volunteer-id="${volunteerId}"]`);
             volunteerCard.classList.add('selected');
             selectedVolunteer = volunteerId;
-            
+
             // Highlight matching positions
             highlightMatchingPositions(volunteerCard);
-            
+
             // Auto-assign if position is already selected
             if (selectedPosition) {
                 assignVolunteer();
@@ -534,21 +534,21 @@
             document.querySelectorAll('.position-slot').forEach(slot => {
                 slot.classList.remove('drop-target');
             });
-            
+
             // Select new position
             if (positionSlot) {
                 positionSlot.classList.add('drop-target');
                 selectedPosition = positionId;
-                
+
                 // Find the country (land) ID for this position
                 const positionSection = document.querySelector(`[data-position-id="${positionId}"]`);
                 const countrySection = positionSection.closest('.country-section');
                 const landId = countrySection ? countrySection.id : null;
-                
+
                 // Volunteers who have this position or country in their wishes first
                 filterVolunteersByPosition(positionId, landId);
             }
-            
+
             // Auto-assign if volunteer is already selected
             if (selectedVolunteer) {
                 assignVolunteer();
@@ -630,12 +630,12 @@
             const secondWishStelle = volunteerCard.dataset.secondWishStelle;
             const thirdWishStelle = volunteerCard.dataset.thirdWishStelle;
             const noWishStelle = volunteerCard.dataset.noWishStelle;
-            
+
             // Reset all position highlights
             document.querySelectorAll('.position-section').forEach(section => {
                 section.classList.remove('border-success', 'border-warning', 'border-danger');
             });
-            
+
             // Highlight positions based on wishes
             if (firstWishStelle) {
                 const section = document.querySelector(`[data-position-id="${firstWishStelle}"]`);
