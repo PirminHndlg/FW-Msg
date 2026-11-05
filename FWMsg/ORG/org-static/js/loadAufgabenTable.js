@@ -175,14 +175,14 @@ function buildTableHeader(aufgaben, person_cluster) {
     return `
         <tr class="">
              <th class="sticky-right p-1 align-bottom z-1000" style="position: sticky; left: 0; top: 0; box-shadow: 2px 2px 0 0 #dee2e6;">
-                <div class="input-group gap-0 rounded-pill border shadow-sm bg-white align-items-center" style="min-width: 100px;">
+                <div class="input-group flex-nowrap gap-0 rounded-pill border shadow-sm bg-white align-items-center" style="min-width: 100px;">
                     <span class="input-group-text bg-transparent border-0 pe-0" style="font-size:1.1em;">
                         <i class="bi bi-search text-secondary d-none d-md-block"></i>
                     </span>
                     <input id="userSearch"
                         type="text"
                         class="form-control border-0 bg-white px-1"
-                        style="min-width:50px; font-size: 1em; box-shadow: none;"
+                        style="min-width:0; font-size: 1em; box-shadow: none;"
                         placeholder="Suchen..."
                         autocomplete="off"
                         oninput="searchHandler(this.value)"
