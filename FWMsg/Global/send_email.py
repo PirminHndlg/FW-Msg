@@ -578,7 +578,7 @@ def send_aufgaben_email(aufgabe, org):
         # Compare dates using Django's configured timezone.
         if aufgabe.faellig == timezone.localdate():
             faellig_text = 'heute '
-            subject = f'Heute faellig: {aufgabe.aufgabe.name}'
+            subject = f'Heute fällig: {aufgabe.aufgabe.name}'
         else:
             faellig_text = f'am {aufgabe.faellig.strftime("%d.%m.%Y")} '
 
