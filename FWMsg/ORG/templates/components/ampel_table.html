@@ -37,13 +37,41 @@
             {% for person_cluster, user_matrix in ampel_matrix.items %}
             {% for user, months_data in user_matrix.items %}
             <tr data-search-term="{{ user }}">
-                <th class="sticky-col z-1" style="max-width: 50vw; left: 0; position: sticky; box-shadow:  2px 0 0 0 #dee2e6;">
-                    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between">
-                        <p class="text-decoration-none text-body mb-1">{{ user }}</p>
-                        <button class="btn btn-sm btn-outline-primary m-auto m-md-0"
-                            onclick="showAmpelEntryModal('{{ user.id }}', '{{ user }}')">
-                            <i class="bi bi-plus-circle-fill"></i>
+                <th class="ampel-name-cell z-1">
+                    <div class="dropdown">
+                        <button type="button" class="ampel-name-toggle" title="{{ user }}"
+                            data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                            data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
+                            <span class="ampel-name">{{ user }}</span>
+                            <i class="bi bi-chevron-down ampel-name-chevron"></i>
                         </button>
+                        <ul class="dropdown-menu shadow-sm">
+                            <li>
+                                <button type="button" class="dropdown-item d-flex align-items-center gap-2"
+                                    onclick="closeAmpelNameMenu(this); showAmpelEntryModal('{{ user.id }}', '{{ user|escapejs }}')">
+                                    <i class="bi bi-plus-lg text-primary"></i>
+                                    {% trans 'Ampel manuell eintragen' %}
+                                </button>
+                            </li>
+                            {% if user.customuser.person_cluster_id in ampel_reminder_cluster_ids %}
+                            {% with last_reminder=user.customuser.last_ampel_reminder %}
+                            <li>
+                                <button type="button" class="dropdown-item d-flex align-items-start gap-2 ampel-reminder-btn"
+                                    data-user-id="{{ user.id }}"
+                                    {% if last_reminder == today %}disabled{% endif %}
+                                    onclick="sendAmpelReminder(this)">
+                                    <span class="ampel-reminder-icon"><i class="bi bi-bell"></i></span>
+                                    <span>
+                                        {% trans 'Erinnerung senden' %}
+                                        <small class="d-block text-muted ampel-reminder-info">
+                                            {% if last_reminder == today %}{% trans 'Heute bereits gesendet' %}{% elif last_reminder %}{% trans 'Letzte' %}: {{ last_reminder|date:'d.m.Y' }}{% else %}{% trans 'Noch keine gesendet' %}{% endif %}
+                                        </small>
+                                    </span>
+                                </button>
+                            </li>
+                            {% endwith %}
+                            {% endif %}
+                        </ul>
                     </div>
                 </th>
                 {% for month in months %}
@@ -149,6 +177,53 @@
             $('#ampelEntryForm').submit();
         }
     });
+
+    function closeAmpelNameMenu(el) {
+        const toggle = el.closest('.dropdown').querySelector('[data-bs-toggle="dropdown"]');
+        bootstrap.Dropdown.getOrCreateInstance(toggle).hide();
+    }
+
+    // Sticky name cells each form their own stacking context; lift the open one above the following rows.
+    document.addEventListener('show.bs.dropdown', (e) => {
+        e.target.closest('.ampel-name-cell')?.classList.add('ampel-name-cell-open');
+    });
+    document.addEventListener('hidden.bs.dropdown', (e) => {
+        e.target.closest('.ampel-name-cell')?.classList.remove('ampel-name-cell-open');
+    });
+
+    function sendAmpelReminder(btn) {
+        const iconWrapper = btn.querySelector('.ampel-reminder-icon');
+        const info = btn.querySelector('.ampel-reminder-info');
+        const iconHtml = iconWrapper.innerHTML;
+        btn.disabled = true;
+        iconWrapper.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+        const body = new FormData();
+        body.append('action', 'send_ampel_reminder');
+        body.append('user_id', btn.dataset.userId);
+        body.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        const showError = (message) => {
+            btn.disabled = false;
+            info.textContent = message;
+            info.classList.replace('text-muted', 'text-danger');
+        };
+
+        fetch('{% url "list_ampel" %}', { method: 'POST', body: body })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    info.textContent = data.info;
+                    info.classList.replace('text-danger', 'text-muted');
+                } else {
+                    showError(data.message);
+                }
+            })
+            .catch(() => showError('{% trans "Die Erinnerung konnte nicht gesendet werden." %}'))
+            .finally(() => {
+                iconWrapper.innerHTML = iconHtml;
+            });
+    }
 
     function searchHandler(searchTerm) {
         $('tr').each(function() {

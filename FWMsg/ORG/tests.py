@@ -12,6 +12,7 @@ from Global.models import (
 from BW.models import Bewerber
 from ORG.forms import AddBewerberApplicationPdfForm
 import json
+from unittest.mock import patch
 from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -482,6 +483,63 @@ class AmpelTests(TestCase):
         self.assertEqual(config.message_text, 'Bitte Ampel abgeben.')
         self.assertEqual(str(config.reminder_start_date), '2026-01-01')
         self.assertEqual(str(config.reminder_end_date), '2026-12-31')
+
+    def _send_reminder_post(self):
+        return self.client.post(reverse('list_ampel'), {
+            'action': 'send_ampel_reminder',
+            'user_id': self.user.id,
+        })
+
+    def test_reminder_button_hidden_when_config_inactive(self):
+        AmpelConfiguration.objects.create(org=self.org, person_cluster=self.person_cluster_fw, enabled=False)
+        response = self.client.get(reverse('list_ampel') + '?person_cluster_filter=None')
+        self.assertNotContains(response, 'ampel-reminder-btn')
+
+    def test_reminder_button_shows_last_reminder(self):
+        AmpelConfiguration.objects.create(org=self.org, person_cluster=self.person_cluster_fw, enabled=True)
+        self.custom_user.last_ampel_reminder = timezone.now().date() - timedelta(days=3)
+        self.custom_user.save()
+        response = self.client.get(reverse('list_ampel') + '?person_cluster_filter=None')
+        self.assertContains(response, 'ampel-reminder-btn')
+        self.assertContains(response, self.custom_user.last_ampel_reminder.strftime('%d.%m.%Y'))
+
+    @patch('Global.send_email.send_email_with_archive')
+    @patch('Global.send_email.send_push_notification_to_user')
+    def test_send_manual_reminder(self, mock_push, mock_mail):
+        AmpelConfiguration.objects.create(org=self.org, person_cluster=self.person_cluster_fw, enabled=True)
+        response = self._send_reminder_post()
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['success'])
+        mock_push.assert_called_once()
+        self.custom_user.refresh_from_db()
+        self.assertEqual(self.custom_user.last_ampel_reminder, timezone.now().date())
+
+    @patch('Global.send_email.send_email_with_archive')
+    @patch('Global.send_email.send_push_notification_to_user')
+    def test_send_manual_reminder_rejected_when_sent_today(self, mock_push, mock_mail):
+        AmpelConfiguration.objects.create(org=self.org, person_cluster=self.person_cluster_fw, enabled=True)
+        self.custom_user.last_ampel_reminder = timezone.now().date()
+        self.custom_user.save()
+        response = self.client.get(reverse('list_ampel') + '?person_cluster_filter=None')
+        self.assertContains(response, 'Heute bereits gesendet')
+        response = self._send_reminder_post()
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(response.json()['success'])
+        mock_push.assert_not_called()
+
+    @patch('Global.send_email.send_email_with_archive')
+    @patch('Global.send_email.send_push_notification_to_user')
+    def test_send_manual_reminder_rejected_outside_period(self, mock_push, mock_mail):
+        AmpelConfiguration.objects.create(
+            org=self.org, person_cluster=self.person_cluster_fw, enabled=True,
+            reminder_end_date=timezone.now().date() - timedelta(days=1),
+        )
+        response = self._send_reminder_post()
+        self.assertEqual(response.status_code, 400)
+        mock_push.assert_not_called()
+        mock_mail.assert_not_called()
+        self.custom_user.refresh_from_db()
+        self.assertIsNone(self.custom_user.last_ampel_reminder)
 
 
 class AmpelReminderLogicTests(TestCase):

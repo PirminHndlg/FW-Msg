@@ -1773,9 +1773,59 @@ def _create_ampel_matrix(freiwillige, months, ampel_entries):
     return matrix
 
 
+def _active_ampel_reminder_configs(org):
+    """AmpelConfigurations of the org whose reminders are active today, keyed by person_cluster_id."""
+    configs = AmpelConfiguration.objects.filter(
+        org=org,
+        enabled=True,
+        person_cluster__active=True,
+        person_cluster__ampel=True,
+    ).select_related('person_cluster', 'org')
+    return {c.person_cluster_id: c for c in configs if c.reminders_are_active()}
+
+
+def _send_manual_ampel_reminder(request):
+    from Global.send_email import send_ampel_reminder
+
+    def error(message, status=400):
+        return JsonResponse({'success': False, 'message': str(message)}, status=status)
+
+    user_id = request.POST.get('user_id', '')
+    user = None
+    if user_id.isdigit():
+        user = User.objects.filter(id=user_id, customuser__org=request.user.org).select_related('customuser').first()
+    if not user:
+        return error(_('Benutzer nicht gefunden.'), status=404)
+
+    if request.user.view == 'T':
+        from TEAM.views import _get_Freiwillige
+        if not _get_Freiwillige(request).filter(user=user).exists():
+            return error(_('Nicht erlaubt'), status=403)
+
+    config = _active_ampel_reminder_configs(request.user.org).get(user.customuser.person_cluster_id)
+    if not config:
+        return error(_('Für diese Benutzergruppe ist keine Ampel-Erinnerung aktiv.'))
+
+    if user.customuser.last_ampel_reminder == timezone.now().date():
+        return error(_('Heute wurde bereits eine Erinnerung gesendet.'))
+
+    try:
+        send_ampel_reminder(user, config)
+    except Exception as e:
+        return error(_('Ein Fehler ist aufgetreten: {}').format(e), status=500)
+
+    return JsonResponse({
+        'success': True,
+        'info': str(_('Heute bereits gesendet')),
+    })
+
+
 @login_required
 @required_role('OT')
 def list_ampel(request):
+    if request.method == 'POST' and request.POST.get('action') == 'send_ampel_reminder':
+        return _send_manual_ampel_reminder(request)
+
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         status = request.POST.get('status')
@@ -1849,6 +1899,7 @@ def list_ampel(request):
 
     if person_cluster:
         user_qs = user_qs.filter(customuser__person_cluster=person_cluster)
+    user_qs = user_qs.select_related('customuser__person_cluster')
 
     all_person_cluster = list(all_person_cluster)
     if request.user.view == 'O':
@@ -1877,6 +1928,7 @@ def list_ampel(request):
         'current_person_cluster': person_cluster,
         'large_container': True,
         'filter_this_month': filter_this_month,
+        'ampel_reminder_cluster_ids': set(_active_ampel_reminder_configs(request.user.org)),
     }
 
     context = check_organization_context(request, context)
