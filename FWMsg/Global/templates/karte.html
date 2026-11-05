@@ -3,6 +3,8 @@
 {% load i18n %}
 
 {% block head %}
+{# OSM tile servers reject requests without a Referer; Django's default same-origin policy strips it cross-origin. #}
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="stylesheet" href="{% static 'ol.css' %}">
 {% endblock %}
 
@@ -349,17 +351,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     
     // Initialize map with OpenLayers 4
-    // CartoDB Voyager tiles are used instead of OSM directly because OSM's
-    // volunteer tile servers block requests without a Referer header (403r).
-    // CARTO serves the same OSM data without that restriction.
+    // OSM tiles require a Referer header; see the referrer meta tag in the head block.
     map = new ol.Map({
         layers: [
             new ol.layer.Tile({
                 source: new ol.source.XYZ({
-                    url: 'https://{a-d}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
-                    attributions: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank">CARTO</a>',
-                    maxZoom: 19,
-                    tilePixelRatio: 2
+                    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    attributions: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
+                    maxZoom: 19
                 })
             }),
             new ol.layer.Vector({
