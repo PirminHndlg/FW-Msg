@@ -193,3 +193,47 @@
         font-size: 0.875rem;
     }
 }
+
+/* Statusauswahl im Modal "Ampel manuell eintragen" */
+.ampel-status-option {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.75rem 0.5rem;
+    border: 2px solid var(--bs-border-color);
+    border-radius: 1rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: border-color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.ampel-status-option .ampel-dot {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+}
+
+.ampel-status-option:hover {
+    background-color: var(--bs-tertiary-bg);
+}
+
+.btn-check:focus-visible + .ampel-status-option {
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.btn-check:checked + .ampel-status-option-G {
+    border-color: var(--ampel_green);
+    background-color: color-mix(in srgb, var(--ampel_green) 12%, transparent);
+}
+
+.btn-check:checked + .ampel-status-option-Y {
+    border-color: var(--ampel_yellow);
+    background-color: color-mix(in srgb, var(--ampel_yellow) 15%, transparent);
+}
+
+.btn-check:checked + .ampel-status-option-R {
+    border-color: var(--ampel_red);
+    background-color: color-mix(in srgb, var(--ampel_red) 12%, transparent);
+}
