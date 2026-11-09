@@ -211,7 +211,11 @@ def einheit(request):
     einheiten = Einheit.objects.all()
     user = request.user
     for einheit in einheiten:
-        if Bewertung.objects.filter(einheit=einheit, bewerter=user).exists():
+        if Bewertung.objects.filter(
+            einheit=einheit,
+            bewerter=user,
+            bewerber__seminar_bewerber__org=F('bewerber__org'),
+        ).exists():
             einheit.bewertet = True
 
     context = {
