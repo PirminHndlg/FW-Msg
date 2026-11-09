@@ -4,6 +4,7 @@ import logging
 import re
 from datetime import datetime
 from django.contrib.auth.decorators import login_required
+from django.db.models import F
 from django.db.models.functions import Round
 from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
@@ -226,7 +227,7 @@ def choose(request):
     einheit_arg = request.GET.get('einheit')
 
     # choose only freiwillige that have a seminar
-    freiwillige = Bewerber.objects.filter(seminar_bewerber__isnull=False).order_by('user__first_name')
+    freiwillige = Bewerber.objects.filter(seminar_bewerber__org=F('org')).distinct().order_by('user__first_name')
     this_einheit = get_object_or_404(Einheit, pk=einheit_arg)
 
     context = {
@@ -274,7 +275,7 @@ def evaluate(request):
                     fw_bewertet[key]['comment'][kategorie]['text'] = kommentar.text
                     fw_bewertet[key]['comment'][kategorie]['name'] = kommentar.show_name_at_presentation
 
-    frewillige = Bewerber.objects.filter(id__in=fw_ids, seminar_bewerber__isnull=False)
+    frewillige = Bewerber.objects.filter(id__in=fw_ids, seminar_bewerber__org=F('org')).distinct()
     fragen = Frage.objects.all()
     fragenkategorien = Fragekategorie.objects.all()
     einheit = get_object_or_404(Einheit, pk=einheit_arg)
