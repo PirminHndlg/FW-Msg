@@ -248,8 +248,11 @@
                         tooltipContent += '\n📝 ' + info.event.extendedProps.description;
                     }
                     
-                    // Hover-Tooltips nur mit Maus; auf Touch-Geräten bleiben sie sonst hängen
-                    if (!isTouch) new bootstrap.Tooltip(info.el, {
+                    // Hover-Tooltips nur mit Maus (auf Touch-Geräten bleiben sie sonst hängen)
+                    // und nur bei kurzer Beschreibung; lange Texte stehen auf der Terminseite
+                    const description = info.event.extendedProps.description || '';
+                    const maxTooltipDescription = 150;
+                    if (!isTouch && description.length <= maxTooltipDescription) new bootstrap.Tooltip(info.el, {
                         title: tooltipContent,
                         placement: 'top',
                         trigger: 'hover',
