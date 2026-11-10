@@ -395,7 +395,7 @@
     {% if request.user.customuser.person_cluster.calendar %}
     <div class="col-md-6 mb-4">
             <div class="card-body">
-                {% include 'components/calendar.html' %}
+                {% include 'components/calendar.html' with compact=True %}
             </div>
     </div>
     {% endif %}

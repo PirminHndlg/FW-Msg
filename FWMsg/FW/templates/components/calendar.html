@@ -1,7 +1,8 @@
 {% load static %}
 {% load i18n %}
+{# Optionen: show_calendar_subscription, initial_view, compact (kleinere Darstellung fürs Dashboard) #}
 
-<div class="card rounded-4 mb-2">
+<div class="card rounded-4 mb-2{% if compact %} calendar-compact{% endif %}">
     <div class="card-header rounded-4 z-1">
         <div class="d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center justify-content-between w-100 flex-wrap">
@@ -182,10 +183,14 @@
             const isSmallScreen = window.matchMedia('(max-width: 575.98px)').matches;
             const isTouch = window.matchMedia('(pointer: coarse)').matches;
             const configuredView = '{{ initial_view|default:"dayGridMonth" }}';
+            // Im Dashboard am PC feste Höhe: die Zeilen schrumpfen, überzählige Termine landen in "+x weitere"
+            const isCompact = {{ compact|yesno:"true,false" }} && !isSmallScreen;
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: isSmallScreen && configuredView === 'dayGridMonth' ? 'listMonth' : configuredView,
                 events: calendarEvents,
-                height: 'auto',
+                height: isCompact ? 460 : 'auto',
+                // Zeilenhöhe = Breite / aspectRatio / 6 (Standard 1.35); am PC etwas flacher
+                aspectRatio: isSmallScreen ? 1.35 : 1.6,
                 locale: language,
                 todayText: '{% trans "Heute" %}',
                 monthText: '{% trans "Monat" %}',
@@ -230,7 +235,7 @@
                     info.el.style.transition = 'background-color 0.2s ease';
                 },
                 dayHeaderDidMount: function(info) {
-                    info.el.style.padding = '8px 0';
+                    info.el.style.padding = isCompact ? '4px 0' : '8px 0';
                     info.el.style.fontWeight = '500';
                 },
                 eventDidMount: function(info) {
@@ -373,9 +378,21 @@
 
     /* Toolbar */
     .calendar-container .fw-cal-title {
-        font-size: 1.4rem;
+        font-size: 1.25rem;
         font-weight: 500;
         color: var(--bs-primary);
+    }
+
+    /* Dashboard-Variante */
+    .calendar-compact .calendar-container .fw-cal-title {
+        font-size: 1.1rem;
+    }
+    .calendar-compact .calendar-container .fw-cal-btn {
+        padding: .2rem .5rem;
+        font-size: .875rem;
+    }
+    .calendar-compact .calendar-container {
+        font-size: .875rem;
     }
 
     .calendar-container .fw-cal-btn {
@@ -464,7 +481,7 @@
             background-color: rgba(52, 152, 219, 0.18) !important;
             box-shadow: inset 0 0 0 2px var(--bs-primary);
         }
-        .calendar-container.fw-cal-compact .fw-cal-event:not(.fw-cal-list-event) {
+        .calendar-container.fw-cal-compact .fw-cal-event {
             /* Balken sind keine Links: der Tipp geht an den Tag, die Links stehen in der Liste darunter */
             pointer-events: none;
             height: 6px;
