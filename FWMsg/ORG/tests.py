@@ -3069,3 +3069,12 @@ class BewerberListFilterCookieTests(TestCase):
         response = self.client.get(self.url + f'?person_cluster_filter={self.pc_bw.id}&has_seminar_filter=no')
         self.assertEqual(response.cookies['selectedPersonCluster_B'].value, str(self.pc_bw.id))
         self.assertEqual(response.cookies['selectedSeminarFilter'].value, 'no')
+
+    def test_name_columns_are_sticky(self):
+        get_user_model().objects.create_user(username='bw', first_name='Anna', last_name='Muster')
+        Bewerber.objects.create(org=self.org, user=get_user_model().objects.get(username='bw'))
+        response = self.client.get(self.url)
+        import re
+        sticky_cells = re.findall(r'<t[hd][^>]*class="[^"]*\bsticky-col\b', response.content.decode())
+        # Nachname + Vorname in header and in the single row
+        self.assertEqual(len(sticky_cells), 4)

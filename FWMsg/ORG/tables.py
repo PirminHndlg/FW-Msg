@@ -667,6 +667,16 @@ def _create_dynamic_table_class(
         def render(self, record, table, value, bound_column, **kwargs):
             return actions_renderer(record, org)
     
+    # Mark name columns as sticky (left) for the desktop list view
+    for sticky_column_name in ('user', 'first_name'):
+        sticky_column = base_columns.get(sticky_column_name)
+        if sticky_column is None:
+            continue
+        for cell in ('th', 'td'):
+            cell_attrs = dict(sticky_column.attrs.get(cell, {}))
+            cell_attrs['class'] = f"{cell_attrs.get('class', '')} sticky-col".strip()
+            sticky_column.attrs[cell] = cell_attrs
+
     # Build table attributes dictionary
     table_attrs = base_columns.copy()
     table_attrs.update(render_methods)

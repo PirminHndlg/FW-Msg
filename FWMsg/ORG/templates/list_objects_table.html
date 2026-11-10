@@ -3,6 +3,22 @@
 {% load i18n %}
 
 {% block content %}
+<style>
+    /* Desktop: table fills the remaining viewport (no page v-scroll), name columns sticky left */
+    @media (min-width: 992px) {
+        #table-scroll-container {
+            min-height: 0;
+        }
+        #table-scroll-container thead {
+            z-index: 3 !important;
+        }
+        #table-scroll-container .sticky-col {
+            position: sticky;
+            z-index: 2;
+        }
+    }
+</style>
+
 <!-- Header Section -->
 <div class="row justify-content-between mb-3 align-items-center header-container">
     <div class="col-12 col-md-6 col-lg-7 col-xl-8 d-flex justify-content-between align-items-center">
@@ -395,6 +411,58 @@
     }
     {% endif %}
     
+    // Desktop layout: fit table viewport into the window and position sticky name columns
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('table-scroll-container');
+        if (!container) return;
+        const desktop = window.matchMedia('(min-width: 992px)');
+
+        function fitTableHeight() {
+            if (!desktop.matches) {
+                container.style.maxHeight = '';
+                return;
+            }
+            // Space needed below the viewport: rest of the card + bottom margin of the content container
+            const contentContainer = container.closest('.container-fluid, .container');
+            const containerRect = container.getBoundingClientRect();
+            let below = 0;
+            if (contentContainer) {
+                below = contentContainer.getBoundingClientRect().bottom - containerRect.bottom
+                    + parseFloat(getComputedStyle(contentContainer).marginBottom || 0);
+            }
+            const top = containerRect.top + window.scrollY;
+            const available = window.innerHeight - top - below;
+            container.style.maxHeight = Math.max(available, 250) + 'px';
+        }
+
+        function positionStickyColumns() {
+            const headerCells = container.querySelectorAll('thead th.sticky-col');
+            let left = 0;
+            headerCells.forEach(function(th) {
+                const index = th.cellIndex;
+                container.querySelectorAll('tr').forEach(function(row) {
+                    const cell = row.cells[index];
+                    if (cell && cell.classList.contains('sticky-col')) {
+                        cell.style.left = left + 'px';
+                    }
+                });
+                left += th.getBoundingClientRect().width;
+            });
+        }
+
+        fitTableHeight();
+        positionStickyColumns();
+        window.addEventListener('resize', fitTableHeight);
+        desktop.addEventListener('change', fitTableHeight);
+        if (window.ResizeObserver) {
+            // Column widths change e.g. when quick edit is toggled or images load
+            const observer = new ResizeObserver(positionStickyColumns);
+            container.querySelectorAll('thead th.sticky-col').forEach(function(th) {
+                observer.observe(th);
+            });
+        }
+    });
+
     // Keyboard shortcut to focus search input when 'f' key is pressed
     // ignore when cmd or ctrl is pressed
     document.addEventListener('keydown', function(event) {
