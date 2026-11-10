@@ -15,6 +15,7 @@ urlpatterns = [
 
     path('auswertung/', views.evaluate_all, name='evaluate_all'),
     path('auswertung/geeignet/', views.insert_geeingnet, name='insert_geeignet'),
+    path('auswertung/felder/', views.save_presentation_attributes, name='save_presentation_attributes'),
     # path('user/', views.user_overview, name='user'),
     path('zuteilung/', views.assign, name='assign'),
     path('zuteilung/<int:scroll_to>/', views.assign, name='assign_scroll'),

@@ -331,6 +331,45 @@
     </div>
 </div>
 
+{% if seminar %}
+<!-- ========== Steckbrief Field Selection Modal ========== -->
+<div class="modal fade" id="presentationAttributesModal" tabindex="-1" aria-labelledby="presentationAttributesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <form method="post" action="{% url 'save_presentation_attributes' %}" class="modal-content">
+            {% csrf_token %}
+            <input type="hidden" name="fid" value="{{ freiwilliger.id }}">
+            <div class="modal-header">
+                <h5 class="modal-title" id="presentationAttributesModalLabel">
+                    <i class="bi bi-person-badge me-2"></i>Felder im Steckbrief
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body">
+                {% if selectable_attributes %}
+                    <p class="text-muted small">Diese Felder werden bei allen Bewerber:innen im Steckbrief angezeigt.</p>
+                    {% for attribute in selectable_attributes %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="attributes"
+                               value="{{ attribute.id }}" id="presentationAttribute{{ attribute.id }}"
+                               {% if attribute.id in selected_attribute_ids %}checked{% endif %}>
+                        <label class="form-check-label" for="presentationAttribute{{ attribute.id }}">
+                            {{ attribute.name }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">Für Bewerber:innen sind keine eigenen Felder angelegt.</p>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="submit" class="btn btn-primary">Speichern</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
 <!-- ========== Fixed Footer Bar ========== -->
 <footer class="fixed-bottom bg-primary text-white shadow-lg py-1">
     <div class="container-fluid px-3">
@@ -385,6 +424,16 @@
 
             <!-- Navigation & Logo -->
             <div class="col-md text-end d-flex justify-content-end align-items-center gap-2 flex-nowrap">
+                {% if seminar %}
+                <button class="btn btn-light rounded-circle nav-btn"
+                        type="button"
+                        data-bs-toggle="modal"
+                        data-bs-target="#presentationAttributesModal"
+                        aria-label="Felder im Steckbrief auswählen"
+                        title="Felder im Steckbrief auswählen">
+                    <i class="bi bi-ui-checks"></i>
+                </button>
+                {% endif %}
                 <button class="btn btn-light rounded-circle nav-btn"
                         onclick="navigateTo('{{back}}')"
                         {% if back == -1 %}disabled{% endif %}
@@ -623,6 +672,8 @@ function toggleFullscreen() {
 function handleKeyboardShortcuts(event) {
     // Ignore if typing in input/textarea
     if (['INPUT', 'TEXTAREA'].includes(event.target.tagName)) return;
+    // Ignore while a modal (e.g. field selection) is open
+    if (document.querySelector('.modal.show')) return;
 
     const keyActions = {
         'f': openFullscreen,

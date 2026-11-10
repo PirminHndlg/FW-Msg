@@ -161,3 +161,73 @@ class SeminarSaveTests(TestCase):
         self.assertEqual(self.client.get(reverse('seminar_sync')).status_code, 405)
         response = self.client.post(reverse('seminar_sync'), data='kein json', content_type='application/json')
         self.assertEqual(response.status_code, 400)
+
+
+class PresentationAttributesTests(TestCase):
+    """Auswahl der Steckbrief-Felder in der Auswertung (powerPoint.html)"""
+
+    def setUp(self):
+        from BW.models import Bewerber
+        from Global.models import Attribute, UserAttribute
+        from seminar.models import Seminar
+
+        self.org = Organisation.objects.create(name='Test Org', email='test@test.com')
+        org_cluster = PersonCluster.objects.create(org=self.org, name='Org', view='O')
+        bw_cluster = PersonCluster.objects.create(org=self.org, name='BW', view='B')
+        self.bw_cluster = bw_cluster
+        fw_cluster = PersonCluster.objects.create(org=self.org, name='FW', view='F')
+        inactive_bw_cluster = PersonCluster.objects.create(org=self.org, name='BW alt', view='B', active=False)
+        admin = User.objects.create_user(username='admin', password='pass12345')
+        CustomUser.objects.create(org=self.org, user=admin, person_cluster=org_cluster)
+        bw_user = User.objects.create_user(username='bewerber', first_name='Anna', last_name='Muster')
+        CustomUser.objects.create(org=self.org, user=bw_user, person_cluster=bw_cluster)
+        self.bewerber, _ = Bewerber.objects.get_or_create(org=self.org, user=bw_user)
+
+        self.seminar = Seminar.objects.create(org=self.org, name='Seminar')
+        self.seminar.bewerber.add(self.bewerber)
+
+        self.alter = Attribute.objects.create(org=self.org, name='Alter')
+        self.alter.person_cluster.add(bw_cluster)
+        self.wohnort = Attribute.objects.create(org=self.org, name='Wohnort')
+        self.wohnort.person_cluster.add(bw_cluster)
+        self.fw_only = Attribute.objects.create(org=self.org, name='Nur FW')
+        self.fw_only.person_cluster.add(fw_cluster)
+        self.inactive_only = Attribute.objects.create(org=self.org, name='Nur alte BW')
+        self.inactive_only.person_cluster.add(inactive_bw_cluster)
+        UserAttribute.objects.create(org=self.org, user=bw_user, attribute=self.alter, value='21')
+        UserAttribute.objects.create(org=self.org, user=bw_user, attribute=self.wohnort, value='Berlin')
+
+        self.client.login(username='admin', password='pass12345')
+
+    def test_no_fields_shown_without_selection(self):
+        response = self.client.get(reverse('evaluate_all'))
+        self.assertEqual(response.context['user_attributes'], [])
+        self.assertEqual(
+            list(response.context['selectable_attributes']), [self.alter, self.wohnort]
+        )
+
+    def test_save_selection_and_show_selected_fields(self):
+        response = self.client.post(reverse('save_presentation_attributes'), {
+            'fid': self.bewerber.id,
+            'attributes': [self.wohnort.id, self.fw_only.id, self.inactive_only.id],
+        })
+        self.assertRedirects(
+            response, reverse('evaluate_all') + f'?fid={self.bewerber.id}', fetch_redirect_response=False
+        )
+        # Fields outside the active Bewerber clusters are ignored
+        self.assertEqual(list(self.seminar.presentation_attributes.all()), [self.wohnort])
+
+        response = self.client.get(response.url)
+        self.assertEqual(response.context['user_attributes'], [{'name': 'Wohnort', 'value': 'Berlin'}])
+
+    def test_no_fields_shown_for_inactive_cluster(self):
+        self.seminar.presentation_attributes.set([self.alter, self.wohnort])
+        self.bw_cluster.active = False
+        self.bw_cluster.save()
+
+        response = self.client.get(reverse('evaluate_all') + f'?fid={self.bewerber.id}')
+        self.assertEqual(response.context['user_attributes'], [])
+
+    def test_save_requires_post(self):
+        response = self.client.get(reverse('save_presentation_attributes'))
+        self.assertEqual(response.status_code, 405)

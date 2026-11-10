@@ -489,11 +489,19 @@ def evaluate_all(request):
                 i = index
                 break
     
-    # Get all attributes for this person_cluster (after final freiwilliger is determined)
-    attributes = Attribute.objects.filter(
-        visible_in_profile=True, 
-        person_cluster=freiwilliger.user.customuser.person_cluster
-    ).order_by('name')
+    # Attributes selected for the presentation in the seminar, limited to this person's (active) cluster
+    seminar = Seminar.objects.filter(org=request.user.org).first()
+    person_cluster = freiwilliger.user.customuser.person_cluster
+    if seminar:
+        selected_attribute_ids = set(seminar.presentation_attributes.values_list('id', flat=True))
+        if person_cluster and person_cluster.active:
+            attributes = seminar.presentation_attributes.filter(person_cluster=person_cluster).order_by('name')
+        else:
+            attributes = Attribute.objects.none()
+    else:
+        selected_attribute_ids = set()
+        attributes = Attribute.objects.none()
+    selectable_attributes = _selectable_presentation_attributes(request.user.org)
     
     # Get existing user attribute values
     existing_user_attributes = {
@@ -553,10 +561,41 @@ def evaluate_all(request):
         'avg': average_total_per_freiwilliger[i],
         'back': i - 1 if i > 0 else -1,
         'next': i + 1 if i < len(average_total_per_freiwilliger) - 1 else -1,
-        'kirchenzugehoerigkeit_with_img': ['Evangelisch', 'Katholisch', 'EKBO', 'Anhalt']
+        'kirchenzugehoerigkeit_with_img': ['Evangelisch', 'Katholisch', 'EKBO', 'Anhalt'],
+        'seminar': seminar,
+        'selectable_attributes': selectable_attributes,
+        'selected_attribute_ids': selected_attribute_ids,
     }
 
     return render(request, 'powerPoint.html', context)
+
+
+def _selectable_presentation_attributes(org):
+    """Custom fields of the org's active Bewerber person clusters."""
+    return Attribute.objects.filter(
+        org=org, person_cluster__view='B', person_cluster__active=True
+    ).distinct().order_by('name')
+
+
+@login_required
+@required_role('O')
+@require_POST
+def save_presentation_attributes(request):
+    fid = request.POST.get('fid', '')
+    redirect_url = reverse('evaluate_all')
+    if fid.isdigit():
+        redirect_url += f'?fid={fid}'
+
+    seminar = Seminar.objects.filter(org=request.user.org).first()
+    if not seminar:
+        messages.error(request, 'Kein Seminar vorhanden')
+        return redirect(redirect_url)
+
+    attribute_ids = [a for a in request.POST.getlist('attributes') if a.isdigit()]
+    attributes = _selectable_presentation_attributes(request.user.org).filter(id__in=attribute_ids)
+    seminar.presentation_attributes.set(attributes)
+
+    return redirect(redirect_url)
 
 
 @login_required
