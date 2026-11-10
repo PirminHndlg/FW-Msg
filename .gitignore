@@ -10,7 +10,6 @@ FWMsg/ORG/**/__pycache__/
 
 # Node.js dependencies
 node_modules/
-package-lock.json
 yarn.lock
 
 # Sensitive files with credentials
