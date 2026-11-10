@@ -185,7 +185,15 @@
                                     {% for attr in user_attributes %}
                                     <li class="mb-2">
                                         <strong>{{attr.name}}:</strong>
-                                        <span class="text-muted">{{attr.value|default:"Nicht angegeben"}}</span>
+                                        {% if attr.type == 'B' %}
+                                            {% if attr.value == 'True' %}
+                                                <i class="bi bi-check-lg text-success" aria-label="Ja"></i>
+                                            {% else %}
+                                                <i class="bi bi-x-lg text-danger" aria-label="Nein"></i>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">{{attr.value|default:"Nicht angegeben"}}</span>
+                                        {% endif %}
                                     </li>
                                     {% endfor %}
                             {% endif %}

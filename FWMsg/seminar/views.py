@@ -514,6 +514,7 @@ def evaluate_all(request):
     for attr in attributes:
         user_attributes.append({
             'name': attr.name,
+            'type': attr.type,
             'value': existing_user_attributes.get(attr.id, None)
         })
 

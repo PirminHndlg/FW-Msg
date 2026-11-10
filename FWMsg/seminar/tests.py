@@ -218,7 +218,7 @@ class PresentationAttributesTests(TestCase):
         self.assertEqual(list(self.seminar.presentation_attributes.all()), [self.wohnort])
 
         response = self.client.get(response.url)
-        self.assertEqual(response.context['user_attributes'], [{'name': 'Wohnort', 'value': 'Berlin'}])
+        self.assertEqual(response.context['user_attributes'], [{'name': 'Wohnort', 'type': 'T', 'value': 'Berlin'}])
 
     def test_no_fields_shown_for_inactive_cluster(self):
         self.seminar.presentation_attributes.set([self.alter, self.wohnort])
@@ -227,6 +227,22 @@ class PresentationAttributesTests(TestCase):
 
         response = self.client.get(reverse('evaluate_all') + f'?fid={self.bewerber.id}')
         self.assertEqual(response.context['user_attributes'], [])
+
+    def test_boolean_fields_shown_as_icons(self):
+        from Global.models import Attribute, UserAttribute
+
+        ja = Attribute.objects.create(org=self.org, name='Führerschein', type='B')
+        nein = Attribute.objects.create(org=self.org, name='Vegetarisch', type='B')
+        for attribute in (ja, nein):
+            attribute.person_cluster.add(self.bw_cluster)
+        UserAttribute.objects.create(org=self.org, user=self.bewerber.user, attribute=ja, value='True')
+        UserAttribute.objects.create(org=self.org, user=self.bewerber.user, attribute=nein, value='False')
+        self.seminar.presentation_attributes.set([ja, nein])
+
+        response = self.client.get(reverse('evaluate_all') + f'?fid={self.bewerber.id}')
+        self.assertContains(response, 'bi-check-lg text-success', count=1)
+        self.assertContains(response, 'bi-x-lg text-danger', count=1)
+        self.assertNotContains(response, '>True<')
 
     def test_save_requires_post(self):
         response = self.client.get(reverse('save_presentation_attributes'))
