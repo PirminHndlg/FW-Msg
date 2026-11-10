@@ -1,0 +1,36 @@
+name: Security Audit
+
+# Checks the pinned Python dependencies against known vulnerabilities (PyPI / OSV).
+# Runs on changes to requirements.txt and weekly, so new advisories are noticed
+# even when nothing is committed.
+on:
+  push:
+    branches: [ "main" ]
+    paths: [ "requirements.txt", ".github/workflows/security-audit.yml" ]
+  pull_request:
+    branches: [ "main" ]
+    paths: [ "requirements.txt", ".github/workflows/security-audit.yml" ]
+  schedule:
+    - cron: "0 5 * * 1"  # Mondays 05:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pip-audit:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13.5"
+
+    - name: Install pip-audit
+      run: python -m pip install --upgrade pip pip-audit
+
+    - name: Audit requirements.txt
+      # All requirements are pinned, so they can be audited without installing them
+      run: pip-audit -r requirements.txt --no-deps --disable-pip --desc on

@@ -89,7 +89,7 @@ service-identity==24.2.0
 setuptools==84.2.1
 six==1.17.0
 sqlparse==0.6.0
-style>=1.1.0
+style==1.1.0
 tblib==3.2.2
 tinycss2==1.5.1
 tinyhtml5==2.0.0
