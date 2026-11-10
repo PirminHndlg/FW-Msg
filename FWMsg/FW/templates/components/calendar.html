@@ -11,13 +11,13 @@
                 
                 <div class="d-flex align-items-center gap-2">
                 {% if show_calendar_subscription %}
-                    <button type="button" class="btn btn-sm rounded-4 btn-primary" data-bs-toggle="modal" data-bs-target="#calendarSubscriptionModal">
-                        <i class="bi bi-calendar-plus"></i> {% trans "Kalender abonnieren" %}
+                    <button type="button" class="btn btn-sm rounded-4 btn-primary" data-bs-toggle="modal" data-bs-target="#calendarSubscriptionModal" title="{% trans "Kalender abonnieren" %}" aria-label="{% trans "Kalender abonnieren" %}">
+                        <i class="bi bi-calendar-plus"></i><span class="d-none d-sm-inline"> {% trans "Kalender abonnieren" %}</span>
                     </button>
                 {% endif %}
 
                 {% if request.user.role == 'O' %}
-                    <a href="{% url 'add_object' 'kalender' %}" class="btn btn-outline-primary rounded-3">
+                    <a href="{% url 'add_object' 'kalender' %}" class="btn btn-sm btn-outline-primary rounded-3" aria-label="{% trans "Termin hinzufügen" %}">
                         <i class="bi bi-plus"></i>
                     </a>
                 {% endif %}
@@ -27,6 +27,8 @@
     </div>
     <div class="card-body">
         <div id="calendar" class="calendar-container"></div>
+        {# Mobile Monatsansicht: Termine des angetippten Tages #}
+        <div id="calendarDayDetails" class="calendar-day-details d-none" aria-live="polite"></div>
     </div>
 </div>
 
@@ -188,17 +190,18 @@
                 todayText: '{% trans "Heute" %}',
                 monthText: '{% trans "Monat" %}',
                 listText: '{% trans "Liste" %}',
+                // Mobil: Zeile 1 "‹ Titel ›", Zeile 2 Ansichtsumschalter über die volle Breite (siehe CSS)
                 headerToolbar: isSmallScreen ? {
-                    left: 'prev,next',
-                    center: 'title',
-                    right: 'listMonth,dayGridMonth'
+                    start: 'prev title next',
+                    end: 'listMonth,dayGridMonth'
                 } : {
                     left: 'prev,next',
                     center: 'title',
                     right: 'today'
                 },
                 noEventsText: '{% trans "Keine Termine in diesem Monat" %}',
-                dayMaxEvents: true,
+                // Mobil sind Termine nur schmale Balken, daher ohne "+x weitere"-Popover
+                dayMaxEvents: !isSmallScreen,
                 eventTimeFormat: {
                     hour: '2-digit',
                     minute: '2-digit',
@@ -209,6 +212,10 @@
                 eventContrastColor: '#333',
                 // v7 uses generated class names, so styling hooks are set via these options (CSS below)
                 toolbarClass: 'fw-cal-toolbar',
+                toolbarSectionClass: function(info) {
+                    return 'fw-cal-section fw-cal-section-' + info.name;
+                },
+                dayCellClass: 'fw-cal-day',
                 toolbarTitleClass: 'fw-cal-title',
                 buttonClass: function(info) {
                     return info.isSelected ? 'fw-cal-btn fw-cal-btn-active' : 'fw-cal-btn';
@@ -247,6 +254,80 @@
                     info.el.style.cursor = 'pointer';
                 }
             });
+            const dayDetailsEl = document.getElementById('calendarDayDetails');
+            const isCompactMonth = () => isSmallScreen && calendar.view.type === 'dayGridMonth';
+
+            function toDateStr(date) {
+                return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            function hideDayDetails() {
+                dayDetailsEl.classList.add('d-none');
+                dayDetailsEl.innerHTML = '';
+                calendarEl.querySelectorAll('.fw-cal-day-selected').forEach(el => el.classList.remove('fw-cal-day-selected'));
+            }
+
+            function showDayDetails(date) {
+                hideDayDetails();
+                const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                const dayEnd = new Date(dayStart.getFullYear(), dayStart.getMonth(), dayStart.getDate() + 1);
+                const events = calendar.getEvents()
+                    .filter(ev => {
+                        const start = ev.start;
+                        const end = ev.end || new Date(start.getTime() + 1);
+                        return start < dayEnd && end > dayStart;
+                    })
+                    .sort((a, b) => (b.allDay - a.allDay) || (a.start - b.start));
+
+                const dayCell = calendarEl.querySelector('.fw-cal-day[data-date="' + toDateStr(dayStart) + '"]');
+                if (dayCell) dayCell.classList.add('fw-cal-day-selected');
+
+                const timeFormat = { hour: '2-digit', minute: '2-digit' };
+                let html = '<div class="fw-cal-details-date">' + escapeHtml(dayStart.toLocaleDateString(language, { weekday: 'long', day: 'numeric', month: 'long' })) + '</div>';
+                if (events.length === 0) {
+                    html += '<div class="text-muted small py-2">{% trans "Keine Termine an diesem Tag" %}</div>';
+                }
+                events.forEach(ev => {
+                    let time = '{% trans "Ganztägig" %}';
+                    if (!ev.allDay) {
+                        time = ev.start.toLocaleTimeString(language, timeFormat);
+                        if (ev.end) time += ' – ' + ev.end.toLocaleTimeString(language, timeFormat);
+                    }
+                    const props = ev.extendedProps;
+                    html += '<div class="fw-cal-details-event">'
+                        + '<div class="fw-cal-details-time">' + escapeHtml(time) + '</div>'
+                        + '<div class="fw-cal-details-body">'
+                        + '<div class="fw-cal-details-title">' + escapeHtml(ev.title) + '</div>'
+                        + (props.location ? '<div class="small text-muted"><i class="bi bi-geo-alt"></i> ' + escapeHtml(props.location) + '</div>' : '')
+                        + (props.description ? '<div class="small text-muted">' + escapeHtml(props.description) + '</div>' : '')
+                        + '</div></div>';
+                });
+                dayDetailsEl.innerHTML = html;
+                dayDetailsEl.classList.remove('d-none');
+            }
+
+            calendar.setOption('dateClick', function(info) {
+                if (isCompactMonth()) showDayDetails(info.date);
+            });
+            calendar.setOption('eventClick', function(info) {
+                if (isCompactMonth()) showDayDetails(info.event.start);
+            });
+            calendar.setOption('datesSet', function(info) {
+                calendarEl.classList.toggle('fw-cal-compact', isCompactMonth());
+                hideDayDetails();
+                // Im aktuellen Monat direkt die heutigen Termine zeigen
+                const today = new Date();
+                if (isCompactMonth() && info.view.currentStart <= today && today < info.view.currentEnd) {
+                    showDayDetails(today);
+                }
+            });
+
             calendar.render();
 
             calendarEl.addEventListener('touchstart', function(e) {
@@ -356,8 +437,76 @@
             padding-top: .65rem;
             padding-bottom: .65rem;
         }
-        .calendar-container .fw-cal-event:not(.fw-cal-list-event) {
-            font-size: .7rem;
+        /* Toolbar: Zeile 1 "‹ Titel ›", Zeile 2 Ansichtsumschalter */
+        .calendar-container .fw-cal-section {
+            width: 100%;
+        }
+        .calendar-container .fw-cal-section-start {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .calendar-container .fw-cal-section-center:empty {
+            display: none;
+        }
+        .calendar-container .fw-cal-section-end > * {
+            display: flex;
+            width: 100%;
+        }
+        .calendar-container .fw-cal-section-end .fw-cal-btn {
+            flex: 1 1 0;
+        }
+        .calendar-container .fw-cal-title {
+            text-align: center;
+        }
+
+        /* Kompakte Monatsansicht: Termine als farbige Balken, Details unter dem Kalender */
+        .calendar-container.fw-cal-compact .fw-cal-day {
+            cursor: pointer;
+        }
+        .calendar-container.fw-cal-compact .fw-cal-day-selected {
+            background-color: rgba(52, 152, 219, 0.18) !important;
+            box-shadow: inset 0 0 0 2px var(--bs-primary);
+        }
+        .calendar-container.fw-cal-compact .fw-cal-event:not(.fw-cal-list-event) {
+            height: 6px;
+            min-height: 0;
+            padding: 0 !important;
+            margin-top: 2px;
+            overflow: hidden;
+            font-size: 0;
+            line-height: 0;
+            border-radius: 3px;
+            background-color: var(--bs-primary) !important;
+        }
+
+        .calendar-day-details {
+            margin-top: 1rem;
+            border-top: 1px solid #dee2e6;
+            padding-top: .75rem;
+        }
+        .calendar-day-details .fw-cal-details-date {
+            font-weight: 600;
+            margin-bottom: .5rem;
+        }
+        .calendar-day-details .fw-cal-details-event {
+            display: flex;
+            gap: .75rem;
+            padding: .5rem .75rem;
+            margin-bottom: .5rem;
+            border-radius: .75rem;
+            background-color: #e8f4fd;
+            border-left: 4px solid var(--bs-primary);
+        }
+        .calendar-day-details .fw-cal-details-time {
+            flex: 0 0 auto;
+            min-width: 4.5rem;
+            font-size: .85rem;
+            color: #495057;
+        }
+        .calendar-day-details .fw-cal-details-title {
+            font-weight: 500;
+            word-break: break-word;
         }
     }
 </style>
