@@ -5921,7 +5921,7 @@ msgstr "Seminars"
 
 #: seminar/templates/components/seminar_display_info.html:28
 msgid "Zum Seminar"
-msgstr "About the seminar"
+msgstr "Go to seminar"
 
 #: seminar/templates/components/seminar_display_info.html:45
 msgid "Bewerbungen einsehen"
