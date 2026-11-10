@@ -884,7 +884,7 @@ class Attribute(OrgModel):
         ('L', 'Langer Text'),
         ('N', 'Zahl'),
         ('D', 'Datum'),
-        ('B', 'Wahrheitswert'),
+        ('B', 'Wahrheitswert (Ja/Nein)'),
         ('E', 'E-Mail'),
         ('P', 'Telefon'),
         ('C', 'Auswahl')
