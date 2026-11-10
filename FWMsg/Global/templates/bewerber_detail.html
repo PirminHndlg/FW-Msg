@@ -303,7 +303,7 @@
                       </div>
                       <div class="d-flex gap-2">
                         {% if file.file %}
-                          <a href="{% url 'bw_application_file_answer_download' file.id %}" class="btn btn-outline-secondary btn-sm" download title="{% trans 'Datei herunterladen' %}">
+                          <a href="{% url 'bw_application_file_answer_download' file.uuid %}" class="btn btn-outline-secondary btn-sm" download title="{% trans 'Datei herunterladen' %}">
                             <i class="bi bi-download"></i>
                           </a>
                         {% endif %}

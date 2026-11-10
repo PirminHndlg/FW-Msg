@@ -1,0 +1,13 @@
+{% extends "mail/base_email.html" %}
+
+{% block german_content %}
+<p>Du wurdest von {{ sender_name }} zu einem neuen Gruppenchat eingeladen: <strong>{{ group_name }}</strong></p>
+{% endblock %}
+
+{% block german_button_text %}Gruppenchat ansehen{% endblock %}
+
+{% block english_content %}
+<p>You were invited by {{ sender_name }} to a new group chat: <strong>{{ group_name }}</strong></p>
+{% endblock %}
+
+{% block english_button_text %}View group chat{% endblock %}

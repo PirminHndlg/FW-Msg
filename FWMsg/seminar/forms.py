@@ -178,12 +178,12 @@ class EinheitForm(forms.ModelForm):
             }),
             'short_name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Kurzname (optional)'
+                'placeholder': 'Abkürzung (optional)'
             }),
         }
         labels = {
             'name': 'Name',
-            'short_name': 'Kurzname',
+            'short_name': 'Abkürzung',
         }
 
 

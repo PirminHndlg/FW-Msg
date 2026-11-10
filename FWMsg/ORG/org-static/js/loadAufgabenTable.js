@@ -92,9 +92,13 @@ function buildUrlWithNext(urlTemplate, id, nextUrl) {
  */
 function buildTableFromJSON(data) {
     const { users, aufgaben, user_aufgaben_assigned, user_aufgaben_eligible, today, current_person_cluster } = data;
-    
+
+    // Aufgabennamen für Modals (nicht über onclick-Strings übergeben, wegen Sonderzeichen)
+    window.AUFGABEN_NAMES = Object.fromEntries(aufgaben.map(aufgabe => [String(aufgabe.id), aufgabe.name]));
+    window.AUFGABEN_MITUPLOAD = Object.fromEntries(aufgaben.map(aufgabe => [String(aufgabe.id), Boolean(aufgabe.mitupload)]));
+
     const tableHtml = `
-        <div class="table-responsive">
+        <div class="table-responsive table-scroll-viewport" id="table-scroll-container">
             <table class="table mb-0 align-middle table-borderless">
                 <thead>
                     ${buildTableHeader(aufgaben, current_person_cluster)}
@@ -106,7 +110,7 @@ function buildTableFromJSON(data) {
             </table>
         </div>
     `;
-    
+
     return tableHtml;
 }
 
@@ -156,23 +160,29 @@ function buildTableHeader(aufgaben, person_cluster) {
                                 <i class="bi bi-people-fill me-2"></i> Allen zuweisen
                             </button>
                         </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <button type="button" class="dropdown-item text-danger" onclick="showResetTaskModal('${aufgabe.id}', '${person_cluster}')">
+                                <i class="bi bi-arrow-counterclockwise me-2"></i> Zuweisung zurücksetzen
+                            </button>
+                        </li>
                     </ul>
                 </div>
             </div>
         </th>
     `).join('');
-    
+
     return `
         <tr class="">
-             <th class="sticky-right p-1 align-bottom z-1000" style="min-width:200px; position: sticky; left: 0; top: 0; box-shadow: 2px 2px 0 0 #dee2e6;">
-                <div class="input-group gap-0 rounded-pill border shadow-sm bg-white align-items-center" style="min-width: 150px;">
+             <th class="sticky-right p-1 align-bottom z-1000" style="position: sticky; left: 0; top: 0; box-shadow: 2px 2px 0 0 #dee2e6;">
+                <div class="input-group flex-nowrap gap-0 rounded-pill border shadow-sm bg-white align-items-center" style="min-width: 100px;">
                     <span class="input-group-text bg-transparent border-0 pe-0" style="font-size:1.1em;">
-                        <i class="bi bi-search text-secondary"></i>
+                        <i class="bi bi-search text-secondary d-none d-md-block"></i>
                     </span>
                     <input id="userSearch"
                         type="text"
                         class="form-control border-0 bg-white px-1"
-                        style="min-width:80px; font-size: 1em; box-shadow: none;"
+                        style="min-width:0; font-size: 1em; box-shadow: none;"
                         placeholder="Suchen..."
                         autocomplete="off"
                         oninput="searchHandler(this.value)"
@@ -195,33 +205,33 @@ function buildTableHeader(aufgaben, person_cluster) {
                 </div>
             </th>
         </tr>
-        
+
         <style>
             @media (min-width: 768px) {
                 .sticky-right {
                     position: sticky;
                     right: 0;
-                    background-color: var(--bs-body-bg); 
+                    background-color: var(--bs-body-bg);
                     z-index: 1;
                 }
             }
-            
+
             .sticky-top {
                 position: sticky;
                 top: 0;
                 z-index: 1010;
             }
-            
+
             .border-bottom {
                 border-bottom-width: 1px !important;
                 border-bottom-style: solid !important;
             }
-            
+
             .border-end {
                 border-right-width: 1px !important;
                 border-right-style: solid !important;
             }
-            
+
             th.with-border::after {
                 content: '';
                 position: absolute;
@@ -232,7 +242,7 @@ function buildTableHeader(aufgaben, person_cluster) {
                 background: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
                 color: rgba(var(--bs-dark-rgb), var(--bs-border-opacity));
             }
-            
+
             th.with-border-before::before {
                 content: '';
                 position: absolute;
@@ -243,7 +253,7 @@ function buildTableHeader(aufgaben, person_cluster) {
                 background: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
                 color: rgba(var(--bs-dark-rgb), var(--bs-border-opacity));
             }
-            
+
             .z-1000 {
                 z-index: 1000;
             }
@@ -251,18 +261,18 @@ function buildTableHeader(aufgaben, person_cluster) {
             .z-1020 {
                 z-index: 1020;
             }
-            
+
             .search-container {
                 position: sticky;
                 top: 0;
                 z-index: 1021;
                 background-color: var(--bs-body-bg);
             }
-            
+
             .search-container .input-group {
                 width: 100%;
             }
-            
+
             .search-container .input-group-text {
                 background-color: var(--bs-body-bg);
             }
@@ -286,7 +296,7 @@ function buildTableRow(user, aufgaben, user_aufgaben_assigned, user_aufgaben_eli
     const userAssigned = user_aufgaben_assigned[user.id] || {};
     const userEligible = user_aufgaben_eligible[user.id] || [];
     const eligibleSet = new Set(userEligible);
-    
+
     const cells = aufgaben.map((aufgabe) => {
         // Check if user has this aufgabe assigned
         const userAufgabe = userAssigned[aufgabe.id];
@@ -301,10 +311,10 @@ function buildTableRow(user, aufgaben, user_aufgaben_assigned, user_aufgaben_eli
             return buildTableCell(user, aufgabe, null, today);
         }
     }).join('');
-    
+
     return `
-        <tr class="border-bottom" data-search-term="${escapeHtml(user.first_name || '')} ${escapeHtml(user.last_name || user.username || '')}">
-            <th class="p-0 ps-2" style="max-width: 30vw; height: 50px; box-shadow: 2px 2px 0 0 #dee2e6;">
+        <tr class="border-bottom" data-user-id="${user.id}" data-search-term="${escapeHtml(user.first_name || '')} ${escapeHtml(user.last_name || user.username || '')}">
+            <th class="p-0 ps-2" style="max-width: 20vw; height: 50px; box-shadow: 2px 2px 0 0 #dee2e6;">
                 <div class="d-flex gap-1 align-items-center justify-content-between">
                     ${escapeHtml(user.first_name || '')} ${escapeHtml(user.last_name || user.username || '')}
                 </div>
@@ -331,13 +341,13 @@ function buildTableCell(user, aufgabe, userAufgabe, today) {
             </td>
         `;
     }
-    
+
     // If userAufgabe is a number (aufgabe.id), show assign button
     if (typeof userAufgabe === 'number') {
         return `
             <td class="text-center p-0 rounded-4">
                 <div class="p-0 m-0">
-                    <button type="button" class="btn btn-sm" 
+                    <button type="button" class="btn btn-sm"
                         onclick="assignTask('${user.id}', '${userAufgabe}')"
                         data-tooltip="Aufgabe zuweisen">
                         <i class="bi bi-plus-circle"></i>
@@ -346,12 +356,10 @@ function buildTableCell(user, aufgabe, userAufgabe, today) {
             </td>
         `;
     }
-    
+
     // Otherwise, it's a user_aufgabe object
     const ua = userAufgabe.user_aufgabe;
-    const zwischenschritteDoneOpen = userAufgabe.zwischenschritte_done_open;
-    const zwischenschritteDone = userAufgabe.zwischenschritte_done;
-    
+
     // Determine background color
     let bgClass = 'bg-dark bg-opacity-10';
     if (ua.erledigt) {
@@ -361,13 +369,15 @@ function buildTableCell(user, aufgabe, userAufgabe, today) {
     } else if (isDateBeforeOrEqual(ua.faellig, today)) {
         bgClass = 'bg-danger bg-opacity-25';
     }
-    
+
     return `
         <td class="text-center p-0 rounded-4 ${bgClass}"
             id="task-table-row-${ua.id}"
-            data-task-id="${ua.id}">
+            data-task-id="${ua.id}"
+            data-aufgabe-id="${aufgabe.id}"
+            data-has-file="${ua.file ? '1' : '0'}">
             ${buildCompletedTemplate(ua, user)}
-            ${buildPendingTemplate(ua, user, zwischenschritteDoneOpen, zwischenschritteDone)}
+            ${buildPendingTemplate(ua, user)}
             ${buildUpcomingTemplate(ua, user, today)}
         </td>
     `;
@@ -377,14 +387,14 @@ function buildTableCell(user, aufgabe, userAufgabe, today) {
  * Build completed task template
  */
 function buildCompletedTemplate(ua, user) {
-    const downloadedBy = ua.file_downloaded_of_names ? 
-        `Heruntergeladen von ${ua.file_downloaded_of_names}` : 
+    const downloadedBy = ua.file_downloaded_of_names ?
+        `Heruntergeladen von ${ua.file_downloaded_of_names}` :
         'Noch nicht heruntergeladen';
-    
+
     return `
         <div id="completed-task-template-${ua.id}" class="${!ua.erledigt ? 'd-none' : ''}">
             ${ua.file ? `
-                <a href="${buildUrl(window.DJANGO_URLS.downloadAufgabe, ua.id)}" 
+                <a href="${buildUrl(window.DJANGO_URLS.downloadAufgabe, ua.id)}"
                     class="btn btn-sm btn-outline-primary download-btn mt-1"
                     target="_blank"
                     data-bs-toggle="tooltip"
@@ -430,12 +440,12 @@ function buildCompletedTemplate(ua, user) {
 /**
  * Build pending task template
  */
-function buildPendingTemplate(ua, user, zwischenschritteDoneOpen, zwischenschritteDone) {
+function buildPendingTemplate(ua, user) {
     return `
         <div id="pending-task-template-${ua.id}" class="${!ua.pending || ua.erledigt ? 'd-none' : ''}">
             ${ua.file ? `
                 <a href="${buildUrl(window.DJANGO_URLS.downloadAufgabe, ua.id)}"
-                    class="btn btn-sm btn-outline-primary download-btn" 
+                    class="btn btn-sm btn-outline-primary download-btn"
                     target="_blank"
                     data-bs-toggle="tooltip"
                     data-bs-placement="top"
@@ -444,14 +454,13 @@ function buildPendingTemplate(ua, user, zwischenschritteDoneOpen, zwischenschrit
                 </a>
             ` : ''}
             <div class="dropdown d-inline task-status-buttons">
-                <button class="btn btn-sm dropdown-toggle btn-pending btn-zwischenschritte" 
-                    type="button" 
-                    data-bs-toggle="dropdown" 
+                <button class="btn btn-sm dropdown-toggle btn-pending"
+                    type="button"
+                    data-bs-toggle="dropdown"
                     data-user-aufgabe-id="${ua.id}"
-                    data-loaded="false"
                     aria-expanded="false">
-                    <span id="pending-badge-${ua.id}" class="badge ${zwischenschritteDone ? 'bg-warning border border-2 border-success' : 'bg-warning'}">
-                        Pending ${zwischenschritteDoneOpen || ''}
+                    <span id="pending-badge-${ua.id}" class="badge bg-warning">
+                        Pending
                     </span>
                 </button>
                 <ul class="dropdown-menu">
@@ -459,11 +468,6 @@ function buildPendingTemplate(ua, user, zwischenschritteDoneOpen, zwischenschrit
                         <a class="dropdown-item" href="${buildUrlWithNext(window.DJANGO_URLS.editUserAufgaben, ua.id, window.DJANGO_URLS.listAufgabenTable)}">
                             <i class="bi bi-pencil me-2"></i>Bearbeiten
                         </a>
-                    </li>
-                    <li>
-                        <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#taskZwischenschritteModal" onclick="loadZwischenschritte('${ua.id}')">
-                            <i class="bi bi-list me-2"></i>Zwischenschritte anzeigen
-                        </button>
                     </li>
                     <li>
                         <button type="button" class="dropdown-item text-danger" onclick="updateTaskStatus('${ua.id}', false, false)">
@@ -487,7 +491,7 @@ function buildPendingTemplate(ua, user, zwischenschritteDoneOpen, zwischenschrit
 function buildUpcomingTemplate(ua, user, today) {
     const isDanger = isDateBeforeOrEqual(ua.faellig, today);
     const badgeClass = isDanger ? 'bg-danger' : 'bg-dark';
-    
+
     return `
         <div id="upcoming-task-template-${ua.id}" class="${ua.erledigt || ua.pending ? 'd-none' : ''}">
             <div class="dropdown d-inline task-status-buttons">
@@ -502,8 +506,8 @@ function buildUpcomingTemplate(ua, user, today) {
                         </a>
                     </li>
                     <li>
-                        <button type="button" class="dropdown-item btn-reminder ${!ua.mail_notifications ? 'disabled' : ''}" 
-                            ${ua.currently_sending ? 'disabled' : ''} 
+                        <button type="button" class="dropdown-item btn-reminder ${!ua.mail_notifications ? 'disabled' : ''}"
+                            ${ua.currently_sending ? 'disabled' : ''}
                             onclick="${ua.mail_notifications && !ua.currently_sending ? `sendTaskReminder(this, '${ua.id}')` : ''}">
                             ${ua.mail_notifications ? `
                                 <i class="bi bi-bell-fill me-2"></i>Erinnern
@@ -522,129 +526,12 @@ function buildUpcomingTemplate(ua, user, today) {
                         <button type="button" class="dropdown-item text-success btn-done" onclick="updateTaskStatus('${ua.id}', false, true)">
                             <i class="bi bi-check-lg me-2"></i>Als erledigt markieren
                         </button>
-                    </li>   
+                    </li>
                 </ul>
             </div>
         </div>
     `;
 }
 
-// ========================================
-// ZWISCHENSCHRITTE FUNCTIONS
-// ========================================
-
-/**
- * Lazy loading of zwischenschritte data
- */
-function loadZwischenschritte(taskId) {
-    const btn = document.querySelector(`.btn-zwischenschritte[data-user-aufgabe-id="${taskId}"]`);
-    if (btn && btn.dataset.loaded === 'false') {
-        // Set loading state
-        document.getElementById('zwischenschritteModalContent').innerHTML = `
-            <div class="d-flex justify-content-center p-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-        `;
-        
-        // Fetch data
-        fetch(`${window.DJANGO_URLS.getAufgabenZwischenschritte}?taskId=${taskId}`)
-            .then(response => response.json())
-            .then(data => {
-                // Update modal content
-                let content = `
-                    <h5>${escapeHtml(data.task_name)} - ${escapeHtml(data.user_name)}</h5>
-                    <ul class="list-group">
-                `;
-                
-                if (data.zwischenschritte.length === 0) {
-                    content += `<li class="list-group-item">Keine Zwischenschritte definiert</li>`;
-                } else {
-                    data.zwischenschritte.forEach(zs => {
-                        content += `
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>${escapeHtml(zs.name)}</strong>
-                                    ${zs.beschreibung ? `<p class="mb-0 small text-muted">${escapeHtml(zs.beschreibung)}</p>` : ''}
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" 
-                                        onchange="toggleZwischenschritt(${taskId}, ${zs.id}, this.checked)"
-                                        ${zs.erledigt ? 'checked' : ''}
-                                    >
-                                </div>
-                            </li>
-                        `;
-                    });
-                }
-                
-                content += `</ul>`;
-                document.getElementById('zwischenschritteModalContent').innerHTML = content;
-                
-                // Mark as loaded
-                btn.dataset.loaded = 'true';
-            })
-            .catch(error => {
-                console.error('Error loading zwischenschritte:', error);
-                document.getElementById('zwischenschritteModalContent').innerHTML = `
-                    <div class="alert alert-danger">
-                        Fehler beim Laden der Zwischenschritte
-                    </div>
-                `;
-            });
-    }
-}
-
-/**
- * Toggle zwischenschritt status
- */
-function toggleZwischenschritt(taskId, zwischenschrittId, status) {
-    fetch(window.DJANGO_URLS.toggleZwischenschrittStatus, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({
-            taskId: taskId,
-            zwischenschrittId: zwischenschrittId,
-            status: status
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Update the UI if needed
-            const btn = document.querySelector(`.btn-zwischenschritte[data-user-aufgabe-id="${taskId}"]`);
-            if (btn && data.zwischenschritte_done_open) {
-                const badge = btn.querySelector('.badge');
-                if (badge) {
-                    // Update badge text
-                    badge.innerHTML = `Pending ${data.zwischenschritte_done_open}`;
-                    
-                    // Update badge styling based on completion
-                    if (data.zwischenschritte_done) {
-                        badge.classList.add('border', 'border-2', 'border-success');
-                    } else {
-                        badge.classList.remove('border', 'border-2', 'border-success');
-                    }
-                }
-            }
-            
-            // Update cell class if all zwischenschritte are done
-            if (data.zwischenschritte_done) {
-                btn.closest('td').classList.add('table-success');
-            } else {
-                btn.closest('td').classList.remove('table-success');
-            }
-        }
-    })
-    .catch(error => console.error('Error toggling zwischenschritt:', error));
-}
-
 // Make functions globally available
-window.loadZwischenschritte = loadZwischenschritte;
-window.toggleZwischenschritt = toggleZwischenschritt;
 window.buildTableFromJSON = buildTableFromJSON;
-

@@ -33,16 +33,25 @@
                         <div class="form-text">{% trans 'Benutzergruppen, die diesen Ordner sehen können' %}</div>
                       </div>
 
-                    <div class="mb-3">
-                        <label for="color" class="form-label">{% trans "Farbe" %}</label>
-                        <select class="form-select rounded-4" id="color" name="color">
-                            <option value="">{% trans "Ohne Farbe" %}</option>
+                    <fieldset class="mb-3">
+                        <legend class="form-label fs-6 mb-2">{% trans "Farbe" %}</legend>
+                        {# Farbauswahl als Farbkreise: Radio-Buttons mit name="color", Wert = Farb-ID #}
+                        <div class="folder-color-picker d-flex flex-wrap gap-2">
+                            <input type="radio" class="btn-check" name="color" id="color_none" value="" checked>
+                            <label class="folder-color-option" for="color_none" title="{% trans 'Ohne Farbe' %}">
+                                <span class="folder-color-swatch folder-color-swatch-none"><i class="bi bi-slash-lg"></i></span>
+                                <span class="folder-color-name">{% trans "Ohne" %}</span>
+                            </label>
                             {% for color in colors %}
-                                <option value="{{ color.id }}">{{ color.name }}</option>
+                                <input type="radio" class="btn-check" name="color" id="color_{{ color.id }}" value="{{ color.id }}">
+                                <label class="folder-color-option" for="color_{{ color.id }}" title="{{ color.name }}">
+                                    <span class="folder-color-swatch" style="background-color: {{ color.color }};"><i class="bi bi-check-lg"></i></span>
+                                    <span class="folder-color-name">{{ color.name }}</span>
+                                </label>
                             {% endfor %}
-                        </select>
+                        </div>
                         <div class="form-text">{% trans 'Farbliche Markierung des Ordners' %}</div>
-                    </div>
+                    </fieldset>
 
                     <div class="d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-outline-secondary rounded-4" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
@@ -53,3 +62,60 @@
         </div>
     </div>
 </div> 
+
+<style>
+    .folder-color-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .25rem;
+        width: 4.25rem;
+        cursor: pointer;
+    }
+    .folder-color-swatch {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(0, 0, 0, .15);
+        box-shadow: 0 0 0 3px transparent;
+        transition: box-shadow .15s, transform .15s;
+        color: #fff;
+        font-size: 1.1rem;
+    }
+    .folder-color-swatch .bi-check-lg {
+        visibility: hidden;
+        /* Haken auf hellen wie dunklen Farben lesbar */
+        filter: drop-shadow(0 0 2px rgba(0, 0, 0, .6));
+    }
+    .folder-color-swatch-none {
+        background: var(--bs-body-bg);
+        color: var(--bs-secondary);
+    }
+    .folder-color-name {
+        font-size: .75rem;
+        line-height: 1.1;
+        text-align: center;
+        color: var(--bs-secondary-color);
+        overflow-wrap: anywhere;
+    }
+    .folder-color-option:hover .folder-color-swatch {
+        transform: scale(1.08);
+    }
+    .btn-check:checked + .folder-color-option .folder-color-swatch {
+        box-shadow: 0 0 0 2px var(--bs-body-bg), 0 0 0 4px var(--bs-primary);
+    }
+    .btn-check:checked + .folder-color-option .bi-check-lg {
+        visibility: visible;
+    }
+    .btn-check:checked + .folder-color-option .folder-color-name {
+        color: var(--bs-body-color);
+        font-weight: 600;
+    }
+    .btn-check:focus-visible + .folder-color-option .folder-color-swatch {
+        outline: 2px solid var(--bs-primary);
+        outline-offset: 4px;
+    }
+</style>

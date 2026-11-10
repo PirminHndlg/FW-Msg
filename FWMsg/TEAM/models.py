@@ -6,35 +6,33 @@ import string
 from Global.models import OrgModel, Einsatzland2
 from django.db.models.signals import post_save
 from django.contrib.auth.models import User
+from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 class Team(OrgModel):
+    AUFGABENUEBERSICHT_CHOICES = [
+        ('N', 'Keine'),
+        ('L', 'Nur für Freiwillige im Einsatzland des Teammitglieds'),
+        ('A', 'Für alle Freiwillige'),
+    ]
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Benutzer:in')
     land = models.ManyToManyField(Einsatzland2, verbose_name='Länderzuständigkeit', blank=True)
-
+    aufgabenuebersicht = models.CharField(
+        max_length=1,
+        choices=AUFGABENUEBERSICHT_CHOICES,
+        default='N',
+        verbose_name='Aufgabenübersicht',
+        help_text='Legt fest, für welche Freiwillige diesem Teammitglied Aufgaben angezeigt werden'
+    )
+    
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'Teammitglied'
-        verbose_name_plural = 'Team'
+        verbose_name = _('Teammitglied')
+        verbose_name_plural = _('Team')
 
     def __str__(self):
-        return f'{self.user.last_name}, {self.user.first_name}'
-
-@receiver(post_save, sender=Team)
-def create_user(sender, instance, **kwargs):
-    return
-    if not instance.user:
-        from Global.models import CustomUser
-
-        default_username = instance.last_name.lower().replace(' ', '_')
-        user = User.objects.create(username=default_username, email=instance.email)
-        random_password = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
-        user.set_password(random_password)
-        user.save()
-    
-        einmalpasswort = random.randint(10000000, 99999999)
-        customuser = CustomUser.objects.create(user=user, org=instance.org, role='T', einmalpasswort=einmalpasswort)
-        
-        instance.user = user
-        instance.save()
+        if self.user:
+            return f"{self.user.first_name} {self.user.last_name}".strip() or self.user.username
+        return "Teammitglied (No User)"

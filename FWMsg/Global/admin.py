@@ -3,22 +3,43 @@ import random
 from django.contrib import admin
 from django.utils import timezone
 from django.http import HttpResponseRedirect
-from django.urls import path
+from django.urls import path, reverse
 from django.contrib import messages
 from django.utils.html import format_html
 from .models import (
-    Ampel2, Attribute, CustomUser, Einsatzland2, 
+    Ampel2, AmpelConfiguration, DeepTalkFrage, DeepTalkTag, Attribute, CustomUser, Einsatzland2, 
     Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, 
     Organisation, Aufgabe2, DokumentColor2, Dokument2, 
-    Ordner2, Notfallkontakt2, Post2, AufgabeZwischenschritte2, PushSubscription, 
-    UserAttribute, UserAufgabenZwischenschritte, UserAufgaben, 
+    Ordner2, Notfallkontakt2, Post2, PostResponse, PushSubscription, 
+    UserAttribute, UserAufgaben, 
     AufgabenCluster, Bilder2, BilderGallery2, BilderComment, BilderReaction, ProfilUser2, Maintenance,
-    PostSurveyAnswer, PostSurveyQuestion, EinsatzstelleNotiz, StickyNote, ChangeRequest
+    PostSurveyAnswer, PostSurveyQuestion, EinsatzstelleNotiz, StickyNote, ChangeRequest, MapLocation
 )
 from TEAM.models import Team
 from FW.models import Freiwilliger
 from FWMsg.celery import send_email_aufgaben_daily
 from simple_history.admin import SimpleHistoryAdmin
+
+class OnlineStatusFilter(admin.SimpleListFilter):
+    """Online = active within the last 5 minutes, same as CustomUser.is_currently_online()
+    (the is_online flag is only reset occasionally by OfflineStatusMiddleware)."""
+    title = 'Online'
+    parameter_name = 'online'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'Online'),
+            ('no', 'Offline'),
+        )
+
+    def queryset(self, request, queryset):
+        threshold = timezone.now() - timedelta(minutes=5)
+        if self.value() == 'yes':
+            return queryset.filter(last_seen__gt=threshold)
+        if self.value() == 'no':
+            return queryset.exclude(last_seen__gt=threshold)
+        return queryset
+
 
 # Register your models here.
 @admin.register(CustomUser)
@@ -33,7 +54,7 @@ class CustomUserAdmin(SimpleHistoryAdmin):
         'get_last_login',
         'get_online_status_display',
     )
-    list_filter = ('person_cluster', 'mail_notifications', ('einmalpasswort', admin.EmptyFieldListFilter))
+    list_filter = (OnlineStatusFilter, 'person_cluster', 'mail_notifications', ('einmalpasswort', admin.EmptyFieldListFilter))
     readonly_fields = ('mail_notifications_unsubscribe_auth_key',)
 
     @admin.display(ordering='last_seen', description='Online Status')
@@ -329,6 +350,28 @@ class PostAdmin(admin.ModelAdmin):
     get_cluster_count.short_description = 'Audience Count'
 
 
+@admin.register(PostResponse)
+class PostResponseAdmin(admin.ModelAdmin):
+    list_display = ['original_post', 'user', 'get_text_preview', 'has_image', 'date_created', 'date_updated']
+    search_fields = ['text', 'user__username', 'user__first_name', 'user__last_name', 'original_post__title']
+    list_filter = ['date_created', 'date_updated', 'original_post']
+    readonly_fields = ['date_created', 'date_updated']
+    raw_id_fields = ['original_post', 'user']
+
+    def get_text_preview(self, obj):
+        if not obj.text:
+            return ''
+        if len(obj.text) > 50:
+            return obj.text[:50] + '...'
+        return obj.text
+    get_text_preview.short_description = 'Text'
+
+    def has_image(self, obj):
+        return bool(obj.image)
+    has_image.boolean = True
+    has_image.short_description = 'Bild'
+
+
 @admin.register(Aufgabe2)
 class AufgabeAdmin(admin.ModelAdmin):
     list_display = ['name', 'faellig_art', 'mitupload', 'requires_submission', 'wiederholung', 'get_cluster_count']
@@ -397,48 +440,12 @@ class AufgabeAdmin(admin.ModelAdmin):
         self.message_user(request, f"Task type set to 'Nach Einsatz' for {queryset.count()} tasks")
 
 
-@admin.register(AufgabeZwischenschritte2)
-class AufgabeZwischenschritteAdmin(admin.ModelAdmin):
-    list_display = ['name', 'aufgabe', 'get_description_preview']
-    search_fields = ['name', 'aufgabe__name', 'beschreibung']
-    list_filter = ['aufgabe']
-    
-    def get_description_preview(self, obj):
-        if obj.beschreibung and len(obj.beschreibung) > 50:
-            return obj.beschreibung[:50] + "..."
-        return obj.beschreibung or ""
-    get_description_preview.short_description = 'Description'
-
-
-@admin.register(UserAufgabenZwischenschritte)
-class UserAufgabenZwischenschritteAdmin(admin.ModelAdmin):
-    list_display = ['get_user_name', 'get_aufgabe_name', 'get_zwischenschritt_name', 'erledigt']
-    search_fields = ['user_aufgabe__user__first_name', 'user_aufgabe__user__last_name', 
-                    'aufgabe_zwischenschritt__name', 'user_aufgabe__aufgabe__name']
-    list_filter = ['erledigt', 'aufgabe_zwischenschritt', 'user_aufgabe__aufgabe']
-    
-    def get_user_name(self, obj):
-        user = obj.user_aufgabe.user
-        return f"{user.first_name} {user.last_name}"
-    get_user_name.short_description = 'User'
-    get_user_name.admin_order_field = 'user_aufgabe__user__first_name'
-    
-    def get_aufgabe_name(self, obj):
-        return obj.user_aufgabe.aufgabe.name
-    get_aufgabe_name.short_description = 'Task'
-    get_aufgabe_name.admin_order_field = 'user_aufgabe__aufgabe__name'
-    
-    def get_zwischenschritt_name(self, obj):
-        return obj.aufgabe_zwischenschritt.name
-    get_zwischenschritt_name.short_description = 'Step'
-    get_zwischenschritt_name.admin_order_field = 'aufgabe_zwischenschritt__name'
-
-
 @admin.register(Ampel2)
 class AmpelAdmin(admin.ModelAdmin):
-    list_display = ['user', 'get_user_full_name', 'status', 'get_comment_preview', 'date']
+    list_display = ['user', 'get_user_full_name', 'status', 'get_comment_preview', 'date', 'read', 'create_manuell']
     search_fields = ['user__username', 'user__first_name', 'user__last_name', 'comment']
-    list_filter = ['status', 'date']
+    list_filter = ['status', 'date', 'read', 'create_manuell']
+    fields = ['org', 'user', 'status', 'comment', 'date', 'read', 'create_manuell', 'submission_key']
     
     def get_user_full_name(self, obj):
         return f"{obj.user.first_name} {obj.user.last_name}"
@@ -449,6 +456,13 @@ class AmpelAdmin(admin.ModelAdmin):
             return obj.comment[:50] + "..."
         return obj.comment or ""
     get_comment_preview.short_description = 'Comment'
+
+
+@admin.register(AmpelConfiguration)
+class AmpelConfigurationAdmin(admin.ModelAdmin):
+    list_display = ['person_cluster', 'enabled', 'language', 'reminder_interval_days', 'reminder_start_date', 'reminder_end_date', 'org']
+    search_fields = ['person_cluster__name', 'message_text']
+    list_filter = ['enabled', 'language', 'reminder_interval_days']
 
 
 @admin.register(UserAufgaben)
@@ -519,23 +533,161 @@ class BilderAdmin(admin.ModelAdmin):
 
 @admin.register(BilderGallery2)
 class BilderGalleryAdmin(admin.ModelAdmin):
-    list_display = ['get_image_name', 'bilder', 'get_bilder_title', 'has_small_image']
+    list_display = ['image_preview', 'get_image_name', 'bilder', 'get_bilder_title', 'has_small_image']
     search_fields = ['bilder__titel', 'image']
     list_filter = ['bilder']
-    
+    readonly_fields = ['image_preview', 'image_preview_large', 'rotation_controls']
+    actions = ['rotate_90_clockwise', 'rotate_90_counterclockwise']
+
+    def image_preview(self, obj):
+        if not obj.pk:
+            return '-'
+        if obj.small_image:
+            url = reverse('serve_small_bilder', args=[obj.pk])
+        elif obj.image:
+            url = reverse('serve_bilder', args=[obj.pk])
+        else:
+            return '-'
+        return format_html(
+            '<img src="{}" style="height:60px; width:auto; border-radius:3px; object-fit:cover;" />',
+            url,
+        )
+    image_preview.short_description = 'Preview'
+
+    def image_preview_large(self, obj):
+        if not obj.pk or not obj.image:
+            return '-'
+        url = reverse('serve_bilder', args=[obj.pk])
+        return format_html(
+            '<img src="{}" style="max-height:400px; max-width:100%; border-radius:4px;" />',
+            url,
+        )
+    image_preview_large.short_description = 'Image Preview'
+
+    def rotation_controls(self, obj):
+        if not obj.pk:
+            return '-'
+        img_cw_url  = reverse('admin:bildergallery2_rotate_image_cw',  args=[obj.pk])
+        img_ccw_url = reverse('admin:bildergallery2_rotate_image_ccw', args=[obj.pk])
+        small_cw_url  = reverse('admin:bildergallery2_rotate_small_cw',  args=[obj.pk])
+        small_ccw_url = reverse('admin:bildergallery2_rotate_small_ccw', args=[obj.pk])
+        btn = 'style="margin-right:6px;"'
+        return format_html(
+            '<strong>Original:</strong>&nbsp;'
+            '<a href="{}" class="button" {}>&#8635; 90° CW</a>'
+            '<a href="{}" class="button">&#8634; 90° CCW</a>'
+            '&emsp;<strong>Vorschau (small):</strong>&nbsp;'
+            '<a href="{}" class="button" {}>&#8635; 90° CW</a>'
+            '<a href="{}" class="button">&#8634; 90° CCW</a>',
+            img_cw_url, btn, img_ccw_url,
+            small_cw_url, btn, small_ccw_url,
+        )
+    rotation_controls.short_description = 'Bild drehen'
+
+    def get_urls(self):
+        custom_urls = [
+            path('<int:pk>/rotate_image_cw/',
+                 self.admin_site.admin_view(self.rotate_image_cw_view),
+                 name='bildergallery2_rotate_image_cw'),
+            path('<int:pk>/rotate_image_ccw/',
+                 self.admin_site.admin_view(self.rotate_image_ccw_view),
+                 name='bildergallery2_rotate_image_ccw'),
+            path('<int:pk>/rotate_small_cw/',
+                 self.admin_site.admin_view(self.rotate_small_cw_view),
+                 name='bildergallery2_rotate_small_cw'),
+            path('<int:pk>/rotate_small_ccw/',
+                 self.admin_site.admin_view(self.rotate_small_ccw_view),
+                 name='bildergallery2_rotate_small_ccw'),
+        ]
+        return custom_urls + super().get_urls()
+
+    def _redirect_to_change(self, pk):
+        return HttpResponseRedirect(
+            reverse('admin:Global_bildergallery2_change', args=[pk])
+        )
+
+    def rotate_image_cw_view(self, request, pk):
+        obj = self.get_object(request, str(pk))
+        if obj:
+            self._rotate_single_field(obj, 'image', 90)
+            self.message_user(request, "Original 90° im Uhrzeigersinn gedreht.", messages.SUCCESS)
+        return self._redirect_to_change(pk)
+
+    def rotate_image_ccw_view(self, request, pk):
+        obj = self.get_object(request, str(pk))
+        if obj:
+            self._rotate_single_field(obj, 'image', -90)
+            self.message_user(request, "Original 90° gegen den Uhrzeigersinn gedreht.", messages.SUCCESS)
+        return self._redirect_to_change(pk)
+
+    def rotate_small_cw_view(self, request, pk):
+        obj = self.get_object(request, str(pk))
+        if obj:
+            self._rotate_single_field(obj, 'small_image', 90)
+            self.message_user(request, "Vorschaubild 90° im Uhrzeigersinn gedreht.", messages.SUCCESS)
+        return self._redirect_to_change(pk)
+
+    def rotate_small_ccw_view(self, request, pk):
+        obj = self.get_object(request, str(pk))
+        if obj:
+            self._rotate_single_field(obj, 'small_image', -90)
+            self.message_user(request, "Vorschaubild 90° gegen den Uhrzeigersinn gedreht.", messages.SUCCESS)
+        return self._redirect_to_change(pk)
+
     def get_image_name(self, obj):
         return obj.image.name.split('/')[-1]
     get_image_name.short_description = 'Image'
-    
+
     def get_bilder_title(self, obj):
         return obj.bilder.titel
     get_bilder_title.short_description = 'Album Title'
     get_bilder_title.admin_order_field = 'bilder__titel'
-    
+
     def has_small_image(self, obj):
         return bool(obj.small_image)
     has_small_image.boolean = True
     has_small_image.short_description = 'Has Small Image'
+
+    def _rotate_single_field(self, obj, field_name, degrees):
+        """Rotate one image field (image or small_image) in place."""
+        from PIL import Image as PilImage
+        import io
+        from django.core.files.base import ContentFile
+
+        field = getattr(obj, field_name)
+        if not field:
+            return
+        try:
+            field.open('rb')
+            img = PilImage.open(field)
+            img.load()
+            field.close()
+            rotated = img.rotate(-degrees, expand=True)  # negative = clockwise
+            img_io = io.BytesIO()
+            fmt = img.format or 'JPEG'
+            rotated.save(img_io, format=fmt, optimize=True)
+            original_name = field.name.split('/')[-1]
+            field.save(original_name, ContentFile(img_io.getvalue()), save=False)
+        except Exception:
+            pass
+        obj.save()
+
+    def _rotate_image(self, obj, degrees):
+        """Rotate both image and small_image (used by list actions)."""
+        for field_name in ('image', 'small_image'):
+            self._rotate_single_field(obj, field_name, degrees)
+
+    def rotate_90_clockwise(self, request, queryset):
+        for obj in queryset:
+            self._rotate_image(obj, 90)
+        self.message_user(request, f"{queryset.count()} image(s) rotated 90° clockwise.", messages.SUCCESS)
+    rotate_90_clockwise.short_description = "Rotate 90° clockwise"
+
+    def rotate_90_counterclockwise(self, request, queryset):
+        for obj in queryset:
+            self._rotate_image(obj, -90)
+        self.message_user(request, f"{queryset.count()} image(s) rotated 90° counter-clockwise.", messages.SUCCESS)
+    rotate_90_counterclockwise.short_description = "Rotate 90° counter-clockwise"
 
 
 @admin.register(ProfilUser2)
@@ -713,3 +865,25 @@ class ChangeRequestAdmin(SimpleHistoryAdmin):
         if updated:
             messages.success(request, f'{updated} Änderungsanträge wurden abgelehnt.')
     reject_requests.short_description = 'Ausgewählte Anträge ablehnen'
+
+
+@admin.register(MapLocation)
+class MapLocationAdmin(admin.ModelAdmin):
+    list_display = ['city', 'country', 'zip_code', 'user', 'visibility', 'date_created', 'latitude', 'longitude']
+    search_fields = ['city', 'country', 'zip_code', 'user__username', 'user__first_name', 'user__last_name']
+    list_filter = ['visibility', 'country', 'date_created']
+    readonly_fields = ['date_created']
+
+@admin.register(DeepTalkFrage)
+class DeepTalkFrageAdmin(admin.ModelAdmin):
+    list_display = ['text', 'org', 'active', 'date_created']
+    list_filter = ['active', 'org']
+    search_fields = ['text']
+    readonly_fields = ['text_normalized', 'date_created']
+
+
+@admin.register(DeepTalkTag)
+class DeepTalkTagAdmin(admin.ModelAdmin):
+    list_display = ['datum', 'org', 'frage']
+    list_filter = ['org']
+    date_hierarchy = 'datum'

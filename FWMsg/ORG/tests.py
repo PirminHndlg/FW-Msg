@@ -7,11 +7,12 @@ from FW.models import Freiwilliger
 from .models import Organisation
 from Global.models import (
     Aufgabe2, Bilder2, BilderGallery2, UserAufgaben, PersonCluster, CustomUser,
-    UserAttribute, Attribute
+    UserAttribute, Attribute, Ampel2, AmpelConfiguration
 )
 from BW.models import Bewerber
 from ORG.forms import AddBewerberApplicationPdfForm
 import json
+from unittest.mock import patch
 from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -436,6 +437,203 @@ class AmpelTests(TestCase):
         response = self.client.get(reverse('list_ampel') + '?person_cluster_filter=' + str(no_ampel_cluster.id))
         self.assertEqual(response.status_code, 200)
         self.assertIn('ampel_matrix', response.context)
+
+    def test_list_ampel_edit_pencils_for_all_clusters(self):
+        """O users get AmpelConfiguration for every ampel cluster and pencil in each btn-group"""
+        response = self.client.get(reverse('list_ampel') + '?person_cluster_filter=None')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            AmpelConfiguration.objects.filter(person_cluster=self.person_cluster_fw).exists()
+        )
+        self.assertTrue(
+            AmpelConfiguration.objects.filter(person_cluster=self.person_cluster_org).exists()
+        )
+        fw_config = AmpelConfiguration.objects.get(person_cluster=self.person_cluster_fw)
+        org_config = AmpelConfiguration.objects.get(person_cluster=self.person_cluster_org)
+        self.assertContains(response, reverse('edit_object', args=['ampelconfiguration', fw_config.id]))
+        self.assertContains(response, reverse('edit_object', args=['ampelconfiguration', org_config.id]))
+        self.assertContains(response, 'btn-group')
+        self.assertContains(response, 'bi-bell')
+
+    def test_edit_ampel_configuration(self):
+        """AmpelConfiguration can be edited via edit_object"""
+        config = AmpelConfiguration.objects.create(
+            org=self.org,
+            person_cluster=self.person_cluster_fw,
+            reminder_interval_days=7,
+        )
+        url = reverse('edit_object', args=['ampelconfiguration', config.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.person_cluster_fw.name)
+
+        response = self.client.post(url + f'?next={reverse("list_ampel")}', {
+            'enabled': True,
+            'language': 'en',
+            'reminder_interval_days': 14,
+            'reminder_start_date': '2026-01-01',
+            'reminder_end_date': '2026-12-31',
+            'message_text': 'Bitte Ampel abgeben.',
+        })
+        self.assertEqual(response.status_code, 302)
+        config.refresh_from_db()
+        self.assertTrue(config.enabled)
+        self.assertEqual(config.language, 'en')
+        self.assertEqual(config.reminder_interval_days, 14)
+        self.assertEqual(config.message_text, 'Bitte Ampel abgeben.')
+        self.assertEqual(str(config.reminder_start_date), '2026-01-01')
+        self.assertEqual(str(config.reminder_end_date), '2026-12-31')
+
+    def _send_reminder_post(self):
+        return self.client.post(reverse('list_ampel'), {
+            'action': 'send_ampel_reminder',
+            'user_id': self.user.id,
+        })
+
+    def test_reminder_button_hidden_when_config_inactive(self):
+        AmpelConfiguration.objects.create(org=self.org, person_cluster=self.person_cluster_fw, enabled=False)
+        response = self.client.get(reverse('list_ampel') + '?person_cluster_filter=None')
+        self.assertNotContains(response, 'ampel-reminder-btn')
+
+    def test_reminder_button_shows_last_reminder(self):
+        AmpelConfiguration.objects.create(org=self.org, person_cluster=self.person_cluster_fw, enabled=True)
+        self.custom_user.last_ampel_reminder = timezone.now().date() - timedelta(days=3)
+        self.custom_user.save()
+        response = self.client.get(reverse('list_ampel') + '?person_cluster_filter=None')
+        self.assertContains(response, 'ampel-reminder-btn')
+        self.assertContains(response, self.custom_user.last_ampel_reminder.strftime('%d.%m.%Y'))
+
+    @patch('Global.send_email.send_email_with_archive')
+    @patch('Global.send_email.send_push_notification_to_user')
+    def test_send_manual_reminder(self, mock_push, mock_mail):
+        AmpelConfiguration.objects.create(org=self.org, person_cluster=self.person_cluster_fw, enabled=True)
+        response = self._send_reminder_post()
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['success'])
+        mock_push.assert_called_once()
+        self.custom_user.refresh_from_db()
+        self.assertEqual(self.custom_user.last_ampel_reminder, timezone.now().date())
+
+    @patch('Global.send_email.send_email_with_archive')
+    @patch('Global.send_email.send_push_notification_to_user')
+    def test_send_manual_reminder_rejected_when_sent_today(self, mock_push, mock_mail):
+        AmpelConfiguration.objects.create(org=self.org, person_cluster=self.person_cluster_fw, enabled=True)
+        self.custom_user.last_ampel_reminder = timezone.now().date()
+        self.custom_user.save()
+        response = self.client.get(reverse('list_ampel') + '?person_cluster_filter=None')
+        self.assertContains(response, 'Heute bereits gesendet')
+        response = self._send_reminder_post()
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(response.json()['success'])
+        mock_push.assert_not_called()
+
+    @patch('Global.send_email.send_email_with_archive')
+    @patch('Global.send_email.send_push_notification_to_user')
+    def test_send_manual_reminder_rejected_outside_period(self, mock_push, mock_mail):
+        AmpelConfiguration.objects.create(
+            org=self.org, person_cluster=self.person_cluster_fw, enabled=True,
+            reminder_end_date=timezone.now().date() - timedelta(days=1),
+        )
+        response = self._send_reminder_post()
+        self.assertEqual(response.status_code, 400)
+        mock_push.assert_not_called()
+        mock_mail.assert_not_called()
+        self.custom_user.refresh_from_db()
+        self.assertIsNone(self.custom_user.last_ampel_reminder)
+
+
+class AmpelReminderLogicTests(TestCase):
+    def setUp(self):
+        self.org = Organisation.objects.create(name='Test Org', email='test@test.com')
+        self.person_cluster = PersonCluster.objects.create(
+            org=self.org, name='FW', view='F', ampel=True, active=True
+        )
+        self.user = get_user_model().objects.create_user(
+            username='fw', password='pass', email='fw@test.com', first_name='F', last_name='W'
+        )
+        self.custom_user = CustomUser.objects.create(
+            org=self.org, user=self.user, person_cluster=self.person_cluster
+        )
+        self.config = AmpelConfiguration.objects.create(
+            org=self.org,
+            person_cluster=self.person_cluster,
+            enabled=True,
+            reminder_interval_days=7,
+            message_text='Bitte Ampel abgeben.',
+        )
+        self.today = timezone.now().date()
+
+    def test_needs_reminder_when_never_submitted(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.assertTrue(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_no_reminder_when_recent_ampel(self):
+        from Global.send_email import user_needs_ampel_reminder
+        Ampel2.objects.create(org=self.org, user=self.user, status='G', comment='')
+        self.assertFalse(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_needs_reminder_when_ampel_old_enough(self):
+        from Global.send_email import user_needs_ampel_reminder
+        ampel = Ampel2.objects.create(org=self.org, user=self.user, status='G', comment='')
+        Ampel2.objects.filter(pk=ampel.pk).update(
+            date=timezone.now() - timedelta(days=10)
+        )
+        self.assertTrue(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_no_reminder_when_recently_reminded(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.custom_user.last_ampel_reminder = self.today - timedelta(days=2)
+        self.custom_user.save()
+        self.assertFalse(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_interval_zero_disables(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.config.reminder_interval_days = 0
+        self.config.save()
+        self.assertFalse(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_enabled_false_disables(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.config.enabled = False
+        self.config.save()
+        self.assertFalse(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+        self.assertFalse(self.config.reminders_are_active(today=self.today))
+
+    def test_reminders_are_active_bell_state(self):
+        self.assertTrue(self.config.reminders_are_active(today=self.today))
+        self.config.enabled = False
+        self.assertFalse(self.config.reminders_are_active(today=self.today))
+        self.config.enabled = True
+        self.config.reminder_end_date = self.today - timedelta(days=1)
+        self.assertFalse(self.config.reminders_are_active(today=self.today))
+
+    def test_no_reminder_before_start_date(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.config.reminder_start_date = self.today + timedelta(days=1)
+        self.config.save()
+        self.assertFalse(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_no_reminder_after_end_date(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.config.reminder_end_date = self.today - timedelta(days=1)
+        self.config.save()
+        self.assertFalse(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_reminder_within_date_range(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.config.reminder_start_date = self.today - timedelta(days=1)
+        self.config.reminder_end_date = self.today + timedelta(days=1)
+        self.config.save()
+        self.assertTrue(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+
+    def test_empty_dates_do_not_restrict(self):
+        from Global.send_email import user_needs_ampel_reminder
+        self.config.reminder_start_date = None
+        self.config.reminder_end_date = None
+        self.config.save()
+        self.assertTrue(user_needs_ampel_reminder(self.user, self.config, today=self.today))
+        self.assertTrue(self.config.is_within_reminder_period(today=self.today))
+
         
 class StatistikTests(TestCase):
     def setUp(self):
@@ -1325,6 +1523,76 @@ class AjaxTaskOperationsTests(TestCase):
         self.assertFalse(user_aufgabe.erledigt)
         self.assertFalse(user_aufgabe.pending)
         self.assertIsNone(user_aufgabe.erledigt_am)
+
+
+    # --- Zuweisung zurücksetzen -------------------------------------------
+
+    def _reset_task(self, payload):
+        return self.client.post(
+            reverse('ajax_reset_task_assignment'),
+            data=json.dumps(payload),
+            content_type='application/json'
+        )
+
+    def test_ajax_reset_task_assignment_only_visible_users(self):
+        """Only assignments of the sent (visible) users for this task are deleted"""
+        UserAufgaben.objects.create(org=self.org, user=self.user, aufgabe=self.aufgabe)
+        UserAufgaben.objects.create(org=self.org, user=self.user2, aufgabe=self.aufgabe)
+        other_task = UserAufgaben.objects.create(org=self.org, user=self.user, aufgabe=self.aufgabe2)
+
+        response = self._reset_task({'aufgabe_id': self.aufgabe.id, 'user_ids': [self.user.id]})
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertTrue(data['success'])
+        self.assertEqual(data['deleted_count'], 1)
+        self.assertFalse(UserAufgaben.objects.filter(user=self.user, aufgabe=self.aufgabe).exists())
+        self.assertTrue(UserAufgaben.objects.filter(user=self.user2, aufgabe=self.aufgabe).exists())
+        self.assertTrue(UserAufgaben.objects.filter(id=other_task.id).exists())
+
+    def test_ajax_reset_task_assignment_respects_person_cluster_filter(self):
+        """Users outside the selected person cluster are not affected, even if their id is sent"""
+        other_cluster = PersonCluster.objects.create(org=self.org, name='Andere Gruppe', view='F', aufgaben=True)
+        self.custom_user2.person_cluster = other_cluster
+        self.custom_user2.save()
+        UserAufgaben.objects.create(org=self.org, user=self.user, aufgabe=self.aufgabe)
+        UserAufgaben.objects.create(org=self.org, user=self.user2, aufgabe=self.aufgabe)
+
+        response = self._reset_task({
+            'aufgabe_id': self.aufgabe.id,
+            'person_cluster_id': str(self.person_cluster_fw.id),
+            'user_ids': [self.user.id, self.user2.id],
+        })
+
+        self.assertEqual(json.loads(response.content)['deleted_count'], 1)
+        self.assertTrue(UserAufgaben.objects.filter(user=self.user2, aufgabe=self.aufgabe).exists())
+
+    def test_ajax_reset_task_assignment_other_org_task(self):
+        """Tasks of another organization cannot be reset"""
+        other_org = Organisation.objects.create(name='Andere Org', email='other@test.com')
+        other_aufgabe = Aufgabe2.objects.create(org=other_org, name='Fremd')
+
+        response = self._reset_task({'aufgabe_id': other_aufgabe.id, 'user_ids': [self.user.id]})
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_ajax_reset_task_assignment_requires_user_ids(self):
+        """Without visible users nothing is deleted"""
+        UserAufgaben.objects.create(org=self.org, user=self.user, aufgabe=self.aufgabe)
+
+        response = self._reset_task({'aufgabe_id': self.aufgabe.id, 'user_ids': []})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(UserAufgaben.objects.filter(user=self.user, aufgabe=self.aufgabe).exists())
+
+    def test_ajax_reset_task_assignment_requires_org_role(self):
+        """Volunteers cannot reset assignments"""
+        UserAufgaben.objects.create(org=self.org, user=self.user, aufgabe=self.aufgabe)
+        self.client.login(username='testuser', password='testpass123')
+
+        self._reset_task({'aufgabe_id': self.aufgabe.id, 'user_ids': [self.user.id]})
+
+        self.assertTrue(UserAufgaben.objects.filter(user=self.user, aufgabe=self.aufgabe).exists())
 
 
 class TaskTemplateStateTests(TestCase):
@@ -2373,6 +2641,64 @@ class BewerberPdfUploadTests(TestCase):
         self.assertGreater(results['success'], 15, 
                           f"Expected at least 15 successful uploads, got {results['success']} successes and {results['errors']} errors")
 
+class BewerberProfilPictureUploadTests(TestCase):
+    """Profilbild-Upload über add/edit von Bewerber:innen (save_form ruft form.save() zweimal auf)"""
+
+    def setUp(self):
+        import tempfile
+        from django.test import override_settings
+        media_override = override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+        media_override.enable()
+        self.addCleanup(media_override.disable)
+
+        self.org = Organisation.objects.create(name='Test Org', email='test@test.com')
+        org_cluster = PersonCluster.objects.create(org=self.org, name='Org', view='O')
+        self.bewerber_cluster = PersonCluster.objects.create(org=self.org, name='Bewerber', view='B')
+        admin = get_user_model().objects.create_user(username='admin', password='adminpass123')
+        CustomUser.objects.create(org=self.org, user=admin, person_cluster=org_cluster)
+        self.client.login(username='admin', password='adminpass123')
+        self.data = {
+            'first_name': 'Bea',
+            'last_name': 'Werber',
+            'email': 'bea@test.com',
+            'person_cluster': self.bewerber_cluster.id,
+        }
+
+    def _image(self):
+        buffer = BytesIO()
+        Image.new('RGB', (800, 600), 'red').save(buffer, 'JPEG')
+        return SimpleUploadedFile('bild.jpg', buffer.getvalue(), content_type='image/jpeg')
+
+    def _profil_picture(self, bewerber):
+        bewerber.user.customuser.refresh_from_db()
+        return bewerber.user.customuser.profil_picture
+
+    def test_create_with_profil_picture(self):
+        response = self.client.post(
+            reverse('add_object', args=['bewerber']), {**self.data, 'profil_picture': self._image()}
+        )
+        self.assertEqual(response.status_code, 302)
+        picture = self._profil_picture(Bewerber.objects.get(org=self.org))
+        self.assertTrue(picture)
+        self.assertTrue(picture.storage.exists(picture.name))
+
+    def test_edit_replaces_and_keeps_profil_picture(self):
+        self.client.post(reverse('add_object', args=['bewerber']), self.data)
+        bewerber = Bewerber.objects.get(org=self.org)
+        self.assertFalse(self._profil_picture(bewerber))
+
+        edit_url = reverse('edit_object', args=['bewerber', bewerber.id])
+        response = self.client.post(edit_url, {**self.data, 'profil_picture': self._image()})
+        self.assertEqual(response.status_code, 302)
+        picture = self._profil_picture(bewerber)
+        self.assertTrue(picture)
+        self.assertTrue(picture.storage.exists(picture.name))
+
+        # Speichern ohne neuen Upload behält das Bild
+        self.client.post(edit_url, self.data)
+        self.assertEqual(self._profil_picture(bewerber).name, picture.name)
+
+
 class GetCascadeInfoTestCase(TestCase):
     """Test suite for get_cascade_info view function"""
     
@@ -2607,3 +2933,164 @@ class GetCascadeInfoTestCase(TestCase):
         for cascade_obj in data['cascade_objects']:
             self.assertGreater(cascade_obj['count'], 0)
             self.assertIsInstance(cascade_obj['count'], int)
+
+
+class GetOwnSigninUrlTests(TestCase):
+    def setUp(self):
+        self.org = Organisation.objects.create(
+            name='Test Org',
+            email='test@test.com',
+        )
+        self.other_org = Organisation.objects.create(
+            name='Other Org',
+            email='other@test.com',
+        )
+        self.person_cluster_org = PersonCluster.objects.create(
+            org=self.org,
+            name='Organisation',
+            view='O',
+        )
+        self.person_cluster_fw = PersonCluster.objects.create(
+            org=self.org,
+            name='Freiwillige',
+            view='F',
+        )
+        self.other_org_cluster = PersonCluster.objects.create(
+            org=self.other_org,
+            name='Other Cluster',
+            view='F',
+        )
+
+        self.admin_user = get_user_model().objects.create_user(
+            username='orgadmin',
+            password='adminpass123',
+        )
+        CustomUser.objects.create(
+            org=self.org,
+            user=self.admin_user,
+            person_cluster=self.person_cluster_org,
+        )
+
+        self.volunteer_user = get_user_model().objects.create_user(
+            username='volunteer',
+            password='volpass123',
+        )
+        CustomUser.objects.create(
+            org=self.org,
+            user=self.volunteer_user,
+            person_cluster=self.person_cluster_fw,
+        )
+
+        self.client.login(username='orgadmin', password='adminpass123')
+
+    def _post_own_signin_url(self, person_cluster_id):
+        return self.client.post(
+            reverse('get_own_signin_url'),
+            data=json.dumps({'personClusterId': person_cluster_id}),
+            content_type='application/json',
+        )
+
+    def test_org_admin_gets_own_signin_url(self):
+        self.assertIsNone(self.person_cluster_fw.own_signin_token)
+
+        response = self._post_own_signin_url(self.person_cluster_fw.pk)
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertTrue(data['success'])
+        self.assertIn('/p/signin/', data['url'])
+        self.assertNotIn('own_signin_token', data)
+
+        self.person_cluster_fw.refresh_from_db()
+        self.assertIsNotNone(self.person_cluster_fw.own_signin_token)
+        self.assertIn(self.person_cluster_fw.own_signin_token, data['url'])
+
+    def test_other_org_cluster_returns_404(self):
+        response = self._post_own_signin_url(self.other_org_cluster.pk)
+
+        self.assertEqual(response.status_code, 404)
+        data = json.loads(response.content)
+        self.assertFalse(data['success'])
+
+    def test_unauthenticated_returns_redirect(self):
+        self.client.logout()
+        response = self._post_own_signin_url(self.person_cluster_fw.pk)
+        self.assertEqual(response.status_code, 302)
+
+    def test_non_org_user_returns_403(self):
+        self.client.logout()
+        self.client.login(username='volunteer', password='volpass123')
+
+        response = self._post_own_signin_url(self.person_cluster_fw.pk)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_get_request_returns_405(self):
+        response = self.client.get(reverse('get_own_signin_url'))
+        self.assertEqual(response.status_code, 405)
+
+    def test_missing_person_cluster_id_returns_400(self):
+        response = self.client.post(
+            reverse('get_own_signin_url'),
+            data=json.dumps({}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.content)
+        self.assertFalse(data['success'])
+
+
+class BewerberListFilterCookieTests(TestCase):
+    def setUp(self):
+        self.org = Organisation.objects.create(name='Test Org', email='test@test.com')
+        self.pc_org = PersonCluster.objects.create(org=self.org, name='Org', view='O')
+        self.pc_bw = PersonCluster.objects.create(org=self.org, name='BW', view='B')
+        admin = get_user_model().objects.create_user(username='admin', password='adminpass123')
+        CustomUser.objects.create(org=self.org, user=admin, person_cluster=self.pc_org)
+        self.client.login(username='admin', password='adminpass123')
+        self.url = reverse('list_object', args=['bewerber'])
+
+    def test_seminar_filter_is_stored_in_cookie(self):
+        response = self.client.get(self.url + '?has_seminar_filter=yes')
+        self.assertEqual(response.cookies['selectedSeminarFilter'].value, 'yes')
+
+        # Without URL parameter the cookie value is used and kept
+        response = self.client.get(self.url)
+        seminar_filter = next(f for f in response.context['filter_options'] if f['param_name'] == 'has_seminar_filter')
+        self.assertTrue(seminar_filter['has_active_filter'])
+        self.assertEqual(response.cookies['selectedSeminarFilter'].value, 'yes')
+
+    def test_seminar_filter_alle_deletes_cookie(self):
+        self.client.get(self.url + '?has_seminar_filter=no')
+        response = self.client.get(self.url + '?has_seminar_filter=alle')
+        self.assertEqual(response.cookies['selectedSeminarFilter'].value, '')
+
+    def test_both_filters_are_stored(self):
+        response = self.client.get(self.url + f'?person_cluster_filter={self.pc_bw.id}&has_seminar_filter=no')
+        self.assertEqual(response.cookies['selectedPersonCluster_B'].value, str(self.pc_bw.id))
+        self.assertEqual(response.cookies['selectedSeminarFilter'].value, 'no')
+
+    def test_name_columns_are_sticky(self):
+        get_user_model().objects.create_user(username='bw', first_name='Anna', last_name='Muster')
+        Bewerber.objects.create(org=self.org, user=get_user_model().objects.get(username='bw'))
+        response = self.client.get(self.url)
+        import re
+        sticky_cells = re.findall(r'<t[hd][^>]*class="[^"]*\bsticky-col\b', response.content.decode())
+        # Nachname + Vorname in header and in the single row
+        self.assertEqual(len(sticky_cells), 4)
+
+    def test_sort_indicator_classes(self):
+        import re
+        user = get_user_model().objects.create_user(username='bw2', first_name='Anna', last_name='Muster')
+        Bewerber.objects.create(org=self.org, user=user)
+
+        def header_classes(query=''):
+            html = self.client.get(self.url + query).content.decode()
+            return re.findall(r'<th[^>]*class="([^"]*orderable[^"]*)"', html)
+
+        # Default sort (Nachname) is marked as ascending
+        self.assertIn('asc', header_classes()[0].split())
+        # Explicit sort marks the chosen column
+        classes = header_classes('?sort=-first_name')
+        self.assertNotIn('asc', classes[0].split())
+        self.assertIn('desc', classes[1].split())

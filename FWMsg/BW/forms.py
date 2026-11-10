@@ -4,7 +4,7 @@ import string
 from django import forms
 from django.contrib.auth.models import User
 from Global.models import CustomUser, PersonCluster
-from .models import ApplicationQuestion, ApplicationAnswer, Bewerber, ApplicationAnswerFile
+from BW.models import ApplicationQuestion, ApplicationAnswer, Bewerber, ApplicationAnswerFile, ApplicationText
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 
@@ -69,19 +69,25 @@ class CreateAccountForm(forms.Form):
         return cleaned_data
     
     def save(self):
-        user = User.objects.create_user(
-            username=self.cleaned_data['email'],
-            first_name=self.cleaned_data['first_name'],
-            last_name=self.cleaned_data['last_name'],
-            email=self.cleaned_data['email'],
-            password=self.cleaned_data['password']
-        )
+        from Global.models import get_or_create_new_user
         
-        person_cluster = PersonCluster.objects.filter(view='B').first()
-        custom_user, created = CustomUser.objects.get_or_create(
+        person_cluster = PersonCluster.selectable_for_org(self.org, view='B').first()
+        application_text = ApplicationText.objects.filter(
             org=self.org,
-            user=user,
-            person_cluster=person_cluster
+            person_cluster__active=True,
+        ).first()
+        if application_text and application_text.person_cluster:
+            person_cluster = application_text.person_cluster
+        if person_cluster is None:
+            raise forms.ValidationError(_('Keine aktive Bewerber-Benutzergruppe verfügbar.'))
+        
+        user = get_or_create_new_user(
+            email=self.cleaned_data['email'],
+            firstname=self.cleaned_data['first_name'],
+            lastname=self.cleaned_data['last_name'],
+            org=self.org,
+            person_cluster=person_cluster,
+            create_einmalpasswort=True
         )
         
         bewerber, created = Bewerber.objects.get_or_create(
@@ -89,18 +95,22 @@ class CreateAccountForm(forms.Form):
             org=self.org
         )
         return user, bewerber
-       
         
         
 class ApplicationAnswerForm(forms.ModelForm):
     class Meta:
         model = ApplicationAnswer
-        fields = ['answer']
+        fields = ['answer', 'is_done']
         
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         self.question = kwargs.pop('question', None)
         super().__init__(*args, **kwargs)
+
+        self.fields['is_done'].label = 'Frage als erledigt markieren'
+        self.fields['is_done'].widget = forms.CheckboxInput(
+            attrs={'class': 'form-check-input'}
+        )
         
         # If the question has choices, create a select field
         if self.question.choices:
@@ -154,9 +164,20 @@ class ApplicationFileAnswerForm(forms.ModelForm):
         self.file_question = kwargs.pop('file_question', None)
         super().__init__(*args, **kwargs)
         
+        # Determine allowed extensions depending on whether this question
+        # is a profile picture. Use the profile-picture-only whitelist when
+        # appropriate.
+        if self.file_question and getattr(self.file_question, 'is_profile_picture', False):
+            allowed_exts = getattr(self.file_question, 'ALLOWED_EXTENSIONS_PROFILE_PICTURE', [])
+        else:
+            allowed_exts = getattr(self.file_question, 'ALLOWED_EXTENSIONS', [])
+
+        # Store on the form instance for use in clean()
+        self.allowed_extensions = allowed_exts
+
         self.fields['file'].required = True
-        self.fields['file'].help_text = 'Erlaubte Dateiformate: ' + ', '.join(self.file_question.ALLOWED_EXTENSIONS)
-        self.fields['file'].widget = forms.FileInput(attrs={'class': 'form-control', 'accept': ','.join(self.file_question.ALLOWED_EXTENSIONS)})
+        self.fields['file'].help_text = 'Erlaubte Dateiformate: ' + ', '.join(self.allowed_extensions)
+        self.fields['file'].widget = forms.FileInput(attrs={'class': 'form-control', 'accept': ','.join(self.allowed_extensions)})
     
     def clean(self):
         cleaned_data = super().clean()
@@ -169,8 +190,8 @@ class ApplicationFileAnswerForm(forms.ModelForm):
             
             # Check file extension
             ext = '.' + file.name.split('.')[-1].lower()
-            if ext not in self.file_question.ALLOWED_EXTENSIONS:
-                raise forms.ValidationError('Nicht unterstütztes Dateiformat. Erlaubte Formate: ' + ', '.join(self.file_question.ALLOWED_EXTENSIONS))
+            if ext not in getattr(self, 'allowed_extensions', []):
+                raise forms.ValidationError('Nicht unterstütztes Dateiformat. Erlaubte Formate: ' + ', '.join(getattr(self, 'allowed_extensions', [])))
         
         return cleaned_data
     

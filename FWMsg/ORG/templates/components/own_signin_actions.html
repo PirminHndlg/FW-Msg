@@ -1,0 +1,22 @@
+{% load i18n %}
+<div class="d-flex flex-wrap gap-2">
+  <form method="post" action="{% url 'approve_own_signin_user' signup.id %}" class="flex-fill">
+    {% csrf_token %}
+    {% if next_url %}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    {% endif %}
+    <button type="submit" class="btn btn-success rounded-3 w-100 {{ btn_class|default:'' }}">
+      <i class="bi bi-check-circle me-1"></i>{% trans 'Freischalten' %}
+    </button>
+  </form>
+  <form method="post" action="{% url 'deny_own_signin_user' signup.id %}" class="flex-fill"
+        onsubmit="return confirm('{% trans "Registrierung wirklich ablehnen?" %}');">
+    {% csrf_token %}
+    {% if next_url %}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    {% endif %}
+    <button type="submit" class="btn btn-outline-danger rounded-3 w-100 {{ btn_class|default:'' }}">
+      <i class="bi bi-x-circle me-1"></i>{% trans 'Ablehnen' %}
+    </button>
+  </form>
+</div>

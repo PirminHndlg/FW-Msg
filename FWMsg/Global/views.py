@@ -44,10 +44,10 @@ from django.conf import settings
 from django.http import (
     FileResponse,
     HttpResponseForbidden,
-    HttpResponseRedirect, 
-    HttpResponse, 
-    Http404, 
-    HttpResponseNotAllowed, 
+    HttpResponseRedirect,
+    HttpResponse,
+    Http404,
+    HttpResponseNotAllowed,
     HttpResponseNotFound,
     JsonResponse
 )
@@ -75,19 +75,19 @@ from django.core.paginator import Paginator
 # Local application imports
 from FW.forms import BilderForm, BilderGalleryForm, ProfilUserForm
 from .models import (
-    Ampel2, 
+    Ampel2,
+    AmpelConfiguration,
     Aufgabe2,
     BewerberKommentar,
-    Bilder2, 
+    Bilder2,
     BilderGallery2,
     Einsatzstelle2,
     EinsatzstelleNotiz,
     MapLocation,
-    PostResponse, 
+    PostResponse,
     ProfilUser2,
-    UserAttribute, 
+    UserAttribute,
     UserAufgaben,
-    UserAufgabenZwischenschritte,
     KalenderEvent,
     CustomUser,
     Dokument2,
@@ -119,10 +119,10 @@ from .export_utils import export_user_data_securely
 def get_mimetype(doc_path):
     """
     Determine the MIME type of a file.
-    
+
     Args:
         doc_path (str): Path to the document
-        
+
     Returns:
         str: The MIME type of the file, or None if it cannot be determined
     """
@@ -132,14 +132,14 @@ def get_mimetype(doc_path):
 def get_bild(image_path, image_name):
     """
     Serve an image file with proper headers.
-    
+
     Args:
         image_path (str): Path to the image file
         image_name (str): Name of the image for the response header
-        
+
     Returns:
         HttpResponse: Response containing the image file
-        
+
     Raises:
         Http404: If the image file does not exist
     """
@@ -155,13 +155,13 @@ def get_bild(image_path, image_name):
 def get_bilder(org, filter_user=None, filter_person_cluster=None, limit=None):
     """
     Retrieve gallery images, optionally filtered by user.
-    
+
     Args:
         org: The organization object
         filter_user (User, optional): User to filter images by. Defaults to None.
         filter_person_cluster: Person cluster to filter by. Defaults to None.
         limit (int, optional): Limit number of results. Defaults to None.
-        
+
     Returns:
         list: List of dictionaries containing gallery images and their metadata
     """
@@ -195,11 +195,11 @@ def get_bilder(org, filter_user=None, filter_person_cluster=None, limit=None):
 def get_posts(org, filter_user=None, filter_person_cluster=None, limit=None):
     """
     Retrieve posts, optionally filtered by organization.
-    
+
     Args:
         org: The organization object
         limit (int, optional): Maximum number of posts to return. Defaults to None.
-    
+
     Returns:
         list: List of dictionaries containing posts and their metadata
     """
@@ -216,11 +216,11 @@ def get_posts(org, filter_user=None, filter_person_cluster=None, limit=None):
 def check_organization_context(request, context=None):
     """
     Enhance the template context with organization-specific settings.
-    
+
     Args:
         request: The HTTP request object
         context (dict, optional): Existing context dictionary. Defaults to empty dict if None.
-    
+
     Returns:
         dict: The enhanced context dictionary with organization-specific settings
     """
@@ -266,14 +266,40 @@ def datenschutz(request):
     return render(request, 'datenschutz.html')
 
 
+def losungen(request):
+    """Display today's Losung."""
+    context = check_organization_context(request, {})
+    return render(request, 'losungen.html', context=context)
+
+
+@login_required
+def impulse(request):
+    """Hub für tägliche Impulse (Losungen, Deep-Talk-Frage)."""
+    context = check_organization_context(request, {})
+    return render(request, 'impulse.html', context=context)
+
+
+@login_required
+def deeptalk(request):
+    """Deep-Talk-Frage des Tages mit Rückblick auf frühere Fragen."""
+    from Global.deeptalk import get_recent_questions
+
+    context = check_organization_context(request, {
+        'recent_days': get_recent_questions(request.user.org, days=14),
+    })
+    return render(request, 'deeptalk.html', context=context)
+
+
+
+
 def serve_logo(request, org_id):
     """
     Serve organization logo images.
-    
+
     Args:
         request: The HTTP request object
         image_name (str): Name of the logo image file
-        
+
     Returns:
         HttpResponse: Response containing the logo image
         HttpResponseNotFound: If the image doesn't exist
@@ -336,23 +362,23 @@ def serve_logo(request, org_id):
 def serve_bilder(request, image_id=None):
     """
     Serve gallery images.
-    
+
     Args:
         request: The HTTP request object
         image_id (int): ID of the gallery image
-        
+
     Returns:
         HttpResponse: Response containing the image
         HttpResponseNotFound: If the image doesn't exist
         HttpResponseNotAllowed: If user doesn't have permission
     """
-    
+
     try:
         image_id = int(image_id)
         bild = BilderGallery2.objects.get(id=image_id, org=request.user.org)
     except (ValueError, BilderGallery2.DoesNotExist):
         return HttpResponseNotFound('Bild nicht gefunden')
-    
+
     return get_bild(bild.image.path, bild.bilder.titel)
 
 @login_required
@@ -360,11 +386,11 @@ def serve_bilder(request, image_id=None):
 def serve_small_bilder(request, image_id):
     """
     Serve small (thumbnail) versions of gallery images.
-    
+
     Args:
         request: The HTTP request object
         image_id (int): ID of the gallery image
-        
+
     Returns:
         HttpResponse: Response containing the small image
         HttpResponseNotFound: If the image doesn't exist
@@ -383,14 +409,14 @@ def serve_small_bilder(request, image_id):
 def add_cache_headers_to_response(response, dokument, max_age=86400, immutable=True):
     """
     Add cache headers to a response object.
-    
+
     Args:
         response: HttpResponse or FileResponse object
         dokument: Dokument2 instance to extract cache metadata from
         max_age: Cache max-age in seconds (default: 86400 = 24 hours)
         immutable: Whether to mark content as immutable (default: True)
                    Set to False for large files like videos that may be updated
-        
+
     Returns:
         Response object with cache headers added
     """
@@ -407,11 +433,11 @@ def add_cache_headers_to_response(response, dokument, max_age=86400, immutable=T
 def serve_dokument(request, dokument_identifier):
     """
     Serve document files with proper content type handling.
-    
+
     Args:
         request: The HTTP request object
         dokument_id (int): ID of the document
-        
+
     Returns:
         HttpResponse: Response containing the document
         HttpResponseNotFound: If document doesn't exist
@@ -419,20 +445,20 @@ def serve_dokument(request, dokument_identifier):
     """
     img = request.GET.get('img', None)
     download = request.GET.get('download', None)
-    
+
     try:
         dokument = Dokument2.objects.get(identifier=dokument_identifier, org=request.user.org)
-        
+
         if not dokument.org == request.user.org:
             messages.error(request, f'Nicht erlaubt')
             return redirect('dokumente')
-        
+
         # Check if user's person_cluster has access to this folder
         if not request.user.role == 'O':
             if request.user.person_cluster and not dokument.ordner.typ.filter(id=request.user.person_cluster.id).exists():
                 messages.error(request, f'Nicht erlaubt')
                 return redirect('dokumente')
-        
+
         doc_path = dokument.dokument.path
         if not os.path.exists(doc_path) or not dokument.dokument:
             messages.error(request, f'Dokument nicht gefunden' + doc_path)
@@ -445,7 +471,7 @@ def serve_dokument(request, dokument_identifier):
         return redirect('dokumente')
 
     mimetype = get_mimetype(doc_path)
-    
+
     # Handle image documents
     if mimetype and mimetype.startswith('image') and not download:
         response = get_bild(doc_path, dokument.dokument.name)
@@ -469,7 +495,7 @@ def serve_dokument(request, dokument_identifier):
             response['Content-Disposition'] = f'inline; filename="{dokument.dokument.name}"'
         # Cache videos for 1 hour but allow revalidation (no immutable flag)
         return add_cache_headers_to_response(response, dokument, max_age=3600, immutable=False)
-    
+
     # Serve document as download
     with open(doc_path, 'rb') as file:
         # Handle PDFs - display inline
@@ -478,7 +504,7 @@ def serve_dokument(request, dokument_identifier):
             response['Content-Disposition'] = f'inline; filename="{dokument.dokument.name}"'
             response['Content-Security-Policy'] = "frame-ancestors 'self'"
             return add_cache_headers_to_response(response, dokument)
-        
+
         # For all other files, serve as download
         response = HttpResponse(file.read(), content_type=mimetype or 'application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{dokument.dokument.name}"'
@@ -488,9 +514,12 @@ def serve_dokument(request, dokument_identifier):
 @required_person_cluster('bilder')
 def bilder(request):
     cookie_name = 'selectedPersonCluster-bilder'
-    
+
     current_person_cluster = None
-    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, bilder=True).order_by('name')
+    all_person_clusters = PersonCluster.selectable_for_org(
+        request.user.org,
+        bilder=True,
+    ).order_by('name')
     try:
         person_cluster_param = request.GET.get('person_cluster_filter')
         if person_cluster_param == 'None':
@@ -501,13 +530,13 @@ def bilder(request):
             person_cluster_cookie = request.COOKIES.get(cookie_name)
             if person_cluster_cookie is not None and person_cluster_cookie != 'None':
                 current_person_cluster = all_person_clusters.get(id=int(person_cluster_cookie), org=request.user.org)
-    
+
     except PersonCluster.DoesNotExist:
         current_person_cluster = None
     except Exception as e:
         messages.error(request, f'Fehler beim Laden der Bilder: {str(e)}')
         current_person_cluster = None
-    
+
     if current_person_cluster:
         gallery_images = get_bilder(request.user.org, filter_person_cluster=current_person_cluster)
     else:
@@ -547,12 +576,12 @@ def bilder(request):
     context = check_organization_context(request, context)
 
     response = render(request, 'bilder.html', context=context)
-    
+
     if current_person_cluster:
         response.set_cookie(cookie_name, current_person_cluster.id)
     else:
         response.delete_cookie(cookie_name) if cookie_name in request.COOKIES else None
-    
+
     return response
 
 @login_required
@@ -565,7 +594,7 @@ def bild(request):
         if bilder_form.is_valid() and len(images) > 0:
             # Pass images to the form's save method
             bilder, created = bilder_form.save(images=images)
-            
+
             # Enqueue email sending task only for new submissions
             if created and bilder:
                 try:
@@ -588,7 +617,7 @@ def bild(request):
         bilder_form = BilderForm(initial={'submission_key': uuid.uuid4()}, user=request.user, org=request.user.org)
 
     bilder_gallery_form = BilderGalleryForm()
-    
+
     context = {
         'bilder_form': bilder_form,
         'bilder_gallery_form': bilder_gallery_form,
@@ -638,7 +667,7 @@ def remove_bild_all(request):
     if not bild_id:
         messages.error(request, 'Kein Bild gefunden')
         return redirect('profil')
-    
+
     try:
         bild = Bilder2.objects.get(id=bild_id, org=request.user.org, user=request.user)
     except Bilder2.DoesNotExist:
@@ -659,35 +688,35 @@ def add_comment_to_bild(request, bild_id):
     if request.method != 'POST':
         messages.error(request, 'Ungültige Anfrage')
         return redirect('bilder')
-    
+
     try:
         from .models import BilderComment, BilderGallery2
         bild = Bilder2.objects.get(id=bild_id, org=request.user.org)
         comment_text = request.POST.get('comment', '').strip()
-        
+
         if not comment_text:
             messages.error(request, 'Kommentar darf nicht leer sein')
             gallery_image = BilderGallery2.objects.filter(bilder=bild).first()
             if gallery_image:
                 return redirect('image_detail', image_id=bild.id)
             return redirect('bilder')
-        
+
         if len(comment_text) > 500:
             messages.error(request, 'Kommentar ist zu lang (max. 500 Zeichen)')
             gallery_image = BilderGallery2.objects.filter(bilder=bild).first()
             if gallery_image:
                 return redirect('image_detail', image_id=bild.id)
             return redirect('bilder')
-        
+
         BilderComment.objects.create(
             bilder=bild,
             user=request.user,
             org=request.user.org,
             comment=comment_text
         )
-        
+
         return redirect('image_detail', image_id=bild.id)
-        
+
     except Bilder2.DoesNotExist:
         messages.error(request, 'Bild nicht gefunden')
         return redirect('bilder')
@@ -701,11 +730,11 @@ def remove_comment_from_bild(request, comment_id):
     """Remove a comment from a Bilder2 object."""
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid request method'}, status=405)
-    
+
     try:
         from .models import BilderComment, BilderGallery2
         comment = BilderComment.objects.get(id=comment_id, org=request.user.org)
-        
+
         # Check permissions - user can only delete their own comments, or admins can delete any
         if comment.user != request.user and request.user.role != 'O':
             messages.error(request, 'Keine Berechtigung zum Löschen dieses Kommentars')
@@ -713,10 +742,10 @@ def remove_comment_from_bild(request, comment_id):
             if gallery_image:
                 return redirect('image_detail', image_id=bild.id)
             return redirect('bilder')
-        
+
         bild = comment.bilder
         comment.delete()
-        
+
         messages.success(request, 'Kommentar wurde gelöscht')
         # Redirect to image detail page
         gallery_image = BilderGallery2.objects.filter(bilder=bild).first()
@@ -724,7 +753,7 @@ def remove_comment_from_bild(request, comment_id):
             return redirect('image_detail', image_id=bild.id)
         else:
             return redirect('bilder')
-        
+
     except BilderComment.DoesNotExist:
         messages.error(request, 'Kommentar nicht gefunden')
         return redirect('bilder')
@@ -741,9 +770,9 @@ def _validate_emoji(emoji):
 def _handle_reaction_toggle(bild, user, emoji):
     """Handle the logic for toggling a reaction."""
     from .models import BilderReaction
-    
+
     existing_reaction = BilderReaction.objects.filter(bilder=bild, user=user).first()
-    
+
     if existing_reaction:
         if existing_reaction.emoji == emoji:
             # Remove existing reaction (toggle off)
@@ -772,26 +801,26 @@ def toggle_reaction_to_bild(request, bild_id, emoji):
     if request.method != 'GET':
         messages.error(request, 'Ungültige Anfrage')
         return redirect('bilder')
-    
+
     # Validate emoji
     if not _validate_emoji(emoji):
         messages.error(request, 'Ungültiges Emoji')
         return redirect('bilder')
-    
+
     try:
         # Get the bild
         bild = Bilder2.objects.get(id=bild_id, org=request.user.org)
 
         # Handle the reaction toggle
         action = _handle_reaction_toggle(bild, request.user, emoji)
-        
+
         return JsonResponse({
             'success': True,
             'bild_id': bild.id,
             'emoji': emoji,
             'action': action
         })
-        
+
     except Bilder2.DoesNotExist:
         messages.error(request, 'Bild nicht gefunden')
         return redirect('bilder')
@@ -805,14 +834,14 @@ def get_bild_reactions(request, bild_id):
     """Get detailed reaction information for a specific image."""
     if request.method != 'GET':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
-    
+
     try:
         # Get the bild
         bild = Bilder2.objects.get(id=bild_id, org=request.user.org)
-        
+
         # Get all reactions with user details
         reactions_data = bild.get_all_reactions_with_users()
-        
+
         # Format the response
         response_data = {
             'success': True,
@@ -820,9 +849,9 @@ def get_bild_reactions(request, bild_id):
             'bild_title': bild.titel,
             'reactions': reactions_data
         }
-        
+
         return JsonResponse(response_data)
-        
+
     except Bilder2.DoesNotExist:
         return JsonResponse({'error': 'Bild nicht gefunden'}, status=404)
     except Exception as e:
@@ -836,10 +865,10 @@ def image_detail(request, image_id):
         # Get the specific gallery image
         current_image = Bilder2.objects.get(id=image_id, org=request.user.org)
         bilder_gallery = BilderGallery2.objects.filter(bilder=current_image)
-        
+
         # Get size of all images - pass to client for smart loading
         size_of_all_images = current_image.get_size()
-        
+
         context = {
             'bild': current_image,
             'bilder_gallery': bilder_gallery,
@@ -848,15 +877,15 @@ def image_detail(request, image_id):
 
         context = check_organization_context(request, context)
         return render(request, 'image_detail.html', context)
-    
+
     except Bilder2.DoesNotExist:
         messages.error(request, 'Bild nicht gefunden')
         return redirect('bilder')
-        
+
     except BilderGallery2.DoesNotExist:
         messages.error(request, 'Bild nicht gefunden')
         return redirect('bilder')
-    
+
 
 def edit_bild(request, bild_id):
     try:
@@ -898,11 +927,14 @@ def download_bild_as_zip(request, id):
 @required_person_cluster('dokumente')
 def dokumente(request, ordner_id=None):
     cookie_name = 'selectedPersonCluster-dokumente'
-    
-    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, dokumente=True).order_by('name')
+
+    all_person_clusters = PersonCluster.selectable_for_org(
+        request.user.org,
+        dokumente=True,
+    ).order_by('name')
     current_person_cluster = None
     folder_structure = []
-    
+
     if request.user.role == 'O':
         try:
             person_cluster_param = request.GET.get('person_cluster_filter')
@@ -914,34 +946,35 @@ def dokumente(request, ordner_id=None):
                 person_cluster_cookie = request.COOKIES.get(cookie_name)
                 if person_cluster_cookie is not None and person_cluster_cookie != 'None':
                     current_person_cluster = all_person_clusters.get(id=int(person_cluster_cookie), org=request.user.org)
-        
+
         except PersonCluster.DoesNotExist:
             current_person_cluster = None
         except Exception as e:
             messages.error(request, f'Fehler beim Laden der Dokumente: {str(e)}')
             current_person_cluster = None
-    
+
         if current_person_cluster:
             ordners = Ordner2.objects.filter(org=request.user.org, typ=current_person_cluster).order_by('color', 'ordner_name')
         else:
             ordners = Ordner2.objects.filter(org=request.user.org).order_by('color', 'ordner_name')
-            
+
     else:
         ordners = Ordner2.objects.filter(org=request.user.org, typ=request.user.person_cluster).order_by('color', 'ordner_name')
-        
+
     # Validate ordner_id if provided
     if ordner_id:
         if not ordners.filter(id=ordner_id).exists():
             messages.warning(request, f'Ordner nicht gefunden')
             return redirect('dokumente')
-    
+
     for ordner in ordners:
         folder_structure.append({
             'ordner': ordner,
             'dokumente': Dokument2.objects.filter(org=request.user.org, ordner=ordner).order_by('-date_created')
         })
 
-    colors = DokumentColor2.objects.all()
+    # Im Ordner-Modal von dunkel nach hell sortiert anzeigen
+    colors = sorted(DokumentColor2.objects.all(), key=lambda color: color.luminance())
 
     context = {
         'ordners': ordners,
@@ -955,12 +988,12 @@ def dokumente(request, ordner_id=None):
     context = check_organization_context(request, context)
 
     response = render(request, 'dokumente.html', context=context)
-    
+
     if current_person_cluster:
         response.set_cookie(cookie_name, current_person_cluster.id)
     else:
         response.delete_cookie(cookie_name) if cookie_name in request.COOKIES else None
-    
+
     return response
 
 @login_required
@@ -968,15 +1001,26 @@ def dokumente(request, ordner_id=None):
 def add_dokument(request):
     if request.method != 'POST':
         return redirect('dokumente')
-        
+
     dokument_id = request.POST.get('dokument_id')
     titel = request.POST.get('titel')
     beschreibung = request.POST.get('beschreibung')
     link = request.POST.get('link')
     darf_bearbeiten = request.POST.getlist('darf_bearbeiten')
-    darf_bearbeiten = PersonCluster.objects.filter(id__in=darf_bearbeiten)
+    if any(not cluster_id.isdigit() for cluster_id in darf_bearbeiten):
+        messages.error(request, 'Ausgewählte Benutzergruppe ist ungültig.')
+        return redirect('dokumente')
+    darf_bearbeiten = PersonCluster.selectable_for_org(
+        request.user.org,
+        id__in=darf_bearbeiten,
+    )
+    if request.user.role == 'O' and set(request.POST.getlist('darf_bearbeiten')) != {
+        str(cluster_id) for cluster_id in darf_bearbeiten.values_list('pk', flat=True)
+    }:
+        messages.error(request, 'Ausgewählte Benutzergruppe ist nicht aktiv oder nicht verfügbar.')
+        return redirect('dokumente')
     file = request.FILES.get('dokument')
-    
+
     if dokument_id and dokument_id != '':
         try:
             dokument = Dokument2.objects.get(id=dokument_id, org=request.user.org)
@@ -985,7 +1029,7 @@ def add_dokument(request):
             return redirect('dokumente')
     else:
         try:
-            ordner = Ordner2.objects.get(id=request.POST.get('ordner'))
+            ordner = Ordner2.objects.get(id=request.POST.get('ordner'), org=request.user.org)
             dokument = Dokument2.objects.create(
                 org=request.user.org,
                 ordner=ordner,
@@ -997,19 +1041,24 @@ def add_dokument(request):
         except Exception as e:
             messages.error(request, f'Fehler beim Erstellen des Dokuments: {str(e)}')
             return redirect('dokumente')
-    
+
     dokument.titel = titel
     dokument.beschreibung = beschreibung
     dokument.link = link
     if file:
-        dokument.dokument = file    
+        dokument.dokument = file
     if request.user.role == 'O':
-        dokument.darf_bearbeiten.set(darf_bearbeiten)
+        inactive_cluster_ids = list(
+            dokument.darf_bearbeiten.filter(active=False).values_list('pk', flat=True)
+        )
+        dokument.darf_bearbeiten.set(
+            list(darf_bearbeiten) + inactive_cluster_ids
+        )
     dokument.update_identifier()
     dokument.save()
 
     return redirect('dokumente', ordner_id=dokument.ordner.id)
-    
+
 
 @login_required
 @required_person_cluster('dokumente')
@@ -1020,40 +1069,54 @@ def add_ordner(request):
         ordner_name = request.POST.get('ordner_name')
         person_cluster_ids = request.POST.getlist('ordner_person_cluster')
         color_id = request.POST.get('color')
-        
+        if any(not cluster_id.isdigit() for cluster_id in person_cluster_ids):
+            messages.error(request, 'Ausgewählte Benutzergruppe ist ungültig.')
+            return redirect('dokumente')
+
         # Validate required fields
         if not ordner_name:
             messages.error(request, 'Ordnername ist erforderlich.')
             return redirect('dokumente')
-        
+
         # Get the PersonenCluster instance if typ_id is provided
         person_clusters = None
-            
+
         try:
             if person_cluster_ids:
-                person_clusters = PersonCluster.objects.filter(id__in=person_cluster_ids)
-            
+                person_clusters = PersonCluster.selectable_for_org(
+                    request.user.org,
+                    id__in=person_cluster_ids,
+                )
+                if set(person_cluster_ids) != {
+                    str(cluster_id) for cluster_id in person_clusters.values_list('pk', flat=True)
+                }:
+                    messages.error(request, 'Ausgewählte Benutzergruppe ist nicht aktiv oder nicht verfügbar.')
+                    return redirect('dokumente')
+
             color = None
             if color_id:
                 color = DokumentColor2.objects.get(id=color_id)
-                
+
             if ordner_id:
                 ordner = Ordner2.objects.get(id=ordner_id, org=request.user.org)
             elif ordner_name:
                 ordner = Ordner2.objects.create(
-                    org=request.user.org, 
+                    org=request.user.org,
                     ordner_name=ordner_name,
                     color=color
                 )
             else:
                 messages.error(request, 'Kein Ordnername oder Ordner-ID angegeben.')
                 return redirect('dokumente')
-            
+
             ordner.ordner_name = ordner_name
-            ordner.typ.set(person_clusters or [])
+            inactive_cluster_ids = list(
+                ordner.typ.filter(active=False).values_list('pk', flat=True)
+            )
+            ordner.typ.set(list(person_clusters or []) + inactive_cluster_ids)
             ordner.color = color
-            ordner.save()    
-            
+            ordner.save()
+
         except PersonCluster.DoesNotExist:
             messages.error(request, 'Ausgewählte Benutzergruppe existiert nicht.')
             return redirect('dokumente')
@@ -1069,18 +1132,26 @@ def add_ordner(request):
 @login_required
 @required_person_cluster('dokumente')
 def remove_dokument(request):
+    folder_id = None
     if request.method == 'POST':
         dokument_id = request.POST.get('dokument_id')
         try:
             dokument = Dokument2.objects.get(id=dokument_id, org=request.user.org)
+            folder_id = dokument.ordner.id
             if request.user.role == 'O' or request.user.person_cluster in dokument.darf_bearbeiten.all():
                 dokument.delete()
             else:
                 messages.error(request, 'Dokument kann nicht gelöscht werden, da du nicht der Ersteller bist.')
         except Dokument2.DoesNotExist:
             pass
+        except Exception as e:
+            messages.error(request, f'Fehler beim Löschen des Dokuments: {str(e)}')
+            return redirect('dokumente')
 
-    return redirect('dokumente')
+    if folder_id:
+        return redirect('dokumente', ordner_id=folder_id)
+    else:
+        return redirect('dokumente')
 
 @login_required
 @required_person_cluster('dokumente')
@@ -1120,19 +1191,19 @@ def update_profil_picture(request):
             # Delete old profil picture if it exists
             if custom_user.profil_picture:
                 custom_user.profil_picture.delete()
-            
+
             custom_user.profil_picture = request.FILES['profil_picture']
             custom_user.update_identifier()
             custom_user.save()
             custom_user.create_small_image()
-            
+
             if not custom_user.profil_picture:
                 messages.error(request, 'Profilbild konnte nicht aktualisiert werden.')
             else:
                 messages.success(request, 'Profilbild wurde erfolgreich aktualisiert.')
         except Exception as e:
             messages.error(request, f'Fehler beim Aktualisieren des Profilbildes: {str(e)}')
-    
+
     return redirect('profil')
 
 @login_required
@@ -1181,13 +1252,13 @@ def serve_profil_picture(request, user_identifier):
 
     if requested_user.org != request.user.org:
         return HttpResponseForbidden()
-    
+
     if not requested_user.customuser.profil_picture:
         # TODO: Uncomment when default_img caching is needed again
         # # Use Django's static file finder to get the correct path with hash
         from django.contrib.staticfiles.finders import find
         from django.contrib.staticfiles.storage import staticfiles_storage
-        
+
         # Try to find the default image using the static file finder
         default_img_path = find('img/default_img.png')
         if default_img_path:
@@ -1226,7 +1297,7 @@ def unsubscribe_mail_notifications(request, user_id, auth_key):
                 messages.success(request, 'Mail-Benachrichtigungen wurden deaktiviert')
         else:
             messages.error(request, 'Ungültige Abmelde-URL')
-        
+
         custom_user.save()
 
     except CustomUser.DoesNotExist:
@@ -1236,28 +1307,6 @@ def unsubscribe_mail_notifications(request, user_id, auth_key):
 @login_required
 def view_profil(request, user_identifier=None):
     if request.POST:
-        attribut = request.POST.get('attribut')
-        value = request.POST.get('value')
-        ProfilUser2.objects.create(
-            org=request.user.org,
-            user=request.user,
-            attribut=attribut,
-            value=value
-        )
-        return redirect('profil')
-
-    this_user = False
-    if user_identifier and user_identifier != request.user.customuser.get_identifier():
-        try:
-            displayed_user = User.objects.get(customuser__identifier=user_identifier, customuser__org=request.user.org)
-        except User.DoesNotExist:
-            messages.error(request, 'Benutzer nicht gefunden')
-            return redirect('profil')
-    else:
-        displayed_user = request.user
-        this_user = True
-
-    if request.method == 'POST':
         profil_user_form = ProfilUserForm(request.POST)
         if profil_user_form.is_valid():
             profil_user = profil_user_form.save(commit=False)
@@ -1266,6 +1315,18 @@ def view_profil(request, user_identifier=None):
             profil_user.save()
             return redirect('profil')
 
+
+    if user_identifier and user_identifier != request.user.customuser.get_identifier():
+        try:
+            displayed_user = User.objects.get(customuser__identifier=user_identifier, customuser__org=request.user.org)
+        except User.DoesNotExist:
+            messages.error(request, 'Benutzer nicht gefunden')
+            return redirect('profil')
+    else:
+        displayed_user = request.user
+
+
+    this_user = request.user == displayed_user
     profil_users = ProfilUser2.objects.filter(user=displayed_user).order_by('attribut')
     user_attributes = UserAttribute.objects.filter(user=displayed_user, attribute__visible_in_profile=True).order_by('attribute__name') if this_user or request.user.role == 'O' else []
     gallery_images = get_bilder(request.user.org, displayed_user)
@@ -1363,7 +1424,7 @@ def kalender_event(request, kalender_id):
 @required_person_cluster('calendar')
 def get_calendar_events(request):
     calendar_events = []
-    
+
     for user_aufgabe in UserAufgaben.objects.filter(user=request.user):
         color = '#dc3545'  # Bootstrap danger color to match the theme
         if user_aufgabe.erledigt:
@@ -1408,12 +1469,12 @@ def get_calendar_events(request):
                 'borderColor': '#ff69b4',
                 'textColor': '#fff'
             })
-        
+
     if request.user.role == 'O':
         kalender_events = KalenderEvent.objects.filter(org=request.user.org)
     else:
         kalender_events = KalenderEvent.objects.filter(org=request.user.org).filter(user__in=[request.user])
-        
+
     for kalender_event in kalender_events:
         calendar_events.append({
             'title': kalender_event.title,
@@ -1428,7 +1489,7 @@ def get_calendar_events(request):
                 'description': kalender_event.description
             }
         })
-            
+
     return JsonResponse(calendar_events, safe=False)
 
 @login_required
@@ -1485,11 +1546,32 @@ def ampel(request):
     context = check_organization_context(request, context)
     return render(request, 'ampel.html', context=context)
 
-def _get_ampel_matrix(request, users, ampel_this_month=None):
-        # Get date range for ampel entries
-    date_range = _get_ampel_date_range(request.user.org)
+
+@login_required
+@required_person_cluster('ampel')
+def ampel_history(request):
+    """Display the current user's previous traffic-light reports."""
+    ampel_meldungen = Ampel2.objects.filter(
+        user=request.user,
+        org=request.user.org,
+    ).order_by('-date')
+
+    context = {
+        'ampel_meldungen': ampel_meldungen,
+    }
+    context = check_organization_context(request, context)
+    return render(request, 'ampel_history.html', context=context)
+
+
+def _get_ampel_matrix(request, users, ampel_this_month=None, person_cluster=None):
+        # Get date range for ampel entries (scoped to filtered users / PersonCluster)
+    date_range = _get_ampel_date_range(
+        request.user.org,
+        users=users,
+        person_cluster=person_cluster,
+    )
     start_date, end_date = date_range['start_date'], date_range['end_date']
-    
+
     current_month = timezone.now().month
     user_ids_with_entry = set(
         Ampel2.objects.filter(
@@ -1503,20 +1585,20 @@ def _get_ampel_matrix(request, users, ampel_this_month=None):
     elif ampel_this_month == 'False':
         # Exclude users who have an Ampel2 entry in the current month
         users = [user for user in users if user.id not in user_ids_with_entry]
-        
+
     # Get ampel entries within date range
     ampel_entries = Ampel2.objects.filter(
         user__in=users,
         date__gte=start_date,
         date__lte=end_date
     ).order_by('user', 'date')
-    
+
     # Generate month labels
     months = _generate_month_labels(start_date, end_date)
-    
+
     # Create and fill ampel matrix
     ampel_matrix = _create_ampel_matrix(users, months, ampel_entries)
-    
+
     # Group users by personen_cluster for template
     grouped_matrix = {}
     for user in users:
@@ -1527,59 +1609,78 @@ def _get_ampel_matrix(request, users, ampel_this_month=None):
     return grouped_matrix, months
 
 
-def _get_ampel_date_range(org):
+def _user_ids_from_users(users):
+    if users is None:
+        return None
+    if hasattr(users, 'values_list'):
+        return list(users.values_list('id', flat=True))
+    return [u.id for u in users]
+
+
+def _get_ampel_date_range(org, users=None, person_cluster=None):
     """
-    Helper function to determine the date range for ampel entries.
-    
-    Args:
-        org: Organization instance
-        
-    Returns:
-        dict: Contains 'start_date' and 'end_date' keys with date values
+    Determine the date range for ampel matrix columns.
+
+    When a PersonCluster is filtered and AmpelConfiguration has both start and end
+    set, use those. Otherwise use Freiwillige/Ampel dates scoped to the given users.
     """
-    # Get organization's freiwillige users for efficient querying
-    freiwillige_users = Freiwilliger.objects.filter(org=org).values_list('user', flat=True)
-    
-    # Get date range from freiwillige start/end dates
-    freiwillige_dates = _get_freiwillige_date_range(org)
-    
-    # Get date range from ampel entries
-    ampel_dates = _get_ampel_entry_date_range(freiwillige_users)
-    
-    # Combine and determine final date range
+    user_ids = _user_ids_from_users(users)
+
+    if person_cluster is not None:
+        config = getattr(person_cluster, 'ampel_configuration_cached', None)
+        if config is None:
+            config = AmpelConfiguration.objects.filter(person_cluster=person_cluster).first()
+        if config and config.reminder_start_date and config.reminder_end_date:
+            return {
+                'start_date': config.reminder_start_date,
+                'end_date': config.reminder_end_date,
+            }
+
+    if user_ids is not None:
+        freiwillige_dates = _get_freiwillige_date_range(org, user_ids=user_ids)
+        ampel_dates = _get_ampel_entry_date_range(user_ids)
+    else:
+        freiwillige_users = Freiwilliger.objects.filter(org=org).values_list('user', flat=True)
+        freiwillige_dates = _get_freiwillige_date_range(org)
+        ampel_dates = _get_ampel_entry_date_range(freiwillige_users)
+
     start_date = _get_earliest_date([
         freiwillige_dates['start_date'],
         ampel_dates['start_date']
     ])
-    
+
     end_date = _get_latest_date([
         freiwillige_dates['end_date'],
         ampel_dates['end_date']
     ])
-    
+
     # Fallback to last 12 months if no valid dates found
     if not start_date or not end_date:
         end_date = timezone.now().date()
         start_date = end_date - relativedelta(months=12)
-        
+
     return {
         'start_date': start_date,
         'end_date': end_date
     }
 
 
-def _get_freiwillige_date_range(org):
+def _get_freiwillige_date_range(org, user_ids=None):
     """Get the date range from freiwillige start and end dates."""
-    start_dates = Freiwilliger.objects.filter(org=org).aggregate(
+    qs = Freiwilliger.objects.filter(org=org)
+    if user_ids is not None:
+        qs = qs.filter(user_id__in=user_ids)
+
+    start_dates = qs.aggregate(
         real_start=Min('start_real'),
         planned_start=Min('start_geplant')
     )
-    
-    end_dates = Freiwilliger.objects.filter(org=org).aggregate(
+
+    end_dates = qs.aggregate(
         real_end=Max('ende_real'),
         planned_end=Max('ende_geplant')
     )
-    
+
     return {
         'start_date': start_dates['real_start'] or start_dates['planned_start'],
         'end_date': end_dates['real_end'] or end_dates['planned_end']
@@ -1589,13 +1690,20 @@ def _get_freiwillige_date_range(org):
 def _get_ampel_entry_date_range(freiwillige_users):
     """Get the date range from ampel entries for given users."""
     ampel_entries = Ampel2.objects.filter(user__in=freiwillige_users).order_by('date')
-    
+
     first_entry = ampel_entries.first()
     last_entry = ampel_entries.last()
-    
+
+    def _as_date(dt):
+        if dt is None:
+            return None
+        if timezone.is_aware(dt):
+            return timezone.localtime(dt).date()
+        return dt.date() if hasattr(dt, 'date') else dt
+
     return {
-        'start_date': first_entry.date.date() if first_entry else None,
-        'end_date': last_entry.date.date() if last_entry else None
+        'start_date': _as_date(first_entry.date) if first_entry else None,
+        'end_date': _as_date(last_entry.date) if last_entry else None
     }
 
 
@@ -1613,42 +1721,42 @@ def _get_latest_date(dates):
 def _generate_month_labels(start_date, end_date):
     """
     Generate month labels between two dates.
-    
+
     Args:
         start_date: Start date for the range
         end_date: End date for the range
-        
+
     Returns:
         list: List of month labels in "MMM YY" format
     """
     if not start_date or not end_date:
         return []
-        
+
     months = []
     current = start_date
-    
+
     while current <= end_date:
         months.append(current.strftime("%b %y"))
         current += relativedelta(months=1)
-    
+
     return months
 
 
 def _create_ampel_matrix(freiwillige, months, ampel_entries):
     """
     Create and fill the ampel matrix with entries.
-    
+
     Args:
         freiwillige: List of freiwillige users
         months: List of month labels
         ampel_entries: QuerySet of ampel entries
-        
+
     Returns:
         dict: Matrix with freiwillige as keys and months as nested keys
     """
     # Initialize empty matrix
     matrix = {fw: {month: [] for month in months} for fw in freiwillige}
-    
+
     # Fill matrix with ampel entries
     for entry in ampel_entries:
         month_key = entry.date.strftime("%b %y")
@@ -1658,15 +1766,66 @@ def _create_ampel_matrix(freiwillige, months, ampel_entries):
                 'status': entry.status,
                 'comment': entry.comment,
                 'date': entry.date.strftime("%d.%m.%y %H:%M"),
-                'read': entry.read
+                'read': entry.read,
+                'manuell': entry.create_manuell,
             })
-            
+
     return matrix
+
+
+def _active_ampel_reminder_configs(org):
+    """AmpelConfigurations of the org whose reminders are active today, keyed by person_cluster_id."""
+    configs = AmpelConfiguration.objects.filter(
+        org=org,
+        enabled=True,
+        person_cluster__active=True,
+        person_cluster__ampel=True,
+    ).select_related('person_cluster', 'org')
+    return {c.person_cluster_id: c for c in configs if c.reminders_are_active()}
+
+
+def _send_manual_ampel_reminder(request):
+    from Global.send_email import send_ampel_reminder
+
+    def error(message, status=400):
+        return JsonResponse({'success': False, 'message': str(message)}, status=status)
+
+    user_id = request.POST.get('user_id', '')
+    user = None
+    if user_id.isdigit():
+        user = User.objects.filter(id=user_id, customuser__org=request.user.org).select_related('customuser').first()
+    if not user:
+        return error(_('Benutzer nicht gefunden.'), status=404)
+
+    if request.user.view == 'T':
+        from TEAM.views import _get_Freiwillige
+        if not _get_Freiwillige(request).filter(user=user).exists():
+            return error(_('Nicht erlaubt'), status=403)
+
+    config = _active_ampel_reminder_configs(request.user.org).get(user.customuser.person_cluster_id)
+    if not config:
+        return error(_('Für diese Benutzergruppe ist keine Ampel-Erinnerung aktiv.'))
+
+    if user.customuser.last_ampel_reminder == timezone.now().date():
+        return error(_('Heute wurde bereits eine Erinnerung gesendet.'))
+
+    try:
+        send_ampel_reminder(user, config)
+    except Exception as e:
+        return error(_('Ein Fehler ist aufgetreten: {}').format(e), status=500)
+
+    return JsonResponse({
+        'success': True,
+        'info': str(_('Heute bereits gesendet')),
+    })
 
 
 @login_required
 @required_role('OT')
 def list_ampel(request):
+    if request.method == 'POST' and request.POST.get('action') == 'send_ampel_reminder':
+        return _send_manual_ampel_reminder(request)
+
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         status = request.POST.get('status')
@@ -1687,14 +1846,15 @@ def list_ampel(request):
                 user=user,
                 status=status,
                 comment=comment,
-                date=entry_datetime
+                date=entry_datetime,
+                create_manuell=True,
             )
             messages.success(request, _('Ampel-Eintrag erfolgreich hinzugefügt.'))
         except User.DoesNotExist:
             messages.error(request, _('Benutzer nicht gefunden.'))
         except Exception as e:
             messages.error(request, _('Ein Fehler ist aufgetreten: {}').format(e))
-        
+
         return redirect('list_ampel')
 
     person_cluster_param = request.GET.get('person_cluster_filter')
@@ -1702,7 +1862,11 @@ def list_ampel(request):
         person_cluster_param = request.COOKIES.get('selectedPersonCluster-ampel')
     if person_cluster_param is not None and person_cluster_param != 'None':
         try:
-            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org, ampel=True)
+            person_cluster = PersonCluster.selectable_for_org(
+                request.user.org,
+                id=int(person_cluster_param),
+                ampel=True,
+            ).get()
         except PersonCluster.DoesNotExist:
             person_cluster = None
     else:
@@ -1718,21 +1882,43 @@ def list_ampel(request):
     # Base queryset for freiwillige
     if request.user.view == 'O':
         user_qs = User.objects.filter(customuser__person_cluster__isnull=False, customuser__org=request.user.org, customuser__person_cluster__ampel=True).order_by('first_name', 'last_name')
-        all_person_cluster = PersonCluster.objects.filter(org=request.user.org, ampel=True)
+        all_person_cluster = PersonCluster.selectable_for_org(request.user.org, ampel=True)
     elif request.user.view == 'T':
         from TEAM.views import _get_Freiwillige
         # TODO: this displays all freiwillige, not only the ones that have an ampel enabled
         freiwillige = _get_Freiwillige(request)
         user_qs = User.objects.filter(id__in=freiwillige.values_list('user_id', flat=True))
-        all_person_cluster = PersonCluster.objects.filter(org=request.user.org, view='F', ampel=True)
+        all_person_cluster = PersonCluster.selectable_for_org(
+            request.user.org,
+            view='F',
+            ampel=True,
+        )
     else:
         user_qs = User.objects.none()
         raise ValueError('Invalid view')
-    
+
     if person_cluster:
         user_qs = user_qs.filter(customuser__person_cluster=person_cluster)
-    ampel_matrix, months = _get_ampel_matrix(request, user_qs, filter_this_month)
-    
+    user_qs = user_qs.select_related('customuser__person_cluster')
+
+    all_person_cluster = list(all_person_cluster)
+    if request.user.view == 'O':
+        for pc in all_person_cluster:
+            config, _created = AmpelConfiguration.objects.get_or_create(
+                person_cluster=pc,
+                defaults={'org': request.user.org},
+            )
+            pc.ampel_configuration_cached = config
+            if person_cluster and person_cluster.id == pc.id:
+                person_cluster.ampel_configuration_cached = config
+
+    ampel_matrix, months = _get_ampel_matrix(
+        request,
+        user_qs,
+        filter_this_month,
+        person_cluster=person_cluster,
+    )
+
     context = {
         'months': months,
         'ampel_matrix': ampel_matrix,
@@ -1742,17 +1928,18 @@ def list_ampel(request):
         'current_person_cluster': person_cluster,
         'large_container': True,
         'filter_this_month': filter_this_month,
+        'ampel_reminder_cluster_ids': set(_active_ampel_reminder_configs(request.user.org)),
     }
-    
+
     context = check_organization_context(request, context)
-    
+
     response = render(request, 'list_ampel.html', context=context)
-    
+
     if person_cluster:
         response.set_cookie('selectedPersonCluster-ampel', person_cluster.id)
     else:
         response.delete_cookie('selectedPersonCluster-ampel')
-        
+
     return response
 
 
@@ -1775,7 +1962,7 @@ def aufgaben(request):
 
     # Create calendar events
     calendar_events = []
-    
+
     # Add open tasks (blue)
     for aufgabe in offene_aufgaben:
         calendar_events.append({
@@ -1785,7 +1972,7 @@ def aufgaben(request):
             'backgroundColor': '#0d6efd',
             'borderColor': '#0d6efd'
         })
-    
+
     # Add pending tasks (yellow)
     for aufgabe in pending_aufgaben:
         calendar_events.append({
@@ -1796,7 +1983,7 @@ def aufgaben(request):
             'borderColor': '#ffc107',
             'textColor': '#000'
         })
-    
+
     # Add completed tasks (green)
     for aufgabe in erledigte_aufgaben:
         calendar_events.append({
@@ -1833,7 +2020,7 @@ def aufgabe(request, aufgabe_id):
     except UserAufgaben.DoesNotExist:
         messages.error(request, 'Aufgabe nicht gefunden')
         return redirect('aufgaben')
-    
+
     if request.method == 'POST':
         files = request.FILES.getlist('file')
 
@@ -1851,10 +2038,10 @@ def aufgabe(request, aufgabe_id):
 
                 # Reset buffer position to beginning
                 zip_buffer.seek(0)
-                
+
                 # Create filename for the zip file
                 file_name = f"{user_aufgabe.aufgabe.name.replace(' ', '_')}-{datetime.now().strftime('%Y-%m-%d')}.zip"
-                
+
                 # Save the zip file directly to the FileField using ContentFile
                 # This properly handles the upload_to parameter and file storage
                 user_aufgabe.file.save(file_name, ContentFile(zip_buffer.getvalue()), save=True)
@@ -1862,7 +2049,7 @@ def aufgabe(request, aufgabe_id):
             elif files:
                 user_aufgabe.file = files[0]
                 user_aufgabe.save()
-        
+
         action = request.POST.get('action')
         if action == 'unpend':
             user_aufgabe.pending = False
@@ -1907,7 +2094,7 @@ def download_aufgabe_attachment(request, aufgabe_id):
             return HttpResponse('Datei nicht gefunden')
         if not os.path.exists(aufgabe.attachment.path):
             return HttpResponse('Datei nicht gefunden')
-            
+
         response = HttpResponse(aufgabe.attachment.read(), content_type='application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{aufgabe.attachment.name.replace(" ", "_")}"'
 
@@ -1920,8 +2107,11 @@ def download_aufgabe_attachment(request, aufgabe_id):
 @required_person_cluster('posts')
 def posts_overview(request):
     cookie_name = 'selectedPersonCluster-posts'
-    
-    all_person_clusters = PersonCluster.objects.filter(org=request.user.org, posts=True).order_by('name')
+
+    all_person_clusters = PersonCluster.selectable_for_org(
+        request.user.org,
+        posts=True,
+    ).order_by('name')
     current_person_cluster = None
     if request.user.role == 'O':
         try:
@@ -1934,7 +2124,7 @@ def posts_overview(request):
                 person_cluster_cookie = request.COOKIES.get(cookie_name)
                 if person_cluster_cookie is not None and person_cluster_cookie != 'None':
                     current_person_cluster = all_person_clusters.get(id=int(person_cluster_cookie), org=request.user.org)
-        
+
             posts = get_posts(request.user.org, filter_person_cluster=current_person_cluster)
         except PersonCluster.DoesNotExist:
             current_person_cluster = None
@@ -1943,46 +2133,46 @@ def posts_overview(request):
             messages.error(request, f'Fehler beim Laden der Beiträge: {str(e)}')
             current_person_cluster = None
             posts = get_posts(request.user.org)
-    
+
     else:
         posts = get_posts(request.user.org, filter_person_cluster=request.user.person_cluster)
-    
+
     context = {
         'posts': posts,
         'person_clusters': all_person_clusters,
         'current_person_cluster': current_person_cluster,
     }
     context = check_organization_context(request, context)
-    
+
     response = render(request, 'posts_overview.html', context=context)
-    
+
     if current_person_cluster:
         response.set_cookie(cookie_name, current_person_cluster.id)
     else:
         response.delete_cookie(cookie_name) if cookie_name in request.COOKIES else None
-    
+
     return response
 
 @login_required
 @required_person_cluster('posts')
 def post_edit(request, post_id):
     post = Post2.objects.get(id=post_id)
-    
+
     # Check permissions
     if request.user != post.user and request.user.role != 'A':
         messages.error(request, 'Du hast keine Berechtigung, diesen Beitrag zu bearbeiten.')
         return redirect('post_detail', post_id=post_id)
-    
+
     if request.method == 'POST':
         form = AddPostForm(request.POST, request.FILES, instance=post)
         if form.is_valid():
             # Save the post (commit=True handles saving, m2m fields, and answers)
             post = form.save(commit=True)
-            
+
             # Ensure person_cluster is set
             if not post.person_cluster.exists():
                 post.person_cluster.set([request.user.person_cluster])
-            
+
             messages.success(request, 'Beitrag erfolgreich aktualisiert.')
             return redirect('post_detail', post_id=post.id)
     else:
@@ -1990,13 +2180,13 @@ def post_edit(request, post_id):
         initial_data = {}
         if post.has_survey and hasattr(post, 'survey_question'):
             initial_data['survey_question'] = post.survey_question.question_text
-            
+
             # Populate answer fields
             for i, answer in enumerate(post.survey_question.survey_answers.all()[:5], 1):
                 initial_data[f'answer_{i}'] = answer.answer_text
-                
+
         form = AddPostForm(instance=post, initial=initial_data)
-    
+
     context = {
         'form': form,
         'post': post
@@ -2018,27 +2208,27 @@ def post_add(request, post=None):
             post.org = request.user.org
             post.save()
 
-            
+
             # Save the survey question and answers
             form.save_answers()
-            
+
             # Explicitly save the ManyToManyField after saving the post
             form.save_m2m()
-            messages.success(request, 'Beitrag erfolgreich erstellt. In 15min wird eine Benachrichtigung an die Benutzer:innen gesendet.')
-            
+            messages.success(request, _('Post erfolgreich erstellt. In 15min wird eine Benachrichtigung an die Benutzer:innen gesendet.'))
+
             # Save person_cluster
             person_cluster = form.cleaned_data.get('person_cluster')
             if request.user.role == 'O' and person_cluster:
                 post.person_cluster.set(person_cluster)
-            else: 
+            else:
                 post.person_cluster.set([request.user.customuser.person_cluster])
-                
+
             return redirect('posts_overview')
     elif post:
         form = AddPostForm(instance=post)
     else:
         form = AddPostForm()
-    
+
     context = {
         'form': form,
         'post': post
@@ -2051,7 +2241,7 @@ def post_add(request, post=None):
 def post_detail(request, post_id):
     try:
         post = Post2.objects.get(id=post_id)
-        
+
         # Check if user has permission to view this post based on person_cluster
         user_person_cluster = request.user.person_cluster
         if user_person_cluster.view != 'O' and post.person_cluster.exists():
@@ -2059,11 +2249,11 @@ def post_detail(request, post_id):
             if user_person_cluster not in post.person_cluster.all():
                 messages.error(request, 'Du hast keine Berechtigung, diesen Beitrag anzusehen.')
                 return redirect('posts_overview')
-        
+
         # Track if user has voted in this survey
         has_voted = False
         total_votes = 0
-        
+
         if post.has_survey and hasattr(post, 'survey_question'):
             # Check if user has voted using the ManyToManyField
             answers = PostSurveyAnswer.objects.filter(question=post.survey_question)
@@ -2072,8 +2262,8 @@ def post_detail(request, post_id):
                 total_votes += answer.votes.count()
                 if request.user in answer.votes.all():
                     has_voted = answer
-                
-                
+
+
         responses = post.get_all_responses()
         response_form = PostResponseForm(user=request.user, original_post=post)
 
@@ -2098,11 +2288,11 @@ def post_detail(request, post_id):
 @required_person_cluster('posts')
 def post_delete(request, post_id):
     post = Post2.objects.get(id=post_id)
-    
+
     # Check if user has permission to delete this post
     if request.user == post.user or request.user.role == 'A':
         post.delete()
-    
+
     return redirect('posts_overview')
 
 @login_required
@@ -2110,14 +2300,14 @@ def post_delete(request, post_id):
 def post_vote(request, post_id):
     if request.method != 'POST':
         return redirect('post_detail', post_id=post_id)
-    
+
     post = Post2.objects.get(id=post_id)
-    
+
     # Check if post has a survey
     if not post.has_survey or not hasattr(post, 'survey_question'):
         messages.error(request, 'Diese Umfrage existiert nicht oder wurde entfernt.')
         return redirect('post_detail', post_id=post_id)
-    
+
     # Check if user wants to withdraw their vote
     withdraw = request.POST.get('withdraw')
     if withdraw:
@@ -2126,26 +2316,26 @@ def post_vote(request, post_id):
             if request.user in existing_answer.votes.all():
                 existing_answer.votes.remove(request.user)
         return redirect('post_detail', post_id=post_id)
-    
+
     # Process the vote (allow changing votes)
     answer_id = request.POST.get('answer_id')
     if answer_id:
         try:
             answer = PostSurveyAnswer.objects.get(id=answer_id, question=post.survey_question)
-            
+
             # Remove user's previous vote from all answers in this survey
             for existing_answer in post.survey_question.survey_answers.all():
                 if request.user in existing_answer.votes.all():
                     existing_answer.votes.remove(request.user)
-            
+
             # Add user to the votes ManyToManyField of the selected answer
             answer.votes.add(request.user)
-            
+
         except PostSurveyAnswer.DoesNotExist:
             messages.error(request, 'Die gewählte Antwort existiert nicht.')
     else:
         messages.error(request, 'Bitte wähle eine Antwort aus.')
-    
+
     return redirect('post_detail', post_id=post_id)
 
 
@@ -2173,12 +2363,12 @@ def post_response(request, post_id):
 @required_person_cluster('posts')
 def post_response_delete(request, response_id):
     response = PostResponse.objects.get(id=response_id, org=request.user.org)
-    
+
     # Check permissions
     if request.user != response.user and request.user.role != 'A':
         messages.error(request, 'Du hast keine Berechtigung, diese Antwort zu löschen.')
         return redirect('post_detail', post_id=response.original_post.id)
-    
+
     post_id = response.original_post.id
     response.delete()
     messages.success(request, 'Antwort erfolgreich gelöscht.')
@@ -2225,13 +2415,13 @@ def einsatzstellen_notiz(request, es_id=None):
             return redirect('index_home')
     else:
         einsatzstellen = Einsatzstelle2.objects.filter(org=request.user.org).order_by('land__name', 'name')
-    
+
     # Get the selected Einsatzstelle
     einsatzstelle = None
-    
+
     if request.GET.get('es_id'):
         return redirect('einsatzstellen_notiz', es_id=request.GET.get('es_id'))
-    
+
     if es_id:
         try:
             if request.user.role == 'T':
@@ -2247,7 +2437,7 @@ def einsatzstellen_notiz(request, es_id=None):
         except Einsatzstelle2.DoesNotExist:
             messages.error(request, 'Einsatzstelle nicht gefunden.')
             return redirect('einsatzstellen_notiz')
-    
+
     # Handle note deletion
     if request.method == 'POST' and 'delete_notiz_id' in request.POST:
         notiz_id = request.POST.get('delete_notiz_id')
@@ -2258,7 +2448,7 @@ def einsatzstellen_notiz(request, es_id=None):
         except EinsatzstelleNotiz.DoesNotExist:
             messages.error(request, 'Notiz konnte nicht gelöscht werden.')
         return redirect('einsatzstellen_notiz', es_id=es_id)
-    
+
     # Handle note pinning/unpinning
     if request.method == 'POST' and 'action' in request.POST and request.POST.get('action') in ['pin', 'unpin']:
         notiz_id = request.POST.get('notiz_id')
@@ -2269,7 +2459,7 @@ def einsatzstellen_notiz(request, es_id=None):
         except EinsatzstelleNotiz.DoesNotExist:
             messages.error(request, 'Notiz konnte nicht aktualisiert werden.')
         return redirect('einsatzstellen_notiz', es_id=es_id)
-    
+
     # Handle note editing
     if request.method == 'POST' and 'notiz_id' in request.POST and 'notiz' in request.POST:
         notiz_id = request.POST.get('notiz_id')
@@ -2282,7 +2472,7 @@ def einsatzstellen_notiz(request, es_id=None):
         except EinsatzstelleNotiz.DoesNotExist:
             messages.error(request, 'Notiz konnte nicht aktualisiert werden.')
         return redirect('einsatzstellen_notiz', es_id=es_id)
-    
+
     # Handle new note creation
     if request.method == 'POST' and einsatzstelle:
         form = EinsatzstelleNotizForm(request.POST, einsatzstelle=einsatzstelle, request=request, org=request.user.org)
@@ -2292,7 +2482,7 @@ def einsatzstellen_notiz(request, es_id=None):
             return redirect('einsatzstellen_notiz', es_id=es_id)
     else:
         form = EinsatzstelleNotizForm(einsatzstelle=einsatzstelle, request=request, org=request.user.org) if einsatzstelle else None
-    
+
     # Get notes for the selected Einsatzstelle, ordered by pinned status and date
     notizen = EinsatzstelleNotiz.objects.filter(einsatzstelle=einsatzstelle).order_by('-pinned', '-date') if einsatzstelle else None
 
@@ -2312,13 +2502,13 @@ def kalender_abbonement(request, token):
         print(custom_user)
         user = custom_user.user
         print(user)
-        
+
         # Add calendar events
         if user.role == 'O':
             kalender_events = KalenderEvent.objects.filter(org=user.org)
         else:
             kalender_events = KalenderEvent.objects.filter(org=user.org).filter(user__in=[user])
-            
+
         # Create iCal calendar
         cal = Calendar()
         cal.add('prodid', '-//Volunteer Solutions//Calendar//DE')
@@ -2327,7 +2517,7 @@ def kalender_abbonement(request, token):
         cal.add('method', 'PUBLISH')
         cal.add('name', f'Kalender von {user.first_name} {user.last_name}')
         cal.add('description', f'Kalender von {user.first_name} {user.last_name}')
-        
+
         # Add user's tasks
         for user_aufgabe in UserAufgaben.objects.filter(user=user):
             ical_event = Event()
@@ -2347,15 +2537,15 @@ def kalender_abbonement(request, token):
         for kalender_event in kalender_events:
             ical_event = Event()
             ical_event.add('summary', kalender_event.title)
-            
+
             # Add location if available
             if kalender_event.location:
                 ical_event.add('location', kalender_event.location)
-            
+
             # Add description if available
             if kalender_event.description:
                 ical_event.add('description', kalender_event.description)
-            
+
             # Ensure proper timezone handling
             if kalender_event.start:
                 start_dt = kalender_event.start.astimezone(timezone.get_current_timezone())
@@ -2366,7 +2556,7 @@ def kalender_abbonement(request, token):
             url = f"{request.scheme}://{request.get_host()}{reverse('kalender_event', args=[kalender_event.id])}"
             ical_event.add('url', url)
             cal.add_component(ical_event)
-            
+
         # Add birthdays
         from datetime import datetime as dt, time as dtime
 
@@ -2395,27 +2585,27 @@ def kalender_abbonement(request, token):
 
         # Check if this is a calendar app request
         is_calendar_app = (
-            request.headers.get('Accept') == 'text/calendar' or 
+            request.headers.get('Accept') == 'text/calendar' or
             request.GET.get('format') == 'ical' or
             'calendar' in request.headers.get('User-Agent', '').lower()
         )
 
         response = HttpResponse(cal.to_ical(), content_type='text/calendar')
-        
+
         if is_calendar_app:
             # For calendar apps, return as inline content
             response['Content-Disposition'] = f'inline; filename="kalender_{user.username}.ics"'
         else:
             # For direct downloads, trigger file download
             response['Content-Disposition'] = f'attachment; filename="kalender_{user.username}.ics"'
-        
+
         return response
 
     except Exception as e:
         messages.error(request, f'Ungültiger Token.')
         print(e)
         return redirect('index_home')
-    
+
 @login_required
 def settings_view(request):
     context = check_organization_context(request, {})
@@ -2443,7 +2633,7 @@ def delete_account(request):
 def export_data(request):
     """
     Export all user data including foreign key relationships as a JSON file.
-    
+
     This is a wrapper function that uses the secure export utilities module.
     All security features are implemented in the export_utils module.
     """
@@ -2457,7 +2647,7 @@ def export_data(request):
         # SECURITY: Generic error message to prevent information disclosure
         logger = logging.getLogger('security')
         logger.error(f'Data export failed for user {request.user.id} ({request.user.username}): {str(e)}')
-        
+
         messages.error(request, 'Beim Export der Daten ist ein Fehler aufgetreten. Bitte versuche es später erneut.')
         return redirect('settings')
 
@@ -2496,7 +2686,7 @@ def bewerber_detail(request, bewerber_id):
 def bewerber_kommentar(request, bewerber_id):
     try:
         bewerber = Bewerber.objects.get(id=bewerber_id, org=request.user.org)
-        
+
         if request.method == 'POST':
             form = BewerberKommentarForm(request.POST)
             if form.is_valid():
@@ -2508,21 +2698,21 @@ def bewerber_kommentar(request, bewerber_id):
                 return redirect('bewerber_kommentar', bewerber_id=bewerber.id)
         else:
             form = BewerberKommentarForm()
-        
+
         # Get all comments for this bewerber
         all_comments = BewerberKommentar.objects.filter(
             bewerber=bewerber,
             org=request.user.org
         ).select_related('user').order_by('-date_created')
-        
+
         context = {
             'bewerber': bewerber,
             'form': form,
             'all_comments': all_comments,
         }
-        
+
         return render(request, 'bewerber_kommentar.html', context)
-        
+
     except Exception as e:
         messages.error(request, f'Fehler: {e}')
         return redirect('index_home')
@@ -2541,12 +2731,12 @@ def api_bewerber_kommentare(request, bewerber_id, kommentar_id=None):
         bewerber = Bewerber.objects.get(id=bewerber_id, org=request.user.org)
     except Bewerber.DoesNotExist:
         return JsonResponse({'error': 'Bewerber nicht gefunden'}, status=404)
-    
+
     # Handle DELETE request - delete a specific comment
     if request.method == 'DELETE':
         if not kommentar_id:
             return JsonResponse({'error': 'Kommentar-ID erforderlich'}, status=400)
-        
+
         try:
             # Get the comment
             kommentar = BewerberKommentar.objects.get(
@@ -2554,24 +2744,24 @@ def api_bewerber_kommentare(request, bewerber_id, kommentar_id=None):
                 bewerber=bewerber,
                 org=request.user.org
             )
-            
+
             # Check if the user owns this comment
             if kommentar.user != request.user:
                 return JsonResponse({'error': 'Du hast keine Berechtigung, diesen Kommentar zu löschen'}, status=403)
-            
+
             # Delete the comment
             kommentar.delete()
-            
+
             return JsonResponse({
                 'success': True,
                 'message': 'Kommentar erfolgreich gelöscht'
             })
-            
+
         except BewerberKommentar.DoesNotExist:
             return JsonResponse({'error': 'Kommentar nicht gefunden'}, status=404)
         except Exception as e:
             return JsonResponse({'error': f'Fehler beim Löschen des Kommentars: {str(e)}'}, status=500)
-    
+
     # Handle GET request - fetch all comments
     elif request.method == 'GET':
         # Get all comments for this bewerber
@@ -2579,7 +2769,7 @@ def api_bewerber_kommentare(request, bewerber_id, kommentar_id=None):
             bewerber=bewerber,
             org=request.user.org
         ).select_related('user').order_by('-date_created')
-        
+
         # Format comments data
         comments_data = []
         for comment in comments:
@@ -2593,7 +2783,7 @@ def api_bewerber_kommentare(request, bewerber_id, kommentar_id=None):
                     'profile_picture_url': reverse('serve_profil_picture', args=[comment.user.customuser.get_identifier()])
                 }
             })
-        
+
         # Return response
         return JsonResponse({
             'success': True,
@@ -2605,21 +2795,21 @@ def api_bewerber_kommentare(request, bewerber_id, kommentar_id=None):
             },
             'comments': comments_data
         })
-    
+
     # Handle POST request - create new comment
     elif request.method == 'POST':
         try:
             # Parse JSON body
             data = json.loads(request.body)
             comment_text = data.get('comment', '').strip()
-            
+
             # Validate comment
             if not comment_text:
                 return JsonResponse({'error': 'Kommentar darf nicht leer sein'}, status=400)
-            
+
             if len(comment_text) > 5000:
                 return JsonResponse({'error': 'Kommentar ist zu lang (max. 5000 Zeichen)'}, status=400)
-            
+
             # Create comment
             kommentar = BewerberKommentar.objects.create(
                 bewerber=bewerber,
@@ -2627,7 +2817,7 @@ def api_bewerber_kommentare(request, bewerber_id, kommentar_id=None):
                 user=request.user,
                 comment=comment_text
             )
-            
+
             # Return success response with comment data
             return JsonResponse({
                 'success': True,
@@ -2643,24 +2833,24 @@ def api_bewerber_kommentare(request, bewerber_id, kommentar_id=None):
                     }
                 }
             })
-            
+
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Ungültige JSON-Daten'}, status=400)
         except Exception as e:
             return JsonResponse({'error': f'Fehler beim Erstellen des Kommentars: {str(e)}'}, status=500)
-    
+
     else:
         return JsonResponse({'error': 'Methode nicht erlaubt'}, status=405)
 
 
 @login_required
 @required_role('BOTE')
-def bw_application_file_answer_download(request, file_answer_id):
+def bw_application_file_answer_download(request, file_answer_uuid):
     try:
         if request.user.customuser.person_cluster.view == 'B':
-            file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, user=request.user)
+            file_answer = ApplicationAnswerFile.objects.get(uuid=file_answer_uuid, user=request.user)
         else:
-            file_answer = ApplicationAnswerFile.objects.get(id=file_answer_id, file_question__org=request.user.org)
+            file_answer = ApplicationAnswerFile.objects.get(uuid=file_answer_uuid, file_question__org=request.user.org)
             if request.user.customuser.person_cluster.view in 'TE':
                 try:
                     file_answer_user = file_answer.user
@@ -2671,18 +2861,29 @@ def bw_application_file_answer_download(request, file_answer_id):
                 except Exception as e:
                     messages.error(request, 'Datei nicht gefunden')
                     return redirect('index_home')
-                
+
     except ApplicationAnswerFile.DoesNotExist:
         messages.error(request, 'Datei nicht gefunden')
         return redirect('index_home')
-    
+
     if file_answer.file and os.path.exists(file_answer.file.path):
-        response = FileResponse(file_answer.file)
-        response['Content-Disposition'] = f'attachment; filename="{file_answer.file.name}"'
-        return response
+        file_field = file_answer.file
+    elif (
+        file_answer.file_question.is_profile_picture
+        and hasattr(file_answer.user, 'customuser')
+        and file_answer.user.customuser.profil_picture
+        and os.path.exists(file_answer.user.customuser.profil_picture.path)
+    ):
+        # Profile pictures were previously stored only on CustomUser after
+        # resizing deleted the shared application file; fall back to that.
+        file_field = file_answer.user.customuser.profil_picture
     else:
         messages.error(request, 'Datei nicht gefunden')
         return redirect('index_home')
+
+    response = FileResponse(file_field)
+    response['Content-Disposition'] = f'attachment; filename="{os.path.basename(file_field.name)}"'
+    return response
 
 
 # ============================================================================
@@ -2696,9 +2897,9 @@ def _get_member_and_countries(request):
     """
     from TEAM.models import Team
     from Ehemalige.models import Ehemalige
-    
+
     user_view = request.user.customuser.person_cluster.view
-    
+
     if user_view == 'T':
         # Team member
         member = Team.objects.filter(user=request.user).first()
@@ -2709,7 +2910,7 @@ def _get_member_and_countries(request):
         member = Ehemalige.objects.filter(user=request.user).first()
         if member:
             return member, member.land.all(), 'baseEhemalige.html'
-        
+
     return None, None, 'base.html'
 
 
@@ -2718,18 +2919,18 @@ def _get_member_and_countries(request):
 def laender_info(request):
     """View for Team and Ehemalige members to view their assigned countries' information."""
     member, assigned_countries, base_template = _get_member_and_countries(request)
-    
+
     if not member:
         messages.warning(request, 'Deinem Konto sind keine Einsatzländer zugeordnet. Bitte kontaktiere den Administrator.')
         return redirect('index_home')
-    
+
     # Get assigned countries
     laender = assigned_countries.order_by('name')
-    
+
     # Check if there are any countries assigned
     if not laender.exists():
         messages.info(request, 'Deinem Konto sind derzeit keine Einsatzländer zugeordnet.')
-    
+
     # Get pending change requests for this user's countries
     pending_requests_by_land = {}
     if laender.exists():
@@ -2740,17 +2941,17 @@ def laender_info(request):
             change_type='einsatzland',
             object_id__in=laender.values_list('id', flat=True)
         ).select_related('requested_by')
-        
+
         for req in pending_requests:
             pending_requests_by_land[req.object_id] = req
-    
+
     context = {
         'laender': laender,
         'pending_requests_by_land': pending_requests_by_land,
         'base_template': base_template,
         'member': member
     }
-    
+
     return render(request, 'laender_info.html', context)
 
 
@@ -2759,21 +2960,21 @@ def laender_info(request):
 def einsatzstellen_info(request):
     """View for Team and Ehemalige members to view their assigned placement locations."""
     member, assigned_countries, base_template = _get_member_and_countries(request)
-    
+
     if not member:
         messages.warning(request, 'Deinem Konto sind keine Einsatzstellen zugeordnet. Bitte kontaktiere den Administrator.')
         return redirect('index_home')
-    
+
     # Get placement locations for assigned countries
     einsatzstellen = Einsatzstelle2.objects.filter(
         org=request.user.org,
         land__in=assigned_countries
     ).select_related('land').order_by('land__name', 'name')
-    
+
     # Check if there are any placement locations
     if not einsatzstellen.exists():
         messages.info(request, 'Es wurden keine Einsatzstellen in Deinen zugewiesenen Ländern gefunden.')
-    
+
     # Get pending change requests for this user's einsatzstellen
     pending_requests_by_stelle = {}
     if einsatzstellen.exists():
@@ -2784,17 +2985,17 @@ def einsatzstellen_info(request):
             change_type='einsatzstelle',
             object_id__in=einsatzstellen.values_list('id', flat=True)
         ).select_related('requested_by')
-        
+
         for req in pending_requests:
             pending_requests_by_stelle[req.object_id] = req
-    
+
     context = {
         'einsatzstellen': einsatzstellen,
         'pending_requests_by_stelle': pending_requests_by_stelle,
         'base_template': base_template,
         'member': member
     }
-    
+
     return render(request, 'einsatzstellen_info.html', context)
 
 
@@ -2803,42 +3004,60 @@ def einsatzstellen_info(request):
 def karte(request):
     # Get or create the user's location entry (only one per user)
     user_location = MapLocation.objects.filter(user=request.user, org=request.user.org).first()
-    
+    filter_person_cluster = None
+
     if request.method == 'POST':
         form = KarteForm(request.POST, request=request, instance=user_location)
         if form.is_valid():
             location = form.save(commit=False)
             location.user = request.user
             location.org = request.user.org
-            
+
             # Geocode the address using Nominatim (OpenStreetMap)
             try:
                 from geopy.geocoders import Nominatim
+                from geopy.distance import geodesic
                 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
+                import math
                 import random
                 from decimal import Decimal
-                
+
                 geolocator = Nominatim(user_agent="fwmsg_app")
                 address = f"{location.zip_code or ''} {location.city}, {location.country}"
-                
+
                 geo_location = geolocator.geocode(address, timeout=10)
                 if geo_location:
                     base_lat = geo_location.latitude
                     base_lon = geo_location.longitude
-                    
-                    # Check if another user in the same org has the same coordinates
+
+                    # Apply an offset if another marker already exists within 100 meters.
+                    lat_delta = Decimal('0.0009')
+                    cos_lat = max(abs(math.cos(math.radians(base_lat))), 0.01)
+                    lon_delta = Decimal(str(0.0009 / cos_lat))
                     existing_locations = MapLocation.objects.filter(
                         org=request.user.org,
-                        latitude=base_lat,
-                        longitude=base_lon
+                        latitude__isnull=False,
+                        longitude__isnull=False,
+                        latitude__gte=Decimal(str(base_lat)) - lat_delta,
+                        latitude__lte=Decimal(str(base_lat)) + lat_delta,
+                        longitude__gte=Decimal(str(base_lon)) - lon_delta,
+                        longitude__lte=Decimal(str(base_lon)) + lon_delta,
                     ).exclude(user=request.user)
-                    
-                    if existing_locations.exists():
+
+                    has_nearby_location = any(
+                        geodesic(
+                            (base_lat, base_lon),
+                            (float(existing.latitude), float(existing.longitude)),
+                        ).meters <= 100
+                        for existing in existing_locations
+                    )
+
+                    if has_nearby_location:
                         # Add small random offset to prevent marker overlap
                         # Offset range: 500 meters (0.0045 degrees)
                         offset_lat = Decimal(str(random.uniform(-0.0045, 0.0045)))
                         offset_lon = Decimal(str(random.uniform(-0.0045, 0.0045)))
-                        
+
                         location.latitude = Decimal(str(base_lat)) + offset_lat
                         location.longitude = Decimal(str(base_lon)) + offset_lon
                     else:
@@ -2850,31 +3069,65 @@ def karte(request):
                 messages.warning(request, f'Geocoding-Fehler: {str(e)}')
             except ImportError:
                 messages.warning(request, 'Geocoding-Modul nicht verfügbar. Bitte installiere geopy.')
-            
+
             location.save()
             if user_location:
                 messages.success(request, 'Standort erfolgreich aktualisiert')
             else:
                 messages.success(request, 'Standort erfolgreich hinzugefügt')
             return redirect('karte')
-        
+
     form = KarteForm(request=request, instance=user_location)
-    
+
     if request.user.role == 'O':
-        map_locations = MapLocation.objects.filter(org=request.user.org).order_by('-date_created')
+        filter_person_clusters = request.GET.get('person_cluster_filter')
+        if filter_person_clusters and filter_person_clusters != 'None':
+            try:
+                filter_person_cluster = PersonCluster.selectable_for_org(
+                    request.user.org,
+                    id=int(filter_person_clusters),
+                    map=True,
+                ).get()
+                map_locations = MapLocation.objects.filter(org=request.user.org, user__customuser__person_cluster=filter_person_cluster)
+            except Exception as e:
+                messages.warning(request, f'Fehler beim Filtern der Benutzergruppen: {str(e)}')
+                map_locations = MapLocation.objects.filter(org=request.user.org)
+        else:
+            map_locations = MapLocation.objects.filter(org=request.user.org)
     else:
         # Get users from the same person cluster view
         users_same_person_cluster = User.objects.filter(
             customuser__person_cluster__view=request.user.customuser.person_cluster.view,
             customuser__org=request.user.org
         ).values_list('id', flat=True)
-        map_locations = MapLocation.objects.filter(org=request.user.org, user__id__in=users_same_person_cluster).order_by('-date_created')
-    
+        map_locations = MapLocation.objects.filter(org=request.user.org).filter(
+            Q(user__id__in=users_same_person_cluster, visibility='F') | Q(visibility='P')
+        )
+
+        # if filter is set, filter the map locations by the person cluster
+        filter_person_cluster = request.GET.get('person_cluster_filter')
+        if filter_person_cluster and filter_person_cluster != 'None':
+            try:
+                filter_person_cluster = PersonCluster.selectable_for_org(
+                    request.user.org,
+                    id=int(filter_person_cluster),
+                    map=True,
+                ).get()
+                if filter_person_cluster == request.user.customuser.person_cluster:
+                    map_locations = map_locations.filter(user__customuser__person_cluster=filter_person_cluster)
+            except Exception as e:
+                messages.warning(request, f'Fehler beim Filtern der Benutzergruppen: {str(e)}')
+
     context = {
         'form': form,
         'locations': map_locations,
         'user_location': user_location,
         'is_editing': user_location is not None,
+        'person_clusters': PersonCluster.selectable_for_org(
+            request.user.org,
+            map=True,
+        ).order_by('name'),
+        'current_person_cluster': filter_person_cluster,
     }
     context = check_organization_context(request, context)
     return render(request, 'karte.html', context)
@@ -2892,3 +3145,69 @@ def delete_karte(request):
         else:
             messages.warning(request, 'Kein Standort zum Löschen gefunden')
     return redirect('karte')
+
+
+@login_required
+@required_role('OTEF')
+def list_users(request):
+    cookie_name = 'selectedPersonCluster-list_users'
+    all_person_clusters = PersonCluster.selectable_for_org(
+        request.user.org,
+        view__in=['F', 'E'],
+    ).order_by('name')
+    current_person_cluster = None
+
+    if request.user.role == 'O':
+        try:
+            person_cluster_param = request.GET.get('person_cluster_filter')
+            if person_cluster_param == 'None':
+                current_person_cluster = None
+            elif person_cluster_param:
+                current_person_cluster = all_person_clusters.get(id=int(person_cluster_param))
+            else:
+                person_cluster_cookie = request.COOKIES.get(cookie_name)
+                if person_cluster_cookie is not None and person_cluster_cookie != 'None':
+                    current_person_cluster = all_person_clusters.get(id=int(person_cluster_cookie))
+        except (PersonCluster.DoesNotExist, ValueError, TypeError):
+            current_person_cluster = None
+
+        users = User.objects.filter(
+            customuser__org=request.user.org,
+            customuser__person_cluster__view__in=['F', 'E'],
+        )
+        if current_person_cluster:
+            users = users.filter(customuser__person_cluster=current_person_cluster)
+    else:
+        users = User.objects.filter(
+            customuser__org=request.user.org,
+            customuser__person_cluster=request.user.customuser.person_cluster,
+            customuser__person_cluster__view__in=['F', 'E'],
+        )
+
+    users = (
+        users
+        .select_related(
+            'customuser',
+            'customuser__person_cluster',
+            'freiwilliger',
+            'freiwilliger__einsatzland2',
+            'ehemalige',
+        )
+        .prefetch_related('ehemalige__land')
+        .order_by('first_name', 'last_name')
+    )
+    context = {
+        'users': users,
+        'person_clusters': all_person_clusters,
+        'current_person_cluster': current_person_cluster,
+    }
+    context = check_organization_context(request, context)
+    response = render(request, 'list_users.html', context)
+
+    if request.user.role == 'O':
+        if current_person_cluster:
+            response.set_cookie(cookie_name, current_person_cluster.id)
+        elif cookie_name in request.COOKIES:
+            response.delete_cookie(cookie_name)
+
+    return response

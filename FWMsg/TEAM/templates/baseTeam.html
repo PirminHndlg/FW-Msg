@@ -42,7 +42,7 @@
             </a>
 
             <!-- Hamburger Button for Mobile -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <button class="navbar-toggler position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span><span class="badge rounded-pill bg-danger d-none badge-unread navbar-toggler-badge">0</span></button>
 
             <div class="collapse navbar-collapse" id="navbarResponsive">
               <ul class="navbar-nav me-auto mb-2 mb-md-0">
@@ -83,11 +83,20 @@
                     <a href="{% url 'team_contacts' %}" class="dropdown-item">Kontakte</a>
                     <a href="{% url 'list_ampel' %}" class="dropdown-item">Ampelmeldung</a>
                     <a href="{% url 'bilder' %}" class="dropdown-item">Bilder</a>
+                    {% if user.team.aufgabenuebersicht != 'N' and user.team.aufgabenuebersicht != None %}
+                      <a href="{% url 'team_aufgabenuebersicht' %}" class="dropdown-item">Aufgabenübersicht</a>
+                    {% endif %}
                   </div>
                 </li>
               </ul>
 
               <div class="d-flex gap-2">
+                <!-- Chat Button -->
+                <div class="d-flex">
+                  <a href="{% url 'chat_list' %}" class="btn btn-light"><i class="bi bi-chat-dots me-1"></i> <span class="badge bg-primary rounded-pill d-none badge-unread">0</span></a>
+                </div>
+
+                <!-- Settings Button -->
                 <div class="d-flex">
                   <a href="{% url 'settings' %}" class="btn btn-light"><i class="bi bi-gear me-1"></i></a>
                 </div>

@@ -27,7 +27,6 @@ from .models import (
     ProfilUser2,
     UserAttribute, 
     UserAufgaben,
-    UserAufgabenZwischenschritte,
     KalenderEvent,
     CustomUser,
     Dokument2,
@@ -335,23 +334,6 @@ def _collect_user_data_securely(user):
         user_data['tasks'] = []
         logger = logging.getLogger('security')
         logger.warning(f'Failed to get tasks for {user.id}: {str(e)}')
-    
-    try:
-        # Get UserAufgabenZwischenschritte data
-        task_steps = UserAufgabenZwischenschritte.objects.filter(user_aufgabe__user=user, org=user.org)
-        user_data['task_steps'] = [
-            {
-                'id': step.id,
-                'aufgabe_name': _sanitize_text(step.user_aufgabe.aufgabe.name),
-                'step_name': _sanitize_text(step.aufgabe_zwischenschritt.name),
-                'step_description': _sanitize_text(step.aufgabe_zwischenschritt.beschreibung),
-                'erledigt': step.erledigt,
-            } for step in task_steps
-        ]
-    except Exception as e:
-        user_data['task_steps'] = []
-        logger = logging.getLogger('security')
-        logger.warning(f'Failed to get task steps for {user.id}: {str(e)}')
     
     try:
         # Get PushSubscription data

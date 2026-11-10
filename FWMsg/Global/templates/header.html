@@ -57,10 +57,24 @@
     .cursor-pointer{
         cursor: pointer;
       }
+    /* Ungelesene Chat-Nachrichten am Burger-Menü (siehe Base-Templates) */
+    .navbar-toggler-badge {
+        position: absolute;
+        top: -.4rem;
+        right: -.5rem;
+        font-size: .7rem;
+        box-shadow: 0 0 0 2px var(--bs-primary);
+    }
 </style>
 
 {# Custom button overrides - must be loaded AFTER Bootstrap and color variables #}
 <link rel="stylesheet" href="{% static 'css/button-overrides.css' %}">
+
+{# Mobile-Optimierungen (Touch-Ziele, iOS-Zoom, Umbrüche) #}
+<link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+
+{# Beiträge: Karten und Detailseite (Karten kommen auf vielen Seiten vor) #}
+<link rel="stylesheet" href="{% static 'css/posts.css' %}">
 
 {# JavaScript dependencies #}
 {% comment %} <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> {% endcomment %}
@@ -73,11 +87,73 @@
 <script src="{% static 'masonry.pkgd.js' %}"></script>
 
 <script src="{% static 'js/main.js' %}"></script>
+{% if user.is_authenticated %}
 <script>
+    function applyChatUnreadCount(n) {
+        document.querySelectorAll('.badge-unread').forEach(function (badge) {
+            badge.textContent = n;
+            if (n > 0) {
+                badge.classList.remove('d-none');
+            } else {
+                badge.classList.add('d-none');
+            }
+        });
+    }
+
+    function fetchChatBadgeHttp() {
+        fetch('{% url "ajax_chat_poll" %}')
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                applyChatUnreadCount(data.number_of_unread_messages);
+            })
+            .catch(function () {});
+    }
+
+    function connectChatBadgeWebSocket() {
+        var scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        var url = scheme + '://' + window.location.host + '/ws/chat/badge/';
+        var reconnectDelayMs = 1000;
+        var maxReconnectDelayMs = 30000;
+        var ws;
+
+        function scheduleReconnect() {
+            var delay = Math.min(reconnectDelayMs, maxReconnectDelayMs);
+            reconnectDelayMs = Math.min(reconnectDelayMs * 2, maxReconnectDelayMs);
+            setTimeout(open, delay);
+        }
+
+        function open() {
+            ws = new WebSocket(url);
+            ws.onopen = function () {
+                reconnectDelayMs = 1000;
+            };
+            ws.onmessage = function (ev) {
+                try {
+                    var data = JSON.parse(ev.data);
+                    if (typeof data.number_of_unread_messages === 'number') {
+                        applyChatUnreadCount(data.number_of_unread_messages);
+                    }
+                } catch (e) {}
+            };
+            ws.onerror = function () {
+                try { ws.close(); } catch (e) {}
+            };
+            ws.onclose = function () {
+                fetchChatBadgeHttp();
+                scheduleReconnect();
+            };
+        }
+
+        open();
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         })
+
+        connectChatBadgeWebSocket();
     })
 </script>
+{% endif %}

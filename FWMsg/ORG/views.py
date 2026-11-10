@@ -17,8 +17,6 @@ from django.utils import timezone
 from django.db.models import QuerySet, Subquery, OuterRef
 from django.db.models import Count, Q
 from django.contrib.admin.views.decorators import staff_member_required
-from django.template.loader import render_to_string
-from django.db.models.query import Prefetch
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils.translation import gettext as _
 
@@ -27,9 +25,8 @@ from Ehemalige.models import Ehemalige
 from Global.models import (
     Attribute, AufgabenCluster, Aufgabe2, KalenderEvent, Maintenance, PersonCluster, StickyNote, UserAttribute, 
     UserAufgaben, Post2, Bilder2, CustomUser,
-    BilderGallery2, Ampel2, ProfilUser2, Notfallkontakt2,
+    BilderGallery2, Ampel2, AmpelConfiguration, ProfilUser2, Notfallkontakt2,
     Einsatzland2, Einsatzstelle2,
-    AufgabeZwischenschritte2, UserAufgabenZwischenschritte,
     EinsatzstelleNotiz, ChangeRequest
 )
 from TEAM.models import Team
@@ -49,7 +46,10 @@ base_template = 'baseOrg.html'
 
 def get_person_cluster(request):
     person_cluster_id = request.COOKIES.get('selectedPersonCluster')
-    if person_cluster_id and not PersonCluster.objects.filter(id=person_cluster_id, org=request.user.org).exists():
+    if person_cluster_id and not PersonCluster.selectable_for_org(
+        request.user.org,
+        id=person_cluster_id,
+    ).exists():
         person_cluster_id = None
         response = HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
         if 'selectedPersonCluster' in request.COOKIES:
@@ -60,6 +60,28 @@ def get_person_cluster(request):
     else:
         return None
         # return PersonCluster.objects.get(id=person_cluster_id) if person_cluster_id else None
+        
+def _get_active_person_cluster(request):
+    person_cluster_id = request.GET.get('person_cluster') or request.COOKIES.get('selectedPersonClusterBW')
+    if person_cluster_id and person_cluster_id != 'None':
+        person_cluster = PersonCluster.selectable_for_org(
+            request.user.org,
+            id=person_cluster_id,
+            view='B',
+        ).first()
+        if person_cluster:
+            return person_cluster
+    last_person_cluster = PersonCluster.selectable_for_org(
+        request.user.org,
+        view='B',
+    ).order_by('-id').first()
+    return last_person_cluster
+
+def _set_active_person_cluster(request, person_cluster):
+    request.session['selectedPersonClusterBW'] = person_cluster.id
+    response = HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+    response.set_cookie('selectedPersonClusterBW', person_cluster.id)
+    return response
 
 @login_required
 @required_role('O')
@@ -114,11 +136,11 @@ def org_context_processor(request):
     if hasattr(request, 'user') and request.user.is_authenticated:
         if request.user.role == 'O':
             return {
-                'person_cluster': PersonCluster.objects.filter(org=request.user.org)
+                'person_cluster': PersonCluster.selectable_for_org(request.user.org)
             }
         elif request.user.role == 'T':
             return {
-                'person_cluster': PersonCluster.objects.filter(org=request.user.org, view='F')
+                'person_cluster': PersonCluster.selectable_for_org(request.user.org, view='F')
             }
     return {}
 
@@ -135,6 +157,7 @@ allowed_models_to_edit = {
     'team': Team,
     'user': CustomUser,
     'personcluster': PersonCluster,
+    'ampelconfiguration': AmpelConfiguration,
     'aufg-filter': AufgabenCluster,
     'kalender': KalenderEvent,
     'bewerbung-text': ApplicationText,
@@ -174,7 +197,7 @@ def home(request):
         pending=False
     ).order_by('faellig')
 
-    posts = get_posts(request.user.org, limit=4)
+    posts = get_posts(request.user.org, limit=5)
 
     # Get all pinned notes across all Einsatzstellen
     pinned_notizen = EinsatzstelleNotiz.objects.filter(
@@ -240,7 +263,7 @@ def home_2(request):
         pending=False
     ).order_by('faellig')
 
-    posts = get_posts(request.user.org, limit=4)
+    posts = get_posts(request.user.org, limit=5)
 
     # Get all pinned notes across all Einsatzstellen
     pinned_notizen = EinsatzstelleNotiz.objects.filter(
@@ -257,7 +280,7 @@ def home_2(request):
     # Get recent ampel entries
     recent_ampel_entries = Ampel2.objects.filter(
         org=request.user.org,
-        date__gte=timezone.now() - timezone.timedelta(days=5)
+        date__gte=timezone.now() - timezone.timedelta(days=7)
     ).select_related('user').order_by('-date')[:10]
 
     # Get pending change requests
@@ -265,6 +288,11 @@ def home_2(request):
         org=request.user.org,
         status='pending'
     ).select_related('requested_by').order_by('-created_at')
+
+    from Home.models import OwnSigninUser
+    pending_own_signin_users = OwnSigninUser.objects.filter(
+        org=request.user.org,
+    ).select_related('person_cluster', 'land').order_by('-created_at')
 
     context = {
         'gallery_images': gallery_images,
@@ -276,6 +304,7 @@ def home_2(request):
         'sticky_notes': sticky_notes,
         'recent_ampel_entries': recent_ampel_entries,
         'pending_change_requests': pending_change_requests,
+        'pending_own_signin_users': pending_own_signin_users,
         'large_container': True,
         'today': date.today()
     }
@@ -324,24 +353,14 @@ def save_form(request, form):
     Returns:
         The saved form instance
     """
-    # First save without committing to add organization
+    # First save without committing to add organization, if a freiwilliger/team/bewerber/ehemalige is created, a user is created if not exists
     obj = form.save(commit=False)
     obj.org = request.user.org
+    # During the second save, the birthday is saved to prevent a unique id error when creating/saving a customuser
     obj.save()
     
     # Save many-to-many relationships
     form.save_m2m()
-    
-    # Handle nested zwischenschritte forms if they exist
-    if hasattr(form, 'zwischenschritte'):
-        for zwischenschritt_form in form.zwischenschritte.forms:
-            # Only save non-deleted forms with data
-            if (zwischenschritt_form.cleaned_data and 
-                not zwischenschritt_form.cleaned_data.get('DELETE', False)):
-                # Add organization to each zwischenschritt
-                zwischenschritt = zwischenschritt_form.save(commit=False)
-                zwischenschritt.org = request.user.org
-                zwischenschritt.save()
     
     # Final save to ensure everything is committed
     return form.save(commit=True)
@@ -398,8 +417,6 @@ def add_aufgabe(request, id=None):
                 messages.error(request, 'Fehler beim Erstellen der Aufgabe. Bitte überprüfe die Eingaben.')
             print("Form errors:", form.errors)
             print("Non-field errors:", form.non_field_errors())
-            if hasattr(form, 'zwischenschritte'):
-                print("Zwischenschritte errors:", form.zwischenschritte.errors)
             return render(request, 'add_aufgabe.html', {'form': form})
     
     form = ORGforms.AddAufgabeForm(instance=instance, request=request)
@@ -417,12 +434,10 @@ def add_objects_from_excel(request, model_name):
             return response
 
         personen_cluster_id = request.COOKIES.get('selectedPersonCluster')
-        if PersonCluster.objects.filter(id=personen_cluster_id).exists():
-            personen_cluster = PersonCluster.objects.get(id=personen_cluster_id)
-            if personen_cluster.org != request.user.org:
-                return HttpResponse(b'Nicht erlaubt')
-        else:
-            personen_cluster = None
+        personen_cluster = PersonCluster.selectable_for_org(
+            request.user.org,
+            id=personen_cluster_id,
+        ).first()
 
         for index, row in df.iterrows():
             required_fields = []
@@ -447,70 +462,6 @@ def add_objects_from_excel(request, model_name):
 
         return redirect('list_object', model_name=model_name)
     return render(request, 'add_objects_from_excel.html')
-
-
-@login_required
-@required_role('O')
-def delete_zwischenschritt(request):
-    zwischenschritt_id = request.POST.get('zwischenschritt_id')
-    zwischenschritt = AufgabeZwischenschritte2.objects.get(id=zwischenschritt_id)
-    zwischenschritt.delete()
-    return redirect('edit_object', model_name='aufgabe', id=zwischenschritt.aufgabe.id)
-
-
-@login_required
-@required_role('O')
-def toggle_zwischenschritt_status(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-    
-    try:
-        data = json.loads(request.body)
-        task_id = data.get('taskId')
-        zwischenschritt_id = data.get('zwischenschrittId')
-        new_status = data.get('status')
-        
-        # Get the FreiwilligerAufgabenZwischenschritte instance
-        user_aufgabe = UserAufgaben.objects.get(id=task_id)
-        zwischenschritt = get_object_or_404(
-            UserAufgabenZwischenschritte,
-            id=zwischenschritt_id,
-            user_aufgabe=user_aufgabe
-        )
-        
-        # Update the status
-        zwischenschritt.erledigt = new_status
-        zwischenschritt.save()
-
-        user_aufgabe = UserAufgaben.objects.get(id=task_id)
-        zwischenschritte = UserAufgabenZwischenschritte.objects.filter(user_aufgabe=user_aufgabe)
-        zwischenschritte_count = zwischenschritte.count()
-        zwischenschritte_done_count = zwischenschritte.filter(erledigt=True).count()
-        json_response = {
-            'zwischenschritte_done_open': f'Pending {zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
-            'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
-            'success': True
-        }
-        
-        return JsonResponse(json_response)
-        
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    except Exception as e:
-        print(e)
-        return JsonResponse({'error': str(e)}, status=500)
-
-@login_required
-@required_role('O')
-def get_zwischenschritt_form(request):
-    if request.method != 'GET':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-
-    try:
-        form_html = render_to_string('components/zwischenschritt_form.html')
-        return JsonResponse({'html': form_html})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required
@@ -562,9 +513,20 @@ def edit_object(request, model_name, id):
             form.fields[first_field_name].widget.attrs['autofocus'] = True
         except StopIteration:
             pass
-        
+    
+    next_url = request.GET.get('next')
+    params = request.GET
+    for key, value in params.items():
+        if key == 'next':
+            continue
+        # if key is a element of form.fields, add it a initial value
+        if key in form.fields.keys():
+            form.fields[key].initial = value
+    
     if model_name == 'aufgabe':
         back_url = reverse('list_aufgaben_table')
+    elif next_url:
+        back_url = next_url
     else:
         back_url = reverse('list_object', args=[model_name])
 
@@ -600,7 +562,9 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
             response.delete_cookie(filter['cookie_name'])
         return response
     
+    with_quick_edit = False
     if model_name.lower() in ['bewerber', 'freiwilliger', 'team', 'ehemalige']:
+        with_quick_edit = True
         checkbox_submit_texts = [choice for choice in model.CHECKBOX_ACTION_CHOICES] if hasattr(model, 'CHECKBOX_ACTION_CHOICES') else []
         
         if model_name.lower() == 'freiwilliger':
@@ -616,11 +580,6 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
         search_query = request.GET.get('search', '').strip()
         if search_query:
             search_lower = search_query.lower()
-            # search in every field of the data
-            for d in data:
-                print(d)
-            # print accessors of table_class
-            print(table_class.base_columns.keys())
             
             # Helper function to extract searchable text from any value
             def get_searchable_text(value):
@@ -675,7 +634,7 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
                     new_data.append(row)
             
             data = new_data
-        
+            
         # Sort data by default if no sort parameter is provided
         if not request.GET.get('sort'):
             data = sorted(data, key=lambda x: x.get('user_sort', ''))
@@ -690,18 +649,22 @@ def _list_object_with_tables2(request, model_name, model, highlight_id=None):
         # Check if any filter is active
         has_active_filters = any(f.get('has_active_filter', False) for f in filter_options) if filter_options else False
         
+        all_emails = ','.join([row.get(model_name.lower(), '').user.email for row in data])
+        
         response = render(request, 'list_objects_table.html', {
             'table': table,
             'model_name': model_name,
             'verbose_name': model._meta.verbose_name_plural,
             'highlight_id': highlight_id,
+            'with_quick_edit': with_quick_edit,
             'error': None,
             'total_count': total_objects_count,
             'search_query': search_query,
             'large_container': True,
             'checkbox_submit_texts': checkbox_submit_texts,
             'filter_options': filter_options,
-            'has_active_filters': has_active_filters
+            'has_active_filters': has_active_filters,
+            'all_emails': all_emails
         })
         
         for filter in filter_options:
@@ -923,6 +886,81 @@ def list_object_checkbox(request, model_name):
         
     return redirect('list_object', model_name=model_name)
 
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def ajax_quick_edit_attribute(request):
+    try:
+        # Parse JSON body
+        data = json.loads(request.body)
+        user_attribute_id = data.get('user_attribute_id')
+        value = data.get('value')
+        
+        if not user_attribute_id or value is None:  # Use 'is None' to allow empty strings
+            return JsonResponse({'error': 'Missing required parameters'}, status=400)
+        
+        # Get the user attribute and verify org access
+        user_attribute = UserAttribute.objects.get(id=user_attribute_id, org=request.user.org)
+        if user_attribute.attribute.type == 'B':
+            value = bool(value)
+        user_attribute.value = value
+        user_attribute.save()
+        
+        return JsonResponse({'success': True})
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except UserAttribute.DoesNotExist:
+        return JsonResponse({'error': 'UserAttribute not found'}, status=404)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in ajax_quick_edit_attribute: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+    
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def ajax_quick_edit_fields(request):
+    try:
+        data = json.loads(request.body)
+        user_id = data.get('user_id')
+        field_name = data.get('field_name')
+        field_value = data.get('field_value')
+        
+        user = User.objects.get(id=user_id, customuser__org=request.user.org)
+        if not user or not user.customuser:
+            return JsonResponse({'error': 'User not found'}, status=404)
+        
+        model = None
+        if user.customuser.person_cluster.view == 'F':
+            model = Freiwilliger
+        elif user.customuser.person_cluster.view == 'T':
+            model = Team
+        elif user.customuser.person_cluster.view == 'E':
+            model = Ehemalige
+        elif user.customuser.person_cluster.view == 'B':
+            model = Bewerber
+        
+        QUICK_EDIT_FIELDS = {'start_geplant', 'start_real', 'ende_geplant', 'ende_real'}
+        model_field_names = [f.name for f in model._meta.fields] if model else []
+
+        if not model or field_name not in QUICK_EDIT_FIELDS or field_name not in model_field_names:
+            return JsonResponse({'error': 'Model or field not found'}, status=404)
+        
+        instance = get_object_or_404(model, user=user, org=request.user.org)
+        field_value = field_value or None
+        setattr(instance, field_name, field_value)
+        instance.save()
+        return JsonResponse({'success': True, 'instance': instance.id})
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in ajax_quick_edit_fields: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 @login_required
 @required_role('O')
@@ -1101,7 +1139,10 @@ def list_aufgaben_table(request, scroll_to=None):
         person_cluster_param = request.COOKIES.get('selectedPersonCluster-aufgaben')
     if person_cluster_param is not None and person_cluster_param != 'None':
         try:
-            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+            person_cluster = PersonCluster.selectable_for_org(
+                request.user.org,
+                id=int(person_cluster_param),
+            ).get()
         except PersonCluster.DoesNotExist:
             person_cluster = None
     else:
@@ -1125,7 +1166,10 @@ def list_aufgaben_table(request, scroll_to=None):
     if not person_cluster or person_cluster.aufgaben:
         context = {
             'current_person_cluster': person_cluster,
-            'all_person_clusters': PersonCluster.objects.filter(org=request.user.org, aufgaben=True).order_by('view'),
+            'all_person_clusters': PersonCluster.selectable_for_org(
+                request.user.org,
+                aufgaben=True,
+            ).order_by('view'),
             'aufgaben_cluster': aufgaben_cluster,
             'filter': filter_object,  # Use the object, not the string
             'scroll_to': scroll_to,
@@ -1187,33 +1231,6 @@ def send_task_reminder(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @login_required
-@required_role('O')
-def get_aufgaben_zwischenschritte(request):
-    taskId = request.GET.get('taskId')
-    if not UserAufgaben.objects.filter(pk=taskId, org=request.user.org).exists():
-        return JsonResponse({'error': 'Nicht erlaubt'}, status=403)
-    
-    aufgabe = UserAufgaben.objects.get(pk=taskId)
-    zwischenschritte = UserAufgabenZwischenschritte.objects.filter(user_aufgabe=aufgabe)
-    
-    zwischenschritte_data = []
-    for zs in zwischenschritte:
-        zwischenschritte_data.append({
-            'id': zs.id,
-            'name': zs.aufgabe_zwischenschritt.name,
-            'beschreibung': zs.aufgabe_zwischenschritt.beschreibung,
-            'erledigt': zs.erledigt
-        })
-    
-    return JsonResponse({
-        'task_name': aufgabe.aufgabe.name,
-        'user_name': f"{aufgabe.user.first_name} {aufgabe.user.last_name}",
-        'zwischenschritte': zwischenschritte_data
-    })
-
-
-
-@login_required
 @required_role('OT')
 def download_aufgabe(request, id):
     try:
@@ -1265,7 +1282,11 @@ def statistik(request):
         person_cluster_param = request.COOKIES.get('selectedPersonCluster-statistik')
     if person_cluster_param is not None and person_cluster_param != 'None':
         try:
-            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+            person_cluster = PersonCluster.selectable_for_org(
+                request.user.org,
+                id=int(person_cluster_param),
+                view='F',
+            ).get()
         except PersonCluster.DoesNotExist:
             person_cluster = None
     else:
@@ -1305,7 +1326,7 @@ def statistik(request):
         'freiwillige': freiwillige,
         'fields': fields,
         'attributes': attributes,
-        'person_clusters': PersonCluster.objects.filter(org=request.user.org, view='F'),
+        'person_clusters': PersonCluster.selectable_for_org(request.user.org, view='F'),
         'current_person_cluster': person_cluster
     }
     
@@ -1323,7 +1344,11 @@ def ajax_statistik(request):
     
     if person_cluster_param and person_cluster_param != 'None':
         try:
-            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+            person_cluster = PersonCluster.selectable_for_org(
+                request.user.org,
+                id=int(person_cluster_param),
+                view='F',
+            ).get()
             freiwillige = Freiwilliger.objects.filter(org=request.user.org, user__customuser__person_cluster=person_cluster)
         except PersonCluster.DoesNotExist:
             return JsonResponse({'error': 'Person cluster not found'}, status=404)
@@ -1416,6 +1441,48 @@ def send_registration_mail(request):
             'error': str(e)
         }, status=500)
 
+
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def get_own_signin_url(request):
+    try:
+        data = json.loads(request.body)
+        person_cluster_id = data.get('personClusterId')
+        if person_cluster_id is None:
+            return JsonResponse({
+                'success': False,
+                'error': _('Benutzergruppe nicht angegeben'),
+            }, status=400)
+
+        person_cluster = PersonCluster.selectable_for_org(
+            request.user.org,
+            pk=person_cluster_id,
+        ).get()
+        url = person_cluster.get_own_signin_url()
+
+        return JsonResponse({
+            'success': True,
+            'url': url,
+        })
+
+    except PersonCluster.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': _('Benutzergruppe nicht gefunden'),
+        }, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': _('Ungültige Anfrage'),
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+        }, status=500)
+
+
 def _check_model_exists(model_name, model=None):
     """
     Verify if a model exists for the given model_name.
@@ -1473,6 +1540,10 @@ def _redirect_after_action(request, model_name, object_id=None):
     if model_name.lower() == 'useraufgaben':
         return redirect('list_aufgaben_table')
     
+    # TODO: Remove this because it is possible to edit aufgaben from the aufgaben list view instead of the table view
+    if model_name.lower() == 'aufgabe':
+        return redirect('list_aufgaben_table')
+    
     # Standard case: redirect to list view with optional highlighting
     if object_id:
         return redirect('list_object_highlight', model_name=model_name, highlight_id=object_id)
@@ -1483,13 +1554,13 @@ def _redirect_after_action(request, model_name, object_id=None):
 @required_role('O')
 def application_overview(request):
     # Get or create application texts
-    application_texts, created = ApplicationText.objects.get_or_create(
-        org=request.user.org,
-        defaults={'welcome': '', 'footer': ''}
-    )
+    application_texts = ApplicationText.objects.filter(org=request.user.org)
     
     if request.method == 'POST':
-        application_text_form = ORGforms.AddApplicationTextForm(request.POST, instance=application_texts)
+        if application_texts.count() > 0:
+            application_text_form = ORGforms.AddApplicationTextForm(request.POST, instance=application_texts.first(), org=request.user.org)
+        else:
+            application_text_form = ORGforms.AddApplicationTextForm(request.POST, org=request.user.org)
         if application_text_form.is_valid():
             application_text_form.instance.org = request.user.org
             application_text_form.save()
@@ -1503,33 +1574,55 @@ def application_overview(request):
     text_questions = ApplicationQuestion.objects.filter(org=request.user.org).order_by('order')
     file_questions = ApplicationFileQuestion.objects.filter(org=request.user.org).order_by('order')
     
+    current_person_cluster = _get_active_person_cluster(request)
+
+    if current_person_cluster:
+        bewerber = Bewerber.objects.filter(org=request.user.org, user__customuser__person_cluster=current_person_cluster)
+    else:
+        bewerber = Bewerber.objects.filter(org=request.user.org)
+    
+    print(current_person_cluster)
+    
     # Get application statistics
-    total_applications = Bewerber.objects.filter(org=request.user.org).count()
-    completed_applications = Bewerber.objects.filter(org=request.user.org, abgeschlossen=True).count()
+    total_applications = bewerber.count()
+    completed_applications = bewerber.filter(abgeschlossen=True).count()
     
     # Calculate completion percentage
     completion_percentage = int(completed_applications / total_applications * 100) if total_applications > 0 else 0
     
-    application_text_form = ORGforms.AddApplicationTextForm(instance=application_texts)
+    if application_texts.count() > 0:
+        application_text_form = ORGforms.AddApplicationTextForm(instance=application_texts.first(), org=request.user.org)
+    else:
+        application_text_form = ORGforms.AddApplicationTextForm(org=request.user.org)
     
     context = {
-        'application_texts': application_texts,
+        'application_texts': application_texts.first() if application_texts.count() > 0 else None,
         'text_questions': text_questions,
         'file_questions': file_questions,
         'total_applications': total_applications,
         'completed_applications': completed_applications,
         'completion_percentage': completion_percentage,
         'application_text_form': application_text_form,
+        'bw_person_clusters': PersonCluster.selectable_for_org(request.user.org, view='B'),
+        'current_person_cluster': current_person_cluster,
     }
-    
-    return render(request, 'application_overview.html', context)
+    response = render(request, 'application_overview.html', context)
+    if current_person_cluster:
+        response.set_cookie('selectedPersonClusterBW', current_person_cluster.id)
+    else:
+        response.delete_cookie('selectedPersonClusterBW')
+    return response
 
 @login_required
 @required_role('O')
 def application_list(request):
     filter_status = request.GET.get('status', 'completed')
     
-    bewerber = Bewerber.objects.filter(org=request.user.org)
+    current_person_cluster = _get_active_person_cluster(request)
+    if current_person_cluster:
+        bewerber = Bewerber.objects.filter(org=request.user.org, user__customuser__person_cluster=current_person_cluster)
+    else:
+        bewerber = Bewerber.objects.filter(org=request.user.org)
     
     if filter_status == 'completed':
         bewerber = bewerber.filter(abgeschlossen=True)
@@ -1638,13 +1731,17 @@ def application_answer_download_fields(request, bewerber_id):
 
 def application_download_all_excel(request):
     
-    seminar_filter = request.COOKIES.get('selectedSeminarFilter')
-    if seminar_filter == 'yes':
-        bewerber = Bewerber.objects.filter(org=request.user.org, seminar_bewerber__isnull=False)
-    elif seminar_filter == 'no':
-        bewerber = Bewerber.objects.filter(org=request.user.org, seminar_bewerber__isnull=True)
+    current_person_cluster = _get_active_person_cluster(request)
+    if current_person_cluster:
+        bewerber = Bewerber.objects.filter(org=request.user.org, user__customuser__person_cluster=current_person_cluster)
     else:
         bewerber = Bewerber.objects.filter(org=request.user.org)
+    
+    seminar_filter = request.COOKIES.get('selectedSeminarFilter')
+    if seminar_filter == 'yes':
+        bewerber = bewerber.filter(seminar_bewerber__isnull=False)
+    elif seminar_filter == 'no':
+        bewerber = bewerber.filter(seminar_bewerber__isnull=True)
     
     user_ids = bewerber.values_list('user_id', flat=True)
     
@@ -1996,12 +2093,22 @@ def ajax_assign_task_to_all(request):
         if person_cluster_id and person_cluster_id not in ['None', 'undefined', '']:
             try:
                 person_cluster_id_int = int(person_cluster_id)
-                person_cluster = PersonCluster.objects.filter(id=person_cluster_id_int, org=request.user.org)
+                person_cluster = PersonCluster.selectable_for_org(
+                    request.user.org,
+                    id=person_cluster_id_int,
+                )
                 if person_cluster.exists():
                     users = users.filter(customuser__person_cluster=person_cluster.first())
+                else:
+                    return JsonResponse({
+                        'success': False,
+                        'error': _('Benutzergruppe nicht gefunden'),
+                    }, status=400)
             except (ValueError, TypeError):
-                # Invalid person_cluster_id, skip filtering by person cluster
-                pass
+                return JsonResponse({
+                    'success': False,
+                    'error': _('Ungültige Benutzergruppe'),
+                }, status=400)
             
         assigned_count = 0
         error_messages = []
@@ -2038,7 +2145,69 @@ def ajax_assign_task_to_all(request):
             'assigned_count': assigned_count,
             'errors': error_messages if error_messages else None
         })
-        
+
+    except Exception as e:
+        return _handle_ajax_error(e)
+
+
+@login_required
+@required_role('O')
+@require_http_methods(["POST"])
+def ajax_reset_task_assignment(request):
+    """Delete all UserAufgaben of one task for the users currently visible in the table.
+
+    The client sends the ids of the visible rows (after person-cluster filter and
+    search). They are only used to narrow down the users the table would show for
+    the given person cluster, so no assignments outside the org or filter can be deleted.
+    """
+    data, error_response = _parse_ajax_request(request)
+    if error_response:
+        return error_response
+
+    try:
+        aufgabe, error_response = _get_aufgabe_with_org_check(data.get('aufgabe_id'), request.user.org)
+        if error_response:
+            return error_response
+
+        try:
+            user_ids = [int(user_id) for user_id in data.get('user_ids') or []]
+        except (ValueError, TypeError):
+            return JsonResponse({'success': False, 'error': _('Ungültige Benutzer:innen')}, status=400)
+        if not user_ids:
+            return JsonResponse({'success': False, 'error': _('Keine Benutzer:innen ausgewählt')}, status=400)
+
+        # Same user selection as ajax_load_aufgaben_table_data for the org role
+        person_cluster_id = data.get('person_cluster_id')
+        if person_cluster_id and person_cluster_id not in ['None', 'null', 'undefined', '']:
+            try:
+                person_cluster = PersonCluster.selectable_for_org(
+                    request.user.org,
+                    id=int(person_cluster_id),
+                ).get()
+            except (ValueError, TypeError, PersonCluster.DoesNotExist):
+                return JsonResponse({'success': False, 'error': _('Benutzergruppe nicht gefunden')}, status=400)
+            users = User.objects.filter(customuser__org=request.user.org, customuser__person_cluster=person_cluster)
+        else:
+            users = User.objects.filter(
+                customuser__org=request.user.org,
+                customuser__person_cluster__isnull=False,
+                customuser__person_cluster__aufgaben=True,
+            )
+
+        user_aufgaben = UserAufgaben.objects.filter(
+            org=request.user.org,
+            aufgabe=aufgabe,
+            user__in=users.filter(id__in=user_ids),
+        )
+        deleted_count = user_aufgaben.count()
+        user_aufgaben.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{deleted_count} assignments removed',
+            'deleted_count': deleted_count,
+        })
+
     except Exception as e:
         return _handle_ajax_error(e)
 
@@ -2048,102 +2217,102 @@ def ajax_assign_task_to_all(request):
 def copy_links(request):
     page_elements = [
         {
-        'name': 'Allgemein',
+        'name': _('Allgemein'),
         'pages': [
             {
-                'name': 'Posts',
+                'name': _('Posts'),
                 'url': reverse('posts_overview')
             },
             {
-                'name': 'Dokumente',
+                'name': _('Dokumente'),
                 'url': reverse('dokumente')
             },
             {
-                'name': 'Bilder',
+                'name': _('Bilder'),
                 'url': reverse('bilder')
             },
             {
-                'name': 'Bilder hochladen',
+                'name': _('Bilder hochladen'),
                 'url': reverse('bild')
             },
             {
-                'name': 'Profil',
+                'name': _('Profil'),
                 'url': reverse('profil')
             },
             {
-                'name': 'Einstellungen',
+                'name': _('Einstellungen'),
                 'url': reverse('settings')
             }
         ]
     },
         {
-        'name': 'Freiwillige',
+        'name': _('Freiwillige'),
         'pages': [
             {
-                'name': 'Aufgaben',
+                'name': _('Aufgaben'),
                 'url': reverse('aufgaben')
             },
             {
-                'name': 'Kalender',
+                'name': _('Kalender'),
                 'url': reverse('kalender')
             },
             {
-                'name': 'Ampelmeldungen abgeben',
+                'name': _('Ampelmeldungen abgeben'),
                 'url': reverse('ampel')
             },
             {
-                'name': 'Notfallkontakte eintragen',
+                'name': _('Notfallkontakte eintragen'),
                 'url': reverse('notfallkontakte')
             },
             {
-                'name': 'Einsatzlandinformationen einsehen',
+                'name': _('Einsatzlandinformationen einsehen'),
                 'url': reverse('laenderinfo')
             }
         ]
     }, 
         {
-        'name': 'Team',
+        'name': _('Team'),
         'pages': [
             {
-                'name': 'Kontakte',
+                'name': _('Kontakte'),
                 'url': reverse('team_contacts')
             },
             {
-                'name': 'Ampelmeldung einsehen',
+                'name': _('Ampelmeldung einsehen'),
                 'url': reverse('list_ampel')
             },
             {
-                'name': 'Einsatzstelleninformationen',
+                'name': _('Einsatzstelleninformationen'),
                 'url': reverse('einsatzstellen_info')
             },
             {
-                'name': 'Einsatzstellen Notizen',
+                'name': _('Einsatzstellen Notizen'),
                 'url': reverse('einsatzstellen_notiz')
             },
             {
-                'name': 'Länderinformationen',
+                'name': _('Länderinformationen'),
                 'url': reverse('laender_info')
             }
         ]
     },
         {
-        'name': 'Ehemalige',
+        'name': _('Ehemalige'),
         'pages': [
             {
-                'name': 'Länderinformationen',
+                'name': _('Länderinformationen'),
                 'url': reverse('laender_info')
             },
             {
-                'name': 'Einsatzstelleninformationen',
+                'name': _('Einsatzstelleninformationen'),
                 'url': reverse('einsatzstellen_info')
             }
         ]
     },
         {
-        'name': 'Bewerber',
+        'name': _('Bewerber'),
         'pages': [
             {
-                'name': 'Zuteilung ansehen',
+                'name': _('Zuteilung ansehen'),
                 'url': reverse('my_assignment')
             }
         ]
@@ -2257,21 +2426,47 @@ def change_request_history(request):
 
 
 @login_required
-@required_role('O')
+@required_role('OT') # O = Org, T = Team
 @require_http_methods(["GET"])
 def ajax_load_aufgaben_table_data(request):
     """Load aufgaben table data via AJAX - returns JSON for client-side rendering."""
     try:
         person_cluster_param = request.GET.get('person_cluster_filter')
         
-        if person_cluster_param is not None and person_cluster_param != 'None':
-            person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
-            users = User.objects.filter(customuser__person_cluster=person_cluster, customuser__org=request.user.org).order_by('first_name', 'last_name')
-            aufgaben = Aufgabe2.objects.filter(org=request.user.org, person_cluster=person_cluster)
+        person_cluster = None
+        if request.user.role == 'T':
+            from TEAM.views import _get_Freiwillige, _get_team_member
+            
+            team_member = _get_team_member(request)
+            
+            if team_member.aufgabenuebersicht == 'L':
+                freiwillige = _get_Freiwillige(request)
+            elif team_member.aufgabenuebersicht == 'A':
+                freiwillige = Freiwilliger.objects.filter(org=team_member.org)
+                
+            if person_cluster_param is not None and person_cluster_param != 'None':
+                person_cluster = PersonCluster.selectable_for_org(
+                    request.user.org,
+                    id=int(person_cluster_param),
+                ).get()
+                users = User.objects.filter(id__in=freiwillige.values_list('user_id', flat=True), customuser__person_cluster=person_cluster, customuser__org=request.user.org).order_by('first_name', 'last_name')
+                aufgaben = Aufgabe2.objects.filter(org=request.user.org, person_cluster=person_cluster)
+            else: 
+                users = User.objects.filter(id__in=freiwillige.values_list('user_id', flat=True), customuser__org=request.user.org).order_by('first_name', 'last_name')
+                person_cluster_fw = PersonCluster.selectable_for_org(request.user.org, view='F')
+                aufgaben = Aufgabe2.objects.filter(org=request.user.org, person_cluster__in=person_cluster_fw)
         else:
-            person_cluster = None
-            users = User.objects.filter(customuser__org=request.user.org, customuser__person_cluster__isnull=False, customuser__person_cluster__aufgaben=True).order_by('-customuser__person_cluster', 'first_name', 'last_name')
-            aufgaben = Aufgabe2.objects.filter(org=request.user.org)
+            if person_cluster_param is not None and person_cluster_param != 'None':
+                person_cluster = PersonCluster.selectable_for_org(
+                    request.user.org,
+                    id=int(person_cluster_param),
+                ).get()
+                users = User.objects.filter(customuser__person_cluster=person_cluster, customuser__org=request.user.org).order_by('first_name', 'last_name')
+                aufgaben = Aufgabe2.objects.filter(org=request.user.org, person_cluster=person_cluster)
+            else:
+                person_cluster = None
+                users = User.objects.filter(customuser__org=request.user.org, customuser__person_cluster__isnull=False, customuser__person_cluster__aufgaben=True).order_by('-customuser__person_cluster', 'first_name', 'last_name')
+                aufgaben = Aufgabe2.objects.filter(org=request.user.org)
         
         # Apply ordering
         aufgaben = aufgaben.order_by(
@@ -2300,14 +2495,7 @@ def ajax_load_aufgaben_table_data(request):
             org=request.user.org,
             user__in=users,
             aufgabe__in=aufgaben
-        ).select_related('user', 'aufgabe', 'user__customuser').prefetch_related(
-            Prefetch(
-                'useraufgabenzwischenschritte_set',
-                queryset=UserAufgabenZwischenschritte.objects.all(),
-                to_attr='prefetched_zwischenschritte'
-            ),
-            'file_downloaded_of'
-        )
+        ).select_related('user', 'aufgabe', 'user__customuser').prefetch_related('file_downloaded_of')
 
         # Prefetch person_cluster relationships for aufgaben to avoid N+1 queries
         aufgaben = aufgaben.prefetch_related('person_cluster')
@@ -2356,10 +2544,6 @@ def ajax_load_aufgaben_table_data(request):
                 
                 if ua:
                     # User has this aufgabe assigned
-                    zwischenschritte = ua.prefetched_zwischenschritte
-                    zwischenschritte_count = len(zwischenschritte)
-                    zwischenschritte_done_count = sum(1 for z in zwischenschritte if z.erledigt)
-                    
                     # Only get file downloaded by names if file exists (lazy load optimization)
                     file_downloaded_of_names = None
                     if ua.file:
@@ -2382,8 +2566,6 @@ def ajax_load_aufgaben_table_data(request):
                             'currently_sending': getattr(ua, 'currently_sending', False),
                             'last_reminder': ua.last_reminder.isoformat() if hasattr(ua, 'last_reminder') and ua.last_reminder else None,
                         },
-                        'zwischenschritte_done_open': f'{zwischenschritte_done_count}/{zwischenschritte_count}' if zwischenschritte_count > 0 else False,
-                        'zwischenschritte_done': zwischenschritte_done_count == zwischenschritte_count and zwischenschritte_count > 0,
                     }
                 elif aufgabe_id in eligible_aufgaben:
                     # User is eligible but aufgabe not assigned
@@ -2432,3 +2614,139 @@ def ajax_load_aufgaben_table_data(request):
             'success': False,
             'error': f'Fehler beim Laden der Daten: {str(e)}'
         }, status=500)
+
+
+@login_required
+@required_role('O')
+def own_signin_requests(request):
+    """List all pending own-signin registration requests."""
+    from Home.models import OwnSigninUser
+
+    own_signin_users = OwnSigninUser.objects.filter(
+        org=request.user.org,
+    ).select_related('person_cluster', 'land').order_by('-created_at')
+
+    return render(request, 'own_signin_requests.html', {
+        'own_signin_users': own_signin_users,
+    })
+
+
+def _redirect_after_own_signin_action(request):
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    next_url = request.POST.get('next')
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+    ):
+        return redirect(next_url)
+    return redirect('own_signin_requests')
+
+
+@login_required
+@required_role('O')
+@require_http_methods(['POST'])
+def approve_own_signin_user(request, pk):
+    """Approve a pending own-signin registration request."""
+    from Home.models import OwnSigninUser
+    from Home.own_signin_service import OwnSigninApprovalError
+    from Home.own_signin_service import approve_own_signin_user as approve_signin
+
+    own_signin_user = get_object_or_404(OwnSigninUser, pk=pk, org=request.user.org)
+    try:
+        approve_signin(own_signin_user)
+    except OwnSigninApprovalError as e:
+        messages.error(request, str(e))
+    except Exception as e:
+        messages.error(request, _('Fehler bei der Freischaltung: %(error)s') % {'error': str(e)})
+    return _redirect_after_own_signin_action(request)
+
+
+@login_required
+@required_role('O')
+@require_http_methods(['POST'])
+def deny_own_signin_user(request, pk):
+    """Deny a pending own-signin registration request."""
+    from Home.models import OwnSigninUser
+    from Home.own_signin_service import deny_own_signin_user as deny_signin
+
+    own_signin_user = get_object_or_404(OwnSigninUser, pk=pk, org=request.user.org)
+    try:
+        deny_signin(own_signin_user)
+        messages.success(request, _('Registrierung wurde abgelehnt.'))
+    except Exception as e:
+        messages.error(request, _('Fehler bei der Ablehnung: %(error)s') % {'error': str(e)})
+    return _redirect_after_own_signin_action(request)
+
+@login_required
+@required_role('O')
+def deeptalk_fragen(request):
+    """Deep-Talk-Fragen verwalten: mehrere auf einmal hinzufügen, (de)aktivieren, löschen."""
+    from django.db.models import Max
+    from Global.deeptalk import (
+        MAX_INPUT_CHARS, MAX_QUESTION_LENGTH, MAX_QUESTIONS_PER_IMPORT, normalize_for_compare, parse_questions,
+    )
+    from Global.models import DeepTalkFrage, DeepTalkTag
+
+    org = request.user.org
+    org_fragen = DeepTalkFrage.objects.filter(org=org)
+    raw_text = ''
+    preview = None
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action in ('preview', 'save'):
+            raw_text = request.POST.get('fragen', '')
+            # Immer serverseitig neu parsen – der Vorschau wird nicht vertraut
+            existing = set(org_fragen.values_list('text_normalized', flat=True))
+            result = parse_questions(raw_text, existing_normalized=existing)
+
+            if action == 'save':
+                if not result.questions:
+                    messages.warning(request, _('Es wurden keine neuen Fragen erkannt.'))
+                else:
+                    # bulk_create ruft save() nicht auf -> Vergleichstext hier setzen
+                    new_fragen = [
+                        DeepTalkFrage(org=org, text=text, text_normalized=normalize_for_compare(text), created_by=request.user)
+                        for text in result.questions
+                    ]
+                    # ignore_conflicts: falls parallel dieselbe Frage gespeichert wurde
+                    DeepTalkFrage.objects.bulk_create(new_fragen, ignore_conflicts=True)
+                    messages.success(request, _('%(count)s Fragen hinzugefügt.') % {'count': len(new_fragen)})
+                    if result.skipped_count:
+                        messages.info(request, _('%(count)s Einträge wurden übersprungen (doppelt, zu kurz oder zu lang).') % {'count': result.skipped_count})
+                return redirect('deeptalk_fragen')
+
+            preview = result
+
+        elif action in ('toggle', 'delete'):
+            frage = org_fragen.filter(id=request.POST.get('frage_id')).first() if (request.POST.get('frage_id') or '').isdigit() else None
+            if frage is None:
+                messages.error(request, _('Frage nicht gefunden.'))
+            elif action == 'toggle':
+                frage.active = not frage.active
+                frage.save(update_fields=['active'])
+                messages.success(request, _('Frage aktiviert.') if frage.active else _('Frage deaktiviert.'))
+            else:
+                frage.delete()
+                messages.success(request, _('Frage gelöscht.'))
+            return redirect('deeptalk_fragen')
+
+    fragen = org_fragen.annotate(shown=Count('tage'), last_shown=Max('tage__datum')).order_by('-date_created', '-id')
+    today_entry = DeepTalkTag.objects.filter(org=org, datum=timezone.localdate()).first()
+    active_count = sum(1 for frage in fragen if frage.active)
+    never_shown_active = sum(1 for frage in fragen if frage.active and not frage.shown)
+
+    context = {
+        'fragen': fragen,
+        'raw_text': raw_text,
+        'preview': preview,
+        'today_frage_id': today_entry.frage_id if today_entry else None,
+        'active_count': active_count,
+        'never_shown_active': never_shown_active,
+        'max_input_chars': MAX_INPUT_CHARS,
+        'max_question_length': MAX_QUESTION_LENGTH,
+        'max_questions_per_import': MAX_QUESTIONS_PER_IMPORT,
+    }
+    return render(request, 'deeptalk_fragen.html', context)

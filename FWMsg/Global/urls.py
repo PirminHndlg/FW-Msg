@@ -1,9 +1,10 @@
 from . import views
-from django.urls import path 
+from django.urls import path, include
 from . import views_push
 from . import views_change_requests
 
 urlpatterns = [
+    path('i18n/', include('django.conf.urls.i18n')),  # Language switcher URL
     path('logos/<int:org_id>', views.serve_logo, name='serve_image'),
     path('bilder/', views.bilder, name='bilder'),
     path('serve_bilder/<int:image_id>', views.serve_bilder, name='serve_bilder'),
@@ -48,6 +49,7 @@ urlpatterns = [
     path('profil_picture/<str:user_identifier>/', views.serve_profil_picture, name='serve_profil_picture'),
 
     path('ampel/', views.ampel, name='ampel'),
+    path('ampel/history/', views.ampel_history, name='ampel_history'),
     path('list-ampel/', views.list_ampel, name='list_ampel'),
     
     path('aufgaben/', views.aufgaben, name='aufgaben'),
@@ -71,6 +73,9 @@ urlpatterns = [
     path('kalender_abbonement/<str:token>/', views.kalender_abbonement, name='kalender_abbonement'),
 
     path('datenschutz/', views.datenschutz, name='datenschutz'),
+    path('losungen/', views.losungen, name='losungen'),
+    path('impulse/', views.impulse, name='impulse'),
+    path('impulse/deeptalk/', views.deeptalk, name='deeptalk'),
     
     # Einsatzstellen Notizen
     path('einsatzstellen_notiz/', views.einsatzstellen_notiz, name='einsatzstellen_notiz'),
@@ -79,7 +84,7 @@ urlpatterns = [
     
     path('bewerber/', views.list_bewerber, name='list_bewerber'),
     path('bewerber/<int:bewerber_id>/', views.bewerber_detail, name='bewerber_detail'),
-    path('bewerber/files/download/<int:file_answer_id>/', views.bw_application_file_answer_download, name='bw_application_file_answer_download'),
+    path('bewerber/files/download/<uuid:file_answer_uuid>/', views.bw_application_file_answer_download, name='bw_application_file_answer_download'),
     path('bewerber/kommentar/<int:bewerber_id>/', views.bewerber_kommentar, name='bewerber_kommentar'),
     
     # API endpoints for bewerber comments
@@ -96,6 +101,8 @@ urlpatterns = [
     
     path('karte/', views.karte, name='karte'),
     path('karte/delete/', views.delete_karte, name='delete_karte'),
+
+    path('list_users/', views.list_users, name='list_users'),
 ]
 
 # Add these new URL patterns

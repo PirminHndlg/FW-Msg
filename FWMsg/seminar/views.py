@@ -1,9 +1,13 @@
 from django.shortcuts import redirect, render, get_object_or_404
 import json
+import logging
+import re
 from datetime import datetime
 from django.contrib.auth.decorators import login_required
+from django.db.models import F
 from django.db.models.functions import Round
-from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse, JsonResponse
+from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.contrib import messages
 from django.utils import timezone
@@ -13,8 +17,10 @@ from seminar.models import Einheit, Frage, Fragekategorie, Bewertung, Kommentar,
 from Global.models import Attribute, Einsatzland2 as Einsatzland, Einsatzstelle2 as Einsatzstelle, UserAttribute
 from BW.models import Bewerber
 from .forms import WishForm, BewerterForm
-from django.db.models import Avg, Case, When, IntegerField
+from django.db.models import Avg, Case, When, IntegerField, Prefetch
 from django.contrib.auth.models import User
+
+logger = logging.getLogger(__name__)
 
 def required_verschwiegenheit(view_func):
     def wrapper(request, *args, **kwargs):
@@ -23,6 +29,80 @@ def required_verschwiegenheit(view_func):
             return redirect('verschwiegenheit')
         return view_func(request, *args, **kwargs)
     return wrapper
+
+# Names of the cookies / form fields written by evaluate.html and evaluate.js
+SEMINAR_KEY_PATTERNS = {
+    # Cookie with all ratings of a Bewerber:in in one Einheit as JSON {frage_id: antwort}
+    'bewertungen': re.compile(r'^f(?P<freiwilliger>\d+)r(?P<einheit>\d+)u(?P<bewerter>\d+)$'),
+    # Form field with the rating of one question
+    'bewertung': re.compile(r'^f(?P<freiwilliger>\d+)q(?P<frage>\d+)r(?P<einheit>\d+)u(?P<bewerter>\d+)$'),
+    # Comment (cookie or form field), optionally per category; n1 = show name at presentation
+    'comment': re.compile(
+        r'^comment(?P<freiwilliger>\d+)r(?P<einheit>\d+)u(?P<bewerter>\d+)(?:c(?P<category>\d+))?n(?P<name>\d)$'
+    ),
+}
+
+
+def parse_seminar_key(key):
+    """Extract the data from a seminar cookie or form field name.
+
+    Returns (type, data) with type 'bewertungen', 'bewertung' or 'comment' and data
+    containing freiwilliger, einheit, bewerter and depending on the type frage,
+    category (only if set) and name. Other names (e.g. "firstVisit") return (None, None).
+    """
+    for key_type, pattern in SEMINAR_KEY_PATTERNS.items():
+        match = pattern.match(key.strip())
+        if match:
+            data = {k: v for k, v in match.groupdict().items() if v is not None}
+            if 'name' in data:
+                data['name'] = data['name'] == '1'
+            return key_type, data
+    return None, None
+
+
+def save_seminar_entry(request, name, value):
+    """Save one stored entry (cookie or localStorage, see parse_seminar_key) of the current user.
+
+    Returns (inserted, edited), or None if the entry was not saved and must be kept
+    (other user, unknown name or a failed insert).
+    """
+    key_type, data = parse_seminar_key(name)
+    if not data or data['bewerter'] != str(request.user.id):
+        return None
+
+    if key_type == 'bewertungen':
+        try:
+            answers = json.loads(value)
+        except (TypeError, ValueError):
+            return 0, 0  # unreadable, nothing to keep
+        if not isinstance(answers, dict):
+            return 0, 0
+        inserted = edited = 0
+        for frage, antwort in answers.items():
+            result = insert_bewertung({**data, 'frage': frage, 'antwort': antwort})
+            if result == 0:
+                return None
+            inserted += result == 1
+            edited += result == 2
+        return inserted, edited
+
+    if key_type == 'comment':
+        text = value or ''
+        if not text.strip():
+            # Empty text: only clear an existing comment, do not create empty ones
+            exists = Kommentar.objects.filter(
+                bewerber_id=data['freiwilliger'], einheit_id=data['einheit'], bewerter=request.user,
+                kategorie_id=data.get('category'),
+            ).exists()
+            if not exists:
+                return 0, 0
+        result = insert_comment(request, {**data, 'text': text})
+        if result == 0:
+            return None
+        return int(result == 1), int(result == 2)
+
+    return None
+
 
 # Create your views here.
 @login_required
@@ -45,79 +125,54 @@ def start(request):
 @required_role('OTE')
 def refresh(request):
     response = redirect('seminar_home')
-    inserted = []
-    edited = []
+    inserted = 0
+    edited = 0
 
-    for cookie_name in request.COOKIES:
-        if cookie_name.startswith('f'):
-            data = {}
+    for cookie_name, cookie in request.COOKIES.items():
+        result = save_seminar_entry(request, cookie_name, cookie)
+        if result is None:
+            continue
+        inserted += result[0]
+        edited += result[1]
+        response.delete_cookie(cookie_name)
 
-            data['freiwilliger'] = cookie_name.split('f')[1].split('r')[0]
-            data['einheit'] = cookie_name.split('r')[1].split('u')[0]
-            data['bewerter'] = cookie_name.split('u')[1]
-
-            if data['bewerter'] != str(request.user.id):
-                continue
-
-            cookie = request.COOKIES[cookie_name]
-
-            json_data = json.loads(cookie)
-
-            for key, value in json_data.items():
-                data['frage'] = key
-                data['antwort'] = value
-
-                insert_response = insert_bewertung(data)
-
-                if insert_response == 1:
-                    inserted.append(cookie_name)
-                elif insert_response == 2:
-                    edited.append(cookie_name)
-
-            response.delete_cookie(cookie_name)
-
-        if cookie_name.startswith('comment'):
-            data = {}
-
-            comment = cookie_name.split('comment')[1]
-            data['freiwilliger'] = comment.split('r')[0]
-
-            comment = comment.split('r')[1]
-            data['einheit'] = comment.split('u')[0]
-            comment = comment.split('u')[1]
-
-            if 'c' in comment:
-                user = comment.split('c')[0]
-            else:
-                user = comment.split('n')[0]
-
-            if user != str(request.user.id):
-                continue
-
-            data['bewerter'] = user
-
-            if 'c' in comment:
-                comment = comment.split('c')[1]
-                data['category'] = comment.split('n')[0]
-
-            data['name'] = comment.split('n')[1] == '1'
-
-            cookie = request.COOKIES[cookie_name]
-            data['text'] = cookie
-
-            insert_response = insert_comment(request, data)
-
-            if insert_response == 1:
-                inserted.append(cookie)
-            elif insert_response == 2:
-                edited.append(cookie)
-
-            response.delete_cookie(cookie_name)
-
-    messages.success(request,
-                     f'Erfolgreich bewertet, {len(inserted)} Bewertungen hinzugefügt, {len(edited)} bearbeitet')
+    messages.success(request, f'Erfolgreich bewertet, {inserted} Bewertungen hinzugefügt, {edited} bearbeitet')
 
     return response
+
+
+@login_required
+@required_verschwiegenheit
+@required_role('OTE')
+@require_POST
+def sync(request):
+    """Save the entries stored in the browser (localStorage, see seminar_store.js).
+
+    Body: {"entries": {name: value}, "manual": bool}. Returns the saved entries so the
+    browser only removes what has arrived; entries that were not saved stay in the browser.
+    """
+    try:
+        payload = json.loads(request.body)
+        entries = payload.get('entries', {})
+        if not isinstance(entries, dict):
+            raise ValueError
+    except (ValueError, AttributeError):
+        return JsonResponse({'error': 'invalid'}, status=400)
+
+    saved = {}
+    inserted = edited = 0
+    for name, value in entries.items():
+        result = save_seminar_entry(request, name, value)
+        if result is None:
+            continue
+        saved[name] = value
+        inserted += result[0]
+        edited += result[1]
+
+    if payload.get('manual'):
+        messages.success(request, f'Erfolgreich bewertet, {inserted} Bewertungen hinzugefügt, {edited} bearbeitet')
+
+    return JsonResponse({'saved': saved, 'inserted': inserted, 'edited': edited})
 
 
 @required_role('OTE')
@@ -156,7 +211,11 @@ def einheit(request):
     einheiten = Einheit.objects.all()
     user = request.user
     for einheit in einheiten:
-        if Bewertung.objects.filter(einheit=einheit, bewerter=user).exists():
+        if Bewertung.objects.filter(
+            einheit=einheit,
+            bewerter=user,
+            bewerber__seminar_bewerber__org=F('bewerber__org'),
+        ).exists():
             einheit.bewertet = True
 
     context = {
@@ -172,7 +231,7 @@ def choose(request):
     einheit_arg = request.GET.get('einheit')
 
     # choose only freiwillige that have a seminar
-    freiwillige = Bewerber.objects.filter(seminar_bewerber__isnull=False).order_by('user__first_name')
+    freiwillige = Bewerber.objects.filter(seminar_bewerber__org=F('org')).distinct().order_by('user__first_name')
     this_einheit = get_object_or_404(Einheit, pk=einheit_arg)
 
     context = {
@@ -220,7 +279,7 @@ def evaluate(request):
                     fw_bewertet[key]['comment'][kategorie]['text'] = kommentar.text
                     fw_bewertet[key]['comment'][kategorie]['name'] = kommentar.show_name_at_presentation
 
-    frewillige = Bewerber.objects.filter(id__in=fw_ids, seminar_bewerber__isnull=False)
+    frewillige = Bewerber.objects.filter(id__in=fw_ids, seminar_bewerber__org=F('org')).distinct()
     fragen = Frage.objects.all()
     fragenkategorien = Fragekategorie.objects.all()
     einheit = get_object_or_404(Einheit, pk=einheit_arg)
@@ -261,8 +320,8 @@ def insert_bewertung(data):
 
         return 1
 
-    except Exception as e:
-        messages.error(request, 'Fehler beim Einfügen der Bewertung')
+    except Exception:
+        logger.exception('Fehler beim Einfügen der Bewertung')
     return 0
 
 
@@ -326,37 +385,15 @@ def evaluate_post(request):
         k = k.strip()
         v = v.strip()
 
-        data = {}
+        key_type, data = parse_seminar_key(k)
+        if not data or data['bewerter'] != str(request.user.id):
+            continue
+        if only and only != data['freiwilliger']:
+            continue
 
-        if k.startswith('comment'):
+        if key_type == 'comment':
             if len(v) < 1:
                 continue
-
-            comment = k.split('comment')[1]
-            data['freiwilliger'] = comment.split('r')[0]
-
-            if only and only != data['freiwilliger']:
-                continue
-
-            comment = comment.split('r')[1]
-            data['einheit'] = comment.split('u')[0]
-            comment = comment.split('u')[1]
-
-            if 'c' in comment:
-                user = comment.split('c')[0]
-            else:
-                user = comment.split('n')[0]
-
-            if user != str(request.user.id):
-                continue
-
-            data['bewerter'] = user
-
-            if 'c' in comment:
-                comment = comment.split('c')[1]
-                data['category'] = comment.split('n')[0]
-
-            data['name'] = comment.split('n')[1] == '1'
 
             data['text'] = v
 
@@ -369,23 +406,7 @@ def evaluate_post(request):
 
             continue
 
-        elif k.startswith('f'):
-            buf = k.strip().split('f')[1]
-            data['freiwilliger'] = buf.split('q')[0]
-
-            if only and only != data['freiwilliger']:
-                continue
-
-            buf = buf.split('q')[1]
-            data['frage'] = buf.split('r')[0]
-            buf = buf.split('r')[1]
-            data['einheit'] = buf.split('u')[0]
-            buf = buf.split('u')[1]
-            data['bewerter'] = buf
-
-            if data['bewerter'] != str(request.user.id):
-                continue
-
+        elif key_type == 'bewertung':
             data['antwort'] = v
 
             insert_response = insert_bewertung(data)
@@ -468,11 +489,19 @@ def evaluate_all(request):
                 i = index
                 break
     
-    # Get all attributes for this person_cluster (after final freiwilliger is determined)
-    attributes = Attribute.objects.filter(
-        visible_in_profile=True, 
-        person_cluster=freiwilliger.user.customuser.person_cluster
-    ).order_by('name')
+    # Attributes selected for the presentation in the seminar, limited to this person's (active) cluster
+    seminar = Seminar.objects.filter(org=request.user.org).first()
+    person_cluster = freiwilliger.user.customuser.person_cluster
+    if seminar:
+        selected_attribute_ids = set(seminar.presentation_attributes.values_list('id', flat=True))
+        if person_cluster and person_cluster.active:
+            attributes = seminar.presentation_attributes.filter(person_cluster=person_cluster).order_by('name')
+        else:
+            attributes = Attribute.objects.none()
+    else:
+        selected_attribute_ids = set()
+        attributes = Attribute.objects.none()
+    selectable_attributes = _selectable_presentation_attributes(request.user.org)
     
     # Get existing user attribute values
     existing_user_attributes = {
@@ -485,6 +514,7 @@ def evaluate_all(request):
     for attr in attributes:
         user_attributes.append({
             'name': attr.name,
+            'type': attr.type,
             'value': existing_user_attributes.get(attr.id, None)
         })
 
@@ -532,10 +562,41 @@ def evaluate_all(request):
         'avg': average_total_per_freiwilliger[i],
         'back': i - 1 if i > 0 else -1,
         'next': i + 1 if i < len(average_total_per_freiwilliger) - 1 else -1,
-        'kirchenzugehoerigkeit_with_img': ['Evangelisch', 'Katholisch', 'EKBO', 'Anhalt']
+        'kirchenzugehoerigkeit_with_img': ['Evangelisch', 'Katholisch', 'EKBO', 'Anhalt'],
+        'seminar': seminar,
+        'selectable_attributes': selectable_attributes,
+        'selected_attribute_ids': selected_attribute_ids,
     }
 
     return render(request, 'powerPoint.html', context)
+
+
+def _selectable_presentation_attributes(org):
+    """Custom fields of the org's active Bewerber person clusters."""
+    return Attribute.objects.filter(
+        org=org, person_cluster__view='B', person_cluster__active=True
+    ).distinct().order_by('name')
+
+
+@login_required
+@required_role('O')
+@require_POST
+def save_presentation_attributes(request):
+    fid = request.POST.get('fid', '')
+    redirect_url = reverse('evaluate_all')
+    if fid.isdigit():
+        redirect_url += f'?fid={fid}'
+
+    seminar = Seminar.objects.filter(org=request.user.org).first()
+    if not seminar:
+        messages.error(request, 'Kein Seminar vorhanden')
+        return redirect(redirect_url)
+
+    attribute_ids = [a for a in request.POST.getlist('attributes') if a.isdigit()]
+    attributes = _selectable_presentation_attributes(request.user.org).filter(id__in=attribute_ids)
+    seminar.presentation_attributes.set(attributes)
+
+    return redirect(redirect_url)
 
 
 @login_required
@@ -609,10 +670,15 @@ def insert_geeingnet(request):
 @login_required
 @required_role('O')
 def assign(request, scroll_to=None):
-    stelle = request.GET.get('land')
-    freiwilliger = request.GET.get('fw')
+    # Changing an assignment only via POST (CSRF protected), then redirect back to the page
+    if request.method == 'POST':
+        stelle = request.POST.get('land', '')
+        freiwilliger = request.POST.get('fw', '')
 
-    if stelle and freiwilliger:
+        if not freiwilliger.isdigit() or not (stelle == 'None' or stelle.isdigit()):
+            messages.error(request, 'Fehler bei der Zuteilung. Bitte versuche es erneut.')
+            return redirect('assign')
+
         try:
             freiwilliger_obj = Bewerber.objects.get(id=freiwilliger, org=request.user.org, seminar_bewerber__isnull=False)
             if stelle == 'None':
@@ -620,25 +686,25 @@ def assign(request, scroll_to=None):
             else:
                 stelle_obj = Einsatzstelle.objects.get(id=stelle, org=request.user.org)
                 freiwilliger_obj.zuteilung = stelle_obj
-            
+
             freiwilliger_obj.save()
         except (Bewerber.DoesNotExist, Einsatzstelle.DoesNotExist):
             messages.error(request, 'Fehler bei der Zuteilung. Bitte versuche es erneut.')
-        
-        if stelle and stelle != 'None':
-            return redirect('assign_scroll', scroll_to=stelle)
-        else:
-            return redirect('assign')
 
-    # Get all volunteers for the current organization
-    freiwillige = (
+        if stelle != 'None':
+            return redirect('assign_scroll', scroll_to=stelle)
+        return redirect('assign')
+
+    # Load all applicants once (incl. everything the template needs) and group them in Python,
+    # instead of one query per Einsatzstelle / Land
+    freiwillige = list(
         Bewerber.objects
         .filter(org=request.user.org, seminar_bewerber__isnull=False)
-        .filter(seminar_bewerber__isnull=False)
-        .select_related('user', 'zuteilung', 'first_wish_einsatzstelle', 'first_wish_einsatzland',
-                       'second_wish_einsatzstelle', 'second_wish_einsatzland',
-                       'third_wish_einsatzstelle', 'third_wish_einsatzland',
-                       'no_wish_einsatzstelle', 'no_wish_einsatzland')
+        .select_related('user__customuser', 'zuteilung',
+                        'first_wish_einsatzstelle__land', 'first_wish_einsatzland',
+                        'second_wish_einsatzstelle__land', 'second_wish_einsatzland',
+                        'third_wish_einsatzstelle__land', 'third_wish_einsatzland',
+                        'no_wish_einsatzstelle__land', 'no_wish_einsatzland')
         .annotate(
             custom_order=Case(
                 When(endbewertung__startswith='G', then=0),
@@ -652,35 +718,43 @@ def assign(request, scroll_to=None):
         .distinct()
     )
 
-    freiwillige_ohne_zuteilung = freiwillige.filter(zuteilung=None)
-    freiwillige_mit_zuteilung = freiwillige.exclude(zuteilung=None)
+    freiwillige_ohne_zuteilung = [f for f in freiwillige if f.zuteilung_id is None]
+    freiwillige_mit_zuteilung = [f for f in freiwillige if f.zuteilung_id is not None]
 
-    # Get countries for the current organization
-    laender = Einsatzland.objects.filter(org=request.user.org).order_by('name')
-    
+    def stelle_order(f):
+        # Geeignet, bedingt, rest; then by note (empty notes first)
+        endbewertung = f.endbewertung or ''
+        rank = 0 if endbewertung.startswith('G') else 1 if endbewertung.startswith('B') else 2
+        return (rank, f.note is not None, f.note or 0)
+
+    freiwillige_per_stelle = {}
+    for f in freiwillige_mit_zuteilung:
+        freiwillige_per_stelle.setdefault(f.zuteilung_id, []).append(f)
+
+    # Get countries with their Einsatzstellen for the current organization
+    laender = (
+        Einsatzland.objects
+        .filter(org=request.user.org)
+        .prefetch_related(Prefetch(
+            'einsatzstelle2_set',
+            queryset=Einsatzstelle.objects.filter(org=request.user.org).order_by('name'),
+            to_attr='org_stellen',
+        ))
+        .order_by('name')
+    )
+
     laender_arg = []
-
     for land in laender:
-        land_dict = {}
-        land_dict['land'] = land
-        einsatzstellen = Einsatzstelle.objects.filter(land=land, org=request.user.org).order_by('name')
-        land_dict['stellen'] = []
-        for stelle in einsatzstellen:
-            freiwillige_land = (
-                freiwillige_mit_zuteilung
-                .filter(zuteilung=stelle)
-                .annotate(
-                    custom_order=Case(
-                        When(endbewertung__startswith='G', then=0),
-                        When(endbewertung__startswith='B', then=1),
-                        default=2,
-                        output_field=IntegerField(),
-                    )
-                )
-                .order_by('custom_order', 'note')
-            )
-            land_dict['stellen'].append((stelle, freiwillige_land))
-        laender_arg.append(land_dict)
+        stellen = [
+            (stelle, sorted(freiwillige_per_stelle.get(stelle.id, []), key=stelle_order))
+            for stelle in land.org_stellen
+        ]
+        laender_arg.append({
+            'land': land,
+            'stellen': stellen,
+            'current_fw': sum(len(stelle_freiwillige) for _, stelle_freiwillige in stellen),
+            'max_fw': sum(stelle.max_freiwillige or 0 for stelle in land.org_stellen),
+        })
 
     context = {
         'freiwillige': freiwillige,
@@ -695,6 +769,7 @@ def assign(request, scroll_to=None):
 
 @login_required
 @required_role('O')
+@require_POST
 def auto_assign(request):
     org = request.user.org
     
@@ -739,6 +814,7 @@ def auto_assign(request):
 
 @login_required
 @required_role('O')
+@require_POST
 def clear_assignments(request):
     Bewerber.objects.filter(org=request.user.org, seminar_bewerber__isnull=False, zuteilung__isnull=False).update(zuteilung=None)
     messages.success(request, 'Alle Zuteilungen wurden gelöscht.')

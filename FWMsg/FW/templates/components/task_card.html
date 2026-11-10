@@ -10,14 +10,14 @@
         
         {% if task.aufgabe.beschreibung %}
         <div class="p-2 bg-light rounded-3 border-start border-primary border-3 mb-3">
-          <p class="card-text mb-0 text-truncate">{{ task.aufgabe.beschreibung|format_text_with_link }}</p>
+          <p class="card-text mb-0 task-description-clamp">{{ task.aufgabe.beschreibung|format_text_with_link }}</p>
         </div>
         {% endif %}
         
         {% if task.personalised_description %}
         <div class="p-2 bg-light rounded-3 border-start border-success border-3 mb-3">
-          <p class="card-text mb-0 text-truncate">
-            <span class="fw-semibold text-success">{% trans 'Persönliche Beschreibung' %}:</span> 
+          <p class="card-text mb-0 task-description-clamp">
+            <span class="fw-semibold text-success">{% trans 'Persönliche Beschreibung' %}:</span>
             {{ task.personalised_description|format_text_with_link }}
           </p>
         </div>
@@ -143,5 +143,12 @@
     min-height: 60px;
     display: flex;
     align-items: center;
+  }
+
+  .task-description-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 </style>

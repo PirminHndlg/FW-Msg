@@ -43,7 +43,9 @@ secrets = load_secrets()
 # =============================================================================
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = secrets.get("secret_key", "django-insecure-default-key-change-in-production")
+SECRET_KEY = secrets.get(
+    "secret_key", "django-insecure-default-key-change-in-production"
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = secrets.get("debug", True)
@@ -69,6 +71,10 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    # nginx terminates TLS and forwards requests over HTTP to Gunicorn.
+    # This header tells Django to treat X-Forwarded-Proto: https as HTTPS,
+    # preventing an infinite redirect loop with SECURE_SSL_REDIRECT = True.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 else:
     # Development settings
     SECURE_SSL_REDIRECT = False
@@ -80,12 +86,14 @@ else:
 # =============================================================================
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "channels",
     "FW.apps.FwConfig",
     "ORG.apps.OrgConfig",
     "Home.apps.HomeConfig",
@@ -101,7 +109,24 @@ INSTALLED_APPS = [
     "django_celery_results",
     "simple_history",
     "django_tables2",
+    "rest_framework",
+    "chat.apps.ChatConfig",
 ]
+
+# =============================================================================
+# CHANNELS / WEBSOCKET
+# =============================================================================
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            # Uses the same Redis instance as Celery.
+            # Override via secrets.json key "redis_url" in production.
+            "hosts": [secrets.get("redis_url", "redis://127.0.0.1:6379")],
+        },
+    }
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -138,6 +163,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "FWMsg.wsgi.application"
+ASGI_APPLICATION = "FWMsg.asgi.application"
+
 
 # =============================================================================
 # DATABASE CONFIGURATION
@@ -178,7 +205,7 @@ AUTH_PASSWORD_VALIDATORS = [
             "min_length_special": 1,
             "min_length_lower": 1,
             "min_length_upper": 1,
-            "special_characters": "~!?@#$%^&*()_+{}\":;'[]",
+            "special_characters": "~!?@#$%^&*()_-+={}\":;'[]",
         },
     },
 ]
@@ -202,6 +229,9 @@ DATETIME_INPUT_FORMATS = ["%d.%m.%Y %H:%M", "%Y-%m-%d %H:%M"]
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
+
+# Persist language preference for 1 month (also stored in session by set_language)
+LANGUAGE_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
 
 LOCALE_PATHS = [
     BASE_DIR / "locale",
@@ -235,8 +265,22 @@ STATICFILES_DIRS = [
     BASE_DIR / "Global/global-static",
     BASE_DIR / "TEAM/team-static",
     BASE_DIR / "seminar/seminar-static",
+    BASE_DIR / "chat/chat-static",
     BASE_DIR / "logos",
 ]
+
+# =============================================================================
+# STATIC FILES CONFIGURATION
+# =============================================================================
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+    },
+}
 
 # =============================================================================
 # MEDIA FILES CONFIGURATION
@@ -270,6 +314,56 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 CELERY_TASK_SOFT_TIME_LIMIT = 15 * 60  # 15 minutes
 CELERY_TIMEZONE = "Europe/Berlin"
+
+# Enhanced Celery settings for better Redis connection handling
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_CONNECTION_RETRY = True
+CELERY_BROKER_CONNECTION_MAX_RETRIES = 10
+
+# Redis transport options
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'max_retries': 100,
+    'interval_start': 0,
+    'interval_step': 2,
+    'interval_max': 30,
+    'socket_connect_timeout': 30,
+    'socket_timeout': 30,
+    'retry_on_timeout': True,
+}
+
+# Result backend transport options
+CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {
+    'max_retries': 100,
+    'interval_start': 0,
+    'interval_step': 2,
+    'interval_max': 30,
+    'socket_connect_timeout': 30,
+    'socket_timeout': 30,
+    'retry_on_timeout': True,
+}
+
+# Worker settings
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
+CELERY_WORKER_DISABLE_RATE_LIMITS = False
+CELERY_TASK_ACKS_LATE = True
+CELERY_TASK_REJECT_ON_WORKER_LOST = True
+
+# Handle connection loss gracefully
+CELERY_WORKER_CANCEL_LONG_RUNNING_TASKS_ON_CONNECTION_LOSS = True
+
+# Heartbeat settings for better connection monitoring
+CELERY_BROKER_HEARTBEAT = 30
+CELERY_BROKER_HEARTBEAT_CHECKRATE = 2.0
+
+# Additional Redis connection settings
+CELERY_BROKER_POOL_LIMIT = 10
+CELERY_BROKER_CONNECTION_TIMEOUT = 30
+
+# Redis connection pool settings
+CELERY_BROKER_TRANSPORT_OPTIONS.update({
+    'socket_keepalive': True,
+})
 
 # =============================================================================
 # CSRF CONFIGURATION

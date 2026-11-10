@@ -25,9 +25,33 @@
   {% else %}
     <div class="card rounded-4 p-2 pt-0">
       <div class="card-body p-0">
-        {% if all_person_clusters|length > 1 %}
-        <div class="d-flex gap-1 justify-content-center align-items-center me-2 border-end pe-2 mt-2">
+        {% if all_person_clusters|length > 1 or request.user.view == 'O' and all_person_clusters %}
+        <div class="d-flex gap-1 justify-content-center align-items-center me-2 border-end pe-2 mt-2 flex-wrap">
           <strong>{% trans "Benutzergruppe" %}</strong>
+          {% if request.user.view == 'O' %}
+          <div class="gap-1 flex-wrap justify-content-center align-items-center d-flex">
+            <a class="btn btn-sm rounded-4 btn-outline-primary {% if not current_person_cluster %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter=None&f={{ filter_this_month }}">
+              {% trans "Alle" %}
+            </a>
+            {% for person_cluster in all_person_clusters %}
+            <div class="btn-group btn-group-sm" role="group">
+              <a class="btn btn-outline-primary rounded-start-4 {% if current_person_cluster.id == person_cluster.id %}active{% endif %}"
+                 href="{% url 'list_ampel' %}?person_cluster_filter={{ person_cluster.id }}&f={{ filter_this_month }}">
+                {{ person_cluster.name }}
+              </a>
+              <a class="btn btn-outline-primary rounded-end-4"
+                 href="{% url 'edit_object' 'ampelconfiguration' person_cluster.ampel_configuration_cached.id %}?next={% url 'list_ampel' %}%3Fperson_cluster_filter%3D{{ person_cluster.id }}%26f%3D{{ filter_this_month }}"
+                 title="{% if person_cluster.ampel_configuration_cached.reminders_are_active %}{% trans 'Ampel-Erinnerungen aktiv' %}{% else %}{% trans 'Ampel-Erinnerungen inaktiv' %}{% endif %}">
+                {% if person_cluster.ampel_configuration_cached.reminders_are_active %}
+                <i class="bi bi-bell-fill"></i>
+                {% else %}
+                <i class="bi bi-bell-slash"></i>
+                {% endif %}
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
           <div class="gap-1 flex-wrap justify-content-center align-items-center d-none d-md-flex">
             <a class="btn btn-sm rounded-4 btn-outline-primary {% if not current_person_cluster %}active{% endif %}" href="{% url 'list_ampel' %}?person_cluster_filter=None&f={{ filter_this_month }}">
               {% trans "Alle" %}
@@ -48,6 +72,7 @@
               {% endfor %}
             </select>
           </div>
+          {% endif %}
         </div>
         {% endif %}
 

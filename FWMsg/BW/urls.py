@@ -3,7 +3,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('', views.home, name='bw_home'),
-    path('neue_bewerbung/<int:org_id>/', views.create_account, name='bw_create_account'),
+    path('neue_bewerbung/<uuid:org_uuid>/', views.create_account, name='bw_create_account'),
     path('bewerbung_erstellt/', views.account_created, name='account_created'),
     path('bewerbung_verifiziert/<str:token>/', views.verify_account, name='verify_account'),
     

@@ -1,4 +1,5 @@
 import json
+import logging
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
@@ -10,6 +11,8 @@ from .models import PushSubscription
 from .push_notification import get_vapid_public_key, send_push_notification_to_user
 
 from Global.views import check_organization_context
+
+logger = logging.getLogger(__name__)
 
 @login_required
 def push_settings(request):
@@ -71,30 +74,53 @@ def save_subscription(request):
     View to save a push subscription from the browser.
     """
     try:
-        data = json.loads(request.body)
-        
-        if not all(k in data for k in ['endpoint', 'keys']):
+        if not request.body:
+            return JsonResponse({'status': 'error', 'message': 'Empty request body'}, status=400)
+
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON payload'}, status=400)
+
+        if data is None:
+            return JsonResponse({'status': 'error', 'message': 'Subscription payload is null'}, status=400)
+
+        if not isinstance(data, dict):
+            return JsonResponse({'status': 'error', 'message': 'Invalid subscription payload'}, status=400)
+
+        endpoint = data.get('endpoint')
+        keys = data.get('keys')
+        if not endpoint or not isinstance(keys, dict):
             return JsonResponse({'status': 'error', 'message': 'Invalid subscription data'}, status=400)
+
+        p256dh = keys.get('p256dh')
+        auth = keys.get('auth')
+        if not p256dh or not auth:
+            return JsonResponse({'status': 'error', 'message': 'Missing subscription keys'}, status=400)
+
+        org = getattr(request.user, 'org', None)
+        if org is None:
+            return JsonResponse({'status': 'error', 'message': 'User has no organisation context'}, status=400)
         
         # Check if we already have this subscription
         subscription, created = PushSubscription.objects.get_or_create(
             user=request.user,
-            org=request.user.org,
-            endpoint=data['endpoint'],
+            org=org,
+            endpoint=endpoint,
             defaults={
-                'p256dh': data['keys']['p256dh'],
-                'auth': data['keys']['auth'],
+                'p256dh': p256dh,
+                'auth': auth,
                 'name': data.get('name', f'Browser auf {request.META.get("HTTP_USER_AGENT", "Unbekannt")}')
             }
         )
         
         # If subscription existed but keys changed, update them
         if not created and (
-            subscription.p256dh != data['keys']['p256dh'] or 
-            subscription.auth != data['keys']['auth']
+            subscription.p256dh != p256dh or
+            subscription.auth != auth
         ):
-            subscription.p256dh = data['keys']['p256dh']
-            subscription.auth = data['keys']['auth']
+            subscription.p256dh = p256dh
+            subscription.auth = auth
             subscription.save()
         
         return JsonResponse({
@@ -104,6 +130,7 @@ def save_subscription(request):
         })
         
     except Exception as e:
+        logger.exception("Failed to save push subscription")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 @login_required

@@ -79,7 +79,7 @@
                                     {{ form.order.errors.0 }}
                                 </div>
                             {% endif %}
-                            <div class="form-text">{% trans "Question order (0 = first)" %}</div>
+                            <div class="form-text">{% trans "Question order (0 = first, -1 = last)" %}</div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-check form-switch mt-5">
@@ -110,7 +110,7 @@
                         <div class="form-text">{% trans "Optional explanation or instruction for participants" %}</div>
                     </div>
                     
-                    <div class="d-flex justify-content-between">
+                    <div class="survey-actions">
                         <a href="{% url 'survey:survey_manage' survey.pk %}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>
                             {% trans "Back to Survey" %}

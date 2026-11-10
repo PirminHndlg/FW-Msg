@@ -44,7 +44,7 @@
             </a>
 
             {# Mobile Navigation Toggle Button #}
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <button class="navbar-toggler position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span><span class="badge rounded-pill bg-danger d-none badge-unread navbar-toggler-badge">0</span></button>
 
             {# Navigation Links #}
             <div class="collapse navbar-collapse" id="navbarResponsive">
@@ -61,21 +61,22 @@
                     <i class="bi bi-people me-1"></i>{% trans "Personen" %}
                   </a>
                   <div class="dropdown-menu dropdown-menu-wide" aria-labelledby="peopleDropdown">
-                    <a href="{% url 'list_object' 'freiwilliger' %}" class="dropdown-item">
-                      <i class="bi bi-person me-2"></i>{% trans "Freiwillige" %}
-                    </a>
-                    <a href="{% url 'list_object' 'team' %}" class="dropdown-item">
-                      <i class="bi bi-people me-2"></i>{% trans "Team" %}
-                    </a>
-                    <a href="{% url 'list_object' 'ehemalige' %}" class="dropdown-item">
-                      <i class="bi bi-person-check me-2"></i>{% trans "Ehemalige" %}
-                    </a>
-                    <a href="{% url 'list_object' 'bewerber' %}" class="dropdown-item">
-                      <i class="bi bi-person-vcard me-2"></i>{% trans "Bewerber:innen" %}
-                    </a>
+                    {# Je Personenliste ein Eintrag, bei mehreren Benutzergruppen mit Unterpunkten #}
+                    {% trans "Freiwillige" as label %}
+                    {% include 'components/nav_person_cluster_links.html' with model_name='freiwilliger' view='F' icon='bi-heart' %}
+                    {% trans "Team" as label %}
+                    {% include 'components/nav_person_cluster_links.html' with model_name='team' view='T' icon='bi-briefcase' %}
+                    {% trans "Ehemalige" as label %}
+                    {% include 'components/nav_person_cluster_links.html' with model_name='ehemalige' view='E' icon='bi-mortarboard' %}
+                    {% trans "Bewerber:innen" as label %}
+                    {% include 'components/nav_person_cluster_links.html' with model_name='bewerber' view='B' icon='bi-inbox' %}
                     <div class="dropdown-divider"></div>
                     <a href="{% url 'list_object' 'notfallkontakt' %}" class="dropdown-item">
-                      <i class="bi bi-telephone me-2"></i>{% trans "Notfallkontakte" %}
+                      <i class="bi bi-exclamation-triangle me-2"></i>{% trans "Notfallkontakte" %}
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'list_users' %}" class="dropdown-item">
+                      <i class="bi bi-people me-2"></i>{% trans "Übersicht" %}
                     </a>
                   </div>
                 </li>
@@ -117,6 +118,9 @@
                     <a href="{% url 'karte' %}" class="dropdown-item">
                       <i class="bi bi-map me-2"></i>{% trans "Karte" %}
                     </a>
+                    <a href="{% url 'deeptalk_fragen' %}" class="dropdown-item">
+                      <i class="bi bi-chat-heart me-2"></i>{% trans "Deep-Talk-Fragen" %}
+                    </a>
                     <div class="dropdown-divider"></div>
                     <a href="{% url 'kalender' %}" class="dropdown-item">
                       <i class="bi bi-calendar-date me-2"></i>{% trans "Kalender" %}
@@ -153,7 +157,7 @@
                       <i class="bi bi-diagram-3 me-2"></i>{% trans "Benutzergruppen" %}
                     </a>
                     <a href="{% url 'list_object' 'attribute' %}" class="dropdown-item">
-                      <i class="bi bi-tags me-2"></i>{% trans "Attribute" %}
+                      <i class="bi bi-tags me-2"></i>{% trans "Eigene Felder" %}
                     </a>
                     <a href="{% url 'list_object' 'aufg-filter' %}" class="dropdown-item">
                       <i class="bi bi-funnel me-2"></i>{% trans "Aufgabenfilter" %}
@@ -163,7 +167,7 @@
                       <i class="bi bi-file-earmark-person me-2"></i>{% trans "Bewerbungen" %}
                     </a>
                     <a href="{% url 'seminar_home' %}" class="dropdown-item">
-                      <i class="bi bi-mortarboard me-2"></i>{% trans "Seminar" %}
+                      <i class="bi bi-easel2 me-2"></i>{% trans "Seminar" %}
                     </a>
                     <a href="{% url 'survey:survey_list' %}" class="dropdown-item">
                       <i class="bi bi-bar-chart me-2"></i>{% trans "Umfragen" %}
@@ -177,7 +181,10 @@
               </ul>
 
               <div class="d-flex flex-wrap gap-2 justify-content-center align-items-center">
-                
+
+                <!-- Chat Button -->
+                <a href="{% url 'chat_list' %}" class="btn btn-light"><i class="bi bi-chat-dots"></i> <span class="badge bg-primary rounded-pill d-none badge-unread">0</span></a>
+
                 <!-- Settings Button -->
                 <a href="{% url 'settings' %}" class="btn btn-light"><i class="bi bi-gear"></i></a>
 
@@ -232,6 +239,26 @@
           })
         })
       })
+
+      // Fixed-height table viewport + Shift+scroll for horizontal scrolling
+      document.addEventListener('DOMContentLoaded', function() {
+        const tableContainers = document.querySelectorAll('.table-scroll-viewport');
+        tableContainers.forEach(container => {
+            handleTableScroll(container);
+        });
+    });
+
+    function handleTableScroll(container) {
+      if (!container) console.error('Container not found:', container); return;
+      container.addEventListener('wheel', function(e) {
+        if (!e.shiftKey) return;
+        const hasHorizontalScroll = container.scrollWidth > container.clientWidth;
+        if (!hasHorizontalScroll) return;
+
+        e.preventDefault();
+        container.scrollLeft += e.deltaY;
+        }, { passive: false });
+      }
     </script>
   </body>
 </html>

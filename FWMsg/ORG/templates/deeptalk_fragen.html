@@ -1,0 +1,242 @@
+{% extends 'baseOrg.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Deep-Talk-Fragen" %}{% endblock %}
+
+{% block content %}
+{% trans "Diese Frage wirklich löschen?" as confirm_delete %}
+<div class="w-100 mx-auto" style="max-width: 1100px;">
+
+  {# Kopf mit Kennzahlen #}
+  <div class="card rounded-4 mb-3">
+    <div class="card-header rounded-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h3 class="mb-1"><i class="bi bi-chat-heart me-2 text-primary"></i>{% trans "Deep-Talk-Fragen" %}</h3>
+        <div class="d-flex flex-wrap gap-2 small">
+          <span class="badge text-bg-light border">{{ fragen|length }} {% trans "gesamt" %}</span>
+          <span class="badge text-bg-light border">{{ active_count }} {% trans "aktiv" %}</span>
+          {% if active_count %}
+            <span class="badge text-bg-light border" title="{% trans 'Erst wenn alle aktiven Fragen gezeigt wurden, wiederholen sie sich.' %}">
+              {{ never_shown_active }} {% trans "noch nicht gezeigt" %}
+            </span>
+          {% endif %}
+        </div>
+      </div>
+      <a href="{% url 'impulse' %}" class="btn btn-sm btn-outline-primary rounded-4">
+        <i class="bi bi-eye me-1"></i>{% trans "Ansicht für Nutzer:innen" %}
+      </a>
+    </div>
+  </div>
+
+  {# Fragen hinzufügen + Vorschau #}
+  <form method="post" class="card rounded-4 mb-3" id="deeptalkImportForm">
+    {% csrf_token %}
+    <div class="card-header bg-white border-bottom-0 rounded-top-4">
+      <h2 class="mb-0" style="font-size: 1.25rem; font-weight: 600; color: #495057;">
+        <i class="bi bi-plus-circle me-2 text-primary"></i>{% trans "Fragen hinzufügen" %}
+      </h2>
+    </div>
+    <div class="card-body pt-0">
+      <label for="fragenInput" class="form-label text-muted small">
+        {% trans "Eine oder mehrere Fragen einfügen – eine Frage pro Zeile." %}
+      </label>
+      <textarea class="form-control rounded-3" id="fragenInput" name="fragen" rows="8"
+                maxlength="{{ max_input_chars }}" spellcheck="true"
+                placeholder="{% trans 'Was hat dich diese Woche überrascht?' %}&#10;{% trans 'Wofür bist du gerade dankbar?' %}&#10;&#10;{% trans 'Welcher Moment hat dich zuletzt zum Lachen gebracht?' %}">{{ raw_text }}</textarea>
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
+        <button class="btn btn-link btn-sm p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#deeptalkFormatHelp" aria-expanded="false">
+          <i class="bi bi-info-circle me-1"></i>{% trans "Welche Formate werden erkannt?" %}
+        </button>
+        <small class="text-muted"><span id="fragenCharCount">0</span> / {{ max_input_chars }}</small>
+      </div>
+
+      <div class="collapse" id="deeptalkFormatHelp">
+        <div class="rounded-3 bg-body-tertiary p-3 mt-2 small">
+          <ul class="mb-2 ps-3">
+            <li>{% trans "Eine Frage pro Zeile – Leerzeilen dazwischen sind egal" %}</li>
+            <li>{% trans "Aufzählungen und Nummerierungen werden entfernt" %}: <code>- …</code> <code>• …</code> <code>1. …</code> <code>2) …</code> <code>Frage 3: …</code></li>
+            <li>{% trans "Über mehrere Zeilen umbrochene Fragen werden zusammengefügt" %}</li>
+            <li>{% trans "Mehrere Fragen in einer Zeile werden getrennt" %}: <code>Was …? Wie …?</code></li>
+            <li>{% trans "Anführungszeichen um eine Frage werden entfernt" %}</li>
+            <li>{% trans "Doppelte und bereits vorhandene Fragen werden übersprungen" %}</li>
+          </ul>
+          <div class="text-muted">
+            {% blocktrans %}Max. {{ max_questions_per_import }} Fragen pro Import, jede Frage max. {{ max_question_length }} Zeichen.{% endblocktrans %}
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
+        <button type="submit" name="action" value="preview" class="btn btn-outline-primary rounded-4">
+          <i class="bi bi-eye me-1"></i>{% trans "Vorschau" %}
+        </button>
+        {% if not preview %}
+          <button type="submit" name="action" value="save" class="btn btn-primary rounded-4">
+            <i class="bi bi-check-lg me-1"></i>{% trans "Direkt speichern" %}
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if preview %}
+      <div class="card-body border-top" id="deeptalkPreview">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <h3 class="h6 fw-semibold mb-0">
+            {% blocktrans count counter=preview.questions|length %}{{ counter }} neue Frage erkannt{% plural %}{{ counter }} neue Fragen erkannt{% endblocktrans %}
+          </h3>
+          {% if preview.questions %}
+            <button type="submit" name="action" value="save" class="btn btn-primary rounded-4">
+              <i class="bi bi-check-lg me-1"></i>
+              {% blocktrans count counter=preview.questions|length %}{{ counter }} Frage speichern{% plural %}{{ counter }} Fragen speichern{% endblocktrans %}
+            </button>
+          {% endif %}
+        </div>
+
+        {% if preview.truncated_input %}
+          <div class="alert alert-warning small py-2">
+            <i class="bi bi-exclamation-triangle me-1"></i>{% blocktrans %}Die Eingabe war zu lang und wurde nach {{ max_input_chars }} Zeichen abgeschnitten.{% endblocktrans %}
+          </div>
+        {% endif %}
+        {% if preview.limit_reached %}
+          <div class="alert alert-warning small py-2">
+            <i class="bi bi-exclamation-triangle me-1"></i>{% blocktrans %}Es werden höchstens {{ max_questions_per_import }} Fragen auf einmal übernommen. Füge den Rest in einem zweiten Schritt hinzu.{% endblocktrans %}
+          </div>
+        {% endif %}
+
+        {% if preview.questions %}
+          <ol class="list-group list-group-numbered mb-3">
+            {% for frage in preview.questions %}
+              <li class="list-group-item">{{ frage }}</li>
+            {% endfor %}
+          </ol>
+        {% else %}
+          <p class="text-muted mb-3">{% trans "In der Eingabe wurden keine neuen Fragen gefunden." %}</p>
+        {% endif %}
+
+        {% if preview.skipped_count %}
+          <div class="rounded-3 bg-body-tertiary p-3 small">
+            <div class="fw-semibold mb-2">
+              <i class="bi bi-skip-forward me-1"></i>
+              {% blocktrans count counter=preview.skipped_count %}{{ counter }} Eintrag wird übersprungen{% plural %}{{ counter }} Einträge werden übersprungen{% endblocktrans %}
+            </div>
+            {% if preview.duplicates %}
+              <div class="mb-2">
+                <span class="badge text-bg-secondary me-1">{% trans "Doppelt oder schon vorhanden" %}</span>
+                <ul class="mb-0 mt-1 text-muted">{% for item in preview.duplicates %}<li>{{ item }}</li>{% endfor %}</ul>
+              </div>
+            {% endif %}
+            {% if preview.too_long %}
+              <div class="mb-2">
+                <span class="badge text-bg-warning me-1">{% blocktrans %}Länger als {{ max_question_length }} Zeichen{% endblocktrans %}</span>
+                <ul class="mb-0 mt-1 text-muted">{% for item in preview.too_long %}<li>{{ item }}</li>{% endfor %}</ul>
+              </div>
+            {% endif %}
+            {% if preview.too_short %}
+              <div>
+                <span class="badge text-bg-light border me-1">{% trans "Zu kurz" %}</span>
+                <ul class="mb-0 mt-1 text-muted">{% for item in preview.too_short %}<li>{{ item }}</li>{% endfor %}</ul>
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+  </form>
+
+  {# Alle Fragen #}
+  <div class="card rounded-4 mb-3">
+    <div class="card-header bg-white border-bottom-0 rounded-top-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <h2 class="mb-0" style="font-size: 1.25rem; font-weight: 600; color: #495057;">
+        <i class="bi bi-list-ul me-2 text-primary"></i>{% trans "Alle Fragen" %}
+      </h2>
+      {% if fragen %}
+        <input type="search" class="form-control form-control-sm rounded-4" id="deeptalkSearch" style="max-width: 16rem;"
+               placeholder="{% trans 'Fragen durchsuchen …' %}" aria-label="{% trans 'Fragen durchsuchen' %}" autocomplete="off">
+      {% endif %}
+    </div>
+    {% if fragen %}
+      <ul class="list-group list-group-flush rounded-bottom-4" id="deeptalkList">
+        {% for frage in fragen %}
+          <li class="list-group-item py-3 d-flex flex-column flex-md-row gap-2 align-items-md-center {% if not frage.active %}bg-body-tertiary{% endif %}"
+              data-search="{{ frage.text|lower }}">
+            <div class="flex-grow-1" style="min-width: 0;">
+              <p class="mb-1 {% if not frage.active %}text-muted{% endif %}" style="overflow-wrap: anywhere;">{{ frage.text }}</p>
+              <div class="d-flex flex-wrap gap-2 small text-muted">
+                {% if frage.id == today_frage_id %}
+                  <span class="badge text-bg-primary">{% trans "Heute" %}</span>
+                {% endif %}
+                {% if not frage.active %}
+                  <span class="badge text-bg-secondary">{% trans "Inaktiv" %}</span>
+                {% endif %}
+                <span>
+                  <i class="bi bi-eye me-1"></i>
+                  {% blocktrans count counter=frage.shown %}{{ counter }}× gezeigt{% plural %}{{ counter }}× gezeigt{% endblocktrans %}
+                </span>
+                {% if frage.last_shown %}
+                  <span><i class="bi bi-clock-history me-1"></i>{% trans "zuletzt" %} {{ frage.last_shown|date:"d.m.Y" }}</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="d-flex gap-2 flex-shrink-0">
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle">
+                <input type="hidden" name="frage_id" value="{{ frage.id }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary rounded-4"
+                        title="{% if frage.active %}{% trans 'Deaktivieren' %}{% else %}{% trans 'Aktivieren' %}{% endif %}">
+                  {% if frage.active %}
+                    <i class="bi bi-pause-circle"></i><span class="d-none d-lg-inline ms-1">{% trans "Deaktivieren" %}</span>
+                  {% else %}
+                    <i class="bi bi-play-circle"></i><span class="d-none d-lg-inline ms-1">{% trans "Aktivieren" %}</span>
+                  {% endif %}
+                </button>
+              </form>
+              <form method="post" onsubmit="return confirm('{{ confirm_delete|escapejs }}');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="frage_id" value="{{ frage.id }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger rounded-4" title="{% trans 'Löschen' %}">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+      <p class="text-muted text-center py-3 mb-0 d-none" id="deeptalkNoResults">{% trans "Keine passenden Fragen." %}</p>
+    {% else %}
+      <div class="card-body text-center text-muted py-4">
+        <i class="bi bi-chat-square-dots d-block mb-2" style="font-size: 2rem;"></i>
+        {% trans "Noch keine Fragen vorhanden. Füge oben die ersten Fragen hinzu." %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  (function () {
+    const input = document.getElementById('fragenInput');
+    const counter = document.getElementById('fragenCharCount');
+    const updateCount = () => { counter.textContent = input.value.length; };
+    input.addEventListener('input', updateCount);
+    updateCount();
+
+    const preview = document.getElementById('deeptalkPreview');
+    if (preview) preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const search = document.getElementById('deeptalkSearch');
+    if (search) {
+      search.addEventListener('input', () => {
+        const term = search.value.trim().toLowerCase();
+        let visible = 0;
+        document.querySelectorAll('#deeptalkList > li').forEach(item => {
+          const match = !term || item.dataset.search.includes(term);
+          item.classList.toggle('d-none', !match);
+          if (match) visible++;
+        });
+        document.getElementById('deeptalkNoResults').classList.toggle('d-none', visible > 0);
+      });
+    }
+  })();
+</script>
+{% endblock %}

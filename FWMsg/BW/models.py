@@ -1,9 +1,13 @@
+import uuid as uuid_module
 from django.db import models
 from Global.models import OrgModel
 from django.contrib.auth.models import User
-from Global.models import Einsatzland2, Einsatzstelle2
+from datetime import datetime
+from Global.models import Einsatzland2, Einsatzstelle2, PersonCluster
+from django.utils.translation import gettext_lazy as _
+from Global.models import get_current_request
 
-
+        
 # Create your models here.
 class Bewerber(OrgModel):
     # Status choices for applicant evaluation
@@ -230,12 +234,24 @@ class Bewerber(OrgModel):
             if self.zuteilung:
                 freiwilliger.einsatzland2 = self.zuteilung.land
                 freiwilliger.einsatzstelle2 = self.zuteilung
-            freiwilliger.save()
+                current_year = datetime.now().year
+                if self.zuteilung.start_geplant and self.zuteilung.start_geplant != '':
+                    start_date = datetime.strptime(self.zuteilung.start_geplant, '%d.%m.').date()
+                    while start_date < datetime.now().date():
+                        start_date = start_date.replace(year=start_date.year+1)
+                    freiwilliger.start_geplant = start_date
+                    
+                    if self.zuteilung.ende_geplant and self.zuteilung.ende_geplant != '':
+                        end_date = datetime.strptime(self.zuteilung.ende_geplant, '%d.%m.').date()
+                        while end_date < start_date:
+                            end_date = end_date.replace(year=end_date.year+1)
+                        freiwilliger.ende_geplant = end_date
+                freiwilliger.save()
             
             # Add the user to the person cluster with view 'F' with the highest id (last created)
             from Global.models import PersonCluster
             # Get the first person cluster with view 'F' ordered by id reverse
-            fw_cluster = PersonCluster.objects.filter(org=org, view='F').order_by('-id')
+            fw_cluster = PersonCluster.selectable_for_org(org, view='F').order_by('-id')
             if fw_cluster.exists():
                 fw_cluster = fw_cluster.first()
                 self.user.customuser.person_cluster = fw_cluster
@@ -255,13 +271,13 @@ class Bewerber(OrgModel):
         return False
     
     class Meta:
-        verbose_name = "Bewerber:in"
-        verbose_name_plural = "Bewerber:innen"
+        verbose_name = _('Bewerber:in')
+        verbose_name_plural = _('Bewerber:innen')
         
     def __str__(self):
         return f"{self.user}"
-
-
+    
+    
 class ApplicationQuestion(OrgModel):
     ANSWER_TYPE_CHOICES = [
         ("t", "Text"),
@@ -335,8 +351,8 @@ class ApplicationQuestion(OrgModel):
     class Meta:
         ordering = ["order"]
         unique_together = ("org", "order")
-        verbose_name = "Bewerbungsfrage"
-        verbose_name_plural = "Bewerbungsfragen"
+        verbose_name = _('Bewerbungsfrage')
+        verbose_name_plural = _('Bewerbungsfragen')
 
 
 class ApplicationAnswer(OrgModel):
@@ -353,33 +369,47 @@ class ApplicationAnswer(OrgModel):
         blank=True,
         help_text="Die Antwort, die der Bewerber:in gegeben hat.",
     )
+    is_done = models.BooleanField(
+        default=False,
+        db_default=False,
+        verbose_name="Erledigt",
+        help_text="Vom Bewerber als erledigt markiert.",
+    )
 
     def __str__(self):
         return self.answer
 
     class Meta:
-        verbose_name = "Bewerbungsantwort"
-        verbose_name_plural = "Bewerbungsantworten"
+        verbose_name = _('Bewerbungsantwort')
+        verbose_name_plural = _('Bewerbungsantworten')
 
 
 class ApplicationText(OrgModel):
+    person_cluster = models.ForeignKey(
+        PersonCluster,
+        on_delete=models.SET_NULL,
+        related_name="application_texts",
+        null=True,
+        verbose_name="Bewerbergruppe",
+        help_text="Die Benutzergruppe, der Bewerber:innen zugeordnet werden.",
+    )
     welcome = models.TextField(
         verbose_name="Willkommensnachricht",
-        help_text="Die Begrüßung, die der Bewerber:in beim Start der Bewerbung sieht.",
+        help_text="Die Begrüßung, die beim Start der Bewerbung angezeigt wird.",
     )
     footer = models.TextField(
         verbose_name="Fußzeile",
-        help_text="Die Fußzeile, die der Bewerber:in am Ende der Bewerbung sieht.",
+        help_text="Die Fußzeile, die am Ende der Bewerbung angezeigt wird.",
     )
     deadline = models.DateField(
         verbose_name="Abgabefrist",
         null=True,
         blank=True,
-        help_text="Die Abgabefrist, bis zu welcher die Bewerbung abgeschlossen werden muss.",
+        help_text="Nach diesem Datum können keine Bewerbungen mehr abgegeben werden.",
     )
     welcome_account_create = models.TextField(
         verbose_name="Begrüßung bei Kontoerstellung",
-        help_text="Die Begrüßung, die der Bewerber:in beim Erstellen des Kontos sieht.",
+        help_text="Die Begrüßung, die beim Erstellen des Kontos angezeigt wird.",
         null=True,
         blank=True,
     )
@@ -388,12 +418,13 @@ class ApplicationText(OrgModel):
         return self.org.name
 
     class Meta:
-        verbose_name = "Bewerbungstext"
-        verbose_name_plural = "Bewerbungstexte"
+        verbose_name = _('Bewerbungstext')
+        verbose_name_plural = _('Bewerbungstexte')
 
 
 class ApplicationFileQuestion(OrgModel):
     ALLOWED_EXTENSIONS = [".pdf", ".doc", ".docx", ".txt", ".png", ".jpg", ".jpeg"]
+    ALLOWED_EXTENSIONS_PROFILE_PICTURE = [".png", ".jpg", ".jpeg"]
 
     name = models.CharField(
         verbose_name="Name",
@@ -439,11 +470,12 @@ class ApplicationFileQuestion(OrgModel):
 
     class Meta:
         ordering = ["order"]
-        verbose_name = "Bewerbungsdatei"
-        verbose_name_plural = "Bewerbungsdateien"
+        verbose_name = _('Bewerbungsdatei')
+        verbose_name_plural = _('Bewerbungsdateien')
 
 
 class ApplicationAnswerFile(OrgModel):
+    uuid = models.UUIDField(default=uuid_module.uuid4, editable=False, unique=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Benutzer:in")
     file_question = models.ForeignKey(
         ApplicationFileQuestion, on_delete=models.CASCADE, verbose_name="Datei"
@@ -453,17 +485,39 @@ class ApplicationAnswerFile(OrgModel):
     )
     
     def save(self, *args, **kwargs):
-        if self.file_question.is_profile_picture:
+        super().save(*args, **kwargs)
+        if self.file_question.is_profile_picture and self.file:
             try:
-                self.user.customuser.profil_picture = self.file
-                self.user.customuser.save()
+                from django.core.files.base import ContentFile
+                import os
+
+                customuser = self.user.customuser
+                # Copy file content so create_small_image does not delete the
+                # application answer file when resizing the profile picture.
+                with self.file.open('rb') as f:
+                    content = f.read()
+                filename = os.path.basename(self.file.name)
+                if customuser.profil_picture:
+                    customuser.profil_picture.delete(save=False)
+                customuser.profil_picture.save(filename, ContentFile(content), save=True)
             except Exception as e:
                 print(e)
-        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if self.file_question.is_profile_picture:
+            try:
+                customuser = self.user.customuser
+                if customuser.profil_picture:
+                    customuser.profil_picture.delete(save=False)
+                    customuser.profil_picture = None
+                    customuser.save(update_fields=['profil_picture'])
+            except Exception as e:
+                print(e)
+        super().delete(*args, **kwargs)
 
     def __str__(self):
         return self.org.name
 
     class Meta:
-        verbose_name = "Bewerbungsdatei"
-        verbose_name_plural = "Bewerbungsdateien"
+        verbose_name = _('Bewerbungsdatei')
+        verbose_name_plural = _('Bewerbungsdateien')

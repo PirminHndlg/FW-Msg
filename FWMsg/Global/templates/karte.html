@@ -3,6 +3,8 @@
 {% load i18n %}
 
 {% block head %}
+{# OSM tile servers reject requests without a Referer; Django's default same-origin policy strips it cross-origin. #}
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="stylesheet" href="{% static 'ol.css' %}">
 {% endblock %}
 
@@ -26,6 +28,49 @@
                 {% endif %}
             </button>
         </div>
+
+            {% if user.role == 'O' and person_clusters %}
+                <div class="d-flex gap-1 justify-content-center align-items-center mt-2">
+                    <strong>{% trans "Benutzergruppe" %}</strong>
+                    <div class="gap-1 flex-wrap justify-content-center align-items-center d-none d-md-flex">
+                        <a class="btn btn-sm rounded-4 {% if not current_person_cluster %}btn-primary{% else %}btn-outline-primary{% endif %} {% if not current_person_cluster %}active{% endif %}" href="{% url 'karte' %}?person_cluster_filter=None">
+                            {% trans 'Alle' %}
+                        </a>
+                        {% for person_cluster in person_clusters %}
+                            <a class="btn btn-sm rounded-4 {% if current_person_cluster == person_cluster %}btn-primary{% else %}btn-outline-primary{% endif %} {% if current_person_cluster == person_cluster %}active{% endif %}" href="{% url 'karte' %}?person_cluster_filter={{ person_cluster.id }}">
+                                {{ person_cluster.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                    <div class="d-flex gap-1 flex-wrap justify-content-center align-items-center d-md-none">
+                        <select class="form-select form-select-sm rounded-4" onchange="window.location.href = this.value;">
+                            <option value="{% url 'karte' %}?person_cluster_filter=None">{% trans 'Alle' %}</option>
+                            {% for person_cluster in person_clusters %}
+                                <option value="{% url 'karte' %}?person_cluster_filter={{ person_cluster.id }}" {% if current_person_cluster == person_cluster %}selected{% endif %}>
+                                    {{ person_cluster.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            {% endif %}
+            {% if not user.role == 'O' %}
+            <div class="d-flex gap-1 justify-content-center align-items-center mt-2 flex-wrap">
+                <strong>{% trans "Filter" %}</strong>
+                <div class="gap-1 d-flex justify-content-center align-items-center flex-wrap">
+                    <a class="btn btn-sm rounded-4 {% if not current_person_cluster or current_person_cluster == 'None' %}btn-primary{% else %}btn-outline-primary{% endif %} {% if not current_person_cluster or current_person_cluster == 'None' %}active{% endif %}" href="{% url 'karte' %}?person_cluster_filter=None">
+                        {% trans 'Alle' %}
+                    </a>
+
+                    {% with request.user.person_cluster as my_person_cluster %}
+                        <a class="btn btn-sm rounded-4 {% if current_person_cluster.id == my_person_cluster.id %}btn-primary{% else %}btn-outline-primary{% endif %} {% if current_person_cluster.id == my_person_cluster.id %}active{% endif %}" href="{% url 'karte' %}?person_cluster_filter={{ my_person_cluster.id }}">
+                            {% trans "Nur" %} {{ my_person_cluster.name }}
+                        </a>
+                    {% endwith %}
+                </div>
+            </div>
+            {% endif %}
+
     </div>
     <div class="card-body p-0 rounded-4">
         <div id="basicMap"></div>
@@ -82,6 +127,17 @@
                         {{ form.country }}
                         {% if form.country.errors %}
                             <div class="text-danger small mt-1">{{ form.country.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.visibility.id_for_label }}" class="form-label">
+                            <i class="bi bi-eye me-1"></i>
+                            {% trans "Sichtbarkeit" %}
+                        </label>
+                        {{ form.visibility }}
+                        {% if form.visibility.errors %}
+                            <div class="text-danger small mt-1">{{ form.visibility.errors }}</div>
                         {% endif %}
                     </div>
                     
@@ -241,18 +297,73 @@
 var map;
 var vectorSource;
 
+function styleFunction(feature) {
+    var features = feature.get('features');
+    var size = features.length;
+
+    if (size > 1) {
+        return new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 22,
+                fill: new ol.style.Fill({ color: '#0d6efd' }),
+                stroke: new ol.style.Stroke({ color: 'white', width: 3 })
+            }),
+            text: new ol.style.Text({
+                text: size.toString(),
+                fill: new ol.style.Fill({ color: 'white' }),
+                font: 'bold 14px sans-serif'
+            })
+        });
+    }
+
+    var f = features[0];
+    var canvas = f.get('canvas');
+    var imgSize = f.get('imgSize');
+    if (canvas && imgSize) {
+        return new ol.style.Style({
+            image: new ol.style.Icon({
+                img: canvas,
+                imgSize: imgSize,
+                anchor: [0.5, 0.5],
+                anchorXUnits: 'fraction',
+                anchorYUnits: 'fraction'
+            })
+        });
+    }
+
+    return new ol.style.Style({
+        image: new ol.style.Circle({
+            radius: 20,
+            fill: new ol.style.Fill({ color: '#0d6efd' }),
+            stroke: new ol.style.Stroke({ color: 'white', width: 2 })
+        })
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // Create vector source for markers
     vectorSource = new ol.source.Vector();
+
+    var clusterSource = new ol.source.Cluster({
+        distance: 40,
+        minDistance: 20,
+        source: vectorSource
+    });
     
     // Initialize map with OpenLayers 4
+    // OSM tiles require a Referer header; see the referrer meta tag in the head block.
     map = new ol.Map({
         layers: [
             new ol.layer.Tile({
-                source: new ol.source.OSM()
+                source: new ol.source.XYZ({
+                    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    attributions: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
+                    maxZoom: 19
+                })
             }),
             new ol.layer.Vector({
-                source: vectorSource
+                source: clusterSource,
+                style: styleFunction
             })
         ],
         target: 'basicMap',
@@ -362,26 +473,10 @@ document.addEventListener('DOMContentLoaded', function () {
             ctx.ellipse(width/2, height/2, width/2 - 1.5, height/2 - 1.5, 0, 0, Math.PI * 2);
             ctx.stroke();
             
-            // Update marker style with canvas
-            marker.setStyle(new ol.style.Style({
-                image: new ol.style.Icon({
-                    img: canvas,
-                    imgSize: [width, height],
-                    anchor: [0.5, 0.5],
-                    anchorXUnits: 'fraction',
-                    anchorYUnits: 'fraction'
-                })
-            }));
+            marker.set('canvas', canvas);
+            marker.set('imgSize', [width, height]);
+            vectorSource.changed();
         };
-        
-        // Temporary style while image loads
-        marker.setStyle(new ol.style.Style({
-            image: new ol.style.Circle({
-                radius: 20,
-                fill: new ol.style.Fill({ color: '#0d6efd' }),
-                stroke: new ol.style.Stroke({ color: 'white', width: 2 })
-            })
-        }));
         
         vectorSource.addFeature(marker);
         {% endif %}
@@ -397,27 +492,43 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
     
-    // Click on marker to show popup
+    // Click on marker to show popup or zoom into cluster
     map.on('click', function(evt) {
-        var feature = map.forEachFeatureAtPixel(evt.pixel, function(feature) {
-            return feature;
+        var feature = map.forEachFeatureAtPixel(evt.pixel, function(f) {
+            return f;
         });
-        
-        if (feature) {
+
+        if (!feature) {
+            overlay.setPosition(undefined);
+            return;
+        }
+
+        var clusterFeatures = feature.get('features');
+        if (clusterFeatures.length > 1) {
+            var extent = ol.extent.boundingExtent(
+                clusterFeatures.map(function(f) {
+                    return f.getGeometry().getCoordinates();
+                })
+            );
+            map.getView().fit(extent, {
+                duration: 500,
+                padding: [50, 50, 50, 50]
+            });
+            overlay.setPosition(undefined);
+        } else {
+            var markerFeature = clusterFeatures[0];
             var coordinates = feature.getGeometry().getCoordinates();
             var popupContent = '<div>' +
-                '<h6 class="mb-1"><strong class="text-primary"><i class="bi bi-person me-1"></i>' + feature.get('user') + '</strong></h6>' +
+                '<h6 class="mb-1"><strong class="text-primary"><i class="bi bi-person me-1"></i>' + markerFeature.get('user') + '</strong></h6>' +
                 '<div class="text-muted small">' +
-                '<div class="mb-1 ' + (feature.get('zip') ? '' : 'd-none') + '"><i class="bi bi-mailbox me-1"></i>' + (feature.get('zip') ? feature.get('zip') : '') + '</div>' +
-                '<div class="mb-1"><i class="bi bi-building me-1"></i>' + feature.get('city') + '</div>' +
-                '<div class="mb-1"><i class="bi bi-flag me-1"></i>' + feature.get('country') + '</div>';
-            
+                '<div class="mb-1 ' + (markerFeature.get('zip') ? '' : 'd-none') + '"><i class="bi bi-mailbox me-1"></i>' + (markerFeature.get('zip') ? markerFeature.get('zip') : '') + '</div>' +
+                '<div class="mb-1"><i class="bi bi-building me-1"></i>' + markerFeature.get('city') + '</div>' +
+                '<div class="mb-1"><i class="bi bi-flag me-1"></i>' + markerFeature.get('country') + '</div>';
+
             popupContent += '</div></div>';
-            
+
             content.innerHTML = popupContent;
             overlay.setPosition(coordinates);
-        } else {
-            overlay.setPosition(undefined);
         }
     });
     

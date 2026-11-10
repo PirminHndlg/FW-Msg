@@ -1,16 +1,21 @@
 import os.path
+import uuid as uuid_module
 
 from django.db import models
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.contrib.auth.models import User
+from django.utils import timezone
+from datetime import timedelta
+from django.utils.translation import gettext_lazy as _
 import random
 import string
 from simple_history.models import HistoricalRecords
-import shlex
+from django.conf import settings
 
 # Create your models here.
 class Organisation(models.Model):
+    uuid = models.UUIDField(default=uuid_module.uuid4, editable=False, unique=True)
     name = models.CharField(max_length=100)
     kurzname = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField()
@@ -24,14 +29,14 @@ class Organisation(models.Model):
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'Organisation'
-        verbose_name_plural = 'Organisationen'
+        verbose_name = _('Organisation')
+        verbose_name_plural = _('Organisationen')
 
     def __str__(self):
         return self.name
     
 @receiver(post_save, sender=Organisation)
-def create_folder(sender, instance, created, **kwargs):
+def create_org_folder(sender, instance, created, **kwargs):
     if created:
         from Global.models import CustomUser, PersonCluster
         from ORG.tasks import send_register_email_task
@@ -39,7 +44,7 @@ def create_folder(sender, instance, created, **kwargs):
         # Sanitize organization name for folder creation
         safe_org_name = instance.name.replace('/', '').replace('\\', '').replace('..', '')
         path = os.path.join(safe_org_name)
-        os.makedirs(os.path.join('dokument', safe_org_name), exist_ok=True)
+        os.makedirs(os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name), exist_ok=True)
 
         if instance.kurzname:
             user_name = instance.kurzname.lower().replace(' ', '_')
@@ -61,7 +66,7 @@ def create_folder(sender, instance, created, **kwargs):
         user.set_password(random_password)
         user.save()
 
-        customuser = CustomUser.objects.create(user=user, org=instance, einmalpasswort=einmalpasswort, person_cluster=person_cluster)
+        customuser = CustomUser.objects.create(user=user, org=instance, einmalpasswort=einmalpasswort, einmalpasswort_expires=timezone.now() + timedelta(days=1), person_cluster=person_cluster)
 
         send_register_email_task.s(customuser.id).apply_async(countdown=10)
 
@@ -112,7 +117,7 @@ def create_folder(sender, instance, **kwargs):
     safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
     
     path = os.path.join(safe_ordner_name)
-    os.makedirs(os.path.join('dokument', safe_org_name, path), exist_ok=True)
+    os.makedirs(os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, path), exist_ok=True)
 
 
 @receiver(post_delete, sender=Ordner)
@@ -122,7 +127,7 @@ def remove_folder(sender, instance, **kwargs):
     safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
     
     path = os.path.join(safe_ordner_name)
-    path = os.path.join('dokument', safe_org_name, path)
+    path = os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, path)
     if os.path.isdir(path):
         os.rmdir(path)
 
@@ -140,7 +145,8 @@ def upload_to_folder(instance, filename):
     safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
     
     path = os.path.join(safe_ordner_name, filename)
-    return os.path.join('dokument', safe_org_name, path)
+    return os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, path)
+
 
 
 def upload_to_preview_image(instance, filename):
@@ -155,7 +161,7 @@ def upload_to_preview_image(instance, filename):
     # Sanitize org name
     safe_org_name = instance.org.name.replace('/', '').replace('\\', '').replace('..', '')
     
-    folder = os.path.join('dokument', safe_org_name, 'preview_image')
+    folder = os.path.join(settings.MEDIA_ROOT_NAME, 'dokument', safe_org_name, 'preview_image')
     os.makedirs(folder, exist_ok=True)
     return os.path.join(folder, filename + '.jpg')
 

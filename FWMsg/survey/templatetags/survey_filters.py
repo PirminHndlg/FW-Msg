@@ -20,6 +20,16 @@ def is_radio_widget(field):
     return isinstance(field.field.widget, (widgets.RadioSelect,))
 
 @register.filter
+def is_rating_field(field):
+    """Rating question (1-5), rendered as a horizontal button row"""
+    return bool(field.field.widget.attrs.get('data-rating'))
+
+@register.filter
+def is_prefilled_field(field):
+    """Field prefilled from the user profile (e.g. name question)"""
+    return bool(field.field.widget.attrs.get('data-prefilled'))
+
+@register.filter
 def is_select_widget(field):
     """Check if field uses select widget"""
     return isinstance(field.field.widget, (widgets.Select,))
@@ -32,4 +42,12 @@ def is_textarea_widget(field):
 @register.filter
 def has_choices(field):
     """Check if field has choices (for select, radio, checkbox)"""
-    return hasattr(field.field, 'choices') and field.field.choices 
+    return hasattr(field.field, 'choices') and field.field.choices
+
+
+@register.filter
+def get_item(dictionary, key):
+    """Look up a dict value by a variable key"""
+    if dictionary is None:
+        return None
+    return dictionary.get(key) 

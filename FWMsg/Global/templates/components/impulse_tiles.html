@@ -1,0 +1,109 @@
+{% load i18n %}
+{% load losungen_tags %}
+{% load impulse_tags %}
+
+{% comment %}
+  Kompakte Kacheln für alle täglichen Impulse – mit kurzer Vorschau und Link zur
+  jeweiligen Detailseite. Nutzbar als Navigationsseite oder z. B. auf einem Dashboard.
+
+  Einbinden:
+    {% include "components/impulse_tiles.html" %}
+
+  Neue Impulse: einfach eine weitere <div class="col"> mit dem gleichen Aufbau ergänzen.
+{% endcomment %}
+
+{% todays_losung as tile_losung %}
+{% todays_deeptalk as tile_deeptalk %}
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-3">
+  {# Losungen #}
+  <div class="col">
+    <a href="{% url 'losungen' %}" class="card rounded-4 h-100 text-decoration-none text-body impulse-tile">
+      <div class="card-body d-flex gap-3">
+        <span class="impulse-tile-icon bg-success bg-opacity-10 text-success">
+          <i class="bi bi-book"></i>
+        </span>
+        <div class="flex-grow-1" style="min-width: 0;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <h3 class="h6 fw-semibold mb-0">{% trans "Die Losungen" %}</h3>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </div>
+          {% if tile_losung %}
+            <p class="small text-muted mb-0 impulse-tile-preview">{{ tile_losung.losungstext }}</p>
+          {% else %}
+            <p class="small text-muted mb-0">{% trans "Für heute ist keine Losung verfügbar." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </a>
+  </div>
+
+  {# Deep Talk #}
+  <div class="col">
+    <a href="{% url 'deeptalk' %}" class="card rounded-4 h-100 text-decoration-none text-body impulse-tile">
+      <div class="card-body d-flex gap-3">
+        <span class="impulse-tile-icon bg-primary bg-opacity-10 text-primary">
+          <i class="bi bi-chat-heart"></i>
+        </span>
+        <div class="flex-grow-1" style="min-width: 0;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <h3 class="h6 fw-semibold mb-0">{% trans "Deep Talk" %}</h3>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </div>
+          {% if tile_deeptalk %}
+            <p class="small text-muted mb-0 impulse-tile-preview">{{ tile_deeptalk.text }}</p>
+          {% else %}
+            <p class="small text-muted mb-0">{% trans "Noch keine Deep-Talk-Fragen hinterlegt." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </a>
+  </div>
+  {# Digitaler Segen – Platzhalter, bis die Aufnahmen verfügbar sind #}
+  <div class="col">
+    <div class="card rounded-4 h-100 impulse-tile-disabled" aria-disabled="true">
+      <div class="card-body d-flex gap-3">
+        <span class="impulse-tile-icon bg-warning bg-opacity-10 text-warning">
+          <i class="bi bi-soundwave"></i>
+        </span>
+        <div class="flex-grow-1" style="min-width: 0;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <h3 class="h6 fw-semibold mb-0">{% trans "Digitaler Segen" %}</h3>
+            <span class="badge rounded-pill text-bg-light border">{% trans "Bald verfügbar" %}</span>
+          </div>
+          <p class="small text-muted mb-0">{% trans "Ein gesprochener Segen für deinen Tag." %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .impulse-tile-disabled {
+    opacity: .7;
+  }
+  .impulse-tile {
+    transition: box-shadow .15s, transform .15s;
+  }
+  .impulse-tile:hover {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .08);
+    transform: translateY(-1px);
+  }
+  .impulse-tile-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: .75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.25rem;
+  }
+  .impulse-tile-preview {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

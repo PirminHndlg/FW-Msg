@@ -54,7 +54,10 @@ def home(request):
         if not person_cluster_param or person_cluster_param == 'None':
             current_person_cluster = None
         elif person_cluster_param:
-            current_person_cluster = PersonCluster.objects.get(id=int(person_cluster_param), org=request.user.org)
+            current_person_cluster = PersonCluster.selectable_for_org(
+                request.user.org,
+                id=int(person_cluster_param),
+            ).get()
         else:
             current_person_cluster = request.user.person_cluster
     except PersonCluster.DoesNotExist:
@@ -252,6 +255,15 @@ def laenderinfo(request):
                 'title': _('Mentor:in'),
                 'items': [
                     {'icon': 'person', 'value': format_text_with_link(freiwilliger.einsatzstelle2.mentor)}
+                ]
+            })
+        
+        if freiwilliger.einsatzstelle2.start_geplant or freiwilliger.einsatzstelle2.ende_geplant:
+            location_cards.append({
+                'title': _('Geplanter Zeitraum'),
+                'items': [
+                    {'icon': 'calendar-date', 'value': format_text_with_link(freiwilliger.einsatzstelle2.start_geplant) if freiwilliger.einsatzstelle2.start_geplant else None, 'label': _('Start geplant')},
+                    {'icon': 'calendar-date', 'value': format_text_with_link(freiwilliger.einsatzstelle2.ende_geplant) if freiwilliger.einsatzstelle2.ende_geplant else None, 'label': _('Ende geplant')}
                 ]
             })
 

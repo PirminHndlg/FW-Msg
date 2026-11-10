@@ -1,0 +1,123 @@
+.ampel-history-card {
+    overflow: hidden;
+}
+
+.ampel-timeline {
+    position: relative;
+}
+
+.ampel-entry {
+    display: grid;
+    grid-template-columns: 7rem 2rem minmax(0, 1fr);
+    gap: 1rem;
+    position: relative;
+}
+
+.ampel-entry:not(:last-child) {
+    padding-bottom: 1.25rem;
+}
+
+.ampel-entry:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    top: 1.25rem;
+    bottom: 0;
+    left: calc(9rem - 1px);
+    width: 2px;
+    background: var(--bs-border-color);
+}
+
+.ampel-date {
+    padding-top: 0.4rem;
+    color: var(--bs-secondary-color);
+    font-size: 0.85rem;
+    line-height: 1.35;
+    text-align: right;
+}
+
+.ampel-date-day {
+    display: block;
+    color: var(--bs-body-color);
+    font-weight: 600;
+}
+
+.ampel-marker {
+    z-index: 1;
+    width: 1rem;
+    height: 1rem;
+    margin: 0.4rem auto 0;
+    border: 3px solid var(--bs-body-bg);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px currentColor;
+}
+
+.ampel-marker-success {
+    color: var(--bs-success);
+    background: var(--bs-success);
+}
+
+.ampel-marker-warning {
+    color: var(--bs-warning);
+    background: var(--bs-warning);
+}
+
+.ampel-marker-danger {
+    color: var(--bs-danger);
+    background: var(--bs-danger);
+}
+
+.ampel-entry-card {
+    min-width: 0;
+    padding: 1rem 1.1rem;
+    border: 2px solid var(--bs-border-color);
+    border-radius: 0.85rem;
+    background: var(--bs-tertiary-bg);
+}
+
+.ampel-entry-card-success {
+    border-color: var(--bs-success);
+}
+
+.ampel-entry-card-warning {
+    border-color: var(--bs-warning);
+}
+
+.ampel-entry-card-danger {
+    border-color: var(--bs-danger);
+}
+
+.ampel-comment {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 575.98px) {
+    .ampel-entry {
+        grid-template-columns: 1.5rem minmax(0, 1fr);
+        gap: 0.75rem;
+    }
+
+    .ampel-entry:not(:last-child)::before {
+        left: calc(0.75rem - 1px);
+    }
+
+    .ampel-date {
+        display: block;
+        grid-column: 2;
+        grid-row: 1;
+        padding-top: 0.1rem;
+        text-align: left;
+    }
+
+    .ampel-marker {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+        margin-top: 0.35rem;
+    }
+
+    .ampel-entry-card {
+        grid-column: 2;
+        grid-row: 2;
+        padding: 0.85rem;
+    }
+}

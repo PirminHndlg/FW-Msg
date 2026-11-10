@@ -23,6 +23,7 @@
     }
     
     .push-status-indicator {
+      flex-shrink: 0;
       width: 12px;
       height: 12px;
       border-radius: 50%;
@@ -274,6 +275,9 @@
                         {% trans 'Hast du die Website als Web-App installiert? (Nicht nur als Lesezeichen!)' %}
                       </li>
                       <li>
+                        {% trans 'Hast du die Web-App von der Startseite/Anmeldeseite aus installiert?' %}
+                      </li>
+                      <li>
                         {% trans 'Öffnest du die Website über die Web-App auf dem Startbildschirm?' %}
                       </li>
                       <li>
@@ -292,9 +296,6 @@
                         {% trans 'Entferne die Web-App vom Startbildschirm' %}
                       </li>
                       <li>
-                        {% trans 'Lösche den Browser-Cache und alle Website-Daten' %}
-                      </li>
-                      <li>
                         {% trans 'Installiere die Web-App erneut (Startseite (/))' %}
                       </li>
                       <li>
@@ -306,6 +307,7 @@
                   <div class="alert alert-secondary mb-0">
                     <i class="bi bi-question-circle me-2"></i>
                     {% trans 'Benötigst du weitere Hilfe? Kontaktiere den Support oder die Administratoren.' %}
+                    <a href="{% url 'feedback' %}" class="btn btn-sm btn-outline-secondary ms-2"><i class="bi bi-envelope"></i> {% trans 'Kontakt' %}</a>
                   </div>
                 </div>
               </div>
@@ -388,11 +390,16 @@
         enableBtn.textContent = '{% trans "Push-Benachrichtigungen erneuern" %}'
       } else {
         const permission = Notification.permission
+        const pushError = window.__pushSubscriptionError
     
         if (permission === 'denied') {
           statusIndicator.className = 'push-status-indicator disabled'
           statusText.innerHTML = '{% trans "Push-Benachrichtigungen sind blockiert. Bitte erlaube die Benachrichtigungen in deinen" %} <a href="https://support.google.com/chrome/answer/3220216" target="_blank">{% trans "Browser-Einstellungen" %}</a>.'
           statusContainer.className = 'alert alert-danger d-flex align-items-center mb-4'
+        } else if (pushError) {
+          statusIndicator.className = 'push-status-indicator disabled'
+          statusText.textContent = '{% trans "Push-Abonnement konnte nicht gelesen werden. Dein Browser unterstützt Web Push evtl. nicht vollständig." %}' + ` (${pushError})`
+          statusContainer.className = 'alert alert-warning d-flex align-items-center mb-4'
         } else {
           statusIndicator.className = 'push-status-indicator disabled'
           statusText.textContent = '{% trans "Push-Benachrichtigungen sind nicht aktiviert." %}'

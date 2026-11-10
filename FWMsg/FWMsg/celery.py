@@ -99,14 +99,23 @@ def get_faellige_aufgaben(before_date=False):
             tasks_to_remind.append(task)
             
     
-    if before_date:        
+    if before_date:
+        # Include all open tasks due today, regardless of whether a reminder
+        # has already been sent.
+        today_tasks = UserAufgaben.objects.filter(
+            erledigt=False,
+            pending=False,
+            faellig=current_time.date(),
+        )
+        tasks_to_remind.extend(today_tasks)
+
         overdue_tasks_2 = UserAufgaben.objects.filter(
             erledigt=False,
             pending=False,
             last_reminder__isnull=False,
             faellig__gte=current_time
         )
-        
+
         for task in overdue_tasks_2:
             if task.aufgabe.repeat_push_days:
                 if (task.faellig - current_time.date()).days < task.aufgabe.repeat_push_days and (current_time.date() - task.last_reminder).days > task.aufgabe.repeat_push_days:
@@ -447,6 +456,37 @@ def send_birthday_reminder(self):
         raise
 
 
+@app.task(name='send_ampel_reminders_daily', bind=True, max_retries=3)
+def send_ampel_reminders_daily(self):
+    """Send ampel submission reminders based on AmpelConfiguration per PersonCluster."""
+    try:
+        from Global.models import AmpelConfiguration
+        from Global.send_email import send_ampel_reminder, user_needs_ampel_reminder
+
+        today = datetime.now().date()
+        sent = 0
+        configs = AmpelConfiguration.objects.filter(
+            enabled=True,
+            reminder_interval_days__gt=0,
+            person_cluster__active=True,
+            person_cluster__ampel=True,
+        ).select_related('person_cluster', 'org')
+
+        for config in configs:
+            for user in config.person_cluster.get_users():
+                try:
+                    if user_needs_ampel_reminder(user, config, today=today):
+                        send_ampel_reminder(user, config)
+                        sent += 1
+                except Exception as e:
+                    print(f"Error sending ampel reminder to user {user.id}: {e}")
+
+        return {'sent': sent}
+    except Exception as exc:
+        print(f"Error in send_ampel_reminders_daily: {exc}")
+        raise
+
+
 # cronjob, every day at 10:00 AM
 app.conf.beat_schedule = {
     'send_email_aufgaben_daily': {
@@ -455,6 +495,10 @@ app.conf.beat_schedule = {
     },
     'send_birthday_reminder': {
         'task': 'send_birthday_reminder',
+        'schedule': crontab(hour=10, minute=0),
+    },
+    'send_ampel_reminders_daily': {
+        'task': 'send_ampel_reminders_daily',
         'schedule': crontab(hour=10, minute=0),
     },
 }

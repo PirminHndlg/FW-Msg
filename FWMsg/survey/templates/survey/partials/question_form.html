@@ -4,6 +4,8 @@
     <h6>{% trans "Question Type:" %} 
         {% if question_type == 'text' %}
             {% trans "Short Text" %}
+        {% elif question_type == 'name' %}
+            {% trans "Name field" %}
         {% elif question_type == 'textarea' %}
             {% trans "Long Text" %}
         {% elif question_type == 'select' %}
@@ -84,6 +86,9 @@
                 
                 {% if question_type == 'text' %}
                     <input type="text" class="form-control" placeholder="{% trans 'Short text answer' %}" disabled>
+                {% elif question_type == 'name' %}
+                    <input type="text" class="form-control" placeholder="{% trans 'Max Mustermann' %}" disabled>
+                    <div class="form-text">{% trans "Filled in automatically for logged-in users, otherwise entered manually." %}</div>
                 {% elif question_type == 'textarea' %}
                     <textarea class="form-control" rows="3" placeholder="{% trans 'Long text answer' %}" disabled></textarea>
                 {% elif question_type == 'email' %}

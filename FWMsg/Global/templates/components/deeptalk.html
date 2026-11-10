@@ -1,0 +1,67 @@
+{% load i18n %}
+{% load impulse_tags %}
+
+{% comment %}
+  Deep-Talk-Frage des Tages als Karte (gleicher Aufbau wie components/losung.html).
+
+  Einbinden:
+    {% include "components/deeptalk.html" %}
+  Optionen:
+    hide_link=True       Link "Frühere Fragen" ausblenden (z. B. auf der Deep-Talk-Seite selbst)
+    hide_if_empty=True   nichts anzeigen, wenn noch keine Fragen hinterlegt sind (z. B. Dashboard)
+{% endcomment %}
+
+{% todays_deeptalk as deeptalk_frage %}
+{% now "d.m.Y" as heute %}
+
+{% if deeptalk_frage or not hide_if_empty %}
+  <div class="dashboard-section mb-3">
+    <div class="card rounded-4">
+      <div class="card-header bg-white border-bottom-0 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 rounded-top-4">
+        <h2 class="mb-0" style="font-size: 1.25rem; font-weight: 600; color: #495057;">
+          <i class="bi bi-chat-heart me-2 text-primary"></i>
+          {% trans "Deep Talk" %}
+        </h2>
+        <small class="text-muted">
+          <i class="bi bi-calendar3 me-1"></i>{% trans "Frage des Tages" %} · {{ heute }}
+        </small>
+      </div>
+
+      <div class="card-body">
+        {% if deeptalk_frage %}
+          <div class="card rounded-4 border-1 bg-light">
+            <div class="card-body p-3 p-md-4 d-flex gap-3">
+              <i class="bi bi-quote text-primary flex-shrink-0" style="font-size: 2rem; line-height: 1; opacity: .5;"></i>
+              <p class="mb-0 fs-5" style="line-height: 1.5;">{{ deeptalk_frage.text }}</p>
+            </div>
+          </div>
+        {% else %}
+          <div class="text-center text-muted py-3">
+            <i class="bi bi-chat-square-dots d-block mb-2" style="font-size: 2rem;"></i>
+            {% trans "Noch keine Deep-Talk-Fragen hinterlegt." %}
+            {% if request.user.role == 'O' %}
+              <div class="mt-2">
+                <a href="{% url 'deeptalk_fragen' %}" class="btn btn-sm btn-outline-primary rounded-4">
+                  <i class="bi bi-plus-circle me-1"></i>{% trans "Fragen hinzufügen" %}
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+
+      {% if deeptalk_frage %}
+        <div class="card-footer bg-white rounded-bottom-4 small text-muted border-top-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <span>
+            <i class="bi bi-people me-1"></i>{% trans "Nimm dir Zeit – allein, zu zweit oder in der Gruppe." %}
+          </span>
+          {% if not hide_link %}
+            <a href="{% url 'deeptalk' %}" class="text-decoration-none">
+              {% trans "Frühere Fragen" %}<i class="bi bi-chevron-right ms-1"></i>
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}

@@ -1,0 +1,364 @@
+{% extends extends_base|default:'baseOrg.html' %}
+{% load i18n %}
+{% load static %}
+{% load base_filter %}
+
+{% block title %}{% trans "Nachrichten" %} - {{ chat.name }}{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-3">
+  <a href="{% url 'chat_list' %}" class="btn btn-outline-secondary rounded-pill">
+    <i class="bi bi-arrow-left"></i><span class="ms-1 d-none d-md-inline">{% trans "Zurück" %}</span>
+  </a>
+  <div class="d-flex align-items-center gap-2 flex-grow-1">
+    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width:38px;height:38px;">
+      <i class="bi bi-people"></i>
+    </div>
+    <div class="flex-grow-1">
+      <div class="fw-semibold">{{ chat.name }}</div>
+    </div>
+    <button
+      type="button"
+      class="btn btn-outline-secondary rounded-pill"
+      data-bs-toggle="modal"
+      data-bs-target="#membersModal"
+    >
+      <i class="bi bi-people me-1"></i>{{ chat.users.count }}
+    </button>
+  </div>
+</div>
+
+<div class="card rounded-4" style="border: 1px solid #e9ecef; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);">
+  <div id="chat-window" class="chat-window">
+    {% for msg in chat_messages %}
+      <div class="d-flex flex-column {% if msg.user == request.user %}align-items-end{% else %}align-items-start{% endif %}" data-msg-id="{{ msg.id }}">
+        {% if msg.user == request.user %}
+        <template class="chat-msg-raw-text">{{ msg.message }}</template>
+        {% endif %}
+          <div class="bubble {% if msg.user == request.user %}bubble-own{% else %}bubble-other{% endif %}">
+            {% if msg.user != request.user %}
+              <small class="text-muted">{{ msg.user.get_full_name|default:msg.user.username }}</small>
+              <br>
+            {% endif %}
+          {% if msg.image and msg.image_identifier %}
+            <img src="{{ msg.get_image_public_url }}" class="chat-bubble-image" alt=""
+                 role="button" tabindex="0" aria-label="{% trans 'Bild vergrößern' %}">
+          {% endif %}
+          {% if msg.message %}
+            <p>{{ msg.message|format_text_with_link }}</p>
+          {% endif %}
+        </div>
+        <div class="bubble-meta {% if msg.user == request.user %}text-end me-1{% else %}ms-1{% endif %}">
+          {{ msg.created_at|date:"d.m.Y H:i" }}
+          {% if msg.is_edited %}
+            <span class="chat-edited-badge">{% trans "(bearbeitet)" %}</span>
+          {% endif %}
+          {% if msg.user == request.user and msg.can_be_edited %}
+            <button type="button" class="chat-edit-btn btn btn-link p-0 ms-1" data-msg-id="{{ msg.id }}" title="{% trans 'Bearbeiten' %}">
+              <i class="bi bi-pencil-square"></i>
+            </button>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="text-center text-muted my-auto">
+        <i class="bi bi-chat-dots display-6 d-block mb-2 opacity-50"></i>
+        {% trans "Noch keine Nachrichten. Schreib die erste!" %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <div id="image-preview" class="border-top px-3 pt-2 bg-white" style="display:none;"></div>
+
+  <div class="chat-input-bar">
+    <form id="chat-form" class="d-flex gap-2 align-items-end" enctype="multipart/form-data" without_spinner="true">
+      {% csrf_token %}
+      <button type="button" id="image-attach-btn" class="btn btn-outline-secondary rounded-pill px-3" title="{% trans 'Bild anhängen' %}">
+        <i class="bi bi-paperclip"></i>
+      </button>
+      <input type="file" id="image-input" name="image" accept="image/*" class="visually-hidden" tabindex="-1">
+      {{ form.message }}
+      <button type="submit" class="btn btn-primary rounded-pill px-3">
+        <i class="bi bi-send"></i>
+      </button>
+    </form>
+  </div>
+</div>
+
+{# ── Members / edit modal ─────────────────────────────────────────────── #}
+<div class="modal fade" id="membersModal" tabindex="-1" aria-labelledby="membersModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content rounded-4">
+
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-semibold" id="membersModalLabel">
+          <i class="bi bi-people me-2 text-secondary"></i>
+          <span id="modal-group-name">{{ chat.name }}</span>
+          <span class="badge bg-secondary rounded-pill ms-2 fs-6" id="modal-member-count">{{ chat.users.count }}</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body p-0">
+
+        {# ── Rename (creator only) ──────────────────────────────────────── #}
+        {% if is_creator %}
+        <div class="px-4 py-3 border-bottom">
+          <label class="form-label fw-semibold small text-secondary text-uppercase">
+            <i class="bi bi-pencil me-1"></i>{% trans "Gruppenname" %}
+          </label>
+          <div class="input-group">
+            <input type="text" id="rename-input" class="form-control rounded-start-3" value="{{ chat.name }}">
+            <button class="btn btn-outline-primary rounded-end-3" id="rename-btn" type="button">
+              {% trans "Speichern" %}
+            </button>
+          </div>
+          <div id="rename-feedback" class="small mt-1" style="display:none;"></div>
+        </div>
+        {% endif %}
+
+        {# ── Member list ────────────────────────────────────────────────── #}
+        <ul class="list-group list-group-flush" id="member-list">
+          {% for u in chat.users.all %}
+            <li class="list-group-item px-4 py-3 d-flex align-items-center gap-3"
+                id="member-row-{{ u.pk }}" data-user-id="{{ u.pk }}">
+                <img src="{% url 'serve_profil_picture' u.customuser.get_identifier %}"
+                     alt="{% trans 'Profilbild' %}" class="avatar-img"
+                     style="width:38px;height:38px;object-fit:cover;flex-shrink:0;">
+              <div class="flex-grow-1">
+                <div class="fw-semibold">
+                  {{ u }}
+                  {% if u == request.user %}
+                    <span class="badge bg-primary rounded-pill ms-1" style="font-size:.7rem;">{% trans "Du" %}</span>
+                  {% endif %}
+                  {% if u == chat.created_by %}
+                    <span class="badge bg-success rounded-pill ms-1" style="font-size:.7rem;">{% trans "Ersteller:in" %}</span>
+                  {% endif %}
+                </div>
+                {% if u.customuser.person_cluster %}
+                  <small class="text-muted">{{ u.customuser.person_cluster.name }}</small>
+                {% endif %}
+              </div>
+              {% if is_creator and u != request.user %}
+                <button type="button"
+                        class="btn btn-outline-danger rounded-pill remove-member-btn"
+                        data-user-id="{{ u.pk }}"
+                        title="{% trans 'Entfernen' %}">
+                  <i class="bi bi-person-dash"></i>
+                </button>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+
+        {# ── Add member (creator only) ───────────────────────────────────── #}
+        {% if is_creator and non_members %}
+        <div class="px-4 py-3 border-top">
+          <label class="form-label fw-semibold small text-secondary text-uppercase mb-2">
+            <i class="bi bi-person-plus me-1"></i>{% trans "Mitglied hinzufügen" %}
+          </label>
+          <input type="text" id="add-member-search" class="form-control form-control-sm mb-2 rounded-3"
+                 placeholder="{% trans 'Name suchen…' %}" autocomplete="off">
+          <ul class="list-group list-group-flush" id="add-member-list" style="max-height:180px;overflow-y:auto;">
+            {% for u in non_members %}
+              <li class="list-group-item list-group-item-action px-3 py-2 d-flex align-items-center gap-2 add-candidate"
+                  data-user-id="{{ u.pk }}"
+                  data-name="{{ u.get_full_name|default:u.username|lower }}"
+                  data-display="{{ u }}">
+                <img src="{% url 'serve_profil_picture' u.customuser.get_identifier %}"
+                     alt="" class="rounded-circle" style="width:28px;height:28px;object-fit:cover;">
+                <span class="flex-grow-1 small">{{ u }}</span>
+                {% if u.customuser.person_cluster %}
+                    <small class="text-muted">{{ u.customuser.person_cluster.name }}</small>
+                {% endif %}
+                <button type="button" class="btn btn-outline-success rounded-pill add-member-btn"
+                        data-user-id="{{ u.pk }}">
+                  <i class="bi bi-plus-lg"></i>
+                </button>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+      </div>{# /modal-body #}
+
+      <div class="modal-footer border-top d-flex justify-content-between">
+        {% if is_creator %}
+          <form method="post" action="{% url 'delete_chat_group' chat.get_identifier %}"
+                onsubmit="return confirm('{% trans "Gruppe wirklich löschen?" %}');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger rounded-pill">
+              <i class="bi bi-trash me-1"></i>{% trans "Gruppe löschen" %}
+            </button>
+          </form>
+        {% else %}
+          <form method="post" action="{% url 'leave_chat_group' chat.get_identifier %}"
+                onsubmit="return confirm('{% trans "Gruppe wirklich verlassen?" %}');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-warning rounded-pill">
+              <i class="bi bi-box-arrow-left me-1"></i>{% trans "Gruppe verlassen" %}
+            </button>
+          </form>
+        {% endif %}
+        <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">
+          {% trans "Schließen" %}
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const MANAGE_URL = '{% url "manage_chat_group" chat.get_identifier %}';
+  const CSRF = '{{ csrf_token }}';
+
+  function apiPost(payload) {
+    return fetch(MANAGE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+      body: JSON.stringify(payload),
+    }).then(r => r.json());
+  }
+
+  // ── Rename ───────────────────────────────────────────────────────────
+  const renameBtn = document.getElementById('rename-btn');
+  if (renameBtn) {
+    renameBtn.addEventListener('click', () => {
+      const name = document.getElementById('rename-input').value.trim();
+      const fb = document.getElementById('rename-feedback');
+      if (!name) return;
+      apiPost({ action: 'rename', name }).then(data => {
+        if (data.ok) {
+          document.getElementById('modal-group-name').textContent = data.name;
+          document.querySelector('.fw-semibold[data-chat-name]') && (
+            document.querySelector('.fw-semibold[data-chat-name]').textContent = data.name
+          );
+          fb.textContent = '{% trans "Gespeichert." %}';
+          fb.className = 'small mt-1 text-success';
+          window.location.reload()
+        } else {
+          fb.textContent = data.error || '{% trans "Fehler" %}';
+          fb.className = 'small mt-1 text-danger';
+        }
+        fb.style.display = '';
+        setTimeout(() => { fb.style.display = 'none'; }, 2500);
+      });
+    });
+  }
+
+  // ── Remove member ────────────────────────────────────────────────────
+  function attachRemoveBtn(btn) {
+    btn.addEventListener('click', () => {
+      const userId = btn.dataset.userId;
+      const memberRow = document.getElementById('member-row-' + userId);
+      // Capture name before the row is removed
+      const displayName = memberRow?.querySelector('.fw-semibold')?.childNodes[0]?.textContent?.trim() || userId;
+
+      apiPost({ action: 'remove_member', user_id: userId }).then(data => {
+        if (!data.ok) return;
+        memberRow?.remove();
+        updateCount(-1);
+
+        const addList = document.getElementById('add-member-list');
+        if (!addList) return;
+
+        // Re-show existing candidate row if present, otherwise create one
+        let cand = addList.querySelector(`.add-candidate[data-user-id="${data.user_id}"]`);
+        if (cand) {
+          delete cand.dataset.added;
+          cand.style.display = '';
+        } else {
+          cand = document.createElement('li');
+          cand.className = 'list-group-item list-group-item-action px-3 py-2 d-flex align-items-center gap-2 add-candidate';
+          cand.dataset.userId  = data.user_id;
+          cand.dataset.name    = displayName.toLowerCase();
+          cand.dataset.display = displayName;
+          cand.innerHTML =
+            `<div class="rounded-circle bg-secondary bg-opacity-10 text-secondary d-flex align-items-center justify-content-center fw-semibold" style="width:28px;height:28px;font-size:.75rem;">${escHtml(displayName.slice(0,1).toUpperCase())}</div>` +
+            `<span class="flex-grow-1 small">${escHtml(displayName)}</span>` +
+            `<button type="button" class="btn btn-outline-success rounded-pill add-member-btn" data-user-id="${data.user_id}"><i class="bi bi-plus-lg"></i></button>`;
+          addList.appendChild(cand);
+          attachAddBtn(cand.querySelector('.add-member-btn'));
+        }
+      });
+    });
+  }
+  document.querySelectorAll('.remove-member-btn').forEach(attachRemoveBtn);
+
+  // ── Add member search ────────────────────────────────────────────────
+  const addSearch = document.getElementById('add-member-search');
+  if (addSearch) {
+    addSearch.addEventListener('input', () => {
+      const q = addSearch.value.toLowerCase();
+      document.querySelectorAll('.add-candidate').forEach(li => {
+        if (li.dataset.added) return;   // already added to the group – stay hidden
+        li.style.display = (!q || li.dataset.name.includes(q)) ? '' : 'none';
+      });
+    });
+  }
+
+  // ── Add member buttons ───────────────────────────────────────────────
+  function attachAddBtn(btn) {
+    let serve_profil_picture_url = '{% url "serve_profil_picture" "0" %}';
+    btn.addEventListener('click', () => {
+      const userId = btn.dataset.userId;
+      const row = btn.closest('.add-candidate');
+      apiPost({ action: 'add_member', user_id: userId }).then(data => {
+        if (!data.ok) return;
+        row.dataset.added = '1';
+        row.style.display = 'none';
+        const li = document.createElement('li');
+        li.id = 'member-row-' + data.user_id;
+        li.dataset.userId = data.user_id;
+        li.className = 'list-group-item px-4 py-3 d-flex align-items-center gap-3';
+        li.innerHTML =
+          `<img src="${serve_profil_picture_url.replace('0', data.user_identifier)}"
+               alt="{% trans 'Profilbild' %}" class="avatar-img"
+               style="width:38px;height:38px;object-fit:cover;flex-shrink:0;">` +
+          `<div class="flex-grow-1"><div class="fw-semibold">${escHtml(data.name)}</div></div>` +
+          `<button type="button" class="btn btn-outline-danger rounded-pill remove-member-btn" data-user-id="${data.user_id}" title="Entfernen"><i class="bi bi-person-dash"></i></button>`;
+        document.getElementById('member-list').appendChild(li);
+        attachRemoveBtn(li.querySelector('.remove-member-btn'));
+        updateCount(+1);
+      });
+    });
+  }
+  document.querySelectorAll('.add-member-btn').forEach(attachAddBtn);
+
+  function updateCount(delta) {
+    const el = document.getElementById('modal-member-count');
+    if (el) el.textContent = parseInt(el.textContent, 10) + delta;
+  }
+
+  function escHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+  }
+})();
+</script>
+
+<script src="{% static 'js/chat.js' %}"></script>
+<script>
+  const wsUrl = (location.protocol === 'https:' ? 'wss' : 'ws')
+              + '://' + location.host
+              + '/ws/chat/group/{{ chat.get_identifier }}/';
+  const domainHost = '{{ settings.DOMAIN_HOST }}';
+  initChat(
+    {{ chat.id }},
+    'group',
+    {{ request.user.id }},
+    wsUrl,
+    '{% url "send_message_group" chat.get_identifier %}',
+    '{% url "ajax_chat_updates" "group" chat.get_identifier %}',
+    '{% url "edit_message_group" chat.get_identifier 0 %}'.replace(/\/0\/$/, '/')
+  );
+</script>
+{% endblock %}

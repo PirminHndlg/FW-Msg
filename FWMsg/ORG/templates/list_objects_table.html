@@ -3,6 +3,46 @@
 {% load i18n %}
 
 {% block content %}
+<style>
+    /* Desktop: table fills the remaining viewport (no page v-scroll), name columns sticky left */
+    @media (min-width: 992px) {
+        #table-scroll-container {
+            min-height: 0;
+        }
+        #table-scroll-container thead {
+            z-index: 3 !important;
+        }
+        #table-scroll-container .sticky-col {
+            position: sticky;
+            z-index: 2;
+        }
+    }
+
+    /* Sort indicator: arrow on the currently sorted column, faint arrow on hover for other sortable columns */
+    #table-scroll-container th.orderable > a {
+        white-space: nowrap;
+    }
+    #table-scroll-container th.orderable > a::after {
+        display: inline-block;
+        margin-left: 0.25rem;
+        font-size: 0.7em;
+        content: "▲";
+        visibility: hidden;
+        opacity: 0.35;
+    }
+    #table-scroll-container th.orderable:hover > a::after {
+        visibility: visible;
+    }
+    #table-scroll-container th.orderable.asc > a::after,
+    #table-scroll-container th.orderable.desc > a::after {
+        visibility: visible;
+        opacity: 1;
+    }
+    #table-scroll-container th.orderable.desc > a::after {
+        content: "▼";
+    }
+</style>
+
 <!-- Header Section -->
 <div class="row justify-content-between mb-3 align-items-center header-container">
     <div class="col-12 col-md-6 col-lg-7 col-xl-8 d-flex justify-content-between align-items-center">
@@ -24,14 +64,39 @@
             </a>
             {% endif %}
             {% if model_name == 'freiwilliger' %}
-                <a href="{% url 'statistik' %}" class="btn btn-sm rounded-4 btn-outline-primary">
-                    <i class="bi bi-bar-chart me-2"></i>{% trans "Statistik" %}
+                <a href="{% url 'statistik' %}" class="btn btn-sm rounded-4 btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans "Statistik" %}">
+                    <i class="bi bi-bar-chart"></i>
                 </a>
             {% endif %}
             {% if model_name == 'bewerber' %}
                 <a href="{% url 'application_download_all_excel' %}" class="btn btn-sm rounded-4 btn-outline-primary">
                     <i class="bi bi-file-earmark-excel me-2"></i>{% trans "Excel exportieren" %}
                 </a>
+            {% endif %}
+            {% comment %} if freiwilliger, bewerber, team or ehemaliger add email all button with dropdown (cc or bcc) {% endcomment %}
+            {% if all_emails %}
+            <div class="btn-group">
+                <a href="mailto:{{ all_emails }}" class="btn btn-sm rounded-start-4 btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans "E-Mail an alle senden" %}">
+                    <i class="bi bi-envelope"></i>
+                </a>
+                <button type="button" class="btn btn-sm rounded-end-4 btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="visually-hidden">{% trans "Toggle Dropdown" %}</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li class="dropdown-header">{% trans "E-Mail an alle" %}</li>
+                    <li>
+                        <a class="dropdown-item" href="mailto:?cc={{ all_emails }}">
+                            <i class="bi bi-eye-fill me-2"></i>{% trans "im Cc" %}
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="mailto:?bcc={{ all_emails }}">
+                            <i class="bi bi-eye-slash-fill me-2"></i>{% trans "im Bcc" %}
+                        </a>
+                    </li>
+                </ul>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -110,20 +175,32 @@
                 </small>
             </div>
             {% endif %}
+
+            {% if with_quick_edit %}
+            <!-- Stylish toggle button for quick edit mode -->
+            <div class="form-switch d-flex align-items-center gap-2">
+                <input type="checkbox" id="quickEditCheckbox" class="form-check-input" onchange="toggleQuickEdit()" style="height: 1.5em; width: 2.5em; cursor: pointer;">
+                <label class="form-check-label fw-semibold mb-0" for="quickEditCheckbox" id="toggleQuickEdit" style="cursor: pointer;">
+                    {% trans "Schnell bearbeiten" %} (Beta)
+                </label>
+            </div>
+            {% endif %}
         </div>
     </div>
     
-    <div class="table-responsive" style="min-height: 500px;">
+    <div class="table-responsive table-scroll-viewport" id="table-scroll-container">
         <form method="get" action="{% url 'list_object_checkbox' model_name %}">
             {% render_table table %}
             <div class="d-flex justify-content-start m-3 gap-2 flex-wrap">
             {% for checkbox_submit_text in checkbox_submit_texts %}
-                <button type="submit" name="checkbox_submit_text" value="{{ checkbox_submit_text.0 }}" data-helptext="{{ checkbox_submit_text.2 }}" class="btn btn-primary">{{ checkbox_submit_text.1|safe }}</button>
+                <button type="button" name="checkbox_submit_text" value="{{ checkbox_submit_text.0 }}" data-helptext="{{ checkbox_submit_text.2 }}" class="btn btn-primary">{{ checkbox_submit_text.1|safe }}</button>
             {% endfor %}
             </div>
         </form>
     </div>
 </div>
+
+{% include 'components/image_description_clamp_assets.html' %}
 
 <!-- Include delete modal -->
 {% include "components/cascade_modal.html" %}
@@ -267,6 +344,9 @@
                 currentForm.submit();
             }
         });
+
+        // Call toggleQuickEdit to hide input and show alternative
+        toggleQuickEdit();
     });
     {% endif %}
 
@@ -306,7 +386,107 @@
         });
     }
     {% endif %}
+    {% if model_name == 'personcluster' %}
+    function copyOwnSigninToken(personClusterId, button) {
+        const csrfToken = '{{ csrf_token }}';
+
+        fetch('{% url "get_own_signin_url" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                personClusterId: personClusterId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                navigator.clipboard.writeText(data.url)
+                    .then(function () {
+                        if (button) {
+                            button.classList.add('btn-success', 'text-white');
+                            button.classList.remove('btn-outline-info');
+                            const icon = button.querySelector('i');
+                            if (icon) {
+                                icon.className = 'bi bi-check';
+                            }
+                            setTimeout(function () {
+                                button.classList.remove('btn-success', 'text-white');
+                                button.classList.add('btn-outline-info');
+                                if (icon) {
+                                    icon.className = 'bi bi-clipboard';
+                                }
+                            }, 2000);
+                        }
+                    })
+                    .catch(function () {
+                        alert('{% trans "Fehler beim Kopieren des Links" %}');
+                    });
+            } else {
+                alert('{% trans "Fehler beim Abrufen des Registrierungslinks:" %} ' + data.error);
+            }
+        })
+        .catch(function (error) {
+            console.error('Error:', error);
+            alert('{% trans "Fehler beim Abrufen des Registrierungslinks" %}');
+        });
+    }
+    {% endif %}
     
+    // Desktop layout: fit table viewport into the window and position sticky name columns
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('table-scroll-container');
+        if (!container) return;
+        const desktop = window.matchMedia('(min-width: 992px)');
+
+        function fitTableHeight() {
+            if (!desktop.matches) {
+                container.style.maxHeight = '';
+                return;
+            }
+            // Space needed below the viewport: rest of the card + bottom margin of the content container
+            const contentContainer = container.closest('.container-fluid, .container');
+            const containerRect = container.getBoundingClientRect();
+            let below = 0;
+            if (contentContainer) {
+                below = contentContainer.getBoundingClientRect().bottom - containerRect.bottom
+                    + parseFloat(getComputedStyle(contentContainer).marginBottom || 0);
+            }
+            const top = containerRect.top + window.scrollY;
+            const available = window.innerHeight - top - below;
+            container.style.maxHeight = Math.max(available, 250) + 'px';
+        }
+
+        function positionStickyColumns() {
+            const headerCells = container.querySelectorAll('thead th.sticky-col');
+            let left = 0;
+            headerCells.forEach(function(th) {
+                const index = th.cellIndex;
+                container.querySelectorAll('tr').forEach(function(row) {
+                    const cell = row.cells[index];
+                    if (cell && cell.classList.contains('sticky-col')) {
+                        cell.style.left = left + 'px';
+                    }
+                });
+                left += th.getBoundingClientRect().width;
+            });
+        }
+
+        fitTableHeight();
+        positionStickyColumns();
+        window.addEventListener('resize', fitTableHeight);
+        desktop.addEventListener('change', fitTableHeight);
+        if (window.ResizeObserver) {
+            // Column widths change e.g. when quick edit is toggled or images load
+            const observer = new ResizeObserver(positionStickyColumns);
+            container.querySelectorAll('thead th.sticky-col').forEach(function(th) {
+                observer.observe(th);
+            });
+        }
+    });
+
     // Keyboard shortcut to focus search input when 'f' key is pressed
     // ignore when cmd or ctrl is pressed
     document.addEventListener('keydown', function(event) {
@@ -338,9 +518,7 @@
     // Highlight row if highlight_id is provided
     {% if highlight_id %}
     document.addEventListener('DOMContentLoaded', function() {
-        console.log("{{ highlight_id }}");
         const targetRow = document.querySelector(`tr[data-pk="{{ highlight_id }}"]`);
-        console.log(targetRow); // is null
         if (targetRow) {
             // Add highlight class
             targetRow.classList.add('table-warning');
@@ -359,6 +537,130 @@
             }, 3000);
         }
     });
+    {% endif %}
+
+    {% if with_quick_edit %}
+    function toggleQuickEdit() {
+        const isChecked = document.getElementById('quickEditCheckbox').checked;
+        const quickEditInputs = document.querySelectorAll('.quick-edit-input');
+        quickEditInputs.forEach(input => {
+            // Hide input if quick edit is disabled
+            if (isChecked) {
+                input.classList.remove('d-none');
+            } else {
+                input.classList.add('d-none');
+            }
+        });
+        const quickEditAlternatives = document.querySelectorAll('.quick-edit-alternative');
+        quickEditAlternatives.forEach(alternative => {
+            // Show alternative if quick edit is disabled
+            if (!isChecked) {
+                alternative.classList.remove('d-none');
+            } else {
+                alternative.classList.add('d-none');
+            }
+        });
+    }
+
+    // Quick edit functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const quickEditInputs = document.querySelectorAll('.quick-edit-input');
+        quickEditInputs.forEach(input => {
+            input.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    input.blur();
+                }
+            });
+            input.addEventListener('change', function(event) {
+                const csrfToken = '{{ csrf_token }}';
+                let value = event.target.value.trim();
+
+                if (input.type === 'checkbox') {
+                    value = input.checked;
+                }
+
+                const userAttributeId = input.getAttribute('data-userattr-id');
+                const fieldName = input.getAttribute('data-field-name');
+                const userId = input.getAttribute('data-user-id');
+
+                if (userAttributeId) {
+                    quickEditAttributeFetch(input, csrfToken, userAttributeId, value);
+                } else if (fieldName && userId) {
+                    quickEditFieldFetch(input, csrfToken, userId, fieldName, value);
+                }
+            });
+        });
+    });
+
+    function quickEditAttributeFetch(input, csrfToken, userAttributeId, value) {
+        fetch(`{% url "ajax_quick_edit_attribute" %}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                user_attribute_id: userAttributeId,
+                value: value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let alternative = input.nextElementSibling;
+                // Update the display element with the new value
+                if (input.type === 'checkbox') {
+                    if (input.checked) {
+                        alternative.querySelector('.true').classList.remove('d-none');
+                        alternative.querySelector('.false').classList.add('d-none');
+                    } else {
+                        alternative.querySelector('.true').classList.add('d-none');
+                        alternative.querySelector('.false').classList.remove('d-none');
+                    }
+                } else {
+                    if (value != '') {
+                        alternative.textContent = value;
+                    } else {
+                        alternative.textContent = '—';
+                    }
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function quickEditFieldFetch(input, csrfToken, userId, fieldName, value) {
+        fetch(`{% url "ajax_quick_edit_fields" %}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                field_name: fieldName,
+                field_value: value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const alternative = input.nextElementSibling;
+                if (value) {
+                    const [y, m, d] = value.split('-');
+                    alternative.textContent = `${d}.${m}.${y}`;
+                } else {
+                    alternative.textContent = '—';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
     {% endif %}
 </script>
 {% endblock %}

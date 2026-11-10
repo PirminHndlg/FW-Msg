@@ -1,18 +1,18 @@
 {% load i18n %}
 {% load base_filter %}
 
-<div class="table-responsive" style="height: 80vh; min-height: 400px;">
+<div class="table-responsive table-scroll-viewport" id="table-scroll-container">
     <table class="table mb-0 align-middle m-1">
         <tr class="sticky-top bg-white" style="box-shadow: 0 2px 0 0 #dee2e6;">
-            <th class="sticky-col p-1 align-middle z-2" style="min-width:200px; position: sticky; left: 0; box-shadow: 2px 0 0 0 #dee2e6;">
-                <div class="input-group rounded-pill border shadow-sm bg-white align-items-center" style="min-width: 150px;">
-                    <span class="input-group-text bg-transparent border-0" style="font-size:1.1em;">
+            <th class="sticky-col p-1 align-middle z-2" style="position: sticky; left: 0; box-shadow: 2px 0 0 0 #dee2e6;">
+                <div class="input-group flex-nowrap rounded-pill border shadow-sm bg-white align-items-center" style="min-width: 100px; width: 150px; max-width: 30vw;">
+                    <span class="input-group-text bg-transparent border-0 d-none d-md-inline" style="font-size:1.1em;">
                         <i class="bi bi-search text-secondary"></i>
                     </span>
                     <input id="searchInput"
                         type="text"
                         class="form-control border-0 bg-white px-1"
-                        style="min-width:80px; font-size: 1em; box-shadow: none;"
+                        style="min-width:0; font-size: 1em; box-shadow: none;"
                         placeholder="{% trans 'Suchen...' %}"
                         oninput="searchHandler(this.value)"
                         autocomplete="off"
@@ -37,24 +37,55 @@
             {% for person_cluster, user_matrix in ampel_matrix.items %}
             {% for user, months_data in user_matrix.items %}
             <tr data-search-term="{{ user }}">
-                <th class="sticky-col z-1" style="max-width: 50vw; left: 0; position: sticky; box-shadow:  2px 0 0 0 #dee2e6;">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <p class="text-decoration-none text-body mb-1">{{ user }}</p>
-                        <button class="btn btn-sm btn-outline-primary"
-                            onclick="showAmpelEntryModal('{{ user.id }}', '{{ user }}')">
-                            <i class="bi bi-plus-circle-fill"></i>
+                <th class="ampel-name-cell z-1">
+                    <div class="dropdown">
+                        <button type="button" class="ampel-name-toggle" title="{{ user }}"
+                            data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                            data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
+                            <span class="ampel-name">{{ user }}</span>
+                            <i class="bi bi-chevron-down ampel-name-chevron"></i>
                         </button>
+                        <ul class="dropdown-menu shadow-sm">
+                            <li>
+                                <button type="button" class="dropdown-item d-flex align-items-center gap-2"
+                                    onclick="closeAmpelNameMenu(this); showAmpelEntryModal('{{ user.id }}', '{{ user|escapejs }}')">
+                                    <i class="bi bi-plus-lg text-primary"></i>
+                                    {% trans 'Ampel manuell eintragen' %}
+                                </button>
+                            </li>
+                            {% if user.customuser.person_cluster_id in ampel_reminder_cluster_ids %}
+                            {% with last_reminder=user.customuser.last_ampel_reminder %}
+                            <li>
+                                <button type="button" class="dropdown-item d-flex align-items-start gap-2 ampel-reminder-btn"
+                                    data-user-id="{{ user.id }}"
+                                    {% if last_reminder == today %}disabled{% endif %}
+                                    onclick="sendAmpelReminder(this)">
+                                    <span class="ampel-reminder-icon"><i class="bi bi-bell"></i></span>
+                                    <span>
+                                        {% trans 'Erinnerung senden' %}
+                                        <small class="d-block text-muted ampel-reminder-info">
+                                            {% if last_reminder == today %}{% trans 'Heute bereits gesendet' %}{% elif last_reminder %}{% trans 'Letzte' %}: {{ last_reminder|date:'d.m.Y' }}{% else %}{% trans 'Noch keine gesendet' %}{% endif %}
+                                        </small>
+                                    </span>
+                                </button>
+                            </li>
+                            {% endwith %}
+                            {% endif %}
+                        </ul>
                     </div>
                 </th>
                 {% for month in months %}
                 <td class="text-center {% if month == current_month %}table-active{% endif %}">
                     <div class="ampel-dot-container">
                         {% for entry in months_data|get_item:month %}
-                        <span class="ampel-dot ampel-{{ entry.status }} d-flex align-items-center justify-content-center"
-                            onclick="showAmpelComment({{ entry.id }}, '{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ user }}', '{{entry.read}}')"
+                        <span class="ampel-dot ampel-{{ entry.status }} d-flex align-items-center justify-content-center{% if entry.manuell %} ampel-dot-manuell{% endif %}"
+                            {% if entry.manuell %}title="{% trans 'Manuell eingetragen' %}"{% endif %}
+                            onclick="showAmpelComment({{ entry.id }}, '{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ user }}', '{{entry.read}}', '{{ entry.manuell }}')"
                             {% comment %} data-bs-toggle="tooltip" data-bs-html="true"
                             title="<strong>{{ entry.date }}</strong><br>{{ entry.comment|default:'' }}"{% endcomment %}>
-                            {% if entry.comment %}
+                            {% if entry.manuell %}
+                            <i class="bi bi-building {% if entry.status == 'R' %}text-white{% else %}text-muted{% endif %}" style="font-size: 0.6em;"></i>
+                            {% elif entry.comment %}
                             <i class="bi bi-three-dots {% if entry.status == 'R' %}text-white{% else %}text-muted{% endif %}" style="font-size: 0.7em;"></i>
                             {% endif %}
                         </span>
@@ -71,56 +102,78 @@
 
 <!-- add entry modal -->
 <div class="modal fade" id="ampelEntryModal" tabindex="-1" aria-labelledby="ampelEntryModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="ampelEntryModalLabel">{% trans 'Neuer Ampel-Eintrag für' %} <span id="ampelEntryModalName"></span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex flex-column w-100">
+                    <div class="d-flex justify-content-between align-items-start w-100">
+                        <h5 class="modal-title mb-0 d-flex align-items-center gap-2" id="ampelEntryModalLabel">
+                            <i class="bi bi-plus-circle text-primary"></i>
+                            {% trans 'Ampel manuell eintragen' %}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="d-flex align-items-center mt-2 pt-2 border-top border-light text-muted">
+                        <i class="bi bi-person-circle me-2"></i>
+                        <span id="ampelEntryModalName" class="fw-medium"></span>
+                    </div>
+                </div>
             </div>
 
             <div class="modal-body">
                 <form id="ampelEntryForm" method="post">
                     {% csrf_token %}
                     <input type="hidden" name="user_id" id="ampelEntryUserId">
-                    <div class="mb-3">
-                        <label for="ampelEntryDate" class="form-label">{% trans 'Datum' %}</label>
-                        <input type="date" class="form-control" id="ampelEntryDate" name="date" required">
-                    </div>
 
                     <div class="mb-3">
-                        <label for="ampelEntryStatus" class="form-label">{% trans 'Status' %}</label>
-                        <div class="d-flex justify-content-around" id="ampelEntryStatus">
-                            <div class="form-check">
-                                <input class="form-check-input cursor-pointer" style="accent-color: var(--ampel_green);appearance: auto; webkit-appearance: auto;" type="radio" name="status" id="ampelGreen" value="G" required checked>
-                                <label class="form-check-label cursor-pointer" for="ampelGreen">
-                                    {% trans 'Grün' %}
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input cursor-pointer" style="accent-color: var(--ampel_yellow);appearance: auto; webkit-appearance: auto;" type="radio" name="status" id="ampelYellow" value="Y">
-                                <label class="form-check-label cursor-pointer" for="ampelYellow">
-                                    {% trans 'Gelb' %}
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input cursor-pointer" style="accent-color: var(--ampel_red);appearance: auto; webkit-appearance: auto;" type="radio" name="status" id="ampelRed" value="R">
-                                <label class="form-check-label cursor-pointer" for="ampelRed">
-                                    {% trans 'Rot' %}
-                                </label>
-                            </div>
+                        <div class="form-label">{% trans 'Status' %}</div>
+                        <div class="d-flex gap-2" id="ampelEntryStatus" role="radiogroup">
+                            <input type="radio" class="btn-check" name="status" id="ampelGreen" value="G" autocomplete="off" required checked>
+                            <label class="ampel-status-option ampel-status-option-G" for="ampelGreen">
+                                <span class="ampel-dot ampel-G"></span>
+                                {% trans 'Grün' %}
+                            </label>
+                            <input type="radio" class="btn-check" name="status" id="ampelYellow" value="Y" autocomplete="off">
+                            <label class="ampel-status-option ampel-status-option-Y" for="ampelYellow">
+                                <span class="ampel-dot ampel-Y"></span>
+                                {% trans 'Gelb' %}
+                            </label>
+                            <input type="radio" class="btn-check" name="status" id="ampelRed" value="R" autocomplete="off">
+                            <label class="ampel-status-option ampel-status-option-R" for="ampelRed">
+                                <span class="ampel-dot ampel-R"></span>
+                                {% trans 'Rot' %}
+                            </label>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="ampelEntryComment" class="form-label">{% trans 'Kommentar' %}</label>
-                        <textarea class="form-control" id="ampelEntryComment" name="comment" rows="3"></textarea>
+                        <label for="ampelEntryDate" class="form-label">{% trans 'Datum' %}</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent"><i class="bi bi-calendar-event text-muted"></i></span>
+                            <input type="date" class="form-control" id="ampelEntryDate" name="date" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ampelEntryComment" class="form-label">{% trans 'Kommentar' %} <span class="text-muted small">({% trans 'optional' %})</span></label>
+                        <textarea class="form-control" id="ampelEntryComment" name="comment" rows="3"
+                            placeholder="{% trans 'z. B. Rückmeldung aus dem Telefonat' %}"></textarea>
+                    </div>
+
+                    <div class="small text-muted d-flex align-items-center gap-2">
+                        <i class="bi bi-building"></i>
+                        {% trans 'Der Eintrag wird in der Übersicht als „manuell eingetragen“ markiert.' %}
                     </div>
                 </form>
             </div>
 
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Abbrechen' %}</button>
-                <button type="submit" class="btn btn-primary" form="ampelEntryForm">{% trans 'Speichern' %}</button>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">
+                    {% trans 'Abbrechen' %}
+                </button>
+                <button type="submit" class="btn btn-primary rounded-3" form="ampelEntryForm">
+                    <i class="bi bi-check-lg me-1"></i>{% trans 'Speichern' %}
+                </button>
             </div>
         </div>
     </div>
@@ -146,6 +199,53 @@
             $('#ampelEntryForm').submit();
         }
     });
+
+    function closeAmpelNameMenu(el) {
+        const toggle = el.closest('.dropdown').querySelector('[data-bs-toggle="dropdown"]');
+        bootstrap.Dropdown.getOrCreateInstance(toggle).hide();
+    }
+
+    // Sticky name cells each form their own stacking context; lift the open one above the following rows.
+    document.addEventListener('show.bs.dropdown', (e) => {
+        e.target.closest('.ampel-name-cell')?.classList.add('ampel-name-cell-open');
+    });
+    document.addEventListener('hidden.bs.dropdown', (e) => {
+        e.target.closest('.ampel-name-cell')?.classList.remove('ampel-name-cell-open');
+    });
+
+    function sendAmpelReminder(btn) {
+        const iconWrapper = btn.querySelector('.ampel-reminder-icon');
+        const info = btn.querySelector('.ampel-reminder-info');
+        const iconHtml = iconWrapper.innerHTML;
+        btn.disabled = true;
+        iconWrapper.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+        const body = new FormData();
+        body.append('action', 'send_ampel_reminder');
+        body.append('user_id', btn.dataset.userId);
+        body.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        const showError = (message) => {
+            btn.disabled = false;
+            info.textContent = message;
+            info.classList.replace('text-muted', 'text-danger');
+        };
+
+        fetch('{% url "list_ampel" %}', { method: 'POST', body: body })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    info.textContent = data.info;
+                    info.classList.replace('text-danger', 'text-muted');
+                } else {
+                    showError(data.message);
+                }
+            })
+            .catch(() => showError('{% trans "Die Erinnerung konnte nicht gesendet werden." %}'))
+            .finally(() => {
+                iconWrapper.innerHTML = iconHtml;
+            });
+    }
 
     function searchHandler(searchTerm) {
         $('tr').each(function() {

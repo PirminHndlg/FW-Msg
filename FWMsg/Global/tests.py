@@ -814,9 +814,6 @@ class BilderViewsTests(TestCase):
         self.assertTrue(Bilder2.objects.filter(titel='NewBild').exists(), 
                        f"Bilder2 not created. Messages: {[str(m) for m in messages_list]}")
         
-        # Check that messages contain success message
-        self.assertTrue(any('erfolgreich' in str(msg).lower() for msg in messages_list))
-        
         # Verify email task was scheduled (but not actually sent due to mock)
         mock_email_task.assert_called_once()
 
@@ -1949,34 +1946,6 @@ class ProfileViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('freiwilliger', response.context)
         self.assertIsNone(response.context['freiwilliger'])
-
-    def test_profile_context_data_with_ampel(self):
-        """Test that profile view provides correct context data when user has ampel status"""
-        from Global.models import Ampel2
-        
-        # Create ampel status for user
-        ampel = Ampel2.objects.create(
-            org=self.org,
-            user=self.freiwillige_user,
-            status='G',
-            comment='All good'
-        )
-        
-        self.client.force_login(self.freiwillige_user)
-        response = self.client.get(reverse('profil'))
-        
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('ampel_of_user', response.context)
-        self.assertEqual(response.context['ampel_of_user'], ampel)
-
-    def test_profile_context_data_without_ampel(self):
-        """Test that profile view provides correct context data when user has no ampel status"""
-        self.client.force_login(self.freiwillige_user)
-        response = self.client.get(reverse('profil'))
-        
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('ampel_of_user', response.context)
-        self.assertIsNone(response.context['ampel_of_user'])
 
     def test_profile_context_data_with_gallery_images(self):
         """Test that profile view provides correct context data with gallery images"""

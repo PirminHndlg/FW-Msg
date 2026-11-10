@@ -3,19 +3,19 @@ from django.forms import ValidationError
 from django.http import FileResponse, HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
 from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.contrib.auth.models import User
-from .forms import EmailAuthenticationForm, FirstLoginForm
+from .forms import EmailAuthenticationForm, FirstLoginForm, OwnSigninForm, CustomSetPasswordForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth import get_user_model
 import re
 import os
-from Global.models import CustomUser, Maintenance, Ordner2, Dokument2
+from Global.models import CustomUser, Maintenance, Ordner2, Dokument2, Attribute, PersonCluster
 from django.utils import timezone
 from django.core import signing
 from django.contrib.auth.decorators import login_required
+from ORG.models import Organisation
 
 def _is_email(value):
         """
@@ -52,6 +52,19 @@ def index(request):
         else:
             messages.error(request, _('Ungültige Personengruppe.'))
             return redirect('index')
+        
+    def check_person_cluster_active(user):
+        if user and not user.customuser.person_cluster.active:
+            org_mail = user.customuser.org.email if user.customuser.org else None
+            error_message = _('Dein Account ist nicht aktiv.')
+            if org_mail:
+                error_message += f'\n\nMelde dich bei {org_mail} um deinen Account zu aktivieren.'
+            else:
+                error_message += f'\n\nMelde dich beim Administrator um deinen Account zu aktivieren.'
+            messages.error(request, error_message)
+            return False
+        return True
+        
          
     # Handle login form
     form = EmailAuthenticationForm()
@@ -94,10 +107,13 @@ def index(request):
                         pass
 
             if user is not None:
+                # Check if person cluster is active
+                if not check_person_cluster_active(user):
+                    return redirect('index')
+                
                 login(request, user)
                 
                 next_url = request.GET.get('next')
-                print(next_url)
                 if next_url:
                     return redirect(next_url)
                 
@@ -189,6 +205,17 @@ def maintenance(request):
     
 def token_login(request, token):
     try:
+        now_timestamp = timezone.now().timestamp()
+        parts = token.split(':')
+        if len(parts) != 2:
+            messages.error(request, 'Ungültiger Token.')
+            return redirect('index_home')
+        # the token contains the timestamp of the token creation
+        custom_user_timestamp = float(parts[1])
+        # Check if token is expired, max age is 30 minutes
+        if now_timestamp - custom_user_timestamp > 60 * 30:
+            messages.error(request, 'Token abgelaufen.')
+            return redirect('index_home')
         custom_user = CustomUser.objects.get(token=token)
         user = custom_user.user
         login(request, user)
@@ -229,6 +256,10 @@ def first_login(request, username=None, einmalpasswort=None):
             if not user.customuser.einmalpasswort:
                 messages.error(request, _('Einmalpasswort bereits verwendet.'))
                 return redirect_to_first_login(user_name, einmalpasswort)
+            
+            if not user.customuser.einmalpasswort_expires or user.customuser.einmalpasswort_expires < timezone.now():
+                messages.error(request, _('Einmalpasswort abgelaufen. Bitte erneut anfordern.'))
+                return redirect('password_reset')
             
             if user.customuser.einmalpasswort != einmalpasswort:
                 messages.error(request, _('Ungültiges Einmalpasswort.'))
@@ -273,12 +304,14 @@ def password_reset(request):
                 return redirect('password_reset')
     else:
         form = PasswordResetForm()
-    return render(request, 'password_reset.html', {'form': form})
+        email = request.GET.get('email', None)
+       
+    return render(request, 'password_reset.html', {'form': form, 'email': email})
 
 @login_required
 def password_change(request):
     if request.method == 'POST':
-        form = SetPasswordForm(request.user, request.POST)
+        form = CustomSetPasswordForm(request.user, request.POST)
         user = request.user
         if form.is_valid():
             user.set_password(form.cleaned_data['new_password1'])
@@ -290,10 +323,8 @@ def password_change(request):
             
             return redirect('index_home')
     else:
-        form = SetPasswordForm(request.user)
-        
-    form.fields['new_password1'].widget.attrs['class'] = 'form-control rounded-3'
-    form.fields['new_password2'].widget.attrs['class'] = 'form-control rounded-3'
+        form = CustomSetPasswordForm(request.user)
+
     return render(request, 'password_change.html', {'form': form})
 
 
@@ -400,3 +431,33 @@ def dokument_public(request, ordner_token, dokument_id):
         response = HttpResponse(file.read(), content_type=mimetype or 'application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{dokument.dokument.name}"'
         return response
+
+def own_signin_success(request):
+    org = None
+    org_id = request.session.pop('own_signin_org_id', None)
+    if org_id:
+        org = Organisation.objects.filter(id=org_id).first()
+    return render(request, 'own_signin_success.html', {'org': org})
+
+def own_signin(request, token):
+    try:
+        person_cluster = PersonCluster.objects.get(
+            own_signin_token=token,
+            active=True,
+        )
+        org = person_cluster.org
+        
+        if request.method == 'POST':
+            form = OwnSigninForm(org=org, person_cluster=person_cluster, data=request.POST)
+            if form.is_valid():
+                own_signin_user = form.save()
+                from Home.tasks import send_own_signin_org_notification_task
+                send_own_signin_org_notification_task.delay(own_signin_user.id)
+                request.session['own_signin_org_id'] = org.id
+                return redirect('own_signin_success')
+        else:
+            form = OwnSigninForm(org=org, person_cluster=person_cluster)
+        return render(request, 'own_signin.html', {'person_cluster': person_cluster, 'form': form})
+    except Exception as e:
+        messages.error(request, 'Ungültiger Token.')
+        return redirect('index_home')

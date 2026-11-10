@@ -13,4 +13,8 @@ urlpatterns = [
     path('maintenance', views.maintenance, name='maintenance'),
     path('p/dokumente/<str:ordner_token>', views.dokumente_public, name='dokumente_public'),
     path('p/dokument/<str:ordner_token>/<int:dokument_id>', views.dokument_public, name='dokument_public'),
+    
+    # Own signin
+    path('p/signin/<str:token>', views.own_signin, name='own_signin'),
+    path('p/signin_success', views.own_signin_success, name='own_signin_success'),
 ]

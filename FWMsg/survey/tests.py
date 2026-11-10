@@ -8,6 +8,7 @@ from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.messages import get_messages
+from django.utils.translation import gettext_lazy as _
 
 from .models import Survey, SurveyQuestion, SurveyQuestionOption, SurveyResponse, SurveyAnswer
 from ORG.models import Organisation
@@ -233,7 +234,7 @@ class SurveyPublicViewsTests(SurveyViewsTestCase):
                                          kwargs={'survey_key': self.survey3.survey_key}))
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'not currently available')
+        self.assertContains(response, _('This survey is not currently available.'))
     
     def test_survey_detail_future_start_date(self):
         """Test survey detail view for survey with future start date"""
@@ -241,7 +242,7 @@ class SurveyPublicViewsTests(SurveyViewsTestCase):
                                          kwargs={'survey_key': self.survey5.survey_key}))
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'not currently available')
+        self.assertContains(response, _('This survey is not currently available.'))
     
     def test_survey_detail_invalid_key(self):
         """Test survey detail view with invalid survey key"""
@@ -274,6 +275,68 @@ class SurveyPublicViewsTests(SurveyViewsTestCase):
         answers = SurveyAnswer.objects.filter(response=survey_response)
         self.assertEqual(answers.count(), 2)
     
+    def test_rating_question_renders_as_button_row_and_submits(self):
+        """Rating questions are shown as a 1-5 button row and the chosen value is saved"""
+        rating = SurveyQuestion.objects.create(
+            survey=self.survey1,
+            org=self.org1,
+            question_text='Overall rating?',
+            question_type='rating',
+            order=10,
+        )
+        response = self.client.get(reverse('survey:survey_detail',
+                                           kwargs={'survey_key': self.survey1.survey_key}))
+        self.assertContains(response, 'class="rating-scale"')
+        self.assertContains(response, f'name="question_{rating.id}"', count=5)
+
+        response = self.client.post(reverse('survey:survey_detail',
+                                            kwargs={'survey_key': self.survey1.survey_key}),
+                                    data={
+                                        f'question_{self.question1.id}': 'John Doe',
+                                        f'question_{self.question2.id}': str(self.option1.id),
+                                        f'question_{rating.id}': '4',
+                                    })
+        self.assertEqual(response.status_code, 302)
+        answer = SurveyAnswer.objects.get(question=rating)
+        self.assertEqual(answer.text_answer, '4')
+
+    def _name_question(self):
+        return SurveyQuestion.objects.create(
+            survey=self.survey1,
+            org=self.org1,
+            question_text='Your name?',
+            question_type='name',
+            order=11,
+        )
+
+    def test_name_question_prefilled_for_logged_in_user(self):
+        """Name questions are prefilled with the full name of a logged-in user"""
+        name_question = self._name_question()
+        self.client.login(username='user1', password='testpass123')
+        response = self.client.get(reverse('survey:survey_detail',
+                                           kwargs={'survey_key': self.survey1.survey_key}))
+        form = response.context['form']
+        self.assertEqual(form.fields[f'question_{name_question.id}'].initial, 'User One')
+        self.assertContains(response, 'value="User One"')
+        self.assertContains(response, 'autocomplete="name"')
+
+    def test_name_question_empty_for_anonymous_and_saved(self):
+        """Anonymous visitors enter their name manually; the answer is stored as text"""
+        name_question = self._name_question()
+        response = self.client.get(reverse('survey:survey_detail',
+                                           kwargs={'survey_key': self.survey1.survey_key}))
+        self.assertIsNone(response.context['form'].fields[f'question_{name_question.id}'].initial)
+
+        response = self.client.post(reverse('survey:survey_detail',
+                                            kwargs={'survey_key': self.survey1.survey_key}),
+                                    data={
+                                        f'question_{self.question1.id}': 'John Doe',
+                                        f'question_{self.question2.id}': str(self.option1.id),
+                                        f'question_{name_question.id}': 'Maria Muster',
+                                    })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(SurveyAnswer.objects.get(question=name_question).text_answer, 'Maria Muster')
+
     def test_survey_submission_authenticated(self):
         """Test survey submission by authenticated user"""
         self.client.login(username='user1', password='testpass123')
@@ -312,7 +375,7 @@ class SurveyPublicViewsTests(SurveyViewsTestCase):
                                          kwargs={'survey_key': self.survey2.survey_key}))
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Already Completed')
+        self.assertContains(response, _('Already Completed'))
     
     def test_survey_thank_you_page(self):
         """Test survey thank you page"""
@@ -320,7 +383,7 @@ class SurveyPublicViewsTests(SurveyViewsTestCase):
                                          kwargs={'survey_key': self.survey1.survey_key}))
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Thank you')
+        self.assertContains(response, _('Thank you for participating in this survey.'))
         self.assertContains(response, self.survey1.title)
 
 
@@ -355,7 +418,7 @@ class SurveyManagementViewsTests(SurveyViewsTestCase):
         response = self.client.get(reverse('survey:survey_create'))
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Create Survey')
+        self.assertContains(response, _('Create Survey'))
     
     def test_survey_create_post(self):
         """Test survey creation"""
@@ -461,8 +524,90 @@ class SurveyManagementViewsTests(SurveyViewsTestCase):
         )
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Survey Results')
+        self.assertContains(response, _('Survey Results'))
         self.assertContains(response, self.survey1.title)
+
+    def test_export_survey_all_responses_excel(self):
+        """Test exporting all survey responses as Excel"""
+        date_question = SurveyQuestion.objects.create(
+            survey=self.survey1,
+            org=self.org1,
+            question_text='When did you start?',
+            question_type='date',
+            order=3,
+        )
+
+        survey_response = SurveyResponse.objects.create(
+            survey=self.survey1,
+            org=self.survey1.org,
+            respondent=self.user1,
+            is_complete=True,
+        )
+
+        SurveyAnswer.objects.create(
+            response=survey_response,
+            org=self.survey1.org,
+            question=self.question1,
+            text_answer='Test Answer',
+        )
+        choice_answer = SurveyAnswer.objects.create(
+            response=survey_response,
+            org=self.survey1.org,
+            question=self.question2,
+        )
+        choice_answer.selected_options.add(self.option1)
+        SurveyAnswer.objects.create(
+            response=survey_response,
+            org=self.survey1.org,
+            question=date_question,
+            text_answer='2026-06-10',
+        )
+
+        self.client.login(username='user1', password='testpass123')
+
+        response = self.client.get(
+            reverse(
+                'survey:export_survey_all_responses_excel',
+                kwargs={'survey_id': self.survey1.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response['Content-Type'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        self.assertTrue(response.content.startswith(b'PK'))
+        self.assertGreater(len(response.content), 0)
+
+        import io
+
+        import pandas as pd
+
+        df = pd.read_excel(io.BytesIO(response.content))
+        self.assertEqual(df['When did you start?'].iloc[0], '10.06.2026')
+        submitted_column = df.columns[1]
+        submitted = df[submitted_column].iloc[0]
+        if hasattr(submitted, 'strftime'):
+            submitted = submitted.strftime('%d.%m.%Y')
+        self.assertRegex(str(submitted), r'^\d{2}\.\d{2}\.\d{4}$')
+
+    def test_export_survey_all_responses_excel_no_responses(self):
+        """Test Excel export redirects when no completed responses exist"""
+        self.client.login(username='user1', password='testpass123')
+
+        response = self.client.get(
+            reverse(
+                'survey:export_survey_all_responses_excel',
+                kwargs={'survey_id': self.survey1.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            reverse('survey:survey_results', kwargs={'pk': self.survey1.pk}),
+        )
 
 
 class SurveyQuestionManagementTests(SurveyViewsTestCase):
@@ -477,7 +622,7 @@ class SurveyQuestionManagementTests(SurveyViewsTestCase):
         )
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Add Question')
+        self.assertContains(response, _('Add Question'))
     
     def test_add_question_post(self):
         """Test adding a new question"""
@@ -515,7 +660,7 @@ class SurveyQuestionManagementTests(SurveyViewsTestCase):
         )
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Edit Question')
+        self.assertContains(response, _('Edit Question'))
         self.assertContains(response, self.question2.question_text)
     
     def test_edit_question_post(self):
@@ -603,7 +748,7 @@ class SurveyAdminViewsTests(SurveyViewsTestCase):
         response = self.client.get(reverse('survey:admin_survey_list'))
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'All Surveys')
+        self.assertContains(response, _('All Surveys'))
         # Staff user should only see surveys from their organization
         self.assertContains(response, self.survey1.title)
         self.assertNotContains(response, self.survey4.title)

@@ -22,7 +22,7 @@
         
         <!-- German Version -->
         <div style="margin-bottom: 30px;">
-            <p style="font-size: 16px; margin-bottom: 15px;">Hallo {{ user_name }},</p>
+            <p style="font-size: 16px; margin-bottom: 15px;">{% block greeting %}Hallo {{ user_name }},{% endblock %}</p>
             
             {% block german_content %}{% endblock %}
             

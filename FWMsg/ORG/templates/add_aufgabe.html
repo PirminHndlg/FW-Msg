@@ -219,59 +219,6 @@
     border-color: rgba(23,162,184,0.2);
 }
 
-/* Zwischenschritte Section */
-.zwischenschritte-section {
-    background: linear-gradient(135deg, #f8f9fa, #ffffff);
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-top: 1rem;
-    border: 1px solid #e9ecef;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
-}
-
-.zwischenschritte-section .collapse {
-    transition: all 0.3s ease;
-}
-
-.zwischenschritte-section .card {
-    border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-.zwischenschritt-item {
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.zwischenschritt-item:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    transform: translateY(-1px);
-}
-
-.zwischenschritt-item .remove-zwischenschritt {
-    opacity: 0.7;
-    transition: opacity 0.3s ease;
-}
-
-.zwischenschritt-item:hover .remove-zwischenschritt {
-    opacity: 1;
-}
-
-#toggle-zwischenschritte {
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-#toggle-zwischenschritte:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,123,255,0.2);
-}
-
-#zwischenschritte-icon {
-    transition: transform 0.3s ease;
-}
-
 .btn-add-step {
     border: 2px dashed #6c757d;
     color: #6c757d;
@@ -299,63 +246,15 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
-/* Buttons */
-.btn-primary {
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    border: none;
-    border-radius: 6px;
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,123,255,0.2);
-}
 
-.btn-primary:hover {
-    background: linear-gradient(135deg, #0056b3, #004085);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,123,255,0.3);
-}
-
-.btn-secondary {
-    background: linear-gradient(135deg, #6c757d, #5a6268);
-    border: none;
-    border-radius: 6px;
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-outline-primary {
-    border: 2px solid #007bff;
-    color: #007bff;
-    background: transparent;
-    border-radius: 6px;
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-outline-primary:hover {
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    border-color: #007bff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,123,255,0.2);
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    border: none;
-    border-radius: 6px;
-    padding: 0.75rem 2rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(40,167,69,0.2);
-}
-
-.btn-success:hover {
-    background: linear-gradient(135deg, #20c997, #1e7e34);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(40,167,69,0.3);
+/* Keep form actions consistent with the project's Bootstrap buttons. */
+.form-actions .btn {
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    border-width: 1px;
+    border-radius: 1rem;
+    box-shadow: none;
+    transform: none;
 }
 
 /* Responsive Adjustments */
@@ -601,93 +500,68 @@ div.is-invalid {
                         {% trans "Definiere, wie die Aufgabe bearbeitet werden soll - mit Datei-Upload und/oder Bestätigung." %}
                     </div>
 
-                    <!-- File Upload Required -->
-                    <div class="mb-3 row mx-3 align-items-center">
-                        <label for="{{ form.mitupload.id_for_label }}" class="col-form-label col-md-3">
-                            <i class="bi bi-file-earmark-text me-1"></i>
-                            {{ form.mitupload.label }}
-                        </label>
-                        <div class="col-md-9">
-                            <div class="form-check">
+                    <div class="card m-2">
+                        <div class="card-body">
+                            <!-- File Upload Required -->
+                            <div class="form-check mb-3">
                                 {{ form.mitupload|add_class:"form-check-input" }}
                                 <label class="form-check-label" for="{{ form.mitupload.id_for_label }}">
-                                    {% if form.mitupload.help_text %}
-                                        {{ form.mitupload.help_text }}
-                                    {% endif %}
+                                    <i class="bi bi-file-earmark-text me-1"></i>
+                                    {{ form.mitupload.label }}
                                 </label>
+                                {% if form.mitupload.help_text %}
+                                    <div class="form-text">{{ form.mitupload.help_text }}</div>
+                                {% endif %}
+                                {% if form.mitupload.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.mitupload.errors }}</div>
+                                {% endif %}
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Requires Submission -->
-                    <div class="mb-3 row mx-3 align-items-center">
-                        <label for="{{ form.requires_submission.id_for_label }}" class="col-form-label col-md-3">
-                            <i class="bi bi-check-circle me-1"></i>
-                            {{ form.requires_submission.label }}
-                        </label>
-                        <div class="col-md-9">
-                            <div class="form-check">
+                            <!-- Requires Submission -->
+                            <div class="form-check mb-3">
                                 {{ form.requires_submission|add_class:"form-check-input" }}
                                 <label class="form-check-label" for="{{ form.requires_submission.id_for_label }}">
-                                    {% if form.requires_submission.help_text %}
-                                        {{ form.requires_submission.help_text }}
-                                    {% endif %}
-                                    <br>
-                                    {% comment %} <span class="d-inline-flex align-items-center">
-                                        <i class="bi bi-circle text-secondary me-1" title="{% trans 'offen' %}"></i>
-                                        <span class="mx-1 text-muted" style="font-size:1.1em;">&#8594;</span>
-                                        <i class="bi bi-hourglass-split text-warning me-1" title="{% trans 'pending' %}"></i>
-                                        <span class="mx-1 text-muted" style="font-size:1.1em;">&#8594;</span>
-                                        <i class="bi bi-check-circle text-success" title="{% trans 'erledigt' %}"></i>
-                                    </span>
-                                    oder 
-                                    <span class="d-inline-flex align-items-center">
-                                        <i class="bi bi-circle text-secondary me-1" title="{% trans 'offen' %}"></i>
-                                        <span class="mx-1 text-muted" style="font-size:1.1em;">&#8594;</span>
-                                        <i class="bi bi-check-circle text-success" title="{% trans 'erledigt' %}"></i>
-                                    </span> {% endcomment %}
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    {{ form.requires_submission.label }}
                                 </label>
+                                {% if form.requires_submission.help_text %}
+                                    <div class="form-text">{{ form.requires_submission.help_text }}</div>
+                                {% endif %}
+                                {% if form.requires_submission.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.requires_submission.errors }}</div>
+                                {% endif %}
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- With Email Notification -->
-                    <div class="mb-3 row mx-3 align-items-center">
-                        <label for="{{ form.with_email_notification.id_for_label }}" class="col-form-label col-md-3">
-                            <i class="bi bi-envelope me-1"></i>
-                            {{ form.with_email_notification.label }}
-                        </label>
-                        <div class="col-md-9">
-                            <div class="form-check">
+                            <!-- With Email Notification -->
+                            <div class="form-check mb-3">
                                 {{ form.with_email_notification|add_class:"form-check-input" }}
                                 <label class="form-check-label" for="{{ form.with_email_notification.id_for_label }}">
-                                    {% if form.with_email_notification.help_text %}
-                                        {{ form.with_email_notification.help_text }}
-                                    {% endif %}
+                                    <i class="bi bi-envelope me-1"></i>
+                                    {{ form.with_email_notification.label }}
                                 </label>
+                                {% if form.with_email_notification.help_text %}
+                                    <div class="form-text">{{ form.with_email_notification.help_text }}</div>
+                                {% endif %}
+                                {% if form.with_email_notification.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.with_email_notification.errors }}</div>
+                                {% endif %}
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Visible by Team with Same Land -->
-                    <div class="mb-3 row mx-3 align-items-center">
-                        <label for="{{ form.visible_by_team.id_for_label }}" class="col-form-label col-md-3">
-                            <i class="bi bi-people me-1"></i>
-                            {{ form.visible_by_team.label }}
-                        </label>
-                        <div class="col-md-9">
+                            <!-- Visible by Team with Same Land -->
                             <div class="form-check">
                                 {{ form.visible_by_team|add_class:"form-check-input" }}
                                 <label class="form-check-label" for="{{ form.visible_by_team.id_for_label }}">
-                                    {% if form.visible_by_team.help_text %}
-                                        {{ form.visible_by_team.help_text }}
-                                    {% endif %}
+                                    <i class="bi bi-people me-1"></i>
+                                    {{ form.visible_by_team.label }}
                                 </label>
+                                {% if form.visible_by_team.help_text %}
+                                    <div class="form-text">{{ form.visible_by_team.help_text }}</div>
+                                {% endif %}
+                                {% if form.visible_by_team.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.visible_by_team.errors }}</div>
+                                {% endif %}
                             </div>
                         </div>
-                        {% if form.visible_by_team.errors %}
-                            <div class="invalid-feedback d-block">{{ form.visible_by_team.errors }}</div>
-                        {% endif %}
                     </div>
                 </div>
 
@@ -912,73 +786,6 @@ div.is-invalid {
                     </div>
                 </div>
 
-                <!-- Step 7: Intermediate Steps -->
-                <div class="field-group" id="step-7">
-                    <div class="step-header">
-                        <span class="step-number">7</span>
-                        <span>{% trans "Zwischenschritte für pending Aufgaben (optional)" %}</span>
-                    </div>
-                    <div class="field-explanation">
-                        <i class="bi bi-list-check me-2"></i>
-                        {% trans "Wenn eine Aufgabe als pending markiert wird, werden die Zwischenschritte angezeigt, um die Folgeaufgaben für die Organisation in kleinere Teile zu unterteilen." %}
-                        <br>
-                        {% trans "Beispiel: Aufgabe <b>'Flugticket buchen'</b> hat 2 Zwischenschritte: <b>'Partnerorganisation Bescheid geben'</b> und <b>'Abreisedatum aktualisieren'</b>." %}
-                    </div>
-
-                    <div class="zwischenschritte-section d-flex flex-column align-items-center">
-                        <!-- Toggle Button -->
-                        <button type="button" class="btn btn-outline-primary mb-3" id="toggle-zwischenschritte" data-bs-toggle="collapse" data-bs-target="#zwischenschritte-container" aria-expanded="false" aria-controls="zwischenschritte-container">
-                            <i class="bi bi-chevron-down me-2" id="zwischenschritte-icon"></i>
-                            <span id="zwischenschritte-toggle-text">{% trans "Zwischenschritte hinzufügen" %}</span>
-                        </button>
-                        
-                        <!-- Collapsible Container -->
-                        <div class="collapse w-100" id="zwischenschritte-container">
-                            <div class="card w-100">
-                                <div class="card-body">
-                                    <div id="zwischenschritte-forms" class="row w-100">
-                                        {% if form.zwischenschritte %}
-                                            {{ form.zwischenschritte.management_form }}
-                                            {% for zwischenschritt_form in form.zwischenschritte %}
-                                                <div class="zwischenschritt-item mb-3 p-2 border rounded bg-light col-md-6 col-12">
-                                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                                        <h6 class="mb-0">
-                                                            <i class="bi bi-list-check me-1"></i>
-                                                            {% trans "Zwischenschritt" %} {{ forloop.counter }}
-                                                        </h6>
-                                                        <button type="button" class="btn btn-sm btn-outline-danger remove-zwischenschritt">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                    {% for field in zwischenschritt_form %}
-                                                        {% if field.name != 'DELETE' %}
-                                                            <div class="mb-2">
-                                                                {{ field.label_tag }}
-                                                                {{ field|add_class:"form-control" }}
-                                                                {% if field.errors %}
-                                                                    <div class="invalid-feedback d-block">{{ field.errors }}</div>
-                                                                {% endif %}
-                                                            </div>
-                                                        {% else %}
-                                                            {{ field.as_hidden }}
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                </div>
-                                            {% endfor %}
-                                        {% endif %}
-                                    </div>
-                                    
-                                    {% comment %} <button type="button" class="btn btn-success w-25" id="add-zwischenschritt">
-                                        <i class="bi bi-plus-circle me-2"></i>
-                                        {% trans "Weiteren Zwischenschritt hinzufügen" %}
-                                    </button> {% endcomment %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
                 <div class="text-muted mt-3">
                     <small>
                         <span class="text-danger">*</span> {% trans "Pflichtfelder" %}
@@ -990,44 +797,46 @@ div.is-invalid {
         <!-- Form Actions -->
         <div class="form-actions sticky-bottom border">
             <p class="d-none small text-danger text-center cursor-pointer" onclick="document.querySelector('.is-invalid').scrollIntoView({ behavior: 'smooth', block: 'center' }); document.getElementById('isInvalidCounter').textContent = document.querySelectorAll('.is-invalid').length;"><i class="bi bi-exclamation-triangle me-2"></i><a id="isInvalidCounter"></a> Fehler gefunden</p>
-            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 gap-sm-0">
+            <div class="d-flex justify-content-between align-items-center gap-2">
                 <!-- Cancel button -->
-                <div class="order-2 order-sm-1">
+                <div class="d-flex gap-2">
                     <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'list_aufgaben_table' %}{% endif %}" 
-                       class="btn btn-secondary w-100 w-sm-auto">
-                        <i class="bi bi-arrow-left"></i> 
-                        <span class="d-none d-sm-inline">{% trans "Abbrechen" %}</span>
+                       class="btn btn-secondary">
+                        <i class="bi bi-x-lg"></i> 
+                        <span class="d-none d-md-inline ms-2">{% trans "Abbrechen" %}</span>
                     </a>
-                </div>
-                
-                <!-- Navigation and action buttons -->
-                <div class="order-1 order-sm-2 d-flex flex-wrap gap-2 justify-content-end">
-                    <button type="button" class="btn btn-outline-primary flex-grow-1 flex-sm-grow-0" id="prevStep" style="display: none;">
-                        <i class="bi bi-chevron-left"></i> 
-                        <span class="d-none d-sm-inline">{% trans "Zurück" %}</span>
-                    </button>
-                    <button type="button" class="btn btn-primary flex-grow-1 flex-sm-grow-0" id="nextStep">
-                        <span class="d-none d-sm-inline">{% trans "Weiter" %}</span>
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
                     {% if form.instance.id %}
-                        <button type="button" class="btn btn-danger delete-btn flex-grow-1 flex-sm-grow-0" id="deleteBtn" style="display: none;"
+                        <button type="button" class="btn btn-danger rounded-4 delete-btn" id="deleteBtn" style="display: none;"
                             data-bs-toggle="modal"
                             data-bs-target="#deleteModal"
                             data-model="aufgabe"
                             data-id="{{ form.instance.pk }}"
                             data-name="{{ form.instance }}">
-                            <i class="bi bi-trash"></i> 
-                            <span class="d-none d-sm-inline">{% trans "Löschen" %}</span>
+                            <i class="bi bi-trash"></i>
+                            <span class="d-none d-md-inline ms-2">{% trans "Löschen" %}</span>
                         </button>
-                        <button type="submit" class="btn btn-success flex-grow-1 flex-sm-grow-0" id="submitBtn" style="display: none;">
-                            <i class="bi bi-check2"></i> 
-                            <span class="d-none d-sm-inline">{% trans "Änderungen speichern" %}</span>
+                    {% endif %}
+                </div>
+                
+                <!-- Navigation and action buttons -->
+                <div class="d-flex gap-2 justify-content-end">
+                    <button type="button" class="btn btn-outline-primary rounded-4" id="prevStep" style="display: none;">
+                        <i class="bi bi-chevron-left"></i>
+                        <span class="d-none d-md-inline ms-2">{% trans "Zurück" %}</span>
+                    </button>
+                    <button type="button" class="btn btn-primary rounded-4" id="nextStep">
+                        <span>{% trans "Weiter" %}</span>
+                        <i class="bi bi-chevron-right ms-2"></i>
+                    </button>
+                    {% if form.instance.id %}
+                        <button type="submit" class="btn btn-primary rounded-4" id="submitBtn" style="display: none;">
+                            <i class="bi bi-check2"></i>
+                            <span class="d-none d-md-inline ms-2">{% trans "Speichern" %}</span>
                         </button>
                     {% else %}
-                        <button type="submit" class="btn btn-success flex-grow-1 flex-sm-grow-0" id="submitBtn" style="display: none;">
-                            <i class="bi bi-check2"></i> 
-                            <span class="d-none d-sm-inline">{% trans "Aufgabe erstellen" %}</span>
+                        <button type="submit" class="btn btn-primary rounded-4" id="submitBtn" style="display: none;">
+                            <i class="bi bi-check2 me-2"></i>
+                            <span>{% trans "Speichern" %}</span>
                         </button>
                     {% endif %}
                 </div>
@@ -1036,12 +845,11 @@ div.is-invalid {
     </form>
 </div>
 
-{% include "components/delete_modal.html" %}
 {% include "components/cascade_modal.html" %}
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const totalSteps = 7;
+    const totalSteps = 6;
     let currentStep = 1;
     const nextBtn = document.getElementById('nextStep');
     const prevBtn = document.getElementById('prevStep');
@@ -1131,61 +939,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-
-    // Handle Zwischenschritte collapse toggle
-    const zwischenschritteToggle = document.getElementById('toggle-zwischenschritte');
-    const zwischenschritteIcon = document.getElementById('zwischenschritte-icon');
-    const zwischenschritteToggleText = document.getElementById('zwischenschritte-toggle-text');
-    const zwischenschritteContainer = document.getElementById('zwischenschritte-container');
-    
-    if (zwischenschritteContainer) {
-        // In edit mode, expand if there are existing zwischenschritte
-        let hasZwischenschritte = false;
-        const zwischenschritte = document.querySelectorAll('.zwischenschritt-item')
-        for (const zwischenschritt of zwischenschritte) {
-            const nameField = zwischenschritt.querySelector('input[name*="name"]');
-            if (nameField && nameField.value.trim()) {
-                hasZwischenschritte = true;
-                break;
-            }
-        }
-        if (hasZwischenschritte) {
-            const bsCollapse = new bootstrap.Collapse(zwischenschritteContainer, { toggle: false });
-            bsCollapse.show();
-        }
-        
-        zwischenschritteContainer.addEventListener('shown.bs.collapse', function() {
-            zwischenschritteIcon.className = 'bi bi-chevron-up me-2';
-            zwischenschritteToggleText.textContent = 'Zwischenschritte ausblenden';
-        });
-        
-        zwischenschritteContainer.addEventListener('hidden.bs.collapse', function() {
-            zwischenschritteIcon.className = 'bi bi-chevron-down me-2';
-            zwischenschritteToggleText.textContent = 'Zwischenschritte hinzufügen';
-        });
-    }
-
-    // Handle adding new Zwischenschritte
-    const addZwischenschrittBtn = document.getElementById('add-zwischenschritt');
-    if (addZwischenschrittBtn) {
-        addZwischenschrittBtn.addEventListener('click', function() {
-            // This would need to be implemented with proper Django formset handling
-            // For now, we'll just show a placeholder
-            console.log('Add Zwischenschritt clicked - requires formset handling');
-        });
-    }
-
-    // Handle removing Zwischenschritte
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.remove-zwischenschritt')) {
-            const zwischenschrittItem = e.target.closest('.zwischenschritt-item');
-            const deleteField = zwischenschrittItem.querySelector('input[name*="DELETE"]');
-            if (deleteField) {
-                deleteField.checked = true;
-                zwischenschrittItem.style.display = 'none';
-            }
-        }
-    });
 
     // on change of any field of all steps, check if there are any errors
     document.querySelectorAll('#step-1 input, #step-1 select, #step-1 textarea').forEach(field => {

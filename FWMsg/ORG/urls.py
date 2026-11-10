@@ -15,15 +15,11 @@ urlpatterns = [
     path('list/<str:model_name>/checkbox/', views.list_object_checkbox, name='list_object_checkbox'),
     path('delete/<str:model_name>/<int:id>', views.delete_object, name='delete_object'),
     
-    path('delete-zwischenschritt/', views.delete_zwischenschritt, name='delete_zwischenschritt'),
     path('ampel-mark-as-read/', views.ampel_mark_as_read, name='ampel_mark_as_read'),
     path('list-aufgaben-table/', views.list_aufgaben_table, name='list_aufgaben_table'),
     path('list-aufgaben-table/<int:scroll_to>', views.list_aufgaben_table, name='list_aufgaben_table_scroll'),
     path('mark-task-as-done/', views.mark_task_as_done, name='mark_task_as_done'),
     path('send-task-reminder/', views.send_task_reminder, name='send_task_reminder'),
-    path('get-aufgaben-zwischenschritte/', views.get_aufgaben_zwischenschritte, name='get_aufgaben_zwischenschritte'),
-    path('toggle-zwischenschritt-status/', views.toggle_zwischenschritt_status, name='toggle_zwischenschritt_status'),
-    path('get-zwischenschritt-form/', views.get_zwischenschritt_form, name='get_zwischenschritt_form'),
     
     # AJAX endpoints for task operations
     path('ajax/update-task-status/', views.ajax_update_task_status, name='ajax_update_task_status'),
@@ -31,10 +27,13 @@ urlpatterns = [
     path('ajax/assign-tasks-by-country/', views.ajax_assign_tasks_by_country, name='ajax_assign_tasks_by_country'),
     path('ajax/assign-task/', views.ajax_assign_task, name='ajax_assign_task'),
     path('ajax/assign-task-to-all/', views.ajax_assign_task_to_all, name='ajax_assign_task_to_all'),
+    path('ajax/reset-task-assignment/', views.ajax_reset_task_assignment, name='ajax_reset_task_assignment'),
     path('ajax/load-aufgaben-table-data/', views.ajax_load_aufgaben_table_data, name='ajax_load_aufgaben_table_data'),
 
     # Generic dependent selects
     path('ajax/einsatzstellen-by-land/', views.ajax_einsatzstellen_by_land, name='ajax_einsatzstellen_by_land'),
+    path('ajax/quick-edit-attribute/', views.ajax_quick_edit_attribute, name='ajax_quick_edit_attribute'),
+    path('ajax/quick-edit-fields/', views.ajax_quick_edit_fields, name='ajax_quick_edit_fields'),
     
     path('bewerbung-overview/', views.application_overview, name='application_overview'),
     path('bewerbung-liste/', views.application_list, name='application_list'),
@@ -50,14 +49,21 @@ urlpatterns = [
     path('nginx-statistic/', views.nginx_statistic, name='nginx_statistic'),
 
     path('send-registration-mail/', views.send_registration_mail, name='send_registration_mail'),
+    path('get-own-signin-url/', views.get_own_signin_url, name='get_own_signin_url'),
     path('get-cascade-info/', views.get_cascade_info, name='get_cascade_info'),
     path('create-sticky-note/', views.create_sticky_note, name='create_sticky_note'),
     path('delete-sticky-note/', views.delete_sticky_note, name='delete_sticky_note'),
     
     path("copy-links", views.copy_links, name="copy_links"),
     
+    path("deeptalk-fragen/", views.deeptalk_fragen, name="deeptalk_fragen"),
     # Change request management
     path('change-requests/', views.change_requests, name='change_requests'),
     path('change-requests/<int:request_id>/review/', views.review_change_request, name='review_change_request'),
     path('change-requests/history/', views.change_request_history, name='change_request_history'),
+
+    # Own signin registration requests
+    path('own-signin-requests/', views.own_signin_requests, name='own_signin_requests'),
+    path('own-signin-requests/<int:pk>/approve/', views.approve_own_signin_user, name='approve_own_signin_user'),
+    path('own-signin-requests/<int:pk>/deny/', views.deny_own_signin_user, name='deny_own_signin_user'),
 ]

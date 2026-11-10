@@ -26,17 +26,17 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.13.3]
+        python-version: ["3.13.5"]
 
     # make CELERY_BROKER_URL available to all steps
     env:
       CELERY_BROKER_URL: redis://localhost:6379/0
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -49,14 +49,14 @@ jobs:
     - name: Setup Django Settings
       run: |
         cd FWMsg
-        cp FWMsg/example-settings.py FWMsg/settings.py
         cp FWMsg/.example-secrets.json FWMsg/.secrets.json
-        sed -i 's/DEBUG = True/DEBUG = False/' FWMsg/settings.py
-        sed -i 's#^SECRET_KEY = .*#SECRET_KEY = "django-insecure-test-key-for-ci"#' FWMsg/settings.py
-        # Disable file logging for CI by commenting out the problematic file handler
-        sed -i "s|'filename': '/var/log/django/error.log',|'filename': '/tmp/django_error.log',|" FWMsg/settings.py
-
+        sed -i 's#/var/log/django/error.log#/tmp/django_error.log#g' FWMsg/settings.py
+    - name: Setup npm dependencies
+      run: |
+        cd FWMsg
+        npm install
     - name: Run Tests
       run: |
         cd FWMsg
+        python manage.py collectstatic --noinput
         python manage.py test --parallel 20 -v 3

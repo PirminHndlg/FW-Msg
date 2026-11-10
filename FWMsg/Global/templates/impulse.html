@@ -1,0 +1,14 @@
+{% extends extends_base|default:'baseFw.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Impulse" %}{% endblock %}
+
+{% block headline %}
+  {% trans "Impulse" %}
+{% endblock %}
+
+{% block content %}
+<div class="w-100 mx-auto py-2" style="max-width: 480px;">
+  {% include "components/impulse_story.html" %}
+</div>
+{% endblock %}

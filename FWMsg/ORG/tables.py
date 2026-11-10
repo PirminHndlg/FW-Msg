@@ -1,11 +1,11 @@
 import django_tables2 as tables
 from django_tables2 import TemplateColumn
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, escape
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-
+from datetime import datetime
 from FW.models import Freiwilliger
 from Global.models import (
     BewerberKommentar, Einsatzland2, Einsatzstelle2, Attribute, Aufgabe2,
@@ -40,7 +40,7 @@ class BaseOrgTable(tables.Table):
                 'style': 'width: 120px;',
             }, 
             'td': {
-                'style': 'position: sticky; right: 0; background-color: white; z-index: 1;',
+                'style': 'position: sticky; right: 0; background-color: white;',
             }
         }
     )
@@ -90,6 +90,19 @@ class BaseOrgTable(tables.Table):
         url = reverse('profil', args=[record.user.customuser.get_identifier()])
         return format_html('<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', url, value)
 
+    def render_clamped_text(self, value, lines=3):
+        """Render text clamped to N lines with a mehr/weniger toggle."""
+        if not value:
+            return ''
+        return format_html(
+            '<p class="mb-0 image-description-clamp clamp-{}">{}</p>'
+            '<a href="#" class="show-more small" hidden '
+            'onclick="event.preventDefault(); toggleImageDescriptionClamp(this);">{}</a>',
+            lines,
+            value,
+            _('mehr'),
+        )
+
 
 class EinsatzlandTable(BaseOrgTable):
     name = tables.Column(verbose_name=_('Name'))
@@ -106,6 +119,8 @@ class EinsatzlandTable(BaseOrgTable):
 class EinsatzstelleTable(BaseOrgTable):
     name = tables.Column(verbose_name=_('Name'))
     land = tables.Column(verbose_name=_('Einsatzland'))
+    start_geplant = tables.Column(verbose_name=_('Start geplant'))
+    ende_geplant = tables.Column(verbose_name=_('Ende geplant'))
     partnerorganisation = tables.Column(verbose_name=_('Partnerorganisation'), orderable=False)
     arbeitsvorgesetzter = tables.Column(verbose_name=_('Arbeitsvorgesetzte:r'), orderable=False)
     mentor = tables.Column(verbose_name=_('Mentor:in'), orderable=False)
@@ -128,7 +143,7 @@ class EinsatzstelleTable(BaseOrgTable):
 
     class Meta(BaseOrgTable.Meta):
         model = Einsatzstelle2
-        fields = ('name', 'land', 'partnerorganisation', 'arbeitsvorgesetzter', 'mentor', 'botschaft', 'konsulat', 'informationen', 'max_freiwillige', 'actions')
+        fields = ('name', 'land', 'start_geplant', 'ende_geplant', 'partnerorganisation', 'arbeitsvorgesetzter', 'mentor', 'botschaft', 'konsulat', 'informationen', 'max_freiwillige', 'actions')
 
 
 class AttributeTable(BaseOrgTable):
@@ -154,14 +169,17 @@ class AufgabeTable(BaseOrgTable):
     name = tables.Column(verbose_name=_('Name'))
     beschreibung = tables.Column(
         verbose_name=_('Beschreibung'),
-        attrs={'td': {'style': 'max-width: 300px; word-wrap: break-word;'}}
+        #attrs={'td': {'style': 'max-width: 300px; word-wrap: break-word;'}}
     )
     person_cluster = tables.ManyToManyColumn(
         verbose_name=_('Für Benutzergruppen'),
         transform=lambda obj: obj.name if hasattr(obj, 'name') else str(obj)
     )
     mitupload = tables.BooleanColumn(verbose_name=_('Datei-Upload notwendig'))
-    
+
+    def render_beschreibung(self, value):
+        return self.render_clamped_text(value)
+
     class Meta(BaseOrgTable.Meta):
         model = Aufgabe2
         fields = ('name', 'beschreibung', 'mitupload', 'requires_submission', 'faellig_tag', 'faellig_monat', 'faellig_tage_nach_start', 'faellig_tage_vor_ende', 'wiederholung', 'wiederholung_interval_wochen', 'wiederholung_ende', 'repeat_push_days', 'person_cluster', 'actions')
@@ -232,7 +250,13 @@ def get_customuser_filter(request, org, objects):
     filter_options = []
     
     # Build PersonCluster filter (no view restriction, all PersonClusters)
-    pc_filter, selected_cluster = build_person_cluster_filter(request, org, view=None, min_clusters=2)
+    pc_filter, selected_cluster = build_person_cluster_filter(
+        request,
+        org,
+        view=None,
+        min_clusters=1,
+        include_inactive=True,
+    )
     
     if pc_filter:
         filter_options.append(pc_filter)
@@ -247,9 +271,23 @@ def get_customuser_filter(request, org, objects):
 class PersonClusterTable(BaseOrgTable):
     name = tables.Column(verbose_name=_('Name'))
     
+    def render_actions(self, value, record):
+        context = {
+            'model_name': 'personcluster',
+            'action_url': '',
+            'onclick': f'copyOwnSigninToken({record.pk}, this)',
+            'color': 'info',
+            'icon': 'bi bi-clipboard',
+            'title': _('URL zum eigenen Registrieren kopieren'),
+            'record': record,
+            'button_text': '',
+        }
+        html = render_to_string('components/additional_table_actions.html', context)
+        return mark_safe(html)
+    
     class Meta(BaseOrgTable.Meta):
         model = PersonCluster
-        fields = ('name', 'view', 'aufgaben', 'calendar', 'dokumente', 'ampel', 'notfallkontakt', 'bilder', 'posts', 'map', 'actions')
+        fields = ('name', 'view', 'aufgaben', 'calendar', 'dokumente', 'ampel', 'notfallkontakt', 'bilder', 'posts', 'map', 'active', 'actions')
 
 
 class AufgabenClusterTable(BaseOrgTable):
@@ -267,10 +305,21 @@ class AufgabenClusterTable(BaseOrgTable):
 
 class KalenderEventTable(BaseOrgTable):
     title = tables.Column(verbose_name=_('Titel'))
-    
+    description = tables.Column(
+        verbose_name=_('Beschreibung'),
+        attrs={'td': {'style': 'max-width: 300px; word-wrap: break-word;'}}
+    )
+    user = tables.Column(verbose_name=_('Teilnehmer:innen'), orderable=False)
+
+    def render_description(self, value):
+        return self.render_clamped_text(value)
+
+    def render_user(self, value, record):
+        return record.user.count()
+
     class Meta(BaseOrgTable.Meta):
         model = KalenderEvent
-        fields = ('title', 'start', 'end', 'description', 'user', 'actions')
+        fields = ('title', 'start', 'end', 'description', 'location', 'user', 'actions')
 
 
 class ApplicationTextTable(BaseOrgTable):
@@ -320,7 +369,7 @@ class ApplicationFileQuestionTable(BaseOrgTable):
         model = ApplicationFileQuestion
         fields = ('order', 'name', 'description', 'actions')
         
-def build_person_cluster_filter(request, org, view=None, min_clusters=2):
+def build_person_cluster_filter(request, org, view=None, min_clusters=2, include_inactive=False):
     """
     Build PersonCluster filter options that can be used by multiple tables.
     
@@ -329,6 +378,7 @@ def build_person_cluster_filter(request, org, view=None, min_clusters=2):
         org: The organization
         view: Optional view filter (e.g. 'F', 'B', 'T', 'E') - None for all
         min_clusters: Minimum number of clusters required to show filter (default: 2)
+        include_inactive: Include inactive clusters for management tables
     
     Returns:
         tuple: (filter_dict or None, selected_cluster or None)
@@ -350,10 +400,13 @@ def build_person_cluster_filter(request, org, view=None, min_clusters=2):
         return '?' + urlencode(params) if params else '?'
     
     # Get all person clusters for this org
-    if view:
-        all_person_clusters = PersonCluster.objects.filter(org=org, view=view).order_by('name')
+    if include_inactive:
+        all_person_clusters = PersonCluster.objects.filter(org=org)
     else:
-        all_person_clusters = PersonCluster.objects.filter(org=org).order_by('name')
+        all_person_clusters = PersonCluster.selectable_for_org(org)
+    if view:
+        all_person_clusters = all_person_clusters.filter(view=view)
+    all_person_clusters = all_person_clusters.order_by('name')
     
     # Show filter only if there are enough clusters
     if not all_person_clusters.exists() or all_person_clusters.count() < min_clusters:
@@ -400,10 +453,7 @@ def build_person_cluster_filter(request, org, view=None, min_clusters=2):
     selected_cluster = None
     if selected_filter:
         try:
-            if view:
-                selected_cluster = PersonCluster.objects.get(id=int(selected_filter), org=org, view=view)
-            else:
-                selected_cluster = PersonCluster.objects.get(id=int(selected_filter), org=org)
+            selected_cluster = all_person_clusters.get(id=int(selected_filter))
         except Exception:
             pass
     
@@ -473,7 +523,6 @@ def _create_dynamic_table_class(
         (table_class, data_list)
     """
     # Fetch objects and attributes
-    print('person_clusters', person_clusters)
     if person_clusters:
         objects = model_class.objects.filter(
             org=org, 
@@ -481,30 +530,92 @@ def _create_dynamic_table_class(
         ).select_related('user', 'user__customuser')
         attributes = []
         for pc in person_clusters:
-            attributes.extend(Attribute.objects.filter(org=org, person_cluster=pc))
+            attributes.extend(Attribute.objects.filter(org=org, person_cluster=pc).distinct())
         attributes = list(set(attributes))
     else:
         # Show all objects from org without person_cluster filter
         objects = model_class.objects.filter(org=org).select_related('user', 'user__customuser')
         # Get attributes from all person clusters for this org
         if view:
-            attributes = Attribute.objects.filter(org=org, person_cluster__view=view)
+            attributes = Attribute.objects.filter(org=org, person_cluster__view=view).distinct()
         else:
-            attributes = Attribute.objects.filter(org=org)
+            attributes = Attribute.objects.filter(org=org).distinct()
     
     # Build data structure: list of dicts with object and attrs dict
     data = []
     for obj in objects:
         obj_data = {model_name: obj, 'attrs': {}}
         
-        # Fetch all user attributes
-        user_attributes = UserAttribute.objects.filter(
-            org=org, user=obj.user, attribute__in=attributes
-        ).select_related('attribute')
+        user_person_cluster = obj.user.person_cluster if obj.user.person_cluster else None
         
-        # Populate attrs dict
-        for user_attr in user_attributes:
-            obj_data['attrs'][user_attr.attribute.name] = user_attr.value or ''
+        for attribute in attributes:
+            if not user_person_cluster in attribute.person_cluster.all():
+                continue
+            
+            user_attr, created = UserAttribute.objects.get_or_create(
+                user=obj.user,
+                attribute=attribute,
+                org=org
+            )
+        
+            value = user_attr.value if user_attr.value else ''
+            value_formatted = escape(value.strip()) if value != '' else '—'
+            html_content = None
+            contains_quick_edit = False
+            
+            # ignore type 'L' (Long Text), 'C' (Choice) and 'B' (Boolean)
+            if attribute.type == 'T':
+                html_content = format_html(
+                    '<input type="text" value="{}" class="form-control quick-edit-input lg d-none" data-userattr-id="{}">', value, user_attr.id)
+            elif attribute.type == 'N':
+                html_content = format_html(
+                    '<input type="number" value="{}" class="form-control quick-edit-input sm d-none" data-userattr-id="{}">', value, user_attr.id)
+            elif attribute.type == 'D':
+                html_content = format_html(
+                    '<input type="date" value="{}" class="form-control quick-edit-input md d-none" data-userattr-id="{}">', value, user_attr.id)
+                try:
+                    # format  yyyy-mm-dd to dd.mm.yyyy
+                    value_formatted = datetime.strptime(value, '%Y-%m-%d').strftime('%d.%m.%Y')
+                except ValueError:
+                    pass
+            elif attribute.type == 'E':
+                html_content = format_html(
+                    '<input type="email" value="{}" class="form-control quick-edit-input lg d-none" data-userattr-id="{}">' +
+                    '<div class="quick-edit-alternative"><a href="mailto:{}">{}</a></div>'
+                    , value, user_attr.id, value, value_formatted)
+                contains_quick_edit = True
+            elif attribute.type == 'P':
+                html_content = format_html(
+                    '<input type="tel" value="{}" class="form-control quick-edit-input lg d-none" data-userattr-id="{}">', value, user_attr.id)
+            elif attribute.type == 'B':
+                value = True if value == 'True' else False
+                html_content = format_html(
+                    '<input type="checkbox" {} class="form-check-input quick-edit-input sm d-none" data-userattr-id="{}">' +
+                    '<div class="quick-edit-alternative">' +
+                        f'<span class="true {("" if value else "d-none")}">✔</span>' +
+                        f'<span class="false {("d-none" if value else "")}">✘</span>' +
+                    '</div>'
+                    , 'checked' if value else '', user_attr.id, value_formatted)
+                contains_quick_edit = True
+            elif attribute.type == 'C':
+                choices__html_content = format_html('<option value="">{}</option>', '---')
+                for choice in attribute.value_for_choices.split(','):
+                    choices__html_content = format_html(
+                        '{}<option value="{}" {}>{}</option>',
+                        choices__html_content, choice, choice == value_formatted and 'selected' or '', choice)
+                    
+                html_content = format_html(
+                    '<select class="form-select quick-edit-input lg d-none" data-userattr-id="{}">{}</select>' +
+                    '<div class="quick-edit-alternative">{}</div>'
+                    , user_attr.id, choices__html_content, value_formatted)
+                contains_quick_edit = True
+            
+            if html_content:
+                if not contains_quick_edit:
+                    html_content = format_html('{}{}', html_content, format_html('<div class="quick-edit-alternative">{}</div>', value_formatted))
+            else:
+                html_content = value_formatted
+            obj_data['attrs'][attribute.name] = html_content
         
         # Ensure all attributes have keys (even if empty)
         for attribute in attributes:
@@ -518,7 +629,26 @@ def _create_dynamic_table_class(
         data.append(obj_data)
     
     # Helper to create attribute column with proper closure
-    def make_attribute_column(attr_name):
+    def make_attribute_column(attr_name, attr_type=None):
+        # For boolean attributes, create a BooleanColumn
+        # if attr_type == 'B':
+        #     class AttributeBooleanColumn(tables.BooleanColumn):
+        #         def __init__(self, *args, **kwargs):
+        #             kwargs['accessor'] = f'attrs__{attr_name}'
+        #             kwargs['orderable'] = True
+        #             super().__init__(*args, **kwargs)
+                
+        #         def render(self, value, record, bound_column):
+        #             print('AttributeBooleanColumn render', value)
+        #             # value is html content, so we need to extract the value
+        #             value_html = value.split('>')[1].split('<')[0].strip()
+        #             print('value_html', value_html)
+        #             value = True if value_html == 'on' else False
+        #             return super().render(value, record, bound_column)
+                    
+        #     return AttributeBooleanColumn
+        
+        # For other types, create a regular Column
         class AttributeColumn(tables.Column):
             def __init__(self, *args, **kwargs):
                 kwargs['accessor'] = f'attrs__{attr_name}'
@@ -537,6 +667,16 @@ def _create_dynamic_table_class(
         def render(self, record, table, value, bound_column, **kwargs):
             return actions_renderer(record, org)
     
+    # Mark name columns as sticky (left) for the desktop list view
+    for sticky_column_name in ('user', 'first_name'):
+        sticky_column = base_columns.get(sticky_column_name)
+        if sticky_column is None:
+            continue
+        for cell in ('th', 'td'):
+            cell_attrs = dict(sticky_column.attrs.get(cell, {}))
+            cell_attrs['class'] = f"{cell_attrs.get('class', '')} sticky-col".strip()
+            sticky_column.attrs[cell] = cell_attrs
+
     # Build table attributes dictionary
     table_attrs = base_columns.copy()
     table_attrs.update(render_methods)
@@ -544,7 +684,7 @@ def _create_dynamic_table_class(
         'template_name': 'django_tables2/bootstrap5.html',
         'attrs': {'class': 'table table-hover align-middle', 'thead': {'class': 'z-1', 'style': 'position: sticky; top: 0; background-color: white;'}},
         'per_page': 100,
-        'order_by': 'user_sort'  # Default sort by user name
+        'order_by': 'user'  # Default sort by user name (column 'user' orders by user_sort)
     })
     
     final_column_sequence = column_sequence.copy()
@@ -561,7 +701,7 @@ def _create_dynamic_table_class(
     # Add attribute columns dynamically
     for attribute in attributes:
         column_name = f'attr_{attribute.id}'
-        AttributeColumnClass = make_attribute_column(attribute.name)
+        AttributeColumnClass = make_attribute_column(attribute.name, attribute.type)
         table_attrs[column_name] = AttributeColumnClass(verbose_name=attribute.name)
         final_column_sequence.append(column_name)
         
@@ -572,7 +712,7 @@ def _create_dynamic_table_class(
         orderable=False,
         attrs={
             'th': {'style': 'width: 120px;'},
-            'td': {'style': 'position: sticky; right: 0; background-color: white; z-index: 1;'}
+            'td': {'style': 'position: sticky; right: 0; background-color: white;'}
         }
     )
     final_column_sequence.append('actions')
@@ -592,7 +732,7 @@ def get_freiwilliger_table_class(org, request=None):
     filter_options = []
     
     # Build PersonCluster filter for Freiwillige (view='F')
-    pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='F', min_clusters=2)
+    pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='F', min_clusters=1)
     
     if pc_filter:
         filter_options.append(pc_filter)
@@ -601,24 +741,34 @@ def get_freiwilliger_table_class(org, request=None):
     def extract_sortable_fields(obj):
         """Extract flat sortable fields from Freiwilliger object"""
         return {
-            'user_sort': f"{obj.user.first_name} {obj.user.last_name}".lower(),
+            'user_sort': f"{obj.user.last_name} {obj.user.first_name}".lower(),
             'einsatzland2_name': obj.einsatzland2.name if obj.einsatzland2 else '',
             'einsatzland2_sort': obj.einsatzland2.name.lower() if obj.einsatzland2 else '',
             'einsatzstelle2_name': obj.einsatzstelle2.name if obj.einsatzstelle2 else '',
-            'einsatzstelle2_sort': obj.einsatzstelle2.name.lower() if obj.einsatzstelle2 else '',
+            'einsatzstelle2_sort': obj.einsatzstelle2.name.lower() if obj.einsatzstelle2 else ''
         }
     
     # Define render methods
     def render_user(self, value, record):
         freiwilliger = record['freiwilliger']
-        return format_html(
-            '<a href="{}" title="Zum Profil"><i class="bi bi-person-fill me-1"></i>{}</a> '
-            '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
-            '<i class="bi bi-envelope-arrow-up"></i></a>',
-            reverse('profil', args=[freiwilliger.user.customuser.get_identifier()]),
-            f"{freiwilliger.user.first_name} {freiwilliger.user.last_name}",
-            freiwilliger.user.email,
-        )
+        if hasattr(freiwilliger.user, 'customuser'):
+            return format_html(
+                '<div class="d-flex gap-2">'
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden"><i class="bi bi-envelope-arrow-up"></i></a>'
+                '<a href="{}" title="Zum Profil">{}</a> '
+                '</div>',
+                freiwilliger.user.email,
+                reverse('profil', args=[freiwilliger.user.customuser.get_identifier()]),
+                freiwilliger.user.last_name,
+            )
+        else:
+            return format_html(
+                '<i class="bi bi-person-fill me-1"></i>{} '
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
+                '<i class="bi bi-envelope-arrow-up"></i></a>',
+                f"{freiwilliger.user.first_name} {freiwilliger.user.last_name}",
+                freiwilliger.user.email,
+            )
     
     def actions_renderer(record, org):
         freiwilliger = record['freiwilliger']
@@ -633,13 +783,32 @@ def get_freiwilliger_table_class(org, request=None):
             'hide_button': True,
         }
         return render_to_string('components/additional_table_actions.html', context)
+
+    def make_date_field_render(field_name):
+        def render(self, value, record):
+            freiwilliger = record['freiwilliger']
+            date_val = getattr(freiwilliger, field_name)
+            iso_str = date_val.strftime('%Y-%m-%d') if date_val else ''
+            display_str = date_val.strftime('%d.%m.%Y') if date_val else '—'
+            return format_html(
+                '<input type="date" value="{}" class="form-control quick-edit-input md d-none"'
+                ' data-user-id="{}" data-field-name="{}">'
+                '<div class="quick-edit-alternative">{}</div>',
+                iso_str, freiwilliger.user.id, field_name, display_str
+            )
+        return render
     
     # Define base columns
     base_columns = {
         'user': tables.Column(
-            verbose_name=_('Benutzer'),
+            verbose_name=_('Nachname'),
             accessor='user_sort',
             order_by='user_sort'
+        ),
+        'first_name': tables.Column(
+            verbose_name=_('Vorname'),
+            accessor='freiwilliger.user.first_name',
+            order_by='freiwilliger.user.first_name'
         ),
         'einsatzland2': tables.Column(
             verbose_name=_('Einsatzland'),
@@ -651,38 +820,49 @@ def get_freiwilliger_table_class(org, request=None):
             accessor='einsatzstelle2_name',
             order_by='einsatzstelle2_sort'
         ),
-        'start_geplant': tables.DateColumn(
+        'geburtsdatum': tables.DateColumn(
+            verbose_name=_('Geburtsdatum'),
+            accessor='freiwilliger.user.customuser.geburtsdatum',
+            format='d.m.Y',
+        ),
+        'start_geplant': tables.Column(
             verbose_name=_('Start geplant'),
             accessor='freiwilliger.start_geplant',
-            format='d.m.Y',
-            order_by='freiwilliger.start_geplant'
+            order_by='freiwilliger.start_geplant',
+            empty_values=(),
         ),
-        'start_real': tables.DateColumn(
+        'start_real': tables.Column(
             verbose_name=_('Start real'),
             accessor='freiwilliger.start_real',
-            format='d.m.Y',
-            order_by='freiwilliger.start_real'
+            order_by='freiwilliger.start_real',
+            empty_values=(),
         ),
-        'ende_geplant': tables.DateColumn(
+        'ende_geplant': tables.Column(
             verbose_name=_('Ende geplant'),
             accessor='freiwilliger.ende_geplant',
-            format='d.m.Y',
-            order_by='freiwilliger.ende_geplant'
+            order_by='freiwilliger.ende_geplant',
+            empty_values=(),
         ),
-        'ende_real': tables.DateColumn(
+        'ende_real': tables.Column(
             verbose_name=_('Ende real'),
             accessor='freiwilliger.ende_real',
-            format='d.m.Y',
-            order_by='freiwilliger.ende_real'
+            order_by='freiwilliger.ende_real',
+            empty_values=(),
         ),
     }
     
     column_sequence = [
-        'user', 'einsatzland2', 'einsatzstelle2', 
+        'user', 'first_name', 'einsatzland2', 'einsatzstelle2', 'geburtsdatum',
         'start_geplant', 'start_real', 'ende_geplant', 'ende_real'
     ]
     
-    render_methods = {'render_user': render_user}
+    render_methods = {
+        'render_user': render_user,
+        'render_start_geplant': make_date_field_render('start_geplant'),
+        'render_start_real': make_date_field_render('start_real'),
+        'render_ende_geplant': make_date_field_render('ende_geplant'),
+        'render_ende_real': make_date_field_render('ende_real'),
+    }
     
     person_clusters = None
     # If a filter is selected, use filter_person_cluster
@@ -724,7 +904,7 @@ def get_bewerber_table_class(org, request=None):
             return '?' + urlencode(params) if params else '?'
         
         # Build PersonCluster filter for Bewerber (view='B')
-        pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='B', min_clusters=2)
+        pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='B', min_clusters=1)
         
         if pc_filter:
             filter_options.append(pc_filter)
@@ -785,21 +965,31 @@ def get_bewerber_table_class(org, request=None):
         except Exception:
             pass
         return {
-            'user_sort': f"{obj.user.first_name} {obj.user.last_name}".lower(),
+            'user_sort': f"{obj.user.last_name} {obj.user.first_name}".lower(),
             'has_seminar_sort': 1 if has_seminar else 0,
         }
     
     # Define render methods
     def render_user(self, value, record):
         bewerber = record['bewerber']
-        return format_html(
-            '<a href="{}" title="Zum Profil"><i class="bi bi-person-fill me-1"></i>{}</a> '
-            '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
-            '<i class="bi bi-envelope-arrow-up"></i></a>',
-            reverse('profil', args=[bewerber.user.customuser.get_identifier()]),
-            f"{bewerber.user.first_name} {bewerber.user.last_name}",
-            bewerber.user.email,
-        )
+        if hasattr(bewerber.user, 'customuser'):
+            return format_html(
+                '<div class="d-flex gap-2">'
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden"><i class="bi bi-envelope-arrow-up"></i></a>'
+                '<a href="{}" title="Zum Profil">{}</a> '
+                '</div>',
+                bewerber.user.email,
+                reverse('profil', args=[bewerber.user.customuser.get_identifier()]),
+                bewerber.user.last_name,
+            )
+        else:
+            return format_html(
+                '<i class="bi bi-person-fill me-1"></i>{} '
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
+                '<i class="bi bi-envelope-arrow-up"></i></a>',
+                f"{bewerber.user.last_name} {bewerber.user.first_name}",
+                bewerber.user.email,
+            )
     
     def render_application_pdf(self, value, record):
         bewerber = record['bewerber']
@@ -850,9 +1040,19 @@ def get_bewerber_table_class(org, request=None):
     # Define base columns
     base_columns = {
         'user': tables.Column(
-            verbose_name=_('Benutzer'),
+            verbose_name=_('Nachname'),
             accessor='user_sort',
             order_by='user_sort'
+        ),
+        'first_name': tables.Column(
+            verbose_name=_('Vorname'),
+            accessor='bewerber.user.first_name',
+            order_by='bewerber.user.first_name'
+        ),
+        'geburtsdatum_customuser': tables.DateColumn(
+            verbose_name=_('Geburtsdatum'),
+            accessor='bewerber.user.customuser.geburtsdatum',
+            format='d.m.Y',
         ),
         'application_pdf': tables.Column(
             verbose_name=_('PDF der Bewerbung'),
@@ -891,7 +1091,7 @@ def get_bewerber_table_class(org, request=None):
         ),
     }
     
-    column_sequence = ['user', 'application_pdf', 'has_seminar', 'interview_persons', 'zuteilung', 'zuteilung_freigegeben', 'reaktion_auf_zuteilung', 'endbewertung']
+    column_sequence = ['user', 'first_name', 'geburtsdatum_customuser', 'application_pdf', 'has_seminar', 'interview_persons', 'zuteilung', 'zuteilung_freigegeben', 'reaktion_auf_zuteilung', 'endbewertung']
     
     render_methods = {
         'render_user': render_user,
@@ -947,7 +1147,7 @@ def get_team_table_class(org, request=None):
     person_clusters = None
     
     # Build PersonCluster filter for Team (view='T')
-    pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='T', min_clusters=2)
+    pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='T', min_clusters=1)
     
     if pc_filter:
         filter_options.append(pc_filter)
@@ -959,20 +1159,30 @@ def get_team_table_class(org, request=None):
     def extract_sortable_fields(obj):
         """Extract flat sortable fields from Team object"""
         return {
-            'user_sort': f"{obj.user.first_name} {obj.user.last_name}".lower(),
+            'user_sort': f"{obj.user.last_name} {obj.user.first_name}".lower(),
         }
         
     # Define render methods
     def render_user(self, value, record):
         team = record['team']
-        return format_html(
-            '<a href="{}" title="Zum Profil"><i class="bi bi-person-fill me-1"></i>{}</a> '
-            '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
-            '<i class="bi bi-envelope-arrow-up"></i></a>',
-            reverse('profil', args=[team.user.customuser.get_identifier()]),
-            f"{team.user.first_name} {team.user.last_name}",
-            team.user.email,
-        )
+        if hasattr(team.user, 'customuser'):
+            return format_html(
+                '<div class="d-flex gap-2">'
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden"><i class="bi bi-envelope-arrow-up"></i></a>'
+                '<a href="{}" title="Zum Profil">{}</a> '
+                '</div>',
+                team.user.email,
+                reverse('profil', args=[team.user.customuser.get_identifier()]),
+                team.user.last_name,
+            )
+        else:
+            return format_html(
+                '<i class="bi bi-person-fill me-1"></i>{} '
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
+                '<i class="bi bi-envelope-arrow-up"></i></a>',
+                f"{team.user.last_name} {team.user.first_name}",
+                team.user.email,
+            )
     
     def render_land(self, value, record):
         team = record['team']
@@ -980,6 +1190,10 @@ def get_team_table_class(org, request=None):
         if lands:
             return ', '.join([land.name for land in lands])
         return '—'
+    
+    def render_aufgabenuebersicht(self, value, record):
+        team = record['team']
+        return team.get_aufgabenuebersicht_display() if team.aufgabenuebersicht else '—'
     
     def actions_renderer(record, org):
         team = record['team']
@@ -998,22 +1212,33 @@ def get_team_table_class(org, request=None):
     # Define base columns
     base_columns = {
         'user': tables.Column(
-            verbose_name=_('Benutzer'),
+            verbose_name=_('Nachname'),
             accessor='user_sort',
             order_by='user_sort'
+        ),
+        'first_name': tables.Column(
+            verbose_name=_('Vorname'),
+            accessor='team.user.first_name',
+            order_by='team.user.first_name'
         ),
         'land': tables.Column(
             verbose_name=_('Länderzuständigkeit'),
             accessor='team.land',
             orderable=False
         ),
+        'aufgabenuebersicht': tables.Column(
+            verbose_name=_('Aufgabenübersicht'),
+            accessor='team.aufgabenuebersicht',
+            orderable=False
+        ),
     }
     
-    column_sequence = ['user', 'land']
+    column_sequence = ['user', 'first_name', 'land', 'aufgabenuebersicht']
     
     render_methods = {
         'render_user': render_user,
-        'render_land': render_land
+        'render_land': render_land,
+        'render_aufgabenuebersicht': render_aufgabenuebersicht
     }
     
     
@@ -1038,7 +1263,7 @@ def get_ehemalige_table_class(org, request=None):
     person_clusters = None
     
     # Build PersonCluster filter for Ehemalige (view='E')
-    pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='E', min_clusters=2)
+    pc_filter, filter_person_cluster = build_person_cluster_filter(request, org, view='E', min_clusters=1)
     
     if pc_filter:
         filter_options.append(pc_filter)
@@ -1050,20 +1275,30 @@ def get_ehemalige_table_class(org, request=None):
     def extract_sortable_fields(obj):
         """Extract flat sortable fields from Ehemalige object"""
         return {
-            'user_sort': f"{obj.user.first_name} {obj.user.last_name}".lower(),
+            'user_sort': f"{obj.user.last_name} {obj.user.first_name}".lower(),
         }
         
     # Define render methods
     def render_user(self, value, record):
         ehemalige = record['ehemalige']
-        return format_html(
-            '<a href="{}" title="Zum Profil"><i class="bi bi-person-fill me-1"></i>{}</a> '
-            '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
-            '<i class="bi bi-envelope-arrow-up"></i></a>',
-            reverse('profil', args=[ehemalige.user.customuser.get_identifier()]),
-            f"{ehemalige.user.first_name} {ehemalige.user.last_name}",
-            ehemalige.user.email,
-        )
+        if hasattr(ehemalige.user, 'customuser'):
+            return format_html(
+                '<div class="d-flex gap-2">'
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden"><i class="bi bi-envelope-arrow-up"></i></a>'
+                '<a href="{}" title="Zum Profil">{}</a> '
+                '</div>',
+                ehemalige.user.email,
+                reverse('profil', args=[ehemalige.user.customuser.get_identifier()]),
+                ehemalige.user.last_name,
+            )
+        else:
+            return format_html(
+                '<i class="bi bi-person-fill me-1"></i>{} '
+                '<a href="mailto:{}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Email senden" class="ms-1">'
+                '<i class="bi bi-envelope-arrow-up"></i></a>',
+                f"{ehemalige.user.first_name} {ehemalige.user.last_name}",
+                ehemalige.user.email,
+            )
     
     def render_land(self, value, record):
         ehemalige = record['ehemalige']
@@ -1089,18 +1324,28 @@ def get_ehemalige_table_class(org, request=None):
     # Define base columns
     base_columns = {
         'user': tables.Column(
-            verbose_name=_('Benutzer'),
+            verbose_name=_('Nachname'),
             accessor='user_sort',
             order_by='user_sort'
         ),
+        'first_name': tables.Column(
+            verbose_name=_('Vorname'),
+            accessor='ehemalige.user.first_name',
+            order_by='ehemalige.user.first_name'
+        ),
         'land': tables.Column(
-            verbose_name=_('Länderzuständigkeit'),
+            verbose_name=_('Länder'),
             accessor='ehemalige.land',
             orderable=False
         ),
+        'geburtsdatum_customuser': tables.DateColumn(
+            verbose_name=_('Geburtsdatum'),
+            accessor='ehemalige.user.customuser.geburtsdatum',
+            format='d.m.Y',
+        ),
     }
     
-    column_sequence = ['user', 'land']
+    column_sequence = ['user', 'first_name', 'land', 'geburtsdatum_customuser']
     
     render_methods = {
         'render_user': render_user,

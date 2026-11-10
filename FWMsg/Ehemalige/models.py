@@ -1,14 +1,15 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from Global.models import OrgModel, Einsatzland2
 from django.contrib.auth.models import User
 
 # Create your models here.
 class Ehemalige(OrgModel):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Benutzer:in')
-    land = models.ManyToManyField(Einsatzland2, verbose_name='Länder', null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name=_('Benutzer:in'))
+    land = models.ManyToManyField(Einsatzland2, verbose_name=_('Länder'), null=True, blank=True)
 
     CHECKBOX_ACTION_CHOICES = [
-        ('send_registration_mail', '<i class="bi bi-envelope-fill me-1"></i>Registrierungsmail'),
+        ('send_registration_mail', '<i class="bi bi-envelope-fill me-1"></i>' + _('Registrierungsmail')),
     ]
 
     def checkbox_action(self, org, checkbox_submit_value):
@@ -18,8 +19,8 @@ class Ehemalige(OrgModel):
         return False
 
     class Meta:
-        verbose_name = 'Ehemalige'
-        verbose_name_plural = 'Ehemalige'
+        verbose_name = _('Ehemalige')
+        verbose_name_plural = _('Ehemalige')
 
     def __str__(self):
         if self.user:
