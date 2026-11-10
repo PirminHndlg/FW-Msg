@@ -192,7 +192,7 @@
                                                 <i class="bi bi-x-lg text-danger" aria-label="Nein"></i>
                                             {% endif %}
                                         {% else %}
-                                            <span class="text-muted">{{attr.value|default:"Nicht angegeben"}}</span>
+                                            <span class="text-muted">{{attr.value|default:"-"}}</span>
                                         {% endif %}
                                     </li>
                                     {% endfor %}
