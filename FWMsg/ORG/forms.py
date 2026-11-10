@@ -464,7 +464,7 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
     
     def merge_pdfs(self, pdf_files):
         """Merge multiple PDF files into a single PDF"""
-        from PyPDF2 import PdfMerger
+        from pypdf import PdfWriter
         from django.core.files.base import ContentFile
         import io
         
@@ -485,7 +485,7 @@ class AddBewerberApplicationPdfForm(OrgFormMixin, forms.ModelForm):
             return ContentFile(file_content, name=pdf_file.name)
         
         # Merge multiple PDFs
-        merger = PdfMerger()
+        merger = PdfWriter()
         file_buffers = []
         
         try:
