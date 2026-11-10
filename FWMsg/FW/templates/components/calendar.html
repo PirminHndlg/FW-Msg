@@ -299,14 +299,13 @@
                         time = ev.start.toLocaleTimeString(language, timeFormat);
                         if (ev.end) time += ' – ' + ev.end.toLocaleTimeString(language, timeFormat);
                     }
-                    const props = ev.extendedProps;
-                    html += '<div class="fw-cal-details-event">'
-                        + '<div class="fw-cal-details-time">' + escapeHtml(time) + '</div>'
-                        + '<div class="fw-cal-details-body">'
-                        + '<div class="fw-cal-details-title">' + escapeHtml(ev.title) + '</div>'
-                        + (props.location ? '<div class="small text-muted"><i class="bi bi-geo-alt"></i> ' + escapeHtml(props.location) + '</div>' : '')
-                        + (props.description ? '<div class="small text-muted">' + escapeHtml(props.description) + '</div>' : '')
-                        + '</div></div>';
+                    // Jede Zeile verlinkt auf den Termin bzw. das Profil (Geburtstage)
+                    const tag = ev.url ? 'a' : 'div';
+                    html += '<' + tag + ' class="fw-cal-details-event"' + (ev.url ? ' href="' + escapeHtml(ev.url) + '"' : '') + '>'
+                        + '<span class="fw-cal-details-time">' + escapeHtml(time) + '</span>'
+                        + '<span class="fw-cal-details-title">' + escapeHtml(ev.title) + '</span>'
+                        + (ev.url ? '<i class="bi bi-chevron-right fw-cal-details-chevron"></i>' : '')
+                        + '</' + tag + '>';
                 });
                 dayDetailsEl.innerHTML = html;
                 dayDetailsEl.classList.remove('d-none');
@@ -314,9 +313,6 @@
 
             calendar.setOption('dateClick', function(info) {
                 if (isCompactMonth()) showDayDetails(info.date);
-            });
-            calendar.setOption('eventClick', function(info) {
-                if (isCompactMonth()) showDayDetails(info.event.start);
             });
             calendar.setOption('datesSet', function(info) {
                 calendarEl.classList.toggle('fw-cal-compact', isCompactMonth());
@@ -469,6 +465,8 @@
             box-shadow: inset 0 0 0 2px var(--bs-primary);
         }
         .calendar-container.fw-cal-compact .fw-cal-event:not(.fw-cal-list-event) {
+            /* Balken sind keine Links: der Tipp geht an den Tag, die Links stehen in der Liste darunter */
+            pointer-events: none;
             height: 6px;
             min-height: 0;
             padding: 0 !important;
@@ -491,8 +489,12 @@
         }
         .calendar-day-details .fw-cal-details-event {
             display: flex;
+            align-items: center;
             gap: .75rem;
+            min-height: 48px;
             padding: .5rem .75rem;
+            color: inherit;
+            text-decoration: none;
             margin-bottom: .5rem;
             border-radius: .75rem;
             background-color: #e8f4fd;
@@ -504,9 +506,17 @@
             font-size: .85rem;
             color: #495057;
         }
+        .calendar-day-details a.fw-cal-details-event:active {
+            background-color: #d3e9fb;
+        }
         .calendar-day-details .fw-cal-details-title {
+            flex: 1 1 auto;
             font-weight: 500;
             word-break: break-word;
+        }
+        .calendar-day-details .fw-cal-details-chevron {
+            flex: 0 0 auto;
+            color: var(--bs-primary);
         }
     }
 </style>
