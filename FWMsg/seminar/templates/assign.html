@@ -89,16 +89,23 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a href="{% url 'auto_assign' %}" class="nav-link text-white">
-                            <i class="bi bi-magic"></i>
-                            Automatische Zuteilung
-                        </a>
+                        <form method="post" action="{% url 'auto_assign' %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-link text-white border-0 bg-transparent">
+                                <i class="bi bi-magic"></i>
+                                Automatische Zuteilung
+                            </button>
+                        </form>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url 'clear_assignments' %}" class="nav-link text-white">
-                            <i class="bi bi-trash"></i>
-                            Alle Zuteilungen löschen
-                        </a>
+                        <form method="post" action="{% url 'clear_assignments' %}" class="d-inline"
+                              onsubmit="return confirm('Wirklich alle Zuteilungen löschen?');">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-link text-white border-0 bg-transparent">
+                                <i class="bi bi-trash"></i>
+                                Alle Zuteilungen löschen
+                            </button>
+                        </form>
                     </li>
                     <li class="nav-item">
                         <a href="{% url 'seminar_home' %}" class="nav-link text-white">
@@ -176,10 +183,11 @@
                                                 <div class="col-md-4 col-lg-3">
                                                     <div class="assigned-volunteer card rounded-4 border-success shadow-sm">
                                                         <div class="card-body p-2 text-center">
-                                                            <a class="btn btn-sm btn-danger remove-btn"
-                                                                href="{% url 'assign' %}?fw={{ freiwilliger.id }}&land=None">
+                                                            <button type="button" class="btn btn-sm btn-danger remove-btn"
+                                                                    aria-label="Zuteilung entfernen"
+                                                                    onclick="removeAssignment({{ freiwilliger.id }})">
                                                                 <i class="bi bi-x"></i>
-                                                            </a>
+                                                            </button>
 
                                                             {% if freiwilliger.endbewertung %}
                                                                 <div class="evaluation-badge evaluation-{{ freiwilliger.endbewertung }}"></div>
@@ -415,6 +423,12 @@
     </div>
 
     <!-- Bootstrap JS -->
+    <form id="assignForm" method="post" action="{% url 'assign' %}" class="d-none">
+        {% csrf_token %}
+        <input type="hidden" name="fw">
+        <input type="hidden" name="land">
+    </form>
+
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 
     <script>
@@ -655,14 +669,22 @@
             }
         }
 
+        // Assignments are changed via POST (hidden form with CSRF token)
+        function submitAssignment(volunteerId, positionId) {
+            const form = document.getElementById('assignForm');
+            form.elements['fw'].value = volunteerId;
+            form.elements['land'].value = positionId;
+            form.submit();
+        }
+
         function assignVolunteer() {
             if (selectedVolunteer && selectedPosition) {
-                window.location.href = `{% url 'assign' %}?fw=${selectedVolunteer}&land=${selectedPosition}`;
+                submitAssignment(selectedVolunteer, selectedPosition);
             }
         }
 
         function removeAssignment(volunteerId) {
-            window.location.href = `{% url 'assign' %}?fw=${volunteerId}&land=None`;
+            submitAssignment(volunteerId, 'None');
         }
 
         // Add keyboard shortcuts

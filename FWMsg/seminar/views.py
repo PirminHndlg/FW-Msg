@@ -669,10 +669,15 @@ def insert_geeingnet(request):
 @login_required
 @required_role('O')
 def assign(request, scroll_to=None):
-    stelle = request.GET.get('land')
-    freiwilliger = request.GET.get('fw')
+    # Changing an assignment only via POST (CSRF protected), then redirect back to the page
+    if request.method == 'POST':
+        stelle = request.POST.get('land', '')
+        freiwilliger = request.POST.get('fw', '')
 
-    if stelle and freiwilliger:
+        if not freiwilliger.isdigit() or not (stelle == 'None' or stelle.isdigit()):
+            messages.error(request, 'Fehler bei der Zuteilung. Bitte versuche es erneut.')
+            return redirect('assign')
+
         try:
             freiwilliger_obj = Bewerber.objects.get(id=freiwilliger, org=request.user.org, seminar_bewerber__isnull=False)
             if stelle == 'None':
@@ -680,15 +685,14 @@ def assign(request, scroll_to=None):
             else:
                 stelle_obj = Einsatzstelle.objects.get(id=stelle, org=request.user.org)
                 freiwilliger_obj.zuteilung = stelle_obj
-            
+
             freiwilliger_obj.save()
         except (Bewerber.DoesNotExist, Einsatzstelle.DoesNotExist):
             messages.error(request, 'Fehler bei der Zuteilung. Bitte versuche es erneut.')
-        
-        if stelle and stelle != 'None':
+
+        if stelle != 'None':
             return redirect('assign_scroll', scroll_to=stelle)
-        else:
-            return redirect('assign')
+        return redirect('assign')
 
     # Load all applicants once (incl. everything the template needs) and group them in Python,
     # instead of one query per Einsatzstelle / Land
@@ -764,6 +768,7 @@ def assign(request, scroll_to=None):
 
 @login_required
 @required_role('O')
+@require_POST
 def auto_assign(request):
     org = request.user.org
     
@@ -808,6 +813,7 @@ def auto_assign(request):
 
 @login_required
 @required_role('O')
+@require_POST
 def clear_assignments(request):
     Bewerber.objects.filter(org=request.user.org, seminar_bewerber__isnull=False, zuteilung__isnull=False).update(zuteilung=None)
     messages.success(request, 'Alle Zuteilungen wurden gelöscht.')

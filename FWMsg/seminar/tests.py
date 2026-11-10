@@ -302,3 +302,45 @@ class AssignViewTests(TestCase):
             self.client.get(reverse('assign'))
 
         self.assertEqual(len(large), len(small))
+
+    def test_assign_via_post(self):
+        bewerber = self._create_bewerber('p', 'G', 1.0)
+        response = self.client.post(reverse('assign'), {'fw': bewerber.id, 'land': self.stelle_a.id})
+        self.assertRedirects(response, reverse('assign_scroll', args=[self.stelle_a.id]), fetch_redirect_response=False)
+        bewerber.refresh_from_db()
+        self.assertEqual(bewerber.zuteilung, self.stelle_a)
+
+        response = self.client.post(reverse('assign'), {'fw': bewerber.id, 'land': 'None'})
+        self.assertRedirects(response, reverse('assign'), fetch_redirect_response=False)
+        bewerber.refresh_from_db()
+        self.assertIsNone(bewerber.zuteilung)
+
+    def test_assign_via_get_changes_nothing(self):
+        bewerber = self._create_bewerber('g', 'G', 1.0)
+        response = self.client.get(reverse('assign') + f'?fw={bewerber.id}&land={self.stelle_a.id}')
+        self.assertEqual(response.status_code, 200)
+        bewerber.refresh_from_db()
+        self.assertIsNone(bewerber.zuteilung)
+
+    def test_assign_invalid_values(self):
+        bewerber = self._create_bewerber('i', 'G', 1.0)
+        response = self.client.post(reverse('assign'), {'fw': bewerber.id, 'land': 'abc'})
+        self.assertRedirects(response, reverse('assign'), fetch_redirect_response=False)
+        bewerber.refresh_from_db()
+        self.assertIsNone(bewerber.zuteilung)
+
+    def test_auto_assign_and_clear_require_post(self):
+        bewerber = self._create_bewerber('a', 'G', 1.0, wish=self.stelle_a)
+
+        self.assertEqual(self.client.get(reverse('auto_assign')).status_code, 405)
+        self.assertEqual(self.client.get(reverse('clear_assignments')).status_code, 405)
+        bewerber.refresh_from_db()
+        self.assertIsNone(bewerber.zuteilung)
+
+        self.client.post(reverse('auto_assign'))
+        bewerber.refresh_from_db()
+        self.assertEqual(bewerber.zuteilung, self.stelle_a)
+
+        self.client.post(reverse('clear_assignments'))
+        bewerber.refresh_from_db()
+        self.assertIsNone(bewerber.zuteilung)
