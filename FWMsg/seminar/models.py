@@ -161,6 +161,7 @@ class Seminar(models.Model):
     deadline_end = models.DateTimeField(verbose_name="Länderwahl Ende", null=True, blank=True, help_text="Die Endzeit des Seminars, bis zu welcher die Bewerber:innen für die Auswahl des Einsatzlandes ihre Auswahl treffen müssen.")
     verschwiegenheit_von_user = models.ManyToManyField(User, blank=True, verbose_name="Verschwiegenheit von User", related_name="verschwiegenheit_von_user")
     bewerber = models.ManyToManyField(Bewerber, blank=True, verbose_name="Bewerber:innen", related_name="seminar_bewerber")
+    presentation_attributes = models.ManyToManyField('Global.Attribute', blank=True, verbose_name="Felder in der Auswertung", related_name="seminar_presentation", help_text="Eigene Felder, die in der Auswertung (Präsentation) im Steckbrief angezeigt werden.")
 
     class Meta:
         verbose_name = _('Seminar')
