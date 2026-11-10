@@ -1,10 +1,9 @@
 # your_app/templatetags/custom_filters.py
 from django import template
 from django.core import signing
-from django.db.models import Sum
 from django.utils import timezone
 
-from Global.models import Einsatzstelle2 as Einsatzstelle, CustomUser
+from Global.models import CustomUser
 from seminar.models import Seminar
 
 register = template.Library()
@@ -101,16 +100,6 @@ def get_img_url(img):
         return img.url
     else:
         return '/static/img/default_img.png'
-
-
-@register.filter
-def get_max_fw_of_land(land):
-    return Einsatzstelle.objects.filter(land=land).aggregate(Sum('max_freiwillige'))['max_freiwillige__sum'] or 0
-
-
-@register.filter
-def get_current_fw_of_stellen(stellen):
-    return sum([len(stelle[1]) for stelle in stellen])
 
 
 @register.filter

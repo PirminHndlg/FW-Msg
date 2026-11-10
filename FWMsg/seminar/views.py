@@ -17,7 +17,7 @@ from seminar.models import Einheit, Frage, Fragekategorie, Bewertung, Kommentar,
 from Global.models import Attribute, Einsatzland2 as Einsatzland, Einsatzstelle2 as Einsatzstelle, UserAttribute
 from BW.models import Bewerber
 from .forms import WishForm, BewerterForm
-from django.db.models import Avg, Case, When, IntegerField
+from django.db.models import Avg, Case, When, IntegerField, Prefetch
 from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
@@ -690,15 +690,16 @@ def assign(request, scroll_to=None):
         else:
             return redirect('assign')
 
-    # Get all volunteers for the current organization
-    freiwillige = (
+    # Load all applicants once (incl. everything the template needs) and group them in Python,
+    # instead of one query per Einsatzstelle / Land
+    freiwillige = list(
         Bewerber.objects
         .filter(org=request.user.org, seminar_bewerber__isnull=False)
-        .filter(seminar_bewerber__isnull=False)
-        .select_related('user', 'zuteilung', 'first_wish_einsatzstelle', 'first_wish_einsatzland',
-                       'second_wish_einsatzstelle', 'second_wish_einsatzland',
-                       'third_wish_einsatzstelle', 'third_wish_einsatzland',
-                       'no_wish_einsatzstelle', 'no_wish_einsatzland')
+        .select_related('user__customuser', 'zuteilung',
+                        'first_wish_einsatzstelle__land', 'first_wish_einsatzland',
+                        'second_wish_einsatzstelle__land', 'second_wish_einsatzland',
+                        'third_wish_einsatzstelle__land', 'third_wish_einsatzland',
+                        'no_wish_einsatzstelle__land', 'no_wish_einsatzland')
         .annotate(
             custom_order=Case(
                 When(endbewertung__startswith='G', then=0),
@@ -712,35 +713,43 @@ def assign(request, scroll_to=None):
         .distinct()
     )
 
-    freiwillige_ohne_zuteilung = freiwillige.filter(zuteilung=None)
-    freiwillige_mit_zuteilung = freiwillige.exclude(zuteilung=None)
+    freiwillige_ohne_zuteilung = [f for f in freiwillige if f.zuteilung_id is None]
+    freiwillige_mit_zuteilung = [f for f in freiwillige if f.zuteilung_id is not None]
 
-    # Get countries for the current organization
-    laender = Einsatzland.objects.filter(org=request.user.org).order_by('name')
-    
+    def stelle_order(f):
+        # Geeignet, bedingt, rest; then by note (empty notes first)
+        endbewertung = f.endbewertung or ''
+        rank = 0 if endbewertung.startswith('G') else 1 if endbewertung.startswith('B') else 2
+        return (rank, f.note is not None, f.note or 0)
+
+    freiwillige_per_stelle = {}
+    for f in freiwillige_mit_zuteilung:
+        freiwillige_per_stelle.setdefault(f.zuteilung_id, []).append(f)
+
+    # Get countries with their Einsatzstellen for the current organization
+    laender = (
+        Einsatzland.objects
+        .filter(org=request.user.org)
+        .prefetch_related(Prefetch(
+            'einsatzstelle2_set',
+            queryset=Einsatzstelle.objects.filter(org=request.user.org).order_by('name'),
+            to_attr='org_stellen',
+        ))
+        .order_by('name')
+    )
+
     laender_arg = []
-
     for land in laender:
-        land_dict = {}
-        land_dict['land'] = land
-        einsatzstellen = Einsatzstelle.objects.filter(land=land, org=request.user.org).order_by('name')
-        land_dict['stellen'] = []
-        for stelle in einsatzstellen:
-            freiwillige_land = (
-                freiwillige_mit_zuteilung
-                .filter(zuteilung=stelle)
-                .annotate(
-                    custom_order=Case(
-                        When(endbewertung__startswith='G', then=0),
-                        When(endbewertung__startswith='B', then=1),
-                        default=2,
-                        output_field=IntegerField(),
-                    )
-                )
-                .order_by('custom_order', 'note')
-            )
-            land_dict['stellen'].append((stelle, freiwillige_land))
-        laender_arg.append(land_dict)
+        stellen = [
+            (stelle, sorted(freiwillige_per_stelle.get(stelle.id, []), key=stelle_order))
+            for stelle in land.org_stellen
+        ]
+        laender_arg.append({
+            'land': land,
+            'stellen': stellen,
+            'current_fw': sum(len(stelle_freiwillige) for _, stelle_freiwillige in stellen),
+            'max_fw': sum(stelle.max_freiwillige or 0 for stelle in land.org_stellen),
+        })
 
     context = {
         'freiwillige': freiwillige,

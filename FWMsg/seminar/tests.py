@@ -231,3 +231,74 @@ class PresentationAttributesTests(TestCase):
     def test_save_requires_post(self):
         response = self.client.get(reverse('save_presentation_attributes'))
         self.assertEqual(response.status_code, 405)
+
+
+class AssignViewTests(TestCase):
+    """Zuteilungsseite: Gruppierung, Zähler und konstante Anzahl an Queries"""
+
+    def setUp(self):
+        from Global.models import Einsatzland2, Einsatzstelle2
+        from seminar.models import Seminar
+
+        self.org = Organisation.objects.create(name='Test Org', email='test@test.com')
+        org_cluster = PersonCluster.objects.create(org=self.org, name='Org', view='O')
+        self.bw_cluster = PersonCluster.objects.create(org=self.org, name='BW', view='B')
+        admin = User.objects.create_user(username='admin', password='pass12345')
+        CustomUser.objects.create(org=self.org, user=admin, person_cluster=org_cluster)
+        self.seminar = Seminar.objects.create(org=self.org, name='Seminar')
+
+        self.land = Einsatzland2.objects.create(org=self.org, name='Land A', code='de')
+        self.stelle_a = Einsatzstelle2.objects.create(org=self.org, name='A', land=self.land, max_freiwillige=2)
+        self.stelle_b = Einsatzstelle2.objects.create(org=self.org, name='B', land=self.land, max_freiwillige=3)
+        self.client.login(username='admin', password='pass12345')
+
+    def _create_bewerber(self, name, endbewertung=None, note=None, zuteilung=None, wish=None):
+        from BW.models import Bewerber
+
+        user = User.objects.create_user(username=name, first_name=name, last_name='X')
+        CustomUser.objects.create(org=self.org, user=user, person_cluster=self.bw_cluster)
+        bewerber, _ = Bewerber.objects.get_or_create(org=self.org, user=user)
+        bewerber.endbewertung = endbewertung
+        bewerber.note = note
+        bewerber.zuteilung = zuteilung
+        bewerber.first_wish_einsatzstelle = wish
+        bewerber.save()
+        self.seminar.bewerber.add(bewerber)
+        return bewerber
+
+    def test_grouping_order_and_counters(self):
+        n = self._create_bewerber('n', 'N', 1.0, self.stelle_a, wish=self.stelle_b)
+        g2 = self._create_bewerber('g2', 'G', 2.0, self.stelle_a)
+        g1 = self._create_bewerber('g1', 'G', 1.5, self.stelle_a)
+        offen = self._create_bewerber('offen', 'B', 1.0, wish=self.stelle_a)
+
+        response = self.client.get(reverse('assign'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['freiwillige_ohne_zuteilung'], [offen])
+        self.assertEqual(response.context['freiwillige_mit_zuteilung'], [g1, g2, n])
+
+        land = response.context['laender'][0]
+        self.assertEqual([(s.name, fw) for s, fw in land['stellen']], [('A', [g1, g2, n]), ('B', [])])
+        self.assertEqual((land['current_fw'], land['max_fw']), (3, 5))
+        self.assertContains(response, '3/5')
+
+    def test_query_count_independent_of_data_size(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from Global.models import Einsatzland2, Einsatzstelle2
+
+        self._create_bewerber('first', 'G', 1.0, self.stelle_a, wish=self.stelle_b)
+        self.client.get(reverse('assign'))  # warm-up (identifiers, sessions)
+        with CaptureQueriesContext(connection) as small:
+            self.client.get(reverse('assign'))
+
+        for i in range(3):
+            land = Einsatzland2.objects.create(org=self.org, name=f'Land {i}', code='fr')
+            stelle = Einsatzstelle2.objects.create(org=self.org, name=f'S{i}', land=land, max_freiwillige=1)
+            self._create_bewerber(f'bw{i}', 'B', 2.0, stelle, wish=self.stelle_a)
+            self._create_bewerber(f'open{i}', None, None, wish=stelle)
+        self.client.get(reverse('assign'))  # warm-up for new users
+        with CaptureQueriesContext(connection) as large:
+            self.client.get(reverse('assign'))
+
+        self.assertEqual(len(large), len(small))
