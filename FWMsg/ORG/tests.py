@@ -3038,3 +3038,34 @@ class GetOwnSigninUrlTests(TestCase):
         self.assertEqual(response.status_code, 400)
         data = json.loads(response.content)
         self.assertFalse(data['success'])
+
+
+class BewerberListFilterCookieTests(TestCase):
+    def setUp(self):
+        self.org = Organisation.objects.create(name='Test Org', email='test@test.com')
+        self.pc_org = PersonCluster.objects.create(org=self.org, name='Org', view='O')
+        self.pc_bw = PersonCluster.objects.create(org=self.org, name='BW', view='B')
+        admin = get_user_model().objects.create_user(username='admin', password='adminpass123')
+        CustomUser.objects.create(org=self.org, user=admin, person_cluster=self.pc_org)
+        self.client.login(username='admin', password='adminpass123')
+        self.url = reverse('list_object', args=['bewerber'])
+
+    def test_seminar_filter_is_stored_in_cookie(self):
+        response = self.client.get(self.url + '?has_seminar_filter=yes')
+        self.assertEqual(response.cookies['selectedSeminarFilter'].value, 'yes')
+
+        # Without URL parameter the cookie value is used and kept
+        response = self.client.get(self.url)
+        seminar_filter = next(f for f in response.context['filter_options'] if f['param_name'] == 'has_seminar_filter')
+        self.assertTrue(seminar_filter['has_active_filter'])
+        self.assertEqual(response.cookies['selectedSeminarFilter'].value, 'yes')
+
+    def test_seminar_filter_alle_deletes_cookie(self):
+        self.client.get(self.url + '?has_seminar_filter=no')
+        response = self.client.get(self.url + '?has_seminar_filter=alle')
+        self.assertEqual(response.cookies['selectedSeminarFilter'].value, '')
+
+    def test_both_filters_are_stored(self):
+        response = self.client.get(self.url + f'?person_cluster_filter={self.pc_bw.id}&has_seminar_filter=no')
+        self.assertEqual(response.cookies['selectedPersonCluster_B'].value, str(self.pc_bw.id))
+        self.assertEqual(response.cookies['selectedSeminarFilter'].value, 'no')
