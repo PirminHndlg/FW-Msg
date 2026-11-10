@@ -15,7 +15,8 @@
     "js-cookie": "^3.0.5",
     "masonry-layout": "^4.2.2",
     "@popperjs/core": "^2.11.8",
-    "ol": "^10.11.0"
+    "ol": "^10.11.0",
+    "temporal-polyfill": "^1.0.8"
   },
   "scripts": {
     "postinstall": "echo 'Frontend dependencies installed successfully!'"

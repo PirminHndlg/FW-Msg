@@ -119,7 +119,14 @@
 
 {% block calendar_scripts %}
 <link rel="stylesheet" href="{% static 'bootstrap-icons.min.css' %}">
-<script src="{% static 'index.global.min.js' %}"></script>
+{# FullCalendar v7: Temporal polyfill (only active if the browser has no native Temporal), core bundle with all views, classic theme #}
+<link rel="stylesheet" href="{% static 'fullcalendar/skeleton.css' %}">
+<link rel="stylesheet" href="{% static 'fullcalendar/themes/classic/theme.css' %}">
+<link rel="stylesheet" href="{% static 'fullcalendar/themes/classic/palette.css' %}">
+<script src="{% static 'temporal-polyfill/global.js' %}"></script>
+<script src="{% static 'fullcalendar/all/global.js' %}"></script>
+<script src="{% static 'fullcalendar/themes/classic/global.js' %}"></script>
+<script src="{% static 'fullcalendar/locales/de/global.js' %}"></script>
 
 <script>
     let calendarEvents = [];
@@ -178,11 +185,9 @@
                 events: calendarEvents,
                 height: 'auto',
                 locale: language,
-                buttonText: {
-                    today: '{% trans "Heute" %}',
-                    month: '{% trans "Monat" %}',
-                    list: '{% trans "Liste" %}'
-                },
+                todayText: '{% trans "Heute" %}',
+                monthText: '{% trans "Monat" %}',
+                listText: '{% trans "Liste" %}',
                 headerToolbar: isSmallScreen ? {
                     left: 'prev,next',
                     center: 'title',
@@ -192,7 +197,7 @@
                     center: 'title',
                     right: 'today'
                 },
-                noEventsContent: '{% trans "Keine Termine in diesem Monat" %}',
+                noEventsText: '{% trans "Keine Termine in diesem Monat" %}',
                 dayMaxEvents: true,
                 eventTimeFormat: {
                     hour: '2-digit',
@@ -200,12 +205,18 @@
                     meridiem: false
                 },
                 firstDay: 1, // Monday start
-                themeSystem: 'bootstrap5',
-                bootstrapFontAwesome: false,
-                eventColor: '#3498db',
-                eventBackgroundColor: '#e8f4fd',
-                eventBorderColor: '#3498db',
-                eventTextColor: '#333',
+                eventColor: '#e8f4fd',
+                eventContrastColor: '#333',
+                // v7 uses generated class names, so styling hooks are set via these options (CSS below)
+                toolbarClass: 'fw-cal-toolbar',
+                toolbarTitleClass: 'fw-cal-title',
+                buttonClass: function(info) {
+                    return info.isSelected ? 'fw-cal-btn fw-cal-btn-active' : 'fw-cal-btn';
+                },
+                dayHeaderClass: 'fw-cal-day-header',
+                dayHeaderInnerClass: 'fw-cal-day-header-inner',
+                eventClass: 'fw-cal-event',
+                listItemEventClass: 'fw-cal-list-event',
                 // Custom styles
                 dayCellDidMount: function(info) {
                     info.el.style.borderRadius = '4px';
@@ -274,106 +285,80 @@
         height: 36px;
         min-width: 36px;
     }
-    
-    /* Customize calendar styles */
-    .fc .fc-toolbar-title {
+
+    .calendar-container {
+        padding: 0 16px;
+        /* FullCalendar classic theme palette */
+        --fc-classic-primary: var(--bs-primary);
+        --fc-classic-today: rgba(52, 152, 219, 0.1);
+        --fc-classic-border: #dee2e6;
+    }
+
+    /* Toolbar */
+    .calendar-container .fw-cal-title {
         font-size: 1.4rem;
         font-weight: 500;
         color: var(--bs-primary);
     }
-    
-    .fc .fc-button-primary {
-        background-color: white;
-        border-color: #dee2e6;
-        color: #495057;
-        box-shadow: none;
+
+    .calendar-container .fw-cal-btn {
+        background-color: white !important;
+        border-color: #dee2e6 !important;
+        color: #495057 !important;
+        box-shadow: none !important;
     }
-    
-    .fc .fc-button-primary:hover {
-        background-color: #f8f9fa;
-        border-color: #dee2e6;
-        color: #495057;
+
+    .calendar-container .fw-cal-btn:hover {
+        background-color: #f8f9fa !important;
     }
-    
-    .fc .fc-button-primary:not(:disabled):active,
-    .fc .fc-button-primary:not(:disabled).fc-button-active {
-        background-color: var(--bs-primary);
-        border-color: var(--bs-primary);
-        color: white;
+
+    .calendar-container .fw-cal-btn.fw-cal-btn-active,
+    .calendar-container .fw-cal-btn:not(:disabled):active {
+        background-color: var(--bs-primary) !important;
+        border-color: var(--bs-primary) !important;
+        color: white !important;
     }
-    
-    .fc .fc-daygrid-day.fc-day-today {
-        background-color: rgba(52, 152, 219, 0.1);
+
+    /* Weekday header row */
+    .calendar-container .fw-cal-day-header {
+        background-color: var(--bs-primary) !important;
     }
-    
-    .fc-event {
+
+    .calendar-container .fw-cal-day-header-inner {
+        text-decoration: none !important;
+        cursor: default !important;
+        color: var(--text_color_on_org_color) !important;
+        font-weight: 1000 !important;
+    }
+
+    /* Events */
+    .calendar-container .fw-cal-event {
         border-radius: 4px;
-        padding: 2px 4px;
-        margin-bottom: 1px;
         cursor: pointer;
         border: none !important;
-    }
-    
-    .fc-h-event .fc-event-title {
-        padding: 1px 4px;
-        display: block;
-    }
-    
-    .calendar-container {
-        padding: 0 16px;
     }
 
     @media (max-width: 575.98px) {
         .calendar-container {
             padding: 0;
         }
-        .fc .fc-toolbar {
+        .calendar-container .fw-cal-toolbar {
             flex-wrap: wrap;
             gap: .5rem;
         }
-        .fc .fc-toolbar-title {
+        .calendar-container .fw-cal-title {
             font-size: 1.15rem;
         }
-        .fc .fc-button {
+        .calendar-container .fw-cal-btn {
             min-height: 40px;
         }
-        .fc .fc-list-event td {
+        .calendar-container .fw-cal-list-event {
             padding-top: .65rem;
             padding-bottom: .65rem;
         }
-        .fc .fc-daygrid-event {
+        .calendar-container .fw-cal-event:not(.fw-cal-list-event) {
             font-size: .7rem;
         }
-    }
-
-    /* Tagesüberschriften der Listenansicht sind keine echten Links */
-    .fc .fc-list-day-cushion a {
-        text-decoration: none;
-        color: inherit;
-    }
-    
-    /* Remove link behavior from date numbers */
-    .fc-daygrid-day-number {
-        text-decoration: none !important;
-        cursor: default !important;
-        color: inherit !important;
-    }
-    
-    /* Remove hover effect on date numbers */
-    .fc-daygrid-day-number:hover {
-        text-decoration: none !important;
-        color: inherit !important;
-    }
-
-    .fc-col-header-cell {
-        background-color: var(--bs-primary) !important;
-    }
-
-    .fc-col-header-cell-cushion {
-        text-decoration: none !important;
-        cursor: default !important;
-        color: var(--text_color_on_org_color) !important;
-        font-weight: 1000 !important;
     }
 </style>
 {% endblock %} 

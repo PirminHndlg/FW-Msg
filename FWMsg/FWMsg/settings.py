@@ -254,7 +254,9 @@ STATICFILES_DIRS = [
     BASE_DIR.parent / "node_modules/js-cookie/dist",
     BASE_DIR.parent / "node_modules/masonry-layout/dist",
     BASE_DIR.parent / "node_modules/chart.js/dist",
-    BASE_DIR.parent / "node_modules/fullcalendar",
+    # FullCalendar v7 (+ Temporal polyfill), served under a prefix: {% static "fullcalendar/all/global.js" %}
+    ("fullcalendar", BASE_DIR.parent / "node_modules/fullcalendar"),
+    ("temporal-polyfill", BASE_DIR.parent / "node_modules/temporal-polyfill"),
     BASE_DIR.parent / "node_modules/@popperjs/core/dist/umd",
     BASE_DIR.parent / "node_modules/canvas-confetti/dist",
     BASE_DIR.parent / "node_modules/ol",
