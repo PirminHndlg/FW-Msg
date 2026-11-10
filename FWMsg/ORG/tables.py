@@ -684,7 +684,7 @@ def _create_dynamic_table_class(
         'template_name': 'django_tables2/bootstrap5.html',
         'attrs': {'class': 'table table-hover align-middle', 'thead': {'class': 'z-1', 'style': 'position: sticky; top: 0; background-color: white;'}},
         'per_page': 100,
-        'order_by': 'user_sort'  # Default sort by user name
+        'order_by': 'user'  # Default sort by user name (column 'user' orders by user_sort)
     })
     
     final_column_sequence = column_sequence.copy()

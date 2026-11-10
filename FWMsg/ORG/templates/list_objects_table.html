@@ -17,6 +17,30 @@
             z-index: 2;
         }
     }
+
+    /* Sort indicator: arrow on the currently sorted column, faint arrow on hover for other sortable columns */
+    #table-scroll-container th.orderable > a {
+        white-space: nowrap;
+    }
+    #table-scroll-container th.orderable > a::after {
+        display: inline-block;
+        margin-left: 0.25rem;
+        font-size: 0.7em;
+        content: "▲";
+        visibility: hidden;
+        opacity: 0.35;
+    }
+    #table-scroll-container th.orderable:hover > a::after {
+        visibility: visible;
+    }
+    #table-scroll-container th.orderable.asc > a::after,
+    #table-scroll-container th.orderable.desc > a::after {
+        visibility: visible;
+        opacity: 1;
+    }
+    #table-scroll-container th.orderable.desc > a::after {
+        content: "▼";
+    }
 </style>
 
 <!-- Header Section -->

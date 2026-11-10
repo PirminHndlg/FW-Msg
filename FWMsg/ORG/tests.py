@@ -3078,3 +3078,19 @@ class BewerberListFilterCookieTests(TestCase):
         sticky_cells = re.findall(r'<t[hd][^>]*class="[^"]*\bsticky-col\b', response.content.decode())
         # Nachname + Vorname in header and in the single row
         self.assertEqual(len(sticky_cells), 4)
+
+    def test_sort_indicator_classes(self):
+        import re
+        user = get_user_model().objects.create_user(username='bw2', first_name='Anna', last_name='Muster')
+        Bewerber.objects.create(org=self.org, user=user)
+
+        def header_classes(query=''):
+            html = self.client.get(self.url + query).content.decode()
+            return re.findall(r'<th[^>]*class="([^"]*orderable[^"]*)"', html)
+
+        # Default sort (Nachname) is marked as ascending
+        self.assertIn('asc', header_classes()[0].split())
+        # Explicit sort marks the chosen column
+        classes = header_classes('?sort=-first_name')
+        self.assertNotIn('asc', classes[0].split())
+        self.assertIn('desc', classes[1].split())
