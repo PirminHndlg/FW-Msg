@@ -16,13 +16,10 @@
 
 <form action="{% url 'evaluate' %}">
 
-    <div class="error_msg" onclick="hideErrorMsg()">
-        <p>
-            Bitte wähle mindestens eine:n Bewerber:in aus
-        </p>
-        <div>
-            x
-        </div>
+    <div id="error-msg" class="alert alert-danger d-none align-items-center shadow-sm sticky-top mx-auto my-3" role="alert" style="max-width: 600px; top: 10px;">
+        <i class="bi bi-exclamation-triangle-fill me-2 flex-shrink-0"></i>
+        <span class="flex-grow-1">Bitte wähle mindestens eine:n Bewerber:in aus.</span>
+        <button type="button" class="btn-close ms-2" aria-label="Schließen" onclick="hideErrorMsg()"></button>
     </div>
 
 
@@ -84,6 +81,7 @@
             kachel.style.backgroundColor = 'lightblue';
             kachel.parentElement.style.backgroundColor = 'lightblue';
             kachel.style.scale = '0.9';
+            hideErrorMsg();
         }
 
     }
@@ -92,12 +90,14 @@
         let checked_checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
         if (checked_checkboxes.length === 0) {
             e.preventDefault();
-            document.querySelector('.error_msg').style.display = 'block';
+            let errorMsg = document.getElementById('error-msg');
+            errorMsg.classList.replace('d-none', 'd-flex');
+            errorMsg.scrollIntoView({behavior: 'smooth', block: 'center'});
         }
     })
 
     function hideErrorMsg() {
-        document.querySelector('.error_msg').style.display = 'none';
+        document.getElementById('error-msg').classList.replace('d-flex', 'd-none');
     }
 </script>
 

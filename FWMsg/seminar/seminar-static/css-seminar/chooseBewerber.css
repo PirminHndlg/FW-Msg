@@ -80,34 +80,3 @@ button.back_button {
     left: 50%;
     transform: translate(25%, -50%);
 }
-
-.error_msg {
-    background-color: var(--form-purple-color);
-    border: 2px solid black;
-    border-radius: 5px;
-    padding: 14px;
-    margin: 10px 10% 0 10%;
-    text-align: center;
-    display: none;
-    position: sticky;
-    top: 10px;
-}
-
-.error_msg p {
-    color: white;
-}
-
-.error_msg div {
-    background-color: white;
-    color: var(--form-purple-color);
-    border-radius: 50%;
-    height: 15px;
-    width: 15px;
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    text-align: center;
-    vertical-align: center;
-    line-height: 15px;
-    cursor: pointer;
-}

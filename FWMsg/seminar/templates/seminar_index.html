@@ -1,6 +1,8 @@
 {% extends "seminar_base.html" %}
 {% load base_filter %}
 {% load custom_filters %}
+{% load bw_filters %}
+{% load i18n %}
 {% block content %}
 
 <div class="container mt-4">
@@ -71,7 +73,7 @@
                     <!-- Organizer Controls -->
                     <div class="col-md-6">
                         <a href="{% url 'evaluate_all' %}" class="text-decoration-none">
-                            <div class="card h-100 shadow-sm card-hover">
+                            <div class="card h-100 shadow-sm">
                                 <div class="card-body text-center">
                                     <i class="bi bi-graph-up-arrow text-primary mb-3" style="font-size: 3rem;"></i>
                                     <h5 class="card-title text-dark">Auswertung</h5>
@@ -83,7 +85,7 @@
                     
                     <div class="col-md-6">
                         <a href="{% url 'assign' %}" class="text-decoration-none">
-                            <div class="card h-100 shadow-sm card-hover">
+                            <div class="card h-100 shadow-sm">
                                 <div class="card-body text-center">
                                     <i class="bi bi-people-fill text-primary mb-3" style="font-size: 3rem;"></i>
                                     <h5 class="card-title text-dark">Zuteilung</h5>
@@ -95,7 +97,7 @@
                     
                     <div class="col-md-6">
                         <a href="{% url 'seminar_settings' %}" class="text-decoration-none">
-                            <div class="card h-100 shadow-sm card-hover">
+                            <div class="card h-100 shadow-sm">
                                 <div class="card-body text-center">
                                     <i class="bi bi-gear-fill text-primary mb-3" style="font-size: 3rem;"></i>
                                     <h5 class="card-title text-dark">Seminareinstellungen</h5>
@@ -109,7 +111,7 @@
                 <!-- Datenschutz - Always visible -->
                 <div class="col-md-6">
                     <a href="{% url 'datenschutz' %}" class="text-decoration-none">
-                        <div class="card h-100 shadow-sm card-hover">
+                        <div class="card h-100 shadow-sm">
                             <div class="card-body text-center">
                                 <i class="bi bi-shield-fill text-primary mb-3" style="font-size: 3rem;"></i>
                                 <h5 class="card-title text-dark">Datenschutz</h5>
@@ -119,21 +121,55 @@
                     </a>
                 </div>
             </div>
+
+            <!-- Bewerbungen der Interviewperson -->
+            {% if user.role in 'OTE' %}
+            {% with bewerbers=request.user|get_bewerbers_of_interviewperson %}
+            {% if bewerbers %}
+            <div class="card shadow-sm my-4">
+                <div class="card-header d-flex align-items-center justify-content-between gap-2">
+                    <h5 class="mb-0">
+                        <i class="bi bi-folder2-open me-2"></i>{% trans "Bewerbungen einsehen" %}
+                    </h5>
+                    <span class="badge bg-primary rounded-pill">{{ bewerbers|length }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for bewerber in bewerbers %}
+                        <div class="col-12 col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <img src="{% url 'serve_profil_picture' bewerber.user.customuser.get_identifier %}"
+                                             alt="{% trans 'Profilbild' %}"
+                                             class="rounded-circle me-2 flex-shrink-0"
+                                             style="width: 40px; height: 40px; object-fit: cover;"
+                                             loading="lazy">
+                                        <div class="flex-grow-1" style="min-width: 0;">
+                                            <h6 class="mb-0">{{ bewerber.user.first_name }} {{ bewerber.user.last_name }}</h6>
+                                        </div>
+                                    </div>
+                                    <p class="text-muted small mb-3 text-truncate">
+                                        <a href="mailto:{{ bewerber.user.email }}">
+                                            <i class="bi bi-envelope me-1"></i>{{ bewerber.user.email }}
+                                        </a>
+                                    </p>
+                                    <a href="{% url 'application_answer_download' bewerber.id %}" class="btn btn-sm btn-primary w-100 mt-auto" target="_blank">
+                                        <i class="bi bi-file-earmark-pdf me-1"></i>{% trans "PDF herunterladen" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endwith %}
+            {% endif %}
         </div>
     </div>
 </div>
-
-<style>
-.card-hover {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    cursor: pointer;
-}
-
-.card-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
-}
-</style>
 
 <script>
     let refresh_url = "{% url 'refresh' %}"
