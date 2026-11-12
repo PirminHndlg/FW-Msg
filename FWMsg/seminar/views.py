@@ -654,13 +654,19 @@ def summerizeComments(request):
 def insert_geeingnet(request):
     data = request.GET.dict()
 
-    f = data['f']
-    g = data['g']
+    f = data.get('f')
+    g = data.get('g')
 
-    if g not in dict(Bewerber.bewertungsmoeglicheiten).keys() and g != 'None':
+    # 'None' (or empty) resets the evaluation to NULL
+    if g in (None, '', 'None'):
+        g = None
+    elif g not in dict(Bewerber.bewertungsmoeglicheiten).keys():
         return HttpResponse('Invalid value', status=400)
 
-    freiwilliger = Bewerber.objects.get(id=f, seminar_bewerber__isnull=False)
+    try:
+        freiwilliger = Bewerber.objects.get(id=f, org=request.user.org, seminar_bewerber__isnull=False)
+    except (Bewerber.DoesNotExist, ValueError):
+        return HttpResponse('Not found', status=404)
     freiwilliger.endbewertung = g
     freiwilliger.save()
 
