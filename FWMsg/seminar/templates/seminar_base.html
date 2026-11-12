@@ -1,5 +1,6 @@
 {% load static %}
 {% load custom_filters %}
+{% load base_filter %}
 
 <!DOCTYPE html>
 <html lang="de">
@@ -21,8 +22,9 @@
     
     <style>
         .navbar-brand img {
-            height: 40px;
+            height: 30px;
             width: auto;
+            flex-shrink: 0;
         }
         
         .navbar-brand {
@@ -36,6 +38,31 @@
             font-weight: 600;
             color: white;
             margin: 0;
+        }
+        
+        .seminar-home-btn {
+            color: white;
+            border: 1px solid rgba(255, 255, 255, .35);
+            border-radius: .6rem;
+        }
+
+        .seminar-home-btn:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Navigationsleiste: eine Zeile, langer Seminarname wird gekürzt */
+        @media (max-width: 991.98px) {
+            .navbar-brand {
+                flex: 1 1 0;
+                min-width: 0;
+            }
+
+            .seminar-title {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
         }
         
         .user-dropdown .dropdown-toggle::after {
@@ -63,15 +90,23 @@
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
-    <div class="container-fluid">
+    <div class="container-fluid gap-2">
         <!-- Brand -->
         <a class="navbar-brand" href="{% url 'seminar_home' %}">
-            <img src="{% url 'serve_image' request.user.org.id %}" alt="{{ request.user.org }} Logo">
-            <span class="seminar-title">{{ request.user.org|get_seminar|get_seminar_name }}</span>
+            {% with org=user|get_org %}
+            {% if org %}
+            <img src="{% url 'serve_image' org.id %}" alt="{{ org.name }}-Logo">
+            <span class="seminar-title">{{ org|get_seminar|get_seminar_name }}</span>
+            {% endif %}
+            {% endwith %}
+        </a>
+
+        <a class="btn btn-sm seminar-home-btn flex-shrink-0" href="{% url 'index_home' %}" title="Home" aria-label="Home">
+            <i class="bi bi-house"></i><span class="d-none d-md-inline ms-2">Home</span>
         </a>
 
         <!-- Mobile toggle button -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+        <button class="navbar-toggler flex-shrink-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -79,13 +114,6 @@
         <!-- Navigation items -->
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'index_home' %}">
-                        <i class="bi bi-house me-1"></i>
-                                                 <span>Home</span>
-                    </a>
-                </li>
-                
                 {% if user.is_authenticated and user.role == 'O' %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'evaluate_all' %}">
