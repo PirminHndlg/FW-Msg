@@ -241,7 +241,7 @@ class OrdnerAdmin(SimpleHistoryAdmin):
 @admin.register(Dokument2)
 class DokumentAdmin(SimpleHistoryAdmin):
     list_display = ['get_title', 'ordner', 'date_created', 'date_modified', 'get_document_type']
-    search_fields = ['titel', 'ordner__ordner_name', 'beschreibung']
+    search_fields = ['titel', 'ordner__ordner_name', 'beschreibung', 'identifier']
     list_filter = ['date_created', 'ordner']
     filter_horizontal = ['darf_bearbeiten']
     readonly_fields = ['date_created', 'date_modified', 'preview_image']
