@@ -31,10 +31,11 @@
 {% elif dokument.get_document_type|starts_with:'video' %}
     <a href="{% url 'serve_dokument' dokument.get_identifier %}" target="_blank" class="text-decoration-none">
         <div class="card-img-top position-relative bg-dark rounded-top-4" style="height: 200px; overflow: hidden;">
-            <video class="w-100 h-100" style="object-fit: cover;" preload="metadata">
-                <source data-preview-src="{% url 'serve_dokument' dokument.get_identifier %}" type="{{ dokument.get_document_type }}">
-                {% trans 'Ihr Browser unterstützt das Video-Tag nicht.' %}
-            </video>
+            {# Only a small thumbnail is loaded here; the video itself loads when opened. #}
+            <img data-preview-src="{% url 'serve_dokument' dokument.get_identifier %}?img=True"
+                 class="w-100 h-100" style="object-fit: cover;"
+                 alt="{% trans 'Video Vorschau' %}"
+                 onerror="this.classList.add('d-none')">
             <div class="position-absolute top-50 start-50 translate-middle">
                 <i class="bi bi-play-circle-fill text-white" style="font-size: 3rem; opacity: 0.8;"></i>
             </div>

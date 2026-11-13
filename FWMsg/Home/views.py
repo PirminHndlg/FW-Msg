@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from django.forms import ValidationError
-from django.http import FileResponse, HttpResponse, Http404
+from django.http import FileResponse, HttpResponse, Http404, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -408,6 +408,10 @@ def dokument_public(request, ordner_token, dokument_id):
                 response = HttpResponse(img_file.read(), content_type='image/jpeg')
                 response['Content-Disposition'] = f'inline; filename="{img_path.split("/")[-1]}"'
                 return response
+        # Never fall through to serving a whole video when only a preview
+        # image was requested.
+        if mimetype and mimetype.startswith('video'):
+            return HttpResponseNotFound()
 
     # Handle videos - use FileResponse for proper range request support (streaming/seeking)
     if mimetype and mimetype.startswith('video'):

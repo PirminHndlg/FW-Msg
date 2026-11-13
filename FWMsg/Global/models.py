@@ -583,6 +583,28 @@ class Dokument2(models.Model):
                 else:
                     return None
 
+        def video_to_image(video_path, img_path):
+            # Grab a single frame and scale it down so the overview never has
+            # to download the full video. Try 1s in first (skips black intro
+            # frames), then fall back to the first frame for very short clips.
+            for seek in ('1', '0'):
+                command = [
+                    'ffmpeg', '-y', '-loglevel', 'error',
+                    '-ss', seek, '-i', video_path,
+                    '-frames:v', '1',
+                    '-vf', "scale='min(640,iw)':-2",
+                    '-q:v', '4',
+                    img_path,
+                ]
+                try:
+                    subprocess.run(command, check=True, capture_output=True, timeout=60)
+                except Exception as e:
+                    logger.warning(f"Error creating video preview for {video_path}: {e}")
+                    continue
+                if os.path.exists(img_path) and os.path.getsize(img_path) > 0:
+                    return img_path
+            return None
+
         def excel_to_image(excel_path, img_path):
             from openpyxl import load_workbook
             from PIL import Image, ImageDraw, ImageFont
@@ -658,6 +680,12 @@ class Dokument2(models.Model):
 
         if mimetype and mimetype.startswith('image'):
             return self.dokument.path
+
+        if mimetype and mimetype.startswith('video'):
+            # Reuse an existing thumbnail instead of running ffmpeg on every save/request.
+            if os.path.exists(preview_image_path) and os.path.getsize(preview_image_path) > 0:
+                return preview_image_path
+            return video_to_image(self.dokument.path, preview_image_path)
 
         if mimetype and mimetype == 'application/pdf':
             return pdf_to_image(self.dokument.path, preview_image_path)

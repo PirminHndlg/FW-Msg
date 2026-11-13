@@ -483,6 +483,10 @@ def serve_dokument(request, dokument_identifier):
         if img_path:
             response = get_bild(img_path, img_path.split('/')[-1])
             return add_cache_headers_to_response(response, dokument)
+        # Never fall through to serving a whole video when only a preview
+        # image was requested.
+        if mimetype and mimetype.startswith('video'):
+            return HttpResponseNotFound()
 
     # Handle videos - use FileResponse for proper range request support (streaming/seeking)
     # For videos: use longer cache time but without 'immutable' to allow updates,

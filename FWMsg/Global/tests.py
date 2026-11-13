@@ -751,6 +751,60 @@ class FileServingViewsTests(TestCase):
         response = self.client.get(reverse('serve_dokument', args=[self.dokument.get_identifier()]))
         self.assertEqual(response.status_code, 200)
 
+    def _create_video_dokument(self, content):
+        video = Dokument2.objects.create(
+            org=self.org,
+            ordner=self.doc_folder,
+            dokument=SimpleUploadedFile("clip.mp4", content, content_type="video/mp4"),
+            titel="Test Video",
+        )
+        video.darf_bearbeiten.add(self.admin_cluster)
+        self.addCleanup(video.dokument.delete, save=False)
+        return video
+
+    def test_serve_dokument_video_preview_never_serves_video(self):
+        """A failed video thumbnail must return 404 instead of the full video file"""
+        video = self._create_video_dokument(b"not really a video")
+        self.client.force_login(self.admin_user)
+
+        with patch('subprocess.run', side_effect=FileNotFoundError('ffmpeg')):
+            response = self.client.get(
+                reverse('serve_dokument', args=[video.get_identifier()]), {'img': 'True'}
+            )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_serve_dokument_video_preview_returns_thumbnail(self):
+        """The ?img preview of a video is a small JPEG generated with ffmpeg"""
+        import shutil
+        import subprocess
+        if not shutil.which('ffmpeg'):
+            self.skipTest('ffmpeg not installed')
+
+        with tempfile.TemporaryDirectory() as tmp:
+            src = os.path.join(tmp, 'clip.mp4')
+            subprocess.run(
+                ['ffmpeg', '-y', '-loglevel', 'error', '-f', 'lavfi',
+                 '-i', 'testsrc=duration=2:size=1280x720:rate=10',
+                 '-pix_fmt', 'yuv420p', src],
+                check=True, capture_output=True, timeout=60,
+            )
+            with open(src, 'rb') as f:
+                video = self._create_video_dokument(f.read())
+
+        self.client.force_login(self.admin_user)
+        response = self.client.get(
+            reverse('serve_dokument', args=[video.get_identifier()]), {'img': 'True'}
+        )
+        preview_path = video.get_preview_converted()
+        if preview_path:
+            self.addCleanup(lambda: os.path.exists(preview_path) and os.remove(preview_path))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'image/jpeg')
+        thumbnail = Image.open(io.BytesIO(response.content))
+        self.assertEqual(thumbnail.width, 640)
+
 
 class BilderViewsTests(TestCase):
     def setUp(self):
