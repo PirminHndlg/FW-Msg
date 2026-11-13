@@ -8,6 +8,23 @@ from pywebpush import webpush, WebPushException
 
 logger = logging.getLogger(__name__)
 
+# How long push services keep a message for an unreachable device.
+PUSH_TTL_SECONDS = 24 * 60 * 60
+# HTTP timeout per push request (seconds).
+PUSH_REQUEST_TIMEOUT_SECONDS = 10
+# Web Push payloads are limited to ~4 KB after encryption; keep well below.
+PUSH_TITLE_MAX_CHARS = 120
+PUSH_BODY_MAX_CHARS = 300
+
+
+def _truncate(text, max_chars):
+    if text is None:
+        return text
+    text = str(text)
+    if len(text) <= max_chars:
+        return text
+    return text[: max_chars - 1].rstrip() + "…"
+
 def generate_vapid_keys():
     """
     Generate VAPID keys for web push notifications.
@@ -81,8 +98,8 @@ def send_push_notification(subscription, title, body, tag=None, url=None, icon=N
     }
     
     data = {
-        "title": title,
-        "body": body,
+        "title": _truncate(title, PUSH_TITLE_MAX_CHARS),
+        "body": _truncate(body, PUSH_BODY_MAX_CHARS),
         "requireInteraction": True
     }
     
@@ -97,24 +114,35 @@ def send_push_notification(subscription, title, body, tag=None, url=None, icon=N
     try:
         webpush(
             subscription_info=subscription_info,
-            data=json.dumps(data),
+            # ensure_ascii=False keeps umlauts/emoji as UTF-8 instead of
+            # 6-byte \uXXXX escapes, which matters for the ~4 KB payload limit.
+            data=json.dumps(data, ensure_ascii=False),
             vapid_private_key=settings.VAPID_PRIVATE_KEY,
             vapid_claims={
                 "sub": f"mailto:{settings.SERVER_EMAIL}"
-            }
+            },
+            # Without a TTL (pywebpush default: 0) push services drop the
+            # message if the device is not reachable at that very moment.
+            ttl=PUSH_TTL_SECONDS,
+            headers={"Urgency": "high"},
+            # pywebpush default is no timeout; a hanging endpoint would block
+            # the whole fan-out loop for all remaining recipients.
+            timeout=PUSH_REQUEST_TIMEOUT_SECONDS,
         )
-        
+
         # Update last_used timestamp if successful
         subscription.last_used = timezone.now()
         subscription.save(update_fields=['last_used'])
         return True
     except WebPushException as e:
-        # If the subscription is no longer valid (404), delete it
-        if e.response and e.response.status_code == 404:
+        # Note: requests.Response is falsy for 4xx/5xx, so compare against None.
+        status_code = e.response.status_code if e.response is not None else None
+        if status_code in (404, 410):
+            # Subscription expired or was revoked by the browser.
             logger.info(f"Removing expired push subscription for user {subscription.user.username}")
             subscription.delete()
         else:
-            logger.error(f"WebPushException: {str(e)}")
+            logger.error(f"WebPushException (status {status_code}) for user {subscription.user.username}: {str(e)}")
         return False
     except Exception as e:
         logger.error(f"Error sending push notification: {str(e)}")
