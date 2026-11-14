@@ -783,7 +783,7 @@ def wishes(request):
     freiwillige = (
         Bewerber.objects
         .filter(org=request.user.org, seminar_bewerber__isnull=False)
-        .select_related('user',
+        .select_related('user__customuser',
                         'first_wish_einsatzstelle', 'first_wish_einsatzland',
                         'second_wish_einsatzstelle', 'second_wish_einsatzland',
                         'third_wish_einsatzstelle', 'third_wish_einsatzland',

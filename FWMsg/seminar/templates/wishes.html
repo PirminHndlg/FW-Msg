@@ -9,7 +9,15 @@
     {% for f in freiwillige %}
     <div class="col">
         <div class="card h-100 shadow-sm">
-            <div class="card-header fw-semibold">{{ f.user.first_name }} {{ f.user.last_name }}</div>
+            <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                <img src="{% url 'serve_profil_picture' f.user.customuser.get_identifier %}"
+                     alt="Bild von {{ f.user.first_name }} {{ f.user.last_name }}"
+                     class="rounded-circle object-fit-cover" width="40" height="40" role="button"
+                     data-bs-toggle="modal" data-bs-target="#imageModal"
+                     onclick="document.getElementById('imageModalImg').src = this.src"
+                     onerror="this.onerror=null; this.src='../static/img/default_img.png';">
+                {{ f.user.first_name }} {{ f.user.last_name }}
+            </div>
             <ul class="list-group list-group-flush">
                 <li class="list-group-item"><span class="text-muted">1)</span> {% firstof f.first_wish_einsatzstelle f.first_wish_einsatzland f.first_wish "–" %}</li>
                 <li class="list-group-item"><span class="text-muted">2)</span> {% firstof f.second_wish_einsatzstelle f.second_wish_einsatzland f.second_wish "–" %}</li>
@@ -21,6 +29,14 @@
     {% empty %}
     <p class="text-muted">Keine Bewerber:innen gefunden.</p>
     {% endfor %}
+</div>
+
+<div class="modal fade" id="imageModal" tabindex="-1" aria-label="Profilbild" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content bg-dark" data-bs-dismiss="modal" role="button">
+            <img id="imageModalImg" src="" alt="Profilbild" class="w-100 h-100 object-fit-contain">
+        </div>
+    </div>
 </div>
 
 {% endblock %}
