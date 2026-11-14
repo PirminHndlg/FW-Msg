@@ -779,6 +779,23 @@ def assign(request, scroll_to=None):
 
 @login_required
 @required_role('O')
+def wishes(request):
+    freiwillige = (
+        Bewerber.objects
+        .filter(org=request.user.org, seminar_bewerber__isnull=False)
+        .select_related('user',
+                        'first_wish_einsatzstelle', 'first_wish_einsatzland',
+                        'second_wish_einsatzstelle', 'second_wish_einsatzland',
+                        'third_wish_einsatzstelle', 'third_wish_einsatzland',
+                        'no_wish_einsatzstelle', 'no_wish_einsatzland')
+        .distinct()
+        .order_by('user__first_name', 'user__last_name')
+    )
+    return render(request, 'wishes.html', {'freiwillige': freiwillige})
+
+
+@login_required
+@required_role('O')
 @require_POST
 def auto_assign(request):
     org = request.user.org

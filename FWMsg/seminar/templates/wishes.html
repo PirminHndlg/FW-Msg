@@ -1,0 +1,26 @@
+{% extends "seminar_base.html" %}
+{% block content %}
+
+<div class="headline_container">
+    <h2>Wünsche der Bewerber:innen</h2>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+    {% for f in freiwillige %}
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header fw-semibold">{{ f.user.first_name }} {{ f.user.last_name }}</div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><span class="text-muted">1)</span> {% firstof f.first_wish_einsatzstelle f.first_wish_einsatzland f.first_wish "–" %}</li>
+                <li class="list-group-item"><span class="text-muted">2)</span> {% firstof f.second_wish_einsatzstelle f.second_wish_einsatzland f.second_wish "–" %}</li>
+                <li class="list-group-item"><span class="text-muted">3)</span> {% firstof f.third_wish_einsatzstelle f.third_wish_einsatzland f.third_wish "–" %}</li>
+                <li class="list-group-item text-danger"><span class="fw-semibold">Nicht:</span> {% firstof f.no_wish_einsatzstelle f.no_wish_einsatzland f.no_wish "–" %}</li>
+            </ul>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-muted">Keine Bewerber:innen gefunden.</p>
+    {% endfor %}
+</div>
+
+{% endblock %}
