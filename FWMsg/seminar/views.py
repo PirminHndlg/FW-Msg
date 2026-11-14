@@ -468,7 +468,8 @@ def evaluate_all(request):
         messages.info(request, msg_text)
         return redirect('seminar_home')
 
-    i = int(request.GET.get('f') or 0)
+    f_arg = request.GET.get('f', '')
+    i = int(f_arg) if f_arg.isdigit() else 0
     if i < 0 or i >= len(average_total_per_freiwilliger):
         i = 0
     freiwilliger_id = average_total_per_freiwilliger[i]['bewerber']
@@ -480,10 +481,13 @@ def evaluate_all(request):
         messages.info(request, msg_text)
         return redirect('seminar_home')
 
-    fid = int(request.GET.get('fid') or 0)
+    fid_arg = request.GET.get('fid', '')
+    fid = int(fid_arg) if fid_arg.isdigit() else 0
     if fid:
         freiwilliger_id = fid
-        freiwilliger = Bewerber.objects.prefetch_related('interview_persons').get(id=freiwilliger_id, seminar_bewerber__isnull=False)
+        freiwilliger = get_object_or_404(
+            Bewerber.objects.prefetch_related('interview_persons'), id=freiwilliger_id, seminar_bewerber__isnull=False
+        )
         for index, item in enumerate(average_total_per_freiwilliger):
             if item['bewerber'] == freiwilliger_id:
                 i = index
