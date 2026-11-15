@@ -35,4 +35,17 @@ class BewerberAdmin(SimpleHistoryAdmin):
     search_fields = ['user__first_name', 'user__last_name']
     list_display = ['user__first_name', 'user__last_name', 'first_wish_einsatzland', 'second_wish_einsatzland', 'third_wish_einsatzland', 'no_wish_einsatzland', 'zuteilung']
     list_filter = [HasSeminarFilter]
+
+    WISH_EINSATZSTELLE_FIELDS = {
+        'first_wish_einsatzstelle', 'second_wish_einsatzstelle',
+        'third_wish_einsatzstelle', 'no_wish_einsatzstelle',
+    }
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name in self.WISH_EINSATZSTELLE_FIELDS:
+            kwargs['queryset'] = db_field.related_model.objects.select_related('land').order_by('land__name', 'name')
+        field = super().formfield_for_foreignkey(db_field, request, **kwargs)
+        if db_field.name in self.WISH_EINSATZSTELLE_FIELDS:
+            field.label_from_instance = lambda stelle: f"{stelle.land.name} - {stelle.name}" if stelle.land else stelle.name
+        return field
     
