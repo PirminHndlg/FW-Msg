@@ -7,7 +7,7 @@ from Global.models import Einsatzland2, Einsatzstelle2, PersonCluster
 from django.utils.translation import gettext_lazy as _
 from Global.models import get_current_request
 
-        
+
 # Create your models here.
 class Bewerber(OrgModel):
     # Status choices for applicant evaluation
@@ -17,7 +17,7 @@ class Bewerber(OrgModel):
         ("yellow", "Gelb"),
         ("green", "Grün"),
     ]
-    
+
     # Evaluation options for applicant assessment
     # G = Suitable, B = Conditionally suitable, N = Not suitable
     bewertungsmoeglicheiten = (
@@ -34,13 +34,13 @@ class Bewerber(OrgModel):
     verification_token = models.CharField(
         verbose_name="Verifikationstoken", max_length=255, null=True, blank=True
     )
-    
+
     # Fields to track completion status of the application process
     abgeschlossen = models.BooleanField(verbose_name="Abgeschlossen", default=False)
     abgeschlossen_am = models.DateTimeField(
         verbose_name="Abgeschlossen am", null=True, blank=True
     )
-    
+
     # Status and access control fields for applicant management
     status = models.CharField(
         verbose_name="Status",
@@ -62,7 +62,7 @@ class Bewerber(OrgModel):
         help_text="Die Teammitglieder/Ehemaligen, die auf die Bewerbung des Bewerbers:in zugreifen können.",
         related_name="accessible_applications",
     )
-    
+
     # Wish preferences for deployment locations - applicants can specify up to 3 preferred locations
     # and one location they definitely don't want to be assigned to
     first_wish = models.CharField(
@@ -162,7 +162,7 @@ class Bewerber(OrgModel):
         blank=True,
         help_text="Die Reaktion durch den Bewerber:in auf die Zuteilung.",
     )
-    
+
     endbewertung = models.CharField(
         max_length=1,
         choices=bewertungsmoeglicheiten,
@@ -184,7 +184,7 @@ class Bewerber(OrgModel):
         help_text="Die Personen, die das Interview mit dem Bewerber:in geführt haben.",
         related_name="interview_persons"
     )
-    
+
     application_pdf = models.FileField(
         verbose_name="PDF der Bewerbung",
         upload_to="bewerbung/",
@@ -192,25 +192,27 @@ class Bewerber(OrgModel):
         blank=True,
         help_text="Falls die Bewerbung per Mail versendet wurde, kann hier das PDF der Bewerbung hochgeladen werden.",
     )
-    
+
     def has_seminar(self):
         from seminar.models import Seminar
         return Seminar.objects.filter(org=self.org, bewerber=self).exists()
-    
+
     def get_endbewertung_display(self):
         if self.endbewertung:
             return dict(self.bewertungsmoeglicheiten).get(self.endbewertung.upper(), '' )
         else:
             return ''
-    
+
     CHECKBOX_ACTION_CHOICES = [
         ('add_to_seminar', '<i class="bi bi-plus-circle-fill me-1"></i>Zum Seminar hinzufügen', 'Der:Die Bewerber:in wird zum Seminar hinzugefügt.'),
         ('remove_from_seminar', '<i class="bi bi-dash-circle-fill me-1"></i>Vom Seminar entfernen', 'Der:Die Bewerber:in wird aus dem Seminar entfernt.'),
         ('send_registration_mail', '<i class="bi bi-envelope-fill me-1"></i>Registrierungsmail'),
         ('add_to_freiwillige', '<i class="bi bi-person-plus-fill me-1"></i>Zu Freiwilligen hinzufügen', 'Der:Die Bewerber:in wird zu der zuletzt erstellten Benutzergruppe Freiwillige hinzugefügt.'),
         ('send_zuteilung_email', '<i class="bi bi-envelope-fill me-1"></i>Stellenvorschlag senden', 'Der Stellenvorschlag wird an den Bewerber:in versendet. Es wird nur versendet, wenn eine Einsatzstelle zugewiesen wurde.'),
+        ('enable_mail_notifications', '<i class="bi bi-envelope-check-fill me-1"></i>Mail aktivieren', 'Die E-Mail-Benachrichtigungen werden für die ausgewählten Bewerber:innen insgesamt eingeschaltet. Einzeln abbestellte Benachrichtigungsarten bleiben abbestellt.'),
+        ('disable_mail_notifications', '<i class="bi bi-envelope-slash-fill me-1"></i>Mail deaktivieren', 'Die E-Mail-Benachrichtigungen werden für die ausgewählten Bewerber:innen insgesamt ausgeschaltet. Push-Benachrichtigungen und Systemmails (z. B. Registrierung, Stellenvorschlag) sind davon nicht betroffen.'),
     ]
-    
+
     def checkbox_action(self, org, checkbox_submit_value):
         if checkbox_submit_value == self.CHECKBOX_ACTION_CHOICES[0][0]:
             from seminar.models import Seminar
@@ -240,14 +242,14 @@ class Bewerber(OrgModel):
                     while start_date < datetime.now().date():
                         start_date = start_date.replace(year=start_date.year+1)
                     freiwilliger.start_geplant = start_date
-                    
+
                     if self.zuteilung.ende_geplant and self.zuteilung.ende_geplant != '':
                         end_date = datetime.strptime(self.zuteilung.ende_geplant, '%d.%m.').date()
                         while end_date < start_date:
                             end_date = end_date.replace(year=end_date.year+1)
                         freiwilliger.ende_geplant = end_date
                 freiwilliger.save()
-            
+
             # Add the user to the person cluster with view 'F' with the highest id (last created)
             from Global.models import PersonCluster
             # Get the first person cluster with view 'F' ordered by id reverse
@@ -257,7 +259,7 @@ class Bewerber(OrgModel):
                 self.user.customuser.person_cluster = fw_cluster
                 self.user.customuser.save()
                 self.user.save()
-            
+
             return True
         elif checkbox_submit_value == self.CHECKBOX_ACTION_CHOICES[4][0]:
             from BW.tasks import send_zuteilung_email
@@ -268,16 +270,23 @@ class Bewerber(OrgModel):
                 return True
             else:
                 return False
+        elif checkbox_submit_value in ('enable_mail_notifications', 'disable_mail_notifications'):
+            customuser = getattr(self.user, 'customuser', None)
+            if customuser is None:
+                return False
+            customuser.mail_notifications = checkbox_submit_value == 'enable_mail_notifications'
+            customuser.save(update_fields=['mail_notifications'])
+            return True
         return False
-    
+
     class Meta:
         verbose_name = _('Bewerber:in')
         verbose_name_plural = _('Bewerber:innen')
-        
+
     def __str__(self):
         return f"{self.user}"
-    
-    
+
+
 class ApplicationQuestion(OrgModel):
     ANSWER_TYPE_CHOICES = [
         ("t", "Text"),
@@ -320,7 +329,7 @@ class ApplicationQuestion(OrgModel):
         for i, question in enumerate(questions):
             question.order = i + 1
             question.save()
-    
+
     def save(self, *args, **kwargs):
         if not self.order:
             self._reassign_order(ApplicationQuestion.objects.filter(org=self.org).exclude(id=self.id))
@@ -339,9 +348,9 @@ class ApplicationQuestion(OrgModel):
                 for question in questions_same_order:
                     question.order = question.order + 1
                     question.save()
-        
+
         super().save(*args, **kwargs)
-    
+
     def delete(self, using=None, keep_parents=False):
         # reassign the order of the questions
         all_questions = ApplicationQuestion.objects.filter(org=self.org).exclude(id=self.id).order_by('order')
@@ -483,7 +492,7 @@ class ApplicationAnswerFile(OrgModel):
     file = models.FileField(
         verbose_name="Datei", upload_to="bewerbung/", null=True, blank=True
     )
-    
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.file_question.is_profile_picture and self.file:
