@@ -51,7 +51,7 @@ def get_org(user):
             return org
         except:
             return None
-    return None 
+    return None
 
 @register.filter
 def hex_to_rgb(hex_code):
@@ -187,7 +187,7 @@ def get_current_seminar(org):
         try:
             diff_start = current_date - seminar.seminar_start  # positive if seminar has started
             diff_end = seminar.seminar_end - current_date      # positive if seminar hasn't ended
-            if diff_start.days >= -7 and diff_end.days >= -2:
+            if diff_start.days >= -7 and diff_end.days >= 0:
                 seminars_to_display.append(seminar)
         except:
             continue
