@@ -2626,7 +2626,14 @@ def kalender_abbonement(request, token):
 
 @login_required
 def settings_view(request):
-    context = check_organization_context(request, {})
+    from Home import mfa
+    from admin_mfa import policy as mfa_policy
+
+    context = check_organization_context(request, {
+        'mfa_active': mfa_policy.has_second_factor(request.user),
+        'mfa_required': mfa.mfa_required(request.user),
+        'mfa_applies': mfa_policy.applies_to(request.user),
+    })
     return render(request, 'settings.html', context=context)
 
 @login_required

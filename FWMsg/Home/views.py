@@ -16,6 +16,14 @@ from django.utils import timezone
 from django.core import signing
 from django.contrib.auth.decorators import login_required
 from ORG.models import Organisation
+from allauth.account.decorators import reauthentication_required
+from allauth.account.views import LoginView as AllauthLoginView
+from django.contrib.auth import update_session_auth_hash
+from django.views.decorators.http import require_POST
+from admin_mfa import audit as mfa_audit
+from admin_mfa import policy as mfa_policy
+from admin_mfa import session as mfa_session
+from . import mfa
 
 def _is_email(value):
         """
@@ -53,83 +61,8 @@ def index(request):
             messages.error(request, _('Ungültige Personengruppe.'))
             return redirect('index')
         
-    def check_person_cluster_active(user):
-        if user and not user.customuser.person_cluster.active:
-            org_mail = user.customuser.org.email if user.customuser.org else None
-            error_message = _('Dein Account ist nicht aktiv.')
-            if org_mail:
-                error_message += f'\n\nMelde dich bei {org_mail} um deinen Account zu aktivieren.'
-            else:
-                error_message += f'\n\nMelde dich beim Administrator um deinen Account zu aktivieren.'
-            messages.error(request, error_message)
-            return False
-        return True
         
          
-    # Handle login form
-    form = EmailAuthenticationForm()
-    if request.method == 'POST':
-        form = EmailAuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-
-            # Try to authenticate with the provided credentials
-            user = None
-            
-            # First check if input is an email
-            if _is_email(username):
-                try:
-                    # Get the user by email (case-insensitive)
-                    email_user = get_user_model().objects.get(email__iexact=username)
-                    # Then authenticate with the username and password
-                    user = authenticate(username=email_user.username, password=password)
-                    
-                    # Check if user exists but is not active (email not verified)
-                    if user is None and email_user is not None and not email_user.is_active:
-                        messages.error(request, _('Bitte verifizieren Sie zuerst Ihre E-Mail-Adresse.'))
-                        return redirect('index')
-                        
-                except get_user_model().DoesNotExist:
-                    user = None
-            else:
-                # Standard username authentication
-                user = authenticate(username=username, password=password)
-                
-                # Check if user exists but is not active
-                if user is None:
-                    try:
-                        username_user = get_user_model().objects.get(username=username)
-                        if not username_user.is_active:
-                            messages.error(request, _('Bitte verifizieren Sie zuerst Ihre E-Mail-Adresse.'))
-                            return redirect('index')
-                    except get_user_model().DoesNotExist:
-                        pass
-
-            if user is not None:
-                # Check if person cluster is active
-                if not check_person_cluster_active(user):
-                    return redirect('index')
-                
-                login(request, user)
-                
-                next_url = request.GET.get('next')
-                if next_url:
-                    return redirect(next_url)
-                
-                from django.contrib.auth.password_validation import validate_password
-                try:
-                    validate_password(password, user)
-                except ValidationError as e:
-                    messages.error(request, 'Das Passwort entspricht den Anforderungen nicht, wir empfehlen einen Passwortwechsel.')
-                    return redirect('password_change')
-                
-                return redirect_to_home(user)
-            else:
-                # Add non-field error if authentication fails
-                messages.error(request, _('Ungültiger Benutzername oder Passwort.'))
-                return redirect('index')
-    
     # Redirect if user is already authenticated
     if request.path != '/index':
         if request.user.is_authenticated and hasattr(request.user, 'customuser'):
@@ -137,7 +70,9 @@ def index(request):
         elif request.user.is_authenticated and request.user.is_superuser:
             return redirect('admin_home')
 
-    return render(request, 'index.html', {'form': form})
+    # Login through allauth's login flow, which adds the second factor
+    # (Home/mfa.py). The person-cluster check runs in Home.mfa.AccountAdapter.
+    return AllauthLoginView.as_view(template_name='account/login.html')(request)
 
 def maintenance(request):
     maintenance = Maintenance.objects.order_by('-id').first()
@@ -218,7 +153,11 @@ def token_login(request, token):
             return redirect('index_home')
         custom_user = CustomUser.objects.get(token=token)
         user = custom_user.user
-        login(request, user)
+        if mfa_policy.applies_to(user):
+            # A token alone must not skip the second factor.
+            messages.info(request, _('Bitte melde dich mit Passwort und zweitem Faktor an.'))
+            return redirect('login')
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         return redirect('index_home')
     except Exception as e:
         messages.error(request, 'Ungültiger Token.')
@@ -271,6 +210,11 @@ def first_login(request, username=None, einmalpasswort=None):
             user.set_password(password)
             user.save()
 
+            if mfa_policy.applies_to(user):
+                # The one-time password replaces the password, not the second factor.
+                messages.success(request, _('Passwort gesetzt. Bitte melde dich jetzt mit dem neuen Passwort und deinem zweiten Faktor an.'))
+                return redirect('login')
+
             # Re-authenticate with new password
             user = authenticate(username=user.username, password=password)
             if user is not None:
@@ -318,8 +262,8 @@ def password_change(request):
             user.save()
             messages.success(request, _('Ihr Passwort wurde erfolgreich geändert.'))
             
-            new_user = authenticate(username=user.username, password=form.cleaned_data['new_password1'])
-            login(request, new_user)
+            # Keep the current session (and its MFA login record) valid.
+            update_session_auth_hash(request, user)
             
             return redirect('index_home')
     else:
@@ -465,3 +409,31 @@ def own_signin(request, token):
     except Exception as e:
         messages.error(request, 'Ungültiger Token.')
         return redirect('index_home')
+
+@login_required
+@require_POST
+def mfa_enable(request):
+    """Turn on two-factor authentication for a user who does not have to use it."""
+    user = request.user
+    if not mfa_policy.applies_to(user):
+        mfa.opt_in(user)
+        # This session is a regular login of the user; admin_mfa accepts only
+        # sessions with its login record, so write one before the setup pages.
+        mfa_session.mark(request, user, mfa_session.MODE_MFA)
+        mfa_audit.event('mfa_opt_in', request, user)
+    return redirect('mfa_index')
+
+
+@login_required
+@require_POST
+@reauthentication_required
+def mfa_disable(request):
+    """Turn off two-factor authentication (not possible for admins)."""
+    user = request.user
+    if mfa.mfa_required(user):
+        messages.error(request, _('Für Administrator-Konten ist die Zwei-Faktor-Authentifizierung verpflichtend.'))
+        return redirect('settings')
+    mfa.opt_out(user)
+    mfa_audit.event('mfa_opt_out', request, user)
+    messages.success(request, _('Die Zwei-Faktor-Authentifizierung wurde deaktiviert.'))
+    return redirect('settings')

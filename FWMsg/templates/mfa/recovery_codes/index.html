@@ -1,0 +1,62 @@
+{% extends "mfa/recovery_codes/base.html" %}
+{% load i18n allauth static %}
+{% comment %}
+allauth's recovery codes page in FWMsg's look: download/regenerate as links,
+a prominent button back to the start page at the bottom.
+{% endcomment %}
+{% block content %}
+    {% element h1 %}
+        {% translate "Recovery Codes" %}
+    {% endelement %}
+    <p class="text-muted">
+        {% blocktranslate count unused_count=unused_codes|length %}There is {{ unused_count }} out of {{ total_count }} recovery codes available.{% plural %}There are {{ unused_count }} out of {{ total_count }} recovery codes available.{% endblocktranslate %}
+    </p>
+    {% if can_view_codes %}
+        <label class="form-label" for="recovery_codes">{% translate "Unused codes" %}</label>
+        {# djlint:off #}
+        <textarea id="recovery_codes" class="form-control rounded-3 font-monospace mb-2" rows="{{ unused_codes|length }}" readonly>{% for code in unused_codes %}{% if forloop.counter0 %}
+{% endif %}{{ code }}{% endfor %}</textarea>
+        {# djlint:on #}
+        <p class="form-text mb-3">
+            {% trans "Bewahren Sie die Codes an einem sicheren Ort auf. Jeder Code kann einmal verwendet werden, falls Sie keinen Zugriff auf Ihren zweiten Faktor haben." %}
+        </p>
+    {% endif %}
+
+    {% if can_download_codes or can_generate_codes %}
+        <div class="d-flex flex-wrap gap-4 mb-3">
+            {% if can_download_codes %}
+                <a href="{% url 'mfa_download_recovery_codes' %}">
+                    <i class="bi bi-download me-1"></i>{% translate "Download codes" %}
+                </a>
+            {% endif %}
+            {% if can_generate_codes %}
+                <a href="{% url 'mfa_generate_recovery_codes' %}">
+                    <i class="bi bi-arrow-repeat me-1"></i>{% translate "Generate new codes" %}
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if MFA_RECOVERY_CODES_SHOW_ONCE and can_view_codes %}
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="codes_saved">
+            <label class="form-check-label" for="codes_saved">{% translate "I have saved my recovery codes" %}</label>
+        </div>
+    {% endif %}
+
+    <a href="{% url 'index_home' %}" class="btn btn-primary btn-lg w-100 rounded-3 mt-3">
+        <i class="bi bi-house me-1"></i>{% trans "Zur Startseite" %}
+    </a>
+{% endblock content %}
+{% block extra_body %}
+    {{ block.super }}
+    <script src="{% static 'mfa/js/recovery_codes.js' %}"></script>
+    <script src="{% static 'account/js/onload.js' %}"></script>
+    <script data-allauth-onload="allauth.recoveryCodes.forms.viewForm" type="application/json">{
+    "ids": {
+        "saveConfirmation": "codes_saved",
+        "recoveryCodes": "recovery_codes"
+    }
+}
+    </script>
+{% endblock extra_body %}

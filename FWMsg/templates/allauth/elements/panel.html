@@ -1,0 +1,14 @@
+{% load allauth %}
+<section class="card rounded-4 mb-3">
+    <div class="card-body p-3">
+        <h2 class="h5 card-title">{% slot title %}{% endslot %}</h2>
+        {% slot body %}
+        {% endslot %}
+        {% if slots.actions %}
+            {# Phones: full-width buttons below each other; wider screens: in a row #}
+            <div class="d-grid gap-2 d-sm-flex flex-sm-wrap mt-2">
+                {% for action in slots.actions %}{{ action }}{% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</section>

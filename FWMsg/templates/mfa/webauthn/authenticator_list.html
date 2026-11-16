@@ -1,0 +1,59 @@
+{% extends "mfa/webauthn/base.html" %}
+{% load i18n static allauth humanize %}
+{% comment %}
+allauth's list of passkeys/security keys as a list instead of a table, so it
+fits on phones: name and type on top, dates below, buttons at the bottom.
+{% endcomment %}
+{% block content %}
+    {% element h1 %}
+        {% trans "Security Keys" %}
+    {% endelement %}
+    {% if authenticators|length == 0 %}
+        <p class="text-muted">{% blocktranslate %}No security keys have been added.{% endblocktranslate %}</p>
+    {% else %}
+        <ul class="list-group mb-3">
+            {% for authenticator in authenticators %}
+                <li class="list-group-item p-3">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <i class="bi bi-key text-primary"></i>
+                        <span class="fw-semibold text-break">{{ authenticator }}</span>
+                        {% if authenticator.wrap.is_passwordless is True %}
+                            {% element badge tags="mfa,key,primary" %}
+                                {% translate "Passkey" %}
+                            {% endelement %}
+                        {% elif authenticator.wrap.is_passwordless is False %}
+                            {% element badge tags="mfa,key,secondary" %}
+                                {% translate "Security key" %}
+                            {% endelement %}
+                        {% else %}
+                            {% element badge title=_("This key does not indicate whether it is a passkey.") tags="mfa,key,warning" %}
+                                {% translate "Unspecified" %}
+                            {% endelement %}
+                        {% endif %}
+                    </div>
+                    <div class="small text-muted mb-2">
+                        {% blocktranslate with created_at=authenticator.created_at|date:"SHORT_DATE_FORMAT" %}Added on {{ created_at }}{% endblocktranslate %}.
+                        {% if authenticator.last_used_at %}
+                            {% blocktranslate with last_used=authenticator.last_used_at|naturaltime %}Last used {{ last_used }}{% endblocktranslate %}
+                        {% else %}
+                            {% trans "Noch nicht verwendet." %}
+                        {% endif %}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'mfa_edit_webauthn' pk=authenticator.pk %}" class="btn btn-outline-primary btn-sm rounded-3 flex-fill flex-sm-grow-0">
+                            <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
+                        </a>
+                        <a href="{% url 'mfa_remove_webauthn' pk=authenticator.pk %}" class="btn btn-outline-danger btn-sm rounded-3 flex-fill flex-sm-grow-0">
+                            <i class="bi bi-trash me-1"></i>{% translate "Remove" %}
+                        </a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <div class="d-grid d-sm-block">
+        <a href="{% url 'mfa_add_webauthn' %}" class="btn btn-primary rounded-3">
+            <i class="bi bi-plus-lg me-1"></i>{% translate "Add" %}
+        </a>
+    </div>
+{% endblock %}

@@ -18,6 +18,7 @@ from .models import ApplicationQuestion, ApplicationAnswer, ApplicationText, Bew
 from django.contrib import messages
 from django.contrib.auth.models import User
 from .decorators import application_or_seminar_is_open
+from admin_mfa import policy as mfa_policy
 
 base_template = 'baseBw.html'
 
@@ -102,7 +103,10 @@ def verify_account(request, token):
         bewerber = Bewerber.objects.get(verification_token=token)
         bewerber.user.is_active = True
         bewerber.user.save()
-        login(request, bewerber.user)
+        if mfa_policy.applies_to(bewerber.user):
+            # The verification link must not skip the second factor.
+            return redirect('login')
+        login(request, bewerber.user, backend='django.contrib.auth.backends.ModelBackend')
         return redirect('bw_home')
     except Bewerber.DoesNotExist:
         return redirect('bw_home')
