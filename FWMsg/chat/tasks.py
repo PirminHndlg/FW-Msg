@@ -5,7 +5,6 @@ from django.conf import settings
 from django.urls import reverse
 from Global.notifications import NotificationType, get_type_unsubscribe_url, notify_user
 from Global.send_email import (
-    format_chat_new_group_invite_email,
     format_chat_new_message_email,
     get_logo_url,
     get_org_color,
@@ -40,38 +39,6 @@ def _chat_email_context(*, org, recipient_user, sender_user, action_url, notific
         'image_url': get_logo_url(org),
         'org_color': get_org_color(org),
     }
-
-
-@shared_task
-def notify_users_about_new_group_chat(group_chat_id, sender_user_id):
-    # Ignore for now
-    return True
-    group_chat = ChatGroup.objects.select_related('org').get(id=group_chat_id)
-    sender_user = User.objects.get(id=sender_user_id)
-    action_url = f'{settings.DOMAIN_HOST}{reverse("chat_group", args=[group_chat.get_identifier()])}'
-    org = group_chat.org
-
-    for recipient_user in group_chat.users.exclude(pk=sender_user.pk):
-        subject = f'Neuer Gruppenchat: {group_chat.name}'
-        push_content = f'Du wurdest zu einem neuen Gruppenchat eingeladen: {group_chat.name} von {str(sender_user)}'
-        email_html = format_chat_new_group_invite_email(
-            group_name=group_chat.name,
-            **_chat_email_context(
-                org=org,
-                recipient_user=recipient_user,
-                sender_user=sender_user,
-                action_url=action_url,
-                notification_type=NotificationType.CHAT_GROUP_INVITE,
-            ),
-        )
-
-        notify_user(
-            recipient_user, NotificationType.CHAT_GROUP_INVITE, subject,
-            email_html=email_html, push_body=push_content, url=action_url,
-            reply_to=[sender_user.email],
-        )
-
-    return True
 
 
 @shared_task

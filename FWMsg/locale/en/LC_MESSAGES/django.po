@@ -7863,9 +7863,6 @@ msgstr "You have unsubscribed from emails for “%(label)s”. You can find more
 msgid "E-Mails für „%(label)s“ wurden aktiviert"
 msgstr "Emails for “%(label)s” have been turned on"
 
-msgid "Einladung in einen Gruppenchat"
-msgstr "Group chat invitation"
-
 msgid "Entscheidung über Änderungsvorschlag"
 msgstr "Decision on change request"
 
@@ -7946,9 +7943,6 @@ msgstr "When volunteers in your countries complete a task"
 
 msgid "Wenn dir neue Aufgaben zugewiesen werden"
 msgstr "When new tasks are assigned to you"
-
-msgid "Wenn du zu einem Gruppenchat hinzugefügt wirst"
-msgstr "When you are added to a group chat"
 
 msgid "Wenn du zu einem Kalendereintrag eingeladen wirst"
 msgstr "When you are invited to a calendar event"

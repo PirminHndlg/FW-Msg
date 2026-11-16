@@ -509,30 +509,6 @@ def format_chat_new_message_email(
     return render_to_string('mail/chat_new_message.html', context)
 
 
-def format_chat_new_group_invite_email(
-    *,
-    sender_name,
-    group_name,
-    action_url,
-    unsubscribe_url,
-    user_name,
-    org_name,
-    image_url,
-    org_color,
-):
-    context = {
-        'sender_name': sender_name,
-        'group_name': group_name,
-        'action_url': action_url,
-        'unsubscribe_url': unsubscribe_url,
-        'user_name': user_name,
-        'org_name': org_name,
-        'image_url': image_url,
-        'org_color': org_color,
-    }
-    return render_to_string('mail/chat_new_group_invite.html', context)
-
-
 def get_logo_base64(org):
     with open(org.logo.path, "rb") as org_logo:
         base64_image = base64.b64encode(org_logo.read()).decode('utf-8')

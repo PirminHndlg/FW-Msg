@@ -30,7 +30,7 @@ from .badge_utils import (
 )
 from .forms import ChatDirectForm, ChatGroupForm, SendDirectMessageForm, SendGroupMessageForm
 from .models import ChatDirect, ChatGroup, ChatMessageDirect, ChatMessageGroup
-from .tasks import notify_users_about_new_direct_chat_message, notify_users_about_new_group_chat_message, notify_users_about_new_group_chat
+from .tasks import notify_users_about_new_direct_chat_message, notify_users_about_new_group_chat_message
 from django.utils.translation import gettext_lazy as _
 
 def _ampel_payload(ampel):
@@ -338,8 +338,7 @@ def create_chat_group(request):
             form.save_m2m()
             chat.users.add(request.user)
 
-            notify_users_about_new_group_chat.s(chat.id, request.user.id).apply_async(countdown=10)
-
+            # Intentionally no notification when people are added to a new group.
             return redirect(reverse('chat_group', args=[chat.get_identifier()]))
         django_messages.error(request, _('Fehler beim Erstellen des Chats'))
     else:

@@ -375,11 +375,35 @@ class ChatNotificationTests(NotificationTestBase):
         self.send_group(read_by=[self.fw_user])
         self.assertEqual(self.push_usernames(), {'other'})
 
-    def test_group_invite_is_currently_disabled(self):
-        from chat.tasks import notify_users_about_new_group_chat
-        self.assertTrue(notify_users_about_new_group_chat(self.group.id, self.team_user.id))
+    def test_creating_group_sends_nothing(self):
+        """Being added to a new group must never trigger a notification."""
+        self.client.force_login(self.team_user)
+        response = self.client.post(
+            reverse('create_chat_group'),
+            {'name': 'Neue Gruppe', 'description': '', 'users': [self.fw_user.pk, self.other.pk]},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(ChatGroup.objects.filter(name='Neue Gruppe').exists())
+        self.celery.assert_not_called()
         self.smtp.assert_not_called()
         self.webpush.assert_not_called()
+
+    def test_adding_member_sends_nothing(self):
+        newcomer = self.make_user('newcomer', self.fw_cluster)
+        self.client.force_login(self.team_user)
+        response = self.client.post(
+            reverse('manage_chat_group', args=[self.group.get_identifier()]),
+            data=json.dumps({'action': 'add_member', 'user_id': newcomer.pk}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(newcomer, self.group.users.all())
+        self.celery.assert_not_called()
+        self.smtp.assert_not_called()
+        self.webpush.assert_not_called()
+
+    def test_no_group_invite_notification_type(self):
+        self.assertNotIn('chat_group_invite', NotificationType.values)
 
 
 class PostNotificationTests(NotificationTestBase):

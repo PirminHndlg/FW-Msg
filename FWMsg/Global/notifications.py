@@ -28,7 +28,6 @@ class NotificationType(models.TextChoices):
     POST = 'post', _('Posts')
     CHAT_DIRECT = 'chat_direct', _('Direktnachricht')
     CHAT_GROUP = 'chat_group', _('Gruppennachricht')
-    CHAT_GROUP_INVITE = 'chat_group_invite', _('Einladung in einen Gruppenchat')
     CALENDAR_NEW = 'calendar_new', _('Neuer Kalendereintrag')
     TASK_NEW = 'task_new', _('Neue Aufgaben')
     TASK_REMINDER = 'task_reminder', _('Aufgabenerinnerung')
@@ -85,9 +84,6 @@ NOTIFICATION_SPECS = {
         NotificationSpec(NotificationType.CHAT_GROUP, GROUP_COMMUNICATION,
                          _('Neue Nachricht in einem Gruppenchat'),
                          icon='bi-chat-dots'),
-        NotificationSpec(NotificationType.CHAT_GROUP_INVITE, GROUP_COMMUNICATION,
-                         _('Wenn du zu einem Gruppenchat hinzugefügt wirst'),
-                         icon='bi-people'),
         NotificationSpec(NotificationType.CALENDAR_NEW, GROUP_ORGANISATION,
                          _('Wenn du zu einem Kalendereintrag eingeladen wirst'),
                          cluster_flag='calendar', icon='bi-calendar-event'),
