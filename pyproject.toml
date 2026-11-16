@@ -1,0 +1,64 @@
+[project]
+name = "fwmsg"
+version = "0.1.0"
+description = "FWMsg – Verwaltungsplattform für Freiwilligendienste"
+readme = "README.md"
+requires-python = ">=3.13"
+# Only direct dependencies; exact versions of all (incl. transitive) packages live in uv.lock.
+dependencies = [
+    "celery>=5.6.2",
+    "channels>=4.3.2",
+    "channels-redis>=4.3.0",
+    "cryptography>=50.0.0",
+    "daphne>=4.2.2",
+    "django>=6.0.8",
+    "django-admin-mfa",
+    "django-celery-results>=2.6.0",
+    "django-password-validators>=1.7.3",
+    "django-simple-history>=3.11.0",
+    "django-tables2>=2.8.0",
+    "django-widget-tweaks>=1.5.1",
+    "djangorestframework>=3.18.3",
+    "emoji>=2.15.0",
+    "geopy>=2.5.0",
+    "icalendar>=7.3.0",
+    "numpy>=2.4.1",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.3",
+    "pdf2image>=1.17.0",
+    "pillow>=13.0.0",
+    "pillow-heif>=1.3.0",
+    "py-vapid>=1.9.4",
+    "pypdf>=7.0.1",
+    "python-dateutil>=2.9.0.post0",
+    "pywebpush>=2.2.0",
+    "redis>=7.1.0",
+    "reportlab>=4.4.7",
+    "requests>=2.33.0",
+]
+
+[dependency-groups]
+dev = [
+    "deptry>=0.24.0",
+    "pipdeptree>=2.30.0",
+    # Required by `manage.py test --parallel` to report tracebacks from worker processes
+    "tblib>=3.2.2",
+]
+# PostgreSQL driver for production servers (install.sh: `uv sync --group postgres`)
+postgres = [
+    "psycopg2-binary>=2.9",
+]
+
+[tool.uv]
+# This is an application, not an installable package.
+package = false
+# Only resolve for CPython (PyPy is not used and has conflicting transitive pins).
+environments = ["platform_python_implementation == 'CPython'"]
+
+[tool.uv.workspace]
+members = [
+    "packages/django-admin-mfa",
+]
+
+[tool.uv.sources]
+django-admin-mfa = { workspace = true, editable = true }
