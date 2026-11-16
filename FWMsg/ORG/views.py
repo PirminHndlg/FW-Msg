@@ -1045,14 +1045,21 @@ def get_cascade_info(request):
     from django.contrib.admin import site as admin_site
     from django.db import DEFAULT_DB_ALIAS
     
+    # Deleting a Bewerber whose user is still an applicant also deletes the user
+    # (see BW.models.delete_applicant_user), so preview the user's cascade instead.
+    from BW.models import Bewerber
+    collect_root = instance
+    if isinstance(instance, Bewerber) and instance.user_is_applicant_only():
+        collect_root = instance.user
+
     try:
         # Get detailed information about what will be deleted
         collector = NestedObjects(using=DEFAULT_DB_ALIAS)
-        collector.collect([instance])
-        
+        collector.collect([collect_root])
+
         # Also get the formatted output from Django admin for validation
         deletable_objects, model_count, perms_needed, protected = get_deleted_objects(
-            [instance], 
+            [collect_root],
             request, 
             admin_site
         )

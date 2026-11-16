@@ -163,3 +163,71 @@ class BewerberMailNotificationActionTests(TestCase):
         self.client.force_login(self.bewerber[0].user)
         self.run_action('disable_mail_notifications', self.bewerber)
         self.assertEqual(self.mail_flags(), [True, True, True])
+
+
+class BewerberDeleteUserTests(TestCase):
+    """Deleting a Bewerber removes its user only while the user is still an applicant."""
+
+    def setUp(self):
+        self.addCleanup(patch.stopall)
+        patch('celery.app.task.Task.apply_async').start()
+        patch('Global.send_email.send_mail', return_value=1).start()
+
+        from .models import Bewerber
+
+        self.org = make_org('Delete Org')
+        self.org_user = User.objects.get(customuser__org=self.org)
+        self.client.force_login(self.org_user)
+
+        self.user = make_bewerber_user(self.org, username='bw_delete')
+        self.bewerber, _ = Bewerber.objects.get_or_create(user=self.user, defaults={'org': self.org})
+
+    def make_freiwillige(self):
+        fw_cluster = PersonCluster.objects.create(name='Freiwillige', org=self.org, view='F')
+        CustomUser.objects.filter(user=self.user).update(person_cluster=fw_cluster)
+
+    def assert_user_exists(self, exists):
+        self.assertEqual(User.objects.filter(pk=self.user.pk).exists(), exists)
+        self.assertEqual(CustomUser.objects.filter(user_id=self.user.pk).exists(), exists)
+
+    def test_delete_applicant_deletes_user(self):
+        self.bewerber.delete()
+        self.assert_user_exists(False)
+
+    def test_delete_via_table_view_deletes_user(self):
+        self.client.get(reverse('delete_object', args=['bewerber', self.bewerber.id]))
+        from .models import Bewerber
+        self.assertFalse(Bewerber.objects.filter(pk=self.bewerber.pk).exists())
+        self.assert_user_exists(False)
+
+    def test_queryset_delete_deletes_user(self):
+        from .models import Bewerber
+        Bewerber.objects.filter(pk=self.bewerber.pk).delete()
+        self.assert_user_exists(False)
+
+    def test_delete_keeps_freiwillige_user(self):
+        self.make_freiwillige()
+        self.bewerber.delete()
+        self.assert_user_exists(True)
+
+    def test_deleting_user_still_works(self):
+        from .models import Bewerber
+        self.user.delete()
+        self.assertFalse(Bewerber.objects.filter(pk=self.bewerber.pk).exists())
+        self.assert_user_exists(False)
+
+    def cascade_models(self):
+        response = self.client.get(
+            reverse('get_cascade_info'), {'model': 'bewerber', 'id': self.bewerber.id}
+        )
+        self.assertEqual(response.status_code, 200)
+        return [str(group['model']) for group in response.json()['cascade_objects']]
+
+    def test_cascade_info_lists_user_for_applicant(self):
+        models_listed = self.cascade_models()
+        self.assertIn(str(User._meta.verbose_name_plural), models_listed)
+        self.assertIn(str(CustomUser._meta.verbose_name_plural), models_listed)
+
+    def test_cascade_info_omits_user_for_freiwillige(self):
+        self.make_freiwillige()
+        self.assertNotIn(str(User._meta.verbose_name_plural), self.cascade_models())

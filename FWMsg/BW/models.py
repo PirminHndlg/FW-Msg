@@ -1,6 +1,9 @@
 import uuid as uuid_module
 from django.db import models
-from Global.models import OrgModel
+from django.db.models import QuerySet
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+from Global.models import OrgModel, CustomUser
 from django.contrib.auth.models import User
 from datetime import datetime
 from Global.models import Einsatzland2, Einsatzstelle2, PersonCluster
@@ -285,6 +288,34 @@ class Bewerber(OrgModel):
 
     def __str__(self):
         return f"{self.user}"
+
+    def user_is_applicant_only(self):
+        """True, wenn der zugehörige User aktuell (noch) in einer Bewerber-Benutzergruppe ist.
+
+        Nur dann wird beim Löschen des Bewerbers auch der User (inkl. CustomUser)
+        gelöscht. Ist der User bereits z. B. Freiwillige:r, bleibt er bestehen.
+        """
+        if not self.user_id:
+            return False
+        return CustomUser.objects.filter(
+            user_id=self.user_id, person_cluster__view='B'
+        ).exists()
+
+
+@receiver(post_delete, sender=Bewerber)
+def delete_applicant_user(sender, instance, origin=None, **kwargs):
+    """Löscht den User eines gelöschten Bewerbers, sofern dieser noch Bewerber:in ist.
+
+    Greift nur, wenn das Löschen vom Bewerber selbst ausgeht (Instanz oder QuerySet),
+    nicht wenn der Bewerber als Kaskade einer User-/Org-Löschung entfernt wird.
+    """
+    from_bewerber = isinstance(origin, Bewerber) or (
+        isinstance(origin, QuerySet) and origin.model is Bewerber
+    )
+    if not from_bewerber:
+        return
+    if instance.user_is_applicant_only():
+        User.objects.filter(pk=instance.user_id).delete()
 
 
 class ApplicationQuestion(OrgModel):
