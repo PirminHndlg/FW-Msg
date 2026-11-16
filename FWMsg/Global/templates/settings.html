@@ -23,7 +23,12 @@
             background-color: rgba(var(--bs-primary-rgb), 0.05);
         }
         
+        .setting-item .flex-grow-1 {
+            min-width: 0;
+        }
+
         .setting-icon {
+            flex-shrink: 0;
             width: 40px;
             height: 40px;
             display: flex;
@@ -93,6 +98,19 @@
                 </div>
                 <div class="card-body py-0 px-3">
                     <div class="list-group list-group-flush">
+                        <a href="{% url 'notification_settings' %}" class="list-group-item list-group-item-action setting-item">
+                            <div class="d-flex align-items-center">
+                                <div class="setting-icon me-3">
+                                    <i class="bi bi-sliders"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{% trans "Benachrichtigungen auswählen" %}</h6>
+                                    <p class="mb-0 text-muted small">{% trans "Für jede Art von Benachrichtigung festlegen, ob du sie per E-Mail und/oder Push erhältst" %}</p>
+                                </div>
+                                <i class="bi bi-chevron-right text-muted"></i>
+                            </div>
+                        </a>
+
                         <a href="{% url 'push_settings' %}" class="list-group-item list-group-item-action setting-item">
                             <div class="d-flex align-items-center">
                                 <div class="setting-icon me-3">
@@ -114,7 +132,7 @@
                                 </div>
                                 <div class="flex-grow-1">
                                     <h6 class="mb-1">{% trans "E-Mail-Benachrichtigungen" %}</h6>
-                                    <p class="mb-0 text-muted small">{% trans "E-Mail-Benachrichtigungen für Aufgaben, Kalender-Ereignisse und mehr erhalten" %}</p>
+                                    <p class="mb-0 text-muted small">{% trans "Alle E-Mail-Benachrichtigungen ein- oder ausschalten" %}</p>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="emailNotifications" onchange="toggleEmailNotifications(this.checked)" {% if request.user.customuser.mail_notifications %}checked{% endif %}>

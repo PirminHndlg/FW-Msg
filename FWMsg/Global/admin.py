@@ -10,7 +10,7 @@ from .models import (
     Ampel2, AmpelConfiguration, DeepTalkFrage, DeepTalkTag, Attribute, CustomUser, Einsatzland2, 
     Einsatzstelle2, Feedback, KalenderEvent, PersonCluster, 
     Organisation, Aufgabe2, DokumentColor2, Dokument2, 
-    Ordner2, Notfallkontakt2, Post2, PostResponse, PushSubscription, 
+    Ordner2, Notfallkontakt2, Post2, PostResponse, PushSubscription, NotificationPreference, 
     UserAttribute, UserAufgaben, 
     AufgabenCluster, Bilder2, BilderGallery2, BilderComment, BilderReaction, ProfilUser2, Maintenance,
     PostSurveyAnswer, PostSurveyQuestion, EinsatzstelleNotiz, StickyNote, ChangeRequest, MapLocation
@@ -42,6 +42,14 @@ class OnlineStatusFilter(admin.SimpleListFilter):
 
 
 # Register your models here.
+@admin.register(NotificationPreference)
+class NotificationPreferenceAdmin(admin.ModelAdmin):
+    list_display = ('user', 'notification_type', 'email', 'push', 'updated_at', 'org')
+    list_filter = ('notification_type', 'email', 'push', 'org')
+    search_fields = ['user__username', 'user__email', 'user__first_name', 'user__last_name']
+    autocomplete_fields = ['user']
+
+
 @admin.register(CustomUser)
 class CustomUserAdmin(SimpleHistoryAdmin):
     search_fields = ['user__username', 'user__email', 'user__first_name', 'user__last_name']

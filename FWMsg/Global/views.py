@@ -1293,6 +1293,20 @@ def unsubscribe_mail_notifications(request, user_id, auth_key):
 
         # Check if the auth key matches or the user is already authenticated as this user
         if custom_user.mail_notifications_unsubscribe_auth_key == auth_key or request.user.id == user_id:
+            notification_type = request.GET.get('type')
+            if notification_type:
+                from Global.notifications import EMAIL, NOTIFICATION_SPECS, set_preference
+                spec = NOTIFICATION_SPECS.get(notification_type)
+                if spec is None or EMAIL not in spec.channels:
+                    messages.error(request, _('Unbekannte Benachrichtigungsart'))
+                    return redirect('profil')
+                enabled = request.GET.get('value') == 'true'
+                set_preference(custom_user.user, notification_type, EMAIL, enabled)
+                if enabled:
+                    messages.success(request, _('E-Mails für „%(label)s“ wurden aktiviert') % {'label': spec.label})
+                else:
+                    messages.success(request, _('E-Mails für „%(label)s“ wurden abbestellt. Weitere Einstellungen findest du unter Einstellungen → Benachrichtigungen.') % {'label': spec.label})
+                return redirect('profil')
             if request.GET.get('value') == 'true':
                 custom_user.mail_notifications = True
                 messages.success(request, 'Mail-Benachrichtigungen wurden aktiviert')

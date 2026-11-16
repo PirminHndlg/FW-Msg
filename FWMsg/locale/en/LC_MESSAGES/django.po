@@ -7823,3 +7823,141 @@ msgstr "Notify others"
 #: Global/templates/post_detail.html
 msgid "Senden"
 msgstr "Send"
+
+# Notification preferences
+msgid "Alle E-Mail-Benachrichtigungen ein- oder ausschalten"
+msgstr "Turn all email notifications on or off"
+
+msgid "Aufgabe erledigt"
+msgstr "Task completed"
+
+msgid "Aufgabenerinnerung"
+msgstr "Task reminder"
+
+msgid "Aufgabenerinnerungen deaktiviert"
+msgstr "Task reminders disabled"
+
+msgid "Benachrichtigung"
+msgstr "Notification"
+
+msgid "Benachrichtigungen auswählen"
+msgstr "Choose notifications"
+
+msgid "Benachrichtigungseinstellung"
+msgstr "Notification setting"
+
+msgid "Benachrichtigungseinstellungen"
+msgstr "Notification settings"
+
+msgid "Direktnachricht"
+msgstr "Direct message"
+
+msgid "E-Mail-Benachrichtigungen sind in den Einstellungen insgesamt ausgeschaltet. Die E-Mail-Auswahl unten greift erst, wenn du sie dort wieder einschaltest."
+msgstr "Email notifications are turned off entirely in your settings. The email choices below only take effect once you turn them back on there."
+
+#, python-format
+msgid "E-Mails für „%(label)s“ wurden abbestellt. Weitere Einstellungen findest du unter Einstellungen → Benachrichtigungen."
+msgstr "You have unsubscribed from emails for “%(label)s”. You can find more options under Settings → Notifications."
+
+#, python-format
+msgid "E-Mails für „%(label)s“ wurden aktiviert"
+msgstr "Emails for “%(label)s” have been turned on"
+
+msgid "Einladung in einen Gruppenchat"
+msgstr "Group chat invitation"
+
+msgid "Entscheidung über Änderungsvorschlag"
+msgstr "Decision on change request"
+
+msgid "Erinnerung an fällige Aufgaben"
+msgstr "Reminder about due tasks"
+
+msgid "Erinnerung, eine Ampelmeldung abzugeben"
+msgstr "Reminder to submit a status check-in"
+
+msgid "Für dein Konto gibt es keine einstellbaren Benachrichtigungen."
+msgstr "There are no configurable notifications for your account."
+
+msgid "Für diese Benutzergruppe ist keine Ampel-Erinnerung aktiv."
+msgstr "No status check-in reminder is active for this user group."
+
+msgid "Für jede Art von Benachrichtigung festlegen, ob du sie per E-Mail und/oder Push erhältst"
+msgstr "Choose for each type of notification whether you receive it by email and/or push"
+
+msgid "Geändert am"
+msgstr "Changed on"
+
+msgid "Gruppennachricht"
+msgstr "Group message"
+
+msgid "Heute bereits gesendet"
+msgstr "Already sent today"
+
+msgid "Heute wurde bereits eine Erinnerung gesendet."
+msgstr "A reminder has already been sent today."
+
+msgid "Kalender & Aufgaben"
+msgstr "Calendar & tasks"
+
+msgid "Kein Benutzerprofil"
+msgstr "No user profile"
+
+msgid "Kommunikation"
+msgstr "Communication"
+
+msgid "Lege für jede Art von Benachrichtigung fest, ob du sie per E-Mail und/oder als Push-Benachrichtigung erhältst."
+msgstr "Choose for each type of notification whether you receive it by email and/or as a push notification."
+
+msgid "Neue Ampelmeldung"
+msgstr "New status check-in"
+
+msgid "Neue Aufgaben"
+msgstr "New tasks"
+
+msgid "Neue Nachricht in einem Einzelchat"
+msgstr "New message in a one-to-one chat"
+
+msgid "Neue Nachricht in einem Gruppenchat"
+msgstr "New message in a group chat"
+
+msgid "Neue Posts für dich und Antworten auf Posts"
+msgstr "New posts for you and replies to posts"
+
+msgid "Neuer Kalendereintrag"
+msgstr "New calendar event"
+
+msgid "Organisation & Team"
+msgstr "Organisation & team"
+
+msgid "Push"
+msgstr "Push"
+
+msgid "Push-Benachrichtigungen sind auf keinem Gerät aktiviert. Aktiviere sie zuerst, um sie hier auswählen zu können."
+msgstr "Push notifications are not enabled on any device. Enable them first to choose them here."
+
+msgid "Unbekannte Benachrichtigungsart"
+msgstr "Unknown notification type"
+
+msgid "Wenn Freiwillige in deinen Ländern eine Ampelmeldung abgeben"
+msgstr "When volunteers in your countries submit a status check-in"
+
+msgid "Wenn Freiwillige in deinen Ländern eine Aufgabe erledigen"
+msgstr "When volunteers in your countries complete a task"
+
+msgid "Wenn dir neue Aufgaben zugewiesen werden"
+msgstr "When new tasks are assigned to you"
+
+msgid "Wenn du zu einem Gruppenchat hinzugefügt wirst"
+msgstr "When you are added to a group chat"
+
+msgid "Wenn du zu einem Kalendereintrag eingeladen wirst"
+msgstr "When you are invited to a calendar event"
+
+msgid "Wenn über deinen Änderungsvorschlag entschieden wurde"
+msgstr "When a decision has been made on your change request"
+
+msgid "Zu den Einstellungen"
+msgstr "Go to settings"
+
+msgid "Zurück zu den Einstellungen"
+msgstr "Back to settings"

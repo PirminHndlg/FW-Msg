@@ -37,6 +37,7 @@ from .models import (
     Post2,
     PostSurveyAnswer,
     PushSubscription,
+    NotificationPreference,
     StickyNote
 )
 
@@ -351,6 +352,20 @@ def _collect_user_data_securely(user):
         logger = logging.getLogger('security')
         logger.warning(f'Failed to get push subscriptions for {user.id}: {str(e)}')
     
+    try:
+        user_data['notification_preferences'] = [
+            {
+                'notification_type': pref.notification_type,
+                'email': pref.email,
+                'push': pref.push,
+                'updated_at': pref.updated_at.isoformat(),
+            } for pref in NotificationPreference.objects.filter(user=user)
+        ]
+    except Exception as e:
+        user_data['notification_preferences'] = []
+        logger = logging.getLogger('security')
+        logger.warning(f'Failed to get notification preferences for {user.id}: {str(e)}')
+
     try:
         # Get EinsatzstelleNotiz data
         einsatzstelle_notes = EinsatzstelleNotiz.objects.filter(user=user, org=user.org)

@@ -35,7 +35,7 @@
             title="{% trans 'Als erledigt markieren' %}">
             <i class="bi bi-check-circle-fill"></i>
           </button>
-        {% elif task.user.customuser.mail_notifications %}
+        {% elif task.user.customuser.task_reminders_enabled %}
           {% if task.last_reminder == today %}
             <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Erinnerung heute bereits gesendet' %}">
               <button class="btn btn-sm btn-outline-primary" type="button" disabled style="pointer-events: none;">

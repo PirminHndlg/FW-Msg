@@ -3,13 +3,12 @@ from chat.models import ChatGroup, ChatMessageDirect, ChatMessageGroup
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.urls import reverse
-from Global.push_notification import send_push_notification_to_user
+from Global.notifications import NotificationType, get_type_unsubscribe_url, notify_user
 from Global.send_email import (
     format_chat_new_group_invite_email,
     format_chat_new_message_email,
     get_logo_url,
     get_org_color,
-    send_email_with_archive,
     user_display_name,
 )
 
@@ -31,11 +30,11 @@ def _chat_push_body(sender_user: User, msg) -> str:
     return f"💬 {sender_user}: {text}"
 
 
-def _chat_email_context(*, org, recipient_user, sender_user, action_url):
+def _chat_email_context(*, org, recipient_user, sender_user, action_url, notification_type):
     return {
         'sender_name': user_display_name(sender_user),
         'action_url': action_url,
-        'unsubscribe_url': recipient_user.customuser.get_unsubscribe_url(),
+        'unsubscribe_url': get_type_unsubscribe_url(recipient_user, notification_type),
         'user_name': user_display_name(recipient_user),
         'org_name': org.name,
         'image_url': get_logo_url(org),
@@ -62,24 +61,14 @@ def notify_users_about_new_group_chat(group_chat_id, sender_user_id):
                 recipient_user=recipient_user,
                 sender_user=sender_user,
                 action_url=action_url,
+                notification_type=NotificationType.CHAT_GROUP_INVITE,
             ),
         )
 
-        if recipient_user.customuser.mail_notifications:
-            send_email_with_archive(
-                subject=subject,
-                message='',
-                from_email=settings.SERVER_EMAIL,
-                recipient_list=[recipient_user.email],
-                html_message=email_html,
-                reply_to_list=[sender_user.email],
-            )
-
-        send_push_notification_to_user(
-            user=recipient_user,
-            title=subject,
-            body=push_content,
-            url=action_url,
+        notify_user(
+            recipient_user, NotificationType.CHAT_GROUP_INVITE, subject,
+            email_html=email_html, push_body=push_content, url=action_url,
+            reply_to=[sender_user.email],
         )
 
     return True
@@ -108,21 +97,17 @@ def notify_users_about_new_direct_chat_message(direct_message_id, sender_user_id
                 recipient_user=recipient_user,
                 sender_user=sender_user,
                 action_url=chat_url,
+                notification_type=NotificationType.CHAT_DIRECT,
             ),
         )
         push_content = _chat_push_body(sender_user, direct_message)
 
-        if recipient_user.customuser.mail_notifications:
-            send_email_with_archive(
-                subject=subject,
-                message='',
-                from_email=settings.SERVER_EMAIL,
-                recipient_list=[recipient_user.email],
-                html_message=email_html,
-                reply_to_list=[sender_user.email],
-            )
-
-        send_push_notification_to_user(recipient_user, subject, push_content, url=reverse('chat_direct', args=[direct_chat.get_identifier()]))
+        notify_user(
+            recipient_user, NotificationType.CHAT_DIRECT, subject,
+            email_html=email_html, push_body=push_content,
+            url=reverse('chat_direct', args=[direct_chat.get_identifier()]),
+            reply_to=[sender_user.email],
+        )
 
     return True
 
@@ -150,20 +135,16 @@ def notify_users_about_new_group_chat_message(group_message_id, sender_user_id):
                 recipient_user=recipient_user,
                 sender_user=sender_user,
                 action_url=chat_url,
+                notification_type=NotificationType.CHAT_GROUP,
             ),
         )
         push_content = _chat_push_body(sender_user, group_message)
 
-        if recipient_user.customuser.mail_notifications:
-            send_email_with_archive(
-                subject=subject,
-                message='',
-                from_email=settings.SERVER_EMAIL,
-                recipient_list=[recipient_user.email],
-                html_message=email_html,
-                reply_to_list=[sender_user.email],
-            )
-
-        send_push_notification_to_user(recipient_user, subject, push_content, url=reverse('chat_group', args=[group_chat.get_identifier()]))
+        notify_user(
+            recipient_user, NotificationType.CHAT_GROUP, subject,
+            email_html=email_html, push_body=push_content,
+            url=reverse('chat_group', args=[group_chat.get_identifier()]),
+            reply_to=[sender_user.email],
+        )
 
     return True

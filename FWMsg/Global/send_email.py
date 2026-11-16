@@ -15,6 +15,7 @@ from django.urls import reverse
 logger = logging.getLogger(__name__)
 
 from .push_notification import send_push_notification_to_user
+from .notifications import EMAIL, NotificationType, get_type_unsubscribe_url, notify_user, wants_notification
 
 
 def save_email_to_sent_folder(subject, message, from_email, recipient_list, html_message=None, reply_to=None):
@@ -328,7 +329,7 @@ def send_ampel_reminder(user, config):
     org = config.org
     customuser = user.customuser
     action_url = f'{settings.DOMAIN_HOST}{reverse("ampel")}'
-    unsubscribe_url = customuser.get_unsubscribe_url()
+    unsubscribe_url = get_type_unsubscribe_url(user, NotificationType.AMPEL_REMINDER)
     user_name = f'{user.first_name} {user.last_name}'.strip() or user.username
     language = getattr(config, 'language', 'de') or 'de'
     subject = 'Reminder: Status check-in' if language == 'en' else 'Erinnerung: Ampelmeldung'
@@ -345,17 +346,11 @@ def send_ampel_reminder(user, config):
         language=language,
     )
 
-    send_push_notification_to_user(user, subject, push_content, url=action_url)
-
-    if customuser.mail_notifications:
-        send_email_with_archive(
-            subject=subject,
-            message=email_content,
-            from_email=settings.SERVER_EMAIL,
-            recipient_list=[user.email],
-            html_message=email_content,
-            reply_to_list=[org.email] if org.email else None,
-        )
+    notify_user(
+        user, NotificationType.AMPEL_REMINDER, subject,
+        email_html=email_content, push_body=push_content, url=action_url,
+        reply_to=[org.email] if org.email else None,
+    )
 
     customuser.last_ampel_reminder = timezone.now().date()
     customuser.save(update_fields=['last_ampel_reminder'])
@@ -552,7 +547,7 @@ def get_org_color(org):
 def send_aufgaben_email(aufgabe, org):
     # Get the organization logo URL
     action_url = f'{settings.DOMAIN_HOST}{reverse("aufgaben_detail", args=[aufgabe.aufgabe.id])}'
-    unsubscribe_url = aufgabe.user.customuser.get_unsubscribe_url()
+    unsubscribe_url = get_type_unsubscribe_url(aufgabe.user, NotificationType.TASK_REMINDER)
     org_color = get_org_color(org)
     aufg_name = aufgabe.aufgabe.name
     aufg_deadline = aufgabe.faellig
@@ -584,17 +579,11 @@ def send_aufgaben_email(aufgabe, org):
 
     push_content = f'Die Aufgabe "{aufgabe.aufgabe.name}" ist {faellig_text}fällig.'
 
-    send_push_notification_to_user(aufgabe.user, subject, push_content, url=action_url)
-
-    if aufgabe.user.customuser.mail_notifications:
-        send_email_with_archive(
-            subject=subject,
-            message=email_content,
-            from_email=settings.SERVER_EMAIL,
-            recipient_list=[aufgabe.user.email],
-            html_message=email_content,
-            reply_to_list=[org.email],
-        )
+    notify_user(
+        aufgabe.user, NotificationType.TASK_REMINDER, subject,
+        email_html=email_content, push_body=push_content, url=action_url,
+        reply_to=[org.email] if org.email else None,
+    )
 
     aufgabe.last_reminder = timezone.now()
     aufgabe.currently_sending = False
@@ -614,26 +603,30 @@ def send_new_aufgaben_email(aufgaben, org):
         org_name=org.name,
         user_name=f"{aufgaben[0].user.first_name} {aufgaben[0].user.last_name}",
         action_url=action_url,
-        unsubscribe_url=aufgaben[0].user.customuser.get_unsubscribe_url()
+        unsubscribe_url=get_type_unsubscribe_url(aufgaben[0].user, NotificationType.TASK_NEW)
     )
 
     subject = f'Neue Aufgaben: {aufgaben[0].aufgabe.name}... und mehr'
-
-    if aufgaben[0].user.customuser.mail_notifications and send_email_with_archive(subject, email_content, settings.SERVER_EMAIL, [aufgaben[0].user.email], html_message=email_content, reply_to_list=[org.email]):
-        for aufgabe in aufgaben:
-            aufgabe.last_reminder = timezone.now()
-            aufgabe.currently_sending = False
-            aufgabe.save()
-        return True
-
     push_content = f'Neue Aufgaben: {aufgaben[0].aufgabe.name}... und mehr'
-    send_push_notification_to_user(aufgaben[0].user, subject, push_content, url=action_url)
+    user = aufgaben[0].user
 
+    wanted_email = wants_notification(user, NotificationType.TASK_NEW, EMAIL)
+    sent = notify_user(
+        user, NotificationType.TASK_NEW, subject,
+        email_html=email_content, push_body=push_content, url=action_url,
+        reply_to=[org.email] if org.email else None,
+    )
+
+    # Mark as handled unless an email was wanted but failed to send, so it is
+    # retried tomorrow. Users who opted out still enter the reminder cycle.
+    handled = sent['email'] or not wanted_email
     for aufgabe in aufgaben:
+        if handled:
+            aufgabe.last_reminder = timezone.now()
         aufgabe.currently_sending = False
         aufgabe.save()
 
-    return False
+    return handled
 
 def send_new_post_email(post_id):
     from Global.models import Post2
@@ -668,12 +661,8 @@ def send_new_post_email(post_id):
             if user in post.already_sent_to.all():
                 continue
 
-            # Skip if user doesn't want email notifications
-            if hasattr(user, 'customuser') and not user.customuser.mail_notifications:
-                continue
-
             # Get user's unsubscribe URL
-            unsubscribe_url = user.customuser.get_unsubscribe_url() if hasattr(user, 'customuser') else None
+            unsubscribe_url = get_type_unsubscribe_url(user, NotificationType.POST) if hasattr(user, 'customuser') else None
 
             # Add user to already_sent_to list
             post.already_sent_to.add(user)
@@ -697,16 +686,16 @@ def send_new_post_email(post_id):
                 org_color=org_color
             )
 
-            # Send email using Django's send_mail
-            if user.customuser.mail_notifications and send_email_with_archive(subject, '', settings.SERVER_EMAIL, [user.email], html_message=email_content):
-                successful_sends += 1
-
-            # Send push notification as well
             push_content = f'Neuer Post von {author_name}: {post.title}'
             if post.has_survey:
                 push_content += ' (enthält Umfrage)'
 
-            send_push_notification_to_user(user, subject, push_content, url=action_url)
+            sent = notify_user(
+                user, NotificationType.POST, subject,
+                email_html=email_content, push_body=push_content, url=action_url,
+            )
+            if sent['email']:
+                successful_sends += 1
 
     post.save()
     return successful_sends
@@ -732,11 +721,7 @@ def send_post_response_email(response_id):
 
     for person_cluster in response.original_post.person_cluster.all():
         for user in person_cluster.get_users():
-            # Skip if user doesn't want email notifications
-            if hasattr(user, 'customuser') and not user.customuser.mail_notifications:
-                continue
-
-            unsubscribe_url = user.customuser.get_unsubscribe_url() if hasattr(user, 'customuser') else None
+            unsubscribe_url = get_type_unsubscribe_url(user, NotificationType.POST) if hasattr(user, 'customuser') else None
             user_name = f"{user.first_name} {user.last_name}" if user.first_name and user.last_name else user.username
 
             email_content = format_post_response_email(
@@ -752,13 +737,13 @@ def send_post_response_email(response_id):
                 org_color=org_color
             )
 
-            if user.customuser.mail_notifications:
-                send_email_with_archive(subject, '', settings.SERVER_EMAIL, [user.email], html_message=email_content)
-
             push_content = f'Neue Antwort auf den Post: {response.original_post.title}'
             if response.original_post.has_survey:
                 push_content += ' (enthält Umfrage)'
 
-            send_push_notification_to_user(user, subject, push_content, url=action_url)
+            notify_user(
+                user, NotificationType.POST, subject,
+                email_html=email_content, push_body=push_content, url=action_url,
+            )
 
     return True

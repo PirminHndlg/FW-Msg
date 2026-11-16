@@ -1218,8 +1218,8 @@ def mark_task_as_done(request):
 def send_task_reminder(request):
     try:
         user_aufgabe = UserAufgaben.objects.get(pk=request.GET.get('id'), org=request.user.org)
-        if not user_aufgabe.user.customuser.mail_notifications:
-            return JsonResponse({'success': False, 'error': _('E-Mail-Benachrichtigungen deaktiviert')}, status=400)
+        if not user_aufgabe.user.customuser.task_reminders_enabled:
+            return JsonResponse({'success': False, 'error': _('Aufgabenerinnerungen deaktiviert')}, status=400)
         if user_aufgabe.last_reminder:
             if user_aufgabe.last_reminder == date.today():
                 return JsonResponse({'success': False, 'error': _('Erinnerung wurde bereits heute gesendet')}, status=400)
@@ -2562,7 +2562,7 @@ def ajax_load_aufgaben_table_data(request):
                             'file': bool(ua.file),
                             'file_name': ua.file.name.split('/')[-1] if ua.file else None,
                             'file_downloaded_of_names': file_downloaded_of_names,
-                            'mail_notifications': ua.user.customuser.mail_notifications if hasattr(ua.user, 'customuser') else True,
+                            'mail_notifications': ua.user.customuser.task_reminders_enabled if hasattr(ua.user, 'customuser') else True,
                             'currently_sending': getattr(ua, 'currently_sending', False),
                             'last_reminder': ua.last_reminder.isoformat() if hasattr(ua, 'last_reminder') and ua.last_reminder else None,
                         },

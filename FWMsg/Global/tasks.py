@@ -176,7 +176,7 @@ def send_change_request_new_email_task(change_request_id):
 def send_change_request_decision_email_task(change_request_id):
     """Send email notification to requester about change request decision."""
     from Global.models import ChangeRequest
-    from Global.push_notification import send_push_notification_to_user
+    from Global.notifications import NotificationType, get_type_unsubscribe_url, notify_user
     
     try:
         change_request = ChangeRequest.objects.get(id=change_request_id)
@@ -203,7 +203,7 @@ def send_change_request_decision_email_task(change_request_id):
         action_url = f'{settings.DOMAIN_HOST}{reverse("laender_info")}'
         
         # Get unsubscribe URL
-        unsubscribe_url = user.customuser.get_unsubscribe_url() if hasattr(user, 'customuser') else None
+        unsubscribe_url = get_type_unsubscribe_url(user, NotificationType.CHANGE_REQUEST_DECISION) if hasattr(user, 'customuser') else None
         
         subject = f'Änderungsvorschlag {status_display}: {change_type_display} - {obj_name}'
         
@@ -223,24 +223,13 @@ def send_change_request_decision_email_task(change_request_id):
             org_color=org_color
         )
         
-        # Send email if user has notifications enabled
-        if hasattr(user, 'customuser') and user.customuser.mail_notifications:
-            send_email_with_archive(
-                subject=subject,
-                message='',  # Plain text fallback
-                from_email=settings.SERVER_EMAIL,
-                recipient_list=[user.email],
-                html_message=email_content,
-                reply_to_list=[change_request.org.email] if change_request.org.email else None
-            )
-        
-        # Send push notification
         status_text = "genehmigt" if status == 'approved' else "abgelehnt"
-        send_push_notification_to_user(
-            user,
-            subject,
-            f'Änderungsvorschlag {status_text}',
-            url=reverse('laender_info')  # Redirect to their info page
+        notify_user(
+            user, NotificationType.CHANGE_REQUEST_DECISION, subject,
+            email_html=email_content,
+            push_body=f'Änderungsvorschlag {status_text}',
+            url=reverse('laender_info'),  # Redirect to their info page
+            reply_to=[change_request.org.email] if change_request.org.email else None,
         )
         
         return True

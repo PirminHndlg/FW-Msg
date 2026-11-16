@@ -12,6 +12,7 @@ from django.db.models.signals import post_save, post_delete, pre_delete
 from FWMsg.middleware import get_current_request
 import os
 from ORG.models import Organisation
+from Global.notifications import NotificationType
 import uuid
 
 # Add HEIC support to PIL/Pillow
@@ -192,6 +193,17 @@ class CustomUser(OrgModel):
             print(e)
             # Fallback to profile page if there's an error
             return f"{settings.DOMAIN_HOST}{reverse('profile')}"
+
+    def wants_notification(self, notification_type, channel):
+        from Global.notifications import wants_notification
+        return wants_notification(self.user, notification_type, channel)
+
+    @property
+    def task_reminders_enabled(self):
+        """True if a task reminder would reach the user via any channel."""
+        from Global.notifications import EMAIL, PUSH, NotificationType
+        return (self.wants_notification(NotificationType.TASK_REMINDER, EMAIL)
+                or self.wants_notification(NotificationType.TASK_REMINDER, PUSH))
 
     def create_small_image(self):
         if self.profil_picture:
@@ -1495,6 +1507,27 @@ class PushSubscription(models.Model):
     def __str__(self):
         device_name = self.name or "Unbenanntes Gerät"
         return f"{self.user.username} - {device_name}"
+
+
+class NotificationPreference(OrgModel):
+    """
+    Per-user choice for one notification type (see Global.notifications).
+    Only stored once the user deviates from the default; a missing row means
+    the registry default applies.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notification_preferences', verbose_name=_('Benutzer:in'))
+    notification_type = models.CharField(max_length=50, choices=NotificationType.choices, verbose_name=_('Benachrichtigung'))
+    email = models.BooleanField(default=True, verbose_name=_('E-Mail'))
+    push = models.BooleanField(default=True, verbose_name=_('Push'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Geändert am'))
+
+    class Meta:
+        verbose_name = _('Benachrichtigungseinstellung')
+        verbose_name_plural = _('Benachrichtigungseinstellungen')
+        unique_together = ('user', 'notification_type')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.get_notification_type_display()}"
 
 
 class EinsatzstelleNotiz(OrgModel):

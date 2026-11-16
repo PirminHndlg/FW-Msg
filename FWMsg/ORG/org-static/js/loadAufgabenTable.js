@@ -513,7 +513,7 @@ function buildUpcomingTemplate(ua, user, today) {
                                 <i class="bi bi-bell-fill me-2"></i>Erinnern
                                 ${ua.last_reminder ? `<small class="text-muted last-reminder-date">(Zuletzt ${formatDate(ua.last_reminder)})</small>` : ''}
                             ` : `
-                                <i class="bi bi-bell-slash-fill me-2"></i>${escapeHtml(user.first_name)} hat E-Mail-Benachrichtigungen deaktiviert
+                                <i class="bi bi-bell-slash-fill me-2"></i>${escapeHtml(user.first_name)} hat Aufgabenerinnerungen deaktiviert
                             `}
                         </button>
                     </li>

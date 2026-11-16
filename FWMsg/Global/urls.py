@@ -1,6 +1,7 @@
 from . import views
 from django.urls import path, include
 from . import views_push
+from . import views_notifications
 from . import views_change_requests
 
 urlpatterns = [
@@ -66,6 +67,8 @@ urlpatterns = [
     path('settings/', views.settings_view, name='settings'),
     path('settings/delete_account/', views.delete_account, name='delete_account'),
     path('settings/export_data/', views.export_data, name='export_data'),
+    path('settings/notifications/', views_notifications.notification_settings, name='notification_settings'),
+    path('settings/notifications/update/', views_notifications.update_notification_preference, name='update_notification_preference'),
 
     path('kalender/', views.kalender, name='kalender'),
     path('kalender/<int:kalender_id>/', views.kalender_event, name='kalender_event'),

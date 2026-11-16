@@ -1,0 +1,194 @@
+{% extends extends_base|default:'baseFw.html' %}
+{% load i18n %}
+
+{% block head %}
+  <style>
+    .settings-section {
+      transition: all 0.2s ease;
+    }
+
+    .settings-section:hover {
+      box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+    }
+
+    .setting-item {
+      border-left: 3px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .setting-item:hover {
+      border-left-color: var(--bs-primary);
+      background-color: rgba(var(--bs-primary-rgb), 0.05);
+    }
+
+    .setting-icon {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background-color: rgba(var(--bs-primary-rgb), 0.1);
+      color: var(--bs-primary);
+    }
+
+    .min-w-0 {
+      min-width: 0;
+    }
+
+    .channel-switches {
+      flex-shrink: 0;
+    }
+
+    .channel-switches .form-check {
+      min-width: 5.5rem;
+      margin-bottom: 0;
+    }
+
+    .channel-switches .form-check-input {
+      cursor: pointer;
+    }
+
+    .channel-switches .form-check-input:disabled {
+      cursor: not-allowed;
+    }
+
+    .channel-switches .form-check-input:disabled ~ .form-check-label {
+      cursor: not-allowed;
+    }
+
+    /* Phones: put the switches on their own row below the text, aligned with it */
+    @media (max-width: 575.98px) {
+      .channel-switches {
+        width: 100%;
+        padding-left: calc(40px + 1rem);
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block title %}
+  {% trans 'Benachrichtigungen' %}
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card rounded-4 mb-2">
+        <div class="card-header rounded-4">
+          <h3 class="mb-0">
+            <i class="bi bi-sliders me-2"></i>
+            {% trans 'Benachrichtigungen' %}
+          </h3>
+        </div>
+        <div class="card-body">
+          <p class="mb-0 text-muted small">
+            {% trans 'Lege für jede Art von Benachrichtigung fest, ob du sie per E-Mail und/oder als Push-Benachrichtigung erhältst.' %}
+          </p>
+        </div>
+      </div>
+
+      {% csrf_token %}
+
+      {% if not mail_master_enabled %}
+        <div class="alert alert-warning rounded-4 mb-2 d-flex align-items-start">
+          <i class="bi bi-envelope-slash me-2 mt-1"></i>
+          <div>
+            {% trans 'E-Mail-Benachrichtigungen sind in den Einstellungen insgesamt ausgeschaltet. Die E-Mail-Auswahl unten greift erst, wenn du sie dort wieder einschaltest.' %}
+            <a href="{% url 'settings' %}" class="alert-link d-block mt-1">{% trans 'Zu den Einstellungen' %}</a>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if not has_push_subscription %}
+        <div class="alert alert-info rounded-4 mb-2 d-flex align-items-start">
+          <i class="bi bi-bell-slash me-2 mt-1"></i>
+          <div>
+            {% trans 'Push-Benachrichtigungen sind auf keinem Gerät aktiviert. Aktiviere sie zuerst, um sie hier auswählen zu können.' %}
+            <a href="{% url 'push_settings' %}" class="alert-link d-block mt-1">{% trans 'Push-Benachrichtigungen aktivieren' %}</a>
+          </div>
+        </div>
+      {% endif %}
+
+      {% for group in notification_groups %}
+        <div class="card rounded-4 mb-2 settings-section">
+          <div class="card-header rounded-4">
+            <h3 class="mb-0">
+              <i class="bi {{ group.icon }} me-2"></i>
+              {{ group.name }}
+            </h3>
+          </div>
+          <div class="card-body py-0 px-3">
+            <div class="list-group list-group-flush">
+              {% for item in group.items %}
+                <div class="list-group-item setting-item">
+                  <div class="d-flex flex-wrap flex-sm-nowrap align-items-center gap-2 gap-sm-3">
+                    <div class="d-flex align-items-center flex-grow-1 min-w-0">
+                      <div class="setting-icon me-3">
+                        <i class="bi {{ item.icon }}"></i>
+                      </div>
+                      <div class="min-w-0">
+                        <h6 class="mb-1">{{ item.label }}</h6>
+                        <p class="mb-0 text-muted small">{{ item.description }}</p>
+                      </div>
+                    </div>
+
+                    <div class="channel-switches d-flex gap-3">
+                      {% if item.has_email %}
+                        <div class="form-check form-switch">
+                          <input class="form-check-input notification-toggle" type="checkbox" role="switch"
+                            id="notif-{{ item.type }}-email"
+                            data-type="{{ item.type }}" data-channel="email"
+                            {% if item.email %}checked{% endif %}>
+                          <label class="form-check-label small" for="notif-{{ item.type }}-email">{% trans 'E-Mail' %}</label>
+                        </div>
+                      {% endif %}
+                      {% if item.has_push %}
+                        <div class="form-check form-switch">
+                          <input class="form-check-input notification-toggle" type="checkbox" role="switch"
+                            id="notif-{{ item.type }}-push"
+                            data-type="{{ item.type }}" data-channel="push"
+                            {% if not has_push_subscription %}disabled{% elif item.push %}checked{% endif %}>
+                          <label class="form-check-label small" for="notif-{{ item.type }}-push">{% trans 'Push' %}</label>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="alert alert-light border rounded-4">{% trans 'Für dein Konto gibt es keine einstellbaren Benachrichtigungen.' %}</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      document.querySelectorAll('.notification-toggle').forEach(function (toggle) {
+        toggle.addEventListener('change', function () {
+          const enabled = toggle.checked;
+          toggle.disabled = true;
+          fetch("{% url 'update_notification_preference' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ type: toggle.dataset.type, channel: toggle.dataset.channel, enabled: enabled })
+          })
+            .then(function (response) {
+              if (!response.ok) { throw new Error(response.status); }
+              return response.json();
+            })
+            .catch(function () {
+              toggle.checked = !enabled;
+              alert('{% trans "Fehler beim Speichern der Einstellungen." %}');
+            })
+            .finally(function () { toggle.disabled = false; });
+        });
+      });
+    });
+  </script>
+{% endblock %}
