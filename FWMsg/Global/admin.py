@@ -41,6 +41,48 @@ class OnlineStatusFilter(admin.SimpleListFilter):
         return queryset
 
 
+class MissingRoleObjectFilter(admin.SimpleListFilter):
+    """Finds CustomUsers whose Benutzergruppe needs a role object that does not exist,
+    e.g. view 'B' without a Bewerber or view 'F' without a Freiwilliger."""
+    title = 'Fehler: Rollen-Objekt fehlt'
+    parameter_name = 'missing_role_object'
+
+    @staticmethod
+    def role_models():
+        from BW.models import Bewerber
+        from Ehemalige.models import Ehemalige
+        return {
+            'B': ('Bewerber:in ohne Bewerber', Bewerber),
+            'F': ('Freiwillige:r ohne Freiwilliger', Freiwilliger),
+            'E': ('Ehemalige:r ohne Ehemalige', Ehemalige),
+            'T': ('Team ohne Team', Team),
+        }
+
+    def lookups(self, request, model_admin):
+        return [('any', 'Alle Fehler')] + [
+            (view, label) for view, (label, _model) in self.role_models().items()
+        ]
+
+    def missing_q(self, view, model):
+        from django.db.models import Exists, OuterRef, Q
+        return Q(person_cluster__view=view) & ~Q(
+            Exists(model.objects.filter(user_id=OuterRef('user_id')))
+        )
+
+    def queryset(self, request, queryset):
+        from django.db.models import Q
+        role_models = self.role_models()
+        value = self.value()
+        if value == 'any':
+            condition = Q()
+            for view, (_label, model) in role_models.items():
+                condition |= self.missing_q(view, model)
+            return queryset.filter(condition)
+        if value in role_models:
+            return queryset.filter(self.missing_q(value, role_models[value][1]))
+        return queryset
+
+
 # Register your models here.
 @admin.register(NotificationPreference)
 class NotificationPreferenceAdmin(admin.ModelAdmin):
@@ -62,7 +104,7 @@ class CustomUserAdmin(SimpleHistoryAdmin):
         'get_last_login',
         'get_online_status_display',
     )
-    list_filter = (OnlineStatusFilter, 'person_cluster', 'mail_notifications', ('einmalpasswort', admin.EmptyFieldListFilter))
+    list_filter = (OnlineStatusFilter, MissingRoleObjectFilter, 'person_cluster', 'mail_notifications', ('einmalpasswort', admin.EmptyFieldListFilter))
     readonly_fields = ('mail_notifications_unsubscribe_auth_key',)
 
     @admin.display(ordering='last_seen', description='Online Status')
