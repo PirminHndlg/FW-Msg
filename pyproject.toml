@@ -48,9 +48,11 @@ dev = [
 postgres = [
     "psycopg2-binary>=2.9",
 ]
-# App server of the production server (restart_services.sh: `uv sync --group prod`)
+# App server of the production server (restart_services.sh: `uv sync --group prod`):
+# gunicorn with uvicorn workers (--worker-class uvicorn.workers.UvicornWorker)
 prod = [
     "gunicorn>=27.0.1",
+    "uvicorn[standard]>=0.54.0",
 ]
 
 [tool.uv]
