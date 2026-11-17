@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import json
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -41,6 +42,9 @@ secrets = load_secrets()
 # =============================================================================
 # CORE DJANGO SETTINGS
 # =============================================================================
+
+# `manage.py test`: some settings below differ for the test suite.
+TESTING = "test" in sys.argv[1:2]
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = secrets.get(
@@ -93,6 +97,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Used by allauth's MFA templates (passkey list: naturaltime).
+    "django.contrib.humanize",
     "channels",
     "FW.apps.FwConfig",
     "ORG.apps.OrgConfig",
@@ -128,6 +134,30 @@ CHANNEL_LAYERS = {
     }
 }
 
+# =============================================================================
+# CACHE
+# =============================================================================
+# Shared by all worker processes (gunicorn/daphne). allauth keeps its login
+# rate limits and the used TOTP codes here, so they must be the same for every
+# worker; the per-process default (LocMemCache) would let a TOTP code be used
+# once per worker. Redis database 1: Celery and Channels use database 0.
+# The test suite keeps the in-process cache: parallel test processes would
+# otherwise share (and clear) each other's entries.
+
+if TESTING:
+    CACHES = {
+        "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            # Override via secrets.json key "cache_redis_url".
+            "LOCATION": secrets.get("cache_redis_url", "redis://127.0.0.1:6379/1"),
+            "KEY_PREFIX": "fwmsg",
+        }
+    }
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -148,7 +178,8 @@ ROOT_URLCONF = "FWMsg.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        # Project-wide templates; override those of admin_mfa/allauth (MFA pages).
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -298,6 +329,39 @@ MEDIA_ROOT = BASE_DIR / MEDIA_ROOT_NAME
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = "/login/"
+
+# -----------------------------------------------------------------------------
+# Two-factor authentication (packages/django-admin-mfa, built on django-allauth)
+# -----------------------------------------------------------------------------
+# Admins (superuser, staff, role "A") must use a second factor; everyone else
+# can turn it on in the settings (see Home/mfa.py). The login runs through
+# allauth's login flow; the login page itself is FWMsg's (Home.views.index).
+
+ACCOUNT_ADAPTER = "Home.mfa.AccountAdapter"
+ACCOUNT_FORMS = {"login": "Home.mfa.LoginForm"}
+ACCOUNT_LOGIN_METHODS = {"username", "email"}
+# Keep the session after closing the browser, as Django's login() did before.
+ACCOUNT_SESSION_REMEMBER = True
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+# Home.views.index decides where signed-in users go; the login view itself
+# must not redirect them (users without a role would loop).
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
+ADMIN_MFA_APPLIES_TO = "Home.mfa.applies_to"
+ADMIN_MFA_LOGIN_URL = "login"
+# Force-logged-in test clients have no MFA login record; tests of the MFA flow
+# turn this back on with override_settings.
+ADMIN_MFA_ENFORCE = not TESTING
+
+from admin_mfa.conf import configure as configure_mfa  # noqa: E402
+
+configure_mfa(
+    globals(),
+    site_name="Volunteer.Solutions",
+    # Reverse proxies in front of the app that append to X-Forwarded-For
+    # (nginx: 1). Decides the client IP for allauth's rate limits and the log.
+    trusted_proxy_count=secrets.get("trusted_proxy_count", 0 if DEBUG else 1),
+    trusted_networks=secrets.get("mfa_trusted_networks", ""),
+)
 
 # =============================================================================
 # DJANGO CORE SETTINGS

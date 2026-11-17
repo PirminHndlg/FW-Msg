@@ -1,0 +1,95 @@
+{% extends "allauth/layouts/base.html" %}
+{% load i18n static %}
+{% comment %}
+FWMsg's login page (start page and /login/), on allauth's login flow:
+username or e-mail + password, then the second factor if the user has one.
+Users with a passkey can pick it in the username field (passkey-autofill.js)
+or use the button.
+{% endcomment %}
+{% block head_title %}{% trans "Anmelden" %}{% endblock head_title %}
+{% block column_class %}col-md-10 col-lg-8 col-xl-6{% endblock column_class %}
+
+{% block content %}
+    <div class="text-center mb-4">
+        <h2 class="fw-bold mb-0">{% trans "Willkommen" %}</h2>
+        <p class="text-muted">{% trans "Bitte melden Sie sich an" %}</p>
+    </div>
+
+    {% url 'account_login' as login_url %}
+    <form method="post" action="{{ login_url }}">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {% for error in form.non_field_errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="form-floating mb-3">
+            {{ form.login }}
+            <label for="{{ form.login.id_for_label }}">{% trans "Benutzername oder E-Mail" %}</label>
+            {% if form.login.errors %}
+                <div class="invalid-feedback d-block">{{ form.login.errors|join:" " }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-floating mb-4">
+            {{ form.password }}
+            <label for="{{ form.password.id_for_label }}">{% trans "Passwort" %}</label>
+            {% if form.password.errors %}
+                <div class="invalid-feedback d-block">{{ form.password.errors|join:" " }}</div>
+            {% endif %}
+        </div>
+
+        {{ redirect_field }}
+
+        <button class="w-100 btn btn-lg btn-primary rounded-3" type="submit">
+            {% trans "Anmelden" %}
+        </button>
+    </form>
+
+    {% if PASSKEY_LOGIN_ENABLED %}
+        <button type="submit" form="mfa_login" id="passkey_login" class="w-100 btn btn-outline-primary rounded-3 mt-3">
+            <i class="bi bi-fingerprint me-1"></i>{% trans "Mit Passkey anmelden" %}
+        </button>
+    {% endif %}
+
+    <div class="mt-4 text-center">
+        <a href="{% url 'first_login' %}" class="btn btn-link">
+            {% trans "Anmelden mit Einmalpasswort" %}
+        </a>
+        <a href="{% url 'password_reset' %}" class="btn btn-link">
+            {% trans "Passwort vergessen?" %}
+        </a>
+    </div>
+
+    <!-- Language Selector -->
+    <div class="mt-4 text-center">
+        <form action="{% url 'set_language' %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+
+            {% get_current_language as CURRENT_LANGUAGE %}
+            {% get_available_languages as LANGUAGES %}
+
+            {% for lang_code, lang_name in LANGUAGES %}
+                <button type="submit" name="language" value="{{ lang_code }}"
+                        class="btn btn-link btn-sm {% if CURRENT_LANGUAGE == lang_code %}text-primary{% else %}text-muted{% endif %}">
+                    <span class="fi fi-{% if lang_code == 'de' %}de{% else %}gb{% endif %}"></span>
+                    {% if lang_code == 'de' %}{% trans "Deutsch" %}{% else %}{% trans "English" %} (Beta){% endif %}
+                </button>
+            {% endfor %}
+        </form>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'datenschutz' %}" class="small">{% trans "Datenschutz" %}</a>
+    </div>
+{% endblock content %}
+
+{% block extra_body %}
+    {% if PASSKEY_LOGIN_ENABLED %}
+        {% include "mfa/webauthn/snippets/login_script.html" with button_id="passkey_login" %}
+        <script src="{% static 'admin_mfa/js/passkey-autofill.js' %}"></script>
+    {% endif %}
+{% endblock extra_body %}

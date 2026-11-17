@@ -1,0 +1,28 @@
+{% extends "account/base_reauthenticate.html" %}
+{% comment %}
+allauth's page plus the username: a form with a password field alone leaves
+password managers guessing which saved login to fill in, and they often fill
+in the wrong one. A hidden username field (autocomplete="username") names it.
+{% endcomment %}
+{% load allauth %}
+{% load i18n %}
+{% block reauthenticate_content %}
+    {% element p %}
+        {% blocktranslate %}Enter your password:{% endblocktranslate %}
+    {% endelement %}
+    {% url 'account_reauthenticate' as action_url %}
+    {% element form form=form method="post" action=action_url %}
+        {% slot body %}
+            {% csrf_token %}
+            <input type="text" name="username" value="{{ request.user.get_username }}" autocomplete="username" hidden readonly>
+            {% element fields form=form unlabeled=True %}
+            {% endelement %}
+            {{ redirect_field }}
+        {% endslot %}
+        {% slot actions %}
+            {% element button type="submit" tags="primary,reauthenticate" %}
+                {% trans "Confirm" %}
+            {% endelement %}
+        {% endslot %}
+    {% endelement %}
+{% endblock %}

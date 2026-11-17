@@ -6508,7 +6508,7 @@ msgstr "Alle Antworten auf diese Frage werden ebenfalls dauerhaft gelöscht."
 #: survey/templates/survey/delete_question.html:76
 #: survey/templates/survey/survey_delete.html:78
 msgid "Cancel"
-msgstr "Cancel"
+msgstr "Abbrechen"
 
 #: survey/templates/survey/delete_question.html:80
 msgid "Yes, Delete Question"

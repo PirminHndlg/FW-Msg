@@ -13,8 +13,7 @@ Volunteer.solutions is a comprehensive tool for managing volunteer work. It enab
 - Responsive design
 
 ## Prerequisites
-- Python 3.8 or higher
-- Django 4.2 or higher
+- [uv](https://docs.astral.sh/uv/) (manages Python 3.13 and all Python dependencies)
 - Node.js 16 or higher (for frontend dependencies)
 - Redis (for Celery tasks and caching)
 - SMTP server for email notifications
@@ -28,15 +27,21 @@ git clone git@github.com:PirminHndlg/FW-Msg.git
 cd FW-Msg
 ```
 
-### 2. Set Up Virtual Environment
+### 2. Install Python and Dependencies
+uv installs the Python version from `.python-version`, creates `.venv` and installs the exact versions from `uv.lock`:
 ```bash
-python -m venv .venv
-source .venv/bin/activate
+uv sync
 ```
 
-### 3. Install Python Dependencies
+Run commands inside the environment with `uv run` (e.g. `uv run python manage.py runserver`), or activate it with `source .venv/bin/activate`.
+
+### 3. Manage Python Dependencies
+Dependencies are declared in `pyproject.toml` and pinned in `uv.lock` (commit both files):
 ```bash
-pip install -r requirements.txt
+uv add <package>           # add a dependency
+uv add --dev <package>     # add a development-only dependency
+uv remove <package>        # remove a dependency
+uv lock --upgrade-package <package>  # update a single package
 ```
 
 ### 4. Install Frontend Dependencies

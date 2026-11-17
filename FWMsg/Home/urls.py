@@ -11,6 +11,8 @@ urlpatterns = [
     path('password_change', views.password_change, name='password_change'),
     path('password_reset', views.password_reset, name='password_reset'),
     path('maintenance', views.maintenance, name='maintenance'),
+    path('mfa/enable', views.mfa_enable, name='mfa_enable'),
+    path('mfa/disable', views.mfa_disable, name='mfa_disable'),
     path('p/dokumente/<str:ordner_token>', views.dokumente_public, name='dokumente_public'),
     path('p/dokument/<str:ordner_token>/<int:dokument_id>', views.dokument_public, name='dokument_public'),
     

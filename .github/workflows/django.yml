@@ -23,11 +23,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    strategy:
-      max-parallel: 4
-      matrix:
-        python-version: ["3.13.5"]
-
     # make CELERY_BROKER_URL available to all steps
     env:
       CELERY_BROKER_URL: redis://localhost:6379/0
@@ -35,16 +30,15 @@ jobs:
     steps:
     - uses: actions/checkout@v7
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v7
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
       with:
-        python-version: ${{ matrix.python-version }}
+        enable-cache: true
 
+    # Installs the Python version from .python-version and the exact versions
+    # from uv.lock; fails if uv.lock is out of date with pyproject.toml.
     - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        grep -v "appscript" requirements.txt > requirements_ci.txt
-        pip install -r requirements_ci.txt
+      run: uv sync --locked
 
     - name: Setup Django Settings
       run: |
@@ -56,5 +50,5 @@ jobs:
     - name: Run Tests
       run: |
         cd FWMsg
-        python manage.py collectstatic --noinput
-        python manage.py test --parallel 20 -v 3
+        uv run python manage.py collectstatic --noinput
+        uv run python manage.py test --parallel 20 -v 3

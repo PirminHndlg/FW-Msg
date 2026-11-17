@@ -93,3 +93,6 @@ security_report.md
 FWMsg/FWMsg/settings copy.py
 dump.rdb
 FWMsg/media_test/*
+
+# Static files shipped with the local MFA package (static/ above is for collectstatic output)
+!packages/*/src/*/static/

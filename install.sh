@@ -253,7 +253,7 @@ print(''.join(secrets.choice(chars) for _ in range(20)))
 
     # ── Run the app installer inside the CT ──────────────────────────────────
     msg_step "Running app installer inside CT"
-    msg_info "This will take several minutes (packages + pip install)..."
+    msg_info "This will take several minutes (packages + uv sync)..."
     echo ""
 
     pct exec "${CT_ID}" -- bash -c \
@@ -333,8 +333,6 @@ inside_ct_install() {
     apt-get update -qq
     apt-get install -y -qq \
         python3 \
-        python3-venv \
-        python3-pip \
         postgresql \
         postgresql-contrib \
         nginx \
@@ -351,18 +349,24 @@ inside_ct_install() {
     # ── Step 3: Python venv + dependencies ───────────────────────────────────
 
     msg_step "Setting up Python environment"
-    python3 -m venv "${VENV_DIR}"
+
+    if ! command -v uv &>/dev/null; then
+        msg_info "Installing uv..."
+        curl -LsSf https://astral.sh/uv/install.sh \
+            | env UV_INSTALL_DIR="/usr/local/bin" UV_NO_MODIFY_PATH=1 sh
+    fi
 
     PYTHON="${VENV_DIR}/bin/python"
-    PIP="${VENV_DIR}/bin/pip"
 
+    # uv creates ${VENV_DIR} and installs the exact versions from uv.lock.
+    # The system python3 is used (not a uv-managed download under /root),
+    # so the services running as www-data can execute the venv.
     msg_info "Installing Python packages (this may take a few minutes)..."
-    "${PIP}" install --quiet --upgrade pip \
-        || msg_warn "pip self-upgrade failed, continuing with current version."
-    "${PIP}" install --quiet -r "${INSTALL_DIR}/requirements.txt" \
-        || msg_warn "One or more packages in requirements.txt failed to install — check output above."
-    "${PIP}" install --quiet psycopg2-binary \
-        || msg_warn "psycopg2-binary install failed — PostgreSQL connectivity will not work."
+    (
+        cd "${INSTALL_DIR}"
+        UV_PROJECT_ENVIRONMENT="${VENV_DIR}" UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never \
+            uv sync --locked --group postgres --python python3
+    ) || { msg_error "uv sync failed — check output above."; exit 1; }
     msg_ok "Python environment ready."
 
     # ── Step 4: PostgreSQL setup ──────────────────────────────────────────────

@@ -23,6 +23,8 @@ from chat.views import serve_chat_image
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # allauth login flow, second factor and 2FA setup (packages/django-admin-mfa)
+    path('auth/', include('admin_mfa.urls')),
 
     # Chat images: ``/chat_images/<uuid>/`` at site root (not under ``/chat/``).
     path('chat_images/<uuid:image_identifier>/', serve_chat_image, name='serve_chat_image'),

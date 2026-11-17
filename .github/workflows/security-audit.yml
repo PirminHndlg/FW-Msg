@@ -1,15 +1,15 @@
 name: Security Audit
 
 # Checks the pinned Python dependencies against known vulnerabilities (PyPI / OSV).
-# Runs on changes to requirements.txt and weekly, so new advisories are noticed
+# Runs on changes to uv.lock and weekly, so new advisories are noticed
 # even when nothing is committed.
 on:
   push:
     branches: [ "main" ]
-    paths: [ "requirements.txt", ".github/workflows/security-audit.yml" ]
+    paths: [ "pyproject.toml", "uv.lock", "packages/*/pyproject.toml", ".github/workflows/security-audit.yml" ]
   pull_request:
     branches: [ "main" ]
-    paths: [ "requirements.txt", ".github/workflows/security-audit.yml" ]
+    paths: [ "pyproject.toml", "uv.lock", "packages/*/pyproject.toml", ".github/workflows/security-audit.yml" ]
   schedule:
     - cron: "0 5 * * 1"  # Mondays 05:00 UTC
   workflow_dispatch:
@@ -23,14 +23,14 @@ jobs:
     steps:
     - uses: actions/checkout@v7
 
-    - name: Set up Python
-      uses: actions/setup-python@v7
-      with:
-        python-version: "3.13.5"
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
 
-    - name: Install pip-audit
-      run: python -m pip install --upgrade pip pip-audit
+    - name: Export locked requirements
+      # All groups (incl. dev and postgres), exact versions from uv.lock;
+      # the local workspace package (packages/django-admin-mfa) is left out
+      run: uv export --locked --all-groups --no-emit-workspace --no-hashes --format requirements-txt -o requirements-audit.txt
 
-    - name: Audit requirements.txt
+    - name: Audit locked requirements
       # All requirements are pinned, so they can be audited without installing them
-      run: pip-audit -r requirements.txt --no-deps --disable-pip --desc on
+      run: uvx pip-audit -r requirements-audit.txt --no-deps --disable-pip --desc on

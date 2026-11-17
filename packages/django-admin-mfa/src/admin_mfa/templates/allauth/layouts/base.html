@@ -1,0 +1,55 @@
+{% load i18n static admin_mfa %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block head_title %}{% endblock head_title %} | {% admin_site_header %}</title>
+    <link rel="stylesheet" href="{% static 'admin/css/base.css' %}">
+    <style>
+        #content { max-width: 34rem; margin: 2rem auto; padding: 0 16px; }
+        #content h1 { margin-bottom: 1rem; }
+        #content form p, #content form > div { margin-bottom: .75rem; }
+        #content input[type=text], #content input[type=password], #content input[type=email],
+        #content input:not([type]) { width: 100%; box-sizing: border-box; padding: 8px; }
+        #content button, #content a.button { padding: 8px 14px; margin: 4px 4px 4px 0; cursor: pointer; }
+        #content hr { margin: 1.25rem 0; }
+        #content table { width: 100%; }
+        #content code, #content pre { font-size: 1rem; }
+        .admin-mfa-tools form { display: inline; }
+        .admin-mfa-tools button { background: none; border: 0; color: var(--header-link-color);
+            text-decoration: underline; cursor: pointer; padding: 0; font: inherit; }
+    </style>
+    {% block extra_head %}{% endblock extra_head %}
+</head>
+<body>
+<div id="container">
+    <header id="header">
+        <div id="branding">
+            <div id="site-name"><a href="{% url 'admin:index' %}">{% admin_site_header %}</a></div>
+        </div>
+        {% if user.is_authenticated %}
+            <div id="user-tools" class="admin-mfa-tools">
+                {{ user.get_username }} /
+                {% if user.is_staff %}<a href="{% url 'admin:index' %}">{% trans "Admin" %}</a> /{% endif %}
+                <a href="{% url 'mfa_index' %}">{% trans "Two-factor authentication" %}</a> /
+                <form method="post" action="{% url 'account_logout' %}">{% csrf_token %}
+                    <button type="submit">{% trans "Log out" %}</button>
+                </form>
+            </div>
+        {% endif %}
+    </header>
+    <main id="content">
+        {% if messages %}
+            <ul class="messagelist">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% block body %}{% block content %}{% endblock content %}{% endblock body %}
+    </main>
+</div>
+{% block extra_body %}{% endblock extra_body %}
+</body>
+</html>

@@ -7955,3 +7955,76 @@ msgstr "Go to settings"
 
 msgid "Zurück zu den Einstellungen"
 msgstr "Back to settings"
+
+#: Home/mfa.py
+#, python-format
+msgid "Melde dich bei %(email)s um deinen Account zu aktivieren."
+msgstr "Contact %(email)s to activate your account."
+
+#: Home/mfa.py
+msgid "Melde dich beim Administrator um deinen Account zu aktivieren."
+msgstr "Contact the administrator to activate your account."
+
+#: Home/mfa.py
+msgid "Das Passwort entspricht den Anforderungen nicht, wir empfehlen einen Passwortwechsel."
+msgstr "Your password does not meet the requirements, we recommend changing it."
+
+#: Home/views.py
+msgid "Bitte melde dich mit Passwort und zweitem Faktor an."
+msgstr "Please log in with your password and second factor."
+
+#: Home/views.py
+msgid "Passwort gesetzt. Bitte melde dich jetzt mit dem neuen Passwort und deinem zweiten Faktor an."
+msgstr "Password set. Please log in now with your new password and your second factor."
+
+#: Home/views.py
+msgid "Für Administrator-Konten ist die Zwei-Faktor-Authentifizierung verpflichtend."
+msgstr "Two-factor authentication is mandatory for administrator accounts."
+
+#: Home/views.py
+msgid "Die Zwei-Faktor-Authentifizierung wurde deaktiviert."
+msgstr "Two-factor authentication has been deactivated."
+
+#: templates/allauth/layouts/base.html
+msgid "Zwei-Faktor-Authentifizierung"
+msgstr "Two-factor authentication"
+
+#: templates/account/login.html
+msgid "Mit Passkey anmelden"
+msgstr "Sign in with a passkey"
+
+#: templates/mfa/recovery_codes/index.html
+msgid "Bewahren Sie die Codes an einem sicheren Ort auf. Jeder Code kann einmal verwendet werden, falls Sie keinen Zugriff auf Ihren zweiten Faktor haben."
+msgstr "Keep these codes in a safe place. Each code can be used once if you cannot access your second factor."
+
+#: Global/templates/settings.html
+msgid "Einrichtung offen"
+msgstr "Setup pending"
+
+#: Global/templates/settings.html
+msgid "Für Ihr Konto verpflichtend. Passkeys, Authenticator-App und Wiederherstellungscodes verwalten"
+msgstr "Mandatory for your account. Manage passkeys, authenticator app and recovery codes"
+
+#: Global/templates/settings.html
+msgid "Passkeys, Authenticator-App und Wiederherstellungscodes verwalten"
+msgstr "Manage passkeys, authenticator app and recovery codes"
+
+#: Global/templates/settings.html
+msgid "Zwei-Faktor-Authentifizierung deaktivieren"
+msgstr "Deactivate two-factor authentication"
+
+#: Global/templates/settings.html
+msgid "Anmeldung wieder nur mit Passwort"
+msgstr "Log in with password only again"
+
+#: Global/templates/settings.html
+msgid "Zwei-Faktor-Authentifizierung wirklich deaktivieren? Alle Passkeys, Authenticator-Apps und Wiederherstellungscodes werden entfernt."
+msgstr "Really deactivate two-factor authentication? All passkeys, authenticator apps and recovery codes will be removed."
+
+#: Global/templates/settings.html
+msgid "Schützen Sie Ihr Konto zusätzlich mit einem Passkey oder einer Authenticator-App"
+msgstr "Protect your account additionally with a passkey or an authenticator app"
+
+#: templates/mfa/webauthn/authenticator_list.html
+msgid "Noch nicht verwendet."
+msgstr "Not used yet."
