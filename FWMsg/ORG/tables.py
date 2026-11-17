@@ -16,6 +16,20 @@ from django.db.models import OuterRef, Subquery
 from BW.models import ApplicationText, ApplicationQuestion, ApplicationFileQuestion, Bewerber
 
 
+def render_clamped_text(value, lines=3):
+    """Render text clamped to N lines with a mehr/weniger toggle."""
+    if not value:
+        return ''
+    return format_html(
+        '<p class="mb-0 image-description-clamp clamp-{}">{}</p>'
+        '<a href="#" class="show-more small" hidden '
+        'onclick="event.preventDefault(); toggleImageDescriptionClamp(this);">{}</a>',
+        lines,
+        value,
+        _('mehr'),
+    )
+
+
 class BaseOrgTable(tables.Table):
     """Base table with common functionality for all org tables"""
     
@@ -91,17 +105,7 @@ class BaseOrgTable(tables.Table):
         return format_html('<a href="{}"><i class="bi bi-person-fill me-1"></i>{}</a>', url, value)
 
     def render_clamped_text(self, value, lines=3):
-        """Render text clamped to N lines with a mehr/weniger toggle."""
-        if not value:
-            return ''
-        return format_html(
-            '<p class="mb-0 image-description-clamp clamp-{}">{}</p>'
-            '<a href="#" class="show-more small" hidden '
-            'onclick="event.preventDefault(); toggleImageDescriptionClamp(this);">{}</a>',
-            lines,
-            value,
-            _('mehr'),
-        )
+        return render_clamped_text(value, lines)
 
 
 class EinsatzlandTable(BaseOrgTable):
@@ -1020,7 +1024,10 @@ def get_bewerber_table_class(org, request=None):
             return mark_safe('<i class="bi bi-check-circle-fill text-success"></i>')
         else:
             return mark_safe('<i class="bi bi-x-circle-fill text-danger"></i>')
-    
+
+    def render_reaktion_auf_zuteilung(self, value, record):
+        return render_clamped_text(value)
+
     def actions_renderer(record, org):
         bewerber = record['bewerber']
         bewerber_kommentare_count = BewerberKommentar.objects.filter(bewerber=bewerber, org=org).count()
@@ -1098,8 +1105,9 @@ def get_bewerber_table_class(org, request=None):
         'render_application_pdf': render_application_pdf,
         'render_interview_persons': render_interview_persons,
         'render_has_seminar': render_has_seminar,
-        'render_zuteilung_freigegeben': render_zuteilung_freigegeben
-    }   
+        'render_zuteilung_freigegeben': render_zuteilung_freigegeben,
+        'render_reaktion_auf_zuteilung': render_reaktion_auf_zuteilung,
+    }
     
     # Determine which person_cluster to use - apply PersonCluster filter if specified
     person_clusters = [filter_person_cluster] if filter_person_cluster else None
