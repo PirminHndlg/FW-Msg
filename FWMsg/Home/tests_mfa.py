@@ -243,3 +243,46 @@ class RecoveryCodesPageTests(MFATestCase):
         response = self.client.get(reverse('mfa_list_webauthn'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, reverse('mfa_add_webauthn'))
+
+
+class MaintenanceAdminLoginTests(MFATestCase):
+    """During maintenance the admin login stays reachable (to end the maintenance)."""
+
+    def setUp(self):
+        super().setUp()
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from Global.models import Maintenance
+
+        now = timezone.now()
+        Maintenance.objects.create(
+            maintenance_start_time=now - timedelta(hours=1),
+            maintenance_end_time=now + timedelta(hours=1),
+        )
+        self.superuser = User.objects.create_superuser('root', 'root@example.com', PASSWORD)
+
+    def test_regular_login_page_shows_maintenance(self):
+        self.assertRedirects(self.client.get(reverse('login')), reverse('maintenance'), fetch_redirect_response=False)
+        self.assertRedirects(self.client.get(reverse('index_home')), reverse('maintenance'), fetch_redirect_response=False)
+
+    def test_admin_login_works_during_maintenance(self):
+        secret = add_totp(self.superuser)
+        # /admin/ -> /admin/login/ -> FWMsg's login page with ?next=/admin/
+        response = self.client.get(reverse('admin:index'), follow=True)
+        login_url = response.redirect_chain[-1][0]
+        self.assertTrue(login_url.startswith(reverse('login') + '?next='), login_url)
+
+        response = self.client.get(login_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="login"')
+        self.assertContains(response, 'name="next" value="/admin/"')
+
+        response = self.client.post(
+            reverse('account_login'), {'login': 'root', 'password': PASSWORD, 'next': '/admin/'}
+        )
+        self.assertRedirects(response, reverse('mfa_authenticate'), fetch_redirect_response=False)
+        response = self.enter_code(secret)
+        self.assertRedirects(response, reverse('admin:index'), fetch_redirect_response=False)
+        self.assertEqual(self.client.get(reverse('admin:index')).status_code, 200)

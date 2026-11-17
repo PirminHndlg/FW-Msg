@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from django.forms import ValidationError
 from django.http import FileResponse, HttpResponse, Http404, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, render, redirect
+from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.utils.translation import gettext as _
@@ -38,10 +39,18 @@ def _is_email(value):
         email_pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
         return bool(re.match(email_pattern, value))
 
+def _is_admin_login(request):
+    """The login page was opened to sign in to the Django admin (/admin/ sends
+    the browser here with ?next=/admin/...)."""
+    return request.GET.get('next', '').startswith(reverse('admin:index'))
+
+
 def index(request):
     maintenance = Maintenance.objects.order_by('-id').first()
-    
-    if maintenance:
+
+    # During maintenance only the admin login stays reachable, so that the
+    # maintenance can be ended in the admin.
+    if maintenance and not _is_admin_login(request):
         return redirect('maintenance')
 
     def redirect_to_home(user):
