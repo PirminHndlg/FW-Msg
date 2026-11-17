@@ -502,43 +502,8 @@ PYEOF
 
     msg_ok "Secrets file generated."
 
-    # ── Step 6: Patch settings.py DATABASES → PostgreSQL ─────────────────────
-
-    msg_step "Patching settings.py (SQLite → PostgreSQL)"
-
-    "${PYTHON}" - <<'PYEOF'
-import re
-
-settings_path = "/opt/fwmsg/FWMsg/FWMsg/settings.py"
-
-with open(settings_path) as f:
-    content = f.read()
-
-new_block = '''DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME":     secrets.get("db_name",     "fwmsg"),
-        "USER":     secrets.get("db_user",     "fwmsg"),
-        "PASSWORD": secrets.get("db_password", ""),
-        "HOST":     secrets.get("db_host",     "localhost"),
-        "PORT":     secrets.get("db_port",     "5432"),
-    },
-}'''
-
-content = re.sub(
-    r'DATABASES\s*=\s*\{[^{}]*(?:\{[^{}]*\}[^{}]*)?\}',
-    new_block,
-    content,
-    flags=re.DOTALL,
-)
-
-with open(settings_path, "w") as f:
-    f.write(content)
-
-print("  settings.py patched.")
-PYEOF
-
-    msg_ok "settings.py patched."
+    # settings.py reads the database from .secrets.json (db_name, db_user,
+    # db_password, db_host, db_port), so it stays as in the repository.
 
     # ── Step 7: Django migrate + collectstatic ────────────────────────────────
 

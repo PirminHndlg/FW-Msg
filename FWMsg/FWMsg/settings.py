@@ -201,12 +201,27 @@ ASGI_APPLICATION = "FWMsg.asgi.application"
 # DATABASE CONFIGURATION
 # =============================================================================
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    },
-}
+# SQLite by default (development). With "db_name" in .secrets.json the
+# database is PostgreSQL (production, see install.sh); "db_engine" can name
+# another Django backend.
+if secrets.get("db_name"):
+    DATABASES = {
+        "default": {
+            "ENGINE": secrets.get("db_engine", "django.db.backends.postgresql"),
+            "NAME": secrets["db_name"],
+            "USER": secrets.get("db_user", ""),
+            "PASSWORD": secrets.get("db_password", ""),
+            "HOST": secrets.get("db_host", "localhost"),
+            "PORT": str(secrets.get("db_port", "5432")),
+        },
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        },
+    }
 
 # =============================================================================
 # PASSWORD VALIDATION
@@ -362,6 +377,52 @@ configure_mfa(
     trusted_proxy_count=secrets.get("trusted_proxy_count", 0 if DEBUG else 1),
     trusted_networks=secrets.get("mfa_trusted_networks", ""),
 )
+
+# =============================================================================
+# LOGGING
+# =============================================================================
+# With "log_file" in .secrets.json (production, e.g. /var/log/django/error.log):
+# errors of Django, Celery and Redis go to that file, failing requests are also
+# mailed to ADMINS, and the 2FA log (logins, failed logins, changed factors)
+# goes to the same file. Without it: Django's default logging.
+
+LOG_FILE = secrets.get("log_file")
+if LOG_FILE:
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "verbose": {
+                "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+                "style": "{",
+            },
+        },
+        "handlers": {
+            "file": {
+                "level": "INFO",
+                "class": "logging.FileHandler",
+                "filename": LOG_FILE,
+                "formatter": "verbose",
+            },
+            "mail_admins": {
+                "level": "ERROR",
+                "class": "django.utils.log.AdminEmailHandler",
+                "include_html": True,
+            },
+        },
+        "loggers": {
+            "django": {"handlers": ["file"], "level": "ERROR", "propagate": True},
+            "django.request": {
+                "handlers": ["mail_admins", "file"],
+                "level": "ERROR",
+                "propagate": False,
+            },
+            "celery": {"handlers": ["file"], "level": "WARNING", "propagate": False},
+            "kombu": {"handlers": ["file"], "level": "WARNING", "propagate": False},
+            "redis": {"handlers": ["file"], "level": "WARNING", "propagate": False},
+            "admin_mfa": {"handlers": ["file"], "level": "INFO", "propagate": False},
+        },
+    }
 
 # =============================================================================
 # DJANGO CORE SETTINGS
