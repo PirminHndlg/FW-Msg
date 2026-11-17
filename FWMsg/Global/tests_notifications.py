@@ -873,3 +873,90 @@ class UnsubscribeLinkTests(NotificationTestBase):
     def test_wrong_key_changes_nothing(self):
         self.visit('?type=post', key='wrong-key')
         self.assertFalse(NotificationPreference.objects.exists())
+
+    def test_one_click_post_unsubscribes_type_without_csrf(self):
+        from django.test import Client
+        url = reverse('unsubscribe_mail_notifications', kwargs={'user_id': self.fw_user.id, 'auth_key': self.key})
+        response = Client(enforce_csrf_checks=True).post(
+            url + '?type=post', {'List-Unsubscribe': 'One-Click'},
+        )
+        self.assertEqual(response.status_code, 200)
+        user = self.fresh(self.fw_user)
+        self.assertFalse(get_channel_setting(user, NotificationType.POST, EMAIL))
+        self.assertTrue(user.customuser.mail_notifications)
+
+    def test_one_click_post_without_type_switches_master_off(self):
+        url = reverse('unsubscribe_mail_notifications', kwargs={'user_id': self.fw_user.id, 'auth_key': self.key})
+        self.assertEqual(self.client.post(url).status_code, 200)
+        self.assertFalse(self.fresh(self.fw_user).customuser.mail_notifications)
+
+    def test_one_click_post_cannot_resubscribe(self):
+        self.mail_master_off(self.fw_user)
+        url = reverse('unsubscribe_mail_notifications', kwargs={'user_id': self.fw_user.id, 'auth_key': self.key})
+        self.client.post(url + '?value=true')
+        self.assertFalse(self.fresh(self.fw_user).customuser.mail_notifications)
+
+    def test_one_click_post_needs_key_even_when_logged_in(self):
+        self.client.force_login(self.fw_user)
+        url = reverse('unsubscribe_mail_notifications', kwargs={'user_id': self.fw_user.id, 'auth_key': 'wrong-key'})
+        self.assertEqual(self.client.post(url).status_code, 403)
+        self.assertTrue(self.fresh(self.fw_user).customuser.mail_notifications)
+
+
+class NotifyUserUnsubscribeHeaderTests(NotificationTestBase):
+    def test_notify_user_passes_type_unsubscribe_url(self):
+        notify_user(self.fresh(self.fw_user), NotificationType.POST, 'Betreff', email_html='<p>x</p>')
+        url = self.smtp.call_args.kwargs['unsubscribe_url']
+        self.assertEqual(url, get_type_unsubscribe_url(self.fresh(self.fw_user), NotificationType.POST))
+
+
+@override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+class OutgoingMailFormatTests(TestCase):
+    """Real messages through the locmem backend: what spam filters will see."""
+
+    def setUp(self):
+        patch('Global.send_email.save_email_to_sent_folder').start()
+        self.addCleanup(patch.stopall)
+
+    def test_html_to_text_drops_css_and_keeps_links(self):
+        from .send_email import html_to_text
+        html = (
+            '<html><head><style>p { color: red; }</style></head><body>'
+            '<p>Hallo&nbsp;Max,</p><p>neue <b>Aufgabe</b>:<br>Bericht</p>'
+            '<a href="https://example.com/x">Ansehen</a><!-- hidden --></body></html>'
+        )
+        text = html_to_text(html)
+        self.assertNotIn('<', text)
+        self.assertNotIn('color', text)
+        self.assertNotIn('hidden', text)
+        self.assertIn('Hallo Max,', text)
+        self.assertIn('neue Aufgabe:\nBericht', text)
+        self.assertIn('Ansehen (https://example.com/x)', text)
+
+    def test_html_body_passed_as_text_is_converted(self):
+        from .send_email import send_email_with_archive
+        html = '<p>Hallo <b>Welt</b></p>'
+        send_email_with_archive('S', html, 'from@example.com', ['to@example.com'], html_message=html)
+        sent = mail.outbox[0]
+        self.assertEqual(sent.body, 'Hallo Welt')
+        self.assertEqual(sent.alternatives[0][0], html)
+
+    def test_real_plain_text_is_kept(self):
+        from .send_email import send_email_with_archive
+        send_email_with_archive('S', 'Nur Text', 'from@example.com', ['to@example.com'], html_message='<p>Anders</p>')
+        self.assertEqual(mail.outbox[0].body, 'Nur Text')
+
+    def test_unsubscribe_headers(self):
+        from .send_email import send_email_with_archive
+        send_email_with_archive(
+            'S', '', 'from@example.com', ['to@example.com'],
+            html_message='<p>x</p>', unsubscribe_url='https://example.com/u?type=post',
+        )
+        message = mail.outbox[0].message()
+        self.assertEqual(message['List-Unsubscribe'], '<https://example.com/u?type=post>')
+        self.assertEqual(message['List-Unsubscribe-Post'], 'List-Unsubscribe=One-Click')
+
+    def test_no_unsubscribe_headers_for_transactional_mail(self):
+        from .send_email import send_email_with_archive
+        send_email_with_archive('S', 'x', 'from@example.com', ['to@example.com'])
+        self.assertIsNone(mail.outbox[0].message()['List-Unsubscribe'])

@@ -1,5 +1,7 @@
 import base64
+import html as html_lib
 import imaplib
+import re
 import email
 import time
 from email.mime.multipart import MIMEMultipart
@@ -16,6 +18,64 @@ logger = logging.getLogger(__name__)
 
 from .push_notification import send_push_notification_to_user
 from .notifications import EMAIL, NotificationType, get_type_unsubscribe_url, notify_user, wants_notification
+
+
+_DROP_BLOCKS_RE = re.compile(r'<(head|style|script|title)\b[^>]*>.*?</\1\s*>', re.IGNORECASE | re.DOTALL)
+_COMMENT_RE = re.compile(r'<!--.*?-->', re.DOTALL)
+_LINK_RE = re.compile(r'<a\b[^>]*?href\s*=\s*["\']([^"\']+)["\'][^>]*>(.*?)</a\s*>', re.IGNORECASE | re.DOTALL)
+_LINE_BREAK_RE = re.compile(r'<br\s*/?>', re.IGNORECASE)
+_BLOCK_END_RE = re.compile(r'</?(p|div|tr|table|h[1-6]|ul|ol|blockquote|section|header|footer)\b[^>]*>', re.IGNORECASE)
+_LIST_ITEM_RE = re.compile(r'<li\b[^>]*>', re.IGNORECASE)
+_TAG_RE = re.compile(r'<[^>]+>')
+_LOOKS_LIKE_HTML_RE = re.compile(r'<[a-zA-Z/!][^>]*>')
+
+
+def html_to_text(html_content):
+    """
+    Turn an HTML email body into a readable plain-text alternative.
+
+    Spam filters penalise mails whose text/plain part contains raw HTML, CSS,
+    or is empty, so every HTML mail gets a proper text version derived here.
+    """
+    if not html_content:
+        return ''
+    text = _COMMENT_RE.sub('', str(html_content))
+    text = _DROP_BLOCKS_RE.sub('', text)
+
+    def _link(match):
+        href = match.group(1).strip()
+        label = html_lib.unescape(_TAG_RE.sub('', match.group(2))).strip()
+        if href.lower().startswith('mailto:') or not label or label == href:
+            return label or href
+        return f'{label} ({href})'
+
+    text = _LINK_RE.sub(_link, text)
+    text = _LINE_BREAK_RE.sub('\n', text)
+    text = _LIST_ITEM_RE.sub('\n- ', text)
+    text = _BLOCK_END_RE.sub('\n', text)
+    text = _TAG_RE.sub('', text)
+    text = html_lib.unescape(text).replace('\xa0', ' ')
+
+    lines = [re.sub(r'[ \t]+', ' ', line).strip() for line in text.splitlines()]
+    text = '\n'.join(lines)
+    return re.sub(r'\n{3,}', '\n\n', text).strip()
+
+
+def plain_text_body(message, html_message):
+    """Use ``message`` as text part unless it is empty or actually HTML."""
+    if html_message and (not message or _LOOKS_LIKE_HTML_RE.search(message)):
+        return html_to_text(html_message)
+    return message
+
+
+def unsubscribe_headers(unsubscribe_url):
+    """RFC 2369 / RFC 8058 headers required by Gmail and Yahoo for bulk mail."""
+    if not unsubscribe_url:
+        return {}
+    return {
+        'List-Unsubscribe': f'<{unsubscribe_url}>',
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    }
 
 
 def save_email_to_sent_folder(subject, message, from_email, recipient_list, html_message=None, reply_to=None):
@@ -82,6 +142,7 @@ def send_mail(
     auth_password=None,
     connection=None,
     html_message=None,
+    unsubscribe_url=None,
 ):
     """
     Easy wrapper for sending a single message to a recipient list. All members
@@ -100,7 +161,9 @@ def send_mail(
         fail_silently=fail_silently,
     )
     mail = EmailMultiAlternatives(
-        subject, message, from_email, recipient_list, connection=connection, reply_to=reply_to_list
+        subject, plain_text_body(message, html_message), from_email, recipient_list,
+        connection=connection, reply_to=reply_to_list,
+        headers=unsubscribe_headers(unsubscribe_url),
     )
     if html_message:
         mail.attach_alternative(html_message, "text/html")
@@ -108,11 +171,12 @@ def send_mail(
     return mail.send()
 
 
-def send_email_with_archive(subject, message, from_email, recipient_list, html_message=None, reply_to_list=None, save_to_sent=True):
+def send_email_with_archive(subject, message, from_email, recipient_list, html_message=None, reply_to_list=None, save_to_sent=True, unsubscribe_url=None):
     """
     Enhanced email sending function that saves emails to IMAP Sent folder for archiving.
     This ensures sent emails appear in the mail server and external email programs.
     """
+    message = plain_text_body(message, html_message)
     try:
         # Send the email normally first
         result = send_mail(
@@ -121,7 +185,8 @@ def send_email_with_archive(subject, message, from_email, recipient_list, html_m
             from_email=from_email,
             recipient_list=recipient_list,
             html_message=html_message,
-            reply_to_list=reply_to_list
+            reply_to_list=reply_to_list,
+            unsubscribe_url=unsubscribe_url,
         )
 
         # If email was sent successfully and archiving is enabled, save to Sent folder

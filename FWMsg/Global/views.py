@@ -54,6 +54,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.csrf import csrf_exempt
 
 from uuid import UUID
 import uuid
@@ -1287,7 +1288,10 @@ def serve_profil_picture(request, user_identifier):
     return _serve_cached_image(file_path, requested_user.customuser.profil_picture.name)
 
 
+@csrf_exempt
 def unsubscribe_mail_notifications(request, user_id, auth_key):
+    if request.method == 'POST':
+        return _one_click_unsubscribe(request, user_id, auth_key)
     try:
         custom_user = CustomUser.objects.get(user__id=user_id)
 
@@ -1321,6 +1325,34 @@ def unsubscribe_mail_notifications(request, user_id, auth_key):
     except CustomUser.DoesNotExist:
         messages.error(request, 'Benutzer nicht gefunden')
     return redirect('profil')
+
+
+def _one_click_unsubscribe(request, user_id, auth_key):
+    """
+    RFC 8058 one-click unsubscribe, POSTed by the mail client (Gmail, Yahoo, ...).
+
+    Only the secret auth key authorises it (no session, no CSRF token), and it
+    can only switch emails off, never on.
+    """
+    custom_user = CustomUser.objects.filter(user__id=user_id).first()
+    if (
+        custom_user is None
+        or not custom_user.mail_notifications_unsubscribe_auth_key
+        or custom_user.mail_notifications_unsubscribe_auth_key != auth_key
+    ):
+        return HttpResponseForbidden('Invalid unsubscribe URL')
+
+    notification_type = request.GET.get('type')
+    if notification_type:
+        from Global.notifications import EMAIL, NOTIFICATION_SPECS, set_preference
+        spec = NOTIFICATION_SPECS.get(notification_type)
+        if spec is None or EMAIL not in spec.channels:
+            return HttpResponse('Unknown notification type', status=400)
+        set_preference(custom_user.user, notification_type, EMAIL, False)
+    else:
+        custom_user.mail_notifications = False
+        custom_user.save(update_fields=['mail_notifications'])
+    return HttpResponse('Unsubscribed')
 
 @login_required
 def view_profil(request, user_identifier=None):

@@ -14,7 +14,6 @@ from dataclasses import dataclass, field
 
 from django.conf import settings
 from django.db import models
-from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)
@@ -206,9 +205,15 @@ def notify_user(user, notification_type, subject, *, email_html=None, push_body=
 
     if email_html is not None and wants_notification(user, notification_type, EMAIL):
         try:
+            try:
+                unsubscribe_url = get_type_unsubscribe_url(user, notification_type)
+            except Exception as e:
+                logger.warning(f'No unsubscribe URL for user {user.id}: {e}')
+                unsubscribe_url = None
             result[EMAIL] = bool(mailer.send_email_with_archive(
-                subject, strip_tags(email_html), settings.SERVER_EMAIL, [user.email],
+                subject, mailer.html_to_text(email_html), settings.SERVER_EMAIL, [user.email],
                 html_message=email_html, reply_to_list=reply_to,
+                unsubscribe_url=unsubscribe_url,
             ))
         except Exception as e:
             logger.error(f'Error sending {notification_type} email to user {user.id}: {e}')
