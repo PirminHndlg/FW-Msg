@@ -48,6 +48,10 @@ dev = [
 postgres = [
     "psycopg2-binary>=2.9",
 ]
+# App server of the production server (restart_services.sh: `uv sync --group prod`)
+prod = [
+    "gunicorn>=27.0.1",
+]
 
 [tool.uv]
 # This is an application, not an installable package.
