@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 import random
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.contrib.auth.models import User
 from django.utils import timezone
 from django.http import HttpResponseRedirect
 from django.urls import path, reverse
@@ -81,6 +83,32 @@ class MissingRoleObjectFilter(admin.SimpleListFilter):
         if value in role_models:
             return queryset.filter(self.missing_q(value, role_models[value][1]))
         return queryset
+
+
+class HasCustomUserFilter(admin.SimpleListFilter):
+    title = 'CustomUser'
+    parameter_name = 'has_customuser'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'Hat CustomUser'),
+            ('no', 'Hat keinen CustomUser'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(customuser__isnull=False)
+        if self.value() == 'no':
+            return queryset.filter(customuser__isnull=True)
+        return queryset
+
+
+admin.site.unregister(User)
+
+
+@admin.register(User)
+class UserAdmin(DjangoUserAdmin):
+    list_filter = DjangoUserAdmin.list_filter + (HasCustomUserFilter,)
 
 
 # Register your models here.
