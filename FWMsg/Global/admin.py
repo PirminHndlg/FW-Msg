@@ -791,7 +791,7 @@ class MaintenanceAdmin(admin.ModelAdmin):
     search_fields = ['maintenance_start_time', 'maintenance_end_time']
     
     def is_active(self, obj):
-        now = datetime.now()
+        now = timezone.now()
         return obj.maintenance_start_time <= now <= obj.maintenance_end_time
     is_active.boolean = True
     is_active.short_description = 'Currently Active'
