@@ -1,0 +1,21 @@
+{% load i18n %}{% if widget.is_initial %}
+<div class="d-flex flex-wrap align-items-center gap-2 p-2 mb-2 bg-light rounded border">
+    <i class="bi bi-file-earmark text-secondary"></i>
+    <span class="fw-medium text-break flex-grow-1">{% if widget.filename %}{{ widget.filename }}{% else %}{{ widget.value }}{% endif %}</span>
+    {% if widget.download_url %}
+    <a href="{{ widget.view_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-eye me-1"></i>{% trans "Ansehen" %}
+    </a>
+    <a href="{{ widget.download_url }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-download me-1"></i>{% trans "Herunterladen" %}
+    </a>
+    {% endif %}
+    {% if not widget.required %}
+    <div class="form-check mb-0 ms-2">
+        <input type="checkbox" class="form-check-input" name="{{ widget.checkbox_name }}" id="{{ widget.checkbox_id }}"{% if widget.attrs.disabled %} disabled{% endif %}{% if widget.attrs.checked %} checked{% endif %}>
+        <label class="form-check-label" for="{{ widget.checkbox_id }}">{{ widget.clear_checkbox_label }}</label>
+    </div>
+    {% endif %}
+</div>
+<div class="form-text mb-1">{{ widget.input_text }}:</div>
+{% endif %}<input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>

@@ -30,6 +30,26 @@ class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
 
+class AufgabeAttachmentInput(forms.ClearableFileInput):
+    """Zeigt den vorhandenen Anhang über die ID-basierte Download-URL statt über den Dateipfad an."""
+    template_name = 'widgets/aufgabe_attachment_input.html'
+
+    def __init__(self, *args, aufgabe_id=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.aufgabe_id = aufgabe_id
+
+    def get_context(self, name, value, attrs):
+        from django.urls import reverse
+        import os
+        context = super().get_context(name, value, attrs)
+        if self.aufgabe_id and self.is_initial(value):
+            download_url = reverse('download_aufgabe_attachment', args=[self.aufgabe_id])
+            context['widget']['download_url'] = download_url
+            context['widget']['view_url'] = f'{download_url}?view=1'
+            context['widget']['filename'] = os.path.basename(value.name)
+        return context
+
+
 class MultipleFileField(forms.FileField):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("widget", MultipleFileInput())
@@ -651,6 +671,8 @@ class AddAufgabeForm(OrgFormMixin, forms.ModelForm):
             self.request.user.org,
             aufgaben=True,
         )
+
+        self.fields['attachment'].widget = AufgabeAttachmentInput(aufgabe_id=self.instance.pk)
 
 
 

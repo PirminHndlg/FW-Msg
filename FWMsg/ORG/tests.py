@@ -324,6 +324,56 @@ class AufgabenTableTests(TestCase):
                 )
             )
 
+    def test_edit_aufgabe_shows_attachment_links(self):
+        """Beim Bearbeiten wird der Anhang über die ID-basierte URL verlinkt, nicht über den Pfad"""
+        import tempfile
+        from django.test import override_settings
+        with override_settings(MEDIA_ROOT=tempfile.mkdtemp()):
+            self.aufgabe.attachment = SimpleUploadedFile('anhang.pdf', b'%PDF-1.4 test', content_type='application/pdf')
+            self.aufgabe.save()
+
+            response = self.client.get(reverse('edit_object', args=['aufgabe', self.aufgabe.id]))
+            self.assertEqual(response.status_code, 200)
+            download_url = reverse('download_aufgabe_attachment', args=[self.aufgabe.id])
+            self.assertContains(response, f'href="{download_url}"')
+            self.assertContains(response, f'href="{download_url}?view=1"')
+            self.assertNotContains(response, 'href="aufgaben_attachments/')
+
+            response = self.client.get(f'{download_url}?view=1')
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response['Content-Type'], 'application/pdf')
+            self.assertTrue(response['Content-Disposition'].startswith('inline; filename="anhang'))
+            self.assertEqual(b''.join(response.streaming_content), b'%PDF-1.4 test')
+
+            response = self.client.get(download_url)
+            self.assertTrue(response['Content-Disposition'].startswith('attachment; filename="anhang'))
+
+    def test_aufgabe_attachment_html_not_inline(self):
+        """HTML-Anhänge werden nie inline ausgeliefert"""
+        import tempfile
+        from django.test import override_settings
+        with override_settings(MEDIA_ROOT=tempfile.mkdtemp()):
+            self.aufgabe.attachment = SimpleUploadedFile('evil.html', b'<script>alert(1)</script>', content_type='text/html')
+            self.aufgabe.save()
+
+            response = self.client.get(reverse('download_aufgabe_attachment', args=[self.aufgabe.id]) + '?view=1')
+            self.assertEqual(response['Content-Type'], 'application/octet-stream')
+            self.assertTrue(response['Content-Disposition'].startswith('attachment;'))
+
+    def test_aufgabe_attachment_other_org_forbidden(self):
+        """Anhänge anderer Organisationen sind nicht abrufbar"""
+        import tempfile
+        from django.test import override_settings
+        with override_settings(MEDIA_ROOT=tempfile.mkdtemp()):
+            other_org = Organisation.objects.create(name='Other Org', email='other@test.com')
+            other_aufgabe = Aufgabe2.objects.create(
+                org=other_org,
+                name='Fremde Aufgabe',
+                attachment=SimpleUploadedFile('geheim.txt', b'geheim'),
+            )
+            response = self.client.get(reverse('download_aufgabe_attachment', args=[other_aufgabe.id]))
+            self.assertNotIn(b'geheim', response.content)
+
 class AmpelTests(TestCase):
     def setUp(self):
         """Set up test data for ampel tests"""
