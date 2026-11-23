@@ -11,7 +11,7 @@
     "chart.js": "^4.6.1",
     "flag-icons": "^7.6.0",
     "fullcalendar": "^7.1.5",
-    "jquery": "^4.0.0",
+    "jquery": "^4.1.0",
     "js-cookie": "^3.0.8",
     "masonry-layout": "^4.2.2",
     "@popperjs/core": "^2.11.8",
