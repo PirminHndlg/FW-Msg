@@ -1907,6 +1907,20 @@ class ProfileViewsTests(TestCase):
             if os.path.exists(default_img_path):
                 os.remove(default_img_path)
 
+    def test_serve_profil_picture_missing_file(self):
+        """A profile picture missing on disk falls back to the default image instead of a 500"""
+        CustomUser.objects.filter(pk=self.freiwillige_user.customuser.pk).update(
+            profil_picture='profil_picture/does_not_exist.jpg'
+        )
+
+        self.client.force_login(self.admin_user)
+        with self.assertLogs('Global.views', level='WARNING'):
+            response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.customuser.get_identifier()]))
+
+        self.assertIn(response.status_code, [200, 302])
+        if response.status_code == 200:
+            self.assertEqual(response['Content-Type'], 'image/png')
+
     def test_serve_profil_picture_wrong_organization(self):
         """Test that users cannot access profile pictures from other organizations"""
         self.client.force_login(self.admin_user)

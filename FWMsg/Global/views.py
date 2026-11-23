@@ -1258,7 +1258,7 @@ def serve_profil_picture(request, user_identifier):
     if requested_user.org != request.user.org:
         return HttpResponseForbidden()
 
-    if not requested_user.customuser.profil_picture:
+    def _serve_default_image():
         # TODO: Uncomment when default_img caching is needed again
         # # Use Django's static file finder to get the correct path with hash
         from django.contrib.staticfiles.finders import find
@@ -1283,9 +1283,16 @@ def serve_profil_picture(request, user_identifier):
                 # Return a simple 404 or placeholder
                 return HttpResponseNotFound('Default profile picture not found')
 
-    # Serve profile picture directly without caching
-    file_path = requested_user.customuser.profil_picture.path
-    return _serve_cached_image(file_path, requested_user.customuser.profil_picture.name)
+    profil_picture = requested_user.customuser.profil_picture
+    if not profil_picture:
+        return _serve_default_image()
+
+    # Fall back to the default image if the file is missing on disk
+    try:
+        return _serve_cached_image(profil_picture.path, profil_picture.name)
+    except FileNotFoundError:
+        logging.getLogger(__name__).warning('Profilbild fehlt auf dem Datenträger: %s', profil_picture.name)
+        return _serve_default_image()
 
 
 @csrf_exempt
