@@ -1639,8 +1639,8 @@ def _get_ampel_matrix(request, users, ampel_this_month=None, person_cluster=None
     # Get ampel entries within date range
     ampel_entries = Ampel2.objects.filter(
         user__in=users,
-        date__gte=start_date,
-        date__lte=end_date
+        date__date__gte=start_date,
+        date__date__lte=end_date
     ).order_by('user', 'date')
 
     # Generate month labels

@@ -215,7 +215,7 @@ def home(request):
     recent_ampel_entries = Ampel2.objects.filter(
         org=request.user.org,
         date__gte=timezone.now() - timezone.timedelta(days=5)
-    ).select_related('user').order_by('-date')[:10]
+    ).select_related('user', 'user__customuser').order_by('-date')[:10]
 
     context = {
         'gallery_images': gallery_images,
@@ -281,7 +281,7 @@ def home_2(request):
     recent_ampel_entries = Ampel2.objects.filter(
         org=request.user.org,
         date__gte=timezone.now() - timezone.timedelta(days=7)
-    ).select_related('user').order_by('-date')[:10]
+    ).select_related('user', 'user__customuser').order_by('-date')[:10]
 
     # Get pending change requests
     pending_change_requests = ChangeRequest.objects.filter(

@@ -53,7 +53,7 @@ def home(request):
                 org=team_member.org,
                 user__in=freiwillige_users,
                 date__gte=timezone.now() - timedelta(days=7)
-            ).select_related('user').order_by('-date')[:10]
+            ).select_related('user', 'user__customuser').order_by('-date')[:10]
             
             # Generate country statistics
             for country in assigned_countries:

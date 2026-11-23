@@ -14,10 +14,14 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-light">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-person-circle me-2 text-muted"></i>
-                            <span id="modalUser" class="text-muted fw-medium"></span>
-                        </div>
+                        <a id="modalProfilLink" href="#" class="d-flex align-items-center gap-2 text-decoration-none" title="{% trans 'Profil ansehen' %}">
+                            <img id="modalProfilPicture" src="" alt="{% trans 'Profilbild' %}"
+                                 class="rounded-circle border flex-shrink-0 d-none"
+                                 style="width: 36px; height: 36px; object-fit: cover;">
+                            <i id="modalProfilIcon" class="bi bi-person-circle text-muted"></i>
+                            <span id="modalUser" class="text-body fw-medium"></span>
+                            <span id="modalLaender" class="d-flex align-items-center gap-1"></span>
+                        </a>
                         <div class="d-flex align-items-center">
                             <i class="bi bi-clock me-2 text-muted"></i>
                             <span id="modalDate" class="text-muted small"></span>
@@ -67,12 +71,44 @@
         });
     }
 
-    function showAmpelComment(id, date, status, comment, user, read=false, manuell='False') {
+    const ampelProfilUrl = "{% url 'profil' '__IDENTIFIER__' %}";
+    const ampelProfilPictureUrl = "{% url 'serve_profil_picture' '__IDENTIFIER__' %}";
+
+    function setAmpelModalUser(identifier, laender) {
+        const link = document.getElementById('modalProfilLink');
+        const picture = document.getElementById('modalProfilPicture');
+        const icon = document.getElementById('modalProfilIcon');
+        if (identifier) {
+            const encoded = encodeURIComponent(identifier);
+            link.href = ampelProfilUrl.replace('__IDENTIFIER__', encoded);
+            link.classList.remove('pe-none');
+            picture.src = ampelProfilPictureUrl.replace('__IDENTIFIER__', encoded);
+            picture.classList.remove('d-none');
+            icon.classList.add('d-none');
+        } else {
+            link.removeAttribute('href');
+            link.classList.add('pe-none');
+            picture.removeAttribute('src');
+            picture.classList.add('d-none');
+            icon.classList.remove('d-none');
+        }
+
+        const laenderContainer = document.getElementById('modalLaender');
+        laenderContainer.replaceChildren();
+        (laender || '').split(',').filter(code => /^[a-z]{2}$/i.test(code)).forEach(code => {
+            const flag = document.createElement('span');
+            flag.className = `fi fi-${code.toLowerCase()} border`;
+            laenderContainer.appendChild(flag);
+        });
+    }
+
+    function showAmpelComment(id, date, status, comment, user, read=false, manuell='False', identifier='', laender='') {
         const modal = new bootstrap.Modal(document.getElementById('ampelCommentModal'));
         document.getElementById('modalDate').textContent = date;
         document.getElementById('modalStatus').className = `ampel-dot ampel-${status}`;
         document.getElementById('modalComment').textContent = comment;
         document.getElementById('modalUser').textContent = user;
+        setAmpelModalUser(identifier, laender);
         ampel_id = id;
         document.getElementById('modalMessageBtn').href = `/chat/for-ampel/${id}/`;
         $('#modalManuell').toggleClass('d-none', String(manuell).toLowerCase() !== 'true');

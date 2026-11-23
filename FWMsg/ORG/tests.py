@@ -411,6 +411,22 @@ class AmpelTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'list_ampel.html')
 
+    def test_ampel_modal_receives_profil_and_land(self):
+        """Ampel-Modal bekommt Profil-Identifier und Einsatzland-Flagge übergeben"""
+        from Global.models import Einsatzland2
+        land = Einsatzland2.objects.create(org=self.org, name='Tansania', code='TZ')
+        self.freiwilliger.einsatzland2 = land
+        self.freiwilliger.save()
+        Ampel2.objects.create(org=self.org, user=self.user, status='G', comment='Alles gut')
+        identifier = self.custom_user.get_identifier()
+        expected_args = f"'Test User', 'False', 'False', '{identifier}', 'TZ')"
+
+        for url in [reverse('list_ampel'), reverse('org_home')]:
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, expected_args)
+            self.assertContains(response, reverse('profil', args=['__IDENTIFIER__']))
+
     def test_list_ampel_with_person_cluster(self):
         """Test ampel view with person cluster filter"""
         # Set person cluster cookie

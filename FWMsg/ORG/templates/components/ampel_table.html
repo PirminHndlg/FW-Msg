@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load base_filter %}
+{% load profil_filter %}
 
 <div class="table-responsive table-scroll-viewport" id="table-scroll-container">
     <table class="table mb-0 align-middle m-1">
@@ -36,6 +37,7 @@
         <tbody>
             {% for person_cluster, user_matrix in ampel_matrix.items %}
             {% for user, months_data in user_matrix.items %}
+            {% with user_identifier=user.customuser.get_identifier user_laender=user|get_laender|join:"," %}
             <tr data-search-term="{{ user }}">
                 <th class="ampel-name-cell z-1">
                     <div class="dropdown">
@@ -80,7 +82,7 @@
                         {% for entry in months_data|get_item:month %}
                         <span class="ampel-dot ampel-{{ entry.status }} d-flex align-items-center justify-content-center{% if entry.manuell %} ampel-dot-manuell{% endif %}"
                             {% if entry.manuell %}title="{% trans 'Manuell eingetragen' %}"{% endif %}
-                            onclick="showAmpelComment({{ entry.id }}, '{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ user }}', '{{entry.read}}', '{{ entry.manuell }}')"
+                            onclick="showAmpelComment({{ entry.id }}, '{{ entry.date }}', '{{ entry.status }}', '{{ entry.comment|default:'-ohne Kommentar- '|escapejs }}', '{{ user.get_full_name|default:user.username|escapejs }}', '{{entry.read}}', '{{ entry.manuell }}', '{{ user_identifier|escapejs }}', '{{ user_laender|escapejs }}')"
                             {% comment %} data-bs-toggle="tooltip" data-bs-html="true"
                             title="<strong>{{ entry.date }}</strong><br>{{ entry.comment|default:'' }}"{% endcomment %}>
                             {% if entry.manuell %}
@@ -94,6 +96,7 @@
                 </td>
                 {% endfor %}
             </tr>
+            {% endwith %}
             {% endfor %}
             {% endfor %}
         </tbody>
