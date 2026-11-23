@@ -129,7 +129,15 @@ CHANNEL_LAYERS = {
         "CONFIG": {
             # Uses the same Redis instance as Celery.
             # Override via secrets.json key "redis_url" in production.
-            "hosts": [secrets.get("redis_url", "redis://127.0.0.1:6379")],
+            "hosts": [
+                {
+                    "address": secrets.get("redis_url", "redis://127.0.0.1:6379"),
+                    # redis-py >= 8 defaults socket_timeout to 5s, the same as
+                    # channels_redis' blocking BZPOPMIN timeout, so idle
+                    # websocket receives raise TimeoutError. Keep it above 5s.
+                    "socket_timeout": 30,
+                }
+            ],
         },
     }
 }
