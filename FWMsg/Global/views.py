@@ -2133,6 +2133,16 @@ def aufgabe(request, aufgabe_id):
     return render(request, 'aufgabe.html', context=context)
 
 
+INLINE_ATTACHMENT_CONTENT_TYPES = {
+    'application/pdf',
+    'image/png',
+    'image/jpeg',
+    'image/gif',
+    'image/webp',
+    'text/plain',
+}
+
+
 @login_required
 def download_aufgabe_attachment(request, aufgabe_id):
     """Download attachment file from an Aufgabe2 object - accessible to all authenticated users"""
@@ -2145,9 +2155,18 @@ def download_aufgabe_attachment(request, aufgabe_id):
         if not os.path.exists(aufgabe.attachment.path):
             return HttpResponse('Datei nicht gefunden')
 
-        response = HttpResponse(aufgabe.attachment.read(), content_type='application/octet-stream')
-        response['Content-Disposition'] = f'attachment; filename="{aufgabe.attachment.name.replace(" ", "_")}"'
+        filename = os.path.basename(aufgabe.attachment.name)
+        content_type = mimetypes.guess_type(filename)[0]
+        # Inline-Anzeige nur für unbedenkliche Typen (kein HTML/SVG wegen XSS)
+        inline = request.GET.get('view') == '1' and content_type in INLINE_ATTACHMENT_CONTENT_TYPES
 
+        response = FileResponse(
+            aufgabe.attachment.open('rb'),
+            as_attachment=not inline,
+            filename=filename,
+            content_type=content_type if inline else 'application/octet-stream',
+        )
+        response['X-Content-Type-Options'] = 'nosniff'
         return response
     except Aufgabe2.DoesNotExist:
         return HttpResponse('Nicht erlaubt')
