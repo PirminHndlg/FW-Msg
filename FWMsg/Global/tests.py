@@ -1909,13 +1909,16 @@ class ProfileViewsTests(TestCase):
 
     def test_serve_profil_picture_missing_file(self):
         """A profile picture missing on disk falls back to the default image instead of a 500"""
+        # Resolve the identifier first: get_identifier() may save the cached
+        # CustomUser and would overwrite the picture set by update() below.
+        identifier = self.freiwillige_user.customuser.get_identifier()
         CustomUser.objects.filter(pk=self.freiwillige_user.customuser.pk).update(
             profil_picture='profil_picture/does_not_exist.jpg'
         )
 
         self.client.force_login(self.admin_user)
         with self.assertLogs('Global.views', level='WARNING'):
-            response = self.client.get(reverse('serve_profil_picture', args=[self.freiwillige_user.customuser.get_identifier()]))
+            response = self.client.get(reverse('serve_profil_picture', args=[identifier]))
 
         self.assertIn(response.status_code, [200, 302])
         if response.status_code == 200:
