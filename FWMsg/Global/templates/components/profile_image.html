@@ -27,12 +27,12 @@
             </script>
             {% endif %}
         </div>
-        {% with laender=displayed_user|get_laender %}
+        {% with laender=displayed_user|get_laender_objects %}
             {% if laender %}
             <div class="text-decoration-none d-flex flex-column align-items-center">
                 <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
-                    {% for land_code in laender %}
-                        <span class="fi fi-{{ land_code|lower }} mb-2 border" style="font-size: 3rem;"></span>
+                    {% for land in laender %}
+                        <span class="fi fi-{{ land.code|lower }} mb-2 border" style="font-size: 3rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ land.name }}"></span>
                     {% endfor %}
                 </div>
             </div>
