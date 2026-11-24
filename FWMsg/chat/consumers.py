@@ -136,6 +136,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             payload["ampel"] = event["ampel"]
         if event["user_id"] == self.user.id:
             payload["can_edit"] = event.get("can_edit", True)
+            payload["can_delete"] = event.get("can_delete", True)
             if self.chat_type == "direct":
                 payload["is_read"] = event.get("is_read", False)
 
@@ -163,6 +164,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     "message": event["message"],
                 }
             )
+        )
+
+    async def chat_message_deleted(self, event):
+        """Forward a message deletion to this WebSocket client."""
+        await self.send(
+            text_data=json.dumps({"action": "deleted", "id": event["id"]})
         )
 
     # ── database helpers (sync → async) ─────────────────────────────────────
@@ -290,6 +297,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "image_url": image_url,
             "attachment_type": msg.get_attachment_type(),
             "can_edit": msg.can_be_edited(),
+            "can_delete": msg.can_be_deleted(),
         }
         if self.chat_type == "direct":
             payload["is_read"] = False

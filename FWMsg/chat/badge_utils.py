@@ -62,6 +62,18 @@ def broadcast_chat_edit_to_room(chat_type, identifier, message_id, new_text):
     )
 
 
+def broadcast_chat_delete_to_room(chat_type, identifier, message_id):
+    """Broadcast a message deletion to all WebSocket clients in the room."""
+    layer = get_channel_layer()
+    if layer is None:
+        return
+    room_group = f"chat_{chat_type}_{identifier[:80]}"
+    async_to_sync(layer.group_send)(
+        room_group,
+        {"type": "chat_message_deleted", "id": message_id},
+    )
+
+
 def broadcast_chat_read_to_room(chat_type, identifier, message_id, is_read):
     """Broadcast a read-receipt update to all WebSocket clients in the room."""
     layer = get_channel_layer()

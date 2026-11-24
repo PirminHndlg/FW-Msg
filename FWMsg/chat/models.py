@@ -12,7 +12,8 @@ from Global.models import Ampel2
 _CHAT_IMAGE_EXTS = frozenset({".jpg", ".jpeg", ".png", ".gif", ".webp"})
 _CHAT_ATTACHMENT_EXTS = _CHAT_IMAGE_EXTS | {".pdf"}
 _PDF_MAGIC = b"%PDF-"
-CHAT_MESSAGE_EDIT_WINDOW = timedelta(hours=3)
+# Own messages can be edited and deleted within this window after sending.
+CHAT_MESSAGE_EDIT_WINDOW = timedelta(minutes=60)
 
 
 def chat_message_image_upload_to(instance, filename):
@@ -98,6 +99,10 @@ class ChatMessageImageUrlMixin:
     def can_be_edited(self):
         """Return True if the message is still within the edit time window."""
         return timezone.now() - self.created_at <= CHAT_MESSAGE_EDIT_WINDOW
+
+    def can_be_deleted(self):
+        """Deleting shares the edit time window."""
+        return self.can_be_edited()
 
 
 class ChatDirect(OrgModel):

@@ -5899,6 +5899,34 @@ msgstr "Message not found"
 msgid "Nachricht kann nicht mehr bearbeitet werden"
 msgstr "Message can no longer be edited"
 
+msgid "Nachricht kann nicht mehr gelöscht werden"
+msgstr "Message can no longer be deleted"
+
+msgid "Nachricht löschen"
+msgstr "Delete message"
+
+msgid "Der Anhang wird ebenfalls gelöscht."
+msgstr "The attachment will be deleted as well."
+
+msgid "Bild angehängt"
+msgstr "Image attached"
+
+msgid "PDF-Dokument angehängt"
+msgstr "PDF document attached"
+
+#, python-format
+msgid "%(counter)s neue Nachricht"
+msgid_plural "%(counter)s neue Nachrichten"
+msgstr[0] "%(counter)s new message"
+msgstr[1] "%(counter)s new messages"
+
+msgid ""
+"Möchtest du diese Nachricht wirklich für alle löschen? Das kann nicht "
+"rückgängig gemacht werden."
+msgstr ""
+"Do you really want to delete this message for everyone? This cannot be "
+"undone."
+
 #: chat/views.py:708
 msgid "Ungültiger Chat-Typ"
 msgstr "Invalid chat type"

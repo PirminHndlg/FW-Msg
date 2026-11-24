@@ -884,6 +884,68 @@ class ChatAttachmentTest(ChatBaseTest):
 
 
 # ===========================================================================
+# Unread divider on chat entry
+# ===========================================================================
+
+class ChatUnreadDividerTest(ChatBaseTest):
+
+    def setUp(self):
+        super().setUp()
+        self.chat = make_direct_chat(self.org, self.alice, self.bob)
+        self.group = make_group_chat(self.org, "G", self.alice, self.bob, self.carol)
+
+    def _direct(self, user, text, read=False):
+        return ChatMessageDirect.objects.create(
+            chat=self.chat, user=user, org=self.org, message=text, read=read
+        )
+
+    def _group(self, user, text, read_by=()):
+        msg = ChatMessageGroup.objects.create(chat=self.group, user=user, org=self.org, message=text)
+        for u in read_by:
+            msg.read_by.add(u)
+        return msg
+
+    def test_direct_divider_before_first_unread(self):
+        self._direct(self.bob, "alt", read=True)
+        self._direct(self.alice, "eigene")
+        first = self._direct(self.bob, "neu 1")
+        self._direct(self.bob, "neu 2")
+        self.login(self.alice)
+        response = self.client.get(reverse("chat_direct", args=[self.chat.get_identifier()]))
+        self.assertEqual(response.context["first_unread_id"], first.id)
+        self.assertEqual(response.context["unread_count"], 2)
+        self.assertContains(response, "chat-unread-divider", count=1)
+        self.assertContains(response, "2 neue Nachrichten")
+
+    def test_direct_no_divider_when_all_read_or_own(self):
+        self._direct(self.bob, "alt", read=True)
+        self._direct(self.alice, "eigene ungelesen")
+        self.login(self.alice)
+        response = self.client.get(reverse("chat_direct", args=[self.chat.get_identifier()]))
+        self.assertIsNone(response.context["first_unread_id"])
+        self.assertNotContains(response, "chat-unread-divider")
+
+    def test_divider_gone_on_second_visit(self):
+        self._direct(self.bob, "neu")
+        self.login(self.alice)
+        url = reverse("chat_direct", args=[self.chat.get_identifier()])
+        self.assertContains(self.client.get(url), "chat-unread-divider")
+        self.assertNotContains(self.client.get(url), "chat-unread-divider")
+
+    def test_group_divider_is_per_user(self):
+        self._group(self.bob, "alt", read_by=[self.bob, self.alice])
+        first_for_alice = self._group(self.bob, "neu", read_by=[self.bob])
+        self.login(self.alice)
+        response = self.client.get(reverse("chat_group", args=[self.group.get_identifier()]))
+        self.assertEqual(response.context["first_unread_id"], first_for_alice.id)
+        self.assertContains(response, "1 neue Nachricht<")
+
+        self.login(self.carol)
+        response = self.client.get(reverse("chat_group", args=[self.group.get_identifier()]))
+        self.assertEqual(response.context["unread_count"], 2)
+
+
+# ===========================================================================
 # View: ajax_chat_poll
 # ===========================================================================
 
@@ -1174,6 +1236,86 @@ class ChatEditMessageTest(ChatBaseTest):
         self.assertEqual(response.status_code, 403)
         self.group_msg.refresh_from_db()
         self.assertEqual(self.group_msg.message, "Original group")
+
+
+class ChatDeleteMessageTest(ChatBaseTest):
+
+    def setUp(self):
+        super().setUp()
+        self.chat = make_direct_chat(self.org, self.alice, self.bob)
+        self.direct_msg = ChatMessageDirect.objects.create(
+            chat=self.chat, user=self.alice, org=self.org, message="Weg damit"
+        )
+        self.direct_url = reverse(
+            "delete_message_direct", args=[self.chat.get_identifier(), self.direct_msg.id]
+        )
+        self.group = make_group_chat(self.org, "G", self.alice, self.bob)
+        self.group_msg = ChatMessageGroup.objects.create(
+            chat=self.group, user=self.alice, org=self.org, message="Weg damit"
+        )
+        self.group_url = reverse(
+            "delete_message_group", args=[self.group.get_identifier(), self.group_msg.id]
+        )
+
+    def test_delete_direct_message_success(self):
+        self.login(self.alice)
+        response = self.client.post(self.direct_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"ok": True, "id": self.direct_msg.id})
+        self.assertFalse(ChatMessageDirect.objects.filter(pk=self.direct_msg.pk).exists())
+
+    def test_delete_group_message_success(self):
+        self.login(self.alice)
+        response = self.client.post(self.group_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(ChatMessageGroup.objects.filter(pk=self.group_msg.pk).exists())
+
+    def test_delete_wrong_user_returns_403(self):
+        self.login(self.bob)
+        self.assertEqual(self.client.post(self.direct_url).status_code, 403)
+        self.assertEqual(self.client.post(self.group_url).status_code, 403)
+        self.assertTrue(ChatMessageDirect.objects.filter(pk=self.direct_msg.pk).exists())
+        self.assertTrue(ChatMessageGroup.objects.filter(pk=self.group_msg.pk).exists())
+
+    def test_delete_non_member_returns_404(self):
+        self.login(self.carol)
+        self.assertEqual(self.client.post(self.direct_url).status_code, 404)
+        self.assertEqual(self.client.post(self.group_url).status_code, 404)
+
+    def test_delete_too_old_returns_403(self):
+        too_old = timezone.now() - CHAT_MESSAGE_EDIT_WINDOW - timedelta(minutes=1)
+        ChatMessageDirect.objects.filter(pk=self.direct_msg.pk).update(created_at=too_old)
+        ChatMessageGroup.objects.filter(pk=self.group_msg.pk).update(created_at=too_old)
+        self.login(self.alice)
+        self.assertEqual(self.client.post(self.direct_url).status_code, 403)
+        self.assertEqual(self.client.post(self.group_url).status_code, 403)
+        self.assertTrue(ChatMessageDirect.objects.filter(pk=self.direct_msg.pk).exists())
+
+    def test_delete_get_not_allowed(self):
+        self.login(self.alice)
+        self.assertEqual(self.client.get(self.direct_url).status_code, 405)
+
+    def test_payload_and_page_expose_delete_only_within_window(self):
+        payload = _chat_message_payload(self.direct_msg, self.alice, viewer=self.alice)
+        self.assertTrue(payload["can_delete"])
+        self.login(self.alice)
+        page = self.client.get(reverse("chat_direct", args=[self.chat.get_identifier()]))
+        self.assertContains(page, "chat-delete-btn")
+        self.assertContains(page, 'id="chatDeleteModal"')
+        self.assertContains(page, 'id="chat-delete-attachment"')
+
+        ChatMessageDirect.objects.filter(pk=self.direct_msg.pk).update(
+            created_at=timezone.now() - CHAT_MESSAGE_EDIT_WINDOW - timedelta(minutes=1)
+        )
+        self.direct_msg.refresh_from_db()
+        payload = _chat_message_payload(self.direct_msg, self.alice, viewer=self.alice)
+        self.assertFalse(payload["can_delete"])
+        page = self.client.get(reverse("chat_direct", args=[self.chat.get_identifier()]))
+        self.assertNotContains(page, "chat-delete-btn")
+
+    def test_payload_for_other_user_omits_can_delete(self):
+        payload = _chat_message_payload(self.direct_msg, self.alice, viewer=self.bob)
+        self.assertNotIn("can_delete", payload)
 
 
 # ===========================================================================

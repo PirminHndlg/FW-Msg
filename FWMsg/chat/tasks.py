@@ -45,7 +45,10 @@ def _chat_email_context(*, org, recipient_user, sender_user, action_url, notific
 
 @shared_task
 def notify_users_about_new_direct_chat_message(direct_message_id, sender_user_id):
-    direct_message = ChatMessageDirect.objects.select_related('org', 'chat').get(id=direct_message_id)
+    direct_message = ChatMessageDirect.objects.select_related('org', 'chat').filter(id=direct_message_id).first()
+    if direct_message is None:
+        # Deleted by the sender before the notification went out.
+        return False
     direct_chat = direct_message.chat
     sender_user = User.objects.get(id=sender_user_id)
     org = direct_message.org
@@ -83,7 +86,10 @@ def notify_users_about_new_direct_chat_message(direct_message_id, sender_user_id
 
 @shared_task
 def notify_users_about_new_group_chat_message(group_message_id, sender_user_id):
-    group_message = ChatMessageGroup.objects.select_related('org', 'chat').get(id=group_message_id)
+    group_message = ChatMessageGroup.objects.select_related('org', 'chat').filter(id=group_message_id).first()
+    if group_message is None:
+        # Deleted by the sender before the notification went out.
+        return False
     sender_user = User.objects.get(id=sender_user_id)
     group_chat = group_message.chat
     org = group_message.org
