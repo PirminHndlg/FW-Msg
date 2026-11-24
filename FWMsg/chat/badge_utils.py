@@ -37,7 +37,8 @@ def broadcast_chat_message_to_room(chat_type, identifier, msg_dict):
 
     chat_type: \"direct\" or \"group\"
     identifier: full chat identifier string (same truncation as ChatConsumer.room_group)
-    msg_dict: keys id, message, user, user_id, created_at, image_url (opaque ``serve_chat_image`` URL).
+    msg_dict: keys id, message, user, user_id, created_at, image_url (opaque ``serve_chat_image`` URL),
+              attachment_type ("image" | "pdf" | None).
     """
     layer = get_channel_layer()
     if layer is None:
@@ -58,6 +59,18 @@ def broadcast_chat_edit_to_room(chat_type, identifier, message_id, new_text):
     async_to_sync(layer.group_send)(
         room_group,
         {"type": "chat_message_edited", "id": message_id, "message": new_text},
+    )
+
+
+def broadcast_chat_delete_to_room(chat_type, identifier, message_id):
+    """Broadcast a message deletion to all WebSocket clients in the room."""
+    layer = get_channel_layer()
+    if layer is None:
+        return
+    room_group = f"chat_{chat_type}_{identifier[:80]}"
+    async_to_sync(layer.group_send)(
+        room_group,
+        {"type": "chat_message_deleted", "id": message_id},
     )
 
 

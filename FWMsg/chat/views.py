@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from Global.models import Ampel2
 from Global.views import check_organization_context
 
@@ -22,13 +23,20 @@ from .ampel_access import (
 )
 
 from .badge_utils import (
+    broadcast_chat_delete_to_room,
     broadcast_chat_edit_to_room,
     broadcast_chat_message_to_room,
     broadcast_direct_message_read_if_needed,
     broadcast_unread_badge_for_user,
     get_unread_chat_message_count,
 )
-from .forms import ChatDirectForm, ChatGroupForm, SendDirectMessageForm, SendGroupMessageForm
+from .forms import (
+    ChatDirectForm,
+    ChatGroupForm,
+    SendDirectMessageForm,
+    SendGroupMessageForm,
+    validate_chat_attachment,
+)
 from .models import ChatDirect, ChatGroup, ChatMessageDirect, ChatMessageGroup
 from .tasks import notify_users_about_new_direct_chat_message, notify_users_about_new_group_chat_message
 from django.utils.translation import gettext_lazy as _
@@ -52,10 +60,12 @@ def _chat_message_payload(msg, user, viewer=None):
         "message": msg.message,
         "created_at": msg.created_at.strftime("%d.%m.%Y %H:%M"),
         "image_url": image_url,
+        "attachment_type": msg.get_attachment_type(),
         "is_edited": msg.is_edited,
     }
     if viewer is not None and viewer.is_authenticated and msg.user_id == viewer.id:
         payload["can_edit"] = msg.can_be_edited()
+        payload["can_delete"] = msg.can_be_deleted()
         if isinstance(msg, ChatMessageDirect):
             payload["is_read"] = msg.read
     ampel = getattr(msg, "answer_to_ampel", None)
@@ -66,6 +76,15 @@ def _chat_message_payload(msg, user, viewer=None):
     return payload
 
 
+def _first_unread_info(unread_qs):
+    """Template context for the "new messages" divider; call before marking as read."""
+    ids = list(unread_qs.order_by('created_at').values_list('id', flat=True))
+    return {
+        'first_unread_id': ids[0] if ids else None,
+        'unread_count': len(ids),
+    }
+
+
 def _find_existing_direct_chat(org, current_user, other_user):
     existing_chat = ChatDirect.objects.filter(org=org, users=current_user).filter(users=other_user)
     return existing_chat.first()
@@ -73,7 +92,9 @@ def _find_existing_direct_chat(org, current_user, other_user):
 
 @login_required
 def serve_chat_image(request, image_identifier):
-    """Serve a chat image by opaque UUID (members of that chat only).
+    """Serve a chat attachment (image or PDF) by opaque UUID (members of that chat only).
+
+    ``?download=1`` sends it as a download instead of inline.
 
     Uses DB lookup + stored ``ImageField.path`` — no user-controlled path segments,
     so path traversal is not possible via the URL.
@@ -105,10 +126,20 @@ def serve_chat_image(request, image_identifier):
     if not full_path.is_file():
         return HttpResponseNotFound()
 
-    content_type = (
-        mimetypes.guess_type(str(full_path))[0] or "application/octet-stream"
+    if msg.is_pdf_attachment():
+        content_type = "application/pdf"
+        ext = ".pdf"
+    else:
+        content_type = (
+            mimetypes.guess_type(str(full_path))[0] or "application/octet-stream"
+        )
+        ext = full_path.suffix.lower()
+    return FileResponse(
+        full_path.open("rb"),
+        content_type=content_type,
+        as_attachment=request.GET.get("download") == "1",
+        filename=f"chat-{image_identifier}{ext}",
     )
-    return FileResponse(full_path.open("rb"), content_type=content_type)
 
 
 @login_required
@@ -193,6 +224,7 @@ def chat_direct(request, identifier):
     chat_messages = ChatMessageDirect.objects.filter(chat=chat).select_related(
         'user', 'answer_to_ampel'
     ).order_by('created_at')
+    unread_info = _first_unread_info(chat_messages.filter(read=False).exclude(user=request.user))
     for msg in chat_messages.filter(read=False).exclude(user=request.user):
         msg.mark_as_read()
         broadcast_direct_message_read_if_needed(msg, chat)
@@ -209,6 +241,7 @@ def chat_direct(request, identifier):
     context = {
         'chat': chat,
         'chat_messages': chat_messages,
+        **unread_info,
         'form': form,
         'other_users': other_users,
         'initial_ampel': initial_ampel,
@@ -246,6 +279,9 @@ def chat_group(request, identifier):
         form = SendGroupMessageForm()
 
     chat_messages = ChatMessageGroup.objects.filter(chat=chat).order_by('created_at')
+    unread_info = _first_unread_info(
+        chat_messages.exclude(user=request.user).exclude(read_by=request.user)
+    )
     for msg in chat_messages.exclude(user=request.user):
         msg.mark_as_read_by(request.user)
     broadcast_unread_badge_for_user(request.user)
@@ -261,6 +297,7 @@ def chat_group(request, identifier):
     context = {
         'chat': chat,
         'chat_messages': chat_messages,
+        **unread_info,
         'form': form,
         'is_creator': is_creator,
         'non_members': non_members,
@@ -496,6 +533,11 @@ def send_message_direct(request, identifier):
 
     if not text and not image_file:
         return JsonResponse({"error": _('Leere Nachricht')}, status=400)
+    if image_file:
+        try:
+            validate_chat_attachment(image_file)
+        except ValidationError as e:
+            return JsonResponse({"error": e.messages[0]}, status=400)
 
     create_kw = {
         "chat": chat,
@@ -548,6 +590,11 @@ def send_message_group(request, identifier):
 
     if not text and not image_file:
         return JsonResponse({"error": _('Leere Nachricht')}, status=400)
+    if image_file:
+        try:
+            validate_chat_attachment(image_file)
+        except ValidationError as e:
+            return JsonResponse({"error": e.messages[0]}, status=400)
 
     create_kw = {
         "chat": chat,
@@ -647,6 +694,54 @@ def edit_message_group(request, identifier, message_id):
 
     broadcast_chat_edit_to_room("group", chat.get_identifier(), msg.id, msg.message)
     return JsonResponse({"ok": True, "id": msg.id, "message": msg.message})
+
+
+def _delete_message(request, chat_type, identifier, message_id):
+    chat_model, msg_model = (
+        (ChatDirect, ChatMessageDirect) if chat_type == "direct" else (ChatGroup, ChatMessageGroup)
+    )
+    try:
+        chat = chat_model.objects.get(
+            identifier=identifier, org=request.user.org, users=request.user
+        )
+    except chat_model.DoesNotExist:
+        return JsonResponse({"error": _("Chat nicht gefunden")}, status=404)
+
+    try:
+        msg = msg_model.objects.get(id=message_id, chat=chat)
+    except msg_model.DoesNotExist:
+        return JsonResponse({"error": _("Nachricht nicht gefunden")}, status=404)
+
+    if msg.user_id != request.user.id:
+        return JsonResponse({"error": _("Keine Berechtigung")}, status=403)
+
+    if not msg.can_be_deleted():
+        return JsonResponse(
+            {"error": _("Nachricht kann nicht mehr gelöscht werden")},
+            status=403,
+        )
+
+    msg_id = msg.id
+    if msg.image:
+        msg.image.delete(save=False)
+    msg.delete()
+
+    broadcast_chat_delete_to_room(chat_type, chat.get_identifier(), msg_id)
+    for recipient in chat.users.exclude(pk=request.user.pk):
+        broadcast_unread_badge_for_user(recipient)
+    return JsonResponse({"ok": True, "id": msg_id})
+
+
+@login_required
+@require_POST
+def delete_message_direct(request, identifier, message_id):
+    return _delete_message(request, "direct", identifier, message_id)
+
+
+@login_required
+@require_POST
+def delete_message_group(request, identifier, message_id):
+    return _delete_message(request, "group", identifier, message_id)
 
 
 @login_required

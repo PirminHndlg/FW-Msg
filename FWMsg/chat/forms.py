@@ -1,4 +1,5 @@
 from django import forms
+from PIL import Image
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from .models import ChatDirect, ChatGroup
@@ -43,6 +44,48 @@ class ChatGroupForm(forms.ModelForm):
         self.fields['name'].label = _('Gruppenname')
 
 
+_PIL_FORMAT_EXTS = {"JPEG": ".jpg", "PNG": ".png", "GIF": ".gif", "WEBP": ".webp"}
+CHAT_ATTACHMENT_ACCEPT = "image/jpeg,image/png,image/gif,image/webp,application/pdf,.pdf"
+
+
+def validate_chat_attachment(upload):
+    """Accept images (JPG/PNG/GIF/WEBP) and PDFs, detected by content.
+
+    Sets ``upload.name`` to an extension matching the detected type so the
+    stored file is served with the right content type. Raises ValidationError
+    for anything else.
+    """
+    error = ValidationError(_('Nur Bilder (JPG, PNG, GIF, WEBP) oder PDF-Dateien erlaubt.'))
+    upload.seek(0)
+    header = upload.read(5)
+    upload.seek(0)
+    if header == b"%PDF-":
+        upload.name = "attachment.pdf"
+        return upload
+    try:
+        with Image.open(upload) as img:
+            fmt = img.format
+            img.verify()
+    except Exception:
+        raise error
+    finally:
+        upload.seek(0)
+    ext = _PIL_FORMAT_EXTS.get(fmt)
+    if not ext:
+        raise error
+    upload.name = f"attachment{ext}"
+    return upload
+
+
+def _chat_attachment_field():
+    return forms.FileField(
+        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': CHAT_ATTACHMENT_ACCEPT}),
+        label='',
+        required=False,
+        validators=[validate_chat_attachment],
+    )
+
+
 _CHAT_MESSAGE_WIDGET_ATTRS = {
     'class': 'form-control chat-message-input',
     'placeholder': _('Nachricht schreiben…'),
@@ -52,11 +95,7 @@ _CHAT_MESSAGE_WIDGET_ATTRS = {
 
 
 class SendDirectMessageForm(forms.Form):
-    image = forms.ImageField(
-        widget=forms.FileInput(attrs={'class': 'form-control'}),
-        label='',
-        required=False,
-    )
+    image = _chat_attachment_field()
     message = forms.CharField(
         widget=forms.Textarea(attrs=_CHAT_MESSAGE_WIDGET_ATTRS),
         label='',
@@ -68,17 +107,13 @@ class SendDirectMessageForm(forms.Form):
         message = (cleaned.get('message') or '').strip()
         image = cleaned.get('image')
         if not message and not image:
-            raise ValidationError(_('Nachricht oder Bild erforderlich.'))
+            raise ValidationError(_('Nachricht oder Anhang erforderlich.'))
         cleaned['message'] = message
         return cleaned
 
 
 class SendGroupMessageForm(forms.Form):
-    image = forms.ImageField(
-        widget=forms.FileInput(attrs={'class': 'form-control'}),
-        label='',
-        required=False,
-    )
+    image = _chat_attachment_field()
     message = forms.CharField(
         widget=forms.Textarea(attrs=_CHAT_MESSAGE_WIDGET_ATTRS),
         label='',
@@ -90,6 +125,6 @@ class SendGroupMessageForm(forms.Form):
         message = (cleaned.get('message') or '').strip()
         image = cleaned.get('image')
         if not message and not image:
-            raise ValidationError(_('Nachricht oder Bild erforderlich.'))
+            raise ValidationError(_('Nachricht oder Anhang erforderlich.'))
         cleaned['message'] = message
         return cleaned

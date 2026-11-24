@@ -14,6 +14,7 @@
  * @param {string} fallbackSendUrl  - HTTP POST URL used when WS is not open
  * @param {string} fallbackPollUrl  - HTTP GET URL used to catch missed messages
  * @param {string} editBaseUrl      - HTTP POST URL prefix for editing messages (ends with /)
+ * @param {string} deleteUrlTemplate - HTTP POST URL for deleting message 0 (…/message/0/delete/)
  */
 
 var _chatImageLightboxInst = null;
@@ -110,7 +111,7 @@ function setupChatImageLightbox(chatWindow) {
     });
 }
 
-function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallbackPollUrl, editBaseUrl) {
+function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallbackPollUrl, editBaseUrl, deleteUrlTemplate) {
     const window_ = document.getElementById('chat-window');
     if (!window_) {
         return;
@@ -228,6 +229,108 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         }
     }
 
+    function removeMessageBubble(messageId) {
+        const wrapper = window_.querySelector(`[data-msg-id="${messageId}"]`);
+        if (wrapper) wrapper.remove();
+        if (editingMessageId === messageId) {
+            if (messageField) {
+                messageField.value = '';
+                autosizeChatMessageField(messageField);
+            }
+            cancelEditMode();
+        }
+    }
+
+    const deleteModalEl = document.getElementById('chatDeleteModal');
+    // bootstrap.bundle is loaded after this script, so resolve the modal lazily.
+    function getDeleteModal() {
+        return deleteModalEl && window.bootstrap ? bootstrap.Modal.getOrCreateInstance(deleteModalEl) : null;
+    }
+    const deleteConfirmBtn = document.getElementById('chat-delete-confirm-btn');
+    const deletePreview = document.getElementById('chat-delete-preview');
+    const deleteError = document.getElementById('chat-delete-error');
+    let pendingDeleteId = null;
+
+    function setDeleteBusy(busy) {
+        if (!deleteConfirmBtn) return;
+        deleteConfirmBtn.disabled = busy;
+        const spinner = deleteConfirmBtn.querySelector('.spinner-border');
+        if (spinner) spinner.classList.toggle('d-none', !busy);
+    }
+
+    function showDeleteError(text) {
+        if (!deleteError) return;
+        deleteError.textContent = text || '';
+        deleteError.classList.toggle('d-none', !text);
+    }
+
+    function fillDeletePreview(wrapper) {
+        if (!deletePreview) return;
+        const text = wrapper ? getMessageRawText(wrapper) : '';
+        const pdf = wrapper ? wrapper.querySelector('.chat-bubble-file') : null;
+        const img = wrapper ? wrapper.querySelector('img.chat-bubble-image') : null;
+
+        const textEl = document.getElementById('chat-delete-text');
+        const attachEl = document.getElementById('chat-delete-attachment');
+        const thumb = document.getElementById('chat-delete-attachment-thumb');
+        const icon = document.getElementById('chat-delete-attachment-icon');
+        const label = document.getElementById('chat-delete-attachment-label');
+
+        if (textEl) textEl.textContent = text || '';
+        if (attachEl) {
+            attachEl.classList.toggle('d-none', !pdf && !img);
+            thumb.classList.toggle('d-none', !img);
+            thumb.src = img ? img.src : '';
+            icon.classList.toggle('d-none', !pdf);
+            label.textContent = pdf
+                ? (deleteModalEl.dataset.labelPdf || 'PDF-Dokument angehängt')
+                : (deleteModalEl.dataset.labelImage || 'Bild angehängt');
+        }
+        deletePreview.classList.toggle('d-none', !text && !pdf && !img);
+    }
+
+    function deleteMessage(messageId) {
+        const deleteModal = getDeleteModal();
+        if (!deleteUrlTemplate || !deleteModal) return;
+        pendingDeleteId = messageId;
+        const wrapper = window_.querySelector(`[data-msg-id="${messageId}"]`);
+        fillDeletePreview(wrapper);
+        showDeleteError('');
+        setDeleteBusy(false);
+        deleteModal.show();
+    }
+
+    function confirmDelete() {
+        const messageId = pendingDeleteId;
+        if (!messageId) return;
+        const url = deleteUrlTemplate.replace(/\/0\/delete\/$/, '/' + messageId + '/delete/');
+        setDeleteBusy(true);
+        showDeleteError('');
+        fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrf },
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                setDeleteBusy(false);
+                if (!data.ok) {
+                    showDeleteError(data.error || 'Nachricht konnte nicht gelöscht werden.');
+                    return;
+                }
+                removeMessageBubble(messageId);
+                pendingDeleteId = null;
+                getDeleteModal().hide();
+            })
+            .catch(function () {
+                setDeleteBusy(false);
+                showDeleteError('Netzwerkfehler – bitte erneut versuchen.');
+            });
+    }
+
+    if (deleteConfirmBtn) {
+        deleteConfirmBtn.addEventListener('click', confirmDelete);
+    }
+
     function revokePreviewUrl() {
         if (previewObjectUrl) {
             URL.revokeObjectURL(previewObjectUrl);
@@ -242,6 +345,16 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
             imagePreview.innerHTML = '';
             imagePreview.style.display = 'none';
         }
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1).replace('.', ',') + ' MB';
+    }
+
+    function isPdfFile(f) {
+        return f.type === 'application/pdf' || /\.pdf$/i.test(f.name || '');
     }
 
     function hasImageSelected() {
@@ -310,7 +423,29 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         window_.scrollTop = Math.max(0, window_.scrollHeight - window_.clientHeight);
     }
 
+    // On entry, show the first unread message (below the divider) instead of the bottom.
+    // Stays anchored through late image loads until the user scrolls themselves.
+    const unreadDivider = window_.querySelector('.chat-unread-divider');
+    let anchorToUnread = !!unreadDivider;
+
+    function scrollToUnreadDivider() {
+        const offset = unreadDivider.getBoundingClientRect().top - window_.getBoundingClientRect().top;
+        window_.scrollTop = Math.max(0, window_.scrollTop + offset - 12);
+    }
+
+    function stopUnreadAnchor() {
+        anchorToUnread = false;
+    }
+
+    ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(function (evt) {
+        window_.addEventListener(evt, stopUnreadAnchor, { passive: true });
+    });
+
     function syncBottomIfPinned() {
+        if (anchorToUnread) {
+            scrollToUnreadDivider();
+            return;
+        }
         if (!userLeftChatBottom) {
             scrollToBottom();
         }
@@ -386,11 +521,36 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
                 imagePreview.style.display = 'none';
                 return;
             }
+            let previewEl;
             previewObjectUrl = URL.createObjectURL(f);
-            const img = document.createElement('img');
-            img.src = previewObjectUrl;
-            img.alt = '';
-            img.className = 'chat-image-preview-thumb';
+            if (isPdfFile(f)) {
+                // Card with icon, name and size; click opens the PDF in a new tab.
+                previewEl = document.createElement('a');
+                previewEl.href = previewObjectUrl;
+                previewEl.target = '_blank';
+                previewEl.rel = 'noopener';
+                previewEl.className = 'chat-file-preview align-top';
+                previewEl.title = 'Vorschau öffnen';
+                const icon = document.createElement('i');
+                icon.className = 'bi bi-file-earmark-pdf-fill chat-file-preview-icon';
+                const info = document.createElement('span');
+                info.className = 'chat-file-preview-info';
+                const name = document.createElement('span');
+                name.className = 'chat-file-preview-name';
+                name.textContent = f.name;
+                const meta = document.createElement('span');
+                meta.className = 'chat-file-preview-meta';
+                meta.textContent = 'PDF · ' + formatFileSize(f.size);
+                info.appendChild(name);
+                info.appendChild(meta);
+                previewEl.appendChild(icon);
+                previewEl.appendChild(info);
+            } else {
+                previewEl = document.createElement('img');
+                previewEl.src = previewObjectUrl;
+                previewEl.alt = '';
+                previewEl.className = 'chat-image-preview-thumb';
+            }
             const removeBtn = document.createElement('button');
             removeBtn.type = 'button';
             removeBtn.className = 'btn btn-sm btn-outline-secondary ms-2 align-top';
@@ -399,7 +559,7 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
             removeBtn.addEventListener('click', function () {
                 clearImageSelection();
             });
-            imagePreview.appendChild(img);
+            imagePreview.appendChild(previewEl);
             imagePreview.appendChild(removeBtn);
             imagePreview.style.display = '';
         });
@@ -449,6 +609,10 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
                     }
                     cancelEditMode();
                 }
+                return;
+            }
+            if (msg.action === 'deleted') {
+                removeMessageBubble(msg.id);
                 return;
             }
             if (msg.action === 'read') {
@@ -563,6 +727,7 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
                         if (data.error) {
                             messageField.value = savedText;
                             autosizeChatMessageField(messageField);
+                            alert(data.error);
                             return;
                         }
                         if (hadAmpelReply) {
@@ -725,7 +890,13 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
                 </div>
             </div>`;
         }
-        if (msg.image_url) {
+        if (msg.image_url && msg.attachment_type === 'pdf') {
+            const url = escapeHtml(msg.image_url);
+            html += `<div class="chat-bubble-file">
+                <a href="${url}" target="_blank" rel="noopener" class="chat-bubble-file-open"><i class="bi bi-file-earmark-pdf"></i><span>PDF-Dokument</span></a>
+                <a href="${url}?download=1" class="chat-bubble-file-download" title="Herunterladen" aria-label="Herunterladen"><i class="bi bi-download"></i></a>
+            </div>`;
+        } else if (msg.image_url) {
             html += `<img src="${escapeHtml(msg.image_url)}" alt="" class="chat-bubble-image" role="button" tabindex="0" aria-label="Bild vergrößern">`;
         }
         if (msg.message) {
@@ -742,6 +913,9 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
         if (isOwn && msg.id && msg.can_edit) {
             html += `<button type="button" class="chat-edit-btn btn btn-link btn-sm p-0 ms-1" data-msg-id="${msg.id}" title="Bearbeiten"><i class="bi bi-pencil-square"></i></button>`;
         }
+        if (isOwn && msg.id && msg.can_delete) {
+            html += `<button type="button" class="chat-delete-btn btn btn-link btn-sm p-0 ms-1" data-msg-id="${msg.id}" title="Löschen"><i class="bi bi-trash"></i></button>`;
+        }
         html += '</div>';
 
         wrapper.innerHTML = html;
@@ -752,11 +926,18 @@ function initChat(chatId, chatType, currentUserId, wsUrl, fallbackSendUrl, fallb
             wrapper.insertBefore(rawTpl, wrapper.firstChild);
         }
         window_.appendChild(wrapper);
+        anchorToUnread = false;
         userLeftChatBottom = false;
         scrollToBottom();
     }
 
     window_.addEventListener('click', function (e) {
+        const deleteBtn = e.target.closest('.chat-delete-btn');
+        if (deleteBtn) {
+            e.preventDefault();
+            deleteMessage(parseInt(deleteBtn.dataset.msgId, 10));
+            return;
+        }
         const editBtn = e.target.closest('.chat-edit-btn');
         if (!editBtn) return;
         e.preventDefault();

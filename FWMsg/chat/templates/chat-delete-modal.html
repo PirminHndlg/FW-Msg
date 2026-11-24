@@ -1,0 +1,38 @@
+{% load i18n %}
+{# ── Delete message confirmation (opened from .chat-delete-btn in chat.js) ── #}
+<div class="modal fade" id="chatDeleteModal"
+     data-label-image="{% trans 'Bild angehängt' %}"
+     data-label-pdf="{% trans 'PDF-Dokument angehängt' %}" tabindex="-1" aria-labelledby="chatDeleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-semibold" id="chatDeleteModalLabel">
+          <i class="bi bi-trash text-danger me-2"></i>{% trans "Nachricht löschen" %}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Schließen' %}"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-2">{% trans "Möchtest du diese Nachricht wirklich für alle löschen? Das kann nicht rückgängig gemacht werden." %}</p>
+        <div id="chat-delete-preview" class="chat-delete-preview d-none">
+          <div id="chat-delete-attachment" class="chat-delete-attachment d-none">
+            <img id="chat-delete-attachment-thumb" class="chat-delete-attachment-thumb d-none" alt="">
+            <i id="chat-delete-attachment-icon" class="bi bi-file-earmark-pdf-fill chat-delete-attachment-icon d-none"></i>
+            <span>
+              <span id="chat-delete-attachment-label" class="fw-semibold"></span>
+              <span class="d-block small text-muted">{% trans "Der Anhang wird ebenfalls gelöscht." %}</span>
+            </span>
+          </div>
+          <div id="chat-delete-text" class="chat-delete-text"></div>
+        </div>
+        <div id="chat-delete-error" class="alert alert-danger small mt-3 mb-0 d-none" role="alert"></div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">{% trans "Abbrechen" %}</button>
+        <button type="button" class="btn btn-danger rounded-pill px-3" id="chat-delete-confirm-btn">
+          <span class="spinner-border spinner-border-sm me-1 d-none" aria-hidden="true"></span>
+          {% trans "Löschen" %}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

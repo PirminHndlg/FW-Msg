@@ -12,19 +12,25 @@ Coverage:
 """
 
 import asyncio
+import io
 import json
+import shutil
+import tempfile
 from datetime import timedelta
+from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 from channels.layers import get_channel_layer
 from channels.testing import WebsocketCommunicator
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from FWMsg.asgi import application
+from PIL import Image
 
 from Global.models import CustomUser, PersonCluster
 from ORG.models import Organisation
@@ -768,6 +774,178 @@ class SendMessageGroupViewTest(ChatBaseTest):
 
 
 # ===========================================================================
+# Attachments: images and PDFs (upload, payload, serving)
+# ===========================================================================
+
+_PDF_BYTES = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n"
+
+
+def _png_bytes():
+    buf = io.BytesIO()
+    Image.new("RGB", (2, 2), "red").save(buf, format="PNG")
+    return buf.getvalue()
+
+
+class ChatAttachmentTest(ChatBaseTest):
+
+    def setUp(self):
+        super().setUp()
+        self._media_root = tempfile.mkdtemp()
+        self._media_override = override_settings(MEDIA_ROOT=self._media_root)
+        self._media_override.enable()
+        self.chat = make_direct_chat(self.org, self.alice, self.bob)
+        self.group = make_group_chat(self.org, "G", self.alice, self.bob)
+        self.direct_url = reverse("send_message_direct", args=[self.chat.get_identifier()])
+        self.group_url = reverse("send_message_group", args=[self.group.get_identifier()])
+
+    def tearDown(self):
+        self._media_override.disable()
+        shutil.rmtree(self._media_root, ignore_errors=True)
+        super().tearDown()
+
+    def _post_file(self, url, name, content, content_type):
+        return self.client.post(
+            url,
+            {"message": "", "image": SimpleUploadedFile(name, content, content_type=content_type)},
+        )
+
+    @patch_tasks
+    def test_direct_pdf_upload_returns_pdf_payload(self, *mocks):
+        self.login(self.alice)
+        response = self._post_file(self.direct_url, "doc.pdf", _PDF_BYTES, "application/pdf")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["attachment_type"], "pdf")
+        msg = ChatMessageDirect.objects.get(pk=data["id"])
+        self.assertTrue(msg.image.name.endswith(".pdf"))
+
+    @patch_tasks
+    def test_group_pdf_upload_returns_pdf_payload(self, *mocks):
+        self.login(self.alice)
+        response = self._post_file(self.group_url, "doc.pdf", _PDF_BYTES, "application/pdf")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["attachment_type"], "pdf")
+
+    @patch_tasks
+    def test_image_upload_returns_image_payload(self, *mocks):
+        self.login(self.alice)
+        response = self._post_file(self.direct_url, "pic.png", _png_bytes(), "image/png")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["attachment_type"], "image")
+
+    @patch_tasks
+    def test_unsupported_file_rejected(self, *mocks):
+        self.login(self.alice)
+        response = self._post_file(self.group_url, "notes.txt", b"hello", "text/plain")
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(ChatMessageGroup.objects.filter(chat=self.group).exists())
+
+    @patch_tasks
+    def test_pdf_served_inline_and_as_download_to_members(self, *mocks):
+        self.login(self.alice)
+        data = self._post_file(self.direct_url, "doc.pdf", _PDF_BYTES, "application/pdf").json()
+
+        self.login(self.bob)
+        response = self.client.get(data["image_url"])
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertTrue(response["Content-Disposition"].startswith("inline"))
+        self.assertEqual(b"".join(response.streaming_content), _PDF_BYTES)
+
+        response = self.client.get(data["image_url"] + "?download=1")
+        self.assertTrue(response["Content-Disposition"].startswith("attachment"))
+        self.assertIn(".pdf", response["Content-Disposition"])
+
+    @patch_tasks
+    def test_pdf_not_served_to_non_member(self, *mocks):
+        self.login(self.alice)
+        data = self._post_file(self.direct_url, "doc.pdf", _PDF_BYTES, "application/pdf").json()
+        self.login(self.carol)
+        self.assertEqual(self.client.get(data["image_url"]).status_code, 404)
+
+    def test_legacy_pdf_without_extension_detected(self):
+        msg = ChatMessageDirect(chat=self.chat, user=self.alice, org=self.org, message="")
+        msg.image.save("upload", SimpleUploadedFile("upload", _PDF_BYTES), save=False)
+        msg.save()
+        self.assertEqual(Path(msg.image.name).suffix, "")
+        self.assertTrue(msg.is_pdf_attachment())
+
+        self.login(self.bob)
+        response = self.client.get(msg.get_image_public_url())
+        self.assertEqual(response["Content-Type"], "application/pdf")
+
+    @patch_tasks
+    def test_chat_page_renders_pdf_links(self, *mocks):
+        self.login(self.alice)
+        data = self._post_file(self.group_url, "doc.pdf", _PDF_BYTES, "application/pdf").json()
+        response = self.client.get(reverse("chat_group", args=[self.group.get_identifier()]))
+        self.assertContains(response, 'class="chat-bubble-file"')
+        self.assertContains(response, data["image_url"] + "?download=1")
+
+
+# ===========================================================================
+# Unread divider on chat entry
+# ===========================================================================
+
+class ChatUnreadDividerTest(ChatBaseTest):
+
+    def setUp(self):
+        super().setUp()
+        self.chat = make_direct_chat(self.org, self.alice, self.bob)
+        self.group = make_group_chat(self.org, "G", self.alice, self.bob, self.carol)
+
+    def _direct(self, user, text, read=False):
+        return ChatMessageDirect.objects.create(
+            chat=self.chat, user=user, org=self.org, message=text, read=read
+        )
+
+    def _group(self, user, text, read_by=()):
+        msg = ChatMessageGroup.objects.create(chat=self.group, user=user, org=self.org, message=text)
+        for u in read_by:
+            msg.read_by.add(u)
+        return msg
+
+    def test_direct_divider_before_first_unread(self):
+        self._direct(self.bob, "alt", read=True)
+        self._direct(self.alice, "eigene")
+        first = self._direct(self.bob, "neu 1")
+        self._direct(self.bob, "neu 2")
+        self.login(self.alice)
+        response = self.client.get(reverse("chat_direct", args=[self.chat.get_identifier()]))
+        self.assertEqual(response.context["first_unread_id"], first.id)
+        self.assertEqual(response.context["unread_count"], 2)
+        self.assertContains(response, "chat-unread-divider", count=1)
+        self.assertContains(response, "2 neue Nachrichten")
+
+    def test_direct_no_divider_when_all_read_or_own(self):
+        self._direct(self.bob, "alt", read=True)
+        self._direct(self.alice, "eigene ungelesen")
+        self.login(self.alice)
+        response = self.client.get(reverse("chat_direct", args=[self.chat.get_identifier()]))
+        self.assertIsNone(response.context["first_unread_id"])
+        self.assertNotContains(response, "chat-unread-divider")
+
+    def test_divider_gone_on_second_visit(self):
+        self._direct(self.bob, "neu")
+        self.login(self.alice)
+        url = reverse("chat_direct", args=[self.chat.get_identifier()])
+        self.assertContains(self.client.get(url), "chat-unread-divider")
+        self.assertNotContains(self.client.get(url), "chat-unread-divider")
+
+    def test_group_divider_is_per_user(self):
+        self._group(self.bob, "alt", read_by=[self.bob, self.alice])
+        first_for_alice = self._group(self.bob, "neu", read_by=[self.bob])
+        self.login(self.alice)
+        response = self.client.get(reverse("chat_group", args=[self.group.get_identifier()]))
+        self.assertEqual(response.context["first_unread_id"], first_for_alice.id)
+        self.assertContains(response, "1 neue Nachricht<")
+
+        self.login(self.carol)
+        response = self.client.get(reverse("chat_group", args=[self.group.get_identifier()]))
+        self.assertEqual(response.context["unread_count"], 2)
+
+
+# ===========================================================================
 # View: ajax_chat_poll
 # ===========================================================================
 
@@ -1058,6 +1236,86 @@ class ChatEditMessageTest(ChatBaseTest):
         self.assertEqual(response.status_code, 403)
         self.group_msg.refresh_from_db()
         self.assertEqual(self.group_msg.message, "Original group")
+
+
+class ChatDeleteMessageTest(ChatBaseTest):
+
+    def setUp(self):
+        super().setUp()
+        self.chat = make_direct_chat(self.org, self.alice, self.bob)
+        self.direct_msg = ChatMessageDirect.objects.create(
+            chat=self.chat, user=self.alice, org=self.org, message="Weg damit"
+        )
+        self.direct_url = reverse(
+            "delete_message_direct", args=[self.chat.get_identifier(), self.direct_msg.id]
+        )
+        self.group = make_group_chat(self.org, "G", self.alice, self.bob)
+        self.group_msg = ChatMessageGroup.objects.create(
+            chat=self.group, user=self.alice, org=self.org, message="Weg damit"
+        )
+        self.group_url = reverse(
+            "delete_message_group", args=[self.group.get_identifier(), self.group_msg.id]
+        )
+
+    def test_delete_direct_message_success(self):
+        self.login(self.alice)
+        response = self.client.post(self.direct_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"ok": True, "id": self.direct_msg.id})
+        self.assertFalse(ChatMessageDirect.objects.filter(pk=self.direct_msg.pk).exists())
+
+    def test_delete_group_message_success(self):
+        self.login(self.alice)
+        response = self.client.post(self.group_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(ChatMessageGroup.objects.filter(pk=self.group_msg.pk).exists())
+
+    def test_delete_wrong_user_returns_403(self):
+        self.login(self.bob)
+        self.assertEqual(self.client.post(self.direct_url).status_code, 403)
+        self.assertEqual(self.client.post(self.group_url).status_code, 403)
+        self.assertTrue(ChatMessageDirect.objects.filter(pk=self.direct_msg.pk).exists())
+        self.assertTrue(ChatMessageGroup.objects.filter(pk=self.group_msg.pk).exists())
+
+    def test_delete_non_member_returns_404(self):
+        self.login(self.carol)
+        self.assertEqual(self.client.post(self.direct_url).status_code, 404)
+        self.assertEqual(self.client.post(self.group_url).status_code, 404)
+
+    def test_delete_too_old_returns_403(self):
+        too_old = timezone.now() - CHAT_MESSAGE_EDIT_WINDOW - timedelta(minutes=1)
+        ChatMessageDirect.objects.filter(pk=self.direct_msg.pk).update(created_at=too_old)
+        ChatMessageGroup.objects.filter(pk=self.group_msg.pk).update(created_at=too_old)
+        self.login(self.alice)
+        self.assertEqual(self.client.post(self.direct_url).status_code, 403)
+        self.assertEqual(self.client.post(self.group_url).status_code, 403)
+        self.assertTrue(ChatMessageDirect.objects.filter(pk=self.direct_msg.pk).exists())
+
+    def test_delete_get_not_allowed(self):
+        self.login(self.alice)
+        self.assertEqual(self.client.get(self.direct_url).status_code, 405)
+
+    def test_payload_and_page_expose_delete_only_within_window(self):
+        payload = _chat_message_payload(self.direct_msg, self.alice, viewer=self.alice)
+        self.assertTrue(payload["can_delete"])
+        self.login(self.alice)
+        page = self.client.get(reverse("chat_direct", args=[self.chat.get_identifier()]))
+        self.assertContains(page, "chat-delete-btn")
+        self.assertContains(page, 'id="chatDeleteModal"')
+        self.assertContains(page, 'id="chat-delete-attachment"')
+
+        ChatMessageDirect.objects.filter(pk=self.direct_msg.pk).update(
+            created_at=timezone.now() - CHAT_MESSAGE_EDIT_WINDOW - timedelta(minutes=1)
+        )
+        self.direct_msg.refresh_from_db()
+        payload = _chat_message_payload(self.direct_msg, self.alice, viewer=self.alice)
+        self.assertFalse(payload["can_delete"])
+        page = self.client.get(reverse("chat_direct", args=[self.chat.get_identifier()]))
+        self.assertNotContains(page, "chat-delete-btn")
+
+    def test_payload_for_other_user_omits_can_delete(self):
+        payload = _chat_message_payload(self.direct_msg, self.alice, viewer=self.bob)
+        self.assertNotIn("can_delete", payload)
 
 
 # ===========================================================================

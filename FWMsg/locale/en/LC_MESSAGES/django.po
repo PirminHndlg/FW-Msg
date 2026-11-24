@@ -5679,6 +5679,12 @@ msgstr "Write a message…"
 msgid "Nachricht oder Bild erforderlich."
 msgstr "Message or image required."
 
+msgid "Nachricht oder Anhang erforderlich."
+msgstr "Message or attachment required."
+
+msgid "Nur Bilder (JPG, PNG, GIF, WEBP) oder PDF-Dateien erlaubt."
+msgstr "Only images (JPG, PNG, GIF, WEBP) or PDF files are allowed."
+
 #: chat/templates/chat-direct.html:7 chat/templates/chat-group.html:6
 #: chat/templates/chat-list.html:5 chat/templates/chat-list.html:14
 msgid "Nachrichten"
@@ -5707,6 +5713,12 @@ msgstr "No messages yet. Write the first one!"
 #: chat/templates/chat-direct.html:110 chat/templates/chat-group.html:80
 msgid "Bild anhängen"
 msgstr "Attach image"
+
+msgid "Bild oder PDF anhängen"
+msgstr "Attach image or PDF"
+
+msgid "PDF-Dokument"
+msgstr "PDF document"
 
 #: chat/templates/chat-group.html:139
 msgid "Ersteller:in"
@@ -5886,6 +5898,34 @@ msgstr "Message not found"
 #: chat/views.py:605 chat/views.py:641
 msgid "Nachricht kann nicht mehr bearbeitet werden"
 msgstr "Message can no longer be edited"
+
+msgid "Nachricht kann nicht mehr gelöscht werden"
+msgstr "Message can no longer be deleted"
+
+msgid "Nachricht löschen"
+msgstr "Delete message"
+
+msgid "Der Anhang wird ebenfalls gelöscht."
+msgstr "The attachment will be deleted as well."
+
+msgid "Bild angehängt"
+msgstr "Image attached"
+
+msgid "PDF-Dokument angehängt"
+msgstr "PDF document attached"
+
+#, python-format
+msgid "%(counter)s neue Nachricht"
+msgid_plural "%(counter)s neue Nachrichten"
+msgstr[0] "%(counter)s new message"
+msgstr[1] "%(counter)s new messages"
+
+msgid ""
+"Möchtest du diese Nachricht wirklich für alle löschen? Das kann nicht "
+"rückgängig gemacht werden."
+msgstr ""
+"Do you really want to delete this message for everyone? This cannot be "
+"undone."
 
 #: chat/views.py:708
 msgid "Ungültiger Chat-Typ"

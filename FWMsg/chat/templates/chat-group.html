@@ -35,6 +35,11 @@
 <div class="card rounded-4" style="border: 1px solid #e9ecef; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);">
   <div id="chat-window" class="chat-window">
     {% for msg in chat_messages %}
+      {% if msg.id == first_unread_id %}
+        <div class="chat-unread-divider" role="separator">
+          <span>{% blocktrans count counter=unread_count %}{{ counter }} neue Nachricht{% plural %}{{ counter }} neue Nachrichten{% endblocktrans %}</span>
+        </div>
+      {% endif %}
       <div class="d-flex flex-column {% if msg.user == request.user %}align-items-end{% else %}align-items-start{% endif %}" data-msg-id="{{ msg.id }}">
         {% if msg.user == request.user %}
         <template class="chat-msg-raw-text">{{ msg.message }}</template>
@@ -44,10 +49,7 @@
               <small class="text-muted">{{ msg.user.get_full_name|default:msg.user.username }}</small>
               <br>
             {% endif %}
-          {% if msg.image and msg.image_identifier %}
-            <img src="{{ msg.get_image_public_url }}" class="chat-bubble-image" alt=""
-                 role="button" tabindex="0" aria-label="{% trans 'Bild vergrößern' %}">
-          {% endif %}
+          {% include "chat-attachment.html" %}
           {% if msg.message %}
             <p>{{ msg.message|format_text_with_link }}</p>
           {% endif %}
@@ -60,6 +62,11 @@
           {% if msg.user == request.user and msg.can_be_edited %}
             <button type="button" class="chat-edit-btn btn btn-link p-0 ms-1" data-msg-id="{{ msg.id }}" title="{% trans 'Bearbeiten' %}">
               <i class="bi bi-pencil-square"></i>
+            </button>
+          {% endif %}
+          {% if msg.user == request.user and msg.can_be_deleted %}
+            <button type="button" class="chat-delete-btn btn btn-link p-0 ms-1" data-msg-id="{{ msg.id }}" title="{% trans 'Löschen' %}">
+              <i class="bi bi-trash"></i>
             </button>
           {% endif %}
         </div>
@@ -77,10 +84,10 @@
   <div class="chat-input-bar">
     <form id="chat-form" class="d-flex gap-2 align-items-end" enctype="multipart/form-data" without_spinner="true">
       {% csrf_token %}
-      <button type="button" id="image-attach-btn" class="btn btn-outline-secondary rounded-pill px-3" title="{% trans 'Bild anhängen' %}">
+      <button type="button" id="image-attach-btn" class="btn btn-outline-secondary rounded-pill px-3" title="{% trans 'Bild oder PDF anhängen' %}">
         <i class="bi bi-paperclip"></i>
       </button>
-      <input type="file" id="image-input" name="image" accept="image/*" class="visually-hidden" tabindex="-1">
+      <input type="file" id="image-input" name="image" accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.pdf" class="visually-hidden" tabindex="-1">
       {{ form.message }}
       <button type="submit" class="btn btn-primary rounded-pill px-3">
         <i class="bi bi-send"></i>
@@ -345,6 +352,8 @@
 })();
 </script>
 
+{% include "chat-delete-modal.html" %}
+
 <script src="{% static 'js/chat.js' %}"></script>
 <script>
   const wsUrl = (location.protocol === 'https:' ? 'wss' : 'ws')
@@ -358,7 +367,8 @@
     wsUrl,
     '{% url "send_message_group" chat.get_identifier %}',
     '{% url "ajax_chat_updates" "group" chat.get_identifier %}',
-    '{% url "edit_message_group" chat.get_identifier 0 %}'.replace(/\/0\/$/, '/')
+    '{% url "edit_message_group" chat.get_identifier 0 %}'.replace(/\/0\/$/, '/'),
+    '{% url "delete_message_group" chat.get_identifier 0 %}'
   );
 </script>
 {% endblock %}
