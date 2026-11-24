@@ -12,19 +12,25 @@ Coverage:
 """
 
 import asyncio
+import io
 import json
+import shutil
+import tempfile
 from datetime import timedelta
+from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 from channels.layers import get_channel_layer
 from channels.testing import WebsocketCommunicator
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from FWMsg.asgi import application
+from PIL import Image
 
 from Global.models import CustomUser, PersonCluster
 from ORG.models import Organisation
@@ -765,6 +771,116 @@ class SendMessageGroupViewTest(ChatBaseTest):
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 404)
+
+
+# ===========================================================================
+# Attachments: images and PDFs (upload, payload, serving)
+# ===========================================================================
+
+_PDF_BYTES = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n"
+
+
+def _png_bytes():
+    buf = io.BytesIO()
+    Image.new("RGB", (2, 2), "red").save(buf, format="PNG")
+    return buf.getvalue()
+
+
+class ChatAttachmentTest(ChatBaseTest):
+
+    def setUp(self):
+        super().setUp()
+        self._media_root = tempfile.mkdtemp()
+        self._media_override = override_settings(MEDIA_ROOT=self._media_root)
+        self._media_override.enable()
+        self.chat = make_direct_chat(self.org, self.alice, self.bob)
+        self.group = make_group_chat(self.org, "G", self.alice, self.bob)
+        self.direct_url = reverse("send_message_direct", args=[self.chat.get_identifier()])
+        self.group_url = reverse("send_message_group", args=[self.group.get_identifier()])
+
+    def tearDown(self):
+        self._media_override.disable()
+        shutil.rmtree(self._media_root, ignore_errors=True)
+        super().tearDown()
+
+    def _post_file(self, url, name, content, content_type):
+        return self.client.post(
+            url,
+            {"message": "", "image": SimpleUploadedFile(name, content, content_type=content_type)},
+        )
+
+    @patch_tasks
+    def test_direct_pdf_upload_returns_pdf_payload(self, *mocks):
+        self.login(self.alice)
+        response = self._post_file(self.direct_url, "doc.pdf", _PDF_BYTES, "application/pdf")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["attachment_type"], "pdf")
+        msg = ChatMessageDirect.objects.get(pk=data["id"])
+        self.assertTrue(msg.image.name.endswith(".pdf"))
+
+    @patch_tasks
+    def test_group_pdf_upload_returns_pdf_payload(self, *mocks):
+        self.login(self.alice)
+        response = self._post_file(self.group_url, "doc.pdf", _PDF_BYTES, "application/pdf")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["attachment_type"], "pdf")
+
+    @patch_tasks
+    def test_image_upload_returns_image_payload(self, *mocks):
+        self.login(self.alice)
+        response = self._post_file(self.direct_url, "pic.png", _png_bytes(), "image/png")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["attachment_type"], "image")
+
+    @patch_tasks
+    def test_unsupported_file_rejected(self, *mocks):
+        self.login(self.alice)
+        response = self._post_file(self.group_url, "notes.txt", b"hello", "text/plain")
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(ChatMessageGroup.objects.filter(chat=self.group).exists())
+
+    @patch_tasks
+    def test_pdf_served_inline_and_as_download_to_members(self, *mocks):
+        self.login(self.alice)
+        data = self._post_file(self.direct_url, "doc.pdf", _PDF_BYTES, "application/pdf").json()
+
+        self.login(self.bob)
+        response = self.client.get(data["image_url"])
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertTrue(response["Content-Disposition"].startswith("inline"))
+        self.assertEqual(b"".join(response.streaming_content), _PDF_BYTES)
+
+        response = self.client.get(data["image_url"] + "?download=1")
+        self.assertTrue(response["Content-Disposition"].startswith("attachment"))
+        self.assertIn(".pdf", response["Content-Disposition"])
+
+    @patch_tasks
+    def test_pdf_not_served_to_non_member(self, *mocks):
+        self.login(self.alice)
+        data = self._post_file(self.direct_url, "doc.pdf", _PDF_BYTES, "application/pdf").json()
+        self.login(self.carol)
+        self.assertEqual(self.client.get(data["image_url"]).status_code, 404)
+
+    def test_legacy_pdf_without_extension_detected(self):
+        msg = ChatMessageDirect(chat=self.chat, user=self.alice, org=self.org, message="")
+        msg.image.save("upload", SimpleUploadedFile("upload", _PDF_BYTES), save=False)
+        msg.save()
+        self.assertEqual(Path(msg.image.name).suffix, "")
+        self.assertTrue(msg.is_pdf_attachment())
+
+        self.login(self.bob)
+        response = self.client.get(msg.get_image_public_url())
+        self.assertEqual(response["Content-Type"], "application/pdf")
+
+    @patch_tasks
+    def test_chat_page_renders_pdf_links(self, *mocks):
+        self.login(self.alice)
+        data = self._post_file(self.group_url, "doc.pdf", _PDF_BYTES, "application/pdf").json()
+        response = self.client.get(reverse("chat_group", args=[self.group.get_identifier()]))
+        self.assertContains(response, 'class="chat-bubble-file"')
+        self.assertContains(response, data["image_url"] + "?download=1")
 
 
 # ===========================================================================

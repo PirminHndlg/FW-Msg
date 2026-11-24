@@ -5679,6 +5679,12 @@ msgstr "Write a message…"
 msgid "Nachricht oder Bild erforderlich."
 msgstr "Message or image required."
 
+msgid "Nachricht oder Anhang erforderlich."
+msgstr "Message or attachment required."
+
+msgid "Nur Bilder (JPG, PNG, GIF, WEBP) oder PDF-Dateien erlaubt."
+msgstr "Only images (JPG, PNG, GIF, WEBP) or PDF files are allowed."
+
 #: chat/templates/chat-direct.html:7 chat/templates/chat-group.html:6
 #: chat/templates/chat-list.html:5 chat/templates/chat-list.html:14
 msgid "Nachrichten"
@@ -5707,6 +5713,12 @@ msgstr "No messages yet. Write the first one!"
 #: chat/templates/chat-direct.html:110 chat/templates/chat-group.html:80
 msgid "Bild anhängen"
 msgstr "Attach image"
+
+msgid "Bild oder PDF anhängen"
+msgstr "Attach image or PDF"
+
+msgid "PDF-Dokument"
+msgstr "PDF document"
 
 #: chat/templates/chat-group.html:139
 msgid "Ersteller:in"

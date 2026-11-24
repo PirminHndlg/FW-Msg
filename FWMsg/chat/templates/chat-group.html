@@ -44,10 +44,7 @@
               <small class="text-muted">{{ msg.user.get_full_name|default:msg.user.username }}</small>
               <br>
             {% endif %}
-          {% if msg.image and msg.image_identifier %}
-            <img src="{{ msg.get_image_public_url }}" class="chat-bubble-image" alt=""
-                 role="button" tabindex="0" aria-label="{% trans 'Bild vergrößern' %}">
-          {% endif %}
+          {% include "chat-attachment.html" %}
           {% if msg.message %}
             <p>{{ msg.message|format_text_with_link }}</p>
           {% endif %}
@@ -77,10 +74,10 @@
   <div class="chat-input-bar">
     <form id="chat-form" class="d-flex gap-2 align-items-end" enctype="multipart/form-data" without_spinner="true">
       {% csrf_token %}
-      <button type="button" id="image-attach-btn" class="btn btn-outline-secondary rounded-pill px-3" title="{% trans 'Bild anhängen' %}">
+      <button type="button" id="image-attach-btn" class="btn btn-outline-secondary rounded-pill px-3" title="{% trans 'Bild oder PDF anhängen' %}">
         <i class="bi bi-paperclip"></i>
       </button>
-      <input type="file" id="image-input" name="image" accept="image/*" class="visually-hidden" tabindex="-1">
+      <input type="file" id="image-input" name="image" accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.pdf" class="visually-hidden" tabindex="-1">
       {{ form.message }}
       <button type="submit" class="btn btn-primary rounded-pill px-3">
         <i class="bi bi-send"></i>

@@ -126,6 +126,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "user_id":    event["user_id"],
             "created_at": event["created_at"],
             "image_url":  event.get("image_url"),
+            "attachment_type": event.get("attachment_type"),
         }
         if event.get("ampel") and user_can_view_ampel_by_owner(
             self.user,
@@ -287,6 +288,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "user_id": self.user.id,
             "created_at": msg.created_at.strftime("%d.%m.%Y %H:%M"),
             "image_url": image_url,
+            "attachment_type": msg.get_attachment_type(),
             "can_edit": msg.can_be_edited(),
         }
         if self.chat_type == "direct":

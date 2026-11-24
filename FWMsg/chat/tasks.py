@@ -11,8 +11,9 @@ from Global.send_email import (
     user_display_name,
 )
 
-# Short badge for push when the chat row has an image (no inline image).
+# Short badge for push when the chat row has an attachment (no inline content).
 _IMAGE_NOTE_PLAIN = "📷 Bild"
+_PDF_NOTE_PLAIN = "📄 PDF"
 
 
 def _message_has_image(msg):
@@ -22,10 +23,11 @@ def _message_has_image(msg):
 def _chat_push_body(sender_user: User, msg) -> str:
     text = (msg.message or "").strip()
     has_img = _message_has_image(msg)
+    note = _PDF_NOTE_PLAIN if has_img and msg.is_pdf_attachment() else _IMAGE_NOTE_PLAIN
     if has_img and text:
-        return f"💬 {sender_user}: {text} · {_IMAGE_NOTE_PLAIN}"
+        return f"💬 {sender_user}: {text} · {note}"
     if has_img:
-        return f"💬 {sender_user}: {_IMAGE_NOTE_PLAIN}"
+        return f"💬 {sender_user}: {note}"
     return f"💬 {sender_user}: {text}"
 
 

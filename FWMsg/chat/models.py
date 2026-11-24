@@ -10,13 +10,15 @@ from simple_history.models import HistoricalRecords
 from Global.models import get_random_hash
 from Global.models import Ampel2
 _CHAT_IMAGE_EXTS = frozenset({".jpg", ".jpeg", ".png", ".gif", ".webp"})
+_CHAT_ATTACHMENT_EXTS = _CHAT_IMAGE_EXTS | {".pdf"}
+_PDF_MAGIC = b"%PDF-"
 CHAT_MESSAGE_EDIT_WINDOW = timedelta(hours=3)
 
 
 def chat_message_image_upload_to(instance, filename):
     """Store files as ``chat_images/<uuid>.<ext>``; sets ``image_identifier`` when missing."""
     ext = Path(filename).suffix.lower()
-    if ext not in _CHAT_IMAGE_EXTS:
+    if ext not in _CHAT_ATTACHMENT_EXTS:
         ext = ""
     if instance.image_identifier is None:
         instance.image_identifier = uuid.uuid4()
@@ -36,8 +38,31 @@ def _normalize_chat_message_text(text):
     return text.replace('\r\n', '\n').replace('\r', '\n')
 
 
+def chat_attachment_is_pdf(fieldfile):
+    """True if the stored attachment is a PDF.
+
+    Uses the file extension; legacy uploads stored without extension are
+    sniffed via the PDF magic bytes.
+    """
+    if not fieldfile or not fieldfile.name:
+        return False
+    ext = Path(fieldfile.name).suffix.lower()
+    if ext == ".pdf":
+        return True
+    if ext:
+        return False
+    try:
+        with fieldfile.storage.open(fieldfile.name, "rb") as fh:
+            return fh.read(len(_PDF_MAGIC)) == _PDF_MAGIC
+    except (OSError, ValueError):
+        return False
+
+
 class ChatMessageImageUrlMixin:
-    """Opaque image URLs (UUID); never expose storage paths to clients."""
+    """Opaque attachment URLs (UUID); never expose storage paths to clients.
+
+    The ``image`` field holds either an image or a PDF attachment.
+    """
 
     def get_image_public_url(self):
         from django.urls import reverse
@@ -52,6 +77,23 @@ class ChatMessageImageUrlMixin:
             "serve_chat_image",
             kwargs={"image_identifier": self.image_identifier},
         )
+
+    def get_attachment_type(self):
+        """``"pdf"``, ``"image"`` or ``None`` (no attachment)."""
+        if not getattr(self, "image", None) or not self.image.name:
+            return None
+        cached = getattr(self, "_attachment_type_cache", None)
+        if cached is None or cached[0] != self.image.name:
+            kind = "pdf" if chat_attachment_is_pdf(self.image) else "image"
+            self._attachment_type_cache = (self.image.name, kind)
+        return self._attachment_type_cache[1]
+
+    def is_pdf_attachment(self):
+        return self.get_attachment_type() == "pdf"
+
+    def get_attachment_download_url(self):
+        url = self.get_image_public_url()
+        return f"{url}?download=1" if url else None
 
     def can_be_edited(self):
         """Return True if the message is still within the edit time window."""

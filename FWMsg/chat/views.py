@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from Global.models import Ampel2
 from Global.views import check_organization_context
 
@@ -28,7 +29,13 @@ from .badge_utils import (
     broadcast_unread_badge_for_user,
     get_unread_chat_message_count,
 )
-from .forms import ChatDirectForm, ChatGroupForm, SendDirectMessageForm, SendGroupMessageForm
+from .forms import (
+    ChatDirectForm,
+    ChatGroupForm,
+    SendDirectMessageForm,
+    SendGroupMessageForm,
+    validate_chat_attachment,
+)
 from .models import ChatDirect, ChatGroup, ChatMessageDirect, ChatMessageGroup
 from .tasks import notify_users_about_new_direct_chat_message, notify_users_about_new_group_chat_message
 from django.utils.translation import gettext_lazy as _
@@ -52,6 +59,7 @@ def _chat_message_payload(msg, user, viewer=None):
         "message": msg.message,
         "created_at": msg.created_at.strftime("%d.%m.%Y %H:%M"),
         "image_url": image_url,
+        "attachment_type": msg.get_attachment_type(),
         "is_edited": msg.is_edited,
     }
     if viewer is not None and viewer.is_authenticated and msg.user_id == viewer.id:
@@ -73,7 +81,9 @@ def _find_existing_direct_chat(org, current_user, other_user):
 
 @login_required
 def serve_chat_image(request, image_identifier):
-    """Serve a chat image by opaque UUID (members of that chat only).
+    """Serve a chat attachment (image or PDF) by opaque UUID (members of that chat only).
+
+    ``?download=1`` sends it as a download instead of inline.
 
     Uses DB lookup + stored ``ImageField.path`` — no user-controlled path segments,
     so path traversal is not possible via the URL.
@@ -105,10 +115,20 @@ def serve_chat_image(request, image_identifier):
     if not full_path.is_file():
         return HttpResponseNotFound()
 
-    content_type = (
-        mimetypes.guess_type(str(full_path))[0] or "application/octet-stream"
+    if msg.is_pdf_attachment():
+        content_type = "application/pdf"
+        ext = ".pdf"
+    else:
+        content_type = (
+            mimetypes.guess_type(str(full_path))[0] or "application/octet-stream"
+        )
+        ext = full_path.suffix.lower()
+    return FileResponse(
+        full_path.open("rb"),
+        content_type=content_type,
+        as_attachment=request.GET.get("download") == "1",
+        filename=f"chat-{image_identifier}{ext}",
     )
-    return FileResponse(full_path.open("rb"), content_type=content_type)
 
 
 @login_required
@@ -496,6 +516,11 @@ def send_message_direct(request, identifier):
 
     if not text and not image_file:
         return JsonResponse({"error": _('Leere Nachricht')}, status=400)
+    if image_file:
+        try:
+            validate_chat_attachment(image_file)
+        except ValidationError as e:
+            return JsonResponse({"error": e.messages[0]}, status=400)
 
     create_kw = {
         "chat": chat,
@@ -548,6 +573,11 @@ def send_message_group(request, identifier):
 
     if not text and not image_file:
         return JsonResponse({"error": _('Leere Nachricht')}, status=400)
+    if image_file:
+        try:
+            validate_chat_attachment(image_file)
+        except ValidationError as e:
+            return JsonResponse({"error": e.messages[0]}, status=400)
 
     create_kw = {
         "chat": chat,

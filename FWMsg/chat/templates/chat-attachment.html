@@ -1,0 +1,17 @@
+{% load i18n %}
+{% if msg.image and msg.image_identifier %}
+  {% if msg.is_pdf_attachment %}
+    <div class="chat-bubble-file">
+      <a href="{{ msg.get_image_public_url }}" target="_blank" rel="noopener" class="chat-bubble-file-open">
+        <i class="bi bi-file-earmark-pdf"></i>
+        <span>{% trans "PDF-Dokument" %}</span>
+      </a>
+      <a href="{{ msg.get_attachment_download_url }}" class="chat-bubble-file-download" title="{% trans 'Herunterladen' %}" aria-label="{% trans 'Herunterladen' %}">
+        <i class="bi bi-download"></i>
+      </a>
+    </div>
+  {% else %}
+    <img src="{{ msg.get_image_public_url }}" class="chat-bubble-image" alt=""
+         role="button" tabindex="0" aria-label="{% trans 'Bild vergrößern' %}">
+  {% endif %}
+{% endif %}

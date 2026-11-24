@@ -228,6 +228,92 @@
     border-radius: 0.5rem;
 }
 
+/* PDF attachment in a bubble: open inline + download */
+.chat-bubble-file {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.65rem;
+    margin-bottom: 0.35rem;
+    border-radius: 0.6rem;
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.bubble-own .chat-bubble-file {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.chat-bubble-file a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.chat-bubble-file-open {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.chat-bubble-file-open .bi {
+    font-size: 1.5rem;
+}
+
+.chat-bubble-file-open:hover span,
+.chat-bubble-file-open:focus-visible span {
+    text-decoration: underline;
+}
+
+.chat-bubble-file-download {
+    font-size: 1.15rem;
+    padding: 0 0.25rem;
+}
+
+.chat-file-preview {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.85rem 0.5rem 0.6rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.6rem;
+    background: #f8f9fa;
+    color: #212529;
+    text-decoration: none;
+    max-width: min(320px, 80%);
+}
+
+.chat-file-preview:hover,
+.chat-file-preview:focus-visible {
+    background: #e9ecef;
+    color: #212529;
+}
+
+.chat-file-preview-icon {
+    font-size: 2rem;
+    color: #dc3545;
+    flex: 0 0 auto;
+}
+
+.chat-file-preview-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.25;
+}
+
+.chat-file-preview-name {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chat-file-preview-meta {
+    font-size: 0.78rem;
+    color: #6c757d;
+}
+
 /* Ampel reply quote (response to Ampelmeldung) */
 .ampel-dot {
     border: 1px solid #ddd;

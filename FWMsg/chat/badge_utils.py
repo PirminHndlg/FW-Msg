@@ -37,7 +37,8 @@ def broadcast_chat_message_to_room(chat_type, identifier, msg_dict):
 
     chat_type: \"direct\" or \"group\"
     identifier: full chat identifier string (same truncation as ChatConsumer.room_group)
-    msg_dict: keys id, message, user, user_id, created_at, image_url (opaque ``serve_chat_image`` URL).
+    msg_dict: keys id, message, user, user_id, created_at, image_url (opaque ``serve_chat_image`` URL),
+              attachment_type ("image" | "pdf" | None).
     """
     layer = get_channel_layer()
     if layer is None:
